@@ -45,7 +45,7 @@ FLcolnames <- function(x){
 }
 
 FLPrimaryKey <- function(x){
-  path = "PrimaryKey.sql"
+  path = "../SQL/PrimaryKey.sql"
   stopifnot(file.exists(path));
   SQLStr <- readChar(path, nchar = file.info(path)$size);
   SQLStr <- sprintf(SQLStr, x[["TableName"]], x[["DBName"]]);
@@ -70,7 +70,7 @@ FLDataPrep <- function( x,
   DeepTableName <- paste(x[["TableName"]],"Deep",sep="");
   ExcludeString <- paste(Exclude, collapse=", ")
   ClassSpecString <- list.to.string(ClassSpec)
-  path <- "WideToDeep.sql";
+  path <- "../SQL/WideToDeep.sql";
   stopifnot(file.exists(path));
   sql <- readChar(path, nchar = file.info(path)$size);
   sql <- sprintf(sql, x[["TableName"]], PrimaryKey, DeepTableName, ExcludeString, ClassSpecString, WhereClause);
