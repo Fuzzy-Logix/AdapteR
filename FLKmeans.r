@@ -54,6 +54,7 @@ FLKMeans <- function(TableName, ObsIDColName, VarIDColName, ValueColName, WhereC
 	SQLStr <- paste("CALL FLKMeans('", TableName, "',", "'", ObsIDColName, "',", "'", VarIDColName, "',", "'", ValueColName, "','", WhereClause, "','", toString(Clusters), "','", toString(Iterations),"','", toString(Hypothesis),"',", "'", Note, "',",  "AnalysisID)", sep="")
 	#run KMeans
     KMeansRes <- sqlQuery(DBConnection, SQLStr);
+    
 	
 	#Getting AnalysisID, problems with concurrent acceses ? 
 	AnalysisID <- sqlQuery(DBConnection, "SELECT TOP 1 AnalysisID FROM fzzlKMeansInfo ORDER BY RunStartTime DESC");
@@ -65,6 +66,6 @@ FLKMeans <- function(TableName, ObsIDColName, VarIDColName, ValueColName, WhereC
 	SQLStr <- paste("SELECT HypothesisID,ObsID,ClusterID FROM fzzlKMeansClusterID WHERE AnalysisID = '", AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
 	KMeansClusterID <- sqlQuery(DBConnection, SQLStr);
 	
-	RetData = list(AnalysisID = AnalysisID, Dendrogram = KMeansDendrogram, ClusterID = KMeansClusterID);
+	RetData = list(KMeansRes = KMeansRes, AnalysisID = AnalysisID, Dendrogram = KMeansDendrogram, ClusterID = KMeansClusterID);
 	return(RetData);
 }
