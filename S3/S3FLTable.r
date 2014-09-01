@@ -14,6 +14,12 @@ select.ten <- function(x){
 	Res
 }
 
+select.all <- function(x){
+  SQLStr <- paste("SELECT * FROM ", x[["TableName"]], sep='');
+  Res <- sqlQuery(x[["connection"]], SQLStr);
+  Res
+}
+
 FLTable <- function(DSN,DBName,TableName) {
 
   if (!is.character(DSN)) 		
