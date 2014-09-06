@@ -69,17 +69,32 @@ FLClose <- function(x){
 
 FLDataPrep <- function( x,
 												PrimaryKey=FLPrimaryKey(x),
+												DepCol,
+												CatToDummy = 1,
+												PerformNorm = 0,
+												PerformVarReduc = 0,
+												MakeDataSparse = 0,
+												MinStdDev = 0,
+												MaxCorrel = 0,
+												TrainOrTest = 0,
 												Include=setdiff(FLcolnames(x),FLPrimaryKey(x)),
 												Exclude=c(),
 												ClassSpec=list(),
-												WhereClause=''){
+												WhereClause='',
+												InAnalysisId = "NULL"){
 	DeepTableName <- paste(x[["TableName"]],"Deep",sep="");
 	ExcludeString <- paste(Exclude, collapse=", ")
 	ClassSpecString <- list.to.string(ClassSpec)
-	path <- "../SQL/WideToDeep.sql";
+	CatToDummy <- toString(CatToDummy)
+	PerformNorm <- toString(PerformNorm)
+	PerformVarReduc <- toString(PerformVarReduc)
+	MakeDataSparse <- toString(MakeDataSparse)
+	MinStdDev <- toString(MinStdDev)
+	TrainOrTest <- toString(TrainOrTest)	
+	path <- "../SQL/RegrDataPrep.sql";
 	stopifnot(file.exists(path));
 	sql <- readChar(path, nchar = file.info(path)$size);
-	sql <- sprintf(sql, x[["TableName"]], PrimaryKey, DeepTableName, ExcludeString, ClassSpecString, WhereClause);
+	sql <- sprintf(sql, x[["TableName"]], PrimaryKey, DepCol, DeepTableName, CatToDummy, PerformNorm, PerformVarReduc, MakeDataSparse, MinStdDev, MaxCorrel, TrainOrTest, ExcludeString, ClassSpecString, WhereClause, InAnalysisId);
 	sql <- gsub("[\r\n]", "", sql);
 	print(sql);
 	sqlQuery(x[["connection"]],paste("DROP TABLE",DeepTableName));
