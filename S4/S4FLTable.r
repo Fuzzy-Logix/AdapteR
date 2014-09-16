@@ -4,9 +4,9 @@
 # @param  {character} DBName    		  [description]
 # @param  {character} TableName 		  [description]
 #
- 
+setOldClass("RODBC") 
 setClass("FLTable", 
-		slots = list(	ODBCConnection = "integer", 
+		slots = list(	ODBCConnection = "RODBC", 
 						DBName        = "character", 
 						TableName     = "character"))
 
