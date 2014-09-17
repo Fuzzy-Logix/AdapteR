@@ -1,6 +1,6 @@
 #
 # Fuzzy Logix Table Object
-# @param  {RODBC}     ODBCConnection	[description]
+# @param  {RODBC}     Connection		  [description]
 # @param  {character} DBName    		  [description]
 # @param  {character} TableName 		  [description]
 #
