@@ -1,5 +1,5 @@
 rm(list=ls())
-source("S3FLTable.r")
+source("S4FLTable.r")
 source("FLDecisionTree.r")
 
 #Prep Demo
@@ -9,6 +9,6 @@ source("FLDecisionTree.r")
 
 #DecisionTree Demo
 
-Tbl2 <- FLTable(DSN="Gandalf",DBName="FL_TRAIN",TableName="tblDTData")
+Tbl2 <- FLTable(Connection="Gandalf",DBName="FL_TRAIN",TableName="tblDTData")
 Tbl2[["DeepTableName"]] = "tblDTData"
 res <- FLDecisionTree(Tbl2, NumOfSplits = 100, MaxLevel = 4, PurityThreshold = 0.8)
