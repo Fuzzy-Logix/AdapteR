@@ -36,6 +36,8 @@ FLKMeans <- function( 	x,
 	
 	#run KMeans
 	KMeansRes        <- sqlQuery(DBConnection, SQLStr);
+	KMeansRes
+	str(KMeansRes)
 	AnalysisID       <- toString(KMeansRes$ANALYSISID);
 
 	RetData = new("FLKMeans",AnalysisID = AnalysisID, ODBCConnection = DBConnection);

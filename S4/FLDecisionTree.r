@@ -1,5 +1,5 @@
 FLDecisionTree <- function( 	x,
-                  		NumOfSplits,
+                  		MinObsforParent,
 						MaxLevel, 
 						PurityThreshold,
 						Note     = "From RWrapper For DBLytix",
@@ -9,7 +9,7 @@ FLDecisionTree <- function( 	x,
 
 	ObsIDColName  <- "ObsID";
 	VarIDColName  <- "VarID";
-	ValueColName  <- "Val";
+	ValueColName  <- "Num_Val";
 	
 	DBConnection  <- x@ODBCConnection;
 	DeepTableName <- x@TableName
@@ -19,16 +19,17 @@ FLDecisionTree <- function( 	x,
 							ObsIDColName,  
 							VarIDColName, 
 							ValueColName, 
-							toString(NumOfSplits),  
+							toString(MinObsforParent),  
 							toString(MaxLevel), 
 							toString(PurityThreshold),
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"')", sep="")
 	print(SQLStr)
-	
+		
 	#run FLDecisionTree
 	DecisionTreeRes  <- sqlQuery(DBConnection, SQLStr);
-	AnalysisID       <- toString(DecisionTreeRes[[1,"AnalysisID"]]);
+	AnalysisID <- toString(DecisionTreeRes[[1,"ANALYSISID"]]);
+	
 
 	RetData = new("FLDecisionTree",AnalysisID = AnalysisID, ODBCConnection = DBConnection);
 	

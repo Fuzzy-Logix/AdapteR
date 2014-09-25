@@ -1,14 +1,20 @@
 rm(list=ls())
-source("S4FLTable.r")
-source("FLDecisionTree.r")
+setwd("D:/R wrappers/RWrappers/trunk")
 
-#Prep Demo
+# include
+source("S4//S4FLTable.r")
+source("S4//FLDataPrep.r")
+source("S4//FLDecisionTree.r")
+source("S4//utilities.r")
+source("S4//results.r")
 
-#Tbl <- FLTable(DSN="Gandalf",DBName="FL_TRAIN",TableName="tblAbaloneWideTest")
-#TblPrep <- FLDataPrep(Tbl,DepCol = c("MPG"), Exclude=c("CarNum"),ClassSpec=list(CarName="BMW"))
+library(RODBC)
+DBConnect <- odbcConnect("Gandalf")
 
-#DecisionTree Demo
+# Create FLTable object
+Tbl2 <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblDecisionTreeMulti")
+res2 <- FLDecisionTree(Tbl2, MinObsforParent = 10, MaxLevel = 5, PurityThreshold = 0.95)
 
-Tbl2 <- FLTable(Connection="Gandalf",DBName="FL_TRAIN",TableName="tblDTData")
-Tbl2[["DeepTableName"]] = "tblDTData"
-res <- FLDecisionTree(Tbl2, NumOfSplits = 100, MaxLevel = 4, PurityThreshold = 0.8)
+#  Display result
+res2 <- fetch.results(res2)
+res2 

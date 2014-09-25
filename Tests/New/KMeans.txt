@@ -47,5 +47,36 @@ source("S4//results.r")
 library(RODBC)
 DBConnect <- odbcConnect("Gandalf")
 
+# Create FLTable object
 Tbl <-  FLTable(DBConnect, DBName = "FL_TRAIN", TableName = "fzzlKMeansDemo")
-res <- FLKMeans(Tbl, 2, iter.max = 20, nstart = 2, PrimaryKey = "ID")
+
+
+
+#  BEGIN: POSITIVE TEST(s)
+
+#  Test with normal and extreme values
+
+#  Case 1a:
+#  Perform KMeans with non-sparse data
+res <- FLKMeans(Tbl, 2, iter.max = 20, nstart = 2, PrimaryKey = "ID", WhereClause = NULL)
+#  Result: standard outputs
+
+#  Display result
+res <- fetch.results(res)
+res 
+
+#  Clear result
+rm(res)
+
+#  Case 1b:
+#  Perform KMeans with non-sparse data
+res <- FLKMeans(Tbl, 2, iter.max = 20, nstart = 2, PrimaryKey = "ID", WhereClause = "Num_Val <> 0")
+#  Result: standard outputs
+
+#  Display result
+res <- fetch.results(res)
+res 
+
+#  Clear result
+rm(res)
+

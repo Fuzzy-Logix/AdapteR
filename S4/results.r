@@ -36,7 +36,8 @@ setMethod("fetch.results",
 setClass("FLDecisionTree", 
 		slots = list(	ODBCConnection = "RODBC",
 						AnalysisID     = "character", 
-						decision_tree  = "data.frame"))
+						dt.node.info  = "data.frame",
+						dt.obs.classification = "data.frame"))
 						
 # fetch_results method for FLDecisionTree
 setMethod("fetch.results",
@@ -44,9 +45,12 @@ setMethod("fetch.results",
           function(object) {
       DBConnection <- object@ODBCConnection;            
       #Fetch Decision Tree Analysis Result Table
-			SQLStr <- paste("SELECT NodeID,SplitVarID,SplitVal,ParentNodeID,ChildType,Lvl,IsLeaf,ClassValue,NodeSize,EventRate FROM fzzlDecisionTree WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			FinalResult <- sqlQuery(DBConnection, SQLStr);
-			object@decision_tree = FinalResult;
+			SQLStr <- paste("SELECT TreeLevel, NodeID, ParentNodeID, IsLeaf, SplitVarID, SplitVal, ChildNodeLeft, ChildNodeRight, NodeSize, PredictClass, PredictClassProb FROM fzzlDecisionTreeMN WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			NodeInfo <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT ObsID, ObservedClass, NodeID, PredictedClass, PredictClassProb FROM fzzlDecisionTreeMNPred WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			ObservationClassification <- sqlQuery(DBConnection, SQLStr);
+			object@dt.node.info = NodeInfo;
+			object@dt.obs.classification = ObservationClassification;
 			
 			#print(paste(object@AnalysisID));
 			object
