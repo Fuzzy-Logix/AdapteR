@@ -1,24 +1,22 @@
 setOldClass("RODBC");
+setClass(	"FLDataMiningAnalysis", 
+			slots = list(	ODBCConnection       = "RODBC",
+							AnalysisID           = "character",
+							WidetoDeepAnalysisID = "character",
+							DeepTableName        = "character"))
 
-# define fetch.results Generic
-setGeneric("fetch.results", function(object) {
-  standardGeneric("fetch.results")
-})
-
-# define FLKMeans Class
-setClass("FLKMeans", 
-		slots = list(	ODBCConnection = "RODBC",
-						AnalysisID     = "character", 
-						centers        = "data.frame", 
-						cluster        = "data.frame"))
-
+setClass(	"FLKMeans",
+			representation(	centers = "data.frame",
+							cluster = "data.frame"),
+			contains = "FLDataMiningAnalysis")
 
 # fetch_results method for KMeans
 setMethod("fetch.results",
           signature("FLKMeans"),
           function(object) {
-      DBConnection <- object@ODBCConnection;            
-      #Fetch Centers Dendrogram
+      		DBConnection <- object@ODBCConnection;            
+      		
+      		#Fetch Centers Dendrogram
 			SQLStr           <- paste("SELECT HypothesisID,Level,ClusterID,VarID,Centroid FROM fzzlKMeansDendrogram WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
 			KMeansDendrogram <- sqlQuery(DBConnection, SQLStr);
 				
@@ -28,7 +26,6 @@ setMethod("fetch.results",
 
 			object@centers = KMeansDendrogram;
 			object@cluster = KMeansClusterID;
-			#print(paste(object@AnalysisID));
 			object
           }
 )
