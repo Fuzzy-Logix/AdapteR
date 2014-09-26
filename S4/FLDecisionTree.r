@@ -28,8 +28,8 @@ FLDecisionTree <- function( 	x,
 		
 	#run FLDecisionTree
 	DecisionTreeRes  <- sqlQuery(DBConnection, SQLStr);
+	print(DecisionTreeRes)
 	AnalysisID <- toString(DecisionTreeRes[[1,"ANALYSISID"]]);
-	
 
 	RetData = new("FLDecisionTree",AnalysisID = AnalysisID, ODBCConnection = DBConnection);
 	
