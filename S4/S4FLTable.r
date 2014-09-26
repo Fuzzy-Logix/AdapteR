@@ -19,8 +19,8 @@ FLTable <- function(Connection,DBName,TableName) {
 	if (!is.character(TableName))	
 	stop("TableNamemust be a string")
 
-	sqlQuery(Connection, "SET ROLE ALL");
 	sqlQuery(Connection, paste("DATABASE", DBName));
+	sqlQuery(Connection, "SET ROLE ALL");
 
 	new("FLTable", ODBCConnection = Connection,DBName = DBName, TableName = TableName)
 }

@@ -10,6 +10,10 @@ setClass(	"FLKMeans",
 							cluster = "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
+setGeneric("fetch.results", function(object) {
+  standardGeneric("fetch.results")
+})
+
 # fetch_results method for KMeans
 setMethod("fetch.results",
           signature("FLKMeans"),
