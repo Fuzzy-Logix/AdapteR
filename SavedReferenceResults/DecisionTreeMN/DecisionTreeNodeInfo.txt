@@ -1,0 +1,8 @@
+"TreeLevel" "NodeID" "ParentNodeID" "IsLeaf" "SplitVarID" "SplitVal" "ChildNodeLeft" "ChildNodeRight" "NodeSize" "PredictClass" "PredictClassProb"
+"1" 0 1 0 0 3 2.45 2 3 150 3 0.333333333333333
+"2" 1 2 1 1 NA NA NA NA 50 1 1
+"3" 1 3 1 0 4 1.75 4 5 100 3 0.5
+"4" 2 4 3 0 3 4.95 6 7 54 2 0.907407407407407
+"5" 2 5 3 1 NA NA NA NA 46 3 0.978260869565217
+"6" 3 6 4 1 NA NA NA NA 48 2 0.979166666666667
+"7" 3 7 4 1 NA NA NA NA 6 3 0.666666666666667
