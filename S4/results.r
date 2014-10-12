@@ -57,3 +57,60 @@ setMethod("fetch.results",
 			object
           }
 )
+
+# define FLLogRegr Class
+setClass("FLLogRegr", 
+		slots = list(	ODBCConnection = "RODBC",
+						AnalysisID     = "character", 
+						logregr.coeffs  = "data.frame",
+						logregr.stats = "data.frame"))
+						
+# fetch_results method for FLLogRegr
+setMethod("fetch.results",
+          signature("FLLogRegr"),
+          function(object) {
+      DBConnection <- object@ODBCConnection;            
+      #Fetch Logistic Regression Analysis Result Table
+			SQLStr <- paste("SELECT MODELID, COEFFID, COEFFVALUE, STDERR, CHISQ, PVALUE FROM fzzlLogRegrCoeffs WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			CoeffsValue <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT MODELID, NUMOFVARS, ITERATIONS, CONCORDANT, DISCORDANT, TIED, TOTALPAIRS, GINICOEFF, CSTATISTIC, GAMMA, HIGHESTPVALUE, EVENTS, NONEVENTS, NUMOFOBS, FALSEPOSITIVE, FALSENEGATIVE FROM fzzlLogRegrStats WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			LogRegrStats <- sqlQuery(DBConnection, SQLStr);
+			object@logregr.coeffs = CoeffsValue;
+			object@logregr.stats = LogRegrStats;
+			
+			#print(paste(object@AnalysisID));
+			object
+          }
+)
+
+# define FLLDA Class
+setClass("FLLDA", 
+		slots = list(	ODBCConnection = "RODBC",
+						AnalysisID     = "character", 
+						lda.canonical.coeffs  = "data.frame",
+						lda.fisher.coeffs = "data.frame",
+						lda.canonical.variates  = "data.frame",
+						lda.predicted.vs.observed = "data.frame"))
+# fetch_results method for FLLDA
+setMethod("fetch.results",
+          signature("FLLDA"),
+          function(object) {
+      DBConnection <- object@ODBCConnection;            
+      #Fetch LDA Result Table
+			SQLStr <- paste("SELECT CANTYPE, VARID, CANID, NUM_VAL FROM fzzlLDACanCoeff WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			CanonicalCoeffs <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT CATNUM_VAL, COEFFID, COEFFNUM_VAL FROM fzzlLDAFisherCoeffs WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+			FisherCoeffs <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT OBSID, VARID, NUM_VAL FROM fzzlLDACanVariate WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+			CanonicalVariates <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT Y, PREDICTEDY, OBS_COUNT FROM fzzlLDACrossTab WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+			PredVsObs <- sqlQuery(DBConnection, SQLStr);
+			object@lda.canonical.coeffs = CanonicalCoeffs;
+			object@lda.fisher.coeffs = FisherCoeffs;
+			object@lda.canonical.variates = CanonicalVariates;
+			object@lda.predicted.vs.observed = PredVsObs;
+			
+			#print(paste(object@AnalysisID));
+			object
+          }
+)

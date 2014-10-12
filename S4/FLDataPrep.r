@@ -11,7 +11,7 @@ FLDataPrep <- function( x,
 	DeepTableName   <- paste(x@TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
 	ExcludeString   <- list.to.excludeClause(Exclude)
 	ClassSpecString <- list.to.classSpec(ClassSpec)
-	path            <- "SQL\\WideToDeep.sql";
+	path            <- "SQL//WideToDeep.sql";
 	stopifnot(file.exists(path));
 	sql <- readChar(path, nchar = file.info(path)$size);
 	sql <- sprintf(	sql, 
