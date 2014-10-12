@@ -114,3 +114,43 @@ setMethod("fetch.results",
 			object
           }
 )
+
+# define FMLDA Class
+setClass("FLMDA", 
+		slots = list(	ODBCConnection = "RODBC",
+						AnalysisID     = "character", 
+						mda.weight  = "data.frame",
+						mda.mu = "data.frame",
+						mda.sigma  = "data.frame",
+						mda.mixing = "data.frame",
+						mda.log.likelihood = "data.frame",
+						mda.classify = "data.frame"))
+# fetch_results method for FLMDA
+setMethod("fetch.results",
+          signature("FLMDA"),
+          function(object) {
+      DBConnection <- object@ODBCConnection;            
+      #Fetch MDA Result Table
+			SQLStr <- paste("SELECT HypothesisID, ObsID, ClassID, SubclassID, Weight FROM fzzlMDAWeight WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4,5",sep = "");
+			MDAWeight <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT HypothesisID, ClassID, SubclassID, VarID, Mu FROM fzzlMDAMu WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			MDAMu <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT HypothesisID, VarID1, VarID2, Sigma FROM fzzlMDASigma WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			MDASigma <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT HypothesisID, ClassID, SubClassID, Mixing FROM fzzlMDAMixing WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			MDAMixing <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT HypothesisID, Iteration, LogLikelihood FROM fzzlMDALogLikelihood WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+			MDALogLikelihood <- sqlQuery(DBConnection, SQLStr);
+			SQLStr <- paste("SELECT HypothesisID, ObsID, ClassID FROM fzzlMDAClassify WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+			MDAClassify <- sqlQuery(DBConnection, SQLStr);
+			object@mda.weight = MDAWeight;
+			object@mda.mu = MDAMu;
+			object@mda.sigma = MDASigma;
+			object@mda.mixing = MDAMixing;
+			object@mda.log.likelihood = MDALogLikelihood;
+			object@mda.classify = MDAClassify;
+			
+			#print(paste(object@AnalysisID));
+			object
+          }
+)
