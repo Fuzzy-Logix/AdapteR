@@ -50,3 +50,9 @@ SELECT 	DISTINCT a.ObsID,
 FROM tblirisdeep a,
 	 tbliris b
 WHERE a.ObsID = b.ObsID AND b.Species = 'virginica';
+
+SELECT t.*, m.SpeciesID
+FROM tbliris AS t,
+	(SELECT ROW_NUMBER() OVER (ORDER BY a.species) AS SpeciesID, a.species
+	 FROM ( SELECT DISTINCT species FROM tbliris) AS a ) AS m
+WHERE t.Species = m.species

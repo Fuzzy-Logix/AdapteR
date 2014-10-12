@@ -1,4 +1,4 @@
-FLDataPrep <- function( x,
+FLWideToDeep <- function( x,
 						ObsIDColName = "ObsID",
 						VarIDColName = "VarID",
 						ValueColName = "Num_Val",

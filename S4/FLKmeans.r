@@ -1,4 +1,4 @@
-FLKMeans <- function( 	x,
+FLKMeans <- function( 	Tbl,
                   		centers,
 						iter.max = 10, 
 						nstart   = 1,
@@ -13,7 +13,7 @@ FLKMeans <- function( 	x,
 	ValueColName  <- "Num_Val";
 	WhereClause   <- "";
 
-	DeepTableName <- FLDataPrep(x,
+	DeepTableName <- FLWideToDeep(Tbl,
 								ObsIDColName =ObsIDColName,
 								VarIDColName =VarIDColName,
 								ValueColName =ValueColName,
@@ -21,7 +21,7 @@ FLKMeans <- function( 	x,
 								Exclude      = Exclude,
 								ClassSpec    = ClassSpec,
 								WhereClause  = WhereClause);
-	DBConnection  <- x@ODBCConnection;
+	DBConnection  <- Tbl@ODBCConnection;
 	SQLStr        <- "CALL WorkaroundKMeans('";
 	SQLParameters <- paste(	DeepTableName,
 							ObsIDColName,  
@@ -38,7 +38,7 @@ FLKMeans <- function( 	x,
 	KMeansRes        <- sqlQuery(DBConnection, SQLStr);
 	AnalysisID       <- toString(KMeansRes$ANALYSISID);
 
-	RetData = new("FLKMeans",AnalysisID = AnalysisID, ODBCConnection = DBConnection);
+	RetData = new("FLKMeans",AnalysisID = AnalysisID, ODBCConnection = DBConnection, DeepTableName = DeepTableName);
 	
 	return(RetData);
 }
