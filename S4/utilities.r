@@ -31,3 +31,13 @@ list.to.excludeClause <- function (x) {
 	excludeClause <- paste(x, collapse=", ")
 	excludeClause
 }
+
+#/**
+# * Generates Name for a Deep Table
+# * @param  {string} TableName Name of Wide Table
+# * @return {string}           [description]
+# */
+GenDeepTableName <- function(TableName){
+	random_no <- rnorm(1);
+	paste(TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
+}

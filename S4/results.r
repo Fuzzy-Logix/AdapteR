@@ -4,7 +4,7 @@ setClass(	"FLDataMiningAnalysis",
 							AnalysisID           = "character",
 							WidetoDeepAnalysisID = "character",
 							DeepTableName        = "character"))
-
+# define FLKMeans Class
 setClass(	"FLKMeans",
 			representation(	centers = "data.frame",
 							cluster = "data.frame"),
@@ -30,6 +30,35 @@ setMethod("fetch.results",
 
 			object@centers = KMeansDendrogram;
 			object@cluster = KMeansClusterID;
+			object
+          }
+)
+# define FLLinRegr Class
+setClass(	"FLLinRegr",
+				representation(	coeffs = "data.frame",
+								stats = "data.frame"),
+			contains = "FLDataMiningAnalysis")
+
+setGeneric("fetch.results", function(object) {
+  standardGeneric("fetch.results")
+})
+
+# fetch_results method for LinRegr
+setMethod("fetch.results",
+          signature("FLLinRegr"),
+          function(object) {
+      		DBConnection <- object@ODBCConnection;            
+      		
+      		#Fetch Regr Stats
+			SQLStr           <- paste("SELECT a.* FROM fzzlLinRegrCoeffs a WHERE a.AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+			LinRegrCoeffs <- sqlQuery(DBConnection, SQLStr);
+				
+			#Fetch Regr Coeffs
+			SQLStr           <- paste("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '", object@AnalysisID,"' ",sep = "");
+			LinRegrStats  <- sqlQuery(DBConnection, SQLStr);
+
+			object@coeffs = LinRegrCoeffs;
+			object@stats = LinRegrStats;
 			object
           }
 )
