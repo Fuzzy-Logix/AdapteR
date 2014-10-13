@@ -39,10 +39,6 @@ setClass(	"FLLinRegr",
 								stats = "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
-setGeneric("fetch.results", function(object) {
-  standardGeneric("fetch.results")
-})
-
 # fetch_results method for LinRegr
 setMethod("fetch.results",
           signature("FLLinRegr"),
@@ -62,6 +58,12 @@ setMethod("fetch.results",
 			object
           }
 )
+
+# define FLNaiveBayes Class
+setClass(	"FLNaiveBayes",
+			representation(),
+			contains = "FLDataMiningAnalysis")
+
 # define FLDecisionTree Class
 setClass("FLDecisionTree", 
 		slots = list(	ODBCConnection = "RODBC",
