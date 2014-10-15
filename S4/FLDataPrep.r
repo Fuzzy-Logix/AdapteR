@@ -40,11 +40,17 @@ FLRegrDataPrep <- function( x,
 							PrimaryKey   = FLPrimaryKey(x),
 							Exclude      = c(),
 							ClassSpec    = list(),
+							PerformNorm = 0,
+							PerformVarReduc = 0,
+							MakeDataSparse = 1,
+							MinStdDev = 0,
+							MaxCorrel = 0,
 							WhereClause  = ""){
 		
 	DeepTableName   <- GenDeepTableName(x@TableName)
 	ExcludeString   <- list.to.excludeClause(Exclude)
 	ClassSpecString <- list.to.classSpec(ClassSpec)
+	CatToDummy <- CalcCatToDummy(ClassSpec)
 	path            <- "SQL//FLRegrDataPrep.sql";
 	stopifnot(file.exists(path));
 	sql <- readChar(path, nchar = file.info(path)$size);
@@ -56,6 +62,13 @@ FLRegrDataPrep <- function( x,
 					ObsIDColName,
 					VarIDColName,
 					ValueColName,
+					CatToDummy,
+					PerformNorm,
+					PerformVarReduc,
+					MakeDataSparse,
+					MinStdDev,
+					MaxCorrel,
+					toString(0),
 					ExcludeString,
 					ClassSpecString,
 					WhereClause);

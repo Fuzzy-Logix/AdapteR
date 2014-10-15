@@ -41,3 +41,16 @@ GenDeepTableName <- function(TableName){
 	random_no <- rnorm(1);
 	paste(TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
 }
+
+#/**
+# * Assigns CatToDummy  = 1 if categorical variable(s) is(are) present in the FLTable object
+# * @param  {string} ClassSpec list
+# * @return {int} Value of CatToDummy
+# */
+CalcCatToDummy <- function(ClassSpec) {
+	if (length(ClassSpec) == 0) 
+    CatToDummy <- 0
+	else 
+    CatToDummy <- 1;
+	CatToDummy
+}

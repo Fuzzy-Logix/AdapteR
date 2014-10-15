@@ -1,17 +1,30 @@
 FLLogRegr <- function( 	x,
+						DepCol,
                   		MaxIterations,
 						pThreshold,
 						Note     = "From RWrapper For DBLytix",
-						PrimaryKey   = FLPrimaryKey(x),
+						PrimaryKey,
 						Exclude      = c(),
-						ClassSpec    = list()){
+						ClassSpec    = list(),
+						WhereClause  = ""){
 
 	ObsIDColName  <- "ObsID";
 	VarIDColName  <- "VarID";
 	ValueColName  <- "Num_Val";
 	
-	DBConnection  <- x@ODBCConnection;
-	DeepTableName <- x@TableName
+	DataPrepRes <- FLRegrDataPrep( 	x,
+									DepCol,
+									ObsIDColName = ObsIDColName,
+									VarIDColName = VarIDColName,
+									ValueColName = ValueColName,
+									PrimaryKey   = PrimaryKey,
+									Exclude      = Exclude,
+									ClassSpec    = ClassSpec,
+									WhereClause  = WhereClause);
+	
+	DeepTableName        <- DataPrepRes$DeepTableName
+	WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID
+	DBConnection         <- x@ODBCConnection;
 	
 	SQLStr        <- "CALL WorkaroundLogRegr('";
 	SQLParameters <- paste(	DeepTableName,

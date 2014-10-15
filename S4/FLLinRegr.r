@@ -1,7 +1,7 @@
 FLLinRegr <- function( 	Tbl,
 						DepCol,
 						Note     = "From RWrapper For DBLytix",
-						PrimaryKey   = FLPrimaryKey(x),
+						PrimaryKey,
 						Exclude      = c(),
 						ClassSpec    = list(),
 						WhereClause  = ""){
@@ -9,8 +9,7 @@ FLLinRegr <- function( 	Tbl,
 	ObsIDColName  <- "ObsID";
 	VarIDColName  <- "VarID";
 	ValueColName  <- "Num_Val";
-	WhereClause   <- "";
-
+	
 	DataPrepRes <- FLRegrDataPrep( 	Tbl,
 									DepCol,
 									ObsIDColName = ObsIDColName,
