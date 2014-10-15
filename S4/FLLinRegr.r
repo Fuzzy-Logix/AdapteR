@@ -13,16 +13,17 @@ FLLinRegr <- function( 	Tbl,
 
 	DataPrepRes <- FLRegrDataPrep( 	Tbl,
 									DepCol,
-									ObsIDColName =ObsIDColName,
-									VarIDColName =VarIDColName,
-									ValueColName =ValueColName,
+									ObsIDColName = ObsIDColName,
+									VarIDColName = VarIDColName,
+									ValueColName = ValueColName,
 									PrimaryKey   = PrimaryKey,
 									Exclude      = Exclude,
 									ClassSpec    = ClassSpec,
 									WhereClause  = WhereClause);
-	DeepTableName <- DataPrepRes$DeepTableName
-	DBConnection  <- Tbl@ODBCConnection;
-	SQLStr        <- "CALL FLLinRegr('";
+	DeepTableName        <- DataPrepRes$DeepTableName
+	WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID
+	DBConnection         <- Tbl@ODBCConnection;
+	SQLStr               <- "CALL FLLinRegr('";
 	SQLParameters <- paste(	DeepTableName,
 							ObsIDColName,  
 							VarIDColName, 
@@ -30,13 +31,13 @@ FLLinRegr <- function( 	Tbl,
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"', AnalysisID)", sep="")
 	
-	#print(SQLStr)
+	print(SQLStr)
 	#run LinRegr
 	LinRegRes        <- sqlQuery(DBConnection, SQLStr);
 	#print(LinRegRes)
 	AnalysisID       <- toString(LinRegRes[1,"AnalysisID"]);
 
-	RetData = new("FLLinRegr",AnalysisID = AnalysisID, ODBCConnection = DBConnection, DeepTableName = DeepTableName);
+	RetData = new("FLLinRegr",AnalysisID = AnalysisID, ODBCConnection = DBConnection, DeepTableName = DeepTableName, WidetoDeepAnalysisID = WidetoDeepAnalysisID);
 	
 	return(RetData);
 }

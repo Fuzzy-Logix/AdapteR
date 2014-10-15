@@ -45,16 +45,23 @@ setMethod("fetch.results",
           function(object) {
       		DBConnection <- object@ODBCConnection;            
       		
-      		#Fetch Regr Stats
-			SQLStr           <- paste("SELECT a.* FROM fzzlLinRegrCoeffs a WHERE a.AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+      		#Fetch Regr Coeffs
+			#SQLStr           <- paste("SELECT a.* FROM fzzlLinRegrCoeffs a WHERE a.AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
+
+			SQLStr             <- "SELECT b.COEFFID,a.VAR_TYPE,a.COLUMN_NAME,a.CATVALUE,b.COEFFVALUE,b.STDERR,b.TSTAT,b.PVALUE,b.NONZERODENSITY,B.CORRELWITHRES
+			FROM fzzlRegrDataPrepMap a,fzzlLinRegrCoeffs b 
+			WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.COEFFID
+			ORDER BY b.COEFFID";
+			SQLStr        <- sprintf(SQLStr, object@WidetoDeepAnalysisID, object@AnalysisID);
+			SQLStr        <- gsub("[\r\n]", "", SQLStr);
 			LinRegrCoeffs <- sqlQuery(DBConnection, SQLStr);
 				
-			#Fetch Regr Coeffs
-			SQLStr           <- paste("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '", object@AnalysisID,"' ",sep = "");
-			LinRegrStats  <- sqlQuery(DBConnection, SQLStr);
-
+			#Fetch Regr Stats
+			SQLStr       <- paste("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '", object@AnalysisID,"' ",sep = "");
+			LinRegrStats <- sqlQuery(DBConnection, SQLStr);
+			
 			object@coeffs = LinRegrCoeffs;
-			object@stats = LinRegrStats;
+			object@stats  = LinRegrStats;
 			object
           }
 )
