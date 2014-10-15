@@ -1,9 +1,9 @@
 FLLogRegr <- function( 	x,
 						DepCol,
+						PrimaryKey,
                   		MaxIterations,
 						pThreshold,
 						Note     = "From RWrapper For DBLytix",
-						PrimaryKey,
 						Exclude      = c(),
 						ClassSpec    = list(),
 						WhereClause  = ""){
@@ -35,7 +35,7 @@ FLLogRegr <- function( 	x,
 							toString(pThreshold),
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"')", sep="")
-	print(SQLStr)
+	#print(SQLStr)
 		
 	#run FLLogRegr
 	LogRegrRes  <- sqlQuery(DBConnection, SQLStr);

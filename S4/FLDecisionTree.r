@@ -1,18 +1,31 @@
-FLDecisionTree <- function( 	x,
-                  		MinObsforParent,
-						MaxLevel, 
-						PurityThreshold,
-						Note     = "From RWrapper For DBLytix",
-						PrimaryKey   = FLPrimaryKey(x),
-						Exclude      = c(),
-						ClassSpec    = list()){
-
+FLDecisionTree <- function( x,
+							DepCol,	
+							PrimaryKey,
+							MinObsforParent,
+							MaxLevel, 
+							PurityThreshold,
+							Note     = "From RWrapper For DBLytix",
+							Exclude      = c(),
+							ClassSpec    = list(),
+							WhereClause  = "")
+{
 	ObsIDColName  <- "ObsID";
 	VarIDColName  <- "VarID";
 	ValueColName  <- "Num_Val";
 	
-	DBConnection  <- x@ODBCConnection;
-	DeepTableName <- x@TableName
+	DataPrepRes <- FLRegrDataPrep( 	x,
+									DepCol,
+									ObsIDColName = ObsIDColName,
+									VarIDColName = VarIDColName,
+									ValueColName = ValueColName,
+									PrimaryKey   = PrimaryKey,
+									Exclude      = Exclude,
+									ClassSpec    = ClassSpec,
+									WhereClause  = WhereClause);
+	
+	DeepTableName        <- DataPrepRes$DeepTableName;
+	WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID;
+	DBConnection         <- x@ODBCConnection;
 	
 	SQLStr        <- "CALL WorkaroundDecisionTree('";
 	SQLParameters <- paste(	DeepTableName,
@@ -25,7 +38,7 @@ FLDecisionTree <- function( 	x,
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"')", sep="")
 	print(SQLStr)
-		
+	stop("DEBUG");	
 	#run FLDecisionTree
 	DecisionTreeRes  <- sqlQuery(DBConnection, SQLStr);
 	print(DecisionTreeRes)
