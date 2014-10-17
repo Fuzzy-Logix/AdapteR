@@ -24,15 +24,15 @@ source("S4//FLLogRegr.r")
 # Create FLTable object
 Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "LogRegrRWrapperDemo")
 # Perform Logistic Regression
-res <- FLLogRegr(Tbl, DepCol = "College", PrimaryKey = "ObsID", MaxIterations = 25, pThreshold = 0.1)
+res <- FLLogRegr(Tbl, DepCol = "Bought", PrimaryKey = "ObsID", MaxIterations = 25, pThreshold = 0.1)
 
 ########################################################################################################
 # Demo for FLLDA
 source("S4//FLLDA.r")
 # Create FLTable object
-Tbl2 <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblLDA")
+Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblirisdata")
 # Perform LDA
-res2 <- FLLDA(Tbl2)
+res <- FLLDA(Tbl,DepCol = "SpeciesID" ,PrimaryKey = "ObsID",Exclude = c("Species"))
 
 ########################################################################################################
 # Demo for FLMDA
