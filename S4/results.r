@@ -98,10 +98,12 @@ setMethod("fetch.results",
 
 # define FLLogRegr Class
 setClass("FLLogRegr", 
-		slots = list(	ODBCConnection = "RODBC",
-						AnalysisID     = "character", 
-						logregr.coeffs  = "data.frame",
-						logregr.stats = "data.frame"))
+		 representation(ClassSpec = "list",
+						PrimaryKey = "character",
+						Exclude = "character",
+						coeffs  = "data.frame",
+						stats = "data.frame"),
+						contains = "FLDataMiningAnalysis")
 						
 # fetch_results method for FLLogRegr
 setMethod("fetch.results",
@@ -109,17 +111,57 @@ setMethod("fetch.results",
           function(object) {
       DBConnection <- object@ODBCConnection;            
       #Fetch Logistic Regression Analysis Result Table
-			SQLStr <- paste("SELECT MODELID, COEFFID, COEFFVALUE, STDERR, CHISQ, PVALUE FROM fzzlLogRegrCoeffs WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			CoeffsValue <- sqlQuery(DBConnection, SQLStr);
+			SQLStr             <- "SELECT b.COEFFID,a.VAR_TYPE,a.COLUMN_NAME,b.COEFFVALUE,b.STDERR,b.CHISQ,b.PVALUE
+			FROM fzzlRegrDataPrepMap a,fzzlLogRegrCoeffs b 
+			WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.COEFFID
+			ORDER BY b.COEFFID";
+			SQLStr        <- sprintf(SQLStr, object@WidetoDeepAnalysisID, object@AnalysisID);
+			SQLStr        <- gsub("[\r\n]", "", SQLStr);
+			Coeffs <- sqlQuery(DBConnection, SQLStr);
+			#SQLStr <- paste("SELECT MODELID, COEFFID, COEFFVALUE, STDERR, CHISQ, PVALUE FROM fzzlLogRegrCoeffs WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+			#Coeffs <- sqlQuery(DBConnection, SQLStr);
 			SQLStr <- paste("SELECT MODELID, NUMOFVARS, ITERATIONS, CONCORDANT, DISCORDANT, TIED, TOTALPAIRS, GINICOEFF, CSTATISTIC, GAMMA, HIGHESTPVALUE, EVENTS, NONEVENTS, NUMOFOBS, FALSEPOSITIVE, FALSENEGATIVE FROM fzzlLogRegrStats WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			LogRegrStats <- sqlQuery(DBConnection, SQLStr);
-			object@logregr.coeffs = CoeffsValue;
-			object@logregr.stats = LogRegrStats;
+			Stats <- sqlQuery(DBConnection, SQLStr);
+			object@coeffs = Coeffs;
+			object@stats = Stats;
 			
 			#print(paste(object@AnalysisID));
 			object
           }
 )
+#############################################################################################
+# score function for FLLogRegr
+#setMethod("predict", 
+#		  signature("FLLogRegr"),
+#		  function(object, 
+#				   FLTableObject, 
+#				   WhereClause = "")
+#				   {
+#							ObsIDColName  <- "ObsID";
+#							VarIDColName  <- "VarID";
+#							ValueColName  <- "Num_Val";
+#							PrimaryKey <- object@PrimaryKey;
+#							ClassSpec <- object@ClassSpec;	
+#							SQLStr <- paste("SELECT COLUMN_NAME FROM fzzlRegrDataPrepMap  WHERE ANALYSISID = '", object@WidetoDeepAnalysisID, "' AND  VARID = -1;", sep = "");
+#							DepCol <- sqlQuery(DBConnection, SQLStr);
+#							SQLStr <- paste("SELECT COLUMN_NAME FROM fzzlRegrDataPrepMap  WHERE ANALYSISID = '", object@WidetoDeepAnalysisID, "' AND  Exclude_var = 1;", sep = "");
+#														
+#							DataPrepRes <- FLRegrDataPrep( 	x,
+#															DepCol,
+#															ObsIDColName = ObsIDColName,
+#															VarIDColName = VarIDColName,
+#															ValueColName = ValueColName,
+#															PrimaryKey   = PrimaryKey,
+#															Exclude      = Exclude,
+#															ClassSpec    = ClassSpec,
+#															WhereClause  = WhereClause);
+#							
+#							DeepTableName        <- DataPrepRes$DeepTableName;
+#							WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID;
+#							DBConnection         <- x@ODBCConnection;
+#							RegrAnalysisID <- object@AnalysisID;
+#							
+####################################################################################################################
 
 # define FLLDA Class
 setClass("FLLDA", 
