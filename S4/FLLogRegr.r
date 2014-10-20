@@ -35,14 +35,12 @@ FLLogRegr <- function( 	x,
 							toString(pThreshold),
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"')", sep="")
-	#print(SQLStr)
-		
+	
 	#run FLLogRegr
 	LogRegrRes  <- sqlQuery(DBConnection, SQLStr);
-	#print(LogRegrRes)
 	AnalysisID <- toString(LogRegrRes[[1,"ANALYSISID"]]);
 
-	RetData = new("FLLogRegr",AnalysisID = AnalysisID, ODBCConnection = DBConnection);
+	RetData = new("FLLogRegr",AnalysisID = AnalysisID, WidetoDeepAnalysisID = WidetoDeepAnalysisID, DeepTableName = DeepTableName, ClassSpec = ClassSpec, PrimaryKey = PrimaryKey, Exclude = as.character(Exclude), ODBCConnection = DBConnection);
 	
 	return(RetData);
 }
