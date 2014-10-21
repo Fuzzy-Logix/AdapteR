@@ -3,7 +3,10 @@ setClass(	"FLDataMiningAnalysis",
 			slots = list(	ODBCConnection       = "RODBC",
 							AnalysisID           = "character",
 							WidetoDeepAnalysisID = "character",
-							DeepTableName        = "character"))
+							DeepTableName        = "character",
+							ClassSpec            = "list",
+							PrimaryKey           = "character",
+							Exclude              = "character"))
 # define FLKMeans Class
 setClass(	"FLKMeans",
 			representation(	centers = "data.frame",
@@ -73,10 +76,9 @@ setClass(	"FLNaiveBayes",
 
 # define FLDecisionTree Class
 setClass("FLDecisionTree", 
-		slots = list(	ODBCConnection = "RODBC",
-						AnalysisID     = "character", 
-						dt.node.info  = "data.frame",
-						dt.obs.classification = "data.frame"))
+		slots = list(	dt.node.info  = "data.frame",
+						dt.obs.classification = "data.frame"),
+						contains = "FLDataMiningAnalysis")
 						
 # fetch_results method for FLDecisionTree
 setMethod("fetch.results",
@@ -98,10 +100,7 @@ setMethod("fetch.results",
 
 # define FLLogRegr Class
 setClass("FLLogRegr", 
-		 representation(ClassSpec = "list",
-						PrimaryKey = "character",
-						Exclude = "character",
-						coeffs  = "data.frame",
+		 representation(coeffs  = "data.frame",
 						stats = "data.frame"),
 						contains = "FLDataMiningAnalysis")
 						
@@ -165,9 +164,7 @@ setMethod("fetch.results",
 
 # define FLLDA Class
 setClass("FLLDA", 
-		slots = list(	ODBCConnection = "RODBC",
-						AnalysisID     = "character", 
-						lda.canonical.coeffs  = "data.frame",
+		slots = list(	lda.canonical.coeffs  = "data.frame",
 						lda.fisher.coeffs = "data.frame",
 						lda.canonical.variates  = "data.frame",
 						lda.predicted.vs.observed = "data.frame"))
@@ -197,14 +194,13 @@ setMethod("fetch.results",
 
 # define FMLDA Class
 setClass("FLMDA", 
-		slots = list(	ODBCConnection = "RODBC",
-						AnalysisID     = "character", 
-						mda.weight  = "data.frame",
+		slots = list(	mda.weight  = "data.frame",
 						mda.mu = "data.frame",
 						mda.sigma  = "data.frame",
 						mda.mixing = "data.frame",
 						mda.log.likelihood = "data.frame",
-						mda.classify = "data.frame"))
+						mda.classify = "data.frame"),
+						contains = "FLDataMiningAnalysis")
 # fetch_results method for FLMDA
 setMethod("fetch.results",
           signature("FLMDA"),

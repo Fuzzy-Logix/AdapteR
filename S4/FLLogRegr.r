@@ -40,7 +40,13 @@ FLLogRegr <- function( 	x,
 	LogRegrRes  <- sqlQuery(DBConnection, SQLStr);
 	AnalysisID <- toString(LogRegrRes[[1,"ANALYSISID"]]);
 
-	RetData = new("FLLogRegr",AnalysisID = AnalysisID, WidetoDeepAnalysisID = WidetoDeepAnalysisID, DeepTableName = DeepTableName, ClassSpec = ClassSpec, PrimaryKey = PrimaryKey, Exclude = as.character(Exclude), ODBCConnection = DBConnection);
-	
+	RetData = new("FLLogRegr",	AnalysisID           = AnalysisID,
+								WidetoDeepAnalysisID = WidetoDeepAnalysisID, 
+								DeepTableName        = DeepTableName, 
+								ClassSpec            = ClassSpec, 
+								PrimaryKey           = PrimaryKey, 
+								Exclude              = as.character(Exclude), 
+								ODBCConnection       = DBConnection);
+								
 	return(RetData);
 }

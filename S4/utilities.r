@@ -80,3 +80,13 @@ VarNameToID <- function(AnalysisID,Vars){
 	query <- gsub("[\r\n]", "", query);
 	query	
 }
+
+#/**
+# * Generates Name for an Output Predictions Table
+# * @param  {string} TableName Name of Table
+# * @return {string}           [description]
+# */
+GenOutTable <- function(Type,AnalysisID){
+	random_no <- rnorm(1);
+	paste(Type,"Prediction",AnalysisID,round(random_no*random_no*10000),sep="_");
+}
