@@ -80,3 +80,52 @@ FLRegrDataPrep <- function( x,
 	AnalysisID <- as.character(res[1,"OutAnalysisID"]);
 	list( DeepTableName = DeepTableName, WidetoDeepAnalysisID = AnalysisID)
 }
+
+FLRegrDataPrepScore <- function( x,
+								 ObsIDColName = "ObsID",
+								 VarIDColName = "VarID",
+								 ValueColName = "Num_Val",
+								 PrimaryKey,
+								 Exclude      = c(),
+								 ClassSpec    = list(),
+								 PerformNorm = 0,
+								 PerformVarReduc = 0,
+								 MakeDataSparse = 1,
+								 MinStdDev = 0,
+								 MaxCorrel = 0,
+								 WhereClause  = "",
+								 InAnalysisID){
+		
+	DeepTableName   <- GenDeepTableName(x@TableName)
+	ExcludeString   <- list.to.excludeClause(Exclude)
+	ClassSpecString <- list.to.classSpec(ClassSpec)
+	CatToDummy <- CalcCatToDummy(ClassSpec)
+	path            <- "SQL//FLRegrDataPrepScore.sql";
+	stopifnot(file.exists(path));
+	sql <- readChar(path, nchar = file.info(path)$size);
+	sql <- sprintf(	sql, 
+					x@TableName,
+					PrimaryKey, 
+					DeepTableName,
+					ObsIDColName,
+					VarIDColName,
+					ValueColName,
+					CatToDummy,
+					PerformNorm,
+					PerformVarReduc,
+					MakeDataSparse,
+					MinStdDev,
+					MaxCorrel,
+					toString(1),
+					ExcludeString,
+					ClassSpecString,
+					WhereClause,
+					InAnalysisID);
+	sql <- gsub("[\r\n]", "", sql);
+	#print(sql);
+	#stop("DEBUG");
+	sqlQuery(x@ODBCConnection,paste("DROP TABLE",DeepTableName));
+	res <- sqlQuery(x@ODBCConnection, sql, stringsAsFactors = FALSE);
+	AnalysisID <- as.character(res[1,"OutAnalysisID"]);
+	list( DeepTableName = DeepTableName, WidetoDeepAnalysisID = AnalysisID)
+}
