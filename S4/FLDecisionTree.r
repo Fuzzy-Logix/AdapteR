@@ -38,7 +38,7 @@ FLDecisionTree <- function( x,
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"')", sep="")
 	#print(SQLStr)
-	#stop("DEBUG");	
+		
 	#run FLDecisionTree
 	DecisionTreeRes  <- sqlQuery(DBConnection, SQLStr);
 	print(DecisionTreeRes)
