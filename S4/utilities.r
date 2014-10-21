@@ -43,6 +43,16 @@ GenDeepTableName <- function(TableName){
 }
 
 #/**
+# * Generates Name for a Include/Exclude Spec
+# * @param  {string} TableName Name of Table
+# * @return {string}           [description]
+# */
+GenSpecID <- function(TableName){
+	random_no <- rnorm(1);
+	paste(TableName,"spec",round(random_no*random_no*10000),sep="_");
+}
+
+#/**
 # * Assigns CatToDummy  = 1 if categorical variable(s) is(are) present in the FLTable object
 # * @param  {string} ClassSpec list
 # * @return {int} Value of CatToDummy
@@ -53,4 +63,20 @@ CalcCatToDummy <- function(ClassSpec) {
 	else 
     CatToDummy <- 1;
 	CatToDummy
+}
+
+#/**
+# * Generates query to map variable names to variable IDs
+# * @param  {string} AnalysisID Wide to Deep Analysis ID
+# * @param  {string} Vars Vector
+# * @return {string} Query to get mapping of Variable to VariableID
+# */
+VarNameToID <- function(AnalysisID,Vars){
+	
+	query <- "SELECT a.COLUMN_NAME,a.Final_VarID as VarID
+	FROM fzzlRegrDataPrepMap a 
+	WHERE a.AnalysisID = '%s' AND a.COLUMN_NAME IN ('%s')";
+	query <- sprintf(query,AnalysisID,paste(Vars,collapse="','",sep=""))
+	query <- gsub("[\r\n]", "", query);
+	query	
 }

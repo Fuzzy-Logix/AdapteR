@@ -30,7 +30,7 @@ FLLinRegr <- function( 	Tbl,
 							Note, sep="','")
 	SQLStr           <- paste(SQLStr, SQLParameters,"', AnalysisID)", sep="")
 	
-	print(SQLStr)
+	#print(SQLStr)
 	#run LinRegr
 	LinRegRes        <- sqlQuery(DBConnection, SQLStr);
 	#print(LinRegRes)

@@ -77,6 +77,8 @@ FLRegrDataPrep <- function( x,
 	#stop("DEBUG");
 	sqlQuery(x@ODBCConnection,paste("DROP TABLE",DeepTableName));
 	res <- sqlQuery(x@ODBCConnection, sql, stringsAsFactors = FALSE);
+	#str(res);
+	#print(res);
 	AnalysisID <- as.character(res[1,"OutAnalysisID"]);
 	list( DeepTableName = DeepTableName, WidetoDeepAnalysisID = AnalysisID)
 }

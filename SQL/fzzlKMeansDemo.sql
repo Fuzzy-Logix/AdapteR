@@ -1,4 +1,4 @@
-CREATE MULTISET TABLE FL_TRAIN.fzzlKMeansDemo ,NO FALLBACK ,
+CREATE MULTISET TABLE FL_R_WRAP.tblKMeansDemo ,NO FALLBACK ,
      NO BEFORE JOURNAL,
      NO AFTER JOURNAL,
      CHECKSUM = DEFAULT,
@@ -9,20 +9,20 @@ CREATE MULTISET TABLE FL_TRAIN.fzzlKMeansDemo ,NO FALLBACK ,
       Y FLOAT)
 PRIMARY INDEX ( ID );
 
-INSERT fzzlKMeansDemo 
+INSERT tblKMeansDemo 
 SELECT  a.SerialVal AS ID,
     FLSimNormal(a.SerialVal, 0.0, 1.0) AS X,
     FLSimNormal(a.SerialVal+1000, 0.0, 1.0) AS Y
 FROM fzzlSerial a
-WHERE a.SerialVal <= 20;
+WHERE a.SerialVal <= 100;
 
-INSERT fzzlKMeansDemo 
+INSERT tblKMeansDemo 
 SELECT  a.SerialVal AS ID,
-    FLSimNormal(a.SerialVal, 5.0, 1.0) AS X,
-    FLSimNormal(a.SerialVal+1000, 5.0, 1.0) AS Y
+    FLSimNormal(a.SerialVal, 10.0, 1.0) AS X,
+    FLSimNormal(a.SerialVal+1500, 10.0, 1.0) AS Y
 FROM fzzlSerial a
-WHERE a.SerialVal > 20 AND a.SerialVal <= 40;
+WHERE a.SerialVal > 100 AND a.SerialVal <= 200;
 
-SELECT * FROM fzzlKMeansDemo;
+SELECT * FROM tblKMeansDemo;
 
 -- DELETE FROM fzzlKMeansDemo WHERE 1 = 1;
