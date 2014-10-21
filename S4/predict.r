@@ -25,14 +25,14 @@ setMethod("fl.predict",
 							##SQLStr <- paste("SELECT COLUMN_NAME FROM fzzlRegrDataPrepMap  WHERE ANALYSISID = '", FLLogRegrObject@WidetoDeepAnalysisID, "' AND  Exclude_var = 1;", sep = "");
 														
 							DataPrepRes <- FLRegrDataPrepScore( FLTableObject,
-															ObsIDColName = ObsIDColName,
-															VarIDColName = VarIDColName,
-															ValueColName = ValueColName,
-															PrimaryKey   = PrimaryKey,
-															Exclude      = Exclude,
-															ClassSpec    = ClassSpec,
-															WhereClause  = WhereClause,
-															InAnalysisID = InAnalysisID);
+																ObsIDColName = ObsIDColName,
+																VarIDColName = VarIDColName,
+																ValueColName = ValueColName,
+																PrimaryKey   = PrimaryKey,
+																Exclude      = Exclude,
+																ClassSpec    = ClassSpec,
+																WhereClause  = WhereClause,
+																InAnalysisID = InAnalysisID);
 							
 							DeepTableName        <- DataPrepRes$DeepTableName;
 							DBConnection         <- FLTableObject@ODBCConnection;
@@ -59,7 +59,7 @@ setMethod("fl.predict",
 							#						sep="','")
 	#SQLStr           <- paste(SQLStr,"',OutTable)",sep="");
 	SQLStr           <- paste(SQLStr,")", sep="");
-	print(SQLStr)
+	#print(SQLStr)
 	#run LogRegrScore
 	LogRegrScoreRes      <- sqlQuery(DBConnection, SQLStr)
 	OutTableName <- toString(LogRegrScoreRes[[1]]);
