@@ -27,6 +27,14 @@ Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "LogRegrRWrapperDem
 res <- FLLogRegr(Tbl, DepCol = "Bought", PrimaryKey = "ObsID", MaxIterations = 25, pThreshold = 0.1)
 
 ########################################################################################################
+# Demo for FLLogRegrStep
+source("S4//FLLogRegrStep.r")
+# Create FLTable object
+Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "LogRegrRWrapperDemo")
+# Perform Logistic Regression
+res <- FLLogRegrStep(Tbl, DepCol = "Bought", PrimaryKey = "ObsID", Type = "BW", MaxIterations = 25, pThreshold = 0.1)
+
+########################################################################################################
 # Demo for FLLDA
 source("S4//FLLDA.r")
 # Create FLTable object
