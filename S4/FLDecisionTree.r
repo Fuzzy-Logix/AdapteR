@@ -44,7 +44,7 @@ FLDecisionTree <- function( x,
 	print(DecisionTreeRes)
 	AnalysisID <- toString(DecisionTreeRes[[1,"ANALYSISID"]]);
 
-	RetData = new("FLDecisionTree",AnalysisID = AnalysisID, ODBCConnection = DBConnection);
+	RetData = new("FLDecisionTree",AnalysisID = AnalysisID, WidetoDeepAnalysisID = WidetoDeepAnalysisID, DeepTableName = DeepTableName, ClassSpec = ClassSpec, PrimaryKey = PrimaryKey, Exclude = as.character(Exclude), ODBCConnection = DBConnection);
 	
 	return(RetData);
 }
