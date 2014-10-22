@@ -76,10 +76,9 @@ setClass(	"FLNaiveBayes",
 
 # define FLDecisionTree Class
 setClass("FLDecisionTree", 
-		slots = list(	dt.node.info  = "data.frame",
+		 representation(dt.node.info  = "data.frame",
 						dt.obs.classification = "data.frame"),
-						contains = "FLDataMiningAnalysis")
-						
+						contains = "FLDataMiningAnalysis")						
 # fetch_results method for FLDecisionTree
 setMethod("fetch.results",
           signature("FLDecisionTree"),
@@ -128,38 +127,7 @@ setMethod("fetch.results",
 			object
           }
 )
-#############################################################################################
-# score function for FLLogRegr
-#setMethod("predict", 
-#		  signature("FLLogRegr"),
-#		  function(object, 
-#				   FLTableObject, 
-#				   WhereClause = "")
-#				   {
-#							ObsIDColName  <- "ObsID";
-#							VarIDColName  <- "VarID";
-#							ValueColName  <- "Num_Val";
-#							PrimaryKey <- object@PrimaryKey;
-#							ClassSpec <- object@ClassSpec;	
-#							SQLStr <- paste("SELECT COLUMN_NAME FROM fzzlRegrDataPrepMap  WHERE ANALYSISID = '", object@WidetoDeepAnalysisID, "' AND  VARID = -1;", sep = "");
-#							DepCol <- sqlQuery(DBConnection, SQLStr);
-#							SQLStr <- paste("SELECT COLUMN_NAME FROM fzzlRegrDataPrepMap  WHERE ANALYSISID = '", object@WidetoDeepAnalysisID, "' AND  Exclude_var = 1;", sep = "");
-#														
-#							DataPrepRes <- FLRegrDataPrep( 	x,
-#															DepCol,
-#															ObsIDColName = ObsIDColName,
-#															VarIDColName = VarIDColName,
-#															ValueColName = ValueColName,
-#															PrimaryKey   = PrimaryKey,
-#															Exclude      = Exclude,
-#															ClassSpec    = ClassSpec,
-#															WhereClause  = WhereClause);
-#							
-#							DeepTableName        <- DataPrepRes$DeepTableName;
-#							WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID;
-#							DBConnection         <- x@ODBCConnection;
-#							RegrAnalysisID <- object@AnalysisID;
-#							
+				
 ####################################################################################################################
 
 # define FLLDA Class
