@@ -90,3 +90,15 @@ GenOutTable <- function(Type,AnalysisID){
 	random_no <- rnorm(1);
 	paste(Type,"Prediction",AnalysisID,round(random_no*random_no*10000),sep="_");
 }
+
+#/**
+# * Generates Name for the Output Table for Udt Functions
+# * @param {string} MatrixTableName
+# * @param {numeric} MatrixID
+# * @return {string} 
+# */
+GenOutMatrixTable <- function(MatrixTable, Matrix_ID) {
+	random_no <- rnorm(1);
+	paste(MatrixTable, Matrix_ID, round(random_no*10000), sep = "_");
+}
+		

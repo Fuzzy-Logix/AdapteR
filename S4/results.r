@@ -7,6 +7,7 @@ setClass(	"FLDataMiningAnalysis",
 							ClassSpec            = "list",
 							PrimaryKey           = "character",
 							Exclude              = "character"))
+							
 # define FLKMeans Class
 setClass(	"FLKMeans",
 			representation(	centers = "data.frame",
