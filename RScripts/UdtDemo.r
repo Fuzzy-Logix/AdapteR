@@ -4,7 +4,6 @@ setwd("D:/R wrappers/RWrappers/trunk")
 # include
 source("S4//FLMatrix.r")
 source("S4//utilities.r")
-source("S4//results.r")
 
 library(RODBC)
 DBConnect <- odbcConnect("Gandalf")
