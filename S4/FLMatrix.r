@@ -10,11 +10,12 @@ setClass("FLMatrix",
 						DBName        = "character",
 						MatrixTableName = "character",
 						MatrixID     = "numeric",
+						MatrixIDColName = "character",
 						RowIDColName = "character",
 						ColIDColName = "character",
 						CellValColName = "character"))
 
-FLMatrix <- function(Connection, DBName, MatrixTableName, MatrixID, RowIDColName = "Row_ID", ColIDColName = "Col_ID", CellValColName = "Cell_Val") {
+FLMatrix <- function(Connection, DBName, MatrixTableName, MatrixID, MatrixIDColName = "Matrix_ID", RowIDColName = "Row_ID", ColIDColName = "Col_ID", CellValColName = "Cell_Val") {
 
 	#if (!is.character(DSN)) 		
 	#stop("DSN must be a string")
@@ -28,5 +29,22 @@ FLMatrix <- function(Connection, DBName, MatrixTableName, MatrixID, RowIDColName
 	sqlQuery(Connection, paste("DATABASE", DBName));
 	sqlQuery(Connection, "SET ROLE ALL");
 
-	new("FLMatrix", ODBCConnection = Connection, DBName = DBName, MatrixTableName = MatrixTableName, MatrixID = MatrixID, RowIDColName = RowIDColName, ColIDColName = ColIDColName, CellValColName = CellValColName)
+	new("FLMatrix", ODBCConnection = Connection, DBName = DBName, MatrixTableName = MatrixTableName, MatrixID = MatrixID, MatrixIDColName = MatrixIDColName, RowIDColName = RowIDColName, ColIDColName = ColIDColName, CellValColName = CellValColName)
 }
+# fetch.matrix method for FLMatrix Object
+setGeneric("fetch.matrix", function(object) {
+  standardGeneric("fetch.matrix")
+})
+
+# fetch_matrix method
+setMethod("fetch.matrix",
+          signature("FLMatrix"),
+          function(object) {
+      		DBConnection <- object@ODBCConnection;            
+      		SQLStr           <- paste("SELECT ",object@RowIDColName,", ",object@ColIDColName,", ",object@CellValColName, " FROM ", object@MatrixTableName, " WHERE ", object@MatrixIDColName, " = ",object@MatrixID," ORDER BY 1,2",sep = "");
+			print(SQLStr)
+			OutputMatrix     <- sqlQuery(DBConnection, SQLStr);
+				
+			return(OutputMatrix)
+          }
+)

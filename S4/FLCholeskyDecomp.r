@@ -21,7 +21,7 @@ FLCholeskyDecomp <- function(FLMatrix)  {
 		print(sql)
 		Connection  <- FLMatrix@ODBCConnection
 		sqlQuery(Connection, sql, stringsAsFactors = FALSE);
-		RetData = new("FLMatrix", ODBCConnection = Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputVal")
+		RetData = new("FLMatrix", ODBCConnection = Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputVal")
 		return(RetData);
 }
 		

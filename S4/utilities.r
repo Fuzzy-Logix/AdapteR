@@ -99,6 +99,6 @@ GenOutTable <- function(Type,AnalysisID){
 # */
 GenOutMatrixTable <- function(MatrixTable, Matrix_ID) {
 	random_no <- rnorm(1);
-	paste(MatrixTable, Matrix_ID, round(random_no*10000), sep = "_");
+	paste(MatrixTable, Matrix_ID, round(random_no*random_no*10000), sep = "_");
 }
 		
