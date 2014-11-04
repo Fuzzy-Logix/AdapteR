@@ -5,7 +5,7 @@ FLMatrixInv <- function(FLMatrix)  {
 		Col_ID      <- FLMatrix@ColIDColName;
 		Cell_Val    <- FLMatrix@CellValColName;
 		MatrixTable <- FLMatrix@MatrixTableName;
-		OutTable 	<- GenOutMatrixTable(MatrixTable, Matrix_ID)
+		OutTable 	<- GenOutMatrixTable("MatrixInv",MatrixTable, Matrix_ID)
 		
 		path        <- "SQL//FLMatrixInv.sql";
 		stopifnot(file.exists(path));

@@ -5,7 +5,7 @@ FLLUDecomp <- function(FLMatrix)  {
 		Col_ID      <- FLMatrix@ColIDColName;
 		Cell_Val    <- FLMatrix@CellValColName;
 		MatrixTable <- FLMatrix@MatrixTableName;
-		OutTable 	<- GenOutMatrixTable(MatrixTable, Matrix_ID)
+		OutTable 	<- GenOutMatrixTable("LUDecomp",MatrixTable, Matrix_ID)
 		
 		path        <- "SQL//FLLUDecomp.sql";
 		stopifnot(file.exists(path));

@@ -5,7 +5,7 @@ FLCholeskyDecomp <- function(FLMatrix)  {
 		Col_ID      <- FLMatrix@ColIDColName;
 		Cell_Val    <- FLMatrix@CellValColName;
 		MatrixTable <- FLMatrix@MatrixTableName;
-		OutTable 	<- GenOutMatrixTable(MatrixTable, Matrix_ID)
+		OutTable 	<- GenOutMatrixTable("CholeskyDecomp",MatrixTable, Matrix_ID)
 		
 		path        <- "SQL//FLCholeskyDecomp.sql";
 		stopifnot(file.exists(path));
@@ -18,7 +18,7 @@ FLCholeskyDecomp <- function(FLMatrix)  {
 								MatrixTable,
 								toString(Matrix_ID));
 		sql <- gsub("[\r\n]", "", sql);
-		print(sql)
+		#print(sql)
 		Connection  <- FLMatrix@ODBCConnection
 		sqlQuery(Connection, sql, stringsAsFactors = FALSE);
 		RetData = new("FLMatrix", ODBCConnection = Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputVal")
