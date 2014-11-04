@@ -14,6 +14,11 @@ setClass("FLMatrix",
 						RowIDColName = "character",
 						ColIDColName = "character",
 						CellValColName = "character"))
+						
+setClass("FLLUDecomp",
+		slots = list(	L_Matrix = "FLMatrix",
+						U_Matrix = "FLMatrix",
+						Perm_Matrix = "FLMatrix"))
 
 FLMatrix <- function(Connection, DBName, MatrixTableName, MatrixID, MatrixIDColName = "Matrix_ID", RowIDColName = "Row_ID", ColIDColName = "Col_ID", CellValColName = "Cell_Val") {
 
@@ -42,7 +47,7 @@ setMethod("fetch.matrix",
           function(object) {
       		DBConnection <- object@ODBCConnection;            
       		SQLStr           <- paste("SELECT ",object@RowIDColName,", ",object@ColIDColName,", ",object@CellValColName, " FROM ", object@MatrixTableName, " WHERE ", object@MatrixIDColName, " = ",object@MatrixID," ORDER BY 1,2",sep = "");
-			print(SQLStr)
+			#print(SQLStr)
 			OutputMatrix     <- sqlQuery(DBConnection, SQLStr);
 				
 			return(OutputMatrix)
