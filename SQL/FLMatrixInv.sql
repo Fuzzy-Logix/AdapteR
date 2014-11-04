@@ -10,7 +10,7 @@ a.%s
 )
  SELECT a.*
   FROM TABLE (
- FLCholeskyDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val)
+ FLMatrixInv(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val)
   HASH BY z.Matrix_ID
   LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
  ) AS a
