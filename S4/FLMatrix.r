@@ -20,6 +20,11 @@ setClass("FLLUDecomp",
 						U_Matrix = "FLMatrix",
 						Perm_Matrix = "FLMatrix"))
 
+setClass("FLSVD",
+		slots = list(	U_Matrix = "FLMatrix",
+						S_Matrix = "FLMatrix",
+						V_Matrix = "FLMatrix"))
+
 FLMatrix <- function(Connection, DBName, MatrixTableName, MatrixID, MatrixIDColName = "Matrix_ID", RowIDColName = "Row_ID", ColIDColName = "Col_ID", CellValColName = "Cell_Val") {
 
 	#if (!is.character(DSN)) 		
