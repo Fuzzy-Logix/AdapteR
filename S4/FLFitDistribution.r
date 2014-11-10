@@ -9,7 +9,7 @@ setClass("FLFitContDistr",
 						TableName      = "character",
 						NumValColName  = "character"))
 						
-# FLFitContDistr Object
+# FLFitDiscDistr Object
 setClass("FLFitDiscDistr",
 		slots = list(	ODBCConnection = "RODBC", 
 						DBName         = "character",
