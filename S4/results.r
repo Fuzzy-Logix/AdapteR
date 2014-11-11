@@ -70,6 +70,27 @@ setMethod("fetch.results",
           }
 )
 
+# define FLVIF Class
+setClass(	"FLVIF",
+			representation(	stats = "data.frame" ),
+			contains = "FLDataMiningAnalysis")
+
+# fetch_results method for VIF
+setMethod("fetch.results",
+          signature("FLVIF"),
+          function(object) {
+      		DBConnection <- object@ODBCConnection;            
+      		
+      		#Fetch Regr R^2 and VIF
+			SQLStr       <- "SELECT b.VarID,a.VAR_TYPE,a.COLUMN_NAME,a.CATVALUE,b.RSquared,b.VIF FROM fzzlRegrDataPrepMap a,fzzlvifstats b WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.VarID ORDER BY b.VarID";
+			SQLStr       <- sprintf(SQLStr, object@WidetoDeepAnalysisID, object@AnalysisID);
+			SQLStr       <- gsub("[\r\n]", " ", SQLStr);
+			VIFStats     <- sqlQuery(DBConnection, SQLStr);							
+			object@stats = VIFStats;
+			object
+          }
+)
+
 # define FLNaiveBayes Class
 setClass(	"FLNaiveBayes",
 			representation(),

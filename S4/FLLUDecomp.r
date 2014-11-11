@@ -21,9 +21,9 @@ FLLUDecomp <- function(FLMatrix)  {
 		#print(sql)
 		Connection  <- FLMatrix@ODBCConnection
 		sqlQuery(Connection, sql, stringsAsFactors = FALSE);
-		L_Matrix = FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputValL");
-		U_Matrix = FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputValU");
-		Perm_Matrix = FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputPermut");
+		L_Matrix    <- FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputValL");
+		U_Matrix    <- FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputValU");
+		Perm_Matrix <- FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputPermut");
 		RetData = new("FLLUDecomp", L_Matrix = L_Matrix, U_Matrix = U_Matrix, Perm_Matrix = Perm_Matrix)
 		return(RetData);
 }
