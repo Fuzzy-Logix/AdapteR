@@ -1,0 +1,1 @@
+CALL FLAnova2Way('%s', '%s', '%s', '%s', '%s', NULL, 1, ResultTable)
