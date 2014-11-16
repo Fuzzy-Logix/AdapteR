@@ -49,8 +49,16 @@ source("S4//FLMDA.r")
 Tbl2 <- FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblMDA")
 # Perform MDA
 res2 <- FLMDA(Tbl2, Subclasses = 3, Iterations = 10,Initialization = 2,Hypotheses = 5)
-########################################################################################################
 
+########################################################################################################
+# Demo for FLMatchIt
+source("S4//FLMatchIt.r")
+# Create FLTable object
+Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "TblMatchItAlt")
+# Perform Logistic Regression
+res <- FLMatchIt(Tbl, "person_id", "exposure", "prob", "prob")
+
+########################################################################################################
 #  Display result
 res2 <- fetch.results(res2)
 res2 

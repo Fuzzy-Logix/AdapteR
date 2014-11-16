@@ -220,3 +220,23 @@ setMethod("fetch.results",
 			object
           }
 )
+
+# define FLMatchIt Class
+setClass(	"FLMatchIt", 
+			slots = list(	ODBCConnection       = "RODBC",
+							OutTableName         = "character",
+							UnmatchedObsID       = "data.frame"))
+							
+# fetch.results for FLMatchIt
+setMethod("fetch.results",
+          signature("FLMatchIt"),
+          function(object) {
+      DBConnection <- object@ODBCConnection;            
+      #Fetch MDA Result Table
+			SQLStr <- paste("SELECT * FROM ", object@OutTableName," ORDER BY 1",sep = "");
+			UnmatchedObsID <- sqlQuery(DBConnection, SQLStr);
+			
+			object@UnmatchedObsID = UnmatchedObsID;
+			object
+          }
+)

@@ -42,6 +42,14 @@ GenDeepTableName <- function(TableName){
 	paste(TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
 }
 
+# GenOutTableName: Used in FLMatchIt
+GenOutTableName <- function(TableName){
+	random_no <- rnorm(1);
+	paste(TableName,"Out",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
+}
+# */
+
+
 #/**
 # * Generates Name for a Include/Exclude Spec
 # * @param  {string} TableName Name of Table
