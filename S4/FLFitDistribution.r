@@ -61,7 +61,7 @@ FLFitDistr <- function(x, Distribution, Method = "MLE") {
 	# MLE - Maximum Likelihood Estimation
 	# MDE - Minimum Distance Estimation
 	
-	DistributionName <- c("Normal", "Weibull", "Binomial")
+	DistributionName <- c("Beta", "Binomial", "Cauchy", "ChiSq", "Normal", "Poisson", "Weibull")
 	MethodType       <- c("MLE", "MDE")
 		if(Distribution %in% DistributionName && Method %in% MethodType) {
 			#ViewName <- GenViewName(Distribution, x@TableName)
