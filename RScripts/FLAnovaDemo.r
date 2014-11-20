@@ -9,4 +9,10 @@ source("S4//FLAnova2Way.r")
 
 DBConnect <- odbcConnect("Gandalf")
 Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblAnova2WaySingle")
+
 FLAnova2Way(Tbl,"num_val","gender","Age")
+
+# ANCOVA 
+
+Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblAncovaTest")
+FLAncova(Tbl,"YVAL","GROUPID","XVAL")
