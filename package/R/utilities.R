@@ -119,7 +119,7 @@ GenOutMatrixTable <- function(Operation,MatrixTable, Matrix_ID) {
 # * @return {string} 
 # */
 
-runsql <- function (db_connect, file, arg_list)
+run_sql <- function (db_connect, file, arg_list)
 {
 	stopifnot(file.exists(file))
 	sql  <- readChar(file, nchar = file.info(file)$size)
@@ -153,7 +153,7 @@ runsql <- function (db_connect, file, arg_list)
 	res		 	
 }
 
-validateargs <- function (arg_list,type_list)
+validate_args <- function (arg_list,type_list)
 {	
 	names <- names(arg_list)
 	# Check type for each argument

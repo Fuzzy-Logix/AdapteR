@@ -1,26 +1,28 @@
 #
 # Fuzzy Logix Table Object
-# @param  {RODBC}     Connection		  [description]
-# @param  {character} DBName    		  [description]
-# @param  {character} TableName 		  [description]
+# @param  {RODBC}     odbc_connection		  [description]
+# @param  {character} db_name    		  [description]
+# @param  {character} table_name 		  [description]
 #
 setOldClass("RODBC") 
 setClass("FLTable", 
-		slots = list(	ODBCConnection = "RODBC", 
-						DBName        = "character", 
-						TableName     = "character"))
+		slots = list(	odbc_connection = "RODBC", 
+						db_name        = "character", 
+						table_name     = "character"))
 
-FLTable <- function(Connection,DBName,TableName) {
+FLTable <- function(odbc_connection,db_name,table_name) {
 
 	#if (!is.character(DSN)) 		
 	#stop("DSN must be a string")
-	if (!is.character(DBName)) 		
+	if (!is.character(db_name)) 		
 	stop("DBName must be a string")
-	if (!is.character(TableName))	
+	if (!is.character(table_name))	
 	stop("TableNamemust be a string")
 
-	sqlQuery(Connection, paste("DATABASE", DBName));
-	sqlQuery(Connection, "SET ROLE ALL");
+	validate_args(list(db_name = db_name, table_name = table_name),list(db_name = "character", table_name = "character"))
 
-	new("FLTable", ODBCConnection = Connection,DBName = DBName, TableName = TableName)
+	sqlQuery(odbc_connection, paste("DATABASE", DBName));
+	sqlQuery(odbc_connection, "SET ROLE ALL");
+
+	new("FLTable", odbc_connection = odbc_connection,db_name = db_name, table_name = table_name)
 }
