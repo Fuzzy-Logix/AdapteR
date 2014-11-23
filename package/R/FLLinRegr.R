@@ -1,39 +1,40 @@
 FLLinRegr <- function( 	table,
 						primary_key,
-						response,
-						Note     = "From RWrapper For DBLytix",						
-						Exclude      = c(),
-						ClassSpec    = list(),
-						WhereClause  = ""){
+						response,												
+						exclude      = c(),
+						class_spec    = list(),
+						where_clause  = "",
+						note     = "From RWrapper For DBLytix")
+{
 
-	ObsIDColName  <- "ObsID";
-	VarIDColName  <- "VarID";
-	ValueColName  <- "Num_Val";
+	obsID  <- "ObsID";
+	varID  <- "VarID";
+	value  <- "Num_Val";
 	
-	DataPrepRes <- FLRegrDataPrep( 	table,
+	dataPrepRes 			<- regr_data_prep( 	table,
 									response,
-									ObsIDColName = ObsIDColName,
-									VarIDColName = VarIDColName,
-									ValueColName = ValueColName,
-									PrimaryKey   = PrimaryKey,
-									Exclude      = Exclude,
-									ClassSpec    = ClassSpec,
-									WhereClause  = WhereClause);
-	DeepTableName        <- DataPrepRes$DeepTableName
-	WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID
-	DBConnection         <- table@ODBCConnection;
+									obs_id = obsID,
+									var_id = varID,
+									value = value,
+									primary_key   = primary_key,
+									exclude      = exclude,
+									class_spec    = class_spec,
+									where_clause  = where_clause);
+	deepTableName        	<- dataPrepRes$deepTableName
+	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
+	connection         		<- table@odbc_connection;
 
-	SQLParameters <- list(	DeepTableName = DeepTableName,
-							ObsIDColName  = ObsIDColName,  
-							VarIDColName  = VarIDColName, 
-							ValueColName  = ValueColName, 							
-							Note          = Note )
+	sqlParameters 			<- list(	deepTableName = deepTableName,
+										obs_id  = obsID,  
+										var_id  = varID, 
+										value  = value, 							
+										note          = note )
 	
 	#run LinRegr
-	LinRegRes        <- runsql(DBConnection, "SQL//FLLinRegr.sql", SQLParameters);
-	AnalysisID       <- toString(LinRegRes[1,"AnalysisID"]);
+	linRegrRes        		<- runsql(connection, "SQL//FLLinRegr.sql", sqlParameters);
+	analysisID       		<- toString(linRegrRes[1,"AnalysisID"]);
 
-	RetData = new("FLLinRegr",AnalysisID = AnalysisID, ODBCConnection = DBConnection, DeepTableName = DeepTableName, WidetoDeepAnalysisID = WidetoDeepAnalysisID);
+	retData = new("FLLinRegr",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName, wide_to_deep_analysis_id = wideToDeepAnalysisID);
 	
-	return(RetData);
+	return(retData);
 }
