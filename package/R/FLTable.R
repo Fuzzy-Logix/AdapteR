@@ -12,13 +12,6 @@ setClass("FLTable",
 
 FLTable <- function(odbc_connection,db_name,table_name) {
 
-	#if (!is.character(DSN)) 		
-	#stop("DSN must be a string")
-	if (!is.character(db_name)) 		
-	stop("DBName must be a string")
-	if (!is.character(table_name))	
-	stop("TableNamemust be a string")
-
 	validate_args(list(db_name = db_name, table_name = table_name),list(db_name = "character", table_name = "character"))
 
 	sqlQuery(odbc_connection, paste("DATABASE", DBName));

@@ -3,7 +3,7 @@
 #  * @param  {list} x e.g. list(Varx="a",Vary="b")
 #  * @return {string}   "Varx='x' AND Vary='y'"
 #  */
-list.to.whereClause <- function (x) {
+list_to_where_clause <- function (x) {
 	     whereClause <- paste(names(x),x,sep="=\'",collapse="\' AND ");
 	     whereClause <- paste(whereClause,"\'",sep="");
 	     whereClause <- ifelse(nchar(whereClause) > 1, whereClause, "1=1");
@@ -15,7 +15,7 @@ list.to.whereClause <- function (x) {
 #  * @param  {list} x e.g. list(Varx="a",Vary="b")
 #  * @return {string}   "Varx(x), Vary(y)"
 #  */
-list.to.classSpec <- function (x) {
+list_to_class_spec <- function (x) {
 	classSpec <- paste(names(x),x,sep="(",collapse="), ")
 	classSpec <- paste(classSpec,")",sep="")
 	classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
@@ -27,7 +27,7 @@ list.to.classSpec <- function (x) {
 #  * @param  {list} x e.g. list(Varx="a",Vary="b")
 #  * @return {string}   "Varx(x), Vary(y)"
 #  */
-list.to.excludeClause <- function (x) {
+list_to_exclude_clause <- function (x) {
 	excludeClause <- paste(x, collapse=", ")
 	excludeClause
 }
@@ -37,13 +37,13 @@ list.to.excludeClause <- function (x) {
 # * @param  {string} TableName Name of Wide Table
 # * @return {string}           [description]
 # */
-GenDeepTableName <- function(TableName){
+gen_deep_table_name <- function(TableName){
 	random_no <- rnorm(1);
 	paste(TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
 }
 
 # GenOutTableName: Used in FLMatchIt
-GenOutTableName <- function(TableName){
+gen_out_table_name <- function(TableName){
 	random_no <- rnorm(1);
 	paste(TableName,"Out",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
 }
@@ -55,7 +55,7 @@ GenOutTableName <- function(TableName){
 # * @param  {string} TableName Name of Table
 # * @return {string}           [description]
 # */
-GenSpecID <- function(TableName){
+gen_spec_ID <- function(TableName){
 	random_no <- rnorm(1);
 	paste(TableName,"spec",round(random_no*random_no*10000),sep="_");
 }
@@ -65,7 +65,7 @@ GenSpecID <- function(TableName){
 # * @param  {string} ClassSpec list
 # * @return {int} Value of CatToDummy
 # */
-CalcCatToDummy <- function(ClassSpec) {
+calc_cat_to_dummy <- function(ClassSpec) {
 	if (length(ClassSpec) == 0) 
     CatToDummy <- 0
 	else 
@@ -79,7 +79,7 @@ CalcCatToDummy <- function(ClassSpec) {
 # * @param  {string} Vars Vector
 # * @return {string} Query to get mapping of Variable to VariableID
 # */
-VarNameToID <- function(AnalysisID,Vars){
+var_name_to_ID <- function(AnalysisID,Vars){
 	
 	query <- "SELECT a.COLUMN_NAME,a.Final_VarID as VarID
 	FROM fzzlRegrDataPrepMap a 
@@ -94,7 +94,7 @@ VarNameToID <- function(AnalysisID,Vars){
 # * @param  {string} TableName Name of Table
 # * @return {string}           [description]
 # */
-GenOutTable <- function(Type,AnalysisID){
+gen_out_table <- function(Type,AnalysisID){
 	random_no <- rnorm(1);
 	paste(Type,"Prediction",AnalysisID,round(random_no*random_no*10000),sep="_");
 }
@@ -105,7 +105,7 @@ GenOutTable <- function(Type,AnalysisID){
 # * @param {numeric} MatrixID
 # * @return {string} 
 # */
-GenOutMatrixTable <- function(Operation,MatrixTable, Matrix_ID) {
+gen_out_matrix_table <- function(Operation,MatrixTable, Matrix_ID) {
 	random_no <- rnorm(1);
 	paste(Operation,MatrixTable, Matrix_ID, round(random_no*random_no*10000), sep = "_");
 }
