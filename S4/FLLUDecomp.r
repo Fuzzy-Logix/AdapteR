@@ -1,31 +1,32 @@
-FLLUDecomp <- function(FLMatrix)  {
+FLLUDecomp <- function(matrix)  
+{
 
-		Matrix_ID   <- FLMatrix@MatrixID;
-		Row_ID      <- FLMatrix@RowIDColName;
-		Col_ID      <- FLMatrix@ColIDColName;
-		Cell_Val    <- FLMatrix@CellValColName;
-		MatrixTable <- FLMatrix@MatrixTableName;
-		OutTable 	<- GenOutMatrixTable("LUDecomp",MatrixTable, Matrix_ID)
+		matrixIDValue   <- matrix@matrix_id_value;
+		rowID      		<- matrix@row_id;
+		columnID   		<- matrix@column_id;
+		cellValue    	<- matrix@cell_value;
+		matrixTable 	<- matrix@matrix_table;
+		outTable 		<- GenOutMatrixTable("LUDecomp",matrixTable, matrixIDValue)
 		
-		path        <- "SQL//FLLUDecomp.sql";
+		path        	<- "SQL//FLLUDecomp.sql";
 		stopifnot(file.exists(path));
-		sql 		<- readChar(path, nchar = file.info(path)$size);
-		sql 		<- sprintf(	sql, 
-								OutTable,
-								Row_ID,   
-								Col_ID,   
-								Cell_Val,   
-								MatrixTable,
-								toString(Matrix_ID));
-		sql <- gsub("[\r\n]", "", sql);
+		sql 			<- readChar(path, nchar = file.info(path)$size);
+		sql 			<- sprintf(	sql, 
+								outTable,
+								rowID,   
+								columnID,   
+								cellValue,   
+								matrixTable,
+								toString(matrixIDValue));
+		sql 			<- gsub("[\r\n]", "", sql);
 		#print(sql)
-		Connection  <- FLMatrix@ODBCConnection
-		sqlQuery(Connection, sql, stringsAsFactors = FALSE);
-		L_Matrix    <- FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputValL");
-		U_Matrix    <- FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputValU");
-		Perm_Matrix <- FLMatrix(Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputPermut");
-		RetData = new("FLLUDecomp", L_Matrix = L_Matrix, U_Matrix = U_Matrix, Perm_Matrix = Perm_Matrix)
-		return(RetData);
+		connection  	<- matrix@ODBC_connection
+		sqlQuery(connection, sql, stringsAsFactors = FALSE);
+		lMatrix    	<- FLMatrix(connection, database = matrix@database, matrix_table = outTable, matrix_id_value = matrixIDValue, matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputValL");
+		uMatrix    	<- FLMatrix(connection, database = matrix@database, matrix_table = outTable, matrix_id_value = matrixIDValue, matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputValU");
+		permMatrix 	<- FLMatrix(connection, database = matrix@database, matrix_table = outTable, matrix_id_value = matrixIDValue, matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputPermut");
+		retData = new("FLLUDecomp", l_matrix = lMatrix, u_matrix = uMatrix, perm_matrix = permMatrix)
+		return(retData);
 }
 		
 								

@@ -40,3 +40,17 @@ FLLinRegr <- function( 	Tbl,
 	
 	return(RetData);
 }
+
+# runFLLinRegrDBLytix returns the coefficient table for Linear Regression as in DBLytix
+runFLLinRegrDBLytix <- function(Tbl,
+						DepCol,
+						Note     = "From RWrapper For DBLytix",
+						PrimaryKey,
+						Exclude      = c(),
+						ClassSpec    = list(),
+						WhereClause  = "") {
+	Analysis 	<- FLLinRegr(Tbl, DepCol, Note, PrimaryKey, Exclude, ClassSpec)
+	Analysis 	<- fetch.results(Analysis)
+	CoeffTable 	<- Analysis@coeffs
+	return(CoeffTable[,c(3:5)])
+}

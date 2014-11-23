@@ -1,28 +1,28 @@
-FLMatrixInv <- function(FLMatrix)  {
+FLMatrixInv <- function(matrix)  {
 
-		Matrix_ID   <- FLMatrix@MatrixID;
-		Row_ID      <- FLMatrix@RowIDColName;
-		Col_ID      <- FLMatrix@ColIDColName;
-		Cell_Val    <- FLMatrix@CellValColName;
-		MatrixTable <- FLMatrix@MatrixTableName;
-		OutTable 	<- GenOutMatrixTable("MatrixInv",MatrixTable, Matrix_ID)
+		matrixIDValue   <- matrix@matrix_id_value;
+		rowID      		<- matrix@row_id;
+		columnID      	<- matrix@column_id;
+		cellValue    	<- matrix@cell_value;
+		matrixTable 	<- matrix@matrix_table;
+		outTable 		<- GenOutMatrixTable("MatrixInv",matrixTable, matrixIDValue)
 		
-		path        <- "SQL//FLMatrixInv.sql";
+		path        	<- "SQL//FLMatrixInv.sql";
 		stopifnot(file.exists(path));
-		sql 		<- readChar(path, nchar = file.info(path)$size);
-		sql 		<- sprintf(	sql, 
-								OutTable,
-								Row_ID,   
-								Col_ID,   
-								Cell_Val,   
-								MatrixTable,
-								toString(Matrix_ID));
-		sql <- gsub("[\r\n]", "", sql);
+		sql 			<- readChar(path, nchar = file.info(path)$size);
+		sql 			<- sprintf(	sql, 
+									outTable,
+									rowID,   
+									columnID,   
+									cellValue,   
+									matrixTable,
+									toString(matrixIDValue));
+		sql 			<- gsub("[\r\n]", "", sql);
 		#print(sql)
-		Connection  <- FLMatrix@ODBCConnection
-		sqlQuery(Connection, sql, stringsAsFactors = FALSE);
-		RetData = new("FLMatrix", ODBCConnection = Connection, DBName = FLMatrix@DBName, MatrixTableName = OutTable, MatrixID = Matrix_ID, MatrixIDColName = "OutputMatrixID", RowIDColName = "OutputRowNum", ColIDColName = "OutputColNum", CellValColName = "OutputVal")
-		return(RetData);
+		connection  	<- matrix@ODBC_connection
+		sqlQuery(connection, sql, stringsAsFactors = FALSE);
+		retData = new("FLMatrix", ODBC_connection = connection, database = matrix@database, matrix_table = outTable, matrix_id_value = matrixIDValue, matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputVal")
+		return(retData);
 }
 		
 								

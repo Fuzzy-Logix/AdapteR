@@ -6,6 +6,55 @@ setGeneric("FL.predict", function(	AnalysisObject,
 });
 
 #############################################################################################
+# score function for FLDecisionTree
+setMethod("FL.predict",
+			signature(AnalysisObject = "FLDecisionTree", FLTableObject  = "FLTable", PredictTable = ""),
+			function(AnalysisObject,
+					 FLTableObject)
+	{
+		ObsIDColName <- "ObsID";
+		ObsIDColName <- "ObsID";
+		VarIDColName <- "VarID";
+		ValueColName <- "Num_Val";
+		PrimaryKey   <- AnalysisObject@PrimaryKey;
+		Exclude      <- AnalysisObject@Exclude;
+		ClassSpec    <- AnalysisObject@ClassSpec;	
+		InAnalysisID <- AnalysisObject@WidetoDeepAnalysisID;
+		WhereClause  <- "";
+		DataPrepRes  <- FLRegrDataPrepScore( FLTableObject,
+											ObsIDColName = ObsIDColName,
+											VarIDColName = VarIDColName,
+											ValueColName = ValueColName,
+											PrimaryKey   = PrimaryKey,
+											Exclude      = Exclude,
+											ClassSpec    = ClassSpec,
+											WhereClause  = WhereClause,
+											InAnalysisID = InAnalysisID);
+							
+							DeepTableName        <- DataPrepRes$DeepTableName;
+							DBConnection         <- FLTableObject@ODBCConnection;
+							WidetoDeepAnalysisID <- DataPrepRes$WidetoDeepAnalysisID;
+							RegrAnalysisID       <- AnalysisObject@AnalysisID;
+							if(PredictTable == "")
+							{
+								PredictTable <- GenOutTable("NaiveBayes",RegrAnalysisID);	
+							}												
+							SQLStr <- "Call FLDecisionTreeMNScore('%s','%s','%s','%s','%s','%s','From RWrapper for DBLytix', OutAnalysisID)";
+							SQLStr <- sprintf(SQLStr, 
+											  DeepTableName,
+											  ObsIDColName,  
+											  VarIDColName, 
+											  ValueColName, 																		  
+											  RegrAnalysisID,
+											  PredictTable);											
+							#run DecisionTreeMNScore
+							NaiveBayesScoreRes <- sqlQuery(DBConnection, SQLStr);							
+							SQLStr             <- paste("SELECT * FROM", PredictTable, "ORDER BY 1", sep = " ");
+							ScoreTbl           <- sqlQuery(DBConnection, SQLStr);							
+							return(ScoreTbl);
+	}
+);
+#################################################################################################
 # score function for FLLogRegr
 setMethod("FL.predict", 
 		  signature(AnalysisObject = "FLLogRegr", FLTableObject = "FLTable"),
@@ -53,8 +102,6 @@ setMethod("FL.predict",
 							return(ScoreTbl);
 	}
 );
-############################################################################################
-
 ############################################################################################
 #score function for FLNaiveBayes
 

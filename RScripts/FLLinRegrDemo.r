@@ -17,6 +17,6 @@ DBConnect <- odbcConnect("Gandalf")
 Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "tblAutoMpg")
 
 # Run Linear Regression
-Analysis <- FLLinRegr( Tbl, "MPG", Note = "RWrapper Roadmap Relay Demo", PrimaryKey = "ObsID", Exclude = c("CarNum","CarNumber"), ClassSpec = list(CarName = "BMW") )
+Analysis <- FLLinRegr( Tbl, "MPG", Note = "RWrapper Roadmap Relay Demo", PrimaryKey = "ObsID", Exclude = c("CarNum","CarNumber"), ClassSpec = list(CarName = "Audi") )
 Analysis <- fetch.results(Analysis)
 Analysis@coeffs
