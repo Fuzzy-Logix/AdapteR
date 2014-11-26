@@ -1,7 +1,7 @@
 #
 # Fuzzy Logix Matrix Object
 # @param  {RODBC}	Connection		  [description]
-# @param  {character} database    		  [description]
+# @param  {character} database  [description]
 # @param  {character} matrix_table	  [description]
 # @param  {numeric} matrix_id_value		  [description]
 setOldClass("RODBC") 
@@ -25,15 +25,26 @@ setClass("FLSVD",
 						s_matrix = "FLMatrix",
 						v_matrix = "FLMatrix"))
 
-FLMatrix <- function(connection, database, matrix_table, matrix_id_value, matrix_id = "Matrix_ID", row_id = "Row_ID", column_id = "Col_ID", cell_value = "Cell_Val") 
+FLMatrix <- function(connection, database, matrix_table, matrix_id_value,
+					 matrix_id = "Matrix_ID", row_id = "Row_ID", column_id = "Col_ID",
+					 cell_value = "Cell_Val") 
 {
 
-	if (!is.character(database)) 		
-	stop("Database must be a string")
-	if (!is.character(matrix_table))	
-	stop("Matrix_Table must be a string")
-	if (!is.numeric(matrix_id_value) || matrix_id_value <= 0)	
-	stop("Matrix_ID_Value must be a positive integer")
+	#Type validation
+	matrix_id_value <- ifelse(	is_number(matrix_id_value),
+						as.integer(matrix_id_value),
+						stop("matrix_id_value should be an integer"))
+
+	argList  <- as.list(environment())
+	typeList <- list(	connection      = "integer",
+						database        = "character",
+						matrix_table    = "character",
+						matrix_id_value = "integer",										
+						matrix_id       = "character",
+						row_id          = "character",
+						column_id       = "character",
+						cell_value      = "character" )
+	validate_args(argList, typeList)
 
 	sqlQuery(connection, paste("DATABASE", database));
 	sqlQuery(connection, "SET ROLE ALL");
@@ -52,10 +63,14 @@ setMethod("FLFetchMatrix",
           signature("FLMatrix"),
           function(object) 
 		  {
-      		DBConnection 	 <- object@ODBC_connection;            
-      		SQLStr           <- paste("SELECT ",object@row_id,", ",object@column_id,", ",object@cell_value, " FROM ", object@matrix_table, " WHERE ", object@matrix_id, " = ",object@matrix_id_value," ORDER BY 1,2",sep = "");
-			#print(SQLStr)
-			outputMatrix     <- sqlQuery(DBConnection, SQLStr);
+      		connection 	 <- object@ODBC_connection       
+      		sqlParameters <- list(	row_id          = object@row_id,
+									column_id       = object@column_id,
+									cell_value      = object@cell_value,
+									matrix_table    = object@matrix_table,
+									matrix_id       = object@matrix_id,
+									matrix_id_value = object@matrix_id_value)
+			outputMatrix  <- run_sql(connection, "SQL//FLFetchMatrix.sql", sqlParameters)
 				
 			return(outputMatrix)
           }

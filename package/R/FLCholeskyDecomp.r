@@ -1,29 +1,21 @@
 FLCholeskyDecomp <- function(matrix)  
-{
+{	
+	connection    <- matrix@ODBC_connection
+	outTable      <- gen_out_matrix_table("CholeskyDecomp",matrixTable, matrixIDValue)
+	
+	sqlParameters <- list(	matrixIDValue = toString(matrix@matrix_id_value),
+							rowID         = matrix@row_id,
+							columnID      = matrix@column_id,
+							cellValue     = matrix@cellValue,
+							matrixTable   = matrix@matrix_table,
+							outTable      = outTable)
+	runsql(connection, "SQL//FLCholeskyDecomp.sql", sqlParameters)
 
-	matrixIDValue   <- matrix@matrix_id_value;
-	rowID     ``	<- matrix@row_id;
-	columnID    	<- matrix@column_id;
-	cellValue  	 	<- matrix@cellValue;
-	matrixTable 	<- matrix@matrix_table;
-	outTable 		<- GenOutMatrixTable("CholeskyDecomp",matrixTable, matrixIDValue)
-		
-	path        	<- "SQL//FLCholeskyDecomp.sql";
-	stopifnot(file.exists(path));
-	sql 			<- readChar(path, nchar = file.info(path)$size);
-	sql 			<- sprintf(	sql, 
-							outTable,
-							rowID,   
-							columnID,   
-							cellValue,   
-							matrixTable,
-							toString(matrixIDValue));
-	sql 			<- gsub("[\r\n]", "", sql);
-	#print(sql)
-	connection  	<- matrix@ODBC_connection
-	sqlQuery(connection, sql, stringsAsFactors = FALSE);
-	retData = new("FLMatrix", ODBC_connection = connection, database = matrix@database, matrix_table = outTable, matrix_id_value = matrixIDValue, matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputVal")
-	return(retData);
+	retData = new("FLMatrix", 	ODBC_connection = connection, database = matrix@database,
+								matrix_table = outTable, matrix_id_value = matrix@matrix_id_value,
+								matrix_id = "OutputMatrixID", row_id = "OutputRowNum",
+								column_id = "OutputColNum", cell_value = "OutputVal")
+	return(retData)
 }
 		
 								

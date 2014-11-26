@@ -1,12 +1,12 @@
-CREATE TABLE %s AS ( 
+CREATE TABLE %outTable AS ( 
 WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS
  (
 SELECT a.Matrix_ID,
-a.%s,
-a.%s,
-a.%s
- FROM %s a
- WHERE a.Matrix_ID = %s
+a.%rowID,
+a.%columnID,
+a.%cellValue
+ FROM %matrixTable a
+ WHERE a.Matrix_ID = %matrixIDValue
 )
  SELECT a.*
   FROM TABLE (

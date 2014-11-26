@@ -4,10 +4,10 @@
 #  * @return {string}   "Varx='x' AND Vary='y'"
 #  */
 list_to_where_clause <- function (x) {
-	     whereClause <- paste(names(x),x,sep="=\'",collapse="\' AND ");
-	     whereClause <- paste(whereClause,"\'",sep="");
-	     whereClause <- ifelse(nchar(whereClause) > 1, whereClause, "1=1");
-	     whereClause
+	     where_clause <- paste(names(x),x,sep="=\'",collapse="\' AND ");
+	     where_clause <- paste(where_clause,"\'",sep="");
+	     where_clause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
+	     where_clause
      }
 
 # /**
@@ -163,3 +163,6 @@ validate_args <- function (arg_list,type_list)
 			stop( paste("Argument Type Mismatch",names[i],"should be of type",type_list[i]) )
 	}
 }		
+
+is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
+is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1) }
