@@ -1,13 +1,13 @@
-WITH tw (m_id, %s, %s)
+WITH tw (m_id, %category, %response)
 AS (
 		SELECT 1 AS m_id,
-		%s, 
-		%s  
-		FROM %s t
-		WHERE %s
-	)	
+		%category,
+		%response
+		FROM %table t
+		WHERE %whereClause
+	)
 SELECT d.*
-FROM TABLE (FLAnova1WayUdt (tw.m_id, tw.%s, tw.%s)
+FROM TABLE (FLAnova1WayUdt (tw.m_id, tw.%category, tw.%response)
 			HASH BY tw.m_id
 			LOCAL ORDER BY tw.m_id
 ) AS d
