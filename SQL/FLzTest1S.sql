@@ -1,4 +1,4 @@
-SELECT FLzTest1S('Z_STAT', %s, a.%s, %s) AS Z_STAT,
- FLzTest1S('P_VALUE', %s, a.%s, %s) AS P_VALUE
- FROM %s a;
+SELECT 	FLzTest1S('Z_STAT',  %mu, a.%input1, %numTails) AS Z_STAT,
+ 		FLzTest1S('P_VALUE', %mu, a.%input1, %numTails) AS P_VALUE
+ FROM %tableName a;
  
