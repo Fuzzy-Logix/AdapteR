@@ -1,13 +1,14 @@
 FLEigen <- function(matrix)  
 {	
-
+	matrixTable   <- matrix@matrix_table,
+	matrixIDValue <- toString(matrix@matrix_id_value)
+	connection    <- matrix@ODBC_connection
 	outTable   <- gen_out_matrix_table("FLEigenVectors",matrixTable, matrixIDValue)
-	connection <- matrix@ODBC_connection
-	sqlParameters <- list(	matrixIDValue = toString(matrix@matrix_id_value),
+	sqlParameters <- list(	matrixIDValue = matrixIDValue,
 							rowID         = matrix@row_id,
 							columnID      = matrix@column_id,
 							cellValue     = matrix@cellValue,
-							matrixTable   = matrix@matrix_table,
+							matrixTable   = matrixTable,
 							outTable      = outTable )
 	run_sql(connection, "SQL//FLEigenVectorUdt.sql", sqlParameters)
 	retData$vectors = new(	"FLMatrix", 
