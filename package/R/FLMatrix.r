@@ -53,13 +53,13 @@ FLMatrix <- function(connection, database, matrix_table, matrix_id_value,
 }
 	
 # FLFetchMatrix method for FLMatrix Object
-setGeneric("FLFetchMatrix", function(object) 
+setGeneric("FLFetchMatrix1", function(object) 
 {
-  standardGeneric("FLFetchMatrix")
+  standardGeneric("FLFetchMatrix1")
 })
 
 # FLFetchMatrix Method Definition
-setMethod("FLFetchMatrix",
+setMethod("FLFetchMatrix1",
           signature("FLMatrix"),
           function(object) 
 		  {
@@ -75,3 +75,19 @@ setMethod("FLFetchMatrix",
 			return(outputMatrix)
           }
 )
+
+FLFetchMatrix <- function(matrix)
+{
+
+	connection <- matrix@ODBC_connection
+	sqlParameters <- list(	row_id          = matrix@row_id,
+							column_id       = matrix@column_id,
+							cell_value      = matrix@cell_value,
+							matrix_table    = matrix@matrix_table,
+							matrix_id       = matrix@matrix_id,
+							id_value = matrix@matrix_id_value)
+	outputMatrix  <- run_sql(connection, "SQL//FLFetchMatrix.sql", sqlParameters)
+	
+	return(outputMatrix)
+	
+}
