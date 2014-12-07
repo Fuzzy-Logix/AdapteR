@@ -1,12 +1,14 @@
 setOldClass("RODBC");
+
+# define FLDataMiningAnalysis Class
 setClass(	"FLDataMiningAnalysis", 
-			slots = list(	ODBCConnection       = "RODBC",
-							AnalysisID           = "character",
-							WidetoDeepAnalysisID = "character",
-							DeepTableName        = "character",
-							ClassSpec            = "list",
-							PrimaryKey           = "character",
-							Exclude              = "character"))
+			slots = list(	analysis_id           		= "character",
+							wide_to_deep_analysis_id 	= "character",						
+							deep_table_name        		= "character",
+							class_spec            		= "list",
+							primary_key           		= "character",
+							exclude              		= "character",
+							odbc_connection       		= "RODBC"))
 							
 # define FLKMeans Class
 setClass(	"FLKMeans",
@@ -14,82 +16,84 @@ setClass(	"FLKMeans",
 							cluster = "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
-setGeneric("FLFetch", function(object) {
-  standardGeneric("FLFetch")
-})
+setGeneric(	"FLFetch", 
+			function(object) 
+			{
+				standardGeneric("FLFetch")
+			}
+		)
 
-# fetch_results method for KMeans
-setMethod("FLFetch",
-          signature("FLKMeans"),
-          function(object) {
-      		DBConnection <- object@ODBCConnection;            
-      		
-      		#Fetch Centers Dendrogram
-			SQLStr           <- paste("SELECT HypothesisID,Level,ClusterID,VarID,Centroid FROM fzzlKMeansDendrogram WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			KMeansDendrogram <- sqlQuery(DBConnection, SQLStr);
-				
-			#Fetch ClusterID Arrays
-			SQLStr           <- paste("SELECT HypothesisID,ObsID,ClusterID FROM fzzlKMeansClusterID WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-			KMeansClusterID  <- sqlQuery(DBConnection, SQLStr);
-
-			object@centers = KMeansDendrogram;
-			object@cluster = KMeansClusterID;
-			object
-          }
+# FLFetch method for KMeans
+setMethod(	"FLFetch",
+			signature("FLKMeans"),
+			function(object) 
+			{
+				connection 			<- object@odbc_connection;        		
+				#Fetch Centers Dendrogram
+				sql           		<- paste("SELECT HypothesisID,Level,ClusterID,VarID,Centroid FROM fzzlKMeansDendrogram WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				kMeansDendrogram 	<- sqlQuery(connection, sql);
+					
+				#Fetch ClusterID Arrays
+				sql           		<- paste("SELECT HypothesisID,ObsID,ClusterID FROM fzzlKMeansClusterID WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3",sep = "");
+				kMeansClusterID  	<- sqlQuery(connection, sql);
+	
+				object@centers 		= kMeansDendrogram;
+				object@cluster 		= kMeansClusterID;
+				return(object)
+			}
 )
+
 # define FLLinRegr Class
 setClass(	"FLLinRegr",
-				representation(	coeffs = "data.frame",
-								stats = "data.frame"),
+			representation(	coeffs 	= "data.frame",
+							stats 	= "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
-# fetch_results method for LinRegr
-setMethod("FLFetch",
-          signature("FLLinRegr"),
-          function(object) {
-      		DBConnection <- object@ODBCConnection;            
-      		
-      		#Fetch Regr Coeffs
-			#SQLStr           <- paste("SELECT a.* FROM fzzlLinRegrCoeffs a WHERE a.AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-
-			SQLStr             <- "SELECT b.COEFFID,a.VAR_TYPE,a.COLUMN_NAME,a.CATVALUE,b.COEFFVALUE,b.STDERR,b.TSTAT,b.PVALUE,b.NONZERODENSITY,B.CORRELWITHRES
-			FROM fzzlRegrDataPrepMap a,fzzlLinRegrCoeffs b 
-			WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.COEFFID
-			ORDER BY b.COEFFID";
-			SQLStr        <- sprintf(SQLStr, object@WidetoDeepAnalysisID, object@AnalysisID);
-			SQLStr        <- gsub("[\r\n]", "", SQLStr);
-			LinRegrCoeffs <- sqlQuery(DBConnection, SQLStr);
+# FLFetch method for LinRegr
+setMethod(	"FLFetch",
+			signature("FLLinRegr"),
+			function(object) 
+			{
+				connection 		<- object@odbc_connection;        		
+				#Fetch regression coefficients
+				sql             <- "SELECT b.COEFFID,a.VAR_TYPE,a.COLUMN_NAME,a.CATVALUE,b.COEFFVALUE,b.STDERR,b.TSTAT,b.PVALUE,b.NONZERODENSITY,b.CORRELWITHRES
+				FROM fzzlRegrDataPrepMap a,fzzlLinRegrCoeffs b 
+				WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.COEFFID
+				ORDER BY b.COEFFID";
+				sql        		<- sprintf(sql, object@wide_to_deep_analysis_id, object@analysis_id);
+				sql        		<- gsub("[\r\n]", "", sql);
+				linRegrCoeffs 	<- sqlQuery(connection, sql);
 				
-			#Fetch Regr Stats
-			SQLStr       <- paste("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '", object@AnalysisID,"' ",sep = "");
-			LinRegrStats <- sqlQuery(DBConnection, SQLStr);
+				#Fetch regression statistics
+				sql       		<- paste("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '", object@analysis_id,"' ",sep = "");
+				linRegrStats 	<- sqlQuery(connection, sql);
 			
-			object@coeffs = LinRegrCoeffs;
-			object@stats  = LinRegrStats;
-			object
+				object@coeffs 	= linRegrCoeffs;
+				object@stats  	= linRegrStats;
+				return(object)
           }
-)
+		)
 
 # define FLVIF Class
 setClass(	"FLVIF",
 			representation(	stats = "data.frame" ),
 			contains = "FLDataMiningAnalysis")
 
-# fetch_results method for VIF
-setMethod("FLFetch",
-          signature("FLVIF"),
-          function(object) {
-      		DBConnection <- object@ODBCConnection;            
-      		
-      		#Fetch Regr R^2 and VIF
-			SQLStr       <- "SELECT b.VarID,a.VAR_TYPE,a.COLUMN_NAME,a.CATVALUE,b.RSquared,b.VIF FROM fzzlRegrDataPrepMap a,fzzlvifstats b WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.VarID ORDER BY b.VarID";
-			SQLStr       <- sprintf(SQLStr, object@WidetoDeepAnalysisID, object@AnalysisID);
-			SQLStr       <- gsub("[\r\n]", " ", SQLStr);
-			VIFStats     <- sqlQuery(DBConnection, SQLStr);							
-			object@stats = VIFStats;
-			object
-          }
-)
+# FLFetch method for VIF
+setMethod(	"FLFetch",
+			signature("FLVIF"),
+			function(object) 
+			{
+				connection 		<- object@odbc_connection;     		
+				#Fetch regression R^2 and VIF
+				sql       		<- "SELECT b.VarID,a.VAR_TYPE,a.COLUMN_NAME,a.CATVALUE,b.RSquared,b.VIF FROM fzzlRegrDataPrepMap a,fzzlvifstats b WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.VarID ORDER BY b.VarID";
+				sql       		<- sprintf(sql, object@wide_to_deep_analysis_id, object@analysis_id);
+				sql       		<- gsub("[\r\n]", " ", sql);
+				vifStats     	<- sqlQuery(connection, sql);							
+				object@stats 	= vifStats;
+				return(object)
+			}
+		)
 
 # define FLNaiveBayes Class
 setClass(	"FLNaiveBayes",
@@ -98,145 +102,167 @@ setClass(	"FLNaiveBayes",
 
 # define FLDecisionTree Class
 setClass("FLDecisionTree", 
-		 representation(dt.node.info  = "data.frame",
-						dt.obs.classification = "data.frame"),
-						contains = "FLDataMiningAnalysis")						
-# fetch_results method for FLDecisionTree
-setMethod("FLFetch",
-          signature("FLDecisionTree"),
-          function(object) {
-      DBConnection <- object@ODBCConnection;            
-      #Fetch Decision Tree Analysis Result Table
-			SQLStr <- paste("SELECT TreeLevel, NodeID, ParentNodeID, IsLeaf, SplitVarID, SplitVal, ChildNodeLeft, ChildNodeRight, NodeSize, PredictClass, PredictClassProb FROM fzzlDecisionTreeMN WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			NodeInfo <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT ObsID, ObservedClass, NodeID, PredictedClass, PredictClassProb FROM fzzlDecisionTreeMNPred WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			ObservationClassification <- sqlQuery(DBConnection, SQLStr);
-			object@dt.node.info = NodeInfo;
-			object@dt.obs.classification = ObservationClassification;
-			
-			#print(paste(object@AnalysisID));
-			object
-          }
-)
+		 representation(	node_info  = "data.frame",
+							classification = "data.frame"),
+							contains = "FLDataMiningAnalysis")
+							
+# FLFetch method for FLDecisionTree
+setMethod(	"FLFetch",
+			signature("FLDecisionTree"),
+			function(object)
+			{
+				connection 				<- object@odbc_connection;            
+				# Fetch nodes of the decision tree built
+				sql 					<- paste("SELECT TreeLevel, NodeID, ParentNodeID, IsLeaf, SplitVarID, SplitVal, ChildNodeLeft, ChildNodeRight, NodeSize, PredictClass, PredictClassProb FROM fzzlDecisionTreeMN WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				nodeInfo 				<- sqlQuery(connection, sql);
+				
+				# Fetch observations' classification
+				sql 					<- paste("SELECT ObsID, ObservedClass, NodeID, PredictedClass, PredictClassProb FROM fzzlDecisionTreeMNPred WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				classification 			<- sqlQuery(connection, sql);
+				
+				object@node_info 		= nodeInfo;
+				object@classification 	= classification;			
+				return(object)
+			}
+		)
 
 # define FLLogRegr Class
 setClass("FLLogRegr", 
-		 representation(coeffs  = "data.frame",
-						stats = "data.frame"),
-						contains = "FLDataMiningAnalysis")
+		 representation(	coeffs  = "data.frame",
+							stats = "data.frame"),
+							contains = "FLDataMiningAnalysis")
 						
-# fetch_results method for FLLogRegr
-setMethod("FLFetch",
-          signature("FLLogRegr"),
-          function(object) {
-      DBConnection <- object@ODBCConnection;            
-      #Fetch Logistic Regression Analysis Result Table
-			SQLStr             <- "SELECT b.COEFFID,a.VAR_TYPE,a.COLUMN_NAME,b.COEFFVALUE,b.STDERR,b.CHISQ,b.PVALUE
-			FROM fzzlRegrDataPrepMap a,fzzlLogRegrCoeffs b 
-			WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.COEFFID
-			ORDER BY b.COEFFID";
-			SQLStr        <- sprintf(SQLStr, object@WidetoDeepAnalysisID, object@AnalysisID);
-			SQLStr        <- gsub("[\r\n]", "", SQLStr);
-			Coeffs <- sqlQuery(DBConnection, SQLStr);
-			#SQLStr <- paste("SELECT MODELID, COEFFID, COEFFVALUE, STDERR, CHISQ, PVALUE FROM fzzlLogRegrCoeffs WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			#Coeffs <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT MODELID, NUMOFVARS, ITERATIONS, CONCORDANT, DISCORDANT, TIED, TOTALPAIRS, GINICOEFF, CSTATISTIC, GAMMA, HIGHESTPVALUE, EVENTS, NONEVENTS, NUMOFOBS, FALSEPOSITIVE, FALSENEGATIVE FROM fzzlLogRegrStats WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			Stats <- sqlQuery(DBConnection, SQLStr);
-			object@coeffs = Coeffs;
-			object@stats = Stats;
-			
-			#print(paste(object@AnalysisID));
-			object
-          }
-)
+# FLFetch method for FLLogRegr
+setMethod(	"FLFetch",
+			signature("FLLogRegr"),
+          	function(object) 
+			{
+				connection 		<- object@odbc_connection;            
+				#Fetch logistic regression coefficients
+				sql             <- "SELECT b.COEFFID,a.VAR_TYPE,a.COLUMN_NAME,b.COEFFVALUE,b.STDERR,b.CHISQ,b.PVALUE
+				FROM fzzlRegrDataPrepMap a,fzzlLogRegrCoeffs b 
+				WHERE a.AnalysisID = '%s' AND b.AnalysisID ='%s' AND a.Final_VarID = b.COEFFID
+				ORDER BY b.COEFFID";
+				sql        		<- sprintf(sql, object@wide_to_deep_analysis_id, object@analysis_id);
+				sql        		<- gsub("[\r\n]", "", sql);
+				logRegrCoeffs 	<- sqlQuery(connection, sql);
 				
-####################################################################################################################
+				#Fetch logistic regression statistics
+				sql 			<- paste("SELECT MODELID, NUMOFVARS, ITERATIONS, CONCORDANT, DISCORDANT, TIED, TOTALPAIRS, GINICOEFF, CSTATISTIC, GAMMA, HIGHESTPVALUE, EVENTS, NONEVENTS, NUMOFOBS, FALSEPOSITIVE, FALSENEGATIVE FROM fzzlLogRegrStats WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				logRegrStats 	<- sqlQuery(connection, sql);
+				
+				object@coeffs 	= logRegrCoeffs;
+				object@stats 	= logRegrStats;
+				return(object)
+			}
+		)
 
 # define FLLDA Class
 setClass("FLLDA", 
-		slots = list(	lda.canonical.coeffs  = "data.frame",
-						lda.fisher.coeffs = "data.frame",
-						lda.canonical.variates  = "data.frame",
-						lda.predicted.vs.observed = "data.frame"))
-# fetch_results method for FLLDA
-setMethod("FLFetch",
-          signature("FLLDA"),
-          function(object) {
-      DBConnection <- object@ODBCConnection;            
-      #Fetch LDA Result Table
-			SQLStr <- paste("SELECT CANTYPE, VARID, CANID, NUM_VAL FROM fzzlLDACanCoeff WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			CanonicalCoeffs <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT CATNUM_VAL, COEFFID, COEFFNUM_VAL FROM fzzlLDAFisherCoeffs WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-			FisherCoeffs <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT OBSID, VARID, NUM_VAL FROM fzzlLDACanVariate WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-			CanonicalVariates <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT Y, PREDICTEDY, OBS_COUNT FROM fzzlLDACrossTab WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-			PredVsObs <- sqlQuery(DBConnection, SQLStr);
-			object@lda.canonical.coeffs = CanonicalCoeffs;
-			object@lda.fisher.coeffs = FisherCoeffs;
-			object@lda.canonical.variates = CanonicalVariates;
-			object@lda.predicted.vs.observed = PredVsObs;
+		slots = list(	canonical_coeffs  = "data.frame",
+						fisher_coeffs = "data.frame",
+						canonical_variates  = "data.frame",
+						cross_tables = "data.frame"))
+						
+# FLFetch method for FLLDA
+setMethod(	"FLFetch",
+			signature("FLLDA"),
+			function(object) 
+			{
+				connection <- object@odbc_connection;            
+				# Fetch canonical coefficients table
+				sql 				<- paste("SELECT CANTYPE, VARID, CANID, NUM_VAL FROM fzzlLDACanCoeff WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
+				canonicalCoeffs 	<- sqlQuery(connection, sql);
+				
+				# Fetch fisher coefficients table
+				sql 				<- paste("SELECT CATNUM_VAL, COEFFID, COEFFNUM_VAL FROM fzzlLDAFisherCoeffs WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3",sep = "");
+				fisherCoeffs 		<- sqlQuery(connection, sql);
+				
+				# Fetch canonical variates table
+				sql 				<- paste("SELECT OBSID, VARID, NUM_VAL FROM fzzlLDACanVariate WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3",sep = "");
+				canonicalVariates 	<- sqlQuery(connection, sql);
+				
+				# Fetch Cross Tables of predicted and observed classification
+				sql 				<- paste("SELECT Y, PREDICTEDY, OBS_COUNT FROM fzzlLDACrossTab WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3",sep = "");
+				crossTables 		<- sqlQuery(connection, sql);
+				
+				object@canonical_coeffs 	= canonicalCoeffs;
+				object@fisher_coeffs 		= fisherCoeffs;
+				object@canonical_variates 	= canonicalVariates;
+				object@cross_tables 		= crossTables;
 			
-			#print(paste(object@AnalysisID));
-			object
+				return(object)
           }
 )
 
 # define FMLDA Class
 setClass("FLMDA", 
-		slots = list(	mda.weight  = "data.frame",
-						mda.mu = "data.frame",
-						mda.sigma  = "data.frame",
-						mda.mixing = "data.frame",
-						mda.log.likelihood = "data.frame",
-						mda.classify = "data.frame"),
-						contains = "FLDataMiningAnalysis")
-# fetch_results method for FLMDA
-setMethod("FLFetch",
-          signature("FLMDA"),
-          function(object) {
-      DBConnection <- object@ODBCConnection;            
-      #Fetch MDA Result Table
-			SQLStr <- paste("SELECT HypothesisID, ObsID, ClassID, SubclassID, Weight FROM fzzlMDAWeight WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4,5",sep = "");
-			MDAWeight <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT HypothesisID, ClassID, SubclassID, VarID, Mu FROM fzzlMDAMu WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			MDAMu <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT HypothesisID, VarID1, VarID2, Sigma FROM fzzlMDASigma WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			MDASigma <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT HypothesisID, ClassID, SubClassID, Mixing FROM fzzlMDAMixing WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3,4",sep = "");
-			MDAMixing <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT HypothesisID, Iteration, LogLikelihood FROM fzzlMDALogLikelihood WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-			MDALogLikelihood <- sqlQuery(DBConnection, SQLStr);
-			SQLStr <- paste("SELECT HypothesisID, ObsID, ClassID FROM fzzlMDAClassify WHERE AnalysisID = '", object@AnalysisID,"' ORDER BY 1,2,3",sep = "");
-			MDAClassify <- sqlQuery(DBConnection, SQLStr);
-			object@mda.weight = MDAWeight;
-			object@mda.mu = MDAMu;
-			object@mda.sigma = MDASigma;
-			object@mda.mixing = MDAMixing;
-			object@mda.log.likelihood = MDALogLikelihood;
-			object@mda.classify = MDAClassify;
+		slots = list(	cluster_probability  	= "data.frame",
+						mu 						= "data.frame",
+						sigma  					= "data.frame",
+						mixing_probability 		= "data.frame",
+						log_likelihood 			= "data.frame",
+						classify 				= "data.frame"),
+						contains 				= "FLDataMiningAnalysis")
+						
+# FLFetch method for FLMDA
+setMethod(	"FLFetch",
+			signature("FLMDA"),
+			function(object) 
+			{
+				connection <- object@odbc_connection;            
+				#Fetch cluster probability table
+				sql <- paste("SELECT HypothesisID, ObsID, ClassID, SubclassID, Weight FROM fzzlMDAWeight WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4,5",sep = "");
+				clusterProbability <- sqlQuery(connection, sql);
+				
+				#Fetch mean vector table
+				sql <- paste("SELECT HypothesisID, ClassID, SubclassID, VarID, Mu FROM fzzlMDAMu WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				mu <- sqlQuery(connection, sql);
+				
+				#Fetch common covariance matrix table
+				sql <- paste("SELECT HypothesisID, VarID1, VarID2, Sigma FROM fzzlMDASigma WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				sigma <- sqlQuery(connection, sql);
+				
+				#Fetch mixing probability table
+				sql <- paste("SELECT HypothesisID, ClassID, SubClassID, Mixing FROM fzzlMDAMixing WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3,4",sep = "");
+				mixingProbabilty <- sqlQuery(connection, sql);
+				
+				#Fetch log likelihood table
+				sql <- paste("SELECT HypothesisID, Iteration, LogLikelihood FROM fzzlMDALogLikelihood WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3",sep = "");
+				logLikelihood <- sqlQuery(connection, sql);
+				
+				#Fetch  table which gives the classID that has the maximum posterior probability
+				sql <- paste("SELECT HypothesisID, ObsID, ClassID FROM fzzlMDAClassify WHERE AnalysisID = '", object@analysis_id,"' ORDER BY 1,2,3",sep = "");
+				classify <- sqlQuery(connection, sql);
+				
+				object@cluster_probability 	= clusterProbability;
+				object@mu 					= mu;
+				object@sigma 				= sigma;
+				object@mixing_probability 	= mixing_probability;
+				object@log_likelihood	 	= logLikelihood;
+				object@classify 			= classify;
 			
-			#print(paste(object@AnalysisID));
-			object
-          }
-)
+				return(object)
+			}
+		)
 
 # define FLMatchIt Class
 setClass(	"FLMatchIt", 
-			slots = list(	ODBCConnection       = "RODBC",
-							OutTableName         = "character",
-							UnmatchedObsID       = "data.frame"))
+			slots = list(	odbc_connection 	= "RODBC",
+							out_table_name      = "character",
+							unmatched_obs_id    = "data.frame"))
 							
 # FLFetch for FLMatchIt
-setMethod("FLFetch",
-          signature("FLMatchIt"),
-          function(object) {
-      DBConnection <- object@ODBCConnection;            
-      #Fetch MDA Result Table
-			SQLStr <- paste("SELECT * FROM ", object@OutTableName," ORDER BY 1",sep = "");
-			UnmatchedObsID <- sqlQuery(DBConnection, SQLStr);
+setMethod(	"FLFetch",
+			signature("FLMatchIt"),
+			function(object) 
+			{
+				connection <- object@odbc_connection;            
+				#Fetch unmatched observation ids Table
+				sql <- paste("SELECT * FROM ", object@out_table_name," ORDER BY 1",sep = "");
+				unmatchedObsID <- sqlQuery(connection, sql);
 			
-			object@UnmatchedObsID = UnmatchedObsID;
-			object
-          }
-)
+				object@unmatchedObsID = unmatched_obs_id;
+				return(object)
+			}
+		)
