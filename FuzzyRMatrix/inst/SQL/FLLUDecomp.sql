@@ -1,12 +1,12 @@
 CREATE TABLE %outTable AS ( 
 WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS
  (
-SELECT a.Matrix_ID,
+SELECT a.%matrixID,
 a.%rowID,
 a.%columnID,
 a.%cellValue
  FROM %matrixTable a
- WHERE a.Matrix_ID = %matrixIDValue
+ WHERE a.%matrixID = %matrixValue
 )
  SELECT a.*
   FROM TABLE (
