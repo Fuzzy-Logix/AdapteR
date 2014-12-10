@@ -31,12 +31,13 @@
 #' @export
 FLLUDecomp <- function(matrix)  
 {
-		matrixIDValue <- matrix@matrix_id_value
+		matrixValue <- matrix@matrix_id_value
 		matrixTable   <- matrix@matrix_table
 		connection    <- matrix@ODBC_connection
-		outTable      <- gen_out_matrix_table("LUDecomp",matrixTable, matrixIDValue)
+		outTable      <- gen_out_matrix_table("LUDecomp",matrixTable, matrixValue)
 		
-		sqlParameters <- list(	matrixIDValue = toString(matrixIDValue),
+		sqlParameters <- list(	matrixID      = matrix@matrix_id,
+								matrixValue = toString(matrixValue),
 								rowID         = matrix@row_id,
 								columnID      = matrix@column_id,
 								cellValue     = matrix@cell_value,
@@ -47,7 +48,7 @@ FLLUDecomp <- function(matrix)
 		lMatrix    	<- FLMatrix(connection,
 								database        = matrix@database, 
 								matrix_table    = outTable,
-								matrix_id_value = matrixIDValue, 
+								matrix_id_value = matrixValue, 
 								matrix_id       = "OutputMatrixID",
 								row_id          = "OutputRowNum", 
 								column_id       = "OutputColNum", 
@@ -56,7 +57,7 @@ FLLUDecomp <- function(matrix)
 		uMatrix    	<- FLMatrix(connection, 
 								database        = matrix@database, 
 								matrix_table    = outTable, 
-								matrix_id_value = matrixIDValue, 
+								matrix_id_value = matrixValue, 
 								matrix_id       = "OutputMatrixID", 
 								row_id          = "OutputRowNum", 
 								column_id       = "OutputColNum", 
@@ -65,7 +66,7 @@ FLLUDecomp <- function(matrix)
 		permMatrix 	<- FLMatrix(connection, 
 								database        = matrix@database, 
 								matrix_table    = outTable, 
-								matrix_id_value = matrixIDValue, 
+								matrix_id_value = matrixValue, 
 								matrix_id       = "OutputMatrixID", 
 								row_id          = "OutputRowNum", 
 								column_id       = "OutputColNum", 

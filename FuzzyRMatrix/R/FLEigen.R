@@ -27,10 +27,11 @@
 FLEigen <- function(matrix)  
 {	
 	matrixTable   <- matrix@matrix_table
-	matrixIDValue <- toString(matrix@matrix_id_value)
+	matrixValue <- toString(matrix@matrix_id_value)
 	connection    <- matrix@ODBC_connection
-	outTable      <- gen_out_matrix_table("FLEigenVectors",matrixTable, matrixIDValue)
-	sqlParameters <- list(	matrixIDValue = matrixIDValue,
+	outTable      <- gen_out_matrix_table("FLEigenVectors",matrixTable, matrixValue)
+	sqlParameters <- list(	matrixID      = matrix@matrix_id,
+							matrixValue   = matrixValue,
 							rowID         = matrix@row_id,
 							columnID      = matrix@column_id,
 							cellValue     = matrix@cell_value,
@@ -48,7 +49,7 @@ FLEigen <- function(matrix)
 							column_id       = "OutputColNum", 
 							cell_value      = "OutputVal")
 
-	outTable 		<- gen_out_matrix_table("FLEigenValues",matrixTable, matrixIDValue)		
+	outTable 		<- gen_out_matrix_table("FLEigenValues",matrixTable, matrixValue)		
 	sqlParameters$outTable <- outTable
 	run_sql(connection, "FLEigenValueUdt.sql", sqlParameters)
 	retData$values = new(	"FLMatrix", 

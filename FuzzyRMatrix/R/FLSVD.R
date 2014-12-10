@@ -35,10 +35,11 @@
 FLSVD <- function(matrix)
 {
 	matrixTable   <- matrix@matrix_table
-	matrixIDValue <- matrix@matrix_id_value
+	matrixValue	  <- matrix@matrix_id_value
 	outTable      <- gen_out_matrix_table("SVD",matrixTable, toString(matrixIDValue))
 	connection    <- matrix@ODBC_connection
-	sqlParameters <- list(	matrixIDValue = toString(matrixIDValue),
+	sqlParameters <- list(	matrixID      = matrix@matrix_id,
+							matrixValue = toString(matrixIDValue),
 							rowID         = matrix@row_id,
 							columnID      = matrix@column_id,
 							cellValue     = matrix@cell_value,
@@ -49,7 +50,7 @@ FLSVD <- function(matrix)
 	uMatrix <- FLMatrix(connection,
 						database        = matrix@database,
 						matrix_table    = outTable,
-						matrix_id_value = matrixIDValue,
+						matrix_id_value = matrixValue,
 						matrix_id       = "OutputMatrixID",
 						row_id          = "OutputRowNum",
 						column_id       = "OutputColNum",
@@ -58,7 +59,7 @@ FLSVD <- function(matrix)
 	sMatrix <- FLMatrix(connection,
 						database        = matrix@database,
 						matrix_table    = outTable,
-						matrix_id_value = matrixIDValue,
+						matrix_id_value = matrixValue,
 						matrix_id       = "OutputMatrixID",
 						row_id          = "OutputRowNum",
 						column_id       = "OutputColNum",
@@ -67,7 +68,7 @@ FLSVD <- function(matrix)
 	vMatrix <- FLMatrix(connection,
 						database        = matrix@database,
 						matrix_table    = outTable,
-						matrix_id_value = matrixIDValue,
+						matrix_id_value = matrixValue,
 						matrix_id       = "OutputMatrixID",
 						row_id          = "OutputRowNum",
 						column_id       = "OutputColNum",

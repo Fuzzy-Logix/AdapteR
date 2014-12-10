@@ -26,11 +26,12 @@
 FLCholeskyDecomp <- function(matrix)
 {
 	matrixTable   <- matrix@matrix_table
-	matrixIDValue <- toString(matrix@matrix_id_value)
+	matrixValue <- toString(matrix@matrix_id_value)
 	connection    <- matrix@ODBC_connection
-	outTable      <- gen_out_matrix_table("CholeskyDecomp",matrixTable, matrixIDValue)
+	outTable      <- gen_out_matrix_table("CholeskyDecomp",matrixTable, matrixValue)
 
-	sqlParameters <- list(	matrixIDValue = toString(matrix@matrix_id_value),
+	sqlParameters <- list(	matrixID      = matrix@matrix_id,
+							matrixValue = toString(matrix@matrix_id_value),
 							rowID         = matrix@row_id,
 							columnID      = matrix@column_id,
 							cellValue     = matrix@cell_value,

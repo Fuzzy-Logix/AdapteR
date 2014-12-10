@@ -31,11 +31,10 @@ to a matrix, which can be pulled to R using \code{FLFetchMatrix}.
 }
 \examples{
 \dontrun{
-library(RODBC)
-connection      <- odbcConnect("Gandalf");
-database        <- "FL_R_WRAP";
-matrix_table    <- "tblMatrixMulti";
-matrix_id_value <- 5;
+connection      <- odbcConnect("Gandalf")
+database        <- "FL_R_WRAP"
+matrix_table    <- "tblMatrixMulti"
+matrix_id_value <- 5
 in_matrix       <- FLMatrix(connection, database, matrix_table, matrix_id_value,
                    matrix_id = "Matrix_ID", row_id = "Row_ID", column_id = "Col_ID",
                    cell_value = "Cell_Val")
