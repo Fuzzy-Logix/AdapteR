@@ -1,0 +1,1 @@
+CALL FLAnova2Way('%tableName', '%response', '%variable1', '%variable2', '%whereClause', NULL, 1, ResultTable)

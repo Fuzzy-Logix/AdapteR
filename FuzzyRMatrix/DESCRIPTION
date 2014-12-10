@@ -1,0 +1,17 @@
+Package: FuzzyRMatrix
+Version: 0.1
+Title: Access to matrix functions of DBLyitx, a library of statistical, machine
+    learning and quantitative methods in Teradata, through R
+Authors@R: "Mitul Mundra <mitul.mundra@fuzzyl.com> [aut, cre], Rohit Gupta
+    <rohit.gupta@fuzzyl.com> [aut]"
+Description: Package FuzzyRMatrix allows you to access in-database analytics
+    function library of DBLtyix in Teradata using R commands via an ODBC
+    connection.
+Depends:
+    R (>= 3.1.1),
+    RODBC (>= 1.3-10)
+License: GPL-2
+LazyData: true
+Suggests:
+    knitr
+VignetteBuilder: knitr
