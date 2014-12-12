@@ -51,35 +51,58 @@ FLKMeans <- function( 	table,
 						where_clause  = "",
 						note     = "From RWrapper For DBLytix")
 {
+	#Type validation
+	centers  <- ifelse(	is_number(centers),
+						as.integer(centers),
+						stop("centers should be an integer"))
+
+	max_iter <- ifelse(	is_number(max_iter),
+						as.integer(max_iter),
+						stop("max_iter should be an integer"))
+
+	nstart   <- ifelse(	is_number(nstart), 
+						as.integer(nstart), 
+						stop("nstart should be an integer"))	
+
+	argList  <- as.list(environment())
+	typeList <- list(	table        = "character",
+						primary_key  = "character",
+						centers      = "integer",
+						max_iter     = "integer",
+						nstart       = "integer",
+						exclude      = "character",
+						class_spec   = "list",
+						where_clause = "character",
+						note         = "character")
+	validate_args(argList, typeList)
 
 	obsID  <- "ObsID"
 	varID  <- "VarID"
 	value  <- "Num_Val"
 	
 	deepTableName 	<- wide_to_deep(	table,
-										obs_id = obsID,
-										var_id = varID,
-										value =  value,
+										obs_id       = obsID,
+										var_id       = varID,
+										value        =  value,
 										primary_key  = primary_key,
 										exclude      = exclude,
 										class_spec   = class_spec,
 										where_clause = where_clause)
-	connection  	<- table@odbc_connection
-	sql        		<- "CALL FLKMeans('"
-	sqlParameters 	<- paste(	deepTableName,
-								obsID,  
-								varID, 
-								value, 
-								where_clause, 
-								toString(centers),  
-								toString(max_iter), 
-								toString(nstart),
-								note, sep="','")
-	sql           	<- paste(sql, sqlParameters,"')", sep="")
+	connection <- table@odbc_connection
+	file       <- "FLKMeans.sql"
+	sqlParameters <- list(	deepTableName   = deepTableName,
+							obsID           = obsID,
+							varID           = varID,
+							value           = value,
+							whereClause     = where_clause,
+							centers         = centers,							
+							maxIter         = max_iter,
+							nStart          = nstart
+							note            = note )
 	
 	#run KMeans
-	kMeansRes       <- sqlQuery(connection, sql)
-	analysisID      <- toString(kMeansRes$ANALYSISID)
+	kMeansRes  <- run_sql(connection, file, sqlParameters)
+	analysisID <- toString(kMeansRes$ANALYSISID)
 
 	retData = new("FLKMeans",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName)
 	

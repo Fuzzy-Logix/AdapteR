@@ -84,7 +84,7 @@ FLMDA <- function( 	table,
 	initialization <- ifelse(	(initialization == 0 || initialization == 1),
 								as.integer(initialization),
 								stop("initialization should be 1 or 2"))
-	
+
 	hypotheses     <- ifelse(	is_number(hypotheses),
 								as.integer(hypotheses),
 								stop("hypotheses should be an integer"))
@@ -121,26 +121,24 @@ FLMDA <- function( 	table,
 	deepTableName       	<- dataPrepRes$deepTableName
 	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
 	connection         	 	<- table@odbc_connection
-
-	sql        				<- "CALL FLMDA('"
-	sqlParameters 			<- paste(	deepTableName,
-										obsID,
-										varID,
-										value,
-										where_clause,
-										toString(subclasses),
-										toString(max_iter),
-										toString(initialization),
-										toString(hypotheses),
-										note, sep="','")
-	sql           			<- paste(sql, sqlParameters,"')", sep="")
-	print(sql)
-
+	
+	file <- "FLMDA.sql"
+	sqlParameters <- list(	deepTableName  = deepTableName,
+							obsID          = obsID,
+							varID          = varID,
+							value          = value,
+							whereClause    = where_clause,
+							subclasses     = subclasses,
+							maxIter        = max_iter,
+							initialization = initialization,
+							hypotheses     = hypotheses,
+							note           = note )
 	#run FLMDA
-	mdaRes 			 		<- sqlQuery(connection, sql)
+	mdaRes     <- run_sql(connection, file, sqlParameters)
+	
 	#print(mdaRes)
-	analysisID 				<- toString(mdaRes[[1,"ANALYSISID"]])
-	retData = new("FLMDA",analysis_id = analysisID, odbc_connection = connection)
+	analysisID <- toString(mdaRes[[1,"ANALYSISID"]])
+	retData    = new("FLMDA",analysis_id = analysisID, odbc_connection = connection)
 
 	return(retData)
 }

@@ -1,0 +1,1 @@
+CALL FLLinRegrUFB( '%deepTableName', '%obsID', '%varID', '%value', '%specID', %pAllowInitial, %pAllowFinal, %stepwiseDecrease, '%note', AnalysisID)

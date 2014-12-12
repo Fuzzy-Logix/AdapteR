@@ -45,6 +45,16 @@ FLLDA <- function( 	table,
 					where_clause = "",
 					note = "From RWrapper For DBLytix")
 {
+	#Type validation
+	argList  <- as.list(environment())
+	typeList <- list(	table        = "character",
+						primary_key  = "character",
+						response     = "character",												
+						exclude      = "character",
+						class_spec   = "list",
+						where_clause = "character",
+						note         = "character")
+	validate_args(argList, typeList)
 
 	obsID  <- "ObsID"
 	varID  <- "VarID"
@@ -64,17 +74,16 @@ FLLDA <- function( 	table,
 	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
 	connection         		<- table@odbc_connection
 
-	sql        				<- "CALL FLLDA('"
-	sqlParameters 			<- paste(	deepTableName,
-										obsID,
-										varID,
-										value,
-										note, sep="','")
-	sql          			<- paste(sql, sqlParameters,"')", sep="")
-	print(sql)
-
+	#Query Execution: run FLLinRegr
+	connection         		<- table@odbc_connection
+	sqlParameters 			<- list(	deepTableName = deepTableName,
+										obsID         = obsID,
+										varID         = varID,
+										value         = value,
+										note          = note )
 	#run FLLDA
-	ldaRes  				<- sqlQuery(connection, sql)
+	ldaRes        		<- run_sql(connection, "FLLDA.sql", sqlParameters)
+
 	analysisID 				<- toString(ldaRes[[1,"ANALYSISID"]])
 	retData = new("FLLDA",analysis_id = analysisID, odbc_connection = connection)
 

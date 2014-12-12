@@ -1,0 +1,1 @@
+CALL FLDecisionTreeMN('%deepTableName', '%obsID', '%varID', '%value', %minObsForParent, %maxLevel, %purityThreshold, '%note', AnalysisID)

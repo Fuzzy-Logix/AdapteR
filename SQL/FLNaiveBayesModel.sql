@@ -1,0 +1,1 @@
+CALL FLNaiveBayesModel('%deepTableName', '%obsID', '%varID', '%value', '%laplace', '%note', AnalysisID)

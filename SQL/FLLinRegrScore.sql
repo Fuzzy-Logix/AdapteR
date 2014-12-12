@@ -1,0 +1,1 @@
+Call FLLinRegrScore('%deepTableName', '%obsID','%varID','%value','%whereClause','%regrAnalysisID', 1, outTable)

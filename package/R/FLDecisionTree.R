@@ -72,40 +72,60 @@ FLDecisionTree <- function( table,
 							where_clause  = "",
 							note     = "From RWrapper For DBLytix")
 {
+	#Type validation
+	min_obs_for_parent <- ifelse(	is_number(min_obs_for_parent), 
+									as.integer(min_obs_for_parent), 
+									stop("min_obs_for_parent should be an integer"))
+	
+	max_level          <- ifelse(	is_number(max_level),
+									as.integer(max_level),
+									stop("max_level should be an integer"))
+
+	argList  <- as.list(environment())
+	typeList <- list(	table              = "character",
+						primary_key        = "character",
+						response           = "character",
+						min_obs_for_parent = "integer",
+						max_level          = "integer",
+						purity_threshold   = "double",												
+						exclude            = "character",
+						class_spec         = "list",
+						where_clause       = "character",
+						note               = "character")
+	validate_args(argList, typeList)
+
 	obsID  <- "ObsID"
 	varID  <- "VarID"
 	value  <- "Num_Val"
 
 	dataPrepRes 			<- regr_data_prep( 	table,
 												response,
-												obs_id = obsID,
-												var_id = varID,
-												value = value,
-												primary_key   = primary_key,
+												obs_id       = obsID,
+												var_id       = varID,
+												value        = value,
+												primary_key  = primary_key,
 												exclude      = exclude,
-												class_spec    = class_spec,
-												where_clause  = where_clause)
+												class_spec   = class_spec,
+												where_clause = where_clause)
 
-	deepTableName        	<- dataPrepRes$deepTableName
-	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
-	connection         		<- table@odbc_connection
-
-	sql       				<- "FLDecisionTree.sql'"
-	sqlParameters 			<- paste(	deepTableName,
-										obsID,
-										varID,
-										value,
-										toString(min_obs_for_parent),
-										toString(max_level),
-										toString(purity_threshold),
-										note, sep="','")
-	sql           			<- paste(sql, sqlParameters,"')", sep="")
-	#print(sql)
+	deepTableName        <- dataPrepRes$deepTableName
+	wideToDeepAnalysisID <- dataPrepRes$wideToDeepAnalysisID
+	connection           <- table@odbc_connection
+	
+	file          <- "FLDecisionTree.sql"
+	sqlParameters <- list(	deepTableName   = deepTableName,
+							obsID           = obsID,
+							varID           = varID,
+							value           = value,
+							whereClause     = where_clause,
+							minObsForParent = min_obs_for_parent,
+							maxLevel        = max_level,
+							purityThreshold = purity_threshold,
+							note            = note )
 
 	#run FLDecisionTree
-	decisionTreeRes  		<- sqlQuery(connection, sql)
-	print(decisionTreeRes)
-	analysisID 				<- toString(decisionTreeRes[[1,"ANALYSISID"]])
+	decisionTreeRes <- run_sql(connection, file, sqlParameters)
+	analysisID      <- toString(decisionTreeRes[[1,"ANALYSISID"]])
 
 	retData = new("FLDecisionTree",analysis_id = analysisID, wide_to_deep_analysis_id = wideToDeepAnalysisID, deep_table_name = deepTableName, class_spec = class_spec, primary_key = primary_key, exclude = as.character(exclude), odbc_connection = connection)
 
