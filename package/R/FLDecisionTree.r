@@ -15,6 +15,7 @@
 #' If the independent variables have binary values, a method based on the ID3 algorithm
 #' is used. Variables are not reused in this process. In both cases, a binary
 #' decision tree is constructed by splitting a node into two child nodes repeatedly.
+#'
 #' @param table an object of class \code{FLTable}
 #' @param primary_key name of primary key column of the table mapped to \code{table}
 #' @param response name of the dependent variable column of the table mapped to
@@ -71,9 +72,9 @@ FLDecisionTree <- function( table,
 							where_clause  = "",
 							note     = "From RWrapper For DBLytix")
 {
-	obsID  <- "ObsID";
-	varID  <- "VarID";
-	value  <- "Num_Val";
+	obsID  <- "ObsID"
+	varID  <- "VarID"
+	value  <- "Num_Val"
 
 	dataPrepRes 			<- regr_data_prep( 	table,
 												response,
@@ -83,13 +84,13 @@ FLDecisionTree <- function( table,
 												primary_key   = primary_key,
 												exclude      = exclude,
 												class_spec    = class_spec,
-												where_clause  = where_clause);
+												where_clause  = where_clause)
 
-	deepTableName        	<- dataPrepRes$deepTableName;
-	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID;
-	connection         		<- table@odbc_connection;
+	deepTableName        	<- dataPrepRes$deepTableName
+	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
+	connection         		<- table@odbc_connection
 
-	sql       				<- "CALL WorkaroundDecisionTree('";
+	sql       				<- "FLDecisionTree.sql'"
 	sqlParameters 			<- paste(	deepTableName,
 										obsID,
 										varID,
@@ -102,11 +103,11 @@ FLDecisionTree <- function( table,
 	#print(sql)
 
 	#run FLDecisionTree
-	decisionTreeRes  		<- sqlQuery(connection, sql);
+	decisionTreeRes  		<- sqlQuery(connection, sql)
 	print(decisionTreeRes)
-	analysisID 				<- toString(decisionTreeRes[[1,"ANALYSISID"]]);
+	analysisID 				<- toString(decisionTreeRes[[1,"ANALYSISID"]])
 
-	retData = new("FLDecisionTree",analysis_id = analysisID, wide_to_deep_analysis_id = wideToDeepAnalysisID, deep_table_name = deepTableName, class_spec = class_spec, primary_key = primary_key, exclude = as.character(exclude), odbc_connection = connection);
+	retData = new("FLDecisionTree",analysis_id = analysisID, wide_to_deep_analysis_id = wideToDeepAnalysisID, deep_table_name = deepTableName, class_spec = class_spec, primary_key = primary_key, exclude = as.character(exclude), odbc_connection = connection)
 
-	return(retData);
+	return(retData)
 }

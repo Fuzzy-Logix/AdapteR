@@ -18,12 +18,12 @@
 #' variable \code{Prob(x is in the subclass of class)}. Can be either 1 or 2 as
 #' explained below.
 #' \itemize{
-#'  \item{1}{:    Assign weight of 1 to a random subclass of its class; 0 otherwise.}
+#'  \item{1}{:    Assign weight of 1 to a random subclass of its class 0 otherwise.}
 #'  \item{2}{:    For each class, run K-means with # clusters = # subclasses. Assign
-#' weight of 1 to each obs' K-Means cluster; 0 otherwise. (K-Means max iterations
+#' weight of 1 to each obs' K-Means cluster 0 otherwise. (K-Means max iterations
 #' = MDA max iterations.) Also, K-Means occasionally drops a cluster if no data
 #' was assigned to it during its EM iterations, which would cause a divide-by-zero
-#' error in calculating mu; these hypotheses are excluded from MDA.}
+#' error in calculating mu these hypotheses are excluded from MDA.}
 #' }
 #' @param hypotheses number of hypotheses to run simultaneously
 #' @param exclude vector of names of the columns which are to be excluded
@@ -73,10 +73,40 @@ FLMDA <- function( 	table,
 					where_clause = "",
 					note = "From RWrapper For DBLytix")
 {
+	subclasses     <- ifelse(	is_number(subclasses),
+								as.integer(subclasses),
+								stop("subclasses should be an integer"))
 
-	obsID  <- "ObsID";
-	varID  <- "VarID";
-	value  <- "Num_Val";
+	max_iter       <- ifelse(	is_number(max_iter),
+								as.integer(max_iter),
+								stop("max_iter should be an integer"))	
+
+	initialization <- ifelse(	(initialization == 0 || initialization == 1),
+								as.integer(initialization),
+								stop("initialization should be 1 or 2"))
+	
+	hypotheses     <- ifelse(	is_number(hypotheses),
+								as.integer(hypotheses),
+								stop("hypotheses should be an integer"))
+	
+
+	argList  <- as.list(environment())
+	typeList <- list(	table          = "character",
+						primary_key    = "character",
+						response       = "character",
+						subclasses     = "integer",					
+						max_iter       = "integer",
+						initialization = "integer",
+						hypotheses     = "integer",
+						exclude        = "character",
+						class_spec     = "list",
+						where_clause   = "character",
+						note           = "character")
+	validate_args(argList, typeList)
+
+	obsID  <- "ObsID"
+	varID  <- "VarID"
+	value  <- "Num_Val"
 
 	dataPrepRes 			<- regr_data_prep( 	table,
 												response,
@@ -86,13 +116,13 @@ FLMDA <- function( 	table,
 												primary_key = primary_key,
 												exclude = exclude,
 												class_spec = class_spec,
-												where_clause = where_clause);
+												where_clause = where_clause)
 
-	deepTableName       	<- dataPrepRes$deepTableName;
-	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID;
-	connection         	 	<- table@odbc_connection;
+	deepTableName       	<- dataPrepRes$deepTableName
+	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
+	connection         	 	<- table@odbc_connection
 
-	sql        				<- "CALL WorkaroundMDA('";
+	sql        				<- "CALL FLMDA('"
 	sqlParameters 			<- paste(	deepTableName,
 										obsID,
 										varID,
@@ -107,10 +137,10 @@ FLMDA <- function( 	table,
 	print(sql)
 
 	#run FLMDA
-	mdaRes 			 		<- sqlQuery(connection, sql);
+	mdaRes 			 		<- sqlQuery(connection, sql)
 	#print(mdaRes)
-	analysisID 				<- toString(mdaRes[[1,"ANALYSISID"]]);
-	retData = new("FLMDA",analysis_id = analysisID, odbc_connection = connection);
+	analysisID 				<- toString(mdaRes[[1,"ANALYSISID"]])
+	retData = new("FLMDA",analysis_id = analysisID, odbc_connection = connection)
 
-	return(retData);
+	return(retData)
 }

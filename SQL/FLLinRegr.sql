@@ -1,1 +1,1 @@
-CALL FLLinRegr('%deepTableName', '%obsID', '%varID', '%value', '%note', AnalysisID);
+CALL FLLinRegr('%deepTableName', '%obsID', '%varID', '%value', '%note', AnalysisID)

@@ -11,6 +11,7 @@ source("S4//FLKmeans.r")
 library(RODBC)
 require(graphics)
 
+library()
 # Connect to ODBC
 DBConnect <- odbcConnect("Gandalf")
 
