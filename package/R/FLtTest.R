@@ -1,3 +1,7 @@
+#' @import utilities.R
+#' @import data_prep.R
+NULL
+
 #' Student's t-Test
 #' 
 #' Performs one and two sample z-tests on vectors of data. 

@@ -1,3 +1,5 @@
+#' @import utilities.R
+ 
 wide_to_deep <- function( 	table,
 							primary_key,
 							obs_id       = "ObsID",

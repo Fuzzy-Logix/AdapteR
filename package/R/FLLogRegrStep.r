@@ -1,3 +1,8 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Stepwise Logistic Regression 
 #'
 #' Chooses a Logistic Regression model by eliminating predictors by PValue with

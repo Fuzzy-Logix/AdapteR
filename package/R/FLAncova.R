@@ -1,3 +1,6 @@
+#' @import utilities.R
+NULL
+
 FLMakeAncova <- function(ancovaRes,variable)
 {
 	DBLytixRows  <- c("between","within")

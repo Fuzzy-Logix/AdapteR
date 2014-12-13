@@ -1,11 +1,18 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Mixed Discriminant Analysis
 #'
 #' \code{FLMDA} performs mixed discriminant analysis.
+
 #' @details For the training data, MDA divides each class into a number of
 #' artificial subclasses. It calibrates the mixture of Gaussians and the
 #' mixing probability by maximizing the log likelihood with expectation
 #' maximization. The training data is stored in a wide table, and the dependent
 #' variable denotes the class ID.
+
 #' @param table an object of class \code{FLTable}
 #' @param primary_key name of primary key column of the table mapped to \code{table}
 #' @param response name of the dependent variable column of the table mapped to
@@ -31,6 +38,7 @@
 #' which is to be used as reference when converting to dummy binary variables
 #' @param where_clause condition to filter out data from the table
 #' @param note note
+
 #' @return \code{MDA} returns an object of class \code{FLMDA}. The components
 #' of this class mentioned below can be pulled in R using the generic
 #' \code{FLFetch}.
@@ -44,6 +52,7 @@
 #' \item{log_likelihood}{a \code{data.frame} which stores the log likelihood}
 #' \item{classify}{a \code{data.frame} which stores the Class ID that has the maximum
 #' posterior probability}
+
 #' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
@@ -60,6 +69,7 @@
 #' # Fetch reults in R
 #' mdaResult <- FLFetch(result)
 #' }
+
 #' @export
 FLMDA <- function( 	table,
 					primary_key,

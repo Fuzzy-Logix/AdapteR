@@ -1,12 +1,19 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Nearest neighbour matching
 #'
 #' \code{FLMatchIt} performs "nearest neighbor matching" without replacement.
 #' The output of this function is a list of observation IDs which are not matched.
+
 #' @param table an object of class \code{FLTable}
 #' @param obs_id name of the Observation ID column name
 #' @param treatment name of the treatment column
 #' @param prop_score name of the propensity score column
 #' @param match_order name of the match order column
+
 #' @return \code{FLMatchtIt} returns an object of class \code{FLMatchIt}. An
 #' object of this class is a list containing three components.
 #' \item{odbc_connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}.}
@@ -15,6 +22,7 @@
 #' \item{unmatched_obs_id}{a \code{data.frame} in R which stores the list of \code{obs_ids}
 #' which are not matched. This data frame is pulled in R using the generic
 #' \code{FLFetch}.}
+
 #' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
@@ -25,8 +33,8 @@
 #' # Perform nearest neighbour matching
 #' res        <- FLMatchIt(table, "person_id", "exposure", "prob", "prob")
 #' }
+
 #' @export
-#' @import FLFetch.R
 FLMatchIt <- function( 	table,
 						obs_id,
 						treatment,

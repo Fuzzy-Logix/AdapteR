@@ -1,3 +1,8 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Linear Discriminant Analysis
 #'
 #' \code{FLLDA} performs Fisher linear discriminant analysis (LDA).
@@ -74,7 +79,7 @@ FLLDA <- function( 	table,
 	wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
 	connection         		<- table@odbc_connection
 
-	#Query Execution: run FLLinRegr
+	#Query Execution: run FLLDA
 	connection         		<- table@odbc_connection
 	sqlParameters 			<- list(	deepTableName = deepTableName,
 										obsID         = obsID,

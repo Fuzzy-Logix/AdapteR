@@ -1,3 +1,7 @@
+#' @import utilities.R
+#' @import data_prep.R
+NULL
+
 #' z-Test
 #' 
 #' Performs one and two sample z-tests on vectors of data. 

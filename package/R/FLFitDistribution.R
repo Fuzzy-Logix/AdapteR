@@ -1,6 +1,3 @@
-#
-# Fuzzy Logix Fit Distribution Objects
-
 # FLFitContDistr Object
 setOldClass("RODBC")
 #' @export
@@ -24,7 +21,8 @@ setClass(	"FLFitDiscDistr",
 #' @details \code{FLFitDistrObject} constructs an object of class \code{FLFitContDistr}
 #' or \code{FLFitDiscDistr} depending on whether a continuous or a discrete
 #' distribution is to be fitted. This object is used as the input for fit
-#' distibution functions.
+#' distribution functions.
+
 #' @param connection ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}
 #' @param db_name name of the database in \code{Teradata} which contains the table
 #' @param table_name name of the  table which contains the points for distribution
@@ -37,9 +35,10 @@ setClass(	"FLFitDiscDistr",
 #' a binomial distribution
 #' @param num_trials name of the column which has the number of trials for a
 #' binomial distribution
+
 #' @return \code{FLFitDistrObject} returns an object of class \code{FLFitContDistr}
-#' or or \code{FLFitDiscDistr} which is mapped to a table in Teradata.An object
-#' of any of the above class have the following common components.
+#' or or \code{FLFitDiscDistr} which is mapped to a table in Teradata. An object
+#' of any of the above class has the following common components.
 #' \item{odbc_connection}
 #' \item{db_name}
 #' \item{table_name}
@@ -47,6 +46,7 @@ setClass(	"FLFitDiscDistr",
 #' contains the component \code{value}. \cr
 #' An object of class \code{FLFitDiscDistr} contains the components
 #' \code{num_success} and \code{num_trials}.
+
 #' @examples
 #' \dontrun{
 #'    connection  <- odbcConnect("Gandalf")
@@ -159,7 +159,7 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	{
 		if(class(x) == "FLFitContDistr")
 		{
-			path <- "SQL//FLFitContDistr.sql";
+			path <- "FLFitContDistr.sql";
 			stopifnot(file.exists(path));
 			sql  <- readChar(path, nchar = file.info(path)$size);
 			sql  <- sprintf(	sql,
@@ -174,7 +174,7 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 
 		if(class(x) == "FLFitDiscDistr")
 		{
-			path <- "SQL//FLFitDiscDistr.sql";
+			path <- "FLFitDiscDistr.sql";
 			stopifnot(file.exists(path));
 			sql  <- readChar(path, nchar = file.info(path)$size);
 			sql  <- sprintf(	sql,

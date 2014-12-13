@@ -1,8 +1,13 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Logistic Regression
 #'
 #' Performs Logistic Regression
 #' 
-#'@details The function will perform iterative calculations until convergence 
+#' @details The function will perform iterative calculations until convergence 
 #' is achieved or the maximum number of iterations as specified by \code{max_iter} is crossed
 #'
 #'@param table an object of class \code{FLTable}

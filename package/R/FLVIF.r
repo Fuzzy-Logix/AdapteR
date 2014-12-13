@@ -1,32 +1,37 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Variance Inflation Factor
 #' 
 #' Performs variance inflation factor analysis on data
 #'
-#'@details Variance Inflation Factor is used to identify redundant variables in
+#' @details Variance Inflation Factor is used to identify redundant variables in
 #' a dataset. The square root of the variance inflation factor tells you how 
 #' much larger the standard error is, compared with what it would be if that 
 #' variable were uncorrelated with the other predictor variables in the model.
 #'
-#'@param table an object of class \code{FLTable}
-#'@param primary_key name of primary key column of the table mapped to \code{table}
-#'@param response name of the dependent variable column
-#'@param exclude vector of names of the columns which are to be excluded
-#'@param class_spec list that identifies the value of the categorical variable
+#' @param table an object of class \code{FLTable}
+#' @param primary_key name of primary key column of the table mapped to \code{table}
+#' @param response name of the dependent variable column
+#' @param exclude vector of names of the columns which are to be excluded
+#' @param class_spec list that identifies the value of the categorical variable
 #' which is to be used as reference when converting to dummy binary variables
-#'@param where_clause condition to filter out data from the table
-#'@param note free form string that will be stored with the results, typically 
+#' @param where_clause condition to filter out data from the table
+#' @param note free form string that will be stored with the results, typically 
 #' used to document the purpose of the analysis
 #'
-#'@return an object of class \code{FLVIF}
+#' @return an object of class \code{FLVIF}
 #'
-#'@examples
-#'\dontrun{
+#' @examples
+#' \dontrun{
 #' tbl <- FLTable(DBConnect, "FL_R_WRAP", "tblAutoMpg")
 #' Analysis <- FLVIF(Tbl, primary_key = "ObsID", response = "MPG", exclude = c("CarNum","CarNumber"), class_spec = list(CarName = "Audi"))
 #' Analysis <- FLFetch(Analysis)
-#'}
+#' }
 #'
-#'@export
+#' @export
 FLVIF <- function( 	table,
 					primary_key,
 					response,

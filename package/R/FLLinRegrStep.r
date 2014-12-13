@@ -1,9 +1,14 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Stepwise Linear Regression 
 #'
 #' Chooses a Linear Regression model by eliminating predictors by PValue with
 #' a Stepwise Algorithm 
 #' 
-#'@details Each of the algorithm works as follows:
+#' @details Each of the algorithm works as follows:
 #' \item{BW}{In Backward Elimination variables are eliminated one at a time till 
 #' all the p-Values are lower than value specified by the parameter \code{p_allow}} 
 #' \item{FB}{In Fast Backward Elimination, all the variables that exceed the 

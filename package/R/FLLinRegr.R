@@ -1,3 +1,8 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Linear Regression
 #'
 #' Performs Linear Regression

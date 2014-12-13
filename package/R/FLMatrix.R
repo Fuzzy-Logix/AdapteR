@@ -1,9 +1,4 @@
-#
-# Fuzzy Logix Matrix Object
-# @param  {RODBC}	Connection		  [description]
-# @param  {character} database  [description]
-# @param  {character} matrix_table	  [description]
-# @param  {numeric} matrix_id_value		  [description]
+#' @import utilities.R
 
 setOldClass("RODBC")
 #' @export

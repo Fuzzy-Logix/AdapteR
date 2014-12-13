@@ -1,3 +1,6 @@
+#' @import utilities.R
+NULL
+
 make_anova <- function(anovaRes,variable)
 {
 	DBLytixRows  <- c("between","within")

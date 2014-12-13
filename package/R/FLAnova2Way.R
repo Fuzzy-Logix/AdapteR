@@ -1,3 +1,6 @@
+#' @import utilities.R
+NULL
+
 make_anova2way <- function(anovaRes,variable1,variable2)
 {
 	DBLytixRows  <- c(variable1,variable2,"Interaction","Error")

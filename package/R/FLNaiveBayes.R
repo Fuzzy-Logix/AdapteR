@@ -1,3 +1,8 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Naive Bayes Classifier
 #' 
 #' Naive Bayes is a simple probabilistic classifier that applies the Bayes' 
@@ -14,17 +19,20 @@
 #' @param table an object of class \code{FLTable}
 #' @param primary_key name of primary key column of the table mapped to \code{table}
 #' @param response name of the dependent variable column
-#' @param laplace indicates whether Laplacian Correction is to be used (1 for true and 0 for false)
+#' @param laplace indicates whether Laplacian Correction is to be used (1 for 
+#' true and 0 for false)
 #' @param exclude vector of names of the columns which are to be excluded
-#' @param class_spec list that identifies the value of the categorical variable which is to be used as reference when converting to dummy binary variables 
+#' @param class_spec list that identifies the value of the categorical variable
+#' which is to be used as reference when converting to dummy binary variables 
 #' @param where_clause condition to filter out data from the table
-#' @param note free form string that will be stored with the results, typically used to document the purpose of the analysis
+#' @param note free form string that will be stored with the results, typically
+#' used to document the purpose of the analysis
 #'
 #' @examples{
 #' \dontrun{
 #' } 
 #'
-#'@export
+#' @export
 FLNaiveBayes <- function( 	table,
 							primary_key,
 							response,

@@ -1,3 +1,9 @@
+#' @import FLTable.R
+#' @import data_prep.R
+#' @import utilities.R
+#' @import FLFetch.R
+NULL
+
 # Scoring Functions 
 setGeneric("FLPredict", function(	analysis, 
 									table, 

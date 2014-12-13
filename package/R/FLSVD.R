@@ -1,9 +1,13 @@
+#' @import utilities.R
+#' @import FLMatrix.R
+NULL
+
 #' Singular Value Decomposition of a matrix
 #'
 #' Formally, the singular value decomposition of an m x n matrix M is a
 #' factorization of the form \deqn{M = U \sum V'}
 #' where U is an m x m unitary matrix, \eqn{\sum} is an m x n rectangular diagonal
-#' matrix with nonnegative real numbers on the diagonal, and \eqn{V'} (the
+#' matrix with non-negative real numbers on the diagonal, and \eqn{V'} (the
 #' conjugate transpose of V) is an n x n real or complex unitary matrix.
 #' The diagonal entries \eqn{\sum _{i,i}} of \eqn{\sum} are known as the singular
 #' values of M. The m columns of U and the n columns of V are called the
@@ -11,7 +15,9 @@
 #'
 #' @section Constraints:
 #' Input matrix has a maximum dimension limitations of (550 x 550).
+
 #' @param matrix an object of class FLMatrix.
+
 #' @return \code{FLLUDecomp} returns an object of class FLSVD. An object
 #' of class FLSVD is a list containing three components of class FLMatrix
 #' which are described as follows.
@@ -20,6 +26,7 @@
 #' \item{v_matrix}{the V matrix}
 #' All the three matrices of class FLSVD can be pulled in R using
 #' \code{FLFetchMatrix}.
+
 #' @examples
 #' \dontrun{
 #' connection      <- odbcConnect("Gandalf")
@@ -35,10 +42,11 @@
 FLSVD <- function(matrix)
 {
 	matrixTable   <- matrix@matrix_table
-	matrixIDValue <- matrix@matrix_id_value
+	matrixValue	  <- matrix@matrix_id_value
 	outTable      <- gen_out_matrix_table("SVD",matrixTable, toString(matrixIDValue))
 	connection    <- matrix@ODBC_connection
-	sqlParameters <- list(	matrixIDValue = toString(matrixIDValue),
+	sqlParameters <- list(	matrixID      = matrix@matrix_id,
+							matrixValue = toString(matrixIDValue),
 							rowID         = matrix@row_id,
 							columnID      = matrix@column_id,
 							cellValue     = matrix@cell_value,
@@ -49,7 +57,7 @@ FLSVD <- function(matrix)
 	uMatrix <- FLMatrix(connection,
 						database        = matrix@database,
 						matrix_table    = outTable,
-						matrix_id_value = matrixIDValue,
+						matrix_id_value = matrixValue,
 						matrix_id       = "OutputMatrixID",
 						row_id          = "OutputRowNum",
 						column_id       = "OutputColNum",
@@ -58,7 +66,7 @@ FLSVD <- function(matrix)
 	sMatrix <- FLMatrix(connection,
 						database        = matrix@database,
 						matrix_table    = outTable,
-						matrix_id_value = matrixIDValue,
+						matrix_id_value = matrixValue,
 						matrix_id       = "OutputMatrixID",
 						row_id          = "OutputRowNum",
 						column_id       = "OutputColNum",
@@ -67,7 +75,7 @@ FLSVD <- function(matrix)
 	vMatrix <- FLMatrix(connection,
 						database        = matrix@database,
 						matrix_table    = outTable,
-						matrix_id_value = matrixIDValue,
+						matrix_id_value = matrixValue,
 						matrix_id       = "OutputMatrixID",
 						row_id          = "OutputRowNum",
 						column_id       = "OutputColNum",

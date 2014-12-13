@@ -1,3 +1,8 @@
+#' @include utilities.R
+#' @include data_prep.R
+#' @include FLFetch.R
+NULL
+
 #' Decision Tree
 #'
 #' Performs decision tree analysis of the data.
@@ -35,12 +40,14 @@
 #' which is to be used as reference when converting to dummy binary variables
 #' @param where_clause condition to filter out data from the table
 #' @param note note
+
 #' @return \code{FLDecisionTree} returns an object of class \code{FLDecisionTree}.
 #' The components of this class mentioned below can be pulled in R using the
 #' generic \code{FLFetch}.
 #' \item{node_info}{a \code{data.frame} which stores all nodes of the decision tree built, including leave
 #' nodes and decision nodes (also known as splitting nodes).}
 #' \item{classification}{a \code{data.frame} which stores observations' classifications}
+
 #' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
@@ -60,6 +67,7 @@
 #' # Fetch reults in R
 #' decisionTreeResult <- FLFetch(result)
 #' }
+
 #' @export
 FLDecisionTree <- function( table,
 							primary_key,

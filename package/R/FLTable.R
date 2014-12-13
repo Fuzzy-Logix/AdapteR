@@ -1,9 +1,5 @@
-#
-# Fuzzy Logix Table Object
-# @param  {RODBC}     odbc_connection		  [description]
-# @param  {character} database    		  [description]
-# @param  {character} table_name 		  [description]
-#
+#' @import utilities.R
+
 setOldClass("RODBC") 
 
 #'@export

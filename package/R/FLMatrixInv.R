@@ -1,3 +1,7 @@
+#' @import utilities.R
+#' @import FLMatrix.R
+NULL
+
 #' Inverse of a matrix
 #'
 #' \code{FLMatrixInv} computes the inverse of a non-singular square matrix.
@@ -25,10 +29,11 @@ FLMatrixInv <- function(matrix)
 {
 		
 		matrixTable   <- matrix@matrix_table
-		matrixIDValue <- toString(matrix@matrix_id_value)
-		outTable      <- gen_out_matrix_table("MatrixInv",matrixTable, matrixIDValue)
+		matrixValue <- toString(matrix@matrix_id_value)
+		outTable      <- gen_out_matrix_table("MatrixInv",matrixTable, matrixValue)
 		connection    <- matrix@ODBC_connection		
-		sqlParameters <- list(	matrixIDValue = toString(matrix@matrix_id_value),
+		sqlParameters <- list(	matrixID      = matrix@matrix_id,
+								matrixValue = toString(matrix@matrix_id_value),
 								rowID         = matrix@row_id,
 								columnID      = matrix@column_id,
 								cellValue     = matrix@cell_value,
