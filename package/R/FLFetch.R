@@ -1,5 +1,29 @@
 setOldClass("RODBC")
 
+#' Fetch Data Mining results from Database
+#'
+#' \code{FLFetch} fetches the slots of a fitted data mining model object from 
+#' the database. For details see the documenation for the respective model
+#' fitting function
+#'
+#' @param object an object inherited from class \code{FLDataMiningAnalysis}
+#'
+#' @return an fitted model object of the relevant type with the parameters
+#' filled in
+#'
+#' @examples
+#' \dontrun{
+#'		KMeansAnalysis <- FLFetch(KMeansAnalysis)
+#' }
+#'
+#'@export
+setGeneric(	"FLFetch", 
+			function(object) 
+			{
+				standardGeneric("FLFetch")
+			}
+		)
+
 # define FLDataMiningAnalysis Class
 setClass(	"FLDataMiningAnalysis", 
 			slots = list(	analysis_id           		= "character",
@@ -15,13 +39,6 @@ setClass(	"FLKMeans",
 			representation(	centers = "data.frame",
 							cluster = "data.frame"),
 			contains = "FLDataMiningAnalysis")
-
-setGeneric(	"FLFetch", 
-			function(object) 
-			{
-				standardGeneric("FLFetch")
-			}
-		)
 
 # FLFetch method for KMeans
 setMethod(	"FLFetch",
