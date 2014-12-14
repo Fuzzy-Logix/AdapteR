@@ -2,7 +2,7 @@
 #' @import FLMatrix.R
 NULL
 
-#' Eigendecomposition of a matrix
+#' Eigen decomposition of a matrix
 #'
 #' Calculates the eigenvalues and eigenvectors of a square matrix (n x n).
 #' @section Constraints:
