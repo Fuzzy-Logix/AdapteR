@@ -190,22 +190,22 @@ setMethod(	"FLPredict",
 		)
 
 # score function for FLDecisionTree
-setMethod(	"FL.predict",
-			signature(	analysis = "FLDecisionTree", 
-						table  = "FLTable", 
-						predict_table = ""),
+setMethod(	"FLPredict",
+			signature(	analysis = "FLDecisionTree",
+						table  = "FLTable"),
 			function(	analysis,
-						table)
+						table,
+						predict_table = "")
 			{
-		
-				obsID 			<- "ObsID"
-				varID 			<- "VarID"
-				value 			<- "Num_Val"
-				primaryKey   	<- analysis@primary_key
-				exclude      	<- analysis@exclude
-				classSpec    	<- analysis@class_spec	
-				inAnalysisID 	<- analysis@wide_to_deep_analysis_id
-				whereClause  	<- ""
+
+				obsID 			<- "ObsID";
+				varID 			<- "VarID";
+				value 			<- "Num_Val";
+				primaryKey   	<- analysis@primary_key;
+				exclude      	<- analysis@exclude;
+				classSpec    	<- analysis@class_spec;
+				inAnalysisID 	<- analysis@wide_to_deep_analysis_id;
+				whereClause  	<- "";
 				#Convert wide table to deep format
 				dataPrepRes 	<- regr_data_prep_score( 	table,
 															obs_id 			= obsID,
@@ -215,30 +215,30 @@ setMethod(	"FL.predict",
 															exclude      	= exclude,
 															class_spec    	= classSpec,
 															where_clause  	= whereClause,
-															in_analysis_id 	= inAnalysisID)							
-				deepTableName        	<- dataPrepRes$deepTableName				
-				wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
-				regrAnalysisID       	<- analysis@analysis_id
-				connection         		<- table@odbc_connection
-				
+															in_analysis_id 	= inAnalysisID);
+				deepTableName        	<- dataPrepRes$deepTableName;
+				wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID;
+				regrAnalysisID       	<- analysis@analysis_id;
+				connection         		<- table@odbc_connection;
+
 				#Generate name of the output table
 				if(predict_table == "")
 				{
-					predict_table 		<- gen_out_table("NaiveBayes",regrAnalysisID)	
+					predict_table 		<- gen_out_table("NaiveBayes",regrAnalysisID);
 				}
-				sqlParameters <- list(  deepTableName  = deepTableName,
-										obsID          = obsID,
-										varID          = varID,
-										value          = value,										
-										regrAnalysisID = regrAnalysisID,
-										predictTable   = predictTable)
+				sql 					<- "Call FLDecisionTreeMNScore('%s','%s','%s','%s','%s','%s','From RWrapper for DBLytix', OutAnalysisID)";
+				sql 					<- sprintf(	sql,
+													deepTableName,
+													obsID,
+													varID,
+													value,
+													regrAnalysisID,
+													predict_table);
 
 				#run DecisionTreeMNScore
-				decisionTreeScoreRes <- run_sql(connection, "FLDecisionTreeMNScore.sql", sqlParameters)
-
-				sqlParameters <- list(  outTableName  = predict_table )
-				scoreTable    <- run_sql(connection, "FLLinRegrScoreFetch.sql", sqlParameters)
-										
-				return(scoreTable)
+				decisionTreeScoreRes 	<- sqlQuery(connection, sql);
+				sql             		<- paste("SELECT * FROM", predict_table, "ORDER BY 1", sep = " ");
+				scoreTable           	<- sqlQuery(connection, sql);
+				return(scoreTable);
 			}
-		)
+		);
