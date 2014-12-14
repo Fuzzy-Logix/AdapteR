@@ -6,20 +6,20 @@ NULL
 #' Linear Regression
 #'
 #' Performs Linear Regression
-#' 
+#'
 #' @param table an object of class \code{FLTable}
 #' @param primary_key name of primary key column of the table mapped to \code{table}
 #' @param response name of the dependent variable column
 #' @param exclude vector of names of the columns which are to be excluded
 #' @param class_spec list that identifies the value of the categorical variable
-#' which is to be used as reference when converting to dummy binary variables 
+#' which is to be used as reference when converting to dummy binary variables
 #' @param where_clause condition to filter out data from the table
 #' @param note note (a string)
 #'
-#' @return returns an object of class \code{FLLinRegr} whose components can be 
+#' @return returns an object of class \code{FLLinRegr} whose components can be
 #' pulled to R by running FLFetch. The class will then have 2 slots:
 #'
-#' \code{@stats}:
+#' \code{stats}:
 #' \item{RSquared}          {R-Square}
 #' \item{AdjRSquared}       {Adjusted R-Square}
 #' \item{StdErr}            {Standard Error}
@@ -37,7 +37,7 @@ NULL
 #' \item{WStat}             {Durbin-Watson Test statistic}
 #' \item{BPStat}            {Breusch Pagan Test statistic}
 #'
-#' \code{@coeffs}:
+#' \code{coeffs}:
 #' \item{COEFFID}       {Coefficient ID}
 #' \item{VAR_TYPE}      {Variable Type}
 #' \item{COLUMN_NAME}   {Variable Name}
@@ -57,7 +57,7 @@ NULL
 #'@export
 FLLinRegr <- function( 	table,
 						primary_key,
-						response,												
+						response,
 						exclude      = as.character(c()),
 						class_spec    = list(),
 						where_clause  = "",
@@ -67,7 +67,7 @@ FLLinRegr <- function( 	table,
 	argList  <- as.list(environment())
 	typeList <- list(	table        = "character",
 						primary_key  = "character",
-						response     = "character",												
+						response     = "character",
 						exclude      = "character",
 						class_spec   = "list",
 						where_clause = "character",
@@ -77,7 +77,7 @@ FLLinRegr <- function( 	table,
 	#Data prep
 	obsID  <- "ObsID";
 	varID  <- "VarID";
-	value  <- "Num_Val"	
+	value  <- "Num_Val"
 	dataPrepRes 			<- regr_data_prep( 	table,
 									response,
 									obs_id       = obsID,
@@ -93,17 +93,17 @@ FLLinRegr <- function( 	table,
 	#Query Execution: run FLLinRegr
 	connection         		<- table@odbc_connection
 	sqlParameters 			<- list(	deepTableName = deepTableName,
-										obsID  = obsID,  
-										varID  = varID, 
-										value  = value, 							
+										obsID  = obsID,
+										varID  = varID,
+										value  = value,
 										note   = note )
 	linRegrRes        		<- run_sql(connection, "FLLinRegr.sql", sqlParameters)
 	analysisID       		<- toString(linRegrRes[1,"AnalysisID"])
 
-	analysis <- new("FLLinRegr",analysis_id = analysisID, 
-								odbc_connection = connection, 
-								deep_table_name = deepTableName, 
+	analysis <- new("FLLinRegr",analysis_id = analysisID,
+								odbc_connection = connection,
+								deep_table_name = deepTableName,
 								wide_to_deep_analysis_id = wideToDeepAnalysisID)
-	
+
 	return(analysis);
 }
