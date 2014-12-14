@@ -1,14 +1,17 @@
+#' @import utilities.R
+NULL
+
 setOldClass("RODBC")
 
 #' Fetch Data Mining results from Database
 #'
 #' \code{FLFetch} fetches the slots of a fitted data mining model object from 
-#' the database. For details see the documenation for the respective model
+#' the database. For details see the documentation for the respective model
 #' fitting function
 #'
 #' @param object an object inherited from class \code{FLDataMiningAnalysis}
 #'
-#' @return an fitted model object of the relevant type with the parameters
+#' @return a fitted model object of the relevant type with the parameters
 #' filled in
 #'
 #' @examples

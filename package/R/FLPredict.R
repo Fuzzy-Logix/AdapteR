@@ -4,7 +4,32 @@
 #' @import FLFetch.R
 NULL
 
-# Scoring Functions 
+#' Scoring function
+#'
+#' \code{FLPredict} scores a new dataset using an existing data mining analysis
+#' model. 
+#'
+#' @details \code{FLPredict} predicts the value of the dependent variable using
+#' an existing model for the analysis objects of the following classes.
+#' \item{FLLinRegr}{Linear Regression}
+#' \item{FLLogRegr}{Logistic Regression}
+#' \item{FLNaiveBayes}{Naive Bayes}
+#' \item{FLDecisionTree}{Decision Tree}
+#'
+#' @param analysis a fitted model object of the relevant type with the parameters
+#' filled in. The predict function currently scores the dataset for the analysis
+#' objects mentioned in the Details section.
+#' @param table an \code{FLTable} object mapped to the dataset which is to be
+#' scored
+
+#' @return a \code{data.frame} having the scored value of the dependent variable
+#'
+#' @examples
+#' \dontrun{
+#'		
+#' }
+#'
+#'@export
 setGeneric("FLPredict", function(	analysis, 
 									table, 
 									... ) {
