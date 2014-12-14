@@ -38,10 +38,12 @@ setClass(	"FLFitDiscDistr",
 
 #' @return \code{FLFitDistrObject} returns an object of class \code{FLFitContDistr}
 #' or or \code{FLFitDiscDistr} which is mapped to a table in Teradata. An object
-#' of any of the above class has the following common components.
-#' \item{odbc_connection}
-#' \item{db_name}
-#' \item{table_name}
+#' of any of the above class has the following common components:
+#' \describe{
+#' \item{odbc_connection}{}
+#' \item{db_name}{}
+#' \item{table_name}{}
+#' }
 #' In addition to the above components, an object of class \code{FLFitContDistr}
 #' contains the component \code{value}. \cr
 #' An object of class \code{FLFitDiscDistr} contains the components

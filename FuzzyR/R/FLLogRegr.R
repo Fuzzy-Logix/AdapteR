@@ -26,28 +26,28 @@ NULL
 #' pulled to R by running FLFetch. The class will then have 2 slots:
 #'
 #' \code{stats}:
-#' \item{Concordant}    {Concordant Pairs}
-#' \item{Discordant}    {Discordant Pairs}
-#' \item{Tied}          {Tied Pairs}
-#' \item{TotalPairs}    {Total Pairs}
-#' \item{GiniCoeff}     {(Concordant -Discordant)/TotalPairs}
-#' \item{CStatistic}    {(GiniCoeff +1)/2}
-#' \item{Gamma}         {(Concordant -Discordant)/(Concordant + Discordant)}
-#' \item{HighestPValue} {Highest P-Value}
-#' \item{Events}        {Number of Events (the 1's)}
-#' \item{NonEvents}     {Number of Non-Events (the 0's)}
-#' \item{FalsePosituve} {Number of false positives}
-#' \item{FalseNegative} {Number of False negatives}
+#' \item{Concordant}{Concordant Pairs}
+#' \item{Discordant}{Discordant Pairs}
+#' \item{Tied}{Tied Pairs}
+#' \item{TotalPairs}{Total Pairs}
+#' \item{GiniCoeff}{(Concordant -Discordant)/TotalPairs}
+#' \item{CStatistic}{(GiniCoeff +1)/2}
+#' \item{Gamma}{(Concordant -Discordant)/(Concordant + Discordant)}
+#' \item{HighestPValue}{Highest P-Value}
+#' \item{Events}{Number of Events (the 1's)}
+#' \item{NonEvents}{Number of Non-Events (the 0's)}
+#' \item{FalsePosituve}{Number of false positives}
+#' \item{FalseNegative}{Number of False negatives}
 #'
 #' \code{coeffs}:
-#' \item{COEFFID}       {Coefficient ID}
-#' \item{VAR_TYPE}      {Variable Type}
-#' \item{COLUMN_NAME}   {Variable Name}
-#' \item{CATVALUE}      {Category Name represented by dummy variable}
-#' \item{CoeffValue}    {They are coefficients, one for each explanatory variable, that represent the strength and type of relationship the explanatory variable has to the dependent variable.}
-#' \item{StdErr}        {Standard Error(an estimate of the standard deviation of the coefficient)}
-#' \item{CHISQ}         {Chi-Square estimate of the StdErr}
-#' \item{PValue}        {P-Value for the Chi-Square estimate}
+#' \item{COEFFID}{Coefficient ID}
+#' \item{VAR_TYPE}{Variable Type}
+#' \item{COLUMN_NAME}{Variable Name}
+#' \item{CATVALUE}{Category Name represented by dummy variable}
+#' \item{CoeffValue}{They are coefficients, one for each explanatory variable, that represent the strength and type of relationship the explanatory variable has to the dependent variable.}
+#' \item{StdErr}{Standard Error(an estimate of the standard deviation of the coefficient)}
+#' \item{CHISQ}{Chi-Square estimate of the StdErr}
+#' \item{PValue}{P-Value for the Chi-Square estimate}
 #'
 #'@examples
 #' \dontrun{

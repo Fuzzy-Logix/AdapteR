@@ -9,6 +9,7 @@ NULL
 #' a Stepwise Algorithm 
 #' 
 #'@details Each of the algorithm works as follows:
+#' \describe{
 #' \item{BW}{In Backward Elimination variables are eliminated one at a time till 
 #' all the p-Values are lower than value specified by the parameter \code{p_allow}} 
 #' \item{FB}{In Fast Backward Elimination, all the variables that exceed the 
@@ -26,6 +27,7 @@ NULL
 #' models again based on their Gini coefficient estimates. This process continues
 #' till no additional variables can be added because the p-Value of the model
 #' exceeds \code{p_allow}.}
+#' }
 #'
 #'@param table an object of class \code{FLTable}
 #'@param primary_key name of primary key column of the table mapped to \code{table}

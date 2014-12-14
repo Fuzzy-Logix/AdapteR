@@ -20,34 +20,34 @@ NULL
 #' pulled to R by running FLFetch. The class will then have 2 slots:
 #'
 #' \code{stats}:
-#' \item{RSquared}          {R-Square}
-#' \item{AdjRSquared}       {Adjusted R-Square}
-#' \item{StdErr}            {Standard Error}
-#' \item{DFRegression}      {Regression Degree of Freedom}
-#' \item{DFResidual}        {Residual Degree of Freedom}
-#' \item{DFTotal}           {Total Degree of Freedom}
-#' \item{SSRegression}      {Regression Sum Squared}
-#' \item{SSResidual}        {Residual Sum Squared}
-#' \item{SSTotal}           {Total Sum Squared}
-#' \item{MSRegression}      {Regression Mean Sum Squared}
-#' \item{MSResidual}        {Residual Mean Sum Squared}
-#' \item{FStat}             {F-Statistic}
-#' \item{SigFStat}          {Significance of F-Statistic}
+#' \item{RSquared}{R-Square}
+#' \item{AdjRSquared}{Adjusted R-Square}
+#' \item{StdErr}{Standard Error}
+#' \item{DFRegression}{Regression Degree of Freedom}
+#' \item{DFResidual}{Residual Degree of Freedom}
+#' \item{DFTotal}{Total Degree of Freedom}
+#' \item{SSRegression}{Regression Sum Squared}
+#' \item{SSResidual}{Residual Sum Squared}
+#' \item{SSTotal}{Total Sum Squared}
+#' \item{MSRegression}{Regression Mean Sum Squared}
+#' \item{MSResidual}{Residual Mean Sum Squared}
+#' \item{FStat}{F-Statistic}
+#' \item{SigFStat}{Significance of F-Statistic}
 #' \item{ResidualAutoCorrel}{Lag-1 Auto Correlation between Residuals}
-#' \item{WStat}             {Durbin-Watson Test statistic}
-#' \item{BPStat}            {Breusch Pagan Test statistic}
+#' \item{WStat}{Durbin-Watson Test statistic}
+#' \item{BPStat}{Breusch Pagan Test statistic}
 #'
 #' \code{coeffs}:
-#' \item{COEFFID}       {Coefficient ID}
-#' \item{VAR_TYPE}      {Variable Type}
-#' \item{COLUMN_NAME}   {Variable Name}
-#' \item{CATVALUE}      {Category Name represented by dummy variable}
-#' \item{CoeffValue}    {They are coefficients, one for each explanatory variable, that represent the strength and type of relationship the explanatory variable has to the dependent variable.}
-#' \item{StdErr}        {Standard Error(an estimate of the standard deviation of the coefficient)}
-#' \item{TStat}         {t-Statistic(coefficient divided by its standard error.)}
-#' \item{PValue}        {P-Value of t-Statistic}
+#' \item{COEFFID}{Coefficient ID}
+#' \item{VAR_TYPE}{Variable Type}
+#' \item{COLUMN_NAME}{Variable Name}
+#' \item{CATVALUE}{Category Name represented by dummy variable}
+#' \item{CoeffValue}{They are coefficients, one for each explanatory variable, that represent the strength and type of relationship the explanatory variable has to the dependent variable.}
+#' \item{StdErr}{Standard Error(an estimate of the standard deviation of the coefficient)}
+#' \item{TStat}{t-Statistic(coefficient divided by its standard error.)}
+#' \item{PValue}{P-Value of t-Statistic}
 #' \item{NonZeroDensity}{Proportion of non-zero values for the explanatory variable}
-#' \item{CorrelWithRes} {Correlation of the explanatory variable with the residuals}
+#' \item{CorrelWithRes}{Correlation of the explanatory variable with the residuals}
 #'
 #' @examples
 #' \dontrun{
@@ -57,7 +57,7 @@ NULL
 #'@export
 FLLinRegr <- function( 	table,
 						primary_key,
-						response,
+			response,
 						exclude      = as.character(c()),
 						class_spec    = list(),
 						where_clause  = "",

@@ -11,11 +11,12 @@ NULL
 #'
 #' @details \code{FLPredict} predicts the value of the dependent variable using
 #' an existing model for the analysis objects of the following classes.
-#' \itemize{
-#' \item{FLLinRegr}
-#' \item{FLLogRegr}
-#' \item{FLNaiveBayes}
-#' \item{FLDecisionTree}
+#'
+#' \describe{
+#' \item{FLLinRegr}{}
+#' \item{FLLogRegr}{}
+#' \item{FLNaiveBayes}{}
+#' \item{FLDecisionTree}{}
 #' }
 #'
 #' @param analysis a fitted model object of the relevant type with the parameters

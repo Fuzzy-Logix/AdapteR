@@ -38,6 +38,7 @@ Matrix:
 | **Row 3**  |   0.62    |   0.76    |   0.05    |
 +------------+-----------+-----------+-----------+
 
+
 Matrix in deep table format:
 
 | MatrixID | Row_ID | Col_ID | Cell_Val |
