@@ -1,4 +1,4 @@
-#' @import utilities.R
+#' @include utilities.R
 NULL
 
 make_anova2way <- function(anovaRes,variable1,variable2)

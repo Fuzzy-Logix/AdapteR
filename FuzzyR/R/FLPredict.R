@@ -1,7 +1,7 @@
-#' @import FLTable.R
-#' @import data_prep.R
-#' @import utilities.R
-#' @import FLFetch.R
+#' @include FLTable.R
+#' @include data_prep.R
+#' @include utilities.R
+#' @include FLFetch.R
 NULL
 
 #' Scoring function

@@ -1,5 +1,5 @@
-#' @import utilities.R
-#' @import data_prep.R
+#' @include utilities.R
+#' @include data_prep.R
 NULL
 
 #' z-Test

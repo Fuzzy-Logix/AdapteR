@@ -1,5 +1,5 @@
-#' @import utilities.R
-#' @import FLMatrix.R
+#' @include utilities.R
+#' @include FLMatrix.R
 NULL
 
 #' Lower-upper (lu) decomposition of a matrix

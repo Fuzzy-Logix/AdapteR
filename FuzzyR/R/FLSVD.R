@@ -1,5 +1,5 @@
-#' @import utilities.R
-#' @import FLMatrix.R
+#' @include utilities.R
+#' @include FLMatrix.R
 NULL
 
 #' Singular Value Decomposition of a matrix

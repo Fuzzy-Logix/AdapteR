@@ -16,11 +16,12 @@ Suggests:
     knitr
 VignetteBuilder: knitr
 Collate:
+    'utilities.R'
     'FLAncova.R'
     'FLAnova1Way.R'
     'FLAnova2Way.R'
+    'FLMatrix.R'
     'FLCholeskyDecomp.R'
-    'utilities.R'
     'data_prep.R'
     'FLFetch.R'
     'FLDecisionTree.R'
@@ -36,12 +37,11 @@ Collate:
     'FLLogRegrStep.R'
     'FLMDA.R'
     'FLMatchIt.R'
-    'FLMatrix.R'
     'FLMatrixInv.R'
     'FLNaiveBayes.R'
+    'FLTable.R'
     'FLPredict.R'
     'FLSVD.R'
-    'FLTable.R'
     'FLVIF.R'
     'FLtTest.R'
     'FLzTest.R'

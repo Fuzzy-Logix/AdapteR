@@ -1,4 +1,4 @@
-#' @import utilities.R
+#' @include utilities.R
 
 setOldClass("RODBC")
 #' @export

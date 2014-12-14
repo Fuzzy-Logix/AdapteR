@@ -1,4 +1,4 @@
-#' @import utilities.R
+#' @include utilities.R
  
 wide_to_deep <- function( 	table,
 							primary_key,

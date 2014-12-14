@@ -1,5 +1,5 @@
-#' @import utilities.R
-#' @import FLMatrix.R
+#' @include utilities.R
+#' @include FLMatrix.R
 NULL
 
 #' Inverse of a matrix
