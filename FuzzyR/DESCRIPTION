@@ -11,6 +11,5 @@ Depends:
     RODBC (>= 1.3-10)
 License: GPL-2
 LazyData: true
-Suggests: 
-    knitr
+Suggests: knitr
 VignetteBuilder: knitr
