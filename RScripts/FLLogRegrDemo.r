@@ -55,7 +55,7 @@ res2 <- FLMDA(Tbl2, Subclasses = 3, Iterations = 10,Initialization = 2,Hypothese
 source("S4//FLMatchIt.r")
 # Create FLTable object
 Tbl <-  FLTable(DBConnect, DBName = "FL_R_WRAP", TableName = "TblMatchItAlt")
-# Perform Logistic Regression
+# Perform nearest neighbour matching
 res <- FLMatchIt(Tbl, "person_id", "exposure", "prob", "prob")
 
 ########################################################################################################
