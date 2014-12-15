@@ -58,6 +58,5 @@ The following distributions can be fitted to a data set using \code{FLFitDistr}.
  \item \code{Poisson}
  \item \code{Weibull}
 }
-\cr
 }
 

@@ -13,6 +13,8 @@ objects mentioned in the Details section.}
 
 \item{table}{an \code{FLTable} object mapped to the dataset which is to be
 scored}
+
+\item{...}{other parameters depending on the type of analysis}
 }
 \value{
 \code{FLPredict} returns a \code{data.frame} having the scored value of the dependent variable

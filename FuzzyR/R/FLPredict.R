@@ -24,7 +24,8 @@ NULL
 #' objects mentioned in the Details section.
 #' @param table an \code{FLTable} object mapped to the dataset which is to be
 #' scored
-
+#' @param ... other parameters depending on the type of analysis
+#'
 #' @return \code{FLPredict} returns a \code{data.frame} having the scored value of the dependent variable
 #'
 #' @examples
