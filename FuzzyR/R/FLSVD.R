@@ -46,7 +46,7 @@ FLSVD <- function(matrix)
 	outTable      <- gen_out_matrix_table("SVD",matrixTable, toString(matrixValue))
 	connection    <- matrix@ODBC_connection
 	sqlParameters <- list(	matrixID      = matrix@matrix_id,
-							matrixValue = toString(matrixIDValue),
+							matrixValue = toString(matrixValue),
 							rowID         = matrix@row_id,
 							columnID      = matrix@column_id,
 							cellValue     = matrix@cell_value,
