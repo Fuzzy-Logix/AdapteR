@@ -1,0 +1,20 @@
+CALL FLRegrDataPrep(
+'%tableName',
+'%primaryKey',
+'%response',
+'%deepTableName',
+'%obsID',
+'%varID',
+'%value',
+%catToDummy,
+%performNorm,
+%performVarReduc,
+%makeDataSparse,
+%minStdDev,
+%maxCorrel
+0,
+'%excludeString',
+'%classSpecString',
+'%whereClause',
+NULL,
+AnalysisID);

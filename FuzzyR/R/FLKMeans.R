@@ -7,7 +7,7 @@
 #' and the associated cluster membership of each data point because the
 #' initialization centroid locations are random. In general, k-means has two
 #' steps: assigning data points to the nearest cluster and then moving each
-#' cluster’s centroid to the center of the members of the cluster. Occasionally
+#' cluster's centroid to the center of the members of the cluster. Occasionally
 #' during this iterative process, a centroid can get so far away from the
 #' "central mass" of the data points (relative to other centroids) such that
 #' the cluster has no members. In this case, this centroid actually drops off

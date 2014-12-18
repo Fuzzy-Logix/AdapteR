@@ -78,8 +78,8 @@ FLFitDistrObject <- function(connection, db_name, table_name, distribution_type,
 			if (!is.character(table_name))
 			stop("table_name must be a string")
 
-			sqlQuery(connection, paste("DATABASE", db_name));
-			sqlQuery(connection, "SET ROLE ALL");
+			sqlQuery(connection, paste("DATABASE", db_name))
+			sqlQuery(connection, "SET ROLE ALL")
 
 			if(distribution_type == "Cont")
 			{
@@ -159,35 +159,35 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	methodType       <- c("MLE", "MDE")
 	if(distribution %in% distributionName && method %in% methodType)
 	{
-		if(class(x) == "FLFitContDistr")
+		if(class(distribution_object) == "FLFitContDistr")
 		{
-			path <- "FLFitContDistr.sql";
-			stopifnot(file.exists(path));
-			sql  <- readChar(path, nchar = file.info(path)$size);
+			path <- "FLFitContDistr.sql"
+			stopifnot(file.exists(path))
+			sql  <- readChar(path, nchar = file.info(path)$size)
 			sql  <- sprintf(	sql,
 								distribution_object@value,
 								distribution_object@table_name,
 								method,
-								distribution);
-			sql  <- gsub("[\r\n]", "", sql);
+								distribution)
+			sql  <- gsub("[\r\n]", "", sql)
 			print(sql)
-			res <- sqlQuery(distribution_object@odbc_connection, sql, stringsAsFactors = FALSE);
+			res <- sqlQuery(distribution_object@odbc_connection, sql, stringsAsFactors = FALSE)
 		}
 
-		if(class(x) == "FLFitDiscDistr")
+		if(class(distribution_object) == "FLFitDiscDistr")
 		{
-			path <- "FLFitDiscDistr.sql";
-			stopifnot(file.exists(path));
-			sql  <- readChar(path, nchar = file.info(path)$size);
+			path <- "FLFitDiscDistr.sql"
+			stopifnot(file.exists(path))
+			sql  <- readChar(path, nchar = file.info(path)$size)
 			sql  <- sprintf(	sql,
 								distribution_object@num_trials,
 								distribution_object@num_success,
 								distribution_object@table_name,
 								method,
-								distribution);
-			sql  <- gsub("[\r\n]", "", sql);
+								distribution)
+			sql  <- gsub("[\r\n]", "", sql)
 			print(sql)
-			res <- sqlQuery(distribution_object@odbc_connection, sql, stringsAsFactors = FALSE);
+			res <- sqlQuery(distribution_object@odbc_connection, sql, stringsAsFactors = FALSE)
 		}
 	return(res)
 	}

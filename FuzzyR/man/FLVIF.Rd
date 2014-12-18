@@ -39,7 +39,13 @@ variable were uncorrelated with the other predictor variables in the model.
 \examples{
 \dontrun{
 tbl <- FLTable(DBConnect, "FL_R_WRAP", "tblAutoMpg")
-Analysis <- FLVIF(Tbl, primary_key = "ObsID", response = "MPG", exclude = c("CarNum","CarNumber"), class_spec = list(CarName = "Audi"))
+
+Analysis <- FLVIF(	Tbl,
+						primary_key = "ObsID",
+						response = "MPG",
+						exclude = c("CarNum","CarNumber"),
+						class_spec = list(CarName = "Audi"))
+
 Analysis <- FLFetch(Analysis)
 }
 }

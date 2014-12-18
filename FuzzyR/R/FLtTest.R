@@ -28,8 +28,18 @@ NULL
 #' @examples
 #' \dontrun{
 #' 
-#' FLtTest(table = tbl, primary_key = "ObsID", input1 = "Var1", mu = 0.45, num_tails = 2)
-#' FLtTest(table = tbl, primary_key = "ObsID", input1 = "Var1", input2 = "Var2",var.equal = FALSE, num_tails = 2)
+#' FLtTest(	table       = tbl, 
+#' 			primary_key = "ObsID", 
+#' 			input1      = "Var1", 
+#' 			mu          = 0.45, 
+#' 			num_tails   = 2)
+#'
+#' FLtTest(	table       = tbl, 
+#' 			primary_key = "ObsID", 
+#' 			input1      = "Var1", 
+#' 			input2      = "Var2",
+#' 			var.equal   = FALSE, 
+#' 			num_tails   = 2)
 #'
 #' }
 #'

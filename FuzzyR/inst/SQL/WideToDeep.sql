@@ -1,0 +1,10 @@
+CALL FLWideToDeep('%tableName',
+'%primaryKey',
+'%deepTableName',
+'%obsID',
+'%varID',
+'%value',
+'%excludeString',
+'%classSpecString',
+'%whereClause',
+AnalysisID);

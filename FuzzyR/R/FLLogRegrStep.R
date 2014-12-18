@@ -232,7 +232,7 @@ FLLogRegrStep <- function( 	table,
 		# 	sql				<- paste(sql, sqlParameters,"', AnalysisID)", sep="")
 		# }
         		
-		logRegrRes        	<- sqlQuery(connection, sql);		
+		logRegrRes        	<- run_sql(connection, file, sqlParameters)	
 		analysisID       	<- toString(logRegrRes[1,"AnalysisID"]);
 		retData = new("FLLogRegr",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName, wide_to_deep_analysis_id = wideToDeepAnalysisID);
 	}

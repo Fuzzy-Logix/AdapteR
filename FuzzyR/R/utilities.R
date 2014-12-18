@@ -1,3 +1,6 @@
+#'@import methods RODBC
+NULL
+
 # /**
 #  * Converts List to where clause
 #  * @param  {list} x e.g. list(Varx="a",Vary="b")

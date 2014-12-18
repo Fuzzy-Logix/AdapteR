@@ -235,7 +235,7 @@ setMethod(	"FLFetch",
 				object@cluster_probability 	= clusterProbability
 				object@mu 					= mu
 				object@sigma 				= sigma
-				object@mixing_probability 	= mixing_probability
+				object@mixing_probability 	= mixingProbabilty
 				object@log_likelihood	 	= logLikelihood
 				object@classify 			= classify
 			

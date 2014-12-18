@@ -58,7 +58,10 @@ make_anova <- function(anovaRes,variable)
 #'
 #' FLAnova1Way(table = tbl, response = "MPG", variable = "CarName") 
 #' # Select American brands only
-#' FLAnova1Way(table = tbl, response = "MPG", variable = "CarName", where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
+#' FLAnova1Way(	table = tbl, 
+#' 				response = "MPG", 
+#'				variable = "CarName", 
+#'				where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
 #'
 #' }
 #'

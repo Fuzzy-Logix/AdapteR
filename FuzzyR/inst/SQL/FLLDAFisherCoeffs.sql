@@ -1,0 +1,4 @@
+SELECT CATNUM_VAL, COEFFID, COEFFNUM_VAL 
+FROM fzzlLDAFisherCoeffs 
+WHERE AnalysisID = '%analysisID' 
+ORDER BY 1,2,3

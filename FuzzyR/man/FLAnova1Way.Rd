@@ -40,7 +40,10 @@ two or more groups in a dataset based on a single attribute.
 
 FLAnova1Way(table = tbl, response = "MPG", variable = "CarName")
 # Select American brands only
-FLAnova1Way(table = tbl, response = "MPG", variable = "CarName", where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
+FLAnova1Way(	table = tbl,
+				response = "MPG",
+				variable = "CarName",
+				where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
 
 }
 }

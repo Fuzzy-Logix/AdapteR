@@ -100,8 +100,7 @@ regr_data_prep_score <- function( table,
 	path            <- "FLRegrDataPrepScore.sql"
 	connection      <- table@odbc_connection
 	sqlParameters <- list( 	tableName       = table@table_name,
-							primaryKey      = primary_key,
-							response        = response,
+							primaryKey      = primary_key,							
 							deepTableName   = deepTableName,
 							obsID           = obs_id,
 							varID           = var_id,

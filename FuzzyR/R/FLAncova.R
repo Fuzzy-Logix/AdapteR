@@ -60,7 +60,11 @@ FLMakeAncova <- function(ancovaRes,variable)
 #'
 #' FLAncova(table = tbl, response = "MPG", variable = "CarName", control = "Weight") 
 #' # Select American brands only
-#' FLAncova(table = tbl, response = "MPG", variable = "CarName", control = "Weight", where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
+#' FLAncova(table = tbl, 
+#'			response = "MPG", 
+#'			variable = "CarName", 
+#'			control = "Weight", 
+#'			where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
 #'
 #' }
 #'
