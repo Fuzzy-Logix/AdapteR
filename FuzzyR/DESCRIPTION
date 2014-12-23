@@ -29,6 +29,7 @@ Collate:
     'FLEigen.R'
     'FLFetchTable.R'
     'FLFitDistribution.R'
+    'FLInsertMatrix.R'
     'FLKMeans.R'
     'FLLDA.R'
     'FLLUDecomp.R'
