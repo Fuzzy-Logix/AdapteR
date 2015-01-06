@@ -1,0 +1,4 @@
+SELECT CANTYPE, VARID, CANID, NUM_VAL 
+FROM fzzlLDACanCoeff 
+WHERE AnalysisID = '%analysisID' 
+ORDER BY 1,2,3,4

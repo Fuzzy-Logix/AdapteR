@@ -1,0 +1,49 @@
+Package: FuzzyR
+Title: Wrapper functions for Fuzzy Logix's DB Lytix(TM) suite
+Version: 0.0.0.9000
+Authors@R: "Mitul Mundra <Mitul.Mundra@fuzzyl.com> [aut, cre], Rohit Gupta
+    <Rohit.Gupta@fuzzyl.com> [aut]"
+Description: The DB Lytix(TM) suite of functions offers scalable and robust high
+    performance analytical methods that are embedded seamlessly into database
+    systems. Package FuzzyR makes it possible to use this functionality from R
+    by providing wrapper functions around the SQL interface of DB Lytix(TM).
+Depends:
+    R (>= 3.1.1),
+    RODBC (>= 1.3-10),
+    methods
+License: GPL-2
+LazyData: true
+Suggests:
+    knitr
+VignetteBuilder: knitr
+Collate:
+    'utilities.R'
+    'FLAncova.R'
+    'FLAnova1Way.R'
+    'FLAnova2Way.R'
+    'FLMatrix.R'
+    'FLCholeskyDecomp.R'
+    'data_prep.R'
+    'FLFetch.R'
+    'FLDecisionTree.R'
+    'FLEigen.R'
+    'FLFetchTable.R'
+    'FLFitDistribution.R'
+    'FLInsertMatrix.R'
+    'FLKMeans.R'
+    'FLLDA.R'
+    'FLLUDecomp.R'
+    'FLLinRegr.R'
+    'FLLinRegrStep.R'
+    'FLLogRegr.R'
+    'FLLogRegrStep.R'
+    'FLMDA.R'
+    'FLMatchIt.R'
+    'FLMatrixInv.R'
+    'FLNaiveBayes.R'
+    'FLTable.R'
+    'FLPredict.R'
+    'FLSVD.R'
+    'FLVIF.R'
+    'FLtTest.R'
+    'FLzTest.R'
