@@ -125,7 +125,7 @@ gen_out_matrix_table <- function(Operation,MatrixTable, Matrix_ID) {
 run_sql <- function (db_connect, sql_file, arg_list)
 {
 	
-	sql_file <- system.file("SQL", sql_file, package="FuzzyR", mustWork = TRUE)
+	sql_file <- system.file("SQL", sql_file, package="RLytix", mustWork = TRUE)
 	stopifnot(file.exists(sql_file))
 	sql  <- readChar(sql_file, nchar = file.info(sql_file)$size)
 	
