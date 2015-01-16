@@ -51,9 +51,8 @@ NULL
 #'
 #'@examples
 #' \dontrun{
-#'  
-#' 	LogRegModel <- FLLogRegr(TblIris, 'ObsID', 'species', max_iter = 20, threshold = 0.8, note = "RWrappers Example")
-#' 	LogRegModel <- FLFetch(LogRegModel)
+#' 	LinRegModel <- FLLinRegr(, 'ObsID', '', c("CarNum", "CarNumber", "MPG"), list(CarName = "BMW"), note = "RWrappers Example")
+#' 	LinRegModel <- FLFetch(LinRegModel)
 #'  }
 #'
 #'@export
