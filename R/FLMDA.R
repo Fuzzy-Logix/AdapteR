@@ -101,7 +101,7 @@ FLMDA <- function( 	table,
 	
 
 	argList  <- as.list(environment())
-	typeList <- list(	table          = "character",
+	typeList <- list(	table          = "FLTable",
 						primary_key    = "character",
 						response       = "character",
 						subclasses     = "integer",					

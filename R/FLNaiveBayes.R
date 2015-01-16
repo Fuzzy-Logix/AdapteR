@@ -47,7 +47,7 @@ FLNaiveBayes <- function( 	table,
 						stop("laplace should be 1 or 0"))
 
 	argList  <- as.list(environment())
-	typeList <- list(	table        = "character",
+	typeList <- list(	table        = "FLTable",
 						primary_key  = "character",
 						response     = "character",
 						laplace      = "integer",

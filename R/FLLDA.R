@@ -52,7 +52,7 @@ FLLDA <- function( 	table,
 {
 	#Type validation
 	argList  <- as.list(environment())
-	typeList <- list(	table        = "character",
+	typeList <- list(	table        = "FLTable",
 						primary_key  = "character",
 						response     = "character",												
 						exclude      = "character",

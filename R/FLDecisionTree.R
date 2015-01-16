@@ -51,7 +51,7 @@ NULL
 #' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
-#' db_name    <- FL_R_WRAP
+#' db_name    <- "FL_R_WRAP"
 #' table_name <- "tblAutoMpg"
 #' # Create FLTable object
 #' table      <-  FLTable(connection, db_name, table_name)
@@ -90,7 +90,7 @@ FLDecisionTree <- function( table,
 									stop("max_level should be an integer"))
 
 	argList  <- as.list(environment())
-	typeList <- list(	table              = "character",
+	typeList <- list(	table              = "FLTable",
 						primary_key        = "character",
 						response           = "character",
 						min_obs_for_parent = "integer",

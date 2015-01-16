@@ -66,7 +66,7 @@ FLKMeans <- function( 	table,
 						stop("nstart should be an integer"))
 
 	argList  <- as.list(environment())
-	typeList <- list(	table        = "character",
+	typeList <- list(	table        = "FLTable",
 						primary_key  = "character",
 						centers      = "integer",
 						max_iter     = "integer",

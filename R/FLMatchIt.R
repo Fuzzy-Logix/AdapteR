@@ -42,6 +42,14 @@ FLMatchIt <- function( 	table,
 						match_order)
 
 {
+	argList  <- as.list(environment())
+	typeList <- list(	table        = "FLTable",
+						obs_id      = "character",
+						treatment   = "character",
+						prop_score  = "character",
+						match_order = "character")
+	validate_args(argList, typeList)
+	
 	connection      <- table@odbc_connection;
 	sql        		<- "CALL FLMatchIt('";
 	sqlParameters 	<- paste(	table@table_name,

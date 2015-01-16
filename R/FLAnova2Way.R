@@ -36,7 +36,7 @@ make_anova2way <- function(anovaRes,variable1,variable2)
 #' Performs two-way analysis of variance(ANOVA).
 #
 #' @details Two-way analysis of variance is used to test the difference between
-#' two or more groups in a dataset based on two attribute.
+#' two or more groups in a dataset based on two attributes.
 #' 
 #' @param table An object of class \code{FLTable}
 #' @param response column name for the data values

@@ -46,7 +46,17 @@ FLVIF <- function( 	table,
 					where_clause = "",
 					note = "From RWrapper For DBLytix")
 {
-
+	#Type validation
+	argList  <- as.list(environment())
+	typeList <- list(	table        = "FLTable",
+						primary_key  = "character",
+						response     = "character",
+						exclude      = "character",
+						class_spec   = "list",
+						where_clause = "character",
+						note         = "character")
+	validate_args(argList, typeList)
+	
 	obsID  <- "ObsID"
 	varID  <- "VarID"
 	value  <- "Num_Val"
