@@ -164,7 +164,7 @@ validate_args <- function (arg_list,type_list)
 	# Check type for each argument
 	for( i in 1:length(arg_list))
 	{
-		if( typeof(arg_list[[i]]) != type_list[i] )
+		if( class(arg_list[[i]]) != type_list[i] )
 			stop( paste("Argument Type Mismatch",names[i],"should be of type",type_list[i]) )
 	}
 }		
