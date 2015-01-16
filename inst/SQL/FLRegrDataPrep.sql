@@ -11,7 +11,7 @@ CALL FLRegrDataPrep(
 %performVarReduc,
 %makeDataSparse,
 %minStdDev,
-%maxCorrel
+%maxCorrel,
 0,
 '%excludeString',
 '%classSpecString',
