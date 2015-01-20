@@ -101,8 +101,7 @@ FLMDA <- function( 	table,
 	
 
 	argList  <- as.list(environment())
-	typeList <- list(	table          = "FLTable",
-						primary_key    = "character",
+	typeList <- list(	primary_key    = "character",
 						response       = "character",
 						subclasses     = "integer",					
 						max_iter       = "integer",
@@ -112,8 +111,8 @@ FLMDA <- function( 	table,
 						class_spec     = "list",
 						where_clause   = "character",
 						note           = "character")
-	validate_args(argList, typeList)
-
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
 	obsID  <- "ObsID"
 	varID  <- "VarID"
 	value  <- "Num_Val"
