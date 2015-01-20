@@ -171,4 +171,4 @@ validate_args <- function (arg_list, type_list, class_list)
 }		
 
 is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
-is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1p) }
+is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1) }
