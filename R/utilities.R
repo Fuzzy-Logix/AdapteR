@@ -158,7 +158,7 @@ run_sql <- function (db_connect, sql_file, arg_list)
 	res		 	
 }
 
-validate_args <- function (arg_list, type_list, class_list)
+validate_args <- function (arg_list, type_list, class_list = list())
 {
 	for (name in names(type_list)) {
 		if( typeof(arg_list[[name]]) != type_list[[name]])
