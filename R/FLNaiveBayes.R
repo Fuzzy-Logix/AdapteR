@@ -47,15 +47,15 @@ FLNaiveBayes <- function( 	table,
 						stop("laplace should be 1 or 0"))
 
 	argList  <- as.list(environment())
-	typeList <- list(	table        = "FLTable",
-						primary_key  = "character",
+	typeList <- list(	primary_key  = "character",
 						response     = "character",
 						laplace      = "integer",
 						exclude      = "character",
 						class_spec   = "list",
 						where_clause = "character",
 						note         = "character")
-	validate_args(argList, typeList)
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
 
 	obsID <- "ObsID"
 	varID <- "VarID"

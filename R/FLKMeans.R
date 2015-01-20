@@ -66,8 +66,7 @@ FLKMeans <- function( 	table,
 						stop("nstart should be an integer"))
 
 	argList  <- as.list(environment())
-	typeList <- list(	table        = "FLTable",
-						primary_key  = "character",
+	typeList <- list(	primary_key  = "character",
 						centers      = "integer",
 						max_iter     = "integer",
 						nstart       = "integer",
@@ -75,7 +74,8 @@ FLKMeans <- function( 	table,
 						class_spec   = "list",
 						where_clause = "character",
 						note         = "character")
-	validate_args(argList, typeList)
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
 
 	obsID  <- "ObsID"
 	varID  <- "VarID"
