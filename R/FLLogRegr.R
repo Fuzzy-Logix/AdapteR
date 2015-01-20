@@ -112,7 +112,7 @@ FLLogRegr <- function( 	table,
 
 	#run FLLogRegr
 	logRegrRes  <- run_sql(connection, "FLLogRegr.sql", sqlParameters)
-	analysisID  <- toString(logRegrRes[[1,"ANALYSISID"]])
+	analysisID  <- toString(logRegrRes[1,"AnalysisID"])
 
 	retData = new("FLLogRegr",	analysis_id           	 = analysisID,
 								wide_to_deep_analysis_id = wideToDeepAnalysisID,
