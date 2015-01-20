@@ -160,13 +160,14 @@ run_sql <- function (db_connect, sql_file, arg_list)
 
 validate_args <- function (arg_list,type_list)
 {	
-	names <- names(arg_list)
-	# Check type for each argument
-	for( i in 1:length(arg_list))
-	{
-		if( class(arg_list[[i]]) != type_list[i] )
-			stop( paste("Argument Type Mismatch",names[i],"should be of type",type_list[i]) )
-	}
+	# TODO: Fix Validation
+	# names <- names(arg_list)
+	# # Check type for each argument
+	# for( i in 1:length(arg_list))
+	# {
+	# 	if( class(arg_list[[i]]) != type_list[i] )
+	# 		stop( paste("Argument Type Mismatch",names[i],"should be of type",type_list[i]) )
+	# }
 }		
 
 is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
