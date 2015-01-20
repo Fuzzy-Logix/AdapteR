@@ -158,17 +158,17 @@ run_sql <- function (db_connect, sql_file, arg_list)
 	res		 	
 }
 
-validate_args <- function (arg_list,type_list)
-{	
-	# TODO: Fix Validation
-	# names <- names(arg_list)
-	# # Check type for each argument
-	# for( i in 1:length(arg_list))
-	# {
-	# 	if( class(arg_list[[i]]) != type_list[i] )
-	# 		stop( paste("Argument Type Mismatch",names[i],"should be of type",type_list[i]) )
-	# }
+validate_args <- function (arg_list, type_list, class_list)
+{
+	for (name in names(type_list)) {
+		if( typeof(arg_list[[name]]) != type_list[[name]])
+			stop(paste("Argument Type Mismatch", name, "should be of type", type_list[[name]]))		
+	}
+	for (name in names(class_list)) {
+		if( typeof(arg_list[[name]]) != class_list[[name]])
+			stop(paste("Argument Type Mismatch", name, "should be of class", class_list[[name]]))		
+	}
 }		
 
 is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
-is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1) }
+is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1p) }

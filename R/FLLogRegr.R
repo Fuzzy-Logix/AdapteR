@@ -73,16 +73,16 @@ FLLogRegr <- function( 	table,
 						stop("max_iter should be an integer"))
 
 	argList  <- as.list(environment())
-	typeList <- list(	table        = "FLTable",
-						primary_key  = "character",
+	typeList <- list(	primary_key  = "character",
 						response     = "character",
 						max_iter     = "integer",
-						threshold    = "numeric",
+						threshold    = "double",
 						exclude      = "character",
 						class_spec   = "list",
 						where_clause = "character",
 						note         = "character")
-	validate_args(argList, typeList)
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
 
 	obsID  <- "ObsID";
 	varID  <- "VarID";
