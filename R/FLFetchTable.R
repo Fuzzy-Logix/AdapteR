@@ -11,6 +11,8 @@
 #' @export
 FLFetchTable <- function(table)
 {
+	if(class(table) != "FLTable")
+		stop("Argument Type Mismatch: table must be an FLTable object")
 	connection    <- table@odbc_connection
 	file          <- "FLFetchTable.sql"
 	sqlParameters <- list(tableName = table@table_name)

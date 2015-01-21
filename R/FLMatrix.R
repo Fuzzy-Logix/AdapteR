@@ -100,7 +100,8 @@ FLMatrix <- function(connection, database, matrix_table, matrix_id_value,
 #' @export
 FLFetchMatrix <- function(matrix)
 {
-
+	if(class(matrix) != "FLMatrix")
+		stop("Argument Type Mismatch: matrix must be an FLMatrix object")	
 	connection <- matrix@ODBC_connection
 	sqlParameters <- list(	row_id          = matrix@row_id,
 							column_id       = matrix@column_id,

@@ -65,19 +65,22 @@ setClass(	"FLFitDiscDistr",
 #' @export
 FLFitDistrObject <- function(connection, db_name, table_name, distribution_type, value = "NumVal", num_success = "NumOfSuccess", num_trials = "NumOfTrials")
 {
+	argList  <- as.list(environment())
+	typeList <- list(	connection 			= "integer",
+						db_name				= "character",
+						table_name			= "character",
+						distribution_type	= "character",
+						value				= "character",												
+						num_success			= "character",
+						num_trials			= "character")
+	validate_args(argList, typeList, classList = list())
+	
 	# DistributionTypes
 	# Cont - Continuous
 	# Disc - Discrete
 	types <- c("Cont", "Disc")
 		if(distribution_type %in% types)
 		{
-			#if (!is.character(connection))
-			#stop("connectionName must be a string")
-			if (!is.character(db_name))
-			stop("db_name must be a string")
-			if (!is.character(table_name))
-			stop("table_name must be a string")
-
 			sqlQuery(connection, paste("DATABASE", db_name))
 			sqlQuery(connection, "SET ROLE ALL")
 
@@ -140,7 +143,11 @@ FLFitDistrObject <- function(connection, db_name, table_name, distribution_type,
 #' The parameters depend on the distribution being fitted.
 #' @export
 FLFitDistr <- function(distribution_object, distribution, method = "MLE")
-{
+{ 
+	argList  <- as.list(environment())
+	typeList <- list(	distribution	= "character",
+						method			= "character")
+	validate_args(argList, typeList, classList = list())
 	# Distribution
   # -> Beta
   # -> Binomial
@@ -154,7 +161,11 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	# Method
 	# MLE - Maximum Likelihood Estimation
 	# MDE - Minimum Distance Estimation
-
+	distributionObjectName <- c("FLFitContDistr", "FLFitDiscDistr")
+	if(class(distribution_object) %in% distributionObjectName)
+	{
+		stop("Argument Type Mismatch: distribution_object must be in {\"FLFitContDistr"\, \"FLFitDiscDistr"\}")
+	}
 	distributionName <- c("Beta", "Binomial", "Cauchy", "ChiSq", "Normal", "Poisson", "Weibull")
 	methodType       <- c("MLE", "MDE")
 	if(distribution %in% distributionName && method %in% methodType)
@@ -192,7 +203,7 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	return(res)
 	}
 
-	else if((distribution %in% distributionName) < 1)
+	else if((distribution %in% distributionName) == FALSE)
 	{
 		stop("Incorrect value for distribution parameter. distribution must be in {\"Beta\",\"Binomial\", \"Cauchy\", \"ChiSq\", \"Normal\", \"Poisson\", \"Weibull\"} ")
 	}
