@@ -38,6 +38,18 @@ FLzTest <- function(table,
 					mu = 0, 
 					num_tails = 2) 
 {
+	num_tails          <- ifelse(	is_number(num_tails),
+									as.integer(num_tails),
+									stop("num_tails should be an integer"))
+	argList  <- as.list(environment())
+	typeList <- list(	primary_key	= "character",
+						input1		= "character",
+						input2		= "character",
+						mu			= "numeric",
+						num_tails	= "integer")												
+	classList <- list(	table		= "FLTable")
+	validate_args(argList, typeList, classList)
+	
 	if(length(input2) == 0) 
 	{
 		connection    <- table@odbc_connection

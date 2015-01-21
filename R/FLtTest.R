@@ -52,6 +52,19 @@ FLtTest <- function(	table,
 						var.equal = FALSE, 
 						num_tails = 2 ) 
 {
+	num_tails          <- ifelse(	is_number(num_tails),
+									as.integer(num_tails),
+									stop("num_tails should be an integer"))
+	argList  <- as.list(environment())
+	typeList <- list(	primary_key	= "character",
+						input1		= "character",
+						input2		= "character",
+						mu			= "numeric",
+						var.equal	= "logical",
+						num_tails	= "integer")												
+	classList <- list(	table		= "FLTable")
+	validate_args(argList, typeList, classList)
+	
 	if(length(input2) == 0) 
 	{
 		#One Sample t-Test
