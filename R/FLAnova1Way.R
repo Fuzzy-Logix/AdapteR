@@ -70,14 +70,22 @@ FLAnova1Way <- function(	table,
 				            response,
 				            variable,
 				            where_clause = "")
-	{
-		tableName     <- table@table_name
-		whereClause   <- ifelse(nchar(where_clause) > 1, where_clause, "1=1")
-		connection    <- table@odbc_connection
-		sqlParameters <- list( 	tableName   = tableName,
-								response    = response, 
-								variable    = variable, 
-								whereClause = whereClause)
-		anovaRes      <- run_sql(connection, "FLAnova1WayUdt.sql", sqlParameters)
-		return( make_anova(anovaRes,variable) );
+{
+		#Type validation
+	argList  <- as.list(environment())
+	typeList <- list(	response     = "character",
+						variable     = "character",						
+						where_clause = "character")
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
+
+	tableName     <- table@table_name
+	whereClause   <- ifelse(nchar(where_clause) > 1, where_clause, "1=1")
+	connection    <- table@odbc_connection
+	sqlParameters <- list( 	tableName   = tableName,
+							response    = response, 
+							variable    = variable, 
+							whereClause = whereClause)
+	anovaRes      <- run_sql(connection, "FLAnova1WayUdt.sql", sqlParameters)
+	return( make_anova(anovaRes,variable) );
 }

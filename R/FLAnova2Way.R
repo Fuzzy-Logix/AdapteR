@@ -67,17 +67,26 @@ FLAnova2Way <- function(	table,
 							response,
 							variable1,
 							variable2 )
-	{
-		tableName     <- table@table_name
-		#whereClause  <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
+{
+	#Type validation
+	argList  <- as.list(environment())
+	typeList <- list(	response     = "character",
+						variable1     = "character",
+						variable2     = "character",
+						control      = "character")						
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
+
+	tableName     <- table@table_name
+	#whereClause  <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
 		
-		path          <- "FLAnova2Way.sql";
-		connection    <- table@odbc_connection
-		sqlParameters <- list(	tableName    = tableName,
-								response     = response,   
-								variable1    = variable1,   
-								variable2    = variable2)
-		anovaVolTable <- run_sql(connection, path, sqlParameters)
-		anovaRes      <- sqlQuery(connection, paste("SELECT * FROM",anovaVolTable[1,1]), stringsAsFactors = FALSE)
-		return( make_anova2way(anovaRes,variable1,variable2) )
+	path          <- "FLAnova2Way.sql";
+	connection    <- table@odbc_connection
+	sqlParameters <- list(	tableName    = tableName,
+							response     = response,   
+							variable1    = variable1,   
+							variable2    = variable2)
+	anovaVolTable <- run_sql(connection, path, sqlParameters)
+	anovaRes      <- sqlQuery(connection, paste("SELECT * FROM",anovaVolTable[1,1]), stringsAsFactors = FALSE)
+	return( make_anova2way(anovaRes,variable1,variable2) )
 }

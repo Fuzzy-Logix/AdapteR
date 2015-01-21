@@ -74,17 +74,26 @@ FLAncova <- function(	table,
 						variable,
 						control,						
 						where_clause = "")
-	{
-		tableName   <- table@table_name
-		whereClause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1")
-		
-		sqlParameters <- list(	tableName   = tableName,
-								variable    = variable,
-								control     = control,
-								response    = response,							
-								whereClause = whereClause)
-		connection <- table@odbc_connection
-		path       <- "FLAncovaUdt.sql"
-		ancovaRes  <- run_sql(connection, path, sqlParameters)
-		return( FLMakeAncova(ancovaRes,variable) )
+{
+	#Type validation
+	argList  <- as.list(environment())
+	typeList <- list(	response     = "character",
+						variable     = "character",
+						control      = "character",
+						where_clause = "character")
+	classList <- list(	table        = "FLTable")
+	validate_args(argList, typeList, classList)
+
+	tableName   <- table@table_name
+	whereClause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1")
+	
+	sqlParameters <- list(	tableName   = tableName,
+							variable    = variable,
+							control     = control,
+							response    = response,							
+							whereClause = whereClause)
+	connection <- table@odbc_connection
+	path       <- "FLAncovaUdt.sql"
+	ancovaRes  <- run_sql(connection, path, sqlParameters)
+	return( FLMakeAncova(ancovaRes,variable) )
 }
