@@ -27,24 +27,25 @@ NULL
 #' @export
 FLMatrixInv <- function(matrix)
 {
-		
-		matrixTable   <- matrix@matrix_table
-		matrixValue <- toString(matrix@matrix_id_value)
-		outTable      <- gen_out_matrix_table("MatrixInv",matrixTable, matrixValue)
-		connection    <- matrix@ODBC_connection		
-		sqlParameters <- list(	matrixID      = matrix@matrix_id,
-								matrixValue = toString(matrix@matrix_id_value),
-								rowID         = matrix@row_id,
-								columnID      = matrix@column_id,
-								cellValue     = matrix@cell_value,
-								matrixTable   = matrix@matrix_table,
-								outTable      = outTable )
-		run_sql(connection, "FLMatrixInv.sql", sqlParameters)
+	if(class(matrix) != "FLMatrix")
+		stop("Argument Type Mismatch: matrix must be an FLMatrix object")		
+	matrixTable   <- matrix@matrix_table
+	matrixValue <- toString(matrix@matrix_id_value)
+	outTable      <- gen_out_matrix_table("MatrixInv",matrixTable, matrixValue)
+	connection    <- matrix@ODBC_connection		
+	sqlParameters <- list(	matrixID      = matrix@matrix_id,
+							matrixValue = toString(matrix@matrix_id_value),
+							rowID         = matrix@row_id,
+							columnID      = matrix@column_id,
+							cellValue     = matrix@cell_value,
+							matrixTable   = matrix@matrix_table,
+							outTable      = outTable )
+	run_sql(connection, "FLMatrixInv.sql", sqlParameters)
 
-		retData = new(	"FLMatrix", ODBC_connection = connection, database = matrix@database,
-						matrix_table = outTable, matrix_id_value = matrix@matrix_id_value,
-						matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputVal")
-		return(retData)
+	retData = new(	"FLMatrix", ODBC_connection = connection, database = matrix@database,
+					matrix_table = outTable, matrix_id_value = matrix@matrix_id_value,
+					matrix_id = "OutputMatrixID", row_id = "OutputRowNum", column_id = "OutputColNum", cell_value = "OutputVal")
+	return(retData)
 }
 
 

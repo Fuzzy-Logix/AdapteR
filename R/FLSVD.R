@@ -41,6 +41,8 @@ NULL
 #' @export
 FLSVD <- function(matrix)
 {
+	if(class(matrix) != "FLMatrix")
+		stop("Argument Type Mismatch: matrix must be an FLMatrix object")
 	matrixTable   <- matrix@matrix_table
 	matrixValue	  <- matrix@matrix_id_value
 	outTable      <- gen_out_matrix_table("SVD",matrixTable, toString(matrixValue))

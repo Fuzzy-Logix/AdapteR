@@ -30,6 +30,8 @@ NULL
 #' @export
 FLCholeskyDecomp <- function(matrix)
 {
+	if(class(matrix) != "FLMatrix")
+		stop("Argument Type Mismatch: matrix must be an FLMatrix object")
 	matrixTable   <- matrix@matrix_table
 	matrixValue <- toString(matrix@matrix_id_value)
 	connection    <- matrix@ODBC_connection

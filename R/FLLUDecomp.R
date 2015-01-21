@@ -35,47 +35,49 @@ NULL
 #' @export
 FLLUDecomp <- function(matrix)  
 {
-		matrixValue <- matrix@matrix_id_value
-		matrixTable   <- matrix@matrix_table
-		connection    <- matrix@ODBC_connection
-		outTable      <- gen_out_matrix_table("LUDecomp",matrixTable, matrixValue)
-		
-		sqlParameters <- list(	matrixID      = matrix@matrix_id,
-								matrixValue = toString(matrixValue),
-								rowID         = matrix@row_id,
-								columnID      = matrix@column_id,
-								cellValue     = matrix@cell_value,
-								matrixTable   = matrixTable,
-								outTable      = outTable )
-		run_sql(connection, "FLLUDecomp.sql", sqlParameters)
-		
-		lMatrix    	<- FLMatrix(connection,
-								database        = matrix@database, 
-								matrix_table    = outTable,
-								matrix_id_value = matrixValue, 
-								matrix_id       = "OutputMatrixID",
-								row_id          = "OutputRowNum", 
-								column_id       = "OutputColNum", 
-								cell_value      = "OutputValL")
+	if(class(matrix) != "FLMatrix")
+		stop("Argument Type Mismatch: matrix must be an FLMatrix object")		
+	matrixValue <- matrix@matrix_id_value
+	matrixTable   <- matrix@matrix_table
+	connection    <- matrix@ODBC_connection
+	outTable      <- gen_out_matrix_table("LUDecomp",matrixTable, matrixValue)
+	
+	sqlParameters <- list(	matrixID      = matrix@matrix_id,
+							matrixValue = toString(matrixValue),
+							rowID         = matrix@row_id,
+							columnID      = matrix@column_id,
+							cellValue     = matrix@cell_value,
+							matrixTable   = matrixTable,
+							outTable      = outTable )
+	run_sql(connection, "FLLUDecomp.sql", sqlParameters)
+	
+	lMatrix    	<- FLMatrix(connection,
+							database        = matrix@database, 
+							matrix_table    = outTable,
+							matrix_id_value = matrixValue, 
+							matrix_id       = "OutputMatrixID",
+							row_id          = "OutputRowNum", 
+							column_id       = "OutputColNum", 
+							cell_value      = "OutputValL")
 
-		uMatrix    	<- FLMatrix(connection, 
-								database        = matrix@database, 
-								matrix_table    = outTable, 
-								matrix_id_value = matrixValue, 
-								matrix_id       = "OutputMatrixID", 
-								row_id          = "OutputRowNum", 
-								column_id       = "OutputColNum", 
-								cell_value      = "OutputValU")
-		
-		permMatrix 	<- FLMatrix(connection, 
-								database        = matrix@database, 
-								matrix_table    = outTable, 
-								matrix_id_value = matrixValue, 
-								matrix_id       = "OutputMatrixID", 
-								row_id          = "OutputRowNum", 
-								column_id       = "OutputColNum", 
-								cell_value      = "OutputPermut")
+	uMatrix    	<- FLMatrix(connection, 
+							database        = matrix@database, 
+							matrix_table    = outTable, 
+							matrix_id_value = matrixValue, 
+							matrix_id       = "OutputMatrixID", 
+							row_id          = "OutputRowNum", 
+							column_id       = "OutputColNum", 
+							cell_value      = "OutputValU")
+	
+	permMatrix 	<- FLMatrix(connection, 
+							database        = matrix@database, 
+							matrix_table    = outTable, 
+							matrix_id_value = matrixValue, 
+							matrix_id       = "OutputMatrixID", 
+							row_id          = "OutputRowNum", 
+							column_id       = "OutputColNum", 
+							cell_value      = "OutputPermut")
 
-		retData = new("FLLUDecomp", l_matrix = lMatrix, u_matrix = uMatrix, perm_matrix = permMatrix)
-		return(retData)
+	retData = new("FLLUDecomp", l_matrix = lMatrix, u_matrix = uMatrix, perm_matrix = permMatrix)
+	return(retData)
 }
