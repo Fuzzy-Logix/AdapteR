@@ -1,1 +1,1 @@
-CALL FLKMeans('%deepTableName', '%obsID', '%varID', '%value', '%whereClause', %centers, %maxIter, %nstart, '%note', AnalysisID )
+CALL FLKMeans('%deepTableName', '%obsID', '%varID', '%value', '%whereClause', %centers, %maxIter, %nStart, '%note', AnalysisID )
