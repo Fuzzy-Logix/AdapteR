@@ -164,7 +164,7 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	distributionObjectName <- c("FLFitContDistr", "FLFitDiscDistr")
 	if(class(distribution_object) %in% distributionObjectName)
 	{
-		stop("Argument Type Mismatch: distribution_object must be in {\"FLFitContDistr"\, \"FLFitDiscDistr"\}")
+		stop("Argument Type Mismatch: distribution_object must be in {'FLFitContDistr', 'FLFitDiscDistr'}")
 	}
 	distributionName <- c("Beta", "Binomial", "Cauchy", "ChiSq", "Normal", "Poisson", "Weibull")
 	methodType       <- c("MLE", "MDE")
