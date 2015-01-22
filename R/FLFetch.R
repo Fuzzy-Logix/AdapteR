@@ -55,7 +55,7 @@ setMethod(	"FLFetch",
 				kMeansDendrogram 	<- run_sql(connection, "FLKMeansDendrogram.sql", sqlParameters)
 					
 				#Fetch ClusterID Arrays
-				kMeansClusterID  	<- sqlQuery(connection, "FLKMeansClusterID.sql", sqlParameters)
+				kMeansClusterID  	<- run_sql(connection, "FLKMeansClusterID.sql", sqlParameters)
 	
 				object@centers 		= kMeansDendrogram
 				object@cluster 		= kMeansClusterID
