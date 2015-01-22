@@ -103,7 +103,7 @@ FLKMeans <- function( 	table,
 
 	#run KMeans
 	kMeansRes  <- run_sql(connection, file, sqlParameters)
-	analysisID <- toString(kMeansRes$ANALYSISID)
+	analysisID <- toString(kMeansRes[1,"AnalysisID"])
 
 	retData = new("FLKMeans",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName)
 
