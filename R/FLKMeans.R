@@ -47,7 +47,7 @@ FLKMeans <- function( 	table,
                   		centers,
 						max_iter = 10,
 						nstart   = 1,
-						exclude      = c(),
+						exclude      = as.character(c()),
 						class_spec    = list(),
 						where_clause  = "",
 						note     = "From RWrapper For DBLytix")
