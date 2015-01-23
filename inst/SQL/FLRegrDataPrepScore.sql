@@ -11,7 +11,7 @@ NULL,
 %performVarReduc,
 %makeDataSparse,
 %minStdDev,
-%maxCorrel
+%maxCorrel,
 1,
 '%excludeString',
 '%classSpecString',
