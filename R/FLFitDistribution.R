@@ -73,7 +73,7 @@ FLFitDistrObject <- function(connection, db_name, table_name, distribution_type,
 						value				= "character",												
 						num_success			= "character",
 						num_trials			= "character")
-	validate_args(argList, typeList, classList = list())
+	validate_args(argList, typeList, classList)
 	
 	# DistributionTypes
 	# Cont - Continuous

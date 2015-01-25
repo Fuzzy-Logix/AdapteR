@@ -37,7 +37,7 @@
 #' \dontrun{
 #'
 #' #Simple example with only numerical variables
-#' FLKMeans(KMeansTbl, PrimaryKey = "ID", centers = 2, max_iter = 20, nstart = 1)
+#' FLKMeans(KMeansTbl, primary_key = "ID", centers = 2, max_iter = 20, nstart = 1)
 #'
 #' }
 #'

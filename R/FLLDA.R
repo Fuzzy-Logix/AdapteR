@@ -29,7 +29,7 @@ NULL
 #' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
-#' db_name    <- FL_R_WRAP
+#' db_name    <- "FL_R_WRAP"
 #' table_name <- "tblirisdata"
 #' # Create FLTable object
 #' table      <-  FLTable(connection, db_name, table_name)
@@ -89,7 +89,7 @@ FLLDA <- function( 	table,
 	#run FLLDA
 	ldaRes        		<- run_sql(connection, "FLLDA.sql", sqlParameters)
 
-	analysisID 				<- toString(ldaRes[[1,"ANALYSISID"]])
+	analysisID 				<- toString(ldaRes[1,"ANALYSISID"])
 	retData = new("FLLDA",analysis_id = analysisID, odbc_connection = connection)
 
 	return(retData)

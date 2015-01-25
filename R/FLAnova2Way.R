@@ -72,14 +72,11 @@ FLAnova2Way <- function(	table,
 	argList  <- as.list(environment())
 	typeList <- list(	response     = "character",
 						variable1     = "character",
-						variable2     = "character",
-						control      = "character")						
+						variable2     = "character")
 	classList <- list(	table        = "FLTable")
 	validate_args(argList, typeList, classList)
 
 	tableName     <- table@table_name
-	#whereClause  <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
-		
 	path          <- "FLAnova2Way.sql";
 	connection    <- table@odbc_connection
 	sqlParameters <- list(	tableName    = tableName,

@@ -133,7 +133,7 @@ FLDecisionTree <- function( table,
 
 	#run FLDecisionTree
 	decisionTreeRes <- run_sql(connection, file, sqlParameters)
-	analysisID      <- toString(decisionTreeRes[[1,"ANALYSISID"]])
+	analysisID      <- toString(decisionTreeRes[1,"ANALYSISID"])
 
 	retData = new("FLDecisionTree",analysis_id = analysisID, wide_to_deep_analysis_id = wideToDeepAnalysisID, deep_table_name = deepTableName, class_spec = class_spec, primary_key = primary_key, exclude = as.character(exclude), odbc_connection = connection)
 
