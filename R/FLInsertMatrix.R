@@ -23,7 +23,7 @@ FLInsertMatrix <- function( rmatrix,
                               i = i,
                               j = j,
                               rmatrixij = rmatrix[i,j])
-      run_sql(connection, "FLInsertMatrix.sql", sqlParameters)
+      run_sql(flmatrix@ODBC_connection, "FLInsertMatrix.sql", sqlParameters)
     }
   }   
 }
