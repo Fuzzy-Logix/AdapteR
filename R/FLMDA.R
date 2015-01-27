@@ -146,7 +146,7 @@ FLMDA <- function( 	table,
 	mdaRes     <- run_sql(connection, file, sqlParameters)
 	
 	#print(mdaRes)
-	analysisID <- toString(mdaRes[[1,"ANALYSISID"]])
+	analysisID <- toString(mdaRes[1,"AnalysisID"])
 	retData    = new("FLMDA",analysis_id = analysisID, odbc_connection = connection)
 
 	return(retData)

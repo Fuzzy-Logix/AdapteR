@@ -39,7 +39,7 @@ setClass(	"FLDataMiningAnalysis",
 							
 # define FLKMeans Class
 setClass(	"FLKMeans",
-			representation(	centers = "data.frame",
+			slots = list(	centers = "data.frame",
 							cluster = "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
@@ -65,7 +65,7 @@ setMethod(	"FLFetch",
 
 # define FLLinRegr Class
 setClass(	"FLLinRegr",
-			representation(	coeffs 	= "data.frame",
+			slots = list(	coeffs 	= "data.frame",
 							stats 	= "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
@@ -91,7 +91,7 @@ setMethod(	"FLFetch",
 
 # define FLVIF Class
 setClass(	"FLVIF",
-			representation(	stats = "data.frame" ),
+			slots = list(	stats = "data.frame" ),
 			contains = "FLDataMiningAnalysis")
 
 # FLFetch method for VIF
@@ -110,14 +110,14 @@ setMethod(	"FLFetch",
 
 # define FLNaiveBayes Class
 setClass(	"FLNaiveBayes",
-			representation(),
+			slots = list(),
 			contains = "FLDataMiningAnalysis")
 
 # define FLDecisionTree Class
 setClass("FLDecisionTree", 
-		 representation(	node_info      = "data.frame",
-							classification = "data.frame"),
-							contains       = "FLDataMiningAnalysis")
+		 slots = list(	node_info      = "data.frame",
+						classification = "data.frame"),
+						contains       = "FLDataMiningAnalysis")
 							
 # FLFetch method for FLDecisionTree
 setMethod(	"FLFetch",
@@ -141,9 +141,9 @@ setMethod(	"FLFetch",
 
 # define FLLogRegr Class
 setClass("FLLogRegr", 
-		 representation(	coeffs   = "data.frame",
-							stats    = "data.frame"),
-							contains = "FLDataMiningAnalysis")
+		slots = list(	coeffs   = "data.frame",
+						stats    = "data.frame"),
+		contains = "FLDataMiningAnalysis")
 						
 # FLFetch method for FLLogRegr
 setMethod(	"FLFetch",
@@ -170,7 +170,8 @@ setClass("FLLDA",
 		slots = list(	canonical_coeffs   = "data.frame",
 						fisher_coeffs      = "data.frame",
 						canonical_variates = "data.frame",
-						cross_tables       = "data.frame"))
+						cross_tables       = "data.frame"),
+		contains = "FLDataMiningAnalysis")
 						
 # FLFetch method for FLLDA
 setMethod(	"FLFetch",
@@ -209,7 +210,7 @@ setClass("FLMDA",
 						mixing_probability 		= "data.frame",
 						log_likelihood 			= "data.frame",
 						classify 				= "data.frame"),
-						contains 				= "FLDataMiningAnalysis")
+		contains = "FLDataMiningAnalysis")
 						
 # FLFetch method for FLMDA
 setMethod(	"FLFetch",
@@ -247,7 +248,8 @@ setMethod(	"FLFetch",
 setClass(	"FLMatchIt", 
 			slots = list(	odbc_connection 	= "RODBC",
 							out_table_name      = "character",
-							unmatched_obs_id    = "data.frame"))
+							unmatched_obs_id    = "data.frame"),
+			contains = "FLDataMiningAnalysis")
 							
 # FLFetch for FLMatchIt
 setMethod(	"FLFetch",

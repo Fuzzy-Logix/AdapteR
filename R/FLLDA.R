@@ -89,7 +89,7 @@ FLLDA <- function( 	table,
 	#run FLLDA
 	ldaRes        		<- run_sql(connection, "FLLDA.sql", sqlParameters)
 
-	analysisID 				<- toString(ldaRes[1,"ANALYSISID"])
+	analysisID 				<- toString(ldaRes[1,"AnalysisID"])
 	retData = new("FLLDA",analysis_id = analysisID, odbc_connection = connection)
 
 	return(retData)
