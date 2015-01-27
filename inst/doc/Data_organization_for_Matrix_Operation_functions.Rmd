@@ -1,6 +1,6 @@
 ---
 title: "Matrix Operation Functions"
-author: "Mitul Mundra"
+author: "Fuzzy Logix"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -12,7 +12,7 @@ vignette: >
 # Organization of Data for Matrix Operation Functions
 --------
 
-In order to use the matrix functions in FuzzyR package, it is necessary for the input table to be in a deep format. The deep format for organization of matrix data is explained as follows.
+In order to use the matrix functions in RLytix package, it is necessary for the input table to be in a deep format. The deep format for organization of matrix data is explained as follows.
 
 | MatrixID | Row_ID | Col_ID | Cell_Val |
 |---------:|-------:|-------:|---------:|
@@ -55,7 +55,7 @@ Matrix in deep table format:
 
 In this deep format, it is expected that a specific row and column will not be duplicated.
 
-In the current version of the package FuzzyR, there are two limitations for matrix functions and they are listed as below.
+In the current version of the package RLytix, there are two limitations for matrix functions and they are listed as below.
 1. The matrix functions do not support complex Eigenvalues. This functionality will be provided in a subsequent release.
 1. Matrices with extreme dimensions cannot be handled. Please refer to the Constraints section in each Matrix Operations function for details.
 

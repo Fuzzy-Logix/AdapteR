@@ -1,6 +1,6 @@
 ---
 title: "Vignette Title"
-author: "Vignette Author"
+author: "Fuzzy Logix"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -12,7 +12,7 @@ vignette: >
 # Organization of Data for Data Mining Functions
 --------
 
-In order to use the Data Mining functions in FuzzyR package, it is necessary for the input table to be in a wide format. The wide format for organization of data is illustrated in Table 1.
+In order to use the Data Mining functions in RLytix package, it is necessary for the input table to be in a wide format. The wide format for organization of data is illustrated in Table 1.
 
 
 |RecID | DataColumn1 | DataColumn2 | DataColumn3 | DataColumn4 | ... | DataColumnN |
