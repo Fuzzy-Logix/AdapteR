@@ -91,7 +91,7 @@ FLMDA <- function( 	table,
 								as.integer(max_iter),
 								stop("max_iter should be an integer"))	
 
-	initialization <- ifelse(	(initialization == 0 || initialization == 1),
+	initialization <- ifelse(	(initialization == 1 || initialization == 2),
 								as.integer(initialization),
 								stop("initialization should be 1 or 2"))
 
