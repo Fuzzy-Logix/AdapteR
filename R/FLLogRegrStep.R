@@ -87,9 +87,9 @@ FLLogRegrStep <- function( 	table,
 	types <- c("BW","FB","SW","UFB")
 	if(type %in% types)
 	{
-		obsID  <- "ObsID";
-		varID  <- "VarID";
-		value  <- "Num_Val";
+		obsID  <- "ObsID"
+		varID  <- "VarID"
+		value  <- "Num_Val"
 		
 		dataPrepRes 			<- regr_data_prep( 	table,
 													response,
@@ -99,21 +99,21 @@ FLLogRegrStep <- function( 	table,
 													primary_key   = primary_key,
 													exclude      = exclude,
 													class_spec    = class_spec,
-													where_clause  = where_clause);
+													where_clause  = where_clause)
 
 		deepTableName        	<- dataPrepRes$deepTableName
 		wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
-		connection         		<- table@odbc_connection;
-		specID 					<- "";
+		connection         		<- table@odbc_connection
+		specID 					<- ""
 		
 		if(length(include) > 0)
 		{
-			specID      <- gen_spec_ID(table@table_name);
-			varMapQuery <- var_name_to_ID(wideToDeepAnalysisID,include);
-			res         <- sqlQuery(connection,varMapQuery,stringsAsFactors = FALSE);		
-			varIDs      <- unlist(res$VarID);
-			queries     <- sapply(varIDs,function(col) paste("INSERT INTO fzzlLogRegrModelVarSpec VALUES ('",specID,"',",col,",'I')",sep="") );
-			insertions  <- sapply(queries,function(query) sqlQuery(connection,query) );
+			specID      <- gen_spec_ID(table@table_name)
+			varMapQuery <- var_name_to_ID(wideToDeepAnalysisID,include)
+			res         <- sqlQuery(connection,varMapQuery,stringsAsFactors = FALSE)		
+			varIDs      <- unlist(res$VarID)
+			queries     <- sapply(varIDs,  function(col) paste("INSERT INTO fzzlLogRegrModelVarSpec VALUES ('",specID,"',",col,",'I')",sep="") )
+			insertions  <- sapply(queries, function(query) sqlQuery(connection,query) )
 		}
 
 		if(type == "BW")
@@ -150,7 +150,7 @@ FLLogRegrStep <- function( 	table,
 									obsID            = obsID,
 									varID            = varID,
 									value            = value,
-									max_iter      = max_iter,
+									maxIter      = max_iter,
 									threshold     = threshold,
 									specID           = specID,
 									pAllowInitial    = p_allow_initial,
@@ -171,70 +171,11 @@ FLLogRegrStep <- function( 	table,
 									pAllow        = p_allow, 							
 									note          = note )			
 		}
-
-		# if(type == "BW")
-		# {
-		# 	sql        		<- "CALL FLLogRegrBW('";
-		# 	sqlParameters 	<- paste(	deepTableName,
-		# 								obsID,  
-		# 								varID, 
-		# 								value,
-		# 								max_iter,
-		# 								threshold,
-		# 								specID,
-		# 								p_allow, 							
-		# 								note, sep="','")
-		# 	sql				<- paste(sql, sqlParameters,"', AnalysisID)", sep="")
-		# }
-		# if(type == "FB")
-		# {
-		# 	sql        		<- "CALL FLLogRegrFB('";
-		# 	sqlParameters 	<- paste(	deepTableName,
-		# 								obsID,  
-		# 								varID, 
-		# 								value,
-		# 								max_iter,
-		# 								threshold,
-		# 								specID,
-		# 								p_allow_initial, 							
-		# 								p_allow_final,
-		# 								note, sep="','")
-		# 	sql				<- paste(sql, sqlParameters,"', AnalysisID)", sep="")
-		# }
-		# if(type == "UFB")
-		# {
-		# 	sql        		<- "CALL FLLogRegrUFB('";
-		# 	sqlParameters 	<- paste(	deepTableName,
-		# 								obsID,  
-		# 								varID, 
-		# 								value,
-		# 								threshold,
-		# 								max_iter,
-		# 								specID,
-		# 								p_allow_initial,
-		# 								p_allow_final,
-		# 								stepwise_decrease, 							
-		# 								note, sep="','")
-		# 	sql				<- paste(sql, sqlParameters,"', AnalysisID)", sep="")
-		# }
-		# if(type == "SW")
-		# {
-		# 	sql        		<- "CALL FLLogRegrSW('";
-		# 	sqlParameters 	<- paste(	deepTableName,
-		# 								obsID,  
-		# 								varID, 
-		# 								value,
-		# 								max_iter,
-		# 								threshold,
-		# 								top_n,																	
-		# 								p_allow, 							
-		# 								note, sep="','")
-		# 	sql				<- paste(sql, sqlParameters,"', AnalysisID)", sep="")
-		# }
+	
         		
 		logRegrRes        	<- run_sql(connection, file, sqlParameters)	
-		analysisID       	<- toString(logRegrRes[1,"AnalysisID"]);
-		retData = new("FLLogRegr",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName, wide_to_deep_analysis_id = wideToDeepAnalysisID);
+		analysisID       	<- toString(logRegrRes[1,"AnalysisID"])
+		retData = new("FLLogRegr",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName, wide_to_deep_analysis_id = wideToDeepAnalysisID)
 	}
 	else
 	{
