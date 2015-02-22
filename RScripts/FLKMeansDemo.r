@@ -1,36 +1,29 @@
 #cleanup
 rm(list=ls())
-setwd("C:/Users/STPL/Fuzzy Logix/RWrappers/trunk")
-
-#includes
-source("S4//S4FLTable.r")
-source("S4//results.r")
-source("S4//utilities.r")
-source("S4//FLDataPrep.r")
-source("S4//FLKmeans.r")
-library(RODBC)
 require(graphics)
 
-library()
+library(RLytix)
 # Connect to ODBC
 DBConnect <- odbcConnect("Gandalf")
 
 # Attach Table 
-KMeansTbl <- FLTable(DBConnect,DBName="FL_R_WRAP",TableName="fzzlKMeansDemo")
+KMeansTbl <- FLTable(DBConnect, database = "FL_R_WRAP", table = "tblKMeansDemo")
 
 # Run KMeans
-KMeansAnalysis <- FLKMeans(KMeansTbl, 2, iter.max = 20, nstart = 1,PrimaryKey = "ID")
+KMeansAnalysis <- FLKMeans(KMeansTbl, centers = 2, max_iter = 20, nstart = 1, primary_key = "ID")
 
 # Fetch Results
-KMeansAnalysis <- fetch.results(KMeansAnalysis)
+KMeansAnalysis <- FLFetch(KMeansAnalysis)
 
 # Plotting
-
 allpoints <- sqlQuery(DBConnect,"SELECT * FROM tblKMeansDemo")
+merged <- merge(KMeansAnalysis@cluster, allpoints, by.x="ObsID",by.y="ID")
 
-merged <- merge(KMeansAnalysis@cluster,allpoints,by.x="ObsID",by.y="ID")
-plot(merged$X,merged$Y,col = as.numeric(merged$ClusterID) + 3)
+color_map <- c("green", "red")
+point_colors <- sapply(as.numeric(merged$ClusterID), function(x) color_map[x])
+
+plot(merged$X,merged$Y,col = point_colors, xlab="x", ylab="y")
 Dendrogram <- KMeansAnalysis@centers
 centers <- list(x=Dendrogram[Dendrogram$VarID == 1,"Centroid"],
 				y=Dendrogram[Dendrogram$VarID == 2,"Centroid"])
-points(centers[["x"]],centers[["y"]], col = c(6,2), pch = 8, cex = 2)
+points(centers[["x"]],centers[["y"]], col = c("red","green"), pch = ".", cex = 8)
