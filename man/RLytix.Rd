@@ -4,8 +4,7 @@
 \name{RLytix}
 \alias{RLytix}
 \alias{RLytix-package}
-\title{RLytix: A package makes it possible to use Fuzzy Logix functionality from R
-by providing wrapper functions around the SQL interface of DB Lytix(TM).}
+\title{RLytix: Wrapper functions around SQL interface of DB Lytix(TM).}
 \description{
 The RLytix package provides four categories of functions:
 Data Mining, Matrix Operations, Hypothesis Testing and Fit Distribution

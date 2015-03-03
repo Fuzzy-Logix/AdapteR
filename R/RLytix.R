@@ -1,5 +1,4 @@
-#' RLytix: A package makes it possible to use Fuzzy Logix functionality from R
-#' by providing wrapper functions around the SQL interface of DB Lytix(TM).
+#' RLytix: Wrapper functions around SQL interface of DB Lytix(TM).
 #'
 #' The RLytix package provides four categories of functions:
 #' Data Mining, Matrix Operations, Hypothesis Testing and Fit Distribution
