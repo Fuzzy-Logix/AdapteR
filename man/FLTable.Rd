@@ -27,7 +27,7 @@ used as the input for analytic functions
 		connection <- odbcConnect("Gandalf")
 		database   <- "FL_R_WRAP"
 		table_name <- "tblAutoMpg"
-		tbl        <- FLMatrix(connection, database, table_name)
+		tbl        <- FLTable(connection, database, table_name)
 
 }
 }
