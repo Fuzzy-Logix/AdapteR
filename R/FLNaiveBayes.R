@@ -44,8 +44,9 @@ NULL
 #' NBModel <- FLFetch(NBModel)
 #'
 #' #Show Model
-#' NBModel@NBModel
+#' slot(NBModel, "NBModel")
 #' }
+#'
 #'
 #' @export
 FLNaiveBayes <- function( 	table,

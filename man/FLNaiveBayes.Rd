@@ -43,6 +43,21 @@ of discrete values for the attribute
 }
 \examples{
 \dontrun{
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "tblCancerData"
+
+# Create FLTable object
+Tbl        <-  FLTable(connection, db_name, table_name)
+
+# Build Naive Bayes Model
+NBModel    <- FLNaiveBayes(Tbl, "ObsID", "BenignOrMalignant", laplace = 1, exclude = c("SampleCode"), note = "Training NB Model with Laplacian Correction")
+
+#Fetch Model
+NBModel <- FLFetch(NBModel)
+
+#Show Model
+slot(NBModel, "NBModel")
 }
 }
 
