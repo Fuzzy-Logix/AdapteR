@@ -30,6 +30,21 @@ NULL
 #'
 #' @examples
 #' \dontrun{
+#' connection <- odbcConnect("Gandalf")
+#' db_name    <- "FL_R_WRAP"
+#' table_name <- "tblCancerData"
+#'
+#' # Create FLTable object
+#' Tbl        <-  FLTable(connection, db_name, table_name)
+#'
+#' # Build Naive Bayes Model
+#' NBModel    <- FLNaiveBayes(Tbl, "ObsID", "BenignOrMalignant", laplace = 1, exclude = c("SampleCode"), note = "Training NB Model with Laplacian Correction")
+#'
+#' #Fetch Model
+#' NBModel <- FLFetch(NBModel)
+#'
+#' #Show Model
+#' NBModel@NBModel
 #' }
 #'
 #' @export
@@ -70,8 +85,9 @@ FLNaiveBayes <- function( 	table,
 										exclude      = exclude,
 										class_spec    = class_spec,
 										where_clause  = where_clause)
-	deepTableName <- dataPrepRes$deepTableName
-	connection    <- table@odbc_connection
+	deepTableName        <- dataPrepRes$deepTableName
+	wideToDeepAnalysisID <- dataPrepRes$wideToDeepAnalysisID
+	connection           <- table@odbc_connection
 
 	file <- "FLNaiveBayesModel.sql"
 	sqlParameters <- list(	deepTableName = deepTableName,
@@ -85,7 +101,10 @@ FLNaiveBayes <- function( 	table,
 
 	analysisID    <- toString(naiveBayesRes[1,"AnalysisID"])
 
-	retData = new("FLNaiveBayes",analysis_id = analysisID, odbc_connection = connection, deep_table_name = deepTableName)
+	retData = new("FLNaiveBayes", analysis_id              = analysisID, 
+								  odbc_connection          = connection, 
+								  deep_table_name          = deepTableName, 
+								  wide_to_deep_analysis_id = wideToDeepAnalysisID)
 
 	return(retData)
 }

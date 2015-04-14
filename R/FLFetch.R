@@ -91,7 +91,7 @@ setMethod(	"FLFetch",
 
 # define FLVIF Class
 setClass(	"FLVIF",
-			slots = list(	stats = "data.frame" ),
+			slots = list(stats = "data.frame"),
 			contains = "FLDataMiningAnalysis")
 
 # FLFetch method for VIF
@@ -110,8 +110,25 @@ setMethod(	"FLFetch",
 
 # define FLNaiveBayes Class
 setClass(	"FLNaiveBayes",
-			slots = list(),
+			slots = list(NBModel = "data.frame"),
 			contains = "FLDataMiningAnalysis")
+
+# FLFetch method for FLNaiveBayes
+setMethod(	"FLFetch",
+			signature("FLNaiveBayes"),
+			function(object)
+			{
+				connection    <- object@odbc_connection            
+				sqlParameters <- list(  analysisID           = object@analysis_id,
+										wideToDeepAnalysisID = object@wide_to_deep_analysis_id)
+
+				# Fetch nodes of the decision tree built
+				NBModel       <- run_sql(connection, "FLNaiveBayesFetch.sql", sqlParameters)				
+				object@NBModel = NBModel
+
+				return(object)
+			}
+		)
 
 # define FLDecisionTree Class
 setClass("FLDecisionTree", 
