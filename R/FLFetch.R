@@ -262,7 +262,7 @@ setMethod(	"FLFetch",
 				#Fetch unmatched observation ids Table
 				unmatchedObsID <- run_sql(connection, "FLMatchItFetch.sql", sqlParameters)
 				
-				object@unmatchedObsID = unmatchedObsID
+				object@unmatched_obs_id = unmatchedObsID
 
 				return(object)
 			}

@@ -57,15 +57,14 @@ FLMakeAncova <- function(ancovaRes,variable)
 #' 
 #' @examples
 #' \dontrun{
-#'
-#' FLAncova(table = tbl, response = "MPG", variable = "CarName", control = "Weight") 
+#' connection <- odbcConnect("Gandalf")
+#' db_name    <- "FL_R_WRAP"
+#' table_name <- "tblAutoMpg"
+#' # Create FLTable object
+#' table      <-  FLTable(connection, db_name, table_name)
+#' ancovaResult <- FLAncova(table, response = "MPG", variable = "CarName", control = "Weight")
 #' # Select American brands only
-#' FLAncova(	table = tbl, 
-#'				response = "MPG", 
-#'				variable = "CarName", 
-#'				control = "Weight", 
-#'				where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
-#'
+#' ancovaResult <- FLAncova(table, response = "MPG", variable = "CarName", control = "Weight", where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
 #' }
 #'
 #'@export

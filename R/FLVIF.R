@@ -26,15 +26,10 @@ NULL
 #'
 #' @examples
 #' \dontrun{
-#' tbl <- FLTable(DBConnect, "FL_R_WRAP", "tblAutoMpg")
-#'
-#' Analysis <- FLVIF(	Tbl, 
-#'						primary_key = "ObsID", 
-#'						response = "MPG", 
-#'						exclude = c("CarNum","CarNumber"), 
-#'						class_spec = list(CarName = "Audi"))
-#'
-#' Analysis <- FLFetch(Analysis)
+#' connection <- odbcConnect("Gandalf")
+#' table <- FLTable(connection, "FL_R_WRAP", "tblAutoMpg")
+#' result <- FLVIF(	table, primary_key = "ObsID", response = "MPG", exclude = c("CarNum","CarNumber"), class_spec = list(CarName = "Audi"))
+#' vifResult <- FLFetch(result)
 #' }
 #'
 #' @export

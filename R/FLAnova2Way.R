@@ -57,9 +57,12 @@ make_anova2way <- function(anovaRes,variable1,variable2)
 #' 
 #' @examples
 #' \dontrun{
-#'
-#' FLAnova2Way(table = tbl, response = "MPG", variable1 = "CarName", variable2 = "Origin") 
-#'
+#' connection <- odbcConnect("Gandalf")
+#' db_name    <- "FL_R_WRAP"
+#' table_name <- "tblAutoMpg"
+#' # Create FLTable object
+#' table      <-  FLTable(connection, db_name, table_name)
+#' anova2WayResult <- FLAnova2Way(table, response = "MPG", variable1 = "CarName", variable2 = "Origin")
 #' }
 #'
 #'@export
