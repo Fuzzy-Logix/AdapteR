@@ -37,14 +37,14 @@ two or more groups in a dataset based on a single attribute.
 }
 \examples{
 \dontrun{
-
-FLAnova1Way(table = tbl, response = "MPG", variable = "CarName")
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "tblAutoMpg"
+# Create FLTable object
+table      <-  FLTable(connection, db_name, table_name)
+anova1WayResult <- FLAnova1Way(table, response = "MPG", variable = "CarName")
 # Select American brands only
-FLAnova1Way(	table = tbl,
-				response = "MPG",
-				variable = "CarName",
-				where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
-
+anova1WayResult <- FLAnova1Way(	table, response = "MPG", variable = "CarName", where_clause = "CarName IN ('Chrysler', 'Dodge', 'Ford')" )
 }
 }
 

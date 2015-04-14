@@ -49,8 +49,8 @@ NULL
 #' \item{CHISQ}{Chi-Square estimate of the StdErr}
 #' \item{PValue}{P-Value for the Chi-Square estimate}
 #'
-#'@examples
-#'@examples
+#'
+#' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
 #' db_name    <- "FL_R_WRAP"

@@ -54,10 +54,14 @@ processing capabilities.
 }
 \examples{
 \dontrun{
-
-#Simple example with only numerical variables
-FLKMeans(KMeansTbl, primary_key = "ID", centers = 2, max_iter = 20, nstart = 1)
-
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "tblGDPGrowthInflationFiltered"
+# Create FLTable object
+table      <-  FLTable(connection, db_name, table_name)
+result     <- FLKMeans(table, centers = 4, max_iter = 20, nstart = 1, primary_key = "CountryID", exclude = c("CountryCode", "CountryName"), where_clause = "")
+# Fetch results in R
+kMeansResult <- FLFetch(result)
 }
 }
 

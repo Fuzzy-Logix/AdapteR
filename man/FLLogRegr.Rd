@@ -66,9 +66,15 @@ is achieved or the maximum number of iterations as specified by \code{max_iter} 
 }
 \examples{
 \dontrun{
-
-	LogRegModel <- FLLogRegr(TblIris, 'ObsID', 'species', max_iter = 20, threshold = 0.8, note = "RWrappers Example")
-	LogRegModel <- FLFetch(LogRegModel)
- }
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "tblIrisBinary"
+# Create FLTable object
+table      <-  FLTable(connection, db_name, table_name)
+# Perform Decision Tree Analysis
+result     <- FLLogRegr(table, primary_key = "ObsID", response = "SpeciesID", max_iter = 20, threshold = 0.8, exclude = c("Species"))
+# Fetch reults in R
+logRegrResult <- FLFetch(result)
+}
 }
 

@@ -63,8 +63,14 @@ Performs Linear Regression
 }
 \examples{
 \dontrun{
-	LinRegModel <- FLLinRegr(MpgTbl, 'ObsID', 'MPG', c("CarNum","CarNumber"), list(CarName = "BMW"), note = "RWrappers Example")
-	LinRegModel <- FLFetch(LinRegModel)
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "tblAutoMpg"
+# Create FLTable object
+table      <-  FLTable(connection, db_name, table_name)
+result <- FLLinRegr(table, primary_key = 'ObsID', response = 'MPG',exclude = c("CarNum","CarNumber"),class_spec = list(CarName = "BMW"), note = "Linear Regression Example")
+# Fetch results in R
+linRegrResult <- FLFetch(result)
 }
 }
 
