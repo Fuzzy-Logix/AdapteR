@@ -52,9 +52,14 @@ FLtTest <- function(	table,
 						var.equal = FALSE, 
 						num_tails = 2 ) 
 {
-	num_tails          <- ifelse(	is_number(num_tails),
-									as.integer(num_tails),
-									stop("num_tails should be an integer"))
+  if(is_number(num_tails)) {
+    num_tails <- as.integer(num_tails)
+  } else {
+    stop("num_tails should be an integer")
+  }
+  #num_tails          <- ifelse(	is_number(num_tails),
+	#								as.integer(num_tails),
+	#								stop("num_tails should be an integer"))
 	argList  <- as.list(environment())
 	typeList <- list(	primary_key	= "character",
 						input1		= "character",
@@ -93,8 +98,14 @@ FLtTest <- function(	table,
 										exclude      = c(),
 										class_spec   = list(),
 										where_clause = whereClause)
-		ifelse(var.equal == FALSE, varType <- "UNEQUAL_VAR", varType <- "EQUAL_VAR")
-		# Two Sample t-Test
+		if(var.equal == FALSE) {
+		  varType <- "UNEQUAL_VAR"
+		} else {
+		  varType <- "EQUAL_VAR"
+		}
+    #ifelse(var.equal == FALSE, varType <- "UNEQUAL_VAR", varType <- "EQUAL_VAR")
+		
+    # Two Sample t-Test
 		path <- "FLtTest2S.sql"
 		sqlParameters <- list( 	tableName = deepTableName,
 								varType   = varType,

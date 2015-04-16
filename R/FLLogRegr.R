@@ -75,9 +75,14 @@ FLLogRegr <- function( 	table,
 						note         = "From RWrapper For DBLytix")
 {
 	#Type validation
-	max_iter <- ifelse(	is_number(max_iter),
-						as.integer(max_iter),
-						stop("max_iter should be an integer"))
+  if(is_number(max_iter)) {
+    max_iter <- as.integer(max_iter)
+  } else {
+    stop("max_iter should be an integer")
+  }
+	#max_iter <- ifelse(	is_number(max_iter),
+	#					as.integer(max_iter),
+	#					stop("max_iter should be an integer"))
 
 	argList  <- as.list(environment())
 	typeList <- list(	primary_key  = "character",

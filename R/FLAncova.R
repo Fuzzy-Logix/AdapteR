@@ -21,7 +21,12 @@ FLMakeAncova <- function(ancovaRes,variable)
 			name <- paste(DBLytixCols[j],DBLytixRows[i],sep="_")
 			temp <- c(temp,ancovaRes[1,name])
 		}
-		temp <- c(temp,ifelse(i < 2,ancovaRes[1,"f_stat"],NA),ifelse(i < 2,ancovaRes[1,"p_value"],NA))
+		if(i < 2) {
+      temp <- c(temp, ancovaRes[1, "f_stat"], ancovaRes[1, "p_value"])
+		} else {
+      temp <- c(temp, NA, NA)
+		}
+    #temp <- c(temp,ifelse(i < 2,ancovaRes[1,"f_stat"],NA),ifelse(i < 2,ancovaRes[1,"p_value"],NA))
 		RetValue <- rbind(RetValue,temp)
 	}
 	colnames(RetValue) <- RCols
@@ -84,7 +89,12 @@ FLAncova <- function(	table,
 	validate_args(argList, typeList, classList)
 
 	tableName   <- table@table_name
-	whereClause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1")
+  if(nchar(where_clause) > 1) {
+    whereClause <- where_clause
+  } else {
+    whereClause <- "1=1" 
+  }
+	#whereClause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1")
 	
 	sqlParameters <- list(	tableName   = tableName,
 							variable    = variable,

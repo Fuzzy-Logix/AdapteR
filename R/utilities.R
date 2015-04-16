@@ -9,7 +9,12 @@ NULL
 list_to_where_clause <- function (x) {
 	     where_clause <- paste(names(x),x,sep="=\'",collapse="\' AND ");
 	     where_clause <- paste(where_clause,"\'",sep="");
-	     where_clause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
+       if(nchar(where_clause) > 1) {
+         where_clause <- where_clause
+       } else {
+         where_clause <- "1=1"
+       }
+	     #where_clause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
 	     where_clause
      }
 
@@ -21,7 +26,12 @@ list_to_where_clause <- function (x) {
 list_to_class_spec <- function (x) {
 	classSpec <- paste(names(x),x,sep="(",collapse="), ")
 	classSpec <- paste(classSpec,")",sep="")
-	classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
+	if(nchar(classSpec) > 1) {
+	  classSpec <- classSpec
+	} else {
+	  classSpec <- ""
+	}
+	#classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
 	classSpec
 }
 

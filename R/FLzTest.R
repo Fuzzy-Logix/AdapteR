@@ -38,10 +38,17 @@ FLzTest <- function(table,
 					mu = 0, 
 					num_tails = 2) 
 {
-	num_tails          <- ifelse(	is_number(num_tails),
-									as.integer(num_tails),
-									stop("num_tails should be an integer"))
-	argList  <- as.list(environment())
+  
+  if(is_number(num_tails)) {
+    num_tails <- as.integer(num_tails)
+  } else {
+    stop("num_tails should be an integer")
+  }
+  #num_tails          <- ifelse(	is_number(num_tails),
+	#								as.integer(num_tails),
+	#								stop("num_tails should be an integer"))
+	
+  argList  <- as.list(environment())
 	typeList <- list(	primary_key	= "character",
 						input1		= "character",
 						input2		= "character",
