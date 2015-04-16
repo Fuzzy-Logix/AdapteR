@@ -77,6 +77,7 @@ db_name    <- "FL_R_WRAP"
 table_name <- "tblAutoMpg"
 # Create FLTable object
 table      <-  FLTable(connection, db_name, table_name)
+# Perform linear regression analysis
 result     <- FLLinRegrStep(table, primary_key = 'ObsID', response = 'MPG',type = "SW", exclude = c("CarNum","CarNumber"),class_spec = list(CarName = "BMW"), note = "Step Wise Linear Regression Example")
 # Fetch results in R
 linRegrStepResult <- FLFetch(result)
