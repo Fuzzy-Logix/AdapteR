@@ -1,8 +1,8 @@
 WITH z (GroupID, NumOfTrials, NumOfSuccess) AS
  (
-SELECT 1 AS GroupID, a.%s, a.%s FROM %s AS a
+SELECT 1 AS GroupID, a.%num_trials, a.%num_success FROM %table_name AS a
 )
  SELECT a.*
- FROM TABLE (FL%s%sUdt(z.GroupID, z.NumOfTrials, z.NumOfSuccess)
+ FROM TABLE (FL%method%distributionUdt(z.GroupID, z.NumOfTrials, z.NumOfSuccess)
  HASH BY z.GroupID
- LOCAL ORDER BY z.GroupID) AS a;
+ LOCAL ORDER BY z.GroupID, z.NumOfSuccess) AS a;

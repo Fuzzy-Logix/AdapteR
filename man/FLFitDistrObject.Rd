@@ -53,16 +53,23 @@ distribution functions.
 }
 \examples{
 \dontrun{
-   connection  <- odbcConnect("Gandalf")
-		database    <- "FL_R_WRAP"
-		table_name  <- "RWrapperFitNormalDistrTest"
-  	# Create distribution object
-  	data        <-  FLFitDistrObject( connection,
-                                     db_name,
-                                     table_name,
-                                     distribution_type = "Cont")
-		# Fit Distribution
-  	result      <- FLFitDistr(Data, "Normal", "MDE"))
+# Example for continuous distribution
+connection  <- odbcConnect("Gandalf")
+db_name     <- "FL_R_WRAP"
+table_name  <- "RWrapperFitNormalDistrTest"
+# Create distribution object
+data        <-  FLFitDistrObject( connection, db_name, table_name, distribution_type = "Cont")
+# Fit Distribution
+result      <-  FLFitDistr(data, "Normal", "MDE")
+
+# Example for discrete distribution
+connection  <- odbcConnect("Gandalf")
+db_name     <- "FL_R_WRAP"
+table_name  <- "RWrapperFitBinomialDistrTest"
+# Create distribution object
+data        <-  FLFitDistrObject( connection, db_name, table_name, distribution_type = "Disc")
+# Fit Distribution
+result      <-  FLFitDistr(data, "Binomial", "MLE")
 }
 }
 
