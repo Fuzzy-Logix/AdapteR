@@ -11,4 +11,3 @@ library(devtools)
 
 install_github("Fuzzy-Logix/RLytix")
 ```
-
