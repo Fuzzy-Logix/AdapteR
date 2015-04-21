@@ -4,7 +4,7 @@
 \alias{FLtTest}
 \title{Student's t-Test}
 \usage{
-FLtTest(table, primary_key = "ObsID", input1, input2 = NULL, mu = 0,
+FLtTest(table, primary_key = "ObsID", input1, input2 = "", mu = 0,
   var.equal = FALSE, num_tails = 2)
 }
 \arguments{
@@ -41,16 +41,27 @@ samples are equal.
 \examples{
 \dontrun{
 
-FLtTest(	table       = tbl,
+# One sample test to check whether a batch of cars produced are outliers in
+# terms of fuel efficiency
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "CarMPGtTest"
+Tbl        <-  FLTable(connection, db_name, table_name)
+FLtTest( table       = Tbl,
 			primary_key = "ObsID",
-			input1      = "Var1",
-			mu          = 0.45,
+			input1      = "Car1MPG",
+			mu = 35.0,
 			num_tails   = 2)
 
-FLtTest(	table       = tbl,
+# Checking if two batches of cars are similar in fuel efficiency
+connection <- odbcConnect("Gandalf")
+db_name    <- "FL_R_WRAP"
+table_name <- "CarMPGtTest"
+Tbl        <-  FLTable(connection, db_name, table_name)
+FLtTest( table       = Tbl,
 			primary_key = "ObsID",
-			input1      = "Var1",
-			input2      = "Var2",
+			input1      = "Car1MPG",
+			input2      = "Car2MPG",
 			var.equal   = FALSE,
 			num_tails   = 2)
 

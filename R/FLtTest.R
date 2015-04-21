@@ -27,30 +27,41 @@ NULL
 #' 
 #' @examples
 #' \dontrun{
-#' 
-#' FLtTest(	table       = tbl, 
-#' 			primary_key = "ObsID", 
-#' 			input1      = "Var1", 
-#' 			mu          = 0.45, 
+#'
+#' # One sample test to check whether a batch of cars produced are outliers in
+#' # terms of fuel efficiency 
+#' connection <- odbcConnect("Gandalf")
+#' db_name    <- "FL_R_WRAP"
+#' table_name <- "CarMPGtTest"
+#' Tbl        <-  FLTable(connection, db_name, table_name)
+#' FLtTest( table       = Tbl,
+#' 			primary_key = "ObsID",
+#' 			input1      = "Car1MPG",
+#'			mu = 35.0,
 #' 			num_tails   = 2)
 #'
-#' FLtTest(	table       = tbl, 
-#' 			primary_key = "ObsID", 
-#' 			input1      = "Var1", 
-#' 			input2      = "Var2",
-#' 			var.equal   = FALSE, 
+#' # Checking if two batches of cars are similar in fuel efficiency
+#' connection <- odbcConnect("Gandalf")
+#' db_name    <- "FL_R_WRAP"
+#' table_name <- "CarMPGtTest"
+#' Tbl        <-  FLTable(connection, db_name, table_name)
+#' FLtTest( table       = Tbl,
+#' 			primary_key = "ObsID",
+#' 			input1      = "Car1MPG",
+#'			input2      = "Car2MPG",
+#'			var.equal   = FALSE,
 #' 			num_tails   = 2)
 #'
 #' }
 #'
 #'@export
-FLtTest <- function(	table,
-						primary_key = "ObsID", 
-						input1, 
-						input2 = NULL, 
-						mu = 0, 
-						var.equal = FALSE, 
-						num_tails = 2 ) 
+FLtTest <- function(table,
+					primary_key = "ObsID", 
+					input1, 
+					input2 = "", 
+					mu = 0, 
+					var.equal = FALSE, 
+					num_tails = 2 ) 
 {
 	num_tails          <- ifelse(	is_number(num_tails),
 									as.integer(num_tails),
@@ -59,13 +70,13 @@ FLtTest <- function(	table,
 	typeList <- list(	primary_key	= "character",
 						input1		= "character",
 						input2		= "character",
-						mu			= "numeric",
+						mu			= "double",
 						var.equal	= "logical",
 						num_tails	= "integer")												
 	classList <- list(	table		= "FLTable")
 	validate_args(argList, typeList, classList)
 	
-	if(length(input2) == 0) 
+	if(input2 == "") 
 	{
 		#One Sample t-Test
 		connection    <- table@odbc_connection
@@ -85,14 +96,22 @@ FLtTest <- function(	table,
 		varIDColName  <- "GroupID"
 		valueColName  <- "Num_Val"
 		whereClause   <- ""
-		deepTableName <- wide_to_deep(	table,
+		deepTableName <- regr_data_prep(table,
 										primary_key  = primary_key,
+										response     = input1,
 										obs_id       = obsIDColName,
 										var_id       = varIDColName,
 										value        = valueColName,
 										exclude      = c(),
 										class_spec   = list(),
-										where_clause = whereClause)
+										make_data_sparse  = 1,
+										where_clause = whereClause)$deepTableName
+
+		# Hacky stuff to deal with cases where both columns don't have equal number of observations
+		sqlQuery(connection,paste("DELETE FROM",deepTableName, "WHERE", varIDColName, "= 0"))
+		sqlQuery(connection,paste("DELETE FROM",deepTableName, "WHERE", valueColName, "IS NULL"))
+		sqlQuery(connection,paste("UPDATE", deepTableName, "SET", varIDColName, "= 2 WHERE", varIDColName, "= -1"))
+
 		ifelse(var.equal == FALSE, varType <- "UNEQUAL_VAR", varType <- "EQUAL_VAR")
 		# Two Sample t-Test
 		path <- "FLtTest2S.sql"
