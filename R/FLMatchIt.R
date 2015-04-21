@@ -26,12 +26,12 @@ NULL
 #' @examples
 #' \dontrun{
 #' connection <- odbcConnect("Gandalf")
-#' db_name    <- FL_R_WRAP
+#' db_name    <- "FL_R_WRAP"
 #' table_name <- "TblMatchItAlt"
 #' # Create FLTable object
 #' table      <- FLTable(connection, db_name, table_name)
 #' # Perform nearest neighbour matching
-#' res        <- FLMatchIt(table, "person_id", "exposure", "prob", "prob")
+#' result     <- FLMatchIt(table, "person_id", "exposure", "prob", "prob")
 #' }
 
 #' @export

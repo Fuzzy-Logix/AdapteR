@@ -58,9 +58,14 @@ FLNaiveBayes <- function( 	table,
 							where_clause = "",
 							note         = "From RWrapper For DBLytix")
 {
-	laplace <- ifelse(	(laplace == 0 || laplace == 1),
-						as.integer(laplace),
-						stop("laplace should be 1 or 0"))
+	if((laplace == 0 || laplace == 1)) {
+	  laplace <- as.integer(laplace)
+	} else {
+	  stop("laplace should be 1 or 0")
+	}
+  #laplace <- ifelse(	(laplace == 0 || laplace == 1),
+	#					as.integer(laplace),
+	#					stop("laplace should be 1 or 0"))
 
 	argList  <- as.list(environment())
 	typeList <- list(	primary_key  = "character",

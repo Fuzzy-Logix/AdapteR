@@ -24,7 +24,14 @@ make_anova2way <- function(anovaRes,variable1,variable2)
 		
 		f_stat <- paste(DBLytixRows[i],DBLytixFStat,sep="_")
 		p_value <- paste(DBLytixRows[i],DBLytixPVal,sep="_")
-		temp <- c(temp,ifelse(i <= 3,anovaRes[1, f_stat],NA),ifelse(i <= 3,anovaRes[1,p_value],NA))
+    
+    if(i <= 3){
+      temp <- c(temp, anovaRes[1, f_stat], anovaRes[1, p_value])
+    } else {
+      temp <- c(temp, NA, NA)
+    }
+		#temp <- c(temp,ifelse(i <= 3,anovaRes[1, f_stat],NA),ifelse(i <= 3,anovaRes[1,p_value],NA))
+    
 		RetValue <- rbind(RetValue,temp)
 	}
 	colnames(RetValue) <- RCols

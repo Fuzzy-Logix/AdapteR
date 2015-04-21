@@ -71,7 +71,7 @@ db_name    <- "FL_R_WRAP"
 table_name <- "tblIrisBinary"
 # Create FLTable object
 table      <-  FLTable(connection, db_name, table_name)
-# Perform Decision Tree Analysis
+# Perform Logistic regression Analysis
 result     <- FLLogRegr(table, primary_key = "ObsID", response = "SpeciesID", max_iter = 20, threshold = 0.8, exclude = c("Species"))
 # Fetch reults in R
 logRegrResult <- FLFetch(result)

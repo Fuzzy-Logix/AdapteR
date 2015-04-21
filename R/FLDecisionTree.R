@@ -81,13 +81,22 @@ FLDecisionTree <- function( table,
 							note     = "From RWrapper For DBLytix")
 {
 	#Type validation
-	min_obs_for_parent <- ifelse(	is_number(min_obs_for_parent), 
-									as.integer(min_obs_for_parent), 
-									stop("min_obs_for_parent should be an integer"))
-	
-	max_level          <- ifelse(	is_number(max_level),
-									as.integer(max_level),
-									stop("max_level should be an integer"))
+  if(is_number(min_obs_for_parent)) {
+    min_obs_for_parent <- as.integer(min_obs_for_parent)
+  } else {
+    stop("min_obs_for_parent should be an integer")
+  }
+	#min_obs_for_parent <- ifelse(	is_number(min_obs_for_parent), 
+	#								as.integer(min_obs_for_parent), 
+	#								stop("min_obs_for_parent should be an integer"))
+  if(is_number(max_level)) {
+    max_level <- as.integer(max_level)
+  } else {
+    stop("max_level should be an integer")
+  }
+	#max_level          <- ifelse(	is_number(max_level),
+	#								as.integer(max_level),
+	#								stop("max_level should be an integer"))
 
 	argList  <- as.list(environment())
 	typeList <- list(	primary_key        = "character",

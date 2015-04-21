@@ -51,16 +51,23 @@ setClass(	"FLFitDiscDistr",
 
 #' @examples
 #' \dontrun{
-#'    connection  <- odbcConnect("Gandalf")
-#' 		database    <- "FL_R_WRAP"
-#' 		table_name  <- "RWrapperFitNormalDistrTest"
-#'   	# Create distribution object
-#'   	data        <-  FLFitDistrObject( connection,
-#'                                      db_name,
-#'                                      table_name,
-#'                                      distribution_type = "Cont")
-#' 		# Fit Distribution
-#'   	result      <- FLFitDistr(Data, "Normal", "MDE"))
+#' # Example for continuous distribution
+#' connection  <- odbcConnect("Gandalf")
+#' db_name     <- "FL_R_WRAP"
+#' table_name  <- "RWrapperFitNormalDistrTest"
+#' # Create distribution object
+#' data        <-  FLFitDistrObject( connection, db_name, table_name, distribution_type = "Cont")
+#' # Fit Distribution
+#' result      <-  FLFitDistr(data, "Normal", "MDE")
+#' 
+#' # Example for discrete distribution
+#' connection  <- odbcConnect("Gandalf")
+#' db_name     <- "FL_R_WRAP"
+#' table_name  <- "RWrapperFitBinomialDistrTest"
+#' # Create distribution object
+#' data        <-  FLFitDistrObject( connection, db_name, table_name, distribution_type = "Disc")
+#' # Fit Distribution
+#' result      <-  FLFitDistr(data, "Binomial", "MLE")
 #' }
 #' @export
 FLFitDistrObject <- function(connection, db_name, table_name, distribution_type, value = "NumVal", num_success = "NumOfSuccess", num_trials = "NumOfTrials")
@@ -73,7 +80,7 @@ FLFitDistrObject <- function(connection, db_name, table_name, distribution_type,
 						value				= "character",												
 						num_success			= "character",
 						num_trials			= "character")
-	validate_args(argList, typeList, classList)
+	validate_args(argList, typeList)
 	
 	# DistributionTypes
 	# Cont - Continuous
@@ -147,7 +154,7 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	argList  <- as.list(environment())
 	typeList <- list(	distribution	= "character",
 						method			= "character")
-	validate_args(argList, typeList, classList = list())
+	validate_args(argList, typeList)
 	# Distribution
   # -> Beta
   # -> Binomial
@@ -161,8 +168,9 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	# Method
 	# MLE - Maximum Likelihood Estimation
 	# MDE - Minimum Distance Estimation
+	connection <- distribution_object@odbc_connection
 	distributionObjectName <- c("FLFitContDistr", "FLFitDiscDistr")
-	if(class(distribution_object) %in% distributionObjectName)
+	if(!(class(distribution_object) %in% distributionObjectName))
 	{
 		stop("Argument Type Mismatch: distribution_object must be in {'FLFitContDistr', 'FLFitDiscDistr'}")
 	}
@@ -172,33 +180,21 @@ FLFitDistr <- function(distribution_object, distribution, method = "MLE")
 	{
 		if(class(distribution_object) == "FLFitContDistr")
 		{
-			path <- "FLFitContDistr.sql"
-			stopifnot(file.exists(path))
-			sql  <- readChar(path, nchar = file.info(path)$size)
-			sql  <- sprintf(	sql,
-								distribution_object@value,
-								distribution_object@table_name,
-								method,
-								distribution)
-			sql  <- gsub("[\r\n]", "", sql)
-			print(sql)
-			res <- sqlQuery(distribution_object@odbc_connection, sql, stringsAsFactors = FALSE)
+			sqlParameters <- list(  value        = distribution_object@value,
+			                        table_name   = distribution_object@table_name,
+			                        method       = method,
+			                        distribution = distribution)			                        
+      res <- run_sql(connection, "FLFitContDistr.sql", sqlParameters)
 		}
 
 		if(class(distribution_object) == "FLFitDiscDistr")
 		{
-			path <- "FLFitDiscDistr.sql"
-			stopifnot(file.exists(path))
-			sql  <- readChar(path, nchar = file.info(path)$size)
-			sql  <- sprintf(	sql,
-								distribution_object@num_trials,
-								distribution_object@num_success,
-								distribution_object@table_name,
-								method,
-								distribution)
-			sql  <- gsub("[\r\n]", "", sql)
-			print(sql)
-			res <- sqlQuery(distribution_object@odbc_connection, sql, stringsAsFactors = FALSE)
+			sqlParameters <- list(  num_trials   = distribution_object@num_trials,
+			                        num_success  = distribution_object@num_success,
+			                        table_name   = distribution_object@table_name,
+			                        method       = method,
+			                        distribution = distribution)			                        
+			res <- run_sql(connection, "FLFitDiscDistr.sql", sqlParameters)
 		}
 	return(res)
 	}

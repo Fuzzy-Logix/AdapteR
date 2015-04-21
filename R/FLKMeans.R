@@ -57,17 +57,32 @@ FLKMeans <- function( 	table,
 						note     = "From RWrapper For DBLytix")
 {
 	#Type validation
-	centers  <- ifelse(	is_number(centers),
-						as.integer(centers),
-						stop("centers should be an integer"))
+  if(is_number(centers)) {
+    centers  <- as.integer(centers)
+  } else {
+    stop("centers should be an integer")
+  }
+	#centers  <- ifelse(	is_number(centers),
+	#					as.integer(centers),
+	#					stop("centers should be an integer"))
 
-	max_iter <- ifelse(	is_number(max_iter),
-						as.integer(max_iter),
-						stop("max_iter should be an integer"))
+	if(is_number(max_iter)) {
+	  max_iter <- as.integer(max_iter)
+	} else {
+	  stop("max_iter should be an integer")
+	}
+  #max_iter <- ifelse(	is_number(max_iter),
+	#					as.integer(max_iter),
+	#					stop("max_iter should be an integer"))
 
-	nstart   <- ifelse(	is_number(nstart),
-						as.integer(nstart),
-						stop("nstart should be an integer"))
+	if(is_number(nstart)) {
+	  nstart   <- as.integer(nstart) 
+	} else {
+	  stop("nstart should be an integer")
+	}
+  #nstart   <- ifelse(	is_number(nstart),
+	#					as.integer(nstart),
+	#					stop("nstart should be an integer"))
 
 	argList  <- as.list(environment())
 	typeList <- list(	primary_key  = "character",

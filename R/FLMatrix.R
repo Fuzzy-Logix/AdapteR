@@ -54,9 +54,15 @@ FLMatrix <- function(connection, database, matrix_table, matrix_id_value,
 {
 
 	#Type validation
-	matrix_id_value <- ifelse(	is_number(matrix_id_value),
-						as.integer(matrix_id_value),
-						stop("matrix_id_value should be an integer"))
+  if( is_number(matrix_id_value)) {
+    matrix_id_value <- as.integer(matrix_id_value)
+  } else {
+    stop("matrix_id_value should be an integer")
+  }
+	
+  #matrix_id_value <- ifelse(	is_number(matrix_id_value),
+	#					as.integer(matrix_id_value),
+	#					stop("matrix_id_value should be an integer"))
 
 	argList  <- as.list(environment())
 	typeList <- list(	connection      = "integer",

@@ -83,21 +83,41 @@ FLMDA <- function( 	table,
 					where_clause = "",
 					note = "From RWrapper For DBLytix")
 {
-	subclasses     <- ifelse(	is_number(subclasses),
-								as.integer(subclasses),
-								stop("subclasses should be an integer"))
+  if(is_number(subclasses)) {
+    subclasses <- as.integer(subclasses)
+  } else {
+    stop("subclasses should be an integer")
+  }
+  #subclasses     <- ifelse(	is_number(subclasses),
+	#							as.integer(subclasses),
+	#							stop("subclasses should be an integer"))
 
-	max_iter       <- ifelse(	is_number(max_iter),
-								as.integer(max_iter),
-								stop("max_iter should be an integer"))	
+	if(is_number(max_iter)) {
+	  max_iter <- as.integer(max_iter)
+	} else {
+	  stop("max_iter should be an integer")
+	}
+  #max_iter       <- ifelse(	is_number(max_iter),
+	#							as.integer(max_iter),
+	#							stop("max_iter should be an integer"))	
 
-	initialization <- ifelse(	(initialization == 1 || initialization == 2),
-								as.integer(initialization),
-								stop("initialization should be 1 or 2"))
+  if((initialization == 1 || initialization == 2)) {
+    initialization <- as.integer(initialization)
+  } else {
+    stop("initialization should be 1 or 2")
+  }
+  #initialization <- ifelse(	(initialization == 1 || initialization == 2),
+	#							as.integer(initialization),
+	#							stop("initialization should be 1 or 2"))
 
-	hypotheses     <- ifelse(	is_number(hypotheses),
-								as.integer(hypotheses),
-								stop("hypotheses should be an integer"))
+  if(is_number(hypotheses)) {
+    hypotheses <- as.integer(hypotheses)
+  } else {
+    stop("hypotheses should be an integer")
+  }
+	#hypotheses     <- ifelse(	is_number(hypotheses),
+	#							as.integer(hypotheses),
+	#							stop("hypotheses should be an integer"))
 	
 
 	argList  <- as.list(environment())

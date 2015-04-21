@@ -54,6 +54,7 @@
 #'
 #' @section Fit Distribution functions(14):
 #' \describe{\item{FLFitDistr}{Fitting a distribution to a dataset. Its Various Variants are included}
+#' \item{FLFitDistrObject}{Constructor function for FLFitDistr}
 #' \item{MLE Beta}{Maximum Likelihood Estimation of Beta Distribution}
 #' \item{MLE Binomial}{Maximum Likelihood Estimation of Binomial Distribution}
 #' \item{MLE Cauchy}{Maximum Likelihood Estimation of Cauchy Distribution}

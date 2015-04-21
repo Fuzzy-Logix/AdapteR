@@ -57,7 +57,7 @@ NULL
 #' table_name <- "tblIrisBinary"
 #' # Create FLTable object
 #' table      <-  FLTable(connection, db_name, table_name)
-#' # Perform Decision Tree Analysis
+#' # Perform Logistic regression Analysis
 #' result     <- FLLogRegr(table, primary_key = "ObsID", response = "SpeciesID", max_iter = 20, threshold = 0.8, exclude = c("Species"))
 #' # Fetch reults in R
 #' logRegrResult <- FLFetch(result)
@@ -75,9 +75,14 @@ FLLogRegr <- function( 	table,
 						note         = "From RWrapper For DBLytix")
 {
 	#Type validation
-	max_iter <- ifelse(	is_number(max_iter),
-						as.integer(max_iter),
-						stop("max_iter should be an integer"))
+  if(is_number(max_iter)) {
+    max_iter <- as.integer(max_iter)
+  } else {
+    stop("max_iter should be an integer")
+  }
+	#max_iter <- ifelse(	is_number(max_iter),
+	#					as.integer(max_iter),
+	#					stop("max_iter should be an integer"))
 
 	argList  <- as.list(environment())
 	typeList <- list(	primary_key  = "character",
