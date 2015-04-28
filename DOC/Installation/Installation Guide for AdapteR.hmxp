@@ -1,0 +1,235 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<helpproject xmlns:xi="http://www.w3.org/2001/XInclude" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="helpproject.xsd" version="1.6" isskin="false" isrepository="false">
+  <config>
+    <namespaces/>
+    <export-task-groups>
+      <export-task-group name="Recent Publishes">
+        <export-tasks>
+          <export-task name="Publish as PDF" format="PDF">
+            <task-config-group name="settings">
+              <task-config-value name="outputfile">Installation Guide for AdapteR.pdf</task-config-value>
+              <task-config-value name="template">UserManual_AdapteR.mnl</task-config-value>
+              <task-config-value name="make4include">PDF,PRINT</task-config-value>
+              <task-config-value name="make4status">*</task-config-value>
+            </task-config-group>
+          </export-task>
+        </export-tasks>
+      </export-task-group>
+    </export-task-groups>
+    <helpwindows>
+      <helpwindow name="Main" left="-1" top="-1" width="-1" height="-1">
+        <caption translate="true">&lt;%TITLE%&gt;</caption>
+        <window-options-hlp autosize="true" maximize="false" posabsolute="false" keepontop="false" buttons="0" headercolor="#F0F0F0" textcolor="#FFFFFF"/>
+        <window-options-chm navigation="true" navigationwidth="200" search="true" favorite="true" saveregistry="true" buttons="12366">
+          <user-button name="jump1">
+            <caption translate="true">jump1</caption>
+          </user-button>
+          <user-button name="jump2">
+            <caption translate="true">jump2</caption>
+          </user-button>
+        </window-options-chm>
+      </helpwindow>
+    </helpwindows>
+    <styleclasses>
+      <styleclass name="Code Example" shortcut="0">
+        <style-set media="screen" type="para">background-color:transparent; white-space:normal; page-break-inside:avoid; page-break-after:avoid; border:none;</style-set>
+        <style-set media="screen" type="text">font-family:'Lucida Console'; font-size:10pt;</style-set>
+      </styleclass>
+      <styleclass name="Monospace" shortcut="0">
+        <style-set media="screen" type="text">font-family:Consolas; font-size:9pt;</style-set>
+      </styleclass>
+      <styleclass name="Table Header (Monospace)" parentclass="Monospace" shortcut="0">
+        <style-set media="screen" type="text">color:#ffffff;</style-set>
+      </styleclass>
+      <styleclass name="Normal" shortcut="0">
+        <style-set media="screen" type="text">font-family:'Trebuchet MS'; font-size:9pt;</style-set>
+      </styleclass>
+      <styleclass name="Comment" parentclass="Normal" shortcut="0"/>
+      <styleclass name="Heading1" parentclass="Normal" shortcut="0">
+        <style-set media="screen" type="text">font-size:16pt; font-weight:bold; color:#ff6600;</style-set>
+      </styleclass>
+      <styleclass name="Heading2" parentclass="Normal" shortcut="0">
+        <style-set media="screen" type="text">font-weight:bold;</style-set>
+      </styleclass>
+      <styleclass name="Image Caption" parentclass="Normal" shortcut="0">
+        <style-set media="screen" type="text">font-size:8pt; font-weight:bold;</style-set>
+      </styleclass>
+      <styleclass name="Notes" parentclass="Normal" shortcut="0"/>
+      <styleclass name="Table Header (Normal)" parentclass="Normal" shortcut="0">
+        <style-set media="screen" type="text">color:#ffffff;</style-set>
+      </styleclass>
+      <tablestyleclass name="Blue">
+        <style-set media="screen">width:600px; cell-padding:2px; cell-spacing:0px; page-break-inside:avoid; border-width:2px; border-spacing:0px; border-collapse:collapse; cell-border-width:1px; border-color:#3366ff; border-style:solid; background-color:#d9ecff; head-row-background-color:#3366ff; alt-row-background-color:#ffffff;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="Default">
+        <style-set media="screen">width:auto; cell-padding:0px; cell-spacing:0px; page-break-inside:auto; border-width:0px; border-spacing:0px; cell-border-width:0px; border-style:none; background-color:none; head-row-background-color:none; alt-row-background-color:none;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="Grey">
+        <style-set media="screen">width:auto; cell-padding:2px; cell-spacing:0px; page-break-inside:avoid; border-width:2px; border-spacing:0px; border-collapse:collapse; cell-border-width:1px; border-color:#000000; border-style:solid; background-color:#d7d7d7; head-row-background-color:#595959; alt-row-background-color:#ffffff;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="Grey (No Header)" parentclass="Grey">
+        <style-set media="screen">width:auto; cell-padding:2px; cell-spacing:0px; page-break-inside:avoid; border-width:2px; border-spacing:0px; border-collapse:collapse; cell-border-width:1px; border-color:#000000; border-style:solid; background-color:#d7d7d7; head-row-background-color:none; alt-row-background-color:#ffffff;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="Installation Table">
+        <style-set media="screen">width:100%; cell-padding:10px; cell-spacing:0px; page-break-inside:auto; border-width:1px; border-spacing:0px; border-collapse:collapse; cell-border-width:1px; border-color:#000000; border-style:solid; background-color:#ffcc99; head-row-background-color:#ffcc99; alt-row-background-color:#ffcc99;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="Orange" parentclass="Table Styles">
+        <style-set media="screen">width:600px; cell-padding:2px; cell-spacing:0px; page-break-inside:avoid; border-width:2px; border-spacing:0px; border-collapse:collapse; cell-border-width:1px; border-color:#e36c0a; border-style:solid; background-color:#fde4d0; head-row-background-color:#e36c0a; alt-row-background-color:#ffffff;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="Page grid">
+        <style-set media="screen">width:auto; cell-padding:5px; cell-spacing:5px; page-break-inside:auto; border-width:0px; border-spacing:5px; cell-border-width:0px; border-style:none; background-color:none; head-row-background-color:none; alt-row-background-color:none;</style-set>
+      </tablestyleclass>
+      <tablestyleclass name="SQL Query">
+        <style-set media="screen">width:100%; cell-padding:2px; cell-spacing:2px; page-break-inside:avoid; border-width:2px; border-spacing:2px; cell-border-width:2px; border-color:#999999; border-style:solid; background-color:none; head-row-background-color:#ffffff; alt-row-background-color:#ffffff;</style-set>
+      </tablestyleclass>
+    </styleclasses>
+    <config-group name="project">
+      <config-value name="author" translate="true">Fuzzy Logix LLC</config-value>
+      <config-value name="copyright" translate="true">© &lt;%YEAR%&gt; &lt;%AUTHOR%&gt;</config-value>
+      <config-value name="versionmajor">1</config-value>
+      <config-value name="versionminor">0</config-value>
+      <config-value name="versionbuild">0</config-value>
+      <config-value name="lcid">en-us</config-value>
+      <config-value name="charset">ANSI_CHARSET</config-value>
+      <config-value name="deffont">font-family:'MS Sans Serif'; font-size:8pt; color:#000000;</config-value>
+      <config-value name="autohelpstart">0</config-value>
+      <config-value name="autohelpincrement">1</config-value>
+      <config-value name="autohelpanchor">0</config-value>
+      <config-value name="searchpath">..\Installation Guide\;.\</config-value>
+      <config-group name="custombuilds">
+        <config-value name="demo">Demo Build</config-value>
+        <config-value name="user1">User defined 1</config-value>
+        <config-value name="user2">User defined 2</config-value>
+        <config-value name="user3">User defined 3</config-value>
+      </config-group>
+      <config-value name="imageshortcuts_includebaggage">1</config-value>
+      <config-value name="make4include">PDF,PRINT</config-value>
+      <config-value name="make4status">*</config-value>
+      <config-value name="title" translate="true">Installation Guide for AdapteR</config-value>
+      <config-value name="make0include">CHM</config-value>
+      <config-value name="make0status">*</config-value>
+      <config-value name="summary" translate="true">AdapteR is a package that adds DB Lytix support to R</config-value>
+    </config-group>
+    <config-group name="user">
+      <config-group name="barrett-fuzzy">
+        <config-group name="project">
+          <config-value name="lastexport">4</config-value>
+        </config-group>
+      </config-group>
+      <config-group name="joe fan">
+        <config-group name="project">
+          <config-value name="lastexport">4</config-value>
+        </config-group>
+      </config-group>
+      <config-group name="stpl">
+        <config-group name="project">
+          <config-value name="lastexport">4</config-value>
+        </config-group>
+      </config-group>
+    </config-group>
+    <config-group name="pdf">
+      <config-value name="outputfile">Installation Guide for AdapteR.pdf</config-value>
+      <config-value name="template">UserManual_AdapteR.mnl</config-value>
+      <config-value name="style">0</config-value>
+      <config-value name="createoutline">1</config-value>
+      <config-value name="outlinesnumbered">0</config-value>
+      <config-value name="createhotspots">1</config-value>
+      <config-value name="insertseealso">0</config-value>
+      <config-value name="linkcolor">16711680</config-value>
+      <config-value name="ignoreblank">0</config-value>
+      <config-value name="compression">1</config-value>
+      <config-value name="jpegquality">0</config-value>
+      <config-value name="openmode">1</config-value>
+      <config-value name="zoommode">0</config-value>
+      <config-value name="userprint">1</config-value>
+      <config-value name="usercopy">1</config-value>
+      <config-value name="userchange">1</config-value>
+      <config-value name="encrypt128bit">1</config-value>
+      <config-value name="title" translate="true">&lt;%TITLE%&gt;</config-value>
+      <config-value name="embedfonts">1</config-value>
+      <config-value name="cidfontmode">0</config-value>
+      <config-value name="newfontsubsetting">1</config-value>
+      <config-value name="textasglyphs">0</config-value>
+      <config-value name="insertseealsostyle">4</config-value>
+      <config-value name="author" translate="true">&lt;%AUTHOR%&gt;</config-value>
+      <config-value name="ownerpassword">fzzl1itsme</config-value>
+    </config-group>
+    <config-group name="html">
+      <config-value name="topiceditor">0</config-value>
+      <config-value name="topicsimpleheadercolor">#D0D0D0</config-value>
+      <config-value name="topicsimpletextcolor">#FFFFFF</config-value>
+      <config-value name="topicsimplebuttons">1</config-value>
+      <config-group name="TOPICSIMPLEBUTTON1">
+        <config-value name="CAPTION" translate="true">Top</config-value>
+      </config-group>
+      <config-group name="TOPICSIMPLEBUTTON2">
+        <config-value name="CAPTION" translate="true">Previous</config-value>
+      </config-group>
+      <config-group name="TOPICSIMPLEBUTTON3">
+        <config-value name="CAPTION" translate="true">Next</config-value>
+      </config-group>
+      <config-group name="TOPICTEMPLATES">
+        <config-value name="Default" translate="true"><![CDATA[<%DOCTYPE%>
+<html>
+<head>
+   <title><%TOPIC_TITLE%></title>
+   <meta name="generator" content="Help &amp; Manual" />
+   <meta name="keywords" content="<%TOPIC_KEYWORDS%>" />
+   <meta http-equiv="Content-Type" content="text/html; charset=<%DOCCHARSET%>" />
+   <IF_CHM><meta http-equiv="X-UA-Compatible" content="IE=8" /></IF_CHM>
+   <IF_HTML><meta http-equiv="X-UA-Compatible" content="IE=edge" /></IF_HTML>
+   <link type="text/css" href="<%STYLESHEET%>" rel="stylesheet" />
+   <style type="text/css">
+     body { margin: 0px; background: #FFFFFF; }
+   </style>
+</head>
+<body>
+
+<IF_TOPIC_HEADER>
+<table style="width:100%; border:none; border-spacing:0px; padding:5px; background:#D0D0D0">
+  <tr style="vertical-align:middle">
+    <td style="text-align:left">
+      <%TOPIC_HEADER%>
+    </td>
+    <td style="text-align:right">
+     <a href="<%HREF_DEFAULT_PAGE%>">Top</a>&nbsp;
+     <IF_PREVIOUS_PAGE><a href="<%HREF_PREVIOUS_PAGE%>">Previous</a>&nbsp;</IF_PREVIOUS_PAGE>
+     <IF_NEXT_PAGE><a href="<%HREF_NEXT_PAGE%>">Next</a></IF_NEXT_PAGE>
+    </td>
+  </tr>
+</table>
+</IF_TOPIC_HEADER>
+
+<!-- Placeholder for topic body. -->
+<table style="width:100%;border:none;border-spacing:0px"><tr style="vertical-align:top"><td style="text-align:left;padding:5px">
+<%TOPIC_TEXT%>
+</td></tr></table>
+
+</body>
+</html>]]></config-value>
+      </config-group>
+    </config-group>
+    <config-group name="liststyles">
+      <config-value name="outline6">LEVELS=2;L0.ListType=0;L0.Font.Name=Arial;L0.Font.Charset=1;L0.FormatString=·;L0.MarkerAlignment=0;L0.StartFrom=1;L1.ListType=6;L1.FormatString=%1:s.;L1.MarkerAlignment=0;L1.StartFrom=1;</config-value>
+    </config-group>
+    <config-group name="chm">
+      <config-value name="outputfile">Installation Instructions for DB Lytix on Teradata.chm</config-value>
+      <config-value name="deletetemp">1</config-value>
+    </config-group>
+    <config-group name="print">
+      <config-value name="include">PRINT</config-value>
+      <config-value name="defaultprinter">PDFCreator</config-value>
+      <config-value name="template">..\..\..\..\..\..\..\Program Files (x86)\EC Software\HelpAndManual6\Templates\pdf\standard_manual.mnl</config-value>
+      <config-value name="colortext">0</config-value>
+      <config-value name="insertseealso">0</config-value>
+      <config-value name="insertseealsostyle">-1</config-value>
+    </config-group>
+    <variables/>
+    <helpcontext-numbers/>
+  </config>
+  <xi:include parse="xml" href="Maps/table_of_contents.xml"/>
+  <project-files>
+    <file href="Topics/*.xml" build="ALL" filetype="topic"/>
+    <file href="Baggage/*.*" build="ALL" filetype="baggage"/>
+  </project-files>
+</helpproject>
