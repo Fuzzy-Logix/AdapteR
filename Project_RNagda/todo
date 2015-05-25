@@ -1,0 +1,7 @@
+Todo:
+
+FLKMeans should be a child class of FLTable.
+plot
+Make print show the withinss
+The other 7 components. 1 done
+Implement proper passing by reference to avoid multiple fetching //Low priority for now
