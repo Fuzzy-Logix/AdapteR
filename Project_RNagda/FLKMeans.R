@@ -161,10 +161,10 @@ centers.FLKMeans<-function(object){
 
 #overloading the print function
 print.FLKMeans<-function(object){
-	clustervector=cluster(object)
-	centermatrix=centers(object)
+	clustervector<-cluster(object)
+	centermatrix<-centers(object)
 	i<-1
-	centercount=""
+	centercount<-""
 	while(i<=object@no_of_centers){
 		centercount<-paste0(centercount,table(clustervector)[i],", ")
 		i<-i+1
@@ -240,4 +240,59 @@ size.FLKMeans<-function(object){
 		i<-i+1
 	}
 	sizevector	
-}	
+}
+
+#beginning code for linear model
+
+#return objects are of class "FLLinRegr"
+setClass(
+	"FLLinRegr",
+	slots=list(
+		formula="formula",
+		table_name="character",
+		deeptablename="character",
+		AnalysisID="character",
+		dataprepID="character"
+	)
+)
+
+#overloading lm
+lm <- function (formula,data,...) {
+
+	UseMethod("lm", data)
+ }
+
+#lm performs normally for data frames
+lm.data.frame<-stats::lm
+
+lm.FLTable<-function(formula,data,...){
+	dependent <- all.vars(formula)[1]
+	independents <- all.vars(formula)[2:length(formula)]
+	cols<-names(data)
+
+	#unused_cols represents the columns that are not to be included in the regression analysis
+	unused_cols <- cols[!cols %in% all.vars(formula)]
+	unused_cols <- unused_cols[unused_cols!=data@primary_key]
+
+	unused_cols_str <- ""
+	for(i in 1:length(unused_cols)){
+		unused_cols_str <- paste0(unused_cols_str,unused_cols[i],", ")
+		i<-i+1
+	}
+	deeptablename <- gen_deep_table_name(data@table_name)
+	unused_cols_str <- substr(unused_cols_str,1,nchar(unused_cols_str)-2)
+	sqlQuery(data@odbc_connection,paste0("DATABASE ",data@db_name))
+	sqlQuery(data@odbc_connection,"SET ROLE ALL")
+	sqlstr<-paste0("CALL FLRegrDataPrep('",data@table_name,"','",data@primary_key,"','",dependent,"','",deeptablename,"','ObsID','VarID','Num_Val',0,0,0,0,0,0,0,'",unused_cols_str,"',NULL,NULL,NULL,AnalysisID);")
+	deepprepID <- as.vector(retobj<-sqlQuery(data@odbc_connection,sqlstr)[1,1])
+
+	AnalysisID<-as.vector(sqlQuery(data@odbc_connection,paste0("CALL FLLinRegr('",deeptablename,"', 'ObsID', 'VarID', 'Num_Val', 'Test', AnalysisID);"))[1,1])
+	
+	new("FLLinRegr",
+		formula=formula,
+		table_name=data@table_name,
+		deeptablename=deeptablename,
+		AnalysisID=AnalysisID,
+		dataprepID=deepprepID
+	)
+}

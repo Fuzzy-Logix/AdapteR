@@ -2,6 +2,9 @@ Todo:
 
 FLKMeans should be a child class of FLTable.
 plot
-Make print show the withinss
-The other 7 components. 1 done
 Implement proper passing by reference to avoid multiple fetching //Low priority for now
+Validation everywhere!
+Error Messages
+colnames
+Discuss with gregor: Is it alright to have only one dependent variable and only + type interactions
+Documentation everywhere!
