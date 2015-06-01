@@ -1,6 +1,6 @@
 Todo:
 
-FLKMeans should be a child class of FLTable.
+FLKMeans should be a child class of FLTable. Or make the FLTable a slot in the object
 plot
 Implement proper passing by reference to avoid multiple fetching //Low priority for now
 Validation everywhere!
@@ -8,3 +8,4 @@ Error Messages
 colnames
 Discuss with gregor: Is it alright to have only one dependent variable and only + type interactions
 Documentation everywhere!
+12 components of lm

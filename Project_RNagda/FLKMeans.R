@@ -1,5 +1,6 @@
 setOldClass("RODBC") 
 library(stats)
+library(RODBC)
 setClass(
 	"FLTable", 
 	slots = list(	
@@ -252,7 +253,8 @@ setClass(
 		table_name="character",
 		deeptablename="character",
 		AnalysisID="character",
-		dataprepID="character"
+		dataprepID="character",
+		datatable="FLTable"
 	)
 )
 
@@ -284,7 +286,7 @@ lm.FLTable<-function(formula,data,...){
 	sqlQuery(data@odbc_connection,paste0("DATABASE ",data@db_name))
 	sqlQuery(data@odbc_connection,"SET ROLE ALL")
 	sqlstr<-paste0("CALL FLRegrDataPrep('",data@table_name,"','",data@primary_key,"','",dependent,"','",deeptablename,"','ObsID','VarID','Num_Val',0,0,0,0,0,0,0,'",unused_cols_str,"',NULL,NULL,NULL,AnalysisID);")
-	deepprepID <- as.vector(retobj<-sqlQuery(data@odbc_connection,sqlstr)[1,1])
+	dataprepID <- as.vector(retobj<-sqlQuery(data@odbc_connection,sqlstr)[1,1])
 
 	AnalysisID<-as.vector(sqlQuery(data@odbc_connection,paste0("CALL FLLinRegr('",deeptablename,"', 'ObsID', 'VarID', 'Num_Val', 'Test', AnalysisID);"))[1,1])
 	
@@ -293,6 +295,54 @@ lm.FLTable<-function(formula,data,...){
 		table_name=data@table_name,
 		deeptablename=deeptablename,
 		AnalysisID=AnalysisID,
-		dataprepID=deepprepID
+		dataprepID=dataprepID,
+		datatable=data
 	)
+}
+
+`$.FLLinRegr`<-function(object,property){
+	if(property=="coefficients"){
+		coefficients(object)
+	}
+	else "That's not a valid property"
+}
+
+lmdata<-function(table){
+	UseMethod("lmdata",table)
+}
+
+lmdata.FLLinRegr<-function(object){
+	sqlstr<-paste0("SELECT a.Column_Name, a.Final_VarID FROM fzzlRegrDataPrepMap a WHERE a.AnalysisID = '",object@dataprepID,"' ORDER BY a.Final_VarID;")
+	mapframe<-sqlQuery((object@datatable)@odbc_connection,sqlstr)
+	
+	# Converting the data frame into a namedvector
+	mapList<-as.numeric(mapframe$Final_VarID)
+	names(mapList)<-as.character(mapframe$COLUMN_NAME)
+
+	sqlstr2<-paste0("SELECT a.* FROM fzzlLinRegrCoeffs a WHERE a.AnalysisID = '",object@AnalysisID,"' order by COEFFID;")
+	coeffframe<-sqlQuery(object@datatable@odbc_connection,sqlstr2)
+	retlist<-list(mapList = mapList, coeffframe = coeffframe)
+	retlist
+}
+
+print.FLLinRegr<-function(object){
+	cat("CALL\n")
+	cat("lm.FLLinRegr(formula = ")
+	print(object@formula)	
+	cat(", data = TODO)")
+	cat("\n\nCoefficients:\n")	
+}
+
+coefficients<-function(table){
+	UseMethod("coefficients",table)
+}
+
+coefficients.FLLinRegr<-function(object){
+	data<-lmdata(object)
+	coeffvector<-data$coeffframe$COEFFVALUE
+	for(i in 1:length(data$coeffframe$COEFFVALUE)){
+		j<-data$coeffframe$COEFFID[i]
+		names(coeffvector)[i] = names(data$mapList[data$mapList==j])
+	}
+	coeffvector
 }
