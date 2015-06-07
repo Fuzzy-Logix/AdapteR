@@ -328,10 +328,14 @@ lmdata.FLLinRegr<-function(object){
 print.FLLinRegr<-function(object){
 	cat("CALL\n")
 	cat("lm.FLLinRegr(formula = ")
-	print(object@formula)	
+	cat(deparse(object@formula))	
 	cat(", data = TODO)")
-	cat("\n\nCoefficients:\n")	
+	cat("\n\nCoefficients:\n")
+	coefficients(object)	
 }
+
+#overloading show.
+setMethod("show","FLLinRegr",print.FLLinRegr)
 
 coefficients<-function(table){
 	UseMethod("coefficients",table)
@@ -345,4 +349,23 @@ coefficients.FLLinRegr<-function(object){
 		names(coeffvector)[i] = names(data$mapList[data$mapList==j])
 	}
 	coeffvector
+}
+
+summary.FLLinRegr<-function(object){
+	data<-lmdata(object)
+	coeffframe<-data$coeffframe
+	for(i in 1:length(coeffframe$COEFFVALUE)){
+		j<-coeffframe$COEFFID[i]
+		rownames(coeffframe)[i] = names(data$mapList[data$mapList==j])
+	}
+	coeffframe<-coeffframe[4:7]
+	colnames(coeffframe)<-c("Estimate","Std. Error","t value","Pr(>|t|)")
+	cat("CALL\n")
+	cat("lm.FLLinRegr(formula = ")
+	cat(deparse(object@formula))
+	cat("\nResiduals:TODO")
+	cat("\nCoefficients:\n")
+	coeffframe
+
+
 }
