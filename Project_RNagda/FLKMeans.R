@@ -260,7 +260,6 @@ setClass(
 
 #overloading lm
 lm <- function (formula,data,...) {
-
 	UseMethod("lm", data)
  }
 
@@ -303,6 +302,9 @@ lm.FLTable<-function(formula,data,...){
 `$.FLLinRegr`<-function(object,property){
 	if(property=="coefficients"){
 		coefficients(object)
+	}
+	else if (property=="residuals"){
+		residuals(object)
 	}
 	else "That's not a valid property"
 }
@@ -365,7 +367,13 @@ summary.FLLinRegr<-function(object){
 	cat(deparse(object@formula))
 	cat("\nResiduals:TODO")
 	cat("\nCoefficients:\n")
-	coeffframe
-
-
+	print(coeffframe)
+	cat("\n---\n")
+	print("Signif. codes 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1")
+	sqlstr<-paste0("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '",object@AnalysisID,"';")
+	return<-sqlQuery(object@datatable@odbc_connection,sqlstr)
+	cat("Residual standard error: ",return[15]$MSRESIDUAL," on ",return[9]$DFRESIDUAL," degrees of freedom\n")
+	cat("Multiple R-squared: ",return[4]$RSQUARED," , Adjusted R-squared: ",return[5]$ADJRSQUARED,"\n")
+	FStatPVal<-pf(return[16]$FSTAT,return[8]$DFREGRESSION,return[9]$DFRESIDUAL,lower.tail=FALSE)
+	cat("F-statistic: ",return[16]$FSTAT," on ",return[8]$DFREGRESSION," and ",return[9]$DFRESIDUAL," , p-value: ",FStatPVal,"\n")
 }
