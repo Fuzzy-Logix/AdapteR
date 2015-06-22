@@ -1,6 +1,6 @@
 library(RODBC)
 source("D:/Projects/Fuzzy\ Logix/AdapteR 2.0/FLKMeans.R")
 connection<-odbcConnect("Gandalf")
-tbl<-FLTable(connection,"FL_TRAIN","tblUSArrests")
+tbl<-FLTable(connection,"FL_TRAIN","tblUSArrests","ObsID")
 res<-kmeans(tbl,3,2)
 res$clusters
