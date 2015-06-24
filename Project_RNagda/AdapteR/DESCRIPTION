@@ -7,7 +7,16 @@ Description: The DB Lytix(TM) suite of functions offers scalable and robust high
     performance analytical methods that are embedded seamlessly into database
     systems. Package RLytix makes it possible to use this functionality from R
     by providing wrapper functions around the SQL interface of DB Lytix(TM).
-Depends: R (>= 3.2.0),
-	RODBC (>= 1.3-10)
+Depends:
+    R (>= 3.2.0),
+    RODBC (>= 1.3-10)
 License: GPL-2
 LazyData: true
+Collate:
+    'FLMatrix.R'
+    'FLDet.R'
+    'FLKMeans.R'
+    'FLLinRegr.R'
+    'FLSolve.R'
+    'FLTable.R'
+    'utilities.R'
