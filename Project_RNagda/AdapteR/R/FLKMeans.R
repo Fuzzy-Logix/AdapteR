@@ -1,3 +1,31 @@
+NULL
+#' An S4 class to represent FLKMeans
+#'
+#' @slot no_of_centers A numeric vector containing the number of clusters, say k
+#' @slot AnalysisID A character output used to retrieve the results of analysis
+#' @slot odbc_connection ODBC connectivity for R
+#' @slot table_name A character
+#' @slot clusterfetched A logical vector either TRUE or FALSE
+#' @slot centerfetched A logical vector either TRUE or FALSE
+#' @slot cluster A vector data type
+#' @slot centers A matrix data type
+#' @slot deeptablename A character vector containing a deeptable(either conversion from a widetable or IsDeep=TRUE)
+#' @method cluster FLKMeans
+#' @param object retrieves the cluster vector
+#' @method centers FLKMeans
+#' @param object retrieves the coordinates of the centroids
+#' @method print FLKMeans
+#' @param object overloads the print function
+#' @method tot.withinss FLKMeans
+#' @param object total within sum of squares
+#' @method withinss FLKMeans
+#' @param object within sum of squares
+#' @method betweenss FLKMeans
+#' @param object between sum of squares
+#' @method totss FLKMeans
+#' @param object total sum of squares
+#' @method size FLKMeans
+#' @param object size vector
 setClass(
 	"FLKMeans",
 	slots=list(
@@ -12,17 +40,31 @@ setClass(
 		deeptablename="character"
 	)
 )
-
-#overloading kmeans
 kmeans <- function (x, ...) {
-
-	UseMethod("kmeans", x)
- }
-
-#kmeans performs normally for data frames
+  UseMethod("kmeans", x)
+}
 kmeans.data.frame<-stats::kmeans
-
-#kmeans implementation for an FLKMeans object. Isdeep is a temporary argument, for testing. 
+#' K-Means Clustering.
+#'
+#' \code{kmeans} performs k-means clustering on FLMatrix objects.
+#'
+#' The wrapper overloads kmeans and implicitly calls FLKMeans.
+#' @method kmeans FLTable
+#' @param table an object of class FLTable
+#' @param centers the number of clusters
+#' @param max.iter the maximum number of iterations allowed
+#' @param isDeep optional for widetable
+#' @section Constraints:
+#' None
+#' @return \code{kmeans} performs k-means clustering and replicates equivalent R output.
+#' @examples
+#' \dontrun{
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
+#' kmeans(widetable,3,20)
+#' }
+#' @export
 kmeans.FLTable<-function(table,centers,max.iter,isDeep=FALSE){
 
 	database<-table@db_name
@@ -46,8 +88,6 @@ kmeans.FLTable<-function(table,centers,max.iter,isDeep=FALSE){
 		deeptablename=deeptablename
 	)
 }
-
-#Overloading the $ operator for an FLKMeans object. 
 
 `$.FLKMeans`<-function(object,property){
 	if(property=="cluster"){
@@ -74,8 +114,6 @@ kmeans.FLTable<-function(table,centers,max.iter,isDeep=FALSE){
 	else "That's not a valid property"
 }
 
-#Function to retrieve the cluster vector.
-
 cluster <- function (x, ...) {
    UseMethod("cluster", x)
  }
@@ -98,8 +136,6 @@ cluster.FLKMeans<-function(object){
 	}
 }
 
-#Function to retrieve the coordinates of the centroids.
-
 centers <- function (x, ...) {
    UseMethod("centers", x)
  }
@@ -118,7 +154,6 @@ centers.FLKMeans<-function(object){
 	centers<-matrix(centers,nrow=row,ncol=col,byrow=TRUE)
 }
 
-#overloading the print function
 print.FLKMeans<-function(object){
 	clustervector<-cluster(object)
 	centermatrix<-centers(object)
@@ -141,11 +176,8 @@ print.FLKMeans<-function(object){
 	print(c("cluster","centers","totss","withinss","tot.withinss","betweenss","size"))
 }
 
-#overloading show. Because apparently that is the default function called when you just type the object name. 
 setMethod("show","FLKMeans",print.FLKMeans)
 
-
-#total within sum of squares.
 tot.withinss<-function(object,...){
 	UseMethod("tot.withinss",object)
 }
@@ -198,5 +230,5 @@ size.FLKMeans<-function(object){
 		sizevector[i]<-table(clustervector)[i]
 		i<-i+1
 	}
-	sizevector	
+	sizevector
 }

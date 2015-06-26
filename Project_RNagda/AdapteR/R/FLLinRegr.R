@@ -1,10 +1,10 @@
-#' @include FLTable.R
 #' @include utilities.R
+#' @include FLTable.R
+NULL
 
 #beginning code for linear model
 
 #return objects are of class "FLLinRegr"
-setOldClass("FLTable	")
 setClass(
 	"FLLinRegr",
 	slots=list(

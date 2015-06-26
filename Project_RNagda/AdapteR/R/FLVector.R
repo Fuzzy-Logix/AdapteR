@@ -1,4 +1,3 @@
-setOldClass("FLTable")
 
 setClass(
 	"FLVector", 
