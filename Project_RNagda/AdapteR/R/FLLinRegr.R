@@ -1,6 +1,10 @@
+#' @include FLTable.R
+#' @include utilities.R
+
 #beginning code for linear model
 
 #return objects are of class "FLLinRegr"
+setOldClass("FLTable	")
 setClass(
 	"FLLinRegr",
 	slots=list(
@@ -64,8 +68,8 @@ lm.FLTable<-function(formula,data,...){
 	else "That's not a valid property"
 }
 
-lmdata<-function(table){
-	UseMethod("lmdata",table)
+lmdata<-function(object){
+	UseMethod("lmdata",object)
 }
 
 lmdata.FLLinRegr<-function(object){
@@ -119,12 +123,12 @@ summary.FLLinRegr<-function(object){
 	colnames(coeffframe)<-c("Estimate","Std. Error","t value","Pr(>|t|)")
 	cat("CALL\n")
 	cat("lm.FLLinRegr(formula = ")
-	cat(deparse(object@formula))
+	cat(paste0(deparse(object@formula),", data = "))
 	cat("\nResiduals:TODO")
 	cat("\nCoefficients:\n")
 	print(coeffframe)
 	cat("\n---\n")
-	print("Signif. codes 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1")
+	cat("Signif. codes 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1")
 	sqlstr<-paste0("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '",object@AnalysisID,"';")
 	return<-sqlQuery(object@datatable@odbc_connection,sqlstr)
 	cat("Residual standard error: ",return[15]$MSRESIDUAL," on ",return[9]$DFRESIDUAL," degrees of freedom\n")

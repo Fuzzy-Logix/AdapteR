@@ -10,3 +10,4 @@ Discuss with gregor: Is it alright to have only one dependent variable and only 
 Documentation everywhere!
 12 components of lm
 Check 'summary' terms - FStatPVal,Residuals - CrossValidate results with a known dataset
+"all" option of linregr.

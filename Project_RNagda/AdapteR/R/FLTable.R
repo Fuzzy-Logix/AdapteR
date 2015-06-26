@@ -30,3 +30,12 @@ names.FLTable <- function(object){
 		retobj = sqlQuery(connection,sqlstr)
 		retobj<-trim(as.vector(retobj$ColumnName))
 }
+
+`$.FLTable`<-function(table, colname){
+	#checks if the column name is valid
+
+	if(colname %in% names(table)){
+		new("FLVector", table=table, col_name=colname)
+	}
+	else cat("ERROR: Invalid column name")
+}

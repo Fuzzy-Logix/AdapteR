@@ -20,3 +20,6 @@ Collate:
     'FLSolve.R'
     'FLTable.R'
     'utilities.R'
+    'FLVector.R'
+    'FLCorrel.R'
+    'data_prep.R'
