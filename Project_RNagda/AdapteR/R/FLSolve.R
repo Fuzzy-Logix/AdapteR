@@ -1,25 +1,24 @@
+#' @include utilities.R
 #' @include FLMatrix.R
 NULL
+solve <- function (x, ...){
+	UseMethod("solve", x)
+}
 #' Inverse of a Matrix.
 #'
 #' \code{solve} computes the inverse for FLMatrix objects.
 #'
 #' The wrapper overloads solve and implicitly calls FLMatrixInvUdt.
-solve <- function (x, ...){
-	UseMethod("solve", x)
-}
+#' @param table an object of class FLMatrix
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (1000 x 1000).
-#' @param Input an object of class FLMatrix
 #' @return \code{solve} returns inverse which replicates the equivalent R output.
 #' @examples
-#' \dontrun{
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
 #' table <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' solve(table)
-#' }
 #' @export
 solve.FLMatrix<-function(object){
 	connection<-object@odbc_connection

@@ -13,13 +13,14 @@ Depends:
 License: GPL-2
 LazyData: true
 Collate:
+    'utilities.R'
+    'FLTable.R'
+    'FLVector.R'
     'FLCorrel.R'
     'FLMatrix.R'
     'FLDet.R'
     'FLKMeans.R'
-    'utilities.R'
-    'FLTable.R'
+    'data_prep.R'
     'FLLinRegr.R'
     'FLSolve.R'
-    'FLVector.R'
-    'data_prep.R'
+    'FLTranspose.R'

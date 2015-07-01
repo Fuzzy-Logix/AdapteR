@@ -19,7 +19,7 @@
 \code{kmeans} performs k-means clustering and replicates equivalent R output.
 }
 \description{
-\code{kmeans} performs k-means clustering on FLMatrix objects.
+\code{kmeans} performs k-means clustering on FLTable objects.
 }
 \details{
 The wrapper overloads kmeans and implicitly calls FLKMeans.
@@ -29,11 +29,9 @@ The wrapper overloads kmeans and implicitly calls FLKMeans.
 None
 }
 \examples{
-\dontrun{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
 widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
 kmeans(widetable,3,20)
-}
 }
 

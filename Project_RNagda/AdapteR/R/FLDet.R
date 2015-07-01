@@ -1,25 +1,24 @@
+#' @include utilities.R
 #' @include FLMatrix.R
 NULL
-#' Determinant of a Matrix.
-#'
-#' \code{det} computes the determinant for FLMatrix objects.
-#'
-#' The wrapper overloads det and implicitly calls FLMatrixDetUdt.
 det <- function (x, ...){
   UseMethod("det", x)
 }
+#' Determinant of a Matrix.
+#'
+#' \code{det} computes the determinant of FLMatrix objects.
+#'
+#' The wrapper overloads det and implicitly calls FLMatrixDetUdt.
+#' @param table an object of class FLMatrix
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (1000 x 1000).
-#' @param input an object of class FLMatrix
 #' @return \code{det} returns determinant which replicates the equivalent R output.
 #' @examples
-#' \dontrun{
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
 #' table <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' det(table)
-#' }
 #' @export
 det.FLMatrix<-function(object){
 	connection<-object@odbc_connection

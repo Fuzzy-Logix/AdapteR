@@ -2,14 +2,21 @@
 % Please edit documentation in R/FLDet.R
 \name{det.FLMatrix}
 \alias{det.FLMatrix}
+\title{Determinant of a Matrix.}
 \usage{
 \method{det}{FLMatrix}(object)
 }
 \arguments{
-\item{input}{an object of class FLMatrix}
+\item{table}{an object of class FLMatrix}
 }
 \value{
 \code{det} returns determinant which replicates the equivalent R output.
+}
+\description{
+\code{det} computes the determinant of FLMatrix objects.
+}
+\details{
+The wrapper overloads det and implicitly calls FLMatrixDetUdt.
 }
 \section{Constraints}{
 
@@ -17,11 +24,9 @@ Input can only be a square matrix (n x n) with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-\dontrun{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
 table <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 det(table)
-}
 }
 

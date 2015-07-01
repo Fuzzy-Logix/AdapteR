@@ -1,3 +1,5 @@
+#' @include utilities.R
+#' @include FLTable.R
 NULL
 #' An S4 class to represent FLKMeans
 #'
@@ -46,7 +48,7 @@ kmeans <- function (x, ...) {
 kmeans.data.frame<-stats::kmeans
 #' K-Means Clustering.
 #'
-#' \code{kmeans} performs k-means clustering on FLMatrix objects.
+#' \code{kmeans} performs k-means clustering on FLTable objects.
 #'
 #' The wrapper overloads kmeans and implicitly calls FLKMeans.
 #' @method kmeans FLTable
@@ -58,12 +60,10 @@ kmeans.data.frame<-stats::kmeans
 #' None
 #' @return \code{kmeans} performs k-means clustering and replicates equivalent R output.
 #' @examples
-#' \dontrun{
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
 #' widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
 #' kmeans(widetable,3,20)
-#' }
 #' @export
 kmeans.FLTable<-function(table,centers,max.iter,isDeep=FALSE){
 

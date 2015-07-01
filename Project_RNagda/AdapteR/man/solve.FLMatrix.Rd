@@ -2,14 +2,21 @@
 % Please edit documentation in R/FLSolve.R
 \name{solve.FLMatrix}
 \alias{solve.FLMatrix}
+\title{Inverse of a Matrix.}
 \usage{
 \method{solve}{FLMatrix}(object)
 }
 \arguments{
-\item{Input}{an object of class FLMatrix}
+\item{table}{an object of class FLMatrix}
 }
 \value{
 \code{solve} returns inverse which replicates the equivalent R output.
+}
+\description{
+\code{solve} computes the inverse for FLMatrix objects.
+}
+\details{
+The wrapper overloads solve and implicitly calls FLMatrixInvUdt.
 }
 \section{Constraints}{
 
@@ -17,11 +24,9 @@ Input can only be a square matrix (n x n) with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-\dontrun{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
 table <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 solve(table)
-}
 }
 

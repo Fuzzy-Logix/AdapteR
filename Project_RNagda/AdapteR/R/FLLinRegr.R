@@ -1,10 +1,21 @@
 #' @include utilities.R
+#' @include data_prep.R
 #' @include FLTable.R
 NULL
-
-#beginning code for linear model
-
-#return objects are of class "FLLinRegr"
+#' An S4 class to represent FLLinRegr
+#'
+#' @slot formula an object of class 'formula': Model Formulae
+#' @slot table_name A character
+#' @slot deeptablename A character vector containing name of the deeptable on conversion from a widetable
+#' @slot AnalysisID An output character ID from CALL FLLinRegr
+#' @slot dataprepID An output character ID from CALL FLRegrDataPrep
+#' @slot datatable An object of class FLTable
+#' @method print FLLinRegr
+#' @param object contains: call,coefficients
+#' @method coefficients FLLinRegr
+#' @param object a named vector of coefficients
+#' @method summary FLLinRegr
+#' @param object contains: call,residuals,coefficients,significant codes note and statistical output.
 setClass(
 	"FLLinRegr",
 	slots=list(
@@ -17,20 +28,34 @@ setClass(
 	)
 )
 
-#overloading lm
 lm <- function (formula,data,...) {
 	UseMethod("lm", data)
  }
 
-#lm performs normally for data frames
 lm.data.frame<-stats::lm
 
+#' Linear Regression.
+#'
+#' \code{lm} performs linear regression on FLTable objects.
+#'
+#' The wrapper overloads lm and implicitly calls FLRegrDataPrep and FLLinRegr.
+#' @method lm FLTable
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable
+#' @section Constraints:
+#' None
+#' @return \code{lm} performs linear regression and replicates equivalent R output.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' widetable  <- FLTable(connection, "FL_REV4546", "tblAbaloneWide", "ObsID")
+#' lmfit <- lm(Rings~Height+Diameter,widetable)
+#' @export
 lm.FLTable<-function(formula,data,...){
 	dependent <- all.vars(formula)[1]
 	independents <- all.vars(formula)[2:length(formula)]
 	cols<-names(data)
 
-	#unused_cols represents the columns that are not to be included in the regression analysis
 	unused_cols <- cols[!cols %in% all.vars(formula)]
 	unused_cols <- unused_cols[unused_cols!=data@primary_key]
 
@@ -47,7 +72,7 @@ lm.FLTable<-function(formula,data,...){
 	dataprepID <- as.vector(retobj<-sqlQuery(data@odbc_connection,sqlstr)[1,1])
 
 	AnalysisID<-as.vector(sqlQuery(data@odbc_connection,paste0("CALL FLLinRegr('",deeptablename,"', 'ObsID', 'VarID', 'Num_Val', 'Test', AnalysisID);"))[1,1])
-	
+
 	new("FLLinRegr",
 		formula=formula,
 		table_name=data@table_name,
@@ -75,7 +100,7 @@ lmdata<-function(object){
 lmdata.FLLinRegr<-function(object){
 	sqlstr<-paste0("SELECT a.Column_Name, a.Final_VarID FROM fzzlRegrDataPrepMap a WHERE a.AnalysisID = '",object@dataprepID,"' ORDER BY a.Final_VarID;")
 	mapframe<-sqlQuery((object@datatable)@odbc_connection,sqlstr)
-	
+
 	# Converting the data frame into a namedvector
 	mapList<-as.numeric(mapframe$Final_VarID)
 	names(mapList)<-as.character(mapframe$COLUMN_NAME)
@@ -89,10 +114,10 @@ lmdata.FLLinRegr<-function(object){
 print.FLLinRegr<-function(object){
 	cat("CALL\n")
 	cat("lm.FLLinRegr(formula = ")
-	cat(deparse(object@formula))	
+	cat(deparse(object@formula))
 	cat(", data = TODO)")
 	cat("\n\nCoefficients:\n")
-	coefficients(object)	
+	coefficients(object)
 }
 
 #overloading show.
