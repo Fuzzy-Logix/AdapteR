@@ -30,4 +30,3 @@ cor.FLVector<-function(x,y){
 	retobj<-sqlQuery(x@table@odbc_connection,sqlstr)
 	retobj[1,1]
 }
-

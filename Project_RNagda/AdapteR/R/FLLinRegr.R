@@ -24,7 +24,8 @@ setClass(
 		deeptablename="character",
 		AnalysisID="character",
 		dataprepID="character",
-		datatable="FLTable"
+		datatable="FLTable",
+		dataname="character"
 	)
 )
 
@@ -79,7 +80,8 @@ lm.FLTable<-function(formula,data,...){
 		deeptablename=deeptablename,
 		AnalysisID=AnalysisID,
 		dataprepID=dataprepID,
-		datatable=data
+		datatable=data,
+		dataname = deparse(substitute(data))
 	)
 }
 
@@ -98,8 +100,10 @@ lmdata<-function(object){
 }
 
 lmdata.FLLinRegr<-function(object){
+	sqlQuery(object@datatable@odbc_connection,paste("DATABASE",object@datatable@db_name))
 	sqlstr<-paste0("SELECT a.Column_Name, a.Final_VarID FROM fzzlRegrDataPrepMap a WHERE a.AnalysisID = '",object@dataprepID,"' ORDER BY a.Final_VarID;")
 	mapframe<-sqlQuery((object@datatable)@odbc_connection,sqlstr)
+
 
 	# Converting the data frame into a namedvector
 	mapList<-as.numeric(mapframe$Final_VarID)
@@ -107,7 +111,25 @@ lmdata.FLLinRegr<-function(object){
 
 	sqlstr2<-paste0("SELECT a.* FROM fzzlLinRegrCoeffs a WHERE a.AnalysisID = '",object@AnalysisID,"' order by COEFFID;")
 	coeffframe<-sqlQuery(object@datatable@odbc_connection,sqlstr2)
-	retlist<-list(mapList = mapList, coeffframe = coeffframe)
+
+	dependent <- all.vars(object@formula)[1]
+	scoretable<-gen_score_table_name(object@table_name)
+	queryscore<-paste0("CALL FLLinRegrScore ('",object@deeptablename,"','ObsID','VarID','Num_Val',NULL,'",object@AnalysisID,"','",scoretable,"','Scoring using model ",object@AnalysisID,"',oAnalysisID);")
+	err<-sqlQuery(object@datatable@odbc_connection,queryscore)
+	queryminmax<-paste0("SELECT FLmin(c.deviation), FLMax(c.deviation) FROM (SELECT (a.",dependent," - b.Y) as deviation FROM ",object@table_name," as a, (SELECT * FROM ",scoretable,") as b WHERE a.ObsID = b.ObsID) as c")
+	minmax<-sqlQuery(object@datatable@odbc_connection,queryminmax)
+	query1q<-paste0("WITH z (groupID,deviation) AS (SELECT 1,c.deviation FROM ((SELECT (a.",dependent," - b.Y) as deviation FROM ",object@table_name," as a, (SELECT * FROM ",scoretable,") as b WHERE a.ObsID = b.ObsID) AS c)) SELECT q.* FROM(SELECT a.oPercVal FROM TABLE (FLPercUdt(z.groupID, z.deviation, 0.25) Hash by z.groupID LOCAL ORDER BY z.groupID) as a) as q")
+	oneq<-sqlQuery(object@datatable@odbc_connection,query1q)
+	querymedian<-paste0("WITH z (groupID,deviation) AS (SELECT 1,c.deviation FROM ((SELECT (a.",dependent," - b.Y) as deviation FROM ",object@table_name," as a, (SELECT * FROM ",scoretable,") as b WHERE a.ObsID = b.ObsID) AS c)) SELECT q.* FROM(SELECT a.oPercVal FROM TABLE (FLPercUdt(z.groupID, z.deviation, 0.5) Hash by z.groupID LOCAL ORDER BY z.groupID) as a) as q")
+	median<-sqlQuery(object@datatable@odbc_connection,query1q)
+	query3q<-paste0("WITH z (groupID,deviation) AS (SELECT 1,c.deviation FROM ((SELECT (a.",dependent," - b.Y) as deviation FROM ",object@table_name," as a, (SELECT * FROM ",scoretable,") as b WHERE a.ObsID = b.ObsID) AS c)) SELECT q.* FROM(SELECT a.oPercVal FROM TABLE (FLPercUdt(z.groupID, z.deviation, 0.75) Hash by z.groupID LOCAL ORDER BY z.groupID) as a) as q")
+	threeq<-sqlQuery(object@datatable@odbc_connection,query1q)
+	minmax<- as.numeric(minmax)
+	oneq<- as.numeric(oneq)
+	three1<- as.numeric(threeq)
+	median<-as.numeric(median)
+	residuals<-as.numeric(c(minmax,oneq,threeq,median))
+	retlist<-list(mapList = mapList, coeffframe = coeffframe,residuals = residuals)
 	retlist
 }
 
@@ -144,20 +166,27 @@ summary.FLLinRegr<-function(object){
 		j<-coeffframe$COEFFID[i]
 		rownames(coeffframe)[i] = names(data$mapList[data$mapList==j])
 	}
+
 	coeffframe<-coeffframe[4:7]
 	colnames(coeffframe)<-c("Estimate","Std. Error","t value","Pr(>|t|)")
-	cat("CALL\n")
+	cat("Call:\n")
 	cat("lm.FLLinRegr(formula = ")
-	cat(paste0(deparse(object@formula),", data = "))
-	cat("\nResiduals:TODO")
-	cat("\nCoefficients:\n")
+	cat(paste0(deparse(object@formula),", data = ",object@dataname,")\n"))
+	cat("\nResiduals:\n")
+	print(data$residuals)
+	cat("\n\nCoefficients:\n")
 	print(coeffframe)
 	cat("\n---\n")
-	cat("Signif. codes 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1")
+	cat("Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1\n")
 	sqlstr<-paste0("SELECT a.* FROM fzzlLinRegrStats a WHERE a.AnalysisID = '",object@AnalysisID,"';")
-	return<-sqlQuery(object@datatable@odbc_connection,sqlstr)
-	cat("Residual standard error: ",return[15]$MSRESIDUAL," on ",return[9]$DFRESIDUAL," degrees of freedom\n")
-	cat("Multiple R-squared: ",return[4]$RSQUARED," , Adjusted R-squared: ",return[5]$ADJRSQUARED,"\n")
-	FStatPVal<-pf(return[16]$FSTAT,return[8]$DFREGRESSION,return[9]$DFRESIDUAL,lower.tail=FALSE)
-	cat("F-statistic: ",return[16]$FSTAT," on ",return[8]$DFREGRESSION," and ",return[9]$DFRESIDUAL," , p-value: ",FStatPVal,"\n")
+	ret<-sqlQuery(object@datatable@odbc_connection,sqlstr)
+	cat("Residual standard error: ",ret[15]$MSRESIDUAL," on ",ret[9]$DFRESIDUAL," degrees of freedom\n\n")
+	cat("Multiple R-squared: ",ret[4]$RSQUARED," , Adjusted R-squared: ",ret[5]$ADJRSQUARED,"\n")
+	FStatPVal<-pf(ret[16]$FSTAT,ret[8]$DFREGRESSION,ret[9]$DFRESIDUAL,lower.tail=FALSE)
+	cat("F-statistic: ",ret[16]$FSTAT," on ",ret[8]$DFREGRESSION," and ",ret[9]$DFRESIDUAL," , p-value: ",FStatPVal,"\n")
+
+}
+
+predict.FLLinRegr<-function(object){
+
 }
