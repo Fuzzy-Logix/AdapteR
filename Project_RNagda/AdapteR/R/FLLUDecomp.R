@@ -1,5 +1,6 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLSolve.R
 NULL
 library(Matrix)
 #' An S4 class to represent LU Decomposition
@@ -11,11 +12,20 @@ setClass(
 	slots=list(
 		x="numeric",
 		perm="integer",
-		Dim="integer"
+		Dim="integer",
+		lower="matrix",
+		upper="matrix",
+		data_perm="matrix"
+	)
+)
+setClass(
+	"expandFLLU",
+	slots=list(
+		luobject="FLLU"
 	)
 )
 lu<-function(x, ...){
-	UseMethod("lu", x)
+	UseMethod("lu",x)
 }
 #' LU Decomposition.
 #'
@@ -71,11 +81,16 @@ lu.FLMatrix<-function(object){
 		}
 	}
 
-	new("FLLU",
+	a<-new("FLLU",
 		x=x,
 		perm=perm,
-		Dim=Dim
+		Dim=Dim,
+		lower=l,
+		upper=u,
+		data_perm = data_perm
 	)
+	class(a)<-"FLLU"
+	a
 }
 
 print.FLLU<-function(object){
@@ -89,3 +104,53 @@ print.FLLU<-function(object){
 }
 
 setMethod("show","FLLU",print.FLLU)
+
+setGeneric("expand", function(object) {
+  standardGeneric("expand")
+})
+
+setMethod("expand",signature(object = "FLLU"),definition = function(object){
+	a<- new("expandFLLU",
+		luobject = object
+	)
+	a
+})
+
+print.expandFLLU<-function(object){
+	cat("$L\n")
+	print(object@luobject@lower)
+	cat("$U\n")
+	print(object@luobject@upper)
+	cat("$P\n")
+	print(object@luobject@data_perm)
+}
+setMethod("show","expandFLLU",print.expandFLLU)
+
+
+`$.FLLU`<-function(object,property){
+	if(property=="L"){
+		object@lower
+	}
+	else if(property=="U"){
+		object@upper
+	}
+	else if(property=="P"){
+		object@data_perm
+	}
+	else "That's not a valid property"
+}
+
+`$.expandFLLU`<-function(object,property){
+	if(property=="L"){
+		object@luobject@lower
+	}
+	else if(property=="U"){
+		object@luobject@upper
+	}
+	else if(property=="P"){
+		object@luobject@data_perm
+	}
+	else "That's not a valid property"
+}
+
+
