@@ -15,7 +15,10 @@ setClass(
 		odbc_connection = "RODBC",
 		db_name         = "character",
 		table_name      = "character",
-		primary_key="character"
+		primary_key="character",
+		var_id_name = "character",
+		num_val_name = "character",
+		isDeep = "logical"
 	)
 )
 #' Constructor function for FLTable.
@@ -35,25 +38,52 @@ setClass(
 #' widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
 #' names(widetable)
 #' @export
-FLTable <- function(connection, database, table,primary_key=character(0)) {
+FLTable <- function(connection, database, table,primary_key,var_id_name = character(0), num_val_name=character(0)) {
 
 	# validate_args( 	list(database = database, table = table),
 	# 				list(database = "character", table = "character")
 	# )
+
+	if(xor(length(var_id_name) , length(num_val_name))){
+		stop("Unable to identify whether table is deep or wide")
+	}
+	else if(length(var_id_name) && length(num_val_name)){
+		sqlQuery(connection, paste("DATABASE", database))
+	sqlQuery(connection, "SET ROLE ALL")
+
+	new("FLTable", odbc_connection = connection,db_name = database, table_name = table,primary_key = primary_key,var_id_name = var_id_name,num_val_name=num_val_name,isDeep = TRUE)
+
+	}
+	else{
+
 	sqlQuery(connection, paste("DATABASE", database))
 	sqlQuery(connection, "SET ROLE ALL")
 
-	new("FLTable", odbc_connection = connection,db_name = database, table_name = table,primary_key = primary_key)
+	new("FLTable", odbc_connection = connection,db_name = database, table_name = table,primary_key = primary_key,var_id_name = var_id_name,num_val_name=num_val_name,isDeep = FALSE)
+	}
 }
 
 names.FLTable <- function(object){
 		connection = object@odbc_connection
 		column_database = "dbc"
-		sqlQuery(connection, paste("DATABASE", column_database))
-		sqlQuery(connection, "SET ROLE ALL")
-		sqlstr = paste0("SELECT columnname FROM dbc.columns WHERE tablename='",object@table_name,"' AND databasename='",object@db_name,"';")
-		retobj = sqlQuery(connection,sqlstr)
-		retobj<-trim(as.vector(retobj$ColumnName))
+
+		if(!object@isDeep){
+			sqlQuery(connection, paste("DATABASE", column_database))
+			sqlQuery(connection, "SET ROLE ALL")
+			sqlstr <- paste0("SELECT columnname FROM dbc.columns WHERE tablename='",object@table_name,"' AND databasename='",object@db_name,"';")
+			retobj <- sqlQuery(connection,sqlstr)
+			retobj <- trim(as.vector(retobj$ColumnName))
+			retobj
+		}
+		else{
+			sqlQuery(connection, paste("DATABASE", object@db_name))
+			sqlQuery(connection, "SET ROLE ALL")
+			sqlstr <- paste0("SELECT DISTINCT(",object@var_id_name,") as VarID FROM ",object@table_name)
+			retobj <- sqlQuery(connection,sqlstr)
+			retobj <- retobj$VarID
+			retobj
+
+		}
 }
 
 `$.FLTable`<-function(table, colname){

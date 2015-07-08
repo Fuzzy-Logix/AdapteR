@@ -128,7 +128,8 @@ lmdata.FLLinRegr<-function(object){
 	oneq<- as.numeric(oneq)
 	three1<- as.numeric(threeq)
 	median<-as.numeric(median)
-	residuals<-as.numeric(c(minmax,oneq,threeq,median))
+	residuals<-as.numeric(c(minmax[1],oneq,median,threeq,minmax[2]))
+	names(residuals)<-c("min","1Q","median","3Q","max")
 	retlist<-list(mapList = mapList, coeffframe = coeffframe,residuals = residuals)
 	retlist
 }
@@ -139,7 +140,7 @@ print.FLLinRegr<-function(object){
 	cat(deparse(object@formula))
 	cat(", data = TODO)")
 	cat("\n\nCoefficients:\n")
-	coefficients(object)
+	print(coefficients(object))
 }
 
 #overloading show.
@@ -187,6 +188,25 @@ summary.FLLinRegr<-function(object){
 
 }
 
-predict.FLLinRegr<-function(object){
 
+
+
+predict<-function(object,new){
+	UseMethod("predict",object)
+}
+
+predict.FLLinRegr<-function(object,new){
+	a<-c()
+	coeffs<-coefficients(object)
+	for(i in 1:nrow(new)){
+		a<-append(a,sum(coeffs[1] + coeffs[seq(2,length(coeffs))]*new[i,]))
+		i<-i+1
+	}
+	a
+
+}
+residuals.FLLinRegr<-function(object){
+	data<-lmdata(object)
+	residuals<-data$residuals
+	residuals
 }
