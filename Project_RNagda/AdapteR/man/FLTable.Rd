@@ -4,7 +4,8 @@
 \alias{FLTable}
 \title{Constructor function for FLTable.}
 \usage{
-FLTable(connection, database, table, primary_key = character(0))
+FLTable(connection, database, table, primary_key, var_id_name = character(0),
+  num_val_name = character(0))
 }
 \arguments{
 \item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}

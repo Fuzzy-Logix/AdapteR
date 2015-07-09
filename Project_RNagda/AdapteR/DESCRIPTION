@@ -14,16 +14,15 @@ License: GPL-2
 LazyData: true
 Collate:
     'utilities.R'
+    'FLMatrix.R'
+    'FLCholeskyDecomp.R'
     'FLTable.R'
     'FLVector.R'
     'FLCorrel.R'
-    'FLMatrix.R'
     'FLDet.R'
     'FLKMeans.R'
-    'FLSolve.R'
     'FLLUDecomp.R'
     'data_prep.R'
     'FLLinRegr.R'
-    'FLLogRegr.R'
     'FLSolve.R'
     'FLTranspose.R'

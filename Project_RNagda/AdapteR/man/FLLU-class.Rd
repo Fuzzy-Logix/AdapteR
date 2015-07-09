@@ -15,5 +15,11 @@ An S4 class to represent LU Decomposition
 \item{\code{perm}}{object of class integer}
 
 \item{\code{Dim}}{object of class integer}
+
+\item{\code{lower}}{object of class matrix}
+
+\item{\code{upper}}{object of class matrix}
+
+\item{\code{data_perm}}{object of class matrix}
 }}
 

@@ -1,12 +1,14 @@
 #' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLSolve.R
 NULL
 library(Matrix)
 #' An S4 class to represent LU Decomposition
 #' @slot x object of class numeric
 #' @slot perm object of class integer
 #' @slot Dim object of class integer
+#' @slot lower object of class matrix
+#' @slot upper object of class matrix
+#' @slot data_perm object of class matrix
 setClass(
 	"FLLU",
 	slots=list(
@@ -18,6 +20,8 @@ setClass(
 		data_perm="matrix"
 	)
 )
+#' An S4 class to represent L,U and P factors as a list of matrices
+#' @slot luobject object of class FLLU
 setClass(
 	"expandFLLU",
 	slots=list(
@@ -34,7 +38,10 @@ lu<-function(x, ...){
 #' If permutation matrix is not used in the decomposition, the output of permutation matrix is an identity matrix.
 #'
 #' \code{lu} replicates the equivalent lu() generic function.\cr
-#' The wrapper overloads lu and implicitly calls FLLUDecompUdt.\cr
+#' The wrapper overloads lu and implicitly calls FLLUDecompUdt.\cr\cr
+#' \code{expand} decomposes the compact form to a list of matrix factors.\cr
+#' The expand method returns L,U and P factors as a list of matrices.\cr
+#'
 #' The decomposition is of the form A = P L U where typically all matrices are of size (n x n),
 #' and the matrix P is a permutation matrix, L is lower triangular and U is upper triangular.
 #' @method lu FLMatrix
@@ -43,13 +50,20 @@ lu<-function(x, ...){
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (1000 x 1000).
 #' @return
-#' \item{x}{The "L" (unit lower triangular) and "U" (upper triangular) factors of the original matrix}
+#' \item{x}{the "L" (unit lower triangular) and "U" (upper triangular) factors of the original matrix}
 #' \item{perm}{a vector of length min(Dim) that describes the permutation applied to the rows of the original matrix}
 #' \item{Dim}{the dimension of the original matrix}
+#' \item{lower}{lower triangular matrix}
+#' \item{upper}{upper triangular matrix}
+#' \item{data_perm}{permutation matrix}
 #' @examples
 #' connection<-odbcConnect("Gandalf")
 #' table <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' lu(table)
+#' expand(lu(table))
+#' expand(lu(table))$L
+#' expand(lu(table))$U
+#' expand(lu(table))$P
 #' @export
 lu.FLMatrix<-function(object){
 	connection<-object@odbc_connection
