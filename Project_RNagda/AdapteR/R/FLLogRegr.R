@@ -63,7 +63,8 @@ glm.FLTable<-function(formula,data,rushil="binomial",iter=25,threshold=0.1,...){
 	unused_cols <- cols[!cols %in% all.vars(formula)]
 	unused_cols <- unused_cols[unused_cols!=data@primary_key]
 	unused_cols_str <- ""
-	while(i<=length(i)){
+	i<-1
+	while(i<=length(unused_cols)){
 		unused_cols_str <- paste0(unused_cols_str,unused_cols[i],", ")
 		i<-i+1
 	}
@@ -201,10 +202,10 @@ summary.FLLogRegr<-function(object){
 
 }
 
-predict<-function(object,new){
+predict<-function(object,new,...){
 	UseMethod("predict",object)
 }
-predict.FLLinRegr<-function(object,new,type="response"){
+predict.FLLogRegr<-function(object,new,type="response"){
 	if(type!="response"){
 		stop("Currently only type=response is supported")
 	}

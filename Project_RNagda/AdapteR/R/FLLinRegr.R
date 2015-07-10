@@ -249,7 +249,7 @@ summary.FLLinRegr<-function(object){
 
 
 
-predict<-function(object,new){
+predict<-function(object,new,...){
 	UseMethod("predict",object)
 }
 
@@ -267,8 +267,8 @@ predict.FLLinRegr<-function(object,new){
 		i<-i+1
 	}
 	retobj
-
 }
+
 residuals.FLLinRegr<-function(object){
 	dependent <- all.vars(object@formula)[1]
 	scoretable<-gen_score_table_name(object@table_name)
