@@ -200,3 +200,28 @@ summary.FLLogRegr<-function(object){
 	cat("Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1\n")
 
 }
+
+predict<-function(object,new){
+	UseMethod("predict",object)
+}
+predict.FLLinRegr<-function(object,new,type="response"){
+	if(type!="response"){
+		stop("Currently only type=response is supported")
+	}
+	independents <- all.vars(object@formula)[2:length(object@formula)]
+	coeffsum<-c()
+	coeffsum[1:nrow(new)] <- 0
+	coeffs<-coefficients(object)
+	for(i in 1:nrow(new)){
+		coeffsum[i]<-coeffs["INTERCEPT"]
+		for(j in 1:length(independents)){
+			coeffsum[i]<-coeffsum[i] + coeffs[independents[j]]*new[independents[j]][i,1]
+			j<-j+1
+		}
+		i<-i+1
+	}
+	coeffsum
+
+	return(1/(1+exp(coeffsum*(-1))))
+
+}

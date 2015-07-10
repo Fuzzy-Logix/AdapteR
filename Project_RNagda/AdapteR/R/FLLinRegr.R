@@ -254,10 +254,16 @@ predict<-function(object,new){
 }
 
 predict.FLLinRegr<-function(object,new){
+	independents <- all.vars(object@formula)[2:length(object@formula)]
 	retobj<-c()
+	retobj[1:nrow(new)] <- 0
 	coeffs<-coefficients(object)
 	for(i in 1:nrow(new)){
-		a<-append(a,sum(coeffs[1] + coeffs[seq(2,length(coeffs))]*new[i,]))
+		retobj[i]<-coeffs["INTERCEPT"]
+		for(j in 1:length(independents)){
+			retobj[i]<-retobj[i] + coeffs[independents[j]]*new[independents[j]][i,1]
+			j<-j+1
+		}
 		i<-i+1
 	}
 	retobj

@@ -24,4 +24,6 @@ Collate:
     'FLLUDecomp.R'
     'data_prep.R'
     'FLLinRegr.R'
+    'FLLogRegr.R'
+    'FLSolve.R'
     'FLTranspose.R'
