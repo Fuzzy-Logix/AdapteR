@@ -17,6 +17,7 @@ Suggests:
     knitr
 VignetteBuilder: knitr
 Collate:
+    'AdapteR.R'
     'utilities.R'
     'FLAncova.R'
     'FLAnova1Way.R'
@@ -47,4 +48,3 @@ Collate:
     'FLVIF.R'
     'FLtTest.R'
     'FLzTest.R'
-    'AdapteR.R'
