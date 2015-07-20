@@ -1,6 +1,6 @@
-#' RLytix: Wrapper functions around SQL interface of DB Lytix(TM).
+#' AdapteR: Wrapper functions around SQL interface of DB Lytix(TM).
 #'
-#' The RLytix package provides four categories of functions:
+#' The AdapteR package provides four categories of functions:
 #' Data Mining, Matrix Operations, Hypothesis Testing and Fit Distribution
 #' 
 #' @section Data Mining functions (17):
@@ -72,5 +72,5 @@
 #'
 #'
 #' @docType package
-#' @name RLytix
+#' @name AdapteR
 NULL
