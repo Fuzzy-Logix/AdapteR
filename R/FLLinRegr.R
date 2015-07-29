@@ -108,10 +108,13 @@ FLLinRegr <- function( 	table,
 	linRegrRes	<- run_sql(connection, "FLLinRegr.sql", sqlParameters)
 	analysisID	<- toString(linRegrRes[1,"AnalysisID"])
 
-	analysis <- new("FLLinRegr",	analysis_id              = analysisID,
-					odbc_connection          = connection,
-					deep_table_name          = deepTableName,
-					wide_to_deep_analysis_id = wideToDeepAnalysisID)
+	analysis <- new("FLLinRegr", analysis_id           	 = analysisID,
+								 wide_to_deep_analysis_id = wideToDeepAnalysisID,
+								 deep_table_name        = deepTableName,
+								 class_spec           	 = class_spec,
+								 primary_key          	 = primary_key,
+								 exclude              	 = as.character(exclude),
+								 odbc_connection       	 = connection)
 
 	return(analysis);
 }
