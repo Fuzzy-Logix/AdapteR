@@ -119,20 +119,22 @@ setMethod(	"FLPredict",
 				wideToDeepAnalysisID 	<- dataPrepRes$wideToDeepAnalysisID
 				regrAnalysisID 		 	<- analysis@analysis_id
 				connection          	<- table@odbc_connection
+				scoreTable            <- paste(deepTableName, 'Score', sep = "_")
 
 				sqlParameters <- list(  deepTableName  = deepTableName,
 										obsID          = obsID,
 										varID          = varID,
 										value          = value,
 										whereClause    = whereClause,
-										regrAnalysisID = regrAnalysisID)
+										regrAnalysisID = regrAnalysisID,
+                    scoreTable     = scoreTable)
 
 				#run LinRegrScore
 				logRegrScoreRes <- run_sql(connection, "FLLogRegrScore.sql", sqlParameters)
-				outTableName    <- toString(logRegrScoreRes[[1]])
+				#outTableName    <- toString(logRegrScoreRes[[1]])
 
 				#Fetch
-				sqlParameters   <- list(  outTableName  = outTableName )
+				sqlParameters   <- list(  outTableName  = scoreTable )
 				scoreTable      <- run_sql(connection, "FLLinRegrScoreFetch.sql", sqlParameters)
 				return(scoreTable)
 
