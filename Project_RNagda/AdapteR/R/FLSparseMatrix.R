@@ -57,22 +57,45 @@ FLSparseMatrix <- function(connection, database, matrix_table, matrix_id_value,m
 {
 	sqlQuery(flmatobj1@odbc_connection, paste("DATABASE", flmatobj1@db_name))
 	sqlQuery(flmatobj1@odbc_connection, "SET ROLE ALL")
-	nrow1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@row_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
-	ncol1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@col_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
+	nrow1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@row_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",
+		              flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
+	ncol1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@col_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",
+		              flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
 	
 	if(is.FLMatrix(flmatobj2) || is.FLSparseMatrix(flmatobj2))
 	{
-	nrow2 <- sqlQuery(flmatobj2@odbc_connection, paste0("SELECT max(",flmatobj2@row_id_colname,") FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table," WHERE ",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value))[1,1]
-	ncol2 <- sqlQuery(flmatobj2@odbc_connection, paste0("SELECT max(",flmatobj2@col_id_colname,") FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table," WHERE ",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value))[1,1]
+	nrow2 <- sqlQuery(flmatobj2@odbc_connection, paste0("SELECT max(",flmatobj2@row_id_colname,") FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table,
+		              " WHERE ",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value))[1,1]
+	ncol2 <- sqlQuery(flmatobj2@odbc_connection, paste0("SELECT max(",flmatobj2@col_id_colname,") FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table,
+		              " WHERE ",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value))[1,1]
 
 	if(nrow1 == nrow2 && ncol1 == ncol2)
 	{
 	if(is.FLSparseMatrix(flmatobj2))
 	{
 	matrix_id_value <- sqlQuery(flmatobj1@odbc_connection,paste(" SELECT max(",flmatobj1@matrix_id_colname,") FROM ",flmatobj1@matrix_table))[1,1] + 1
-	sqlQuery(flmatobj1@odbc_connection, paste0(" INSERT INTO ",flmatobj1@db_name,".",flmatobj1@matrix_table," SELECT ",matrix_id_value," AS ",flmatobj1@matrix_id_colname,",a.",flmatobj1@row_id_colname," AS ",flmatobj1@row_id_colname,",a.",flmatobj1@col_id_colname," AS ",flmatobj1@col_id_colname,",a.",flmatobj1@cell_val_colname,"+b.",flmatobj2@cell_val_colname," AS ",flmatobj1@cell_val_colname," FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"=b.",flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname))
-	sqlQuery(flmatobj1@odbc_connection, paste0(" INSERT INTO ",flmatobj1@db_name,".",flmatobj1@matrix_table," SELECT ",matrix_id_value," AS ",flmatobj1@matrix_id_colname,",a.",flmatobj1@row_id_colname," AS ",flmatobj1@row_id_colname,",a.",flmatobj1@col_id_colname," AS ",flmatobj1@col_id_colname,",a.",flmatobj1@cell_val_colname," AS ",flmatobj1@cell_val_colname," FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"!=b.",flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"!=b.",flmatobj2@col_id_colname))
-	sqlQuery(flmatobj1@odbc_connection, paste0(" INSERT INTO ",flmatobj1@db_name,".",flmatobj1@matrix_table," SELECT ",matrix_id_value," AS ",flmatobj1@matrix_id_colname,",b.",flmatobj2@row_id_colname," AS ",flmatobj1@row_id_colname,",b.",flmatobj2@col_id_colname," AS ",flmatobj1@col_id_colname,",b.",flmatobj2@cell_val_colname," AS ",flmatobj1@cell_val_colname," FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"!=b.",flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"!=b.",flmatobj2@col_id_colname))
+	
+	sqlQuery(flmatobj1@odbc_connection, paste0(" INSERT INTO ",flmatobj1@db_name,".",flmatobj1@matrix_table," SELECT ",matrix_id_value," AS ",
+		     flmatobj1@matrix_id_colname,",a.",flmatobj1@row_id_colname," AS ",flmatobj1@row_id_colname,",a.",flmatobj1@col_id_colname," AS ",
+		     flmatobj1@col_id_colname,",a.",flmatobj1@cell_val_colname,"+b.",flmatobj2@cell_val_colname," AS ",flmatobj1@cell_val_colname," FROM ",
+		     flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,
+		     "=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"=b.",
+		     flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname))
+	
+	sqlQuery(flmatobj1@odbc_connection, paste0(" INSERT INTO ",flmatobj1@db_name,".",flmatobj1@matrix_table," SELECT ",matrix_id_value," AS ",
+			flmatobj1@matrix_id_colname,",a.",flmatobj1@row_id_colname," AS ",flmatobj1@row_id_colname,",a.",flmatobj1@col_id_colname," AS ",
+			flmatobj1@col_id_colname,",a.",flmatobj1@cell_val_colname," AS ",flmatobj1@cell_val_colname," FROM ",flmatobj1@db_name,".",
+			flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",
+			flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"!=b.",
+			flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"!=b.",flmatobj2@col_id_colname))
+	
+	sqlQuery(flmatobj1@odbc_connection, paste0(" INSERT INTO ",flmatobj1@db_name,".",flmatobj1@matrix_table," SELECT ",matrix_id_value," AS ",
+		flmatobj1@matrix_id_colname,",b.",flmatobj2@row_id_colname," AS ",flmatobj1@row_id_colname,",b.",flmatobj2@col_id_colname," AS ",
+		flmatobj1@col_id_colname,",b.",flmatobj2@cell_val_colname," AS ",flmatobj1@cell_val_colname," FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table,
+		" a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," and b.",
+		flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"!=b.",flmatobj2@row_id_colname," and a.",
+		flmatobj1@col_id_colname,"!=b.",flmatobj2@col_id_colname))
+
 	new("FLSparseMatrix", odbc_connection = flmatobj1@odbc_connection, db_name = flmatobj1@db_name, matrix_table = flmatobj1@matrix_table, matrix_id_value = matrix_id_value, matrix_id_colname = flmatobj1@matrix_id_colname, row_id_colname = flmatobj1@row_id_colname, col_id_colname = flmatobj1@col_id_colname, cell_val_colname = flmatobj1@cell_val_colname)
 	}
 	else
@@ -80,8 +103,21 @@ FLSparseMatrix <- function(connection, database, matrix_table, matrix_id_value,m
 	matrix_id_value <- sqlQuery(flmatobj2@odbc_connection,paste(" SELECT max(",flmatobj2@matrix_id_colname,") FROM ",flmatobj2@matrix_table))[1,1] + 1
 	sqlQuery(flmatobj2@odbc_connection, paste("DATABASE", flmatobj2@db_name))
 	sqlQuery(flmatobj2@odbc_connection, "SET ROLE ALL")
-	sqlQuery(flmatobj2@odbc_connection, paste0(" INSERT INTO ",flmatobj2@db_name,".",flmatobj2@matrix_table," SELECT ",matrix_id_value," AS ",flmatobj2@matrix_id_colname,",a.",flmatobj1@row_id_colname," AS ",flmatobj2@row_id_colname,",a.",flmatobj1@col_id_colname," AS ",flmatobj2@col_id_colname,",a.",flmatobj1@cell_val_colname,"+b.",flmatobj2@cell_val_colname," AS ",flmatobj2@cell_val_colname," FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"=b.",flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname))
-	sqlQuery(flmatobj2@odbc_connection, paste0(" INSERT INTO ",flmatobj2@db_name,".",flmatobj2@matrix_table," SELECT ",matrix_id_value," AS ",flmatobj2@matrix_id_colname,",b.",flmatobj2@row_id_colname," AS ",flmatobj2@row_id_colname,",b.",flmatobj2@col_id_colname," AS ",flmatobj2@col_id_colname,",b.",flmatobj2@cell_val_colname," AS ",flmatobj2@cell_val_colname," FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"!=b.",flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"!=b.",flmatobj2@col_id_colname))
+	
+	sqlQuery(flmatobj2@odbc_connection, paste0(" INSERT INTO ",flmatobj2@db_name,".",flmatobj2@matrix_table," SELECT ",matrix_id_value," AS ",
+			flmatobj2@matrix_id_colname,",a.",flmatobj1@row_id_colname," AS ",flmatobj2@row_id_colname,",a.",flmatobj1@col_id_colname," AS ",
+			flmatobj2@col_id_colname,",a.",flmatobj1@cell_val_colname,"+b.",flmatobj2@cell_val_colname," AS ",flmatobj2@cell_val_colname," FROM ",
+			flmatobj1@db_name,".",flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,
+			"=",flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"=b.",
+			flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname))
+	
+	sqlQuery(flmatobj2@odbc_connection, paste0(" INSERT INTO ",flmatobj2@db_name,".",flmatobj2@matrix_table," SELECT ",matrix_id_value," AS ",
+			flmatobj2@matrix_id_colname,",b.",flmatobj2@row_id_colname," AS ",flmatobj2@row_id_colname,",b.",flmatobj2@col_id_colname," AS ",
+			flmatobj2@col_id_colname,",b.",flmatobj2@cell_val_colname," AS ",flmatobj2@cell_val_colname," FROM ",flmatobj1@db_name,".",
+			flmatobj1@matrix_table," a,",flmatobj2@db_name,".",flmatobj2@matrix_table," b WHERE a.",flmatobj1@matrix_id_colname,"=",
+			flmatobj1@matrix_id_value," and b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," and a.",flmatobj1@row_id_colname,"!=b.",
+			flmatobj2@row_id_colname," and a.",flmatobj1@col_id_colname,"!=b.",flmatobj2@col_id_colname))
+	
 	new("FLMatrix", odbc_connection = flmatobj2@odbc_connection, db_name = flmatobj2@db_name, matrix_table = flmatobj2@matrix_table, matrix_id_value = matrix_id_value, matrix_id_colname = flmatobj2@matrix_id_colname, row_id_colname = flmatobj2@row_id_colname, col_id_colname = flmatobj2@col_id_colname, cell_val_colname = flmatobj2@cell_val_colname)
 	}
 	}
@@ -108,8 +144,10 @@ FLSparseMatrix <- function(connection, database, matrix_table, matrix_id_value,m
 print.FLSparseMatrix <- function(object)
 {
 	sqlQuery(object@odbc_connection, paste0("DATABASE", object@db_name,"; SET ROLE ALL;"))
-	nrow <- sqlQuery(object@odbc_connection, paste0("SELECT max(",object@row_id_colname,") FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",object@matrix_id_value))[1,1]
-	valuedf <- sqlQuery(object@odbc_connection, paste0("SELECT * FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," ORDER BY 1,2,3"))
+	nrow <- sqlQuery(object@odbc_connection, paste0("SELECT max(",object@row_id_colname,") FROM ",object@matrix_table," WHERE ",
+					object@matrix_id_colname,"=",object@matrix_id_value))[1,1]
+	valuedf <- sqlQuery(object@odbc_connection, paste0("SELECT * FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",
+						object@matrix_id_value," ORDER BY 1,2,3"))
 	sparseMatrix(i=valuedf[,object@row_id_colname],j=valuedf[,object@col_id_colname],x=valuedf[,object@cell_val_colname])
 }
 
@@ -169,8 +207,10 @@ is.FLSparseMatrix <- function(object)
 	{
 		sqlQuery(flmatobj1@odbc_connection, paste("DATABASE", flmatobj1@db_name))
 		sqlQuery(flmatobj1@odbc_connection, "SET ROLE ALL")
-		nrow1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@row_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
-		ncol1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@col_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
+		nrow1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@row_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",
+						flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
+		ncol1 <- sqlQuery(flmatobj1@odbc_connection, paste0("SELECT max(",flmatobj1@col_id_colname,") FROM ",flmatobj1@matrix_table," WHERE ",
+						flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value))[1,1]
 		flmatobj2 <- as.FLMatrix(matrix(vec,nrow1,ncol1,byrow=TRUE),flmatobj1@odbc_connection)
 		flmatobj1+flmatobj2
 	}
@@ -199,8 +239,10 @@ as.matrix.numeric <- base::as.matrix.default
 as.matrix.FLSparseMatrix <- function(object)
 {
 	sqlQuery(object@odbc_connection, paste0("DATABASE", object@db_name,"; SET ROLE ALL;"))
-	nrow <- sqlQuery(object@odbc_connection, paste0("SELECT max(",object@row_id_colname,") FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",object@matrix_id_value))[1,1]
-	valuedf <- sqlQuery(object@odbc_connection, paste0("SELECT * FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," ORDER BY 1,2,3"))
+	nrow <- sqlQuery(object@odbc_connection, paste0("SELECT max(",object@row_id_colname,") FROM ",object@matrix_table," WHERE ",
+			object@matrix_id_colname,"=",object@matrix_id_value))[1,1]
+	valuedf <- sqlQuery(object@odbc_connection, paste0("SELECT * FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",
+			object@matrix_id_value," ORDER BY 1,2,3"))
 	as.matrix(sparseMatrix(i=valuedf[,object@row_id_colname],j=valuedf[,object@col_id_colname],x=valuedf[,object@cell_val_colname]))
 }
 
