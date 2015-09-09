@@ -52,7 +52,6 @@ FLTable <- function(connection, database, table,primary_key,var_id_name = charac
 	sqlQuery(connection, "SET ROLE ALL")
 
 	new("FLTable", odbc_connection = connection,db_name = database, table_name = table,primary_key = primary_key,var_id_name = var_id_name,num_val_name=num_val_name,isDeep = TRUE)
-
 	}
 	else{
 
@@ -93,4 +92,9 @@ names.FLTable <- function(object){
 		new("FLVector", table=table, col_name=colname)
 	}
 	else cat("ERROR: Invalid column name")
+}
+
+is.FLTable <- function(object)
+{
+	ifelse(class(object)=="FLTable",TRUE,FALSE)
 }
