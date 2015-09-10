@@ -20,6 +20,7 @@ setClass(
 		matrix_table = "character",
 		matrix_id_value	= "numeric",
 		matrix_id_colname = "character",
+		where_clause = "character",
 		row_id_colname = "character",
 		col_id_colname = "character",
 		cell_val_colname = "character"
@@ -254,6 +255,13 @@ nrow.FLMatrix<-function(object){
 	retobj
 }
 
+nrow.FLTable<-function(object){
+	connection<-object@odbc_connection
+	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
+	t<-sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@primary_key,") FROM ",object@table_name))[1,1]
+	return(t)
+}
+
 NROW<-function(x, ...){
 	UseMethod("NROW",x)
 }
@@ -261,6 +269,10 @@ NROW.integer<-base::NROW
 NROW.default<-base::NROW
 
 NROW.FLMatrix<-function(object){
+	nrow(object)
+}
+
+NROW.FLTable<-function(object){
 	nrow(object)
 }
 
@@ -281,6 +293,16 @@ ncol.FLMatrix<-function(object){
 	retobj
 }
 
+ncol.FLTable<-function(object){
+	connection<-object@odbc_connection
+	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
+	if(object@isDeep)
+	{
+	t<-sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@var_id_name,") FROM ",object@table_name))[1,1]
+	return(t)
+	}
+}
+
 NCOL<-function(x, ...){
 	UseMethod("NCOL",x)
 }
@@ -288,5 +310,9 @@ NCOL.integer<-base::NCOL
 NCOL.default<-base::NCOL
 
 NCOL.FLMatrix<-function(object){
+	ncol(object)
+}
+
+NCOL.FLTable<-function(object){
 	ncol(object)
 }
