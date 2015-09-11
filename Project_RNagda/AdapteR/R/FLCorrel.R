@@ -74,8 +74,7 @@ cor.FLMatrix <- function(x,y=x)
 	}
 	if(is.FLVector(y))
 	{
-		nrowy <- sqlQuery(y@table@odbc_connection, paste0("SELECT COUNT(a.",y@col_name,") FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
-		if(nrowy == nrow(x))
+		if(nrow(y) == nrow(x))
 		{
 			sqlQuery(x@odbc_connection,paste0("database ",x@db_name,"; set role all;"))
 			sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@col_name,") AS C FROM ",
@@ -91,6 +90,14 @@ cor.FLMatrix <- function(x,y=x)
 
 		}
 		else stop("incompatible dimensions")
+	}
+	if(is.FLTable(y))
+	{
+		if(nrow(x)!=nrow(y)) { stop(" invalid dimensions ") }
+		else 
+		{
+			return(t(cor(y,x)))
+		}
 	}
 }
 
@@ -113,6 +120,14 @@ cor.numeric <- function(x,y=x)
 			return (cor(x,y))
 		}
 		else stop(" invalid dimensions ")
+	}
+	else if(is.FLTable(y))
+	{
+		if(length(x)!=nrow(y)) { stop(" invalid dimensions ") }
+		else 
+			{
+				return(t(cor(y,x)))
+			}
 	}
 	else
 	{
@@ -139,6 +154,14 @@ cor.matrix <- function(x,y=x)
 		}
 		else stop(" invalid dimensions ")
 	}
+	else if(is.FLTable(y))
+	{
+		if(nrow(x)!=nrow(y)) { stop(" invalid dimensions ") }
+		else 
+		{
+			return(t(cor(y,x)))
+		}
+	}
 	else
 	{
 		return(cor.default(x,y))
@@ -164,6 +187,14 @@ cor.data.frame <- function(x,y=x)
 			return (cor(x,y))
 		}
 		else stop(" invalid dimensions ")
+	}
+	else if(is.FLTable(y))
+	{
+		if(nrow(x)!=nrow(y)) { stop(" invalid dimensions ") }
+		else 
+		{
+			return(t(cor(y,x)))
+		}
 	}
 	else
 	{
@@ -220,6 +251,14 @@ cor.FLVector <- function(x,y=x)
 			return (res)
 		}
 		else stop(" invalid dimensions ")
+	}
+	if(is.FLTable(y))
+	{
+		if(nrow(x)!=nrow(y)) { stop(" invalid dimensions ") }
+		else 
+		{
+			return(t(cor(y,x)))
+		}
 	}
 }
 
@@ -298,5 +337,104 @@ cor.FLTable <- function(x,y=x)
 			}
 		else stop(" incompatible dimensions ")
 		}
+	}
+	
+	if(is.FLMatrix(y))
+	{
+		if(nrowx == nrow(y))
+		{
+			if(x@isDeep)
+			{
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@col_id_colname," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
+							y@cell_val_colname,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@matrix_table," b WHERE a.",
+					        x@primary_key," = b.",y@row_id_colname," and b.",y@matrix_id_colname,"=",y@matrix_id_value,
+					        " GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," ORDER BY 1,2 ")
+			
+				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
+				correlmat <- matrix(vec,ncol(x),byrow=T)
+				return(correlmat)
+			}
+			if(!x@isDeep)
+			{
+				deeptablenamex <- gen_deep_table_name(x@table_name)
+				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
+								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
+				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
+				x <- new("FLTable", odbc_connection = x@odbc_connection,db_name = x@db_name, 
+							table_name = deeptablenamex,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@col_id_colname," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
+							y@cell_val_colname,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@matrix_table," b WHERE a.",
+					        x@primary_key," = b.",y@row_id_colname," and b.",y@matrix_id_colname,"=",y@matrix_id_value,
+					        " GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," ORDER BY 1,2 ")
+				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
+				varnamesx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
+					                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
+				correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
+				return(correlmat)
+			}
+		}
+		else stop(" incompatible dimensions ")
+	}
+
+	if(is.FLVector(y))
+	{
+		if(nrowx == nrow(y))
+		{
+			if(x@isDeep)
+			{
+				sqlQuery(x@odbc_connection,paste0("database ",x@db_name,"; set role all;"))
+				sqlstr <- paste0("SELECT a.",x@var_id_name,", ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C FROM ",
+						             x@db_name,".", x@table_name," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
+						             x@primary_key," = b.",y@table@primary_key," GROUP BY a.",x@var_id_name," ORDER BY 1")
+				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
+				correlmat <- matrix(vec,ncol(x),byrow=T)
+				return(correlmat)
+			}
+			if(!x@isDeep)
+			{
+				deeptablenamex <- gen_deep_table_name(x@table_name)
+				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
+								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
+				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
+				x <- new("FLTable", odbc_connection = x@odbc_connection,db_name = x@db_name, 
+						table_name = deeptablenamex,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
+				sqlstr <- paste0("SELECT a.",x@var_id_name,", ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C FROM ",
+						             x@db_name,".", x@table_name," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
+						             x@primary_key," = b.",y@table@primary_key," GROUP BY a.",x@var_id_name," ORDER BY 1")
+				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
+				varnamesx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
+						                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
+				correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
+				return(correlmat)
+			}
+		}
+		else stop(" incompatible dimensions ")
+	}
+	if(is.matrix(y))
+	{
+		if(nrowx == nrow(y))
+		{
+			y <- as.FLMatrix(y,x@odbc_connection)
+			return (cor(x,y))
+		}
+		else stop(" incompatible dimensions ")
+	}
+	if(is.numeric(y))
+	{
+		if(nrowx == length(y))
+		{
+			y <- as.FLMatrix(as.matrix(y),x@odbc_connection)
+			return (cor(x,y))
+		}
+		else stop(" incompatible dimensions ")
+	}
+	if(is.data.frame(y))
+	{
+		if(nrowx == nrow(y))
+		{
+			y <- as.FLMatrix(as.matrix(y),x@odbc_connection)
+			return (cor(x,y))
+		}
+		else stop(" incompatible dimensions ")
 	}
 }
