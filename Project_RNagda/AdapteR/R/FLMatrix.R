@@ -240,14 +240,16 @@ as.matrix.FLMatrix <- function(flmatobj1)
 	matrix(vec,nrow,ncol,byrow=TRUE)
 }
 
-nrow<-function(x, ...){
+nrow<-function(x, ...)
+{
 	UseMethod("nrow",x)
 }
 nrow.integer<-base::nrow
 nrow.matrix<-base::nrow
 nrow.default<-base::nrow
 
-nrow.FLMatrix<-function(object){
+nrow.FLMatrix<-function(object)
+{
 	connection<-object@odbc_connection
 	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
 	sqlstr<-paste0("SELECT MAX(",object@row_id_colname,") FROM ",object@matrix_table," WHERE ",object@matrix_id_colname," = ",object@matrix_id_value)
@@ -255,10 +257,19 @@ nrow.FLMatrix<-function(object){
 	retobj
 }
 
-nrow.FLTable<-function(object){
+nrow.FLTable<-function(object)
+{
 	connection<-object@odbc_connection
 	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
 	t<-sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@primary_key,") FROM ",object@table_name))[1,1]
+	return(t)
+}
+
+nrow.FLVector<-function(object)
+{
+	connection<-object@table@odbc_connection
+	sqlQuery(object@table@odbc_connection,paste0("DATABASE ",object@table@db_name,";"," SET ROLE ALL;"))
+	t<-sqlQuery(object@table@odbc_connection, paste0(" SELECT max(",object@table@primary_key,") FROM ",object@table@table_name))[1,1]
 	return(t)
 }
 
@@ -273,6 +284,10 @@ NROW.FLMatrix<-function(object){
 }
 
 NROW.FLTable<-function(object){
+	nrow(object)
+}
+
+NROW.FLVector<-function(object){
 	nrow(object)
 }
 
