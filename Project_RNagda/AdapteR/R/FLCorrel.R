@@ -35,7 +35,9 @@ cor.FLMatrix <- function(x,y=x)
 					        " and b.",y@matrix_id_colname,"=",y@matrix_id_value," GROUP BY a.",x@col_id_colname,", b.",y@col_id_colname," ORDER BY 1,2 ")
 			
 			vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
-			correlmat <- matrix(vec,ncol(x),byrow=T)
+                    correlmat <- matrix(vec,ncol(x),byrow=T)
+
+                    ## GK: This can be transformed into a matrix one time.
 			correlflmat<-as.FLMatrix(correlmat,x@odbc_connection);
 			#print(correlflmat)
 			#print(correlmat)
@@ -76,12 +78,24 @@ cor.FLMatrix <- function(x,y=x)
 	{
 		if(nrow(y) == nrow(x))
 		{
-			sqlQuery(x@odbc_connection,paste0("database ",x@db_name,"; set role all;"))
-			sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@col_name,") AS C FROM ",
-					             x@db_name,".", x@matrix_table," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
-					             x@row_id_colname," = b.",y@table@primary_key," and a.",x@matrix_id_colname,"=",x@matrix_id_value,
-					             " GROUP BY a.",x@col_id_colname," ORDER BY 1")
-			vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
+                    sqlQuery(x@odbc_connection,paste0("database ",x@db_name,"; set role all;"))
+                    ## GK: please aim for readability!
+			## sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@col_name,") AS C FROM ",
+			## 		             x@db_name,".", x@matrix_table," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
+			## 		             x@row_id_colname," = b.",y@table@primary_key," and a.",x@matrix_id_colname,"=",x@matrix_id_value,
+			## 		             " GROUP BY a.",x@col_id_colname," ORDER BY 1")
+                    sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",
+                                     x@db_name,".FLCorrel(",
+                                     "                    a.",x@cell_val_colname,
+                                     "                    ,b.",y@col_name,") AS C",
+                                     " FROM ", x@db_name,".", x@matrix_table," a, ",
+                                     "      ", y@table@db_name,".",y@table@table_name," b ",
+                                     " WHERE a.", x@row_id_colname," = b.",y@table@primary_key,
+                                     " AND a.",x@matrix_id_colname,"=",x@matrix_id_value,
+                                     " GROUP BY a.",x@col_id_colname,
+                                     " ORDER BY 1")
+
+                    vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 			correlmat <- matrix(vec,ncol(x),byrow=T)
 			correlflmat<-as.FLMatrix(correlmat,x@odbc_connection);
 			#print(correlflmat)
