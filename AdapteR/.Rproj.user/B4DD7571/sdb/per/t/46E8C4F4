@@ -1,0 +1,17 @@
+{
+    "contents" : "setwd(\"C:/Users/STPL/Downloads/2-10/Project_RNagda/AdapteR/R\")\nconnection <- odbcConnect(\"Gandalf\")\ndevtools::load_all(\"AdapteR\")\nm<-matrix(1:4,2,dimnames=list(c(\"a\",\"b\"),c()))\nflm<-as.FLMatrix(m,connection)\nv<-1:4\nflv<-as.FLVector(v,connection)\ntbl<-FLTable(connection, \"FL_TRAIN\", \"tblTemp\", \"MATRIX_ID\")\nflvw<-FLVector(tbl,\"CELL_VAL\")\n",
+    "created" : 1445194206436.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1750057532",
+    "id" : "46E8C4F4",
+    "lastKnownWriteTime" : 1445160996,
+    "path" : "~/R/myRfiles/startup.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
