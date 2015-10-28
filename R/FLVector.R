@@ -1,104 +1,105 @@
 #' @include utilities.R
-#' @include utilities.R
-#' @include FLMatrix.R
 #' @include FLTable.R
 NULL
+#' An S4 class to represent FLVector
+#'
+#' @slot table object of class FLTable
+#' @slot col_name A character column name
+#' @slot vector_id_value numeric
+#' @slot size numeric
+setClass(
+	"FLVector",
+	slots = list(
+		table = "FLTable",
+		col_name = "character",
+		vector_id_value = "numeric",
+		size = "numeric"
+	)
+)
 
-
-#' Constructor function for FLVector, representing a vector in database
-#' 
-#' Please use subsetting of FLTable to create FLVector object
-#' @return \code{FLVector} returns an object of class FLVector mapped to an in-database vector.
+#' Constructor function for FLVector.
+#'
+#' \code{FLVector} constructs an object of class \code{FLVector}.
+#'
+#' \code{FLVector} object is an in-database equivalent to a vector.
+#' This object is used as input for matrix and arithmetic operation functions.
+#' @param table FLTable object as returned by \code{\link[AdapteR]{FLTable}}
+#'   where the vector is stored
+#' @param colname name of the column in \code{table} where vector elements are stored
+#' @param vector_id_value unique identifier for the vector if stored in deep table
+#' @return \code{FLVector} returns an object of class FLVector mapped
+#' to an in-database vector.
 #' @seealso \code{\link{FLTable}}
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
-#' flvectorColumn <- WideTable[,"Diameter"]
-#' flvectorRow <- WideTable[3,]
-#' flvectorRow
-#' flvectorColumn
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
+#' flvectorWide <- FLVector(WideTable,"vector_value")
+#' DeepTable <- FLTable(connection, "FL_TRAIN", "tblVectorDeep","vector_id","vector_key","vector_value")
+#' flvectorDeep <- FLVector(DeepTable,"vector_value",1)
 #' @export
-FLVector <- function(table,
-                     val_col_name = character(),
-                     val_row_name = character(),
-                     whereconditions=character()) {
-    stop("Please use subsetting to create vectors")
-    V <- NULL
-	if(table@isDeep) {
-        if(length(val_col_name)) { ## column vector deep table
-            V <- new("FLVector",
-                     table = table, 
-                     val_col_name = table@variables$valueColumn,
-                     whereconditions = c(whereconditions,
-                                         equalityConstraint(
-                                             table@var_id_colname,val_col_name)))
-            ##V <- V[val_row_name]
-        } else if(length(val_row_name)) { ## column vector deep table
-            V <- new("FLVector",
-                     table = table, 
-                     val_col_name = table@variables$valueColumn,
-                     whereconditions = c(whereconditions,
-                                         equalityConstraint(
-                                             table@obs_id_colname,val_row_name)))
-        }
-    } else if(!table@isDeep) {
-        if(length(val_col_name)) { 
-            V <- new("FLVector",
-                     table = table, 
-                     val_col_name = val_col_name,
-                     whereconditions = c(whereconditions))
-            ##V <- V[val_row_name]
-        } else if(length(val_row_name)) { ## column vector deep table
-            V <- new("FLVector",
-                     table = table, 
-                     val_col_name = names(table),
-                     whereconditions = c(whereconditions,
-                                         paste0(table@obs_id_colname,"=",val_row_name)))
-        }
+
+FLVector <- function(table, col_name,
+					 vector_id_value=numeric(0), 
+					 size=numeric(0))
+{
+	sqlQuery(table@odbc_connection,
+			 paste("DATABASE", table@db_name,";
+			 		SET ROLE ALL;"))
+
+	
+	if(table@isDeep && length(vector_id_value))
+	{
+		size <- sqlQuery(table@odbc_connection,
+						 paste0("SELECT max(",table@var_id_name,")
+						 		 FROM ",table@table_name," 
+						 		 WHERE ",table@primary_key,"=",vector_id_value))[1,1]
+        new("FLVector", 
+        	table = table, 
+        	col_name = table@num_val_name, 
+        	vector_id_value = vector_id_value, 
+        	size = size)
     }
-    if(is.null(V))
-        stop("column not in wide table or invalid inputs for deep table")
-    
-    return(V)
+    else if(!table@isDeep)
+    {
+        size <- sqlQuery(table@odbc_connection,
+        				 paste0("SELECT max(",table@primary_key,")
+        				 		 FROM ",table@table_name))[1,1]
+        new("FLVector", 
+        	table = table, 
+        	col_name = col_name, 
+        	vector_id_value = vector_id_value, 
+        	size = size)
+    }
+    else
+    {
+    	stop("column not in wide table or invalid inputs for deep table")	
+    }
 }
 
-#' @export
-setMethod("show","FLVector",function(object) print(as.vector(object)))
+max_vector_id_value <- 0
+max_vector_id_value <- max_vector_id_value + 1
+result_db_name <- "FL_TRAIN"
+result_vector_table <- gen_unique_table_name("tblVectorResult")
+# result_vector_table <- "tblVectorResult"
+flag3 <- 0
 
-#' Assign names to FLVectors
-#' 
-#' @param x FLVector
-#' @param value a vector of length same as
-#' FLVector
-#' @return named FLVector
-#' @export
-`names<-.FLVector` <- function(x,value)
+print.FLVector <- function(object)
 {
-    if(length(value)!=length(x))
-    stop("names should be of same length as FLVector")
-    else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
+    sqlQuery(object@table@odbc_connection, paste0("DATABASE", object@table@db_name,"; SET ROLE ALL;"))
     
-    if(ncol(x)==1)
-    x@dimnames[[1]] <- as.character(value)
-    else if(ncol(x)>1)
-    x@dimnames[[2]] <- as.character(value)
-    return(x)
+    if(object@table@isDeep && length(object@vector_id_value))
+    {
+        valuedf <- sqlQuery(object@table@odbc_connection, paste0("SELECT * FROM ",object@table@table_name," WHERE ",object@table@primary_key,"=",
+        object@vector_id_value," ORDER BY ",object@table@var_id_name))
+        print(as.vector(valuedf[,object@col_name]))
+    }
+    else if(!object@table@isDeep)
+    {
+        valuedf <- sqlQuery(object@table@odbc_connection, paste0("SELECT ",object@table@primary_key,",",object@col_name," FROM ",
+                            object@table@table_name," ORDER BY ",object@table@primary_key))
+        print(as.vector(valuedf[,object@col_name]))
+    }
 }
 
-#' Get names of a FLVector
-#'
-#' @param x FLVector
-#' @return character vector of names
-#' of FLVector if exists. Else NULL
-#' @export
-names.FLVector <- function(x)
-{
-    if(ncol(x)==1)
-    vnames <- x@dimnames[[1]]
-    else if(ncol(x)>1)
-    vnames <- x@dimnames[[2]]
-
-    if(all(vnames==1:length(vnames)))
-    return(NULL)
-    else return(vnames)
-}
+setMethod("show","FLVector",print.FLVector)

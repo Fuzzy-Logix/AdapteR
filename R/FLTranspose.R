@@ -5,45 +5,53 @@
 #' @include FLPrint.R
 NULL
 
+t<-function(x, ...){
+	UseMethod("t", x)
+}
 #' Matrix Transpose.
 #'
 #' \code{t} returns the transpose of FLMatrix objects.
 #'
+#' The wrapper overloads t such that given a matrix of class FLMatrix, t returns the transpose of that object
 #' @param object is of class FLMatrix
-#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can be a matrix of dimensions (m x n) where m > n, m < n or m = n.
 #' @return \code{t} returns a FLMatrix object which is the transpose of input FLMatrix object
 #' and replicates the equivalent R output.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' resultFLMatrix <- t(flmatrix)
 #' @export
-t<-function(object, ...){
-	UseMethod("t", object)
-}
+t.FLMatrix<-function(object)
+{
+	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
 
-#' @export
-t.FLMatrix<-function(object,...){
-    if(class(object@select)=="FLTableFunctionQuery")
-        object <- store(object)
-    swapRowCol <- function(select){
-        newrc <- select@variables$rowIdColumn
-        select@variables$rowIdColumn <- select@variables$colIdColumn
-        select@variables$colIdColumn <- newrc
-        return(select)
-    }
-    object@select <- swapRowCol(object@select)
-    object@mapSelect <- swapRowCol(object@select)
-    object@dim <- rev(object@dim)
-    object@dimnames <- rev(object@dimnames)
-    return(object)
-}
+	flag1Check(object@odbc_connection)
+	
+	sqlQuery(object@odbc_connection, paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		                                    " SELECT ",max_matrix_id_value,
+		                                             ",a.",
+			                                          object@col_id_colname," AS ",object@row_id_colname,
+			                                          ",a.",object@row_id_colname," AS ",object@col_id_colname,
+			                                          ",a.",object@cell_val_colname," AS ",object@cell_val_colname,
+			                                " FROM ",object@matrix_table," a 
+			                                where a.",object@matrix_id_colname,"=",object@matrix_id_value))
 
-#' @export
-t.FLMatrixBind<-function(object,...){
-    ## gk: todo: design deep row/column index swap
-    return(t(store(object)))
+	max_matrix_id_value <<- max_matrix_id_value + 1
+
+	new("FLMatrix", 
+		odbc_connection = object@odbc_connection, 
+		db_name = result_db_name, 
+		matrix_table = result_matrix_table, 
+		matrix_id_value = max_matrix_id_value - 1, 
+		matrix_id_colname = "MATRIX_ID", 
+		row_id_colname = "ROW_ID", 
+		col_id_colname = "COL_ID", 
+		cell_val_colname = "CELL_VAL", 
+		nrow = object@ncol, 
+		ncol = object@nrow, 
+		dimnames = list(object@dimnames[[2]],object@dimnames[[1]]))
+	
 }

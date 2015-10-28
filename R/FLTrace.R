@@ -1,5 +1,6 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
@@ -11,45 +12,53 @@ NULL
 #' \code{tr} computes the trace of FLMatrix objects.
 #'
 #' \code{tr} computes the trace of input FLMatrix object, stores the result
-#' in-database and returns R vector object
-#' @param object an object of class FLMatrix
-#' @param ... any additional arguments
-#' @return \code{tr} returns R Vector object of size 1 which replicates the equivalent R output.
+#' in-database and returns FLVector object
+#' @param x an object of class FLMatrix
+#' @return \code{tr} returns FLVector object of size 1 which replicates the equivalent R output.
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations
 #' of (1000 x 1000).
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' resultFLVector <- tr(flmatrix)
 #' @export
 
-tr<-function(object, ...){
-	UseMethod("tr", object)
+tr<-function(x, ...){
+	UseMethod("tr", x)
 }
 
-#' @export
-tr.default <- psych::tr
-
-#' @export
-tr.FLMatrix<-function(object,...){
-	connection<-getConnection(object)
+tr.FLMatrix<-function(object){
+	connection<-object@odbc_connection
 	
 	flag3Check(connection)
 
-	sqlstr<-paste0( " SELECT 
-					  FLMatrixTrace(",getVariables(object)$rowId,
-			         			   ",",getVariables(object)$colId,
-			              		   ",",getVariables(object)$value,")",
-				    " FROM ",remoteTable(object),
-				    constructWhere(c(constraintsSQL(object),
-				    	paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
-				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))
+	sqlstr<-paste0(     " INSERT INTO ",result_db_name,".",result_vector_table,
+						" SELECT ",max_vector_id_value,
+						         ",1, 
+						         CAST(FLMatrixTrace(a.",object@row_id_colname,", a.",object@col_id_colname,
+						              ", a.",object@cell_val_colname,") AS NUMBER) ",
+					    " FROM ",object@matrix_table," a",
+					    " GROUP BY a.",object@matrix_id_colname,
+					    " WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,
+					    " AND a.", object@row_id_colname," <= ",min(object@nrow,object@ncol),
+					    " AND a.",object@col_id_colname, " <= ", min(object@nrow,object@ncol))
+	
+	sqlQuery(connection,sqlstr)
+	
+	max_vector_id_value <<- max_vector_id_value + 1
 
-	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-	sqlstr <- ensureQuerySize(pResult=sqlstr,
-            pInput=list(object),
-            pOperator="tr")
-	return(sqlQuery(connection,sqlstr)[1,1])
+	table <- FLTable(connection,
+		             result_db_name,
+		             result_vector_table,
+		             "VECTOR_ID",
+		             "VECTOR_INDEX",
+		             "VECTOR_VALUE")
+
+	new("FLVector", 
+		table = table, 
+		col_name = table@num_val_name, 
+		vector_id_value = max_vector_id_value-1, 
+		size = 1)
 }

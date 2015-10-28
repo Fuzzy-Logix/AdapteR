@@ -1,63 +1,72 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
 #' @include FLDims.R
 NULL
 
+FLSV <- function (x, ...){
+  UseMethod("FLSV", x)
+}
+
 #' Singular Values of a FLMatrix.
 #'
 #' \code{FLSV} computes the singular values for FLMatrix objects.
 #'
+#' The wrapper overloads FLSV and implicitly calls FLSVUdt.
 #' @param object is of class FLMatrix
-#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (700 x 700).
 #' @return \code{FLSV} returns a FLVector object representing the singular values.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLVector <- FLSV(flmatrix)
 #' @export
-FLSV <- function (object, ...){
-  UseMethod("FLSV", object)
-}
 
-#' @export
-FLSV.FLMatrix<-function(object,...)
+FLSV.FLMatrix<-function(object)
 {
-	#checkSquare(object)
-	connection<-getConnection(object)
+	if(object@nrow != object@ncol)
+	{
+		stop("not a square matrix")
+	}
+	connection<-object@odbc_connection
 	flag3Check(connection)
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLSVUdt",includeMID=FALSE,
-                   	outColNames=list(vectorIdColumn="'%insertIDhere%'",
-                                     vectorIndexColumn="OutputID",
-                                     vectorValueColumn="OutputSV"),
-                    viewName="z",localName="a",vconnection=connection)
-                   )
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					AS (SELECT a.",object@matrix_id_colname,", 
+							   a.",object@row_id_colname,", 
+							   a.",object@col_id_colname,",
+							   a.",object@cell_val_colname," 
+						FROM  ",object@matrix_table," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_vector_id_value,
+					       ",a.OutputID,
+					       CAST(a.OutputSV AS NUMBER) 
+					FROM TABLE (FLSVUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+								HASH BY z.Matrix_ID 
+								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) 
+					AS a;")
 
-	 tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
-                        variables = list(
-                      obs_id_colname = "vectorIndexColumn",
-                      cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+	sqlQuery(connection,sqlstr)
+	
+	max_vector_id_value <<- max_vector_id_value + 1
+	
+	table <- FLTable(connection,
+		             result_db_name,
+		             result_vector_table,
+		             "VECTOR_ID",
+		             "VECTOR_INDEX",
+		             "VECTOR_VALUE")
 
-  flv <- new("FLVector",
-        select = tblfunqueryobj,
-        dimnames = list(1:nrow(object),
-                        "vectorValueColumn"),
-        isDeep = FALSE)
-
-  return(ensureQuerySize(pResult=flv,
-              pInput=list(object),
-              pOperator="FLSV",
-              pStoreResult=TRUE))
+	new("FLVector", 
+		table = table, 
+		col_name = table@num_val_name, 
+		vector_id_value = max_vector_id_value-1, 
+		size = object@nrow)
 }

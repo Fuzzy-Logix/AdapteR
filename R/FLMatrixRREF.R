@@ -1,58 +1,74 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
 #' @include FLDims.R
 NULL
 
+FLMatrixRREF <- function (x, ...){
+	UseMethod("FLMatrixRREF", x)
+}
+
 #' Reduced Row Echelon form of a Matrix.
 #'
 #' \code{FLMatrixRREF} gives the Reduced Row Echelon form of FLMatrix objects.
 #'
+#' The wrapper overloads FLMatrixRREF and implicitly calls FLMatrixRREFUdt.
 #' @param object is of class FLMatrix
-#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square FLMatrix with maximum dimension limitations of (1000 x 1000).
 #' @return \code{FLMatrixRREF} returns a FLMatrix object which is the Reduced Row Echelon form of input FLMatrix.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLMatrix <- FLMatrixRREF(flmatrix)
 #' @export
-FLMatrixRREF <- function (object, ...){
-	UseMethod("FLMatrixRREF", object)
-}
 
-#' @export
-FLMatrixRREF.FLMatrix<-function(object,...)
+FLMatrixRREF.FLMatrix<-function(object)
 {
 
-	connection<-getConnection(object)
+	if(object@nrow != object@ncol) 
+	{ 
+		stop("FLMatrixRREF function is applicable on square matrix only") 
+	}
+
+	connection<-object@odbc_connection
 	flag1Check(connection)
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLMatrixRREFUdt",viewName="z",
-                   	localName="a",includeMID=TRUE,vconnection=connection)
-                   )
+	sqlstr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+						AS (SELECT a.",object@matrix_id_colname,", 
+								   a.",object@row_id_colname,", 
+								   a.",object@col_id_colname,", 
+								   a.",object@cell_val_colname,
+							" FROM  ",object@matrix_table," a 
+							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_matrix_id_value,
+					       ",a.OutputRowNum,
+					        a.OutputColNum,
+					        a.OutputVal 
+					FROM TABLE (FLMatrixRREFUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+						HASH BY z.Matrix_ID 
+						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
+	
+	sqlQuery(connection,sqlstr)
+	
+	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
-                        variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-
-  	flm <- new("FLMatrix",
-            select= tblfunqueryobj,
-            dimnames=dimnames(object))
-
-  	return(ensureQuerySize(pResult=flm,
-            pInput=list(object),
-            pOperator="FLMatrixRREF",
-            pStoreResult=TRUE))
+	return(new("FLMatrix", 
+		       odbc_connection = connection, 
+		       db_name = result_db_name, 
+		       matrix_table = result_matrix_table, 
+			   matrix_id_value = max_matrix_id_value-1,
+			   matrix_id_colname = "MATRIX_ID", 
+			   row_id_colname = "ROW_ID", 
+			   col_id_colname = "COL_ID", 
+			   cell_val_colname = "CELL_VAL",
+			   nrow = object@nrow, 
+			   ncol = object@ncol, 
+			   dimnames = list(c(),c()))
+	      )
 }

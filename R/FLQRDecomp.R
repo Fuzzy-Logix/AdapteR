@@ -1,5 +1,6 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
@@ -8,13 +9,17 @@ NULL
 
 library(Matrix)
 
+qr<-function(x, ...){
+	UseMethod("qr",x)
+}
+
 #' QR Decomposition.
 #'
 #' The QR decomposition involves factorizing a matrix into QMatrix and RMatrix.
 #'
 #' \code{qr} replicates the equivalent qr() generic function.\cr
+#' The wrapper overloads qr and implicitly calls FLQRDecompUdt.\cr\cr
 #' @param object is of class FLMatrix
-#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations of (700 x 700).
 #' @return \code{qr} returns a list of five components:
@@ -25,97 +30,186 @@ library(Matrix)
 #' \item{QMatrix}{the resulting Q Matrix stored in-database as FLMatrix}
 #' \item{RMatrix}{the resulting R Matrix stored in-database as FLMatrix}
 #' @examples
-#' connection<-RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection<-odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultList <- qr(flmatrix)
 #' resultList$qr
 #' resultList$qraux
 #' resultList$rank
-#' resultList$pivot
+#' resultList$QMatrix
+#' resultList$RMatrix
 #' @export
-qr<-function(object, ...){
-	UseMethod("qr",object)
-}
 
-#' @export
-qr.FLMatrix<-function(object,...)
+qr.FLMatrix<-function(object)
 {
-	connection<-getConnection(object)
+	connection<-object@odbc_connection
 	flag1Check(connection)
 	flag3Check(connection)
-
-	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
-	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
-
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
-                     viewSelectMatrix(object, "a","z"),
-                     outputSelectMatrix("FLQRDecompUdt",viewName="z",localName="a",
-                    	outColNames=list("OutputMatrixID","OutputRowNum",
-                    		"OutputColNum","OutputValQ","OutputValR"),
-                    	whereClause=") WITH DATA;")
-                   )
-
-    sqlstr <- ensureQuerySize(pResult=sqlstr,
-	            pInput=list(object),
-	            pOperator="qr")
-
-    sqlSendUpdate(connection,sqlstr)
 	
-	#calculating QRMatrix
-    MID1 <- getMaxMatrixId(connection)
+	# calculating QMatrix
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					AS (SELECT a.",object@matrix_id_colname,", 
+							   a.",object@row_id_colname,", 
+							   a.",object@col_id_colname,", 
+							   a.",object@cell_val_colname," 
+						FROM  ",object@matrix_table," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_matrix_id_value,",
+							 a.OutputRowNum,
+							 a.OutputColNum,
+							 a.OutputValQ
+					FROM TABLE (FLQRDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+								HASH BY z.Matrix_ID 
+								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
+	
+	sqlQuery(connection,sqlstr)
 
-    sqlstrQR <-paste0(" SELECT ",MID1,
-					         ",OutputRowNum
-					          ,OutputColNum
-					          ,OutputValQ 
-					  FROM ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),
-					 " WHERE OutputRowNum > OutputColNum ",
-					 " UNION ALL ",
-					 " SELECT ",MID1,
-					         ",OutputRowNum
-					          ,OutputColNum
-					          ,OutputValR 
-					  FROM ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),
-					 " WHERE OutputRowNum <= OutputColNum;")
+	max_matrix_id_value <<- max_matrix_id_value + 1
 
-    tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
-                        variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstrQR)
+	QMatrix <- new("FLMatrix", 
+		       odbc_connection = connection, 
+		       db_name = result_db_name, 
+		       matrix_table = result_matrix_table, 
+			   matrix_id_value = max_matrix_id_value-1,
+			   matrix_id_colname = "MATRIX_ID", 
+			   row_id_colname = "ROW_ID", 
+			   col_id_colname = "COL_ID", 
+			   cell_val_colname = "CELL_VAL",
+			   nrow = object@nrow, 
+			   ncol = object@ncol, 
+			   dimnames = list(c(),c()))
 
-  	flm <- new("FLMatrix",
-            select= tblfunqueryobj,
-            dimnames=dimnames(object))
+	# calculating RMatrix
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					AS (SELECT a.",object@matrix_id_colname,", 
+							   a.",object@row_id_colname,", 
+							   a.",object@col_id_colname,", 
+							   a.",object@cell_val_colname," 
+						FROM  ",object@matrix_table," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_matrix_id_value,",
+							 a.OutputRowNum,
+							 a.OutputColNum,
+							 a.OutputValR
+					FROM TABLE (FLQRDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+								HASH BY z.Matrix_ID 
+								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
+	
+	sqlQuery(connection,sqlstr)
 
-  	QRMatrix <- store(object=flm)
+	max_matrix_id_value <<- max_matrix_id_value + 1
 
-    #calculating qraux
-	table <- FLTable(
-		             getOption("ResultDatabaseFL"),
-		             tempResultTable,
-		             "OutputRowNum",
-		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
-		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum ")
-		             )
+	RMatrix <- new("FLMatrix", 
+		       odbc_connection = connection, 
+		       db_name = result_db_name, 
+		       matrix_table = result_matrix_table, 
+			   matrix_id_value = max_matrix_id_value-1,
+			   matrix_id_colname = "MATRIX_ID", 
+			   row_id_colname = "ROW_ID", 
+			   col_id_colname = "COL_ID", 
+			   cell_val_colname = "CELL_VAL",
+			   nrow = object@nrow, 
+			   ncol = object@ncol, 
+			   dimnames = list(c(),c()))
 
-	qraux <- table[,"OutputValQ"]
+	#calculating qraux
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					AS (SELECT a.",object@matrix_id_colname,", 
+							   a.",object@row_id_colname,", 
+							   a.",object@col_id_colname,", 
+							   a.",object@cell_val_colname," 
+						FROM  ",object@matrix_table," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_vector_id_value,",
+							 a.OutputRowNum,
+							 CAST(a.OutputValQ AS NUMBER) 
+					FROM TABLE (FLQRDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+								HASH BY z.Matrix_ID 
+								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a 
+					WHERE a.OutputRowNum = a.OutputColNum;")
+	
+	sqlQuery(connection,sqlstr)
+
+	max_vector_id_value <<- max_vector_id_value + 1
+	
+	table <- FLTable(connection,
+		             result_db_name,
+		             result_vector_table,
+		             "VECTOR_ID",
+		             "VECTOR_INDEX",
+		             "VECTOR_VALUE")
+
+	qraux <- new("FLVector", 
+		        table = table, 
+				col_name = table@num_val_name, 
+				vector_id_value = max_vector_id_value-1, 
+				size = object@nrow)
 	
 	#calculating rank
 	r<-rankMatrix(object)
 
+	#calculating QRMatrix
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					AS (SELECT a.",object@matrix_id_colname,", 
+							   a.",object@row_id_colname,", 
+							   a.",object@col_id_colname,", 
+							   a.",object@cell_val_colname," 
+						FROM  ",object@matrix_table," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_matrix_id_value,",
+							 a.OutputRowNum,
+							 a.OutputColNum,
+							 a.OutputValQ
+					FROM TABLE (FLQRDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+								HASH BY z.Matrix_ID 
+								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
+	                WHERE a.OutputRowNum > a.OutputColNum;")
 	
+	sqlQuery(connection,sqlstr)
 
-	resultList <- list(qr = QRMatrix,
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					AS (SELECT a.",object@matrix_id_colname,", 
+							   a.",object@row_id_colname,", 
+							   a.",object@col_id_colname,", 
+							   a.",object@cell_val_colname," 
+						FROM  ",object@matrix_table," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					SELECT ",max_matrix_id_value,",
+							 a.OutputRowNum,
+							 a.OutputColNum,
+							 a.OutputValR
+					FROM TABLE (FLQRDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+								HASH BY z.Matrix_ID 
+								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a 
+					WHERE a.OutputRowNum <= a.OutputColNum;")
+	
+	sqlQuery(connection,sqlstr)
+
+	max_matrix_id_value <<- max_matrix_id_value + 1
+
+	QRMatrix <- new("FLMatrix", 
+		       odbc_connection = connection, 
+		       db_name = result_db_name, 
+		       matrix_table = result_matrix_table, 
+			   matrix_id_value = max_matrix_id_value-1,
+			   matrix_id_colname = "MATRIX_ID", 
+			   row_id_colname = "ROW_ID", 
+			   col_id_colname = "COL_ID", 
+			   cell_val_colname = "CELL_VAL",
+			   nrow = object@nrow, 
+			   ncol = object@ncol, 
+			   dimnames = list(c(),c()))
+
+	resultList <- list(QRMatrix = QRMatrix,
 					   rank = r,
 					   qraux = qraux,
-					   pivot= 1:ncol(object))
-
-	return(resultList)
+					   QMatrix = QMatrix,
+					   RMatrix = RMatrix)
+	resultList
 }
 

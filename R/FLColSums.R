@@ -1,61 +1,59 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
 #' @include FLDims.R
 NULL
 
+colSums <- function (x, ...){
+  UseMethod("colSums", x)
+}
+
+colSums.default <- base::colSums
+
 #' column sums of a FLMatrix.
 #'
 #' \code{colSums} computes the column-wise sums of FLMatrix objects.
 #'
+#' The wrapper overloads colSums and extends it to FLMatrix objects.
 #' @param object is of class FLMatrix.
 #' @return \code{colSums} returns a FLVector object representing the col-wise sums.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLVector <- colSums(flmatrix)
 #' @export
-colSums <- function (object, ...){
-  UseMethod("colSums", object)
-}
 
-#' @export
-colSums.default <- base::colSums
-
-#' @export
-colSums.FLMatrix<-function(object,...)
+colSums.FLMatrix<-function(object)
 {
-	connection<-getConnection(object)
+	connection<-object@odbc_connection
 	flag3Check(connection)
-	var <- genRandVarName()
 
-	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
-			        ",",var,".colIdColumn AS vectorIndexColumn",
-			        ", SUM(",var,".valueColumn) AS vectorValueColumn 
-					FROM ",
-					"( ",constructSelect(object),
-					" ) AS ",var,
-					" GROUP BY ",var,".colIdColumn")
+	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table, 
+					" SELECT ",max_vector_id_value,
+					         ",a.",object@col_id_colname,
+					         ", CAST(SUM(a.",object@cell_val_colname,") AS NUMBER) 
+					FROM ",object@db_name,".",object@matrix_table," a 
+					WHERE a.",object@matrix_id_colname,"=",object@matrix_id_value,
+					" GROUP BY a.",object@col_id_colname)
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
-                        variables = list(
-			                obs_id_colname = "vectorIndexColumn",
-			                cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-
-	flv <- new("FLVector",
-				select = tblfunqueryobj,
-				dimnames = list(1:ncol(object),
-								"vectorValueColumn"),
-				isDeep = FALSE)
+	sqlQuery(connection,sqlstr)
 	
-	return(ensureQuerySize(pResult=flv,
-	            pInput=list(object),
-	            pOperator="colSums"))
+	max_vector_id_value <<- max_vector_id_value + 1
+	
+	table <- FLTable(connection,
+		             result_db_name,
+		             result_vector_table,
+		             "VECTOR_ID",
+		             "VECTOR_INDEX",
+		             "VECTOR_VALUE")
+
+	new("FLVector", 
+		table = table, 
+		col_name = table@num_val_name, 
+		vector_id_value = max_vector_id_value-1, 
+		size = object@ncol)
 }
