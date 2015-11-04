@@ -5,8 +5,6 @@ library(testthat)
 require(Matrix)
 require(testthat)
 
-#  After running the test cases, the FLMatrix objects we defined via the R console start behaving abruplty, they lose their original values
-
 ###############################################################
 ############# POSITIVE TEST CASES #############################
 ###############################################################
