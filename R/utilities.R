@@ -1,5 +1,71 @@
 # Contains the support functions
 
+list_to_where_clause <- function (x) {
+	     where_clause <- paste(names(x),x,sep="=\'",collapse="\' AND ");
+	     where_clause <- paste(where_clause,"\'",sep="");
+       if(nchar(where_clause) > 1) {
+         where_clause <- where_clause
+       } else {
+         where_clause <- "1=1"
+       }
+	     #where_clause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
+	     where_clause
+     }
+
+# /**
+#  * Converts List to class Spec. Used for Data Prep
+#  * @param  {list} x e.g. list(Varx="a",Vary="b")
+#  * @return {string}   "Varx(x), Vary(y)"
+#  */
+list_to_class_spec <- function (x) {
+	classSpec <- paste(names(x),x,sep="(",collapse="), ")
+	classSpec <- paste(classSpec,")",sep="")
+	if(nchar(classSpec) > 1) {
+	  classSpec <- classSpec
+	} else {
+	  classSpec <- ""
+	}
+	#classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
+	classSpec
+}
+
+# /**
+#  * Converts List to class Spec. Used for Data Prep
+#  * @param  {list} x e.g. list(Varx="a",Vary="b")
+#  * @return {string}   "Varx(x), Vary(y)"
+#  */
+list_to_exclude_clause <- function (x) {
+	excludeClause <- paste(x, collapse=", ")
+	excludeClause
+}
+
+calc_cat_to_dummy <- function(ClassSpec) {
+	if (length(ClassSpec) == 0) 
+    CatToDummy <- 0
+	else 
+    CatToDummy <- 1;
+	CatToDummy
+}
+
+validate_args <- function (arg_list, type_list, class_list = list())
+{
+	for (name in names(type_list)) {
+		if( typeof(arg_list[[name]]) != type_list[[name]])
+		{
+		   print(typeof(arg_list[[name]]))
+
+			stop(paste("Argument Type Mismatch:", name, "should be of type", type_list[[name]]))	
+		}	
+	}
+	for (name in names(class_list)) {
+		if( class(arg_list[[name]]) != class_list[[name]])
+			stop(paste("Argument Type Mismatch:", name, "should be of class", class_list[[name]]))		
+	}
+}
+
+is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
+is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1) }
+
 gen_deep_table_name <- function(TableName){
 	random_no <- rnorm(1);
 	paste(TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
@@ -188,3 +254,4 @@ flag3Check <- function(connection)
 	 	flag3 <<- 1
 	}
 }
+
