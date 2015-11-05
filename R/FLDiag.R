@@ -76,8 +76,6 @@ diag.FLVector <- function(object)
 
 	if(object@size==1)
 	{
-		sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
-
 		flag1Check(connection)
 		value <- sqlQuery(connection,
 						  paste("SELECT a.",object@table@num_val_name,
@@ -121,8 +119,6 @@ diag.FLVector <- function(object)
 	}
 	else if(object@size>1)
 	{
-		sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
-			 
 		flag1Check(connection)
 
 			 for (i in 1:object@size)

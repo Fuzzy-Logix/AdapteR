@@ -28,8 +28,8 @@ NULL
 `[.FLMatrix`<-function(object,nrow=1,ncol=1)
 {
 	connection<-object@odbc_connection
-	sqlQuery(connection, paste("DATABASE", object@db_name))
-	sqlQuery(connection, "SET ROLE ALL")
+	sqlQuery(connection, paste("DATABASE", object@db_name,";
+								SET ROLE ALL;"))
 
 	if(nargs()==2 && missing(nrow)) { return(object[,]) }
 	if(nargs()==2)

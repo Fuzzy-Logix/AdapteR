@@ -62,8 +62,8 @@ FLTable <- function(connection,
 	}
 	else if(length(var_id_name) && length(num_val_name))
 	{
-		sqlQuery(connection, paste("DATABASE", database))
-		sqlQuery(connection, "SET ROLE ALL")
+		sqlQuery(connection, paste("DATABASE", database,";
+									SET ROLE ALL;"))
 
 		new("FLTable",
 			 odbc_connection = connection,
@@ -76,8 +76,8 @@ FLTable <- function(connection,
 	}
 	else
 	{
-		sqlQuery(connection, paste("DATABASE", database))
-		sqlQuery(connection, "SET ROLE ALL")
+		sqlQuery(connection, paste("DATABASE", database,";
+									SET ROLE ALL;"))
 
 		new("FLTable", 
 			odbc_connection = connection,

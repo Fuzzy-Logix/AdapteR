@@ -72,7 +72,7 @@ as.matrix.FLMatrix <- function(flmatobj1)
 as.matrix.FLSparseMatrix <- function(object)
 {
 	sqlQuery(object@odbc_connection,
-			 paste0("DATABASE", object@db_name,";
+			 paste0("DATABASE", object@db_name,"; 
 			 		 SET ROLE ALL;"))
 	nrow <- object@nrow
 	valuedf <- sqlQuery(object@odbc_connection,
@@ -122,15 +122,19 @@ as.FLMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
        ## gk: important!  refactor this to a single sql call!
        ## gk: please apply throughout: NO sqlQuery inside loops!
        ## gk: also: R does not at all like loops.  Use apply-like functional approaches.
-			 mdeep <- summary(m)
 
-			 sqlstatements <- apply(mdeep,1,function(r)
+			 mdeep <- Matrix::summary(Matrix(m,sparse=TRUE))
+			 sqlstatements <- base::apply(mdeep,1,function(r)
 			   paste0(" INSERT INTO ",result_matrix_table,
-" (matrix_id, row_id, col_id, cell_val) VALUES (",
+					  " (matrix_id, row_id, col_id, cell_val) VALUES (",
 			          paste0(c(max_matrix_id_value,r), collapse=", "),
 			          ");"))
 
-			 sqlQuery(connection,paste0(sqlstatements,collapse="\n"))
+			 print(paste0(sqlstatements,collapse=" "))
+
+			 #retobj<-sqlQuery(connection,paste0(sqlstatements,collapse="\n"))
+			 #print(sqlstatements)
+			 #print(retobj)
 		 	 max_matrix_id_value <<- max_matrix_id_value + 1
 
 		 	 if(length(dimnames(m))==0) { dimnames(m) <- list(c(),c()) }
@@ -154,9 +158,6 @@ as.FLMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
 
 	if(is.FLVector(m))
 	{
-		sqlQuery(connection,
-				 paste0("DATABASE ",result_db_name,";
-				 		 SET ROLE ALL;"))
 		flag1Check(connection)
 		k<-1
 
@@ -210,11 +211,7 @@ as.FLMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
 			stop("ERROR: ONLY NUMERIC ENTRIES ALLOWED IN FLMATRIX")
 		}
 		else
-		{
-			 sqlQuery(connection,
-			 		  paste0("DATABASE ",result_db_name,";
-			 		  		  SET ROLE ALL;"))
-
+		{			 
 			 flag1Check(connection)
 			 if(missing(nr))
 			 {
@@ -274,7 +271,7 @@ as.FLMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
 		 sqlQuery(connection,
 		 		  paste0("DATABASE ",result_db_name,";
 		 		  		  SET ROLE ALL;"))
-
+		 
 		 flag1Check(connection)
 
 		 ## gk: important!  refactor this to a single sql call!
@@ -354,8 +351,6 @@ as.FLSparseMatrix <- function(m,connection)
 			CELL_VAL <- append(CELL_VAL,0)
 		}
 
-		sqlQuery(connection,paste0("DATABASE ",result_db_name," ;SET ROLE ALL;"))
-
 		if(length(dimnames(m))==0) { dimnames(m) <- list(c(),c())}
 		flag2Check(connection)
 
@@ -409,9 +404,6 @@ as.FLVector <- function(obj,connection,size=length(obj))
 		{
 			obj <- as.matrix(obj)
 		}
-		sqlQuery(connection,
-		 		  paste0("DATABASE ",result_db_name,";
-		 		  		  SET ROLE ALL;"))
 
 		flag3Check(connection)
 
@@ -445,10 +437,6 @@ as.FLVector <- function(obj,connection,size=length(obj))
 
 	if(is.FLMatrix(obj))
 	{
-		 sqlQuery(connection,
-		 		  paste0("DATABASE ",result_db_name,";
-		 		  		  SET ROLE ALL;"))
-
 		flag3Check(connection)
 
 		sqlQuery(connection,
@@ -479,7 +467,7 @@ as.FLVector <- function(obj,connection,size=length(obj))
 	if(is.FLSparseMatrix(obj))
 	{
 		sqlQuery(obj@odbc_connection,
-			 paste0("DATABASE", obj@db_name,";
+			 paste0("DATABASE", obj@db_name,"; 
 			 		 SET ROLE ALL;"))
 
 	    valuedf <- sqlQuery(obj@odbc_connection,
