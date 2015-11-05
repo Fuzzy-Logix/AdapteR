@@ -37,3 +37,12 @@ length.FLVector <- function(obj)
 {
 	return(obj@size)
 }
+
+#' computes the length of FLTable object.
+#' @param obj is a FLTable object.
+#' @return \code{length} returns a R Vector giving the
+#' number of observations or rows in input FLTable object.
+length.FLTable <- function(obj)
+{
+	return(nrow(obj))
+}
