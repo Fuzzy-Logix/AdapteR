@@ -74,9 +74,17 @@ ncol.FLTable<-function(object){
 	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
 	if(object@isDeep)
 	{
-	t<-sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@var_id_name,") FROM ",object@table_name))[1,1]
-	return(t)
+		t <- sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@var_id_name,") FROM ",object@table_name))[1,1]
 	}
+	else
+	{
+		t <- sqlQuery(object@odbc_connection,paste("SELECT COUNT(DISTINCT ColumnName) 
+													FROM dbc.columns 
+													WHERE TableName='tblAbaloneWide' 
+													AND DatabaseName='FL_TRAIN'
+													GROUP BY TableName"))[1,1]
+	}
+	return(t)
 }
 
 ncol.FLVector<-function(object){
