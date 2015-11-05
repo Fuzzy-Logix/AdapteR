@@ -115,11 +115,20 @@ flag1 <- 0
 
 print.FLMatrix <- function(object)
 {
-	sqlQuery(object@odbc_connection, paste0("DATABASE", object@db_name,"; SET ROLE ALL;"))
+	sqlQuery(object@odbc_connection, 
+			 paste0("DATABASE", object@db_name,"; 
+			 		 SET ROLE ALL;"))
 	nrows <- object@nrow
-	valuedf <- sqlQuery(object@odbc_connection, paste0("SELECT * FROM ",object@matrix_table," WHERE ",object@matrix_id_colname,"=",
-		object@matrix_id_value," ORDER BY 1,2,3"))
-	print(matrix(valuedf[,object@cell_val_colname],nrows,length(valuedf[,object@cell_val_colname])/nrows,byrow=T,dimnames = object@dimnames))
+	valuedf <- sqlQuery(object@odbc_connection, 
+						paste0("SELECT * 
+								FROM ",object@matrix_table," 
+								WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," 
+								ORDER BY 1,2,3"))
+	print(matrix(valuedf[,object@cell_val_colname],
+		  nrows,
+		  length(valuedf[,object@cell_val_colname])/nrows,
+		  byrow=T,
+		  dimnames = object@dimnames))
 }
 
 

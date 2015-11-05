@@ -69,7 +69,6 @@ rbind.FLMatrix<-function(object,...)
 		}
 	}
 
-	sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
 	flag1Check(connection)
 
 	rowCount <- 0
@@ -278,7 +277,6 @@ rbind.FLVector <- function(object,...)
 		}
 	}
 
-	sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
 	flag1Check(connection)
 
 	rowCount <- 0
@@ -612,7 +610,6 @@ rbind.matrix <- function(object,...)
 	}
 
 
-	sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
 	flag1Check(connection)
 
 	rowCount <- 0
@@ -832,7 +829,6 @@ rbind.numeric <- function(object,...)
 		}
 	}
 
-	sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
 	flag1Check(connection)
 
 	rowCount <- 0
@@ -1046,7 +1042,6 @@ rbind.data.frame <- function(object,...)
 	}
 
 
-	sqlQuery(connection,paste0("DATABASE ",result_db_name,";SET ROLE ALL;"))
 	flag1Check(connection)
 
 	rowCount <- 0

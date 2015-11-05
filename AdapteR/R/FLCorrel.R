@@ -76,11 +76,18 @@ cor.FLMatrix <- function(x,y=x)
 	{
 		if(nrow(y) == x@nrow)
 		{
-			sqlQuery(x@odbc_connection,paste0("database ",x@db_name,"; set role all;"))
-			sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@col_name,") AS C FROM ",
-					             x@db_name,".", x@matrix_table," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
-					             x@row_id_colname," = b.",y@table@primary_key," and a.",x@matrix_id_colname,"=",x@matrix_id_value,
-					             " GROUP BY a.",x@col_id_colname," ORDER BY 1")
+			sqlQuery(x@odbc_connection,
+					 paste0("DATABASE ",x@db_name,"; 
+					 		 SET ROLE ALL;"))
+			sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",
+									 x@db_name,".FLCorrel(a.",x@cell_val_colname,",
+									 					  b.",y@col_name,") AS C 
+							  FROM ",x@db_name,".", x@matrix_table," a, 
+							  	   ",y@table@db_name,".",y@table@table_name," b 
+							  WHERE a.",x@row_id_colname," = b.",y@table@primary_key," 
+							  AND a.",x@matrix_id_colname,"=",x@matrix_id_value," 
+							  GROUP BY a.",x@col_id_colname," 
+							  ORDER BY 1")
 			vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 			correlmat <- matrix(vec,ncol(x),byrow=T)
 			correlflmat<-as.FLMatrix(correlmat,x@odbc_connection);
@@ -110,9 +117,12 @@ cor.numeric <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		sqlQuery(y@table@odbc_connection, paste("DATABASE",y@table@db_name))
-		sqlQuery(y@table@odbc_connection,"SET ROLE ALL")
-		nrowy <- sqlQuery(y@table@odbc_connection, paste0("SELECT COUNT(a.",y@col_name,") FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+		sqlQuery(y@table@odbc_connection, 
+				 paste("DATABASE",y@table@db_name,";
+				 		SET ROLE ALL;"))
+		nrowy <- sqlQuery(y@table@odbc_connection, 
+						  paste0("SELECT COUNT(a.",y@col_name,") 
+						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
 		if(nrowy == length(x))
 		{
 			x <- matrix(x,nrowy)
@@ -144,9 +154,12 @@ cor.matrix <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		sqlQuery(y@table@odbc_connection, paste("DATABASE",y@table@db_name))
-		sqlQuery(y@table@odbc_connection,"SET ROLE ALL")
-		nrowy <- sqlQuery(y@table@odbc_connection, paste0("SELECT COUNT(a.",y@col_name,") FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+		sqlQuery(y@table@odbc_connection,
+				 paste("DATABASE",y@table@db_name,";
+				 		SET ROLE ALL;"))
+		nrowy <- sqlQuery(y@table@odbc_connection,
+						  paste0("SELECT COUNT(a.",y@col_name,") 
+						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
 		if(nrowy == nrow(x))
 		{
 			x <- as.FLMatrix(x,y@table@odbc_connection)
@@ -177,9 +190,12 @@ cor.data.frame <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		sqlQuery(y@table@odbc_connection, paste("DATABASE",y@table@db_name))
-		sqlQuery(y@table@odbc_connection,"SET ROLE ALL")
-		nrowy <- sqlQuery(y@table@odbc_connection, paste0("SELECT COUNT(a.",y@col_name,") FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+		sqlQuery(y@table@odbc_connection,
+				 paste("DATABASE",y@table@db_name,";
+				 		SET ROLE ALL;"))
+		nrowy <- sqlQuery(y@table@odbc_connection,
+						  paste0("SELECT COUNT(a.",y@col_name,") 
+						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
 		if(nrowy == nrow(x))
 		{
 			x <- as.matrix(x)
@@ -204,17 +220,25 @@ cor.data.frame <- function(x,y=x)
 
 cor.FLVector <- function(x,y=x)
 {	
-	sqlQuery(x@table@odbc_connection, paste("DATABASE",x@table@db_name))
-	sqlQuery(x@table@odbc_connection,"SET ROLE ALL")
-	nrowx <- sqlQuery(x@table@odbc_connection, paste0("SELECT COUNT(a.",x@col_name,") FROM ",x@table@db_name,".",x@table@table_name," a"))[1,1]
+	sqlQuery(x@table@odbc_connection,
+			 paste("DATABASE",x@table@db_name,";
+			 		SET ROLE ALL;"))
+	nrowx <- sqlQuery(x@table@odbc_connection,
+					  paste0("SELECT COUNT(a.",x@col_name,") 
+					  		  FROM ",x@table@db_name,".",x@table@table_name," a"))[1,1]
 
 	if(is.FLVector(y))
 	{
-		nrowy <- sqlQuery(y@table@odbc_connection, paste0("SELECT COUNT(a.",y@col_name,") FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+		nrowy <- sqlQuery(y@table@odbc_connection,
+						  paste0("SELECT COUNT(a.",y@col_name,") 
+						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
 		if(nrowx == nrowy)
 		{
-			sqlstr<-paste("SELECT ",x@table@db_name,".FLCorrel(a.",x@col_name,",b.",y@col_name,") FROM ",x@table@db_name,".", x@table@table_name,
-				" AS a,",x@table@db_name,".", y@table@table_name," AS b WHERE a.",x@table@primary_key,"=b.",y@table@primary_key, sep="")
+			sqlstr<-paste("SELECT ",x@table@db_name,".FLCorrel(a.",x@col_name,",
+															   b.",y@col_name,") 
+						   FROM ",x@table@db_name,".", x@table@table_name," AS a,",
+						   		  x@table@db_name,".", y@table@table_name," AS b 
+						   WHERE a.",x@table@primary_key,"=b.",y@table@primary_key, sep="")
 			retobj<-sqlQuery(x@table@odbc_connection,sqlstr)
 			return(retobj[1,1])
 		}
@@ -264,7 +288,9 @@ cor.FLVector <- function(x,y=x)
 
 cor.FLTable <- function(x,y=x)
 {
-	sqlQuery(x@odbc_connection, paste0(" DATABASE ",x@db_name,"; SET ROLE ALL;"))
+	sqlQuery(x@odbc_connection,
+			 paste0(" DATABASE ",x@db_name,"; 
+			 		  SET ROLE ALL;"))
 	nrowx <- nrow(x)
 	ncolx <- ncol(x)
 	if(is.FLTable(y))
@@ -273,9 +299,15 @@ cor.FLTable <- function(x,y=x)
 		{
 			if(y@isDeep && x@isDeep)
 			{
-				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@var_id_name," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
-							y@num_val_name,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@table_name," b WHERE  a.",
-					        x@primary_key," = b.",y@primary_key," GROUP BY a.",x@var_id_name,", b.",y@var_id_name," ORDER BY 1,2 ")
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
+										 b.",y@var_id_name," AS B ,",
+										 x@db_name,".FLCorrel(a.",x@num_val_name,",
+										 					  b.",y@num_val_name,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a,
+								  	   ",y@db_name,".",y@table_name," b 
+								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
+								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
+								  ORDER BY 1,2 ")
 			
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 				correlmat <- matrix(vec,ncolx,byrow=T)
@@ -295,22 +327,51 @@ cor.FLTable <- function(x,y=x)
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDy <- as.vector(retobj<-sqlQuery(y@odbc_connection,sqlstr)[1,1])
 
-				x <- new("FLTable", odbc_connection = x@odbc_connection,db_name = x@db_name, 
-							table_name = deeptablenamex,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
-				y <- new("FLTable", odbc_connection = y@odbc_connection,db_name = y@db_name, 
-							table_name = deeptablenamey,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
+				x <- new("FLTable", 
+						  odbc_connection = x@odbc_connection,
+						  db_name = x@db_name, 
+						  table_name = deeptablenamex,
+						  primary_key = "ObsID",
+						  var_id_name = "VarID",
+						  num_val_name="Num_Val",
+						  isDeep = TRUE)
+				y <- new("FLTable", 
+						  odbc_connection = y@odbc_connection,
+						  db_name = y@db_name, 
+						  table_name = deeptablenamey,
+						  primary_key = "ObsID",
+						  var_id_name = "VarID",
+						  num_val_name="Num_Val",
+						  isDeep = TRUE)
 				
-				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@var_id_name," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
-							y@num_val_name,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@table_name," b WHERE  a.",
-					        x@primary_key," = b.",y@primary_key," GROUP BY a.",x@var_id_name,", b.",y@var_id_name," ORDER BY 1,2 ")
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
+										 b.",y@var_id_name," AS B ,
+										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",
+										   						  b.",y@num_val_name,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a, 
+								  	   ",y@db_name,".",y@table_name," b 
+								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
+								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
+								  ORDER BY 1,2 ")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 
-				ncolx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COUNT(COLUMN_NAME) FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
-					                and Final_VarID IS NOT NULL"))[1,1]
-				varnamesx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
-					                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
-				varnamesy <- sqlQuery(y@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDy,"' 
-					                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
+				ncolx <- sqlQuery(x@odbc_connection,
+								  paste0(" SELECT COUNT(COLUMN_NAME) 
+								  		   FROM fzzlRegrDataPrepMap 
+								  		   WHERE AnalysisID = '",dataprepIDx,"' 
+					                	   AND Final_VarID IS NOT NULL"))[1,1]
+				varnamesx <- sqlQuery(x@odbc_connection,
+									  paste0(" SELECT COLUMN_NAME 
+									  		   FROM fzzlRegrDataPrepMap 
+									  		   WHERE AnalysisID = '",dataprepIDx,"' 
+					                		   AND Final_VarID IS NOT NULL 
+					                		   ORDER BY Final_VarID"))[,1]
+				varnamesy <- sqlQuery(y@odbc_connection,
+									  paste0(" 	SELECT COLUMN_NAME 
+									  			FROM fzzlRegrDataPrepMap 
+									  			WHERE AnalysisID = '",dataprepIDy,"' 
+					                			AND Final_VarID IS NOT NULL 
+					                			ORDER BY Final_VarID"))[,1]
 				correlmat <- matrix(vec,ncolx,byrow=T,dimnames=list(varnamesx,varnamesy))
 				return(correlmat)
 			}
@@ -320,14 +381,29 @@ cor.FLTable <- function(x,y=x)
 				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
-				x <- new("FLTable", odbc_connection = x@odbc_connection,db_name = x@db_name, 
-							table_name = deeptablenamex,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
-				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@var_id_name," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
-							y@num_val_name,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@table_name," b WHERE  a.",
-					        x@primary_key," = b.",y@primary_key," GROUP BY a.",x@var_id_name,", b.",y@var_id_name," ORDER BY 1,2 ")
+				x <- new("FLTable", 
+						  odbc_connection = x@odbc_connection,
+						  db_name = x@db_name, 
+						  table_name = deeptablenamex,
+						  primary_key = "ObsID",
+						  var_id_name = "VarID",
+						  num_val_name="Num_Val",
+						  isDeep = TRUE)
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
+										 b.",y@var_id_name," AS B ,
+										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@num_val_name,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a,
+								  	   ",y@db_name,".",y@table_name," b 
+								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
+								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
+								  ORDER BY 1,2 ")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
-				varnamesx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
-					                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
+				varnamesx <- sqlQuery(x@odbc_connection, 
+									  paste0(" 	SELECT COLUMN_NAME 
+									  			FROM fzzlRegrDataPrepMap 
+									  			WHERE AnalysisID = '",dataprepIDx,"' 
+					                			AND Final_VarID IS NOT NULL 
+					                			ORDER BY Final_VarID"))[,1]
 				correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
 				return(correlmat)
 			}
@@ -345,10 +421,15 @@ cor.FLTable <- function(x,y=x)
 		{
 			if(x@isDeep)
 			{
-				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@col_id_colname," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
-							y@cell_val_colname,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@matrix_table," b WHERE a.",
-					        x@primary_key," = b.",y@row_id_colname," and b.",y@matrix_id_colname,"=",y@matrix_id_value,
-					        " GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," ORDER BY 1,2 ")
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
+										 b.",y@col_id_colname," AS B ,
+										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@cell_val_colname,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a,
+								  	   ",y@db_name,".",y@matrix_table," b 
+								  WHERE a.",x@primary_key," = b.",y@row_id_colname," 
+								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
+								  GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," 
+								  ORDER BY 1,2 ")
 			
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 				correlmat <- matrix(vec,ncol(x),byrow=T)
@@ -360,15 +441,30 @@ cor.FLTable <- function(x,y=x)
 				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
-				x <- new("FLTable", odbc_connection = x@odbc_connection,db_name = x@db_name, 
-							table_name = deeptablenamex,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
-				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,b.",y@col_id_colname," AS B ,",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",
-							y@cell_val_colname,") AS C FROM ",x@db_name,".", x@table_name," a, ",y@db_name,".",y@matrix_table," b WHERE a.",
-					        x@primary_key," = b.",y@row_id_colname," and b.",y@matrix_id_colname,"=",y@matrix_id_value,
-					        " GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," ORDER BY 1,2 ")
+				x <- new("FLTable", 
+					      odbc_connection = x@odbc_connection,
+					      db_name = x@db_name, 
+						  table_name = deeptablenamex,
+						  primary_key = "ObsID",
+						  var_id_name = "VarID",
+						  num_val_name="Num_Val",
+						  isDeep = TRUE)
+				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A,
+										 b.",y@col_id_colname," AS B,
+										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@cell_val_colname,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a,
+								  	   ",y@db_name,".",y@matrix_table," b 
+								  WHERE a.",x@primary_key," = b.",y@row_id_colname," 
+								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
+								  GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," 
+								  ORDER BY 1,2 ")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
-				varnamesx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
-					                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
+				varnamesx <- sqlQuery(x@odbc_connection,
+									  paste0(" 	SELECT COLUMN_NAME 
+									  			FROM fzzlRegrDataPrepMap 
+									  			WHERE AnalysisID = '",dataprepIDx,"' 
+					                			AND Final_VarID IS NOT NULL 
+					                			ORDER BY Final_VarID"))[,1]
 				correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
 				return(correlmat)
 			}
@@ -382,10 +478,17 @@ cor.FLTable <- function(x,y=x)
 		{
 			if(x@isDeep)
 			{
-				sqlQuery(x@odbc_connection,paste0("database ",x@db_name,"; set role all;"))
-				sqlstr <- paste0("SELECT a.",x@var_id_name,", ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C FROM ",
-						             x@db_name,".", x@table_name," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
-						             x@primary_key," = b.",y@table@primary_key," GROUP BY a.",x@var_id_name," ORDER BY 1")
+				sqlQuery(x@odbc_connection,
+						 paste0("DATABASE ",x@db_name,"; 
+						 		 SET ROLE ALL;"))
+				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
+										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",
+										   						  b.",y@col_name,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a, 
+								  	   ",y@table@db_name,".",y@table@table_name," b 
+								  WHERE a.",x@primary_key," = b.",y@table@primary_key," 
+								  GROUP BY a.",x@var_id_name," 
+								  ORDER BY 1")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 				correlmat <- matrix(vec,ncol(x),byrow=T)
 				return(correlmat)
@@ -396,14 +499,28 @@ cor.FLTable <- function(x,y=x)
 				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
-				x <- new("FLTable", odbc_connection = x@odbc_connection,db_name = x@db_name, 
-						table_name = deeptablenamex,primary_key = "ObsID",var_id_name = "VarID",num_val_name="Num_Val",isDeep = TRUE)
-				sqlstr <- paste0("SELECT a.",x@var_id_name,", ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C FROM ",
-						             x@db_name,".", x@table_name," a, ",y@table@db_name,".",y@table@table_name," b WHERE a.",
-						             x@primary_key," = b.",y@table@primary_key," GROUP BY a.",x@var_id_name," ORDER BY 1")
+				x <- new("FLTable", 
+						  odbc_connection = x@odbc_connection,
+						  db_name = x@db_name, 
+						  table_name = deeptablenamex,
+						  primary_key = "ObsID",
+						  var_id_name = "VarID",
+						  num_val_name="Num_Val",
+						  isDeep = TRUE)
+				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
+										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C 
+								  FROM ",x@db_name,".", x@table_name," a, 
+								  	   ",y@table@db_name,".",y@table@table_name," b 
+								  WHERE a.",x@primary_key," = b.",y@table@primary_key," 
+								  GROUP BY a.",x@var_id_name," 
+								  ORDER BY 1")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
-				varnamesx <- sqlQuery(x@odbc_connection, paste0(" SELECT  COLUMN_NAME FROM fzzlRegrDataPrepMap WHERE AnalysisID = '",dataprepIDx,"' 
-						                and Final_VarID IS NOT NULL ORDER BY Final_VarID"))[,1]
+				varnamesx <- sqlQuery(x@odbc_connection,
+									  paste0("  SELECT COLUMN_NAME 
+									  			FROM fzzlRegrDataPrepMap 
+									  			WHERE AnalysisID = '",dataprepIDx,"' 
+						                		AND Final_VarID IS NOT NULL 
+						                		ORDER BY Final_VarID"))[,1]
 				correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
 				return(correlmat)
 			}

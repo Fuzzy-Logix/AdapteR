@@ -27,11 +27,9 @@ gen_unique_table_name <- function(TableName){
 FLodbcClose <- function(connection)
 {
     	sqlQuery(connection, 
-    			 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
- 	  	sqlQuery(connection, 
- 	  			 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
- 	  	sqlQuery(connection, 
- 	  			 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
+    			 paste0("DROP TABLE ",result_db_name,".",result_matrix_table,"; 
+    			 		 DROP TABLE ",result_db_name,".",result_Sparsematrix_table,";
+    			 		 DROP TABLE ",result_db_name,".",result_vector_table,";"))
     	odbcClose(connection)
     	flag1 <<- 0
     	flag2 <<- 0
@@ -44,16 +42,14 @@ FLodbcClose <- function(connection)
 FLStartSession <- function(connection)
 {
 	sqlQuery(connection, 
-	 				 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
-
-	sqlQuery(connection, 
- 					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
-
-	sqlQuery(connection,
-	 				 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
+	 		 paste0("DROP TABLE ",result_db_name,".",result_matrix_table,";
+	 		 		 DROP TABLE ",result_db_name,".",result_Sparsematrix_table,";
+	 		 		 DROP TABLE ",result_db_name,".",result_vector_table,";
+	 		 		 DATABASE ", result_db_name,";
+	 		 		 SET ROLE ALL;"))
 
 	sqlQuery(connection,
-			 paste0(" CREATE MULTISET TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
+			 paste0(" CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
 				     NO BEFORE JOURNAL,
 				     NO AFTER JOURNAL,
 				     CHECKSUM = DEFAULT,
@@ -63,9 +59,10 @@ FLStartSession <- function(connection)
 				      ROW_ID INTEGER,
 				      COL_ID INTEGER,
 				      CELL_VAL FLOAT)
-	    			 PRIMARY INDEX ( MATRIX_ID );"))
+	    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+
 	sqlQuery(connection,
-			 paste0(" CREATE MULTISET TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
+			 paste0(" CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
 				     NO BEFORE JOURNAL,
 				     NO AFTER JOURNAL,
 				     CHECKSUM = DEFAULT,
@@ -75,12 +72,14 @@ FLStartSession <- function(connection)
 				      ROW_ID INTEGER,
 				      COL_ID INTEGER,
 				      CELL_VAL FLOAT)
-	    			 PRIMARY INDEX ( MATRIX_ID );"))
+	    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+
  	sqlQuery(connection,
 			 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
 			 		 ( VECTOR_ID INT, 
-			 		  VECTOR_INDEX INT, 
-				 	   VECTOR_VALUE VARCHAR(20) )" ))
+			 		   VECTOR_INDEX INT, 
+				 	   VECTOR_VALUE VARCHAR(20) )
+			 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
 
  	max_matrix_id_value <<- 1
  	max_Sparsematrix_id_value <<- 1
@@ -97,7 +96,7 @@ flag1Check <- function(connection)
 	if(flag1==0)
 	{
 		temp <- sqlQuery(connection,
-			 			paste0(" CREATE MULTISET TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
+			 			paste0(" CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
 							     NO BEFORE JOURNAL,
 							     NO AFTER JOURNAL,
 							     CHECKSUM = DEFAULT,
@@ -107,14 +106,13 @@ flag1Check <- function(connection)
 							      ROW_ID INTEGER,
 							      COL_ID INTEGER,
 							      CELL_VAL FLOAT)
-				    			 PRIMARY INDEX ( MATRIX_ID );"))
+				    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
 
 	 	if(temp!="No Data" || length(temp)!=1) 
 	 	{
-	 		sqlQuery(connection, 
-	 				 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
 	 		sqlQuery(connection,
-					 paste0(" CREATE MULTISET TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
+					 paste0("DROP TABLE ",result_db_name,".",result_matrix_table,"; 
+					 		 CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
 						     CHECKSUM = DEFAULT,
@@ -124,7 +122,7 @@ flag1Check <- function(connection)
 						      ROW_ID INTEGER,
 						      COL_ID INTEGER,
 						      CELL_VAL FLOAT)
-			    			 PRIMARY INDEX ( MATRIX_ID );"))
+			    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
 	 	}
 	 	flag1 <<- 1
 	}
@@ -135,7 +133,7 @@ flag2Check <- function(connection)
 	if(flag2==0)
  	{
  		temp <- sqlQuery(connection,
-						 paste0(" CREATE MULTISET TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
+						 paste0(" CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
 							     NO BEFORE JOURNAL,
 							     NO AFTER JOURNAL,
 							     CHECKSUM = DEFAULT,
@@ -145,14 +143,13 @@ flag2Check <- function(connection)
 							      ROW_ID INTEGER,
 							      COL_ID INTEGER,
 							      CELL_VAL FLOAT)
-				    			 PRIMARY INDEX ( MATRIX_ID );"))
+				    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
  		
  		if(temp!="No Data" || length(temp)!=1) 
  		{
- 			sqlQuery(connection, 
- 					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
  			sqlQuery(connection,
-					 paste0(" CREATE MULTISET TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
+					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table,";
+					 		 CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
 						     CHECKSUM = DEFAULT,
@@ -162,7 +159,7 @@ flag2Check <- function(connection)
 						      ROW_ID INTEGER,
 						      COL_ID INTEGER,
 						      CELL_VAL FLOAT)
-			    			 PRIMARY INDEX ( MATRIX_ID );"))
+			    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
  		}
  		flag2 <<- 1
  	}
@@ -176,16 +173,17 @@ flag3Check <- function(connection)
 	 					 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
 	 					 		 ( VECTOR_ID INT, 
 	 					 		   VECTOR_INDEX INT, 
-	 					 		   VECTOR_VALUE VARCHAR(20) )" ))
+	 					 		   VECTOR_VALUE VARCHAR(20) )
+	 					 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
 	 	if(temp != TRUE || length(temp)!=1) 
 	 	{
 	 		sqlQuery(connection,
-	 				 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
-	 		sqlQuery(connection,
-	 		 		 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
+	 		 		 paste0("DROP TABLE ",result_db_name,".",result_vector_table,";
+	 		 		 		 CREATE TABLE ",result_db_name,".",result_vector_table," 
 	 		 		 		( VECTOR_ID INT,
 	 		 		 		  VECTOR_INDEX INT,
-	 		 		 		  VECTOR_VALUE VARCHAR(20) )" ))
+	 		 		 		  VECTOR_VALUE VARCHAR(20) )
+	 		 		 		  PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
 	 	}
 	 	flag3 <<- 1
 	}
