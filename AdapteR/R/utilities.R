@@ -52,8 +52,6 @@ validate_args <- function (arg_list, type_list, class_list = list())
 	for (name in names(type_list)) {
 		if( typeof(arg_list[[name]]) != type_list[[name]])
 		{
-		   print(typeof(arg_list[[name]]))
-
 			stop(paste("Argument Type Mismatch:", name, "should be of type", type_list[[name]]))	
 		}	
 	}
@@ -93,9 +91,11 @@ gen_unique_table_name <- function(TableName){
 FLodbcClose <- function(connection)
 {
     	sqlQuery(connection, 
-    			 paste0("DROP TABLE ",result_db_name,".",result_matrix_table,"; 
-    			 		 DROP TABLE ",result_db_name,".",result_Sparsematrix_table,";
-    			 		 DROP TABLE ",result_db_name,".",result_vector_table,";"))
+    			 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
+ 	  	sqlQuery(connection, 
+ 	  			 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
+ 	  	sqlQuery(connection, 
+ 	  			 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
     	odbcClose(connection)
     	flag1 <<- 0
     	flag2 <<- 0
@@ -107,12 +107,16 @@ FLodbcClose <- function(connection)
 
 FLStartSession <- function(connection)
 {
+	sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+
 	sqlQuery(connection, 
-	 		 paste0("DROP TABLE ",result_db_name,".",result_matrix_table,";
-	 		 		 DROP TABLE ",result_db_name,".",result_Sparsematrix_table,";
-	 		 		 DROP TABLE ",result_db_name,".",result_vector_table,";
-	 		 		 DATABASE ", result_db_name,";
-	 		 		 SET ROLE ALL;"))
+	 				 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
+
+	sqlQuery(connection, 
+ 					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
+
+	sqlQuery(connection,
+	 				 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
 
 	sqlQuery(connection,
 			 paste0(" CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
@@ -161,6 +165,8 @@ flag1Check <- function(connection)
 {
 	if(flag1==0)
 	{
+		sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+
 		temp <- sqlQuery(connection,
 			 			paste0(" CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
 							     NO BEFORE JOURNAL,
@@ -176,9 +182,11 @@ flag1Check <- function(connection)
 
 	 	if(temp!="No Data" || length(temp)!=1) 
 	 	{
+	 		sqlQuery(connection, 
+	 				 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
+
 	 		sqlQuery(connection,
-					 paste0("DROP TABLE ",result_db_name,".",result_matrix_table,"; 
-					 		 CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
+					 paste0("CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
 						     CHECKSUM = DEFAULT,
@@ -198,6 +206,8 @@ flag2Check <- function(connection)
 {
 	if(flag2==0)
  	{
+ 		sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+
  		temp <- sqlQuery(connection,
 						 paste0(" CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
 							     NO BEFORE JOURNAL,
@@ -213,9 +223,11 @@ flag2Check <- function(connection)
  		
  		if(temp!="No Data" || length(temp)!=1) 
  		{
+ 			sqlQuery(connection, 
+ 					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
+
  			sqlQuery(connection,
-					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table,";
-					 		 CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
+					 paste0("CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
 						     CHECKSUM = DEFAULT,
@@ -235,6 +247,8 @@ flag3Check <- function(connection)
 {
 	if(flag3==0)
 	{
+		sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+
 	 	temp <- sqlQuery(connection,
 	 					 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
 	 					 		 ( VECTOR_ID INT, 
@@ -244,8 +258,10 @@ flag3Check <- function(connection)
 	 	if(temp != TRUE || length(temp)!=1) 
 	 	{
 	 		sqlQuery(connection,
-	 		 		 paste0("DROP TABLE ",result_db_name,".",result_vector_table,";
-	 		 		 		 CREATE TABLE ",result_db_name,".",result_vector_table," 
+	 				 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
+
+	 		sqlQuery(connection,
+	 		 		 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
 	 		 		 		( VECTOR_ID INT,
 	 		 		 		  VECTOR_INDEX INT,
 	 		 		 		  VECTOR_VALUE VARCHAR(20) )
