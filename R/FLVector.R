@@ -17,7 +17,8 @@ setClass(
 	)
 )
 
-#' Constructor function for FLVector.
+#' Constructor function for FLVector, representing a vector in database, either a deep or a wide matrix.
+#' gk: how can we support row vectors?
 #'
 #' \code{FLVector} constructs an object of class \code{FLVector}.
 #'
@@ -27,8 +28,7 @@ setClass(
 #'   where the vector is stored
 #' @param colname name of the column in \code{table} where vector elements are stored
 #' @param vector_id_value unique identifier for the vector if stored in deep table
-#' @return \code{FLVector} returns an object of class FLVector mapped
-#' to an in-database vector.
+#' @return \code{FLVector} returns an object of class FLVector mapped to an in-database vector.
 #' @seealso \code{\link{FLTable}}
 #' @examples
 #' library(RODBC)
@@ -39,22 +39,19 @@ setClass(
 #' flvectorDeep <- FLVector(DeepTable,"vector_value",1)
 #' @export
 
-FLVector <- function(table, col_name,
-					 vector_id_value=numeric(0), 
-					 size=numeric(0))
+FLVector <- function(table,
+                     col_name,
+                     vector_id_value=numeric(0), 
+                     size=numeric(0))
 {
-	sqlQuery(table@odbc_connection,
-			 paste("DATABASE", table@db_name,";
-			 		SET ROLE ALL;"))
-
-	
 	if(table@isDeep && length(vector_id_value))
 	{
 		size <- sqlQuery(table@odbc_connection,
 						 paste0("SELECT max(",table@var_id_name,")
-						 		 FROM ",table@table_name," 
-						 		 WHERE ",table@primary_key,"=",vector_id_value))[1,1]
-        new("FLVector", 
+						 		 FROM ",
+                                getRemoteTableName(table@db_name, table@table_name),
+                                " WHERE ",table@primary_key,"=",vector_id_value))[1,1]
+        new("FLVector",
         	table = table, 
         	col_name = table@num_val_name, 
         	vector_id_value = vector_id_value, 
@@ -63,8 +60,10 @@ FLVector <- function(table, col_name,
     else if(!table@isDeep)
     {
         size <- sqlQuery(table@odbc_connection,
-        				 paste0("SELECT max(",table@primary_key,")
-        				 		 FROM ",table@table_name))[1,1]
+                         paste0("SELECT max(",table@primary_key,")
+        				 		 FROM ",
+                                getRemoteTableName(table@db_name,
+                                                   table@table_name)))[1,1]
         new("FLVector", 
         	table = table, 
         	col_name = col_name, 
@@ -77,27 +76,29 @@ FLVector <- function(table, col_name,
     }
 }
 
-max_vector_id_value <- 0
-max_vector_id_value <- max_vector_id_value + 1
-result_db_name <- "FL_TRAIN"
-result_vector_table <- gen_unique_table_name("tblVectorResult")
-# result_vector_table <- "tblVectorResult"
-flag3 <- 0
-
 print.FLVector <- function(object)
 {
-    sqlQuery(object@table@odbc_connection, paste0("DATABASE", object@table@db_name,"; SET ROLE ALL;"))
-    
     if(object@table@isDeep && length(object@vector_id_value))
     {
-        valuedf <- sqlQuery(object@table@odbc_connection, paste0("SELECT * FROM ",object@table@table_name," WHERE ",object@table@primary_key,"=",
-        object@vector_id_value," ORDER BY ",object@table@var_id_name))
+        valuedf <- sqlQuery(object@table@odbc_connection,
+                            paste0("SELECT * FROM ",
+                                   getRemoteTableName(object@table@db_name,
+                                                      object@table@table_name),
+                                   " WHERE ",object@table@primary_key,"=",
+                                   object@vector_id_value,
+                                   " ORDER BY ",object@table@var_id_name))
         print(as.vector(valuedf[,object@col_name]))
     }
     else if(!object@table@isDeep)
     {
-        valuedf <- sqlQuery(object@table@odbc_connection, paste0("SELECT ",object@table@primary_key,",",object@col_name," FROM ",
-                            object@table@table_name," ORDER BY ",object@table@primary_key))
+        valuedf <- sqlQuery(object@table@odbc_connection,
+                            paste0("SELECT ",
+                                   object@table@primary_key,",",
+                                   object@col_name,
+                                   " FROM ",
+                                   getRemoteTableName(object@table@db_name,
+                                                      object@table@table_name),
+                                   " ORDER BY ",object@table@primary_key))
         print(as.vector(valuedf[,object@col_name]))
     }
 }

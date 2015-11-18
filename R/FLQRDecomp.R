@@ -45,7 +45,16 @@ qr.FLMatrix<-function(object)
 	connection<-object@odbc_connection
 	flag1Check(connection)
 	flag3Check(connection)
-	
+
+        ## gk: make non-sparse with sql somehow along this sketch:
+        ## select
+        ##   a.SerialVal as rowid,
+        ##   b.SerialVal as s.colid,
+        ## 0 as value
+        ##   from fzzlserial a,fzzlserial b, sparsetable as s
+        ## where a.SerialVal!=s.rowid or b.SerialVal!=s.colid
+        ## and a.SerialVal<max(s.rowid) or b.SerialVal<max(s.colid)
+        
 	# calculating QMatrix
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -59,7 +68,7 @@ qr.FLMatrix<-function(object)
 							 a.OutputRowNum,
 							 a.OutputColNum,
 							 a.OutputValQ
-					FROM TABLE (FLQRDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+					FROM TABLE (FLQRDecompUdt(Z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
 								HASH BY z.Matrix_ID 
 								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	

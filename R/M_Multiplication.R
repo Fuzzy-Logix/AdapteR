@@ -66,6 +66,8 @@ NULL
 
 `*.FLMatrix` <- function(flmatobj1, flmatobj2)
 {
+    ## gk: this needs to go.
+    ## gk: NEVER CHANGE DATABASE TO THE DATABASE where the table is, we need to stay in the dblytix installation table!
 	sqlQuery(flmatobj1@odbc_connection,
 			 paste("DATABASE", flmatobj1@db_name,";
 			 		SET ROLE ALL;"))

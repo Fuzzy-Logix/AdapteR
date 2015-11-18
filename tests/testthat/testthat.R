@@ -5,43 +5,102 @@ library(testthat)
 require(Matrix)
 require(testthat)
 
+if (exists("connection")) {
+    dbDisconnect(connection)
+    rm(connection)
+}
+if(!exists("connection")){
+    ##connection <- odbcConnect("Gandalf")
+    connection <- tdConnect(host,user,passwd,database,"jdbc")
+}
+
+FLStartSession(connection, persistent="test")
+
 ###############################################################
 ############# POSITIVE TEST CASES #############################
 ###############################################################
 
-matrix1 <- matrix(1:25,5)
-rownames(matrix1) <- c("a","b","c","d","e")
-colnames(matrix1) <- c("p","q","r","s","t")
+test_that("Casting base R matrix <---> in-database Matrices",{
+    ## Creating simple FLMatrices from base R matrix
+    matrix1 <- matrix(1:25,5)
+    rownames(matrix1) <- c("a","b","c","d","e")
+    colnames(matrix1) <- c("p","q","r","s","t")
+    #
+    m1 <- as.FLMatrix(matrix1, connection) # Identity matrix of dimension 5x5
+    expect_equal(dim(m1),c(5,5))
+    expect_equal(rownames(m1),rownames(matrix1))
+    expect_equal(colnames(m1),colnames(matrix1))
+    ##
+    matrix2 <- matrix(1:25,5)
+    rownames(matrix2) <- c("A","B","C","D","E")
+    colnames(matrix2) <- c("P","Q","R","S","T")
+    ##
+    m2 <- as.FLMatrix(matrix2, connection) # Identity matrix of dimension 5x5
+    expect_equal(dim(m2),c(5,5))
+    expect_equal(rownames(m2),rownames(matrix2))
+    expect_equal(colnames(m2),colnames(matrix2))
+    ##
+    matrix3 <- as.matrix(m2)
+    expect_equal(dim(matrix3),c(5,5))
+    expect_equal(rownames(m2),rownames(matrix3))
+    expect_equal(colnames(m2),colnames(matrix3))
+    expect_equal(as.vector(m2),as.vector(matrix3))
+})
 
-matrix2 <- matrix(1:25,5)
-rownames(matrix2) <- c("A","B","C","D","E")
-colnames(matrix2) <- c("P","Q","R","S","T")
 
-connection <- odbcConnect("Gandalf")
+test_that("Casting R matrix Packages <---> in-database Matrices",{
+    ## Creating simple FLMatrices from base R matrix
+    matrix1 <- matrix(1:25,5)
+    rownames(matrix1) <- c("a","b","c","d","e")
+    colnames(matrix1) <- c("p","q","r","s","t")
+    #
+    m1 <- as.FLMatrix(matrix1, connection) # Identity matrix of dimension 5x5
+    expect_equal(dim(m1),c(5,5))
+    expect_equal(rownames(m1),rownames(matrix1))
+    expect_equal(colnames(m1),colnames(matrix1))
+    ##
+    matrix2 <- matrix(1:25,5)
+    rownames(matrix2) <- c("A","B","C","D","E")
+    colnames(matrix2) <- c("P","Q","R","S","T")
+    ##
+    m2 <- as.FLMatrix(matrix2, connection) # Identity matrix of dimension 5x5
+    expect_equal(dim(m2),c(5,5))
+    expect_equal(rownames(m2),rownames(matrix2))
+    expect_equal(colnames(m2),colnames(matrix2))
+    ##
+    matrix3 <- as.matrix(m2)
+    expect_equal(dim(matrix3),c(5,5))
+    expect_equal(rownames(m2),rownames(matrix3))
+    expect_equal(colnames(m2),colnames(matrix3))
+    expect_equal(as.vector(m2),as.vector(matrix3))
+})
 
-# Creating simple FLMatrices
-m0 <- as.FLMatrix(matrix(0,5,5), connection) # Zero matrix of dimension 5x5
-m1 <- as.FLMatrix(diag(5), connection) # Identity matrix of dimension 5x5
-m <- as.FLMatrix(matrix1,connection)   # Non-symmetric singular matrix of dimension 5x5
-m2 <- as.FLMatrix(matrix(26:50,5), connection) # Non Symmetric singular matrix of dimension 5x5
-m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",3) #  Non-Square Matrix of dimension 4x5
-m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5) # Symmetric non-singular matrix of dimension 5x5
-m5 <- as.FLMatrix(matrix(runif(25,-30,30),5,5),connection) # Random matrix of dimension 5x5
+test_that("Casting base R matrix <---> in-database Matrices",{
+    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
+    sm1 <- as.FLMatrix(smatrix1,connection)
+    expect_equal(dim(smatrix1),dim(sm1))
+    expect_equal(rownames(sm1),rownames(smatrix1))
+    expect_equal(colnames(sm1),colnames(smatrix1))
+    expect_equal(as.vector(sm1),as.vector(smatrix1))
+})
 
-# Creating FLSparseMatrices
-smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-sm1 <- as.FLSparseMatrix(smatrix1,connection)
-sm2 <- FLSparseMatrix(connection, "FL_TRAIN", "tblMatrixMultiSparse", 2)
+##     ## Zero matrix of dimension 5x5
+##     m0 <- as.FLMatrix(matrix(0,5,5), connection)
+##     expect_equal(dim(m2),c(5,5))
+    
+##     ##m100 <- as.FLMatrix(matrix(1:10000,100,100), connection)
+##     ## Identity matrix of dimension 5x5
+##     m <- as.FLMatrix(matrix(1:25,5),connection)   # Non-symmetric singular matrix of dimension 5x5
+##     m2 <- as.FLMatrix(matrix(26:50,5), connection) # Non Symmetric singular matrix of dimension 5x5
+##     m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",3) #  Non-Square Matrix of dimension 4x5
+##     m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5) # Symmetric non-singular matrix of dimension 5x5
+##     m5 <- as.FLMatrix(matrix(runif(25,-30,30),5,5),connection) # Random matrix of dimension 5x5
 
-# Creating FLVectors
-WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-v1 <- FLVector(WideTable,"vector_value")
-DeepTable <- FLTable(connection,"FL_TRAIN","tblVectorDeep","vector_id","vector_key","vector_value")
-v2 <- FLVector(DeepTable,"vector_value",1)
 
 # Testing FLIs
 test_that("check class of a Matrix",
 {
+    m <- as.FLMatrix(matrix(1:25,5),connection)   # Non-symmetric singular matrix of dimension 5x5
     expect_is(
             m, "FLMatrix"
         )
@@ -49,49 +108,58 @@ test_that("check class of a Matrix",
 
 test_that("check class of a Sparse Matrix",
 {
+    ## Creating FLSparseMatrices
+    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
+    sm1 <- as.FLSparseMatrix(smatrix1,connection)
     expect_is(
-            sm1, "FLSparseMatrix"
+            sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
         )
 })
 
-test_that("check class of a Vector",
+test_that("Wide tables and Vectors",
 {
+    ## # Creating FLVectors
+    WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
+    v1 <- FLVector(WideTable,"vector_value")
+    DeepTable <- FLTable(connection,"FL_TRAIN","tblVectorDeep","vector_id","vector_key","vector_value")
+    v2 <- FLVector(DeepTable,"vector_value",1)
     expect_is(
             v1, "FLVector"
         )
     expect_is(
             v2, "FLVector"
         )
-})
 
-test_that("check class of a Table",
-{
-    expect_is(
+
+    test_that("check class of a Table",
+    {
+        expect_is(
             DeepTable, "FLTable"
         )
-    expect_is(
+        expect_is(
             WideTable, "FLTable"
         )
+    })
+
 })
 
 
 # Testing FLMatrix
 test_that("check class and result of FLMatrix",
 {
+    matrix1 <- matrix(1:25,5)
+    m <- as.FLMatrix(matrix1,connection)   # Non-symmetric singular ma
     expect_is(
             m, "FLMatrix"
         )
-
     expect_equal(
             nrow(m),nrow(as.matrix(m))
         )
-
     expect_equal(
             ncol(m),ncol(as.matrix(m))
         )
-
     expect_equal(
-            as.matrix(m),matrix1
+            as.vector(as.matrix(m)),as.vector(matrix1)
         )
 })
 
@@ -99,7 +167,7 @@ test_that("check class and result of FLMatrix",
 test_that("check class and result of FLSparseMatrix",
 {
     expect_is(
-            sm1, "FLSparseMatrix"
+            sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
         )
 
     expect_equal(
@@ -150,6 +218,7 @@ test_that("get dimensions of a Matrix",
 
 test_that("get dimensions of a Sparse Matrix",
 {
+    sm2 <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMultiSparse", 2)
     expect_true(
         is.numeric(
             ncol(sm2)
