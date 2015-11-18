@@ -20,7 +20,7 @@ setOldClass("RODBC")
 setClass(
 	"FLMatrix",
 	slots = list(
-		odbc_connection = "RODBC",
+		odbc_connection = "ANY",
 		db_name = "character",
 		matrix_table = "character",
 		matrix_id_value	= "numeric",
@@ -55,9 +55,8 @@ setClass(
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' @export
-
 FLMatrix <- function(connection, 
-					 database, 
+					 database=result_db_name, 
 					 matrix_table, 
 					 matrix_id_value,
 					 matrix_id_colname = "MATRIX_ID", 
@@ -68,22 +67,11 @@ FLMatrix <- function(connection,
 					 ncol = c(), 
 					 dimnames = list(c(),c()))
 {
-	# Select and set access to the entire database and its functions
-	sqlQuery(connection,
-			 paste("DATABASE", database,";
-					SET ROLE ALL;"))
-	
-	nrow <- sqlQuery(connection, 
-					 paste0("SELECT max(",row_id_colname,") 
-							 FROM ",matrix_table," 
-							 WHERE ",matrix_id_colname,"=",matrix_id_value))[1,1]
-
-	ncol <- sqlQuery(connection,
-					 paste0("SELECT max(",col_id_colname,")
-					 		 FROM ",matrix_table," 
-					 		 WHERE ",matrix_id_colname,"=",matrix_id_value))[1,1]
-	
-
+	fldims <- sqlQuery(connection, 
+					 paste0("SELECT max(",row_id_colname,") as nrow,
+                             max(",col_id_colname,") as ncol
+							 FROM ",getRemoteTableName(database,matrix_table),
+							 " WHERE ",matrix_id_colname,"=",matrix_id_value))
 	if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
 	  (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
 	{
@@ -100,35 +88,28 @@ FLMatrix <- function(connection,
 			row_id_colname = row_id_colname, 
 			col_id_colname = col_id_colname, 
 			cell_val_colname = cell_val_colname,
-			nrow = nrow, 
-			ncol = ncol, 
+			nrow = fldims[[1]], 
+			ncol = fldims[[2]], 
 			dimnames = dimnames)
     }
 }
 
-max_matrix_id_value <- 0
-max_matrix_id_value <- max_matrix_id_value + 1
-result_db_name <- "FL_TRAIN"
-result_matrix_table <- gen_unique_table_name("tblMatrixMultiResult")
-# result_matrix_table <- "tblMatrixMultiResult"
-flag1 <- 0
 
 print.FLMatrix <- function(object)
 {
-	sqlQuery(object@odbc_connection, 
-			 paste0("DATABASE", object@db_name,"; 
-			 		 SET ROLE ALL;"))
 	nrows <- object@nrow
 	valuedf <- sqlQuery(object@odbc_connection, 
 						paste0("SELECT * 
 								FROM ",object@matrix_table," 
 								WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," 
 								ORDER BY 1,2,3"))
-	print(matrix(valuedf[,object@cell_val_colname],
-		  nrows,
-		  length(valuedf[,object@cell_val_colname])/nrows,
-		  byrow=T,
-		  dimnames = object@dimnames))
+
+    m <- sparseMatrix(i = valuedf[,object@row_id_colname],
+                      j = valuedf[,object@col_id_colname],
+                      x = valuedf[,object@cell_val_colname],
+                      dimnames = object@dimnames)
+    ##gk: todo: implement caching
+	print(m)
 }
 
 

@@ -15,7 +15,7 @@ setOldClass("RODBC")
 setClass(
 	"FLMatrix",
 	slots = list(
-		odbc_connection = "RODBC", ## GK: We need a (optional) jdbc object here
+		odbc_connection = "ANY", ## GK: We need a (optional) jdbc object here
 		db_name = "character",
 		matrix_table = "character",
 		matrix_id_value	= "numeric",
@@ -26,6 +26,7 @@ setClass(
 		cell_val_colname = "character"
 	)
 )
+
 
 #' Constructor function for FLMatrix.
 #'

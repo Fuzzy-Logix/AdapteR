@@ -15,7 +15,7 @@ setOldClass("RODBC")
 setClass(
 	"FLTable",
 	slots = list(
-		odbc_connection = "RODBC",
+		odbc_connection = "ANY",
 		db_name         = "character",
 		table_name      = "character",
 		primary_key="character",
@@ -62,9 +62,6 @@ FLTable <- function(connection,
 	}
 	else if(length(var_id_name) && length(num_val_name))
 	{
-		sqlQuery(connection, paste("DATABASE", database,";
-									SET ROLE ALL;"))
-
 		new("FLTable",
 			 odbc_connection = connection,
 			 db_name = database, 
@@ -76,9 +73,6 @@ FLTable <- function(connection,
 	}
 	else
 	{
-		sqlQuery(connection, paste("DATABASE", database,";
-									SET ROLE ALL;"))
-
 		new("FLTable", 
 			odbc_connection = connection,
 			db_name = database, 
@@ -99,10 +93,6 @@ names.FLTable <- function(object)
 
 	if(!object@isDeep)
 	{
-		sqlQuery(connection,
-				 paste("DATABASE", column_database,";
-						SET ROLE ALL;"))
-
 		sqlstr <- paste0("SELECT columnname 
 						  FROM dbc.columns
 						  WHERE tablename='",object@table_name,"' 
@@ -113,12 +103,9 @@ names.FLTable <- function(object)
 	}
 	else
 	{
-		sqlQuery(connection,
-				 paste("DATABASE", object@db_name,";
-				 		SET ROLE ALL"))
-
 		sqlstr <- paste0("SELECT DISTINCT(",object@var_id_name,") as VarID 
-						  FROM ",object@table_name)
+						  FROM ",getRemoteTableName(object@db_name,
+                                                    object@table_name))
 		retobj <- sqlQuery(connection,sqlstr)
 		retobj <- retobj$VarID
 		retobj

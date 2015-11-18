@@ -18,7 +18,7 @@ setOldClass("RODBC")
 setClass(
 	"FLSparseMatrix",
 	slots = list(
-		odbc_connection = "RODBC",
+		odbc_connection = "ANY",
 		db_name = "character",
 		matrix_table = "character",
 		matrix_id_value	= "numeric",
@@ -62,44 +62,55 @@ FLSparseMatrix <- function(connection,
 						   col_id_colname = "COL_ID", 
 						   cell_val_colname = "CELL_VAL", 
 						   dimnames = list(c(),c()))
-{
-	sqlQuery(connection,
-			 paste("DATABASE", database,";
-			 		SET ROLE ALL;"))
+    FLMatrix(connection,
+             database, 
+             matrix_table, 
+             matrix_id_value,
+             matrix_id_colname, 
+             row_id_colname, 
+             col_id_colname, 
+             cell_val_colname, 
+             dimnames)
 
-	nrow <- sqlQuery(connection,
-					 paste0("SELECT max(",row_id_colname,")
-					 		 FROM ",matrix_table," 
-					 		 WHERE ",matrix_id_colname,"=",matrix_id_value))[1,1]
-
-	ncol <- sqlQuery(connection,
-					 paste0("SELECT max(",col_id_colname,")
-					 		 FROM ",matrix_table," 
-					 		 WHERE ",matrix_id_colname,"=",matrix_id_value))[1,1]
-
-
-	if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) || 
-	  (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
-	{
-      	stop(" ERROR in dimnames: length of dimnames not equal to array extent ")
-
-	} 
-    else
-    {
-		new("FLSparseMatrix",
-			 odbc_connection = connection,
-			 db_name = database, 
-			 matrix_table = matrix_table, 
-			 matrix_id_value = matrix_id_value, 
-			 matrix_id_colname = matrix_id_colname, 
-			 row_id_colname = row_id_colname, 
-			 col_id_colname = col_id_colname, 
-			 cell_val_colname = cell_val_colname,
-	         nrow = nrow, 
-	         ncol = ncol, 
-	         dimnames = dimnames)    	
-    }
-}
+## FLSparseMatrix <- function(connection,
+## 						   database, 
+## 						   matrix_table, 
+## 						   matrix_id_value,
+## 						   matrix_id_colname = "MATRIX_ID", 
+## 						   row_id_colname = "ROW_ID", 
+## 						   col_id_colname = "COL_ID", 
+## 						   cell_val_colname = "CELL_VAL", 
+## 						   dimnames = list(c(),c()))
+## {
+## 	nrow <- sqlQuery(connection,
+## 					 paste0("SELECT max(",row_id_colname,")
+## 					 		 FROM ",matrix_table," 
+## 					 		 WHERE ",matrix_id_colname,"=",matrix_id_value))[1,1]
+## 	ncol <- sqlQuery(connection,
+## 					 paste0("SELECT max(",col_id_colname,")
+## 					 		 FROM ",matrix_table," 
+## 					 		 WHERE ",matrix_id_colname,"=",matrix_id_value))[1,1]
+## 	if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) || 
+## 	  (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
+## 	{
+##       	stop(" ERROR in dimnames: length of dimnames not equal to array extent ")
+## 	} 
+##     else
+##     {
+## 		new("FLSparseMatrix",
+## 			 odbc_connection = connection,
+## 			 db_name = database, 
+## 			 matrix_table = matrix_table, 
+## 			 matrix_id_value = matrix_id_value, 
+## 			 matrix_id_colname = matrix_id_colname, 
+## 			 row_id_colname = row_id_colname, 
+## 			 col_id_colname = col_id_colname, 
+## 			 cell_val_colname = cell_val_colname,
+## 	         nrow = nrow, 
+## 	         ncol = ncol, 
+## 	         dimnames = dimnames)    	
+##     }
+## }
 
 pToj <- function(p) 
 {
@@ -107,24 +118,14 @@ pToj <- function(p)
   	rep(seq_along(dp), dp)
 }
 
-max_Sparsematrix_id_value <- 0
-max_Sparsematrix_id_value <- max_Sparsematrix_id_value + 1
-result_db_name <- "FL_TRAIN"
-result_Sparsematrix_table <- gen_unique_table_name("tblMatrixMultiResultSparse")
-# result_Sparsematrix_table <- "tblMatrixMultiResultSparse"
-flag2 <- 0
-
 # Prints FLSparseMatrix object
 print.FLSparseMatrix <- function(object)
 {
-	sqlQuery(object@odbc_connection, 
-			 paste0("DATABASE", object@db_name,"; 
-			 		 SET ROLE ALL;"))
 	nrow <- object@nrow
 	valuedf <- sqlQuery(object@odbc_connection,
 					    paste0("SELECT * 
 								FROM ",object@matrix_table," 
-								WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," 
+								WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," AND ", object@cell_val_colname,"<>0
 								ORDER BY 1,2,3"))
 	sparseMatrix(i=valuedf[,object@row_id_colname],
 				 j=valuedf[,object@col_id_colname],
