@@ -45,7 +45,7 @@ hessen.FLMatrix<-function(object)
 								   a.",object@row_id_colname,", 
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname," 
-							FROM  ",object@matrix_table," a 
+							FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 						SELECT ",max_matrix_id_value,",
 								a.OutputRowNum,
@@ -56,13 +56,13 @@ hessen.FLMatrix<-function(object)
 									LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 						WHERE a.OutputPVal IS NOT NULL;")
 		
-		sqlQuery(connection,sqlstrP)
+		sqlSendUpdate(connection,sqlstrP)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		PMatrix <- new("FLMatrix", 
-				       odbc_connection = connection, 
-				       db_name = result_db_name, 
+		PMatrix <- FLMatrix(
+				       connection = connection, 
+				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
 					   matrix_id_value = max_matrix_id_value-1,
 					   matrix_id_colname = "MATRIX_ID", 
@@ -79,24 +79,24 @@ hessen.FLMatrix<-function(object)
 									   a.",object@row_id_colname,", 
 									   a.",object@col_id_colname,", 
 									   a.",object@cell_val_colname," 
-								FROM  ",object@matrix_table," a 
+								FROM  ",remoteTable(object)," a 
 								WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 							SELECT ",max_matrix_id_value,",
 									a.OutputRowNum,
 									a.OutputColNum,
 									a.OutputHVal 
-							FROM TABLE (FLHessenbergDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+							FROM TABLE (FL_DEMO.FLHessenbergDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
 										HASH BY z.Matrix_ID 
 										LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 							WHERE a.OutputHVal IS NOT NULL;")
 		
-		sqlQuery(connection,sqlstrH)
+		sqlSendUpdate(connection,sqlstrH)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		HMatrix <- new("FLMatrix", 
-				       odbc_connection = connection, 
-				       db_name = result_db_name, 
+		HMatrix <- FLMatrix(
+				       connection = connection, 
+				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
 					   matrix_id_value = max_matrix_id_value-1,
 					   matrix_id_colname = "MATRIX_ID", 

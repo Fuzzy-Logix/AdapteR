@@ -3,7 +3,6 @@ library(AdapteR)
 library(testthat)
 # test_check("AdapteR")
 require(Matrix)
-require(testthat)
 
 if (exists("connection")) {
     dbDisconnect(connection)
@@ -106,16 +105,6 @@ test_that("check class of a Matrix",
         )
 })
 
-test_that("check class of a Sparse Matrix",
-{
-    ## Creating FLSparseMatrices
-    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-    sm1 <- as.FLSparseMatrix(smatrix1,connection)
-    expect_is(
-            sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
-        )
-})
-
 test_that("Wide tables and Vectors",
 {
     ## # Creating FLVectors
@@ -123,14 +112,19 @@ test_that("Wide tables and Vectors",
     v1 <- FLVector(WideTable,"vector_value")
     DeepTable <- FLTable(connection,"FL_TRAIN","tblVectorDeep","vector_id","vector_key","vector_value")
     v2 <- FLVector(DeepTable,"vector_value",1)
+    ## Testing FLvector
     expect_is(
             v1, "FLVector"
         )
     expect_is(
             v2, "FLVector"
         )
-
-
+    test_that("check class and reproducibility of FLVector",
+    {
+        expect_true(
+            v1 == as.FLVector(as.vector(v1),connection)
+        )
+    })
     test_that("check class of a Table",
     {
         expect_is(
@@ -140,7 +134,21 @@ test_that("Wide tables and Vectors",
             WideTable, "FLTable"
         )
     })
-
+    test_that("get dimensions of a Vector",
+    {
+        expect_true(
+            is.numeric(
+                NCOL(v1)
+            ))
+        expect_true(
+            is.numeric(
+                NROW(v1)
+            ))
+        expect_true(
+            is.numeric(
+                dim(v1)
+            ))
+    })
 })
 
 
@@ -160,61 +168,67 @@ test_that("check class and result of FLMatrix",
         )
     expect_equal(
             as.vector(as.matrix(m)),as.vector(matrix1)
-        )
+    )
+    ## Testing FLTranspose
+    test_that("check transpose",
+              expect_equal(
+              (t(m) == as.FLMatrix(t(as.matrix(m)),connection)),
+              TRUE
+              ))
+    ##
+    ## Testing FLDet
+    test_that("check determinant return type",
+              expect_true(
+                  is.numeric(det(m))
+              ))
+    ##
+    test_that("check determinant result",
+              expect_true(
+                  as.vector(det(m))==det(as.matrix(m))
+              ))
+    ##
+    ##Testing FLDims
+    test_that("get dimensions of a Matrix",
+    { ## gk: redundant!?
+        expect_true(
+            is.numeric(
+                ncol(m)
+            ))
+        expect_true(
+            is.numeric(
+                NCOL(m)
+            ))
+        expect_true(
+            is.numeric(
+                nrow(m)
+            ))
+        expect_true(
+            is.numeric(
+                NROW(m)
+            ))
+        expect_true(
+            is.numeric(
+                dim(m)
+            ))
+    }) 
 })
 
 # Testing FLSparseMatrix
 test_that("check class and result of FLSparseMatrix",
 {
+    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
+    sm1 <- as.FLSparseMatrix(smatrix1,connection)
     expect_is(
             sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
         )
-
     expect_equal(
             nrow(sm1),nrow(smatrix1)
         )
-
     expect_equal(
             ncol(sm1),ncol(smatrix1)
         )
 })
 
-# Testing FLvector
-test_that("check class and reproducibility of FLVector",
-{
-    expect_is(
-            v1, "FLVector"
-        )
-
-    expect_true(
-            v1 == as.FLVector(as.vector(v1),connection)
-        )
-})
-
-#Testing FLDims
-test_that("get dimensions of a Matrix",
-{
-    expect_true(
-        is.numeric(
-            ncol(m)
-        ))
-    expect_true(
-        is.numeric(
-            NCOL(m)
-        ))
-    expect_true(
-        is.numeric(
-            nrow(m)
-        ))
-    expect_true(
-        is.numeric(
-            NROW(m)
-        ))
-    expect_true(
-        is.numeric(
-            dim(m)
-        ))
-})
 
 test_that("get dimensions of a Sparse Matrix",
 {
@@ -241,310 +255,50 @@ test_that("get dimensions of a Sparse Matrix",
         ))
 })
 
-test_that("get dimensions of a Vector",
-{
-    expect_true(
-        is.numeric(
-            NCOL(v1)
-        ))
-    expect_true(
-        is.numeric(
-            NROW(v1)
-        ))
-    expect_true(
-        is.numeric(
-            dim(v1)
-        ))
-})
-
-test_that("get column and row names",
-{
-    expect_true(
-        is.character(
-            colnames(m)
-        ))
-    expect_true(
-        is.character(
-            rownames(m)
-        ))
-})
-
-# Testing Subsetting
-test_that("selection of entire matrix",
-{
-    expect_true(
-        is.FLMatrix(
-            m[,]
-        ))
-expect_true(nrow(m[,])==nrow(m))
-expect_true(ncol(m[,])==ncol(m))
-})
-
-test_that("selection of cell row 1, column 1",
-{
-    expect_true(
-        is.FLMatrix(
-            m[1,1]
-        ))
-    expect_true(
-        length(m[1,1])==1
-    )
-})
-
-test_that("selection of first row",
-{
-    expect_true(
-        is.FLMatrix(
-            m[1,]
-        ))
-    expect_true(
-        length(m[1,])==ncol(m))
-})
-
-test_that("selection of row by name works",
-          expect_equal(
-            (m[1,] == m[rownames(m)[[1]],]),
-            TRUE
-              ))
-
-test_that("selection of column by name works",
-          expect_equal(
-              (m[,1] == m[,colnames(m)[[1]]]),
-              TRUE))
-
-test_that("selection of a part of the matrix",
-{
-    expect_equal(3,
-                 nrow(m[1:3,]))
-    expect_equal(ncol(m),
-                 ncol(m[1:3,]))
-})
-
-test_that("selection of a part of the matrix",
-{
-    expect_equal(3,
-                 ncol(m[,1:3]))
-    expect_equal(nrow(m),
-                 nrow(m[,1:3]))
-    expect_equal(rownames(m),
-                 rownames(m[,1:3]))
-})
-
-test_that("selection of row by name works",
-          expect_equal(
-              (m[1:2,] == m[rownames(m)[1:2],]),
-              TRUE
-          ))
-
-test_that("selection of column by name works",
-          expect_equal(
-              (m[,1:2] == m[,colnames(m)[1:2]]),
-              TRUE
-          ))
-
-test_that("selection of entire vector",
-{
-    expect_true(
-        is.FLVector(
-            v1[]
-        ))
-expect_true(length(v1[])==length(v1))
-})
-
-test_that("selection of part of vector",
-{
-    expect_true(
-        is.FLVector(
-            v1[2:3]
-        ))
-expect_true(length(v1[2:3])==2)
-})
-
-test_that("selection of an element from a vector",
-{
-    expect_true(
-        is.FLVector(
-            v1[2]
-        ))
-expect_true(length(v1[2])==1)
-})
-
-
-# Testing Addition/Subtraction
-test_that("check matrix addition/subtraction",
-{
-  m + m2
-  m - m2 
-})
-
-test_that("check sparse matrix addition/subtraction",
-{
-  sm2 + sm2
-  sm1 - sm1 
-})
-
-test_that("check vector addition/subtraction",
-{
-  v1 + v1
-  v2 - v2 
-})
-
-test_that("check sum of matrices",
-          expect_equal(
-            ((m + m) == 2*m),
-            TRUE
-              ))
-
-test_that("check sum of sparse matrices",
-          expect_equal(
-            ((sm2 + sm2) == 2*sm2),
-            TRUE
-              ))
-
-test_that("check sum of vectors",
-          expect_equal(
-            ((v2 + v2) == 2*v2),
-            TRUE
-              ))
-
-test_that("check commutative law",
-          expect_equal(
-            ((m2 + m) == (m + m2)),
-            TRUE
-              ))
-
-test_that("check associative law for addition",
-          expect_equal(
-            (((m + m) + m2) == (m + (m + m2))),
-            TRUE
-              ))
-
-test_that("check identity of addition",
-          expect_equal(
-            ( (m + m0) == (m0 + m) ),
-            TRUE
-              ))
-
-# Testing Multiplication
-test_that("check matrix multiplication",
-{
-  m * m2
-  m3 %*% m2
-  m %*% m2 
-})
-
-test_that("check associative law for multiplication",
-          expect_equal(
-            ( ((m3 %*% m) %*% m2) == (m3 %*% (m %*% m2)) ),
-            TRUE
-              ))
-
-test_that("check two scalar multiplication for matrices",
-          expect_equal(
-            ( ((2 * 3) * m) == (2 * (3 * m)) ),
-            TRUE
-              ))
-
-test_that("check two scalar multiplication for sparse matrices",
-          expect_equal(
-            ( ((2 * 3) * sm2) == (2 * (3 * sm2)) ),
-            TRUE
-              ))
-
-test_that("check two scalar multiplication for vectors",
-          expect_equal(
-            ( ((2 * 3) * v1) == (2 * (3 * v1)) ),
-            TRUE
-              ))
-
-test_that("check scalar multiplication for matrices",
-          expect_equal(
-            ( ((2 * m) %*% m2) == (2 * (m %*% m2)) ),
-            TRUE
-              ))
-
-test_that("check distributive properties for matrices",
-{
-    expect_equal(
-          ( (m3 %*% (m2 + m)) == ((m3 %*% m2) + (m3 %*% m)) ),
-          TRUE
-            )
-    expect_equal(
-          ( ((m2 + m) %*% m) == ((m2 %*% m) + (m %*% m)) ),
-          TRUE
-            )  
-    expect_equal(
-          ( (2 * (m2 + m)) == ((2 * m2) + (2 * m)) ),
-          TRUE
-            )  
-    expect_equal(
-          ( ((2 + 3) *m) == ((2 * m) + (3 * m)) ),
-          TRUE
-            )  
-})          
-
-# Testing FLTranspose
-test_that("check transpose",
-          expect_equal(
-            (t(m) == as.FLMatrix(t(as.matrix(m)),connection)),
-            TRUE
-              ))
-
-# Testing FLDet
-test_that("check determinant return type",
-        expect_true(
-          is.FLVector(det(m))
-          ))
-
-test_that("check determinant result",
-        expect_true(
-          as.vector(det(m))==det(as.matrix(m))
-          ))
-
 # Testing FLJordanDecomp
-test_that("check Jordan Decomposition",
-        jordan(m4) 
-        )
-
+test_that("Decompositions",{
+          m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5) # Symmetric non-singular matrix of dimension 5x5
+          test_that("check Jordan Decomposition",
+                    jordan(m4)
+                    )
 # Testing FLHessenDecomp
-test_that("check Hessenberg Decomposition",
-{
-        hessen(m4) 
-        hessen(m) 
-})
-
-# Testing FLSVDecomp
-test_that("check Singular Value Decomposition",
-{
-        svd(m4) 
-        svd(m) 
-        svd(m3) 
-})
-
+          test_that("check Hessenberg Decomposition",
+          {
+              hessen(m4) 
+              hessen(m) 
+          })
+                                        # Testing FLSVDecomp
+          test_that("check Singular Value Decomposition",
+          {
+              svd(m4) 
+              svd(m) 
+              svd(m3) 
+          })
 # Testing FLLUDecomp
-test_that("check LU Decomposition",
-{
-        lu(m4) 
-        lu(m) 
-        lu(m3) 
+          test_that("check LU Decomposition",
+          {
+              lu(m4) 
+              lu(m) 
+              lu(m3) 
+          })
+          ## Testing FLTrace
+          test_that("check LU Decomposition",
+          {
+              tr(m) 
+              tr(m3) 
+          })
 })
 
-# Testing FLTrace
-test_that("check LU Decomposition",
-{
-        tr(m) 
-        tr(m3) 
-})
 
 test_that("check FLTrace return type",
-        expect_true(
-          is.FLVector(tr(m))
+          expect_true(
+              is.FLVector(tr(m))
           ))
 
-test_that("check length of FLTrace result",
-        expect_true(
-          length(tr(m))==1
-          ))
+          test_that("check length of FLTrace result",
+                    expect_true(
+                        length(tr(m))==1
+                    ))
 
 # Testing FLSolve
 test_that("check inverse calculation of matrix", 

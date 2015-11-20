@@ -147,7 +147,7 @@ residuals.FLLogRegr<-function(object){
 											 oAnalysisID);")
 	err<-sqlQuery(object@datatable@odbc_connection,queryscore)
 	queryresiduals<-paste0("SELECT (a.",dependent," - b.Y) as deviation 
-							FROM ",object@table_name," AS a, 
+							FROM ",remoteTable(object)," AS a, 
 								  (SELECT * 
 								   FROM ",scoretable,") AS b 
 							WHERE a.ObsID = b.ObsID")
@@ -193,7 +193,7 @@ lrdata.FLLogRegr<-function(object){
 		queryminmax<-paste0("SELECT FLmin(c.deviation), 
 									FLMax(c.deviation) 
 							 FROM (SELECT (a.",dependent," - b.Y) AS deviation 
-							 	   FROM ",object@table_name," AS a, 
+							 	   FROM ",remoteTable(object)," AS a, 
 							 	   		 (SELECT * 
 							 	   		  FROM ",scoretable,") AS b 
 								   WHERE a.ObsID = b.ObsID) AS c")
@@ -202,7 +202,7 @@ lrdata.FLLogRegr<-function(object){
 						 AS (SELECT 1,
 						 			c.deviation 
 						 	 FROM ((SELECT (a.",dependent," - b.Y) AS deviation 
-						 	 		FROM ",object@table_name," AS a, 
+						 	 		FROM ",remoteTable(object)," AS a, 
 						 	 			  (SELECT * 
 						 	 			   FROM ",scoretable,") AS b 
 									WHERE a.ObsID = b.ObsID) AS c)) 
@@ -216,7 +216,7 @@ lrdata.FLLogRegr<-function(object){
 							 AS (SELECT 1,
 							 			c.deviation 
 							 	 FROM ((SELECT (a.",dependent," - b.Y) AS deviation 
-							 	 	    FROM ",object@table_name," AS a, 
+							 	 	    FROM ",remoteTable(object)," AS a, 
 							 	 	    	  (SELECT * 
 							 	 	    	   FROM ",scoretable,") AS b 
 										WHERE a.ObsID = b.ObsID) AS c)) 
@@ -230,7 +230,7 @@ lrdata.FLLogRegr<-function(object){
 						 AS (SELECT 1,
 						 			c.deviation 
 						 	 FROM ((SELECT (a.",dependent," - b.Y) AS deviation 
-						 	 		FROM ",object@table_name," AS a, 
+						 	 		FROM ",remoteTable(object)," AS a, 
 						 	 			  (SELECT * 
 						 	 			   FROM ",scoretable,") AS b 
 									WHERE a.ObsID = b.ObsID) AS c)) 

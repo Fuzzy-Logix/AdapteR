@@ -36,7 +36,7 @@ colSums.FLMatrix<-function(object)
 					" SELECT ",max_vector_id_value,
 					         ",a.",object@col_id_colname,
 					         ", CAST(SUM(a.",object@cell_val_colname,") AS NUMBER) 
-					FROM ",object@db_name,".",object@matrix_table," a 
+					FROM ",remoteTable(object)," a 
 					WHERE a.",object@matrix_id_colname,"=",object@matrix_id_value,
 					" GROUP BY a.",object@col_id_colname)
 

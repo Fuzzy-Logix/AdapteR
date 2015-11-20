@@ -106,9 +106,6 @@ kmeans.FLTable<-function(table,
 	validate_args(argList, typeList, classList)
 
 	database<-table@db_name
-	sqlQuery(connection, 
-			 paste("DATABASE", database,";
-					SET ROLE ALL;"))
 
 	class_spec <- list_to_class_spec(class_spec)
 	
@@ -249,7 +246,7 @@ cluster.FLKMeans<-function(object)
 						WHERE AnalysisID = '",AnalysisID,"' AND
 						HypothesisID = ",object@nstart)
 
-		sqlQuery(connection,sqlstr)
+		sqlSendUpdate(connection,sqlstr)
 		#clustervector <- as.vector(retobj$ClusterID)
 		#clustervector <- as.integer(substr(clustervector,nchar(clustervector),nchar(clustervector)))
 		max_vector_id_value <<- max_vector_id_value + 1
@@ -301,7 +298,7 @@ centers.FLKMeans<-function(object)
 						WHERE AnalysisID = '",AnalysisID,"' 
 						AND HypothesisID = ",object@nstart)
 
-		sqlQuery(connection,sqlstr)
+		sqlSendUpdate(connection,sqlstr)
 		#centers<-as.vector(retobj$Centroid)
 		#row=object@no_of_centers
 		#col=length(centers)/row
@@ -356,7 +353,7 @@ tot.withinss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID 
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlSendUpdate(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -404,7 +401,7 @@ withinss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID 
 						GROUP BY fzzlKMeansClusterID.ClusterID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlSendUpdate(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -457,7 +454,7 @@ betweenss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID 
 						AND a.VarID = ",object@deeptablename,".VarID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlSendUpdate(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -502,7 +499,7 @@ totss.FLKMeans<-function(object){
 							 object@deeptablename," 
 						WHERE a.VarID = ",object@deeptablename,".VarID;")
 		
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlSendUpdate(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -556,7 +553,7 @@ size.FLKMeans<-function(object)
 	                      AND HypothesisID = ",object@nstart," 
 	                      GROUP BY ClusterID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlSendUpdate(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,

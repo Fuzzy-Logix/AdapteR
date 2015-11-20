@@ -47,7 +47,7 @@ jordan.FLMatrix<-function(object)
 								   a.",object@row_id_colname,", 
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname," 
-							FROM  ",object@matrix_table," a 
+							FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 						SELECT ",max_matrix_id_value,",
 								a.OutputRowNum,
@@ -60,17 +60,14 @@ jordan.FLMatrix<-function(object)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		
-		retobj <- sqlQuery(connection,sqlstrP)
+		retobj <- sqlSendUpdate(connection,sqlstrP)
 		# print(retobj)
-		# print(length(retobj))
-		if(length(retobj) != 0)
-		{
-			stop("Input matrix is singular")
-		}
+                                        # print(length(retobj))
 
-		PMatrix <- new("FLMatrix", 
-				       odbc_connection = connection, 
-				       db_name = result_db_name, 
+
+		PMatrix <- FLMatrix(
+				       connection = connection, 
+				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
 					   matrix_id_value = max_matrix_id_value-1,
 					   matrix_id_colname = "MATRIX_ID", 
@@ -80,6 +77,11 @@ jordan.FLMatrix<-function(object)
 					   nrow = object@nrow, 
 					   ncol = object@ncol, 
 					   dimnames = list(c(),c()))
+        ## gk: todo, check this on remote object!
+		## if(length(retobj) != 0)
+		## {
+		## 	stop("Input matrix is singular")
+		## }
 
 		sqlstrPInv<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
 							WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -87,7 +89,7 @@ jordan.FLMatrix<-function(object)
 									   a.",object@row_id_colname,", 
 									   a.",object@col_id_colname,", 
 									   a.",object@cell_val_colname," 
-								FROM  ",object@matrix_table," a 
+								FROM  ",remoteTable(object)," a 
 								WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 							SELECT ",max_matrix_id_value,",
 									a.OutputRowNum,
@@ -99,17 +101,17 @@ jordan.FLMatrix<-function(object)
 							WHERE a.OutPInvVal IS NOT NULL;")
 		
 
-		retobj <- sqlQuery(connection,sqlstrPInv)
+		retobj <- sqlSendUpdate(connection,sqlstrPInv)
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		
-		if(length(retobj) != 0)
-		{
-			stop("Input matrix is singular")
-		}
+		## if(length(retobj) != 0)
+		## {
+		## 	stop("Input matrix is singular")
+		## }
 
-		PInvMatrix <- new("FLMatrix", 
-					       odbc_connection = connection, 
-					       db_name = result_db_name, 
+		PInvMatrix <- FLMatrix(
+					       connection = connection, 
+					       database = result_db_name, 
 					       matrix_table = result_matrix_table, 
 						   matrix_id_value = max_matrix_id_value-1,
 						   matrix_id_colname = "MATRIX_ID", 
@@ -126,7 +128,7 @@ jordan.FLMatrix<-function(object)
 								   a.",object@row_id_colname,", 
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname," 
-							FROM  ",object@matrix_table," a 
+							FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 						SELECT ",max_vector_id_value," AS VECTOR_ID,
 								a.OutputRowNum AS VECTOR_INDEX,
@@ -137,7 +139,7 @@ jordan.FLMatrix<-function(object)
 						WHERE a.OutJVal IS NOT NULL
 						AND   a.OutputRowNum = a.OutputColNum;")
 		
-		sqlQuery(connection,sqlstrJ)
+		sqlSendUpdate(connection,sqlstrJ)
 
 		max_vector_id_value <<- max_vector_id_value + 1
 		

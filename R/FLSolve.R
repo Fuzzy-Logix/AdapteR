@@ -58,7 +58,7 @@ solve.FLMatrix<-function(object)
 						HASH BY z.Matrix_ID 
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	
-	t<-sqlQuery(connection,sqlstr)
+	t<-sqlSendUpdate(connection,sqlstr)
 
 	if(length(t) > 0) 
 	{ 

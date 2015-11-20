@@ -149,7 +149,7 @@ lu.FLMatrix<-function(object)
 	               " SELECT ",max_vector_id_value,
 	                        ",ROW_NUMBER() OVER(ORDER BY a.",LUMatrix@col_id_colname,",a.",LUMatrix@row_id_colname,")
 	                       , CAST(a.",LUMatrix@cell_val_colname," AS NUMBER)  
-	               FROM  ",LUMatrix@db_name,".",LUMatrix@matrix_table," AS a 
+	               FROM  ",remoteTable(LUMatrix)," AS a 
 				   WHERE a.",LUMatrix@matrix_id_colname,"=",LUMatrix@matrix_id_value)
 
 	sqlQuery(connection,sqlstr)

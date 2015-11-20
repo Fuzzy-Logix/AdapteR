@@ -39,37 +39,21 @@ det.FLMatrix<-function(object)
 	{
 		stop("input object must be square matrix")
 	}
-
-	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,
-				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-					AS (SELECT a.",object@matrix_id_colname,", 
+	sqlstr<-paste0("WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS
+(SELECT a.",object@matrix_id_colname,", 
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,",
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
-						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_vector_id_value,
-					       ",1,
-					       CAST(a.OutputDetVal AS NUMBER)  
-					FROM TABLE (FLMatrixDetUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-								HASH BY z.Matrix_ID 
-								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) 
-					AS a;")
+						FROM  ",remoteTable(object)," a 
+						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,")
+SELECT ",max_vector_id_value,
+", a.*
+FROM TABLE (
+FLMatrixDetUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val)
+HASH BY z.Matrix_ID
+LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+) AS a
+ ");
 
-	sqlQuery(connection,sqlstr)
-	
-	max_vector_id_value <<- max_vector_id_value + 1
-	
-	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_ID",
-		             "VECTOR_INDEX",
-		             "VECTOR_VALUE")
-
-	new("FLVector", 
-		table = table, 
-		col_name = table@num_val_name, 
-		vector_id_value = max_vector_id_value-1, 
-		size = 1)
+	sqlQuery(connection,sqlstr)[[3]]
 }

@@ -67,9 +67,6 @@ NULL
 
 `/.FLMatrix` <- function(flmatobj1, flmatobj2)
 {
-	sqlQuery(flmatobj1@odbc_connection,
-			 paste("DATABASE", flmatobj1@db_name,";
-			 		SET ROLE ALL;"))
 	nrow1 <- flmatobj1@nrow
 	ncol1 <- flmatobj1@ncol
 	if(is.FLMatrix(flmatobj2))
@@ -77,14 +74,14 @@ NULL
 		if(flmatobj1@nrow == flmatobj2@nrow && flmatobj1@ncol == flmatobj2@ncol)
 		{
 			flag1Check(flmatobj1@odbc_connection)
-			t<-sqlQuery(flmatobj1@odbc_connection,
+			t<-sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 						 				 a.",flmatobj1@row_id_colname," AS ROW_ID ,
 						 				 a.",flmatobj1@col_id_colname," AS COL_ID ,
 						 				 a.",flmatobj1@cell_val_colname,"/b.",flmatobj2@cell_val_colname," AS CELL_VAL 
-						 		  FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a,",
-						 		  		 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+						 		  FROM ",remoteTable(flmatobj1)," a,",
+						 		  		 remoteTable(flmatobj2)," b 
 						 		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 						 		  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 						 		  AND a.",flmatobj1@row_id_colname,"=b.",flmatobj2@row_id_colname," 
@@ -128,7 +125,7 @@ NULL
 		flag1Check(flmatobj1@odbc_connection)
 		if(!flmatobj2@table@isDeep)
 		{
-			t<-sqlQuery(flmatobj1@odbc_connection,
+			t<-sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 								  AS (SELECT a.",flmatobj1@matrix_id_colname,",
@@ -137,20 +134,20 @@ NULL
 								  			 a.",flmatobj1@cell_val_colname,", 
 								  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@col_id_colname,",
 								  			 							 a.",flmatobj1@row_id_colname,") AS ROW_NUM  
-							         FROM ",flmatobj1@matrix_table," a 
+							         FROM ",remoteTable(flmatobj1)," a 
 							         WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 						         SELECT ",max_matrix_id_value,",
 						         		Z.ROW_ID,
 						         		Z.COL_ID,
 						         		Z.CELL_VAL/b.",
 						         		flmatobj2@col_name,
-						        "FROM ",flmatobj2@table@db_name,".",flmatobj2@table@table_name," b,
+						        "FROM ",remoteTable(flmatobj2@table)," b,
 						        		Z 
 						        WHERE Z.ROW_NUM MOD ",flmatobj2@size," = b.",flmatobj2@table@primary_key," MOD ",flmatobj2@size))
 		}		
 		else
 		{
-			t<-sqlQuery(flmatobj1@odbc_connection,
+			t<-sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 								AS (SELECT a.",flmatobj1@matrix_id_colname,",
@@ -159,14 +156,14 @@ NULL
 										   a.",flmatobj1@cell_val_colname,", 
 										   ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@col_id_colname,",
 										   							   a.",flmatobj1@row_id_colname,") AS ROW_NUM  
-			        				FROM ",flmatobj1@matrix_table," a 
+			        				FROM ",remoteTable(flmatobj1)," a 
 			        				WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 	         					SELECT ",max_matrix_id_value,",
 	         							Z.ROW_ID,
 	         							Z.COL_ID,
 	         							Z.CELL_VAL/b.",
 	         							flmatobj2@col_name,
-	         					" FROM ",flmatobj2@table@db_name,".",flmatobj2@table@table_name," b,
+	         					" FROM ",remoteTable(flmatobj2@table)," b,
 	         							Z 
           						WHERE Z.ROW_NUM MOD ",flmatobj2@size," = b.",flmatobj2@table@var_id_name," MOD ",flmatobj2@size,
 	          					" AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value))
@@ -192,9 +189,6 @@ NULL
 `/.numeric` <- function(x,obj1)
 {	if(is.FLMatrix(obj1))
 	{
-		sqlQuery(obj1@odbc_connection,
-				 paste("DATABASE", obj1@db_name,";
-				 		SET ROLE ALL;"))
 		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj2 / obj1
 	}
@@ -204,9 +198,6 @@ NULL
 	}
 	else if(class(obj1)=="FLVector")
 	{
-		sqlQuery(obj1@table@odbc_connection,
-				 paste("DATABASE", obj1@table@db_name,";
-				 		SET ROLE ALL;"))
 		obj2 <- as.FLVector(x,obj1@table@odbc_connection)
 		obj2/obj1
 	}
@@ -219,9 +210,6 @@ NULL
 
 `/.FLSparseMatrix` <- function(flmatobj1, flmatobj2)
 {
-	sqlQuery(flmatobj1@odbc_connection,
-			 paste("DATABASE", flmatobj1@db_name,";
-			 		SET ROLE ALL;"))
 	nrow1 <- flmatobj1@nrow
 	ncol1 <- flmatobj1@ncol
 	
@@ -235,15 +223,15 @@ NULL
 			if(is.FLSparseMatrix(flmatobj2))
 			{
 				flag2Check(flmatobj1@odbc_connection)
-				t<-sqlQuery(flmatobj1@odbc_connection,
+				t<-sqlSendUpdate(flmatobj1@odbc_connection,
 							paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		   " SELECT ",max_Sparsematrix_id_value,",
 			            		   			a.",flmatobj1@row_id_colname,",
 			            		   			a.",flmatobj1@col_id_colname,",
 			            		   			a.",flmatobj1@cell_val_colname,"/b.",
 									            flmatobj2@cell_val_colname," 
-									  FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-									  		 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+									  FROM ",remoteTable(flmatobj1)," a, ",
+									  		 remoteTable(flmatobj2)," b 
 									  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 									  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 									  AND a.",flmatobj1@row_id_colname," = b.",flmatobj2@row_id_colname," 
@@ -265,25 +253,22 @@ NULL
 			}
 			else
 			{
-				sqlQuery(flmatobj2@odbc_connection, 
-						 paste("DATABASE", flmatobj2@db_name,";
-						 		SET ROLE ALL;"))
 				flag1Check(flmatobj2@odbc_connection)
-				t<-sqlQuery(flmatobj2@odbc_connection,
+				t<-sqlSendUpdate(flmatobj2@odbc_connection,
 							paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								   " SELECT DISTINCT ",max_matrix_id_value,",
 								   					 b.",flmatobj2@row_id_colname,",
 								   					 b.",flmatobj2@col_id_colname," ,
 								   					 0 ",
-									" FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+									" FROM ",remoteTable(flmatobj2)," b 
 									  WHERE b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value,
 						            " except ",
 			            			" SELECT ",max_matrix_id_value,",
 			            					 b.",flmatobj2@row_id_colname,",
 			            					 b.",flmatobj2@col_id_colname," ,
 			            					 0 
-			            			  FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-			            			  		 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+			            			  FROM ",remoteTable(flmatobj1)," a, ",
+			            			  		 remoteTable(flmatobj2)," b 
 			            			  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            			  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 			            			  AND b.",flmatobj2@row_id_colname," = a.",flmatobj1@row_id_colname," 
@@ -294,8 +279,8 @@ NULL
 											 a.",flmatobj1@col_id_colname,",
 											 a.",flmatobj1@cell_val_colname,"/b.",
 		    						         flmatobj2@cell_val_colname," 
-		    						  FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-		    						  		 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+		    						  FROM ",remoteTable(flmatobj1)," a, ",
+		    						  		 remoteTable(flmatobj2)," b 
 		    						  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 		    						  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 		    						  AND a.",flmatobj1@row_id_colname," = b.",flmatobj2@row_id_colname," 
@@ -338,15 +323,15 @@ NULL
 			flag2Check(flmatobj1@odbc_connection)
 			if(flmatobj2@table@isDeep)
 			{
-				t<-sqlQuery(flmatobj1@odbc_connection,
+				t<-sqlSendUpdate(flmatobj1@odbc_connection,
 							paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		   " SELECT ",max_Sparsematrix_id_value,",
 			            		   			a.",flmatobj1@row_id_colname,",
 			            		   			a.",flmatobj1@col_id_colname,",
 			            		   			a.",flmatobj1@cell_val_colname,"/b.",
 			            					flmatobj2@col_name,
-			            			" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-			            					 flmatobj2@table@db_name,".",flmatobj2@table@table_name," b 
+			            			" FROM ",remoteTable(flmatobj1)," a, ",
+			            					 remoteTable(flmatobj2@table)," b 
 			            			  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            			  AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value," 
 			            			  AND (((a.",flmatobj1@col_id_colname,"-1)*",flmatobj1@nrow,")+",
@@ -354,15 +339,15 @@ NULL
 			}
 			else
 			{
-				t<-sqlQuery(flmatobj1@odbc_connection, 
+				t<-sqlSendUpdate(flmatobj1@odbc_connection, 
 							paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 		            			   " SELECT ",max_Sparsematrix_id_value,",
 		            			   			a.",flmatobj1@row_id_colname,",
 		            			   			a.",flmatobj1@col_id_colname,",
 		            			   			a.",flmatobj1@cell_val_colname,"/b.",
 		            						flmatobj2@col_name,
-		            				" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-		            						 flmatobj2@table@db_name,".",flmatobj2@table@table_name," b 
+		            				" FROM ",remoteTable(flmatobj1)," a, ",
+		            						 remoteTable(flmatobj2@table)," b 
 		            				  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 		            				  AND (((a.",flmatobj1@col_id_colname,"-1)*",flmatobj1@nrow,")+",
 		            						flmatobj1@row_id_colname,") MOD ",flmatobj2@size," = b.",flmatobj2@table@primary_key," MOD ",flmatobj2@size))
@@ -389,9 +374,6 @@ NULL
 `/.FLVector` <- function(pObj1,pObj2)
 {
 	vNrow1 <- pObj1@size
-	sqlQuery(pObj1@table@odbc_connection,
-			 paste("DATABASE", pObj1@table@db_name,";
-			 		SET ROLE ALL;"))
 	if(is.FLMatrix(pObj2))
 	{
 		flag1Check(flmatobj1@odbc_connection)
@@ -399,7 +381,7 @@ NULL
 		flmatobj1 <- pObj2
 		if(!flmatobj2@table@isDeep)
 		{
-			t<-sqlQuery(flmatobj1@odbc_connection, 
+			t<-sqlSendUpdate(flmatobj1@odbc_connection, 
 						paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							   " WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							   	 AS (SELECT a.",flmatobj1@matrix_id_colname,",
@@ -408,19 +390,19 @@ NULL
 							   			  a.",flmatobj1@cell_val_colname,", 
 							   			  ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@col_id_colname,",
 							   			  							  a.",flmatobj1@row_id_colname,") AS ROW_NUM  
-			        			 	 FROM ",flmatobj1@matrix_table," a 
+			        			 	 FROM ",remoteTable(flmatobj1)," a 
 			        			 	 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 						         SELECT ",max_matrix_id_value,",
 						         		 Z.ROW_ID,
 						         		 Z.COL_ID,
 						         		 b.",flmatobj2@col_name,"/Z.CELL_VAL",
-						         "FROM ",flmatobj2@table@db_name,".",flmatobj2@table@table_name," b,
+						         "FROM ",remoteTable(flmatobj2@table)," b,
 						         		 Z 
 						          WHERE Z.ROW_NUM MOD ",flmatobj2@size," = b.",flmatobj2@table@primary_key," MOD ",flmatobj2@size))
 		}
 		else
 		{
-			t<-sqlQuery(flmatobj1@odbc_connection, 
+			t<-sqlSendUpdate(flmatobj1@odbc_connection, 
 						paste0( " INSERT INTO ",result_db_name,".",result_matrix_table,
 								" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 								  AS (SELECT a.",flmatobj1@matrix_id_colname,",
@@ -429,13 +411,13 @@ NULL
 								  			 a.",flmatobj1@cell_val_colname,", 
 								  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@col_id_colname,",
 								  			 							 a.",flmatobj1@row_id_colname,") AS ROW_NUM  
-			        				  FROM ",flmatobj1@matrix_table," a
+			        				  FROM ",remoteTable(flmatobj1)," a
 			        				  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 						         SELECT ",max_matrix_id_value,",
 						         		Z.ROW_ID,
 						         		Z.COL_ID,
 						         		b.",flmatobj2@col_name,"/Z.CELL_VAL",
-						         " FROM ",flmatobj2@table@db_name,".",flmatobj2@table@table_name," b,
+						         " FROM ",remoteTable(flmatobj2@table)," b,
 						         		 Z 
 						          WHERE Z.ROW_NUM MOD ",flmatobj2@size," = b.",flmatobj2@table@var_id_name," MOD ",flmatobj2@size,
 						          " AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value))
@@ -498,13 +480,13 @@ NULL
 			vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 					         " SELECT ",max_vector_id_value,vPrimaryKey,", 
 					         			CAST(a.",pObj1@col_name,"/b.",pObj2@col_name," AS NUMBER) ",
-					         " FROM ",pObj1@table@db_name,".",pObj1@table@table_name," a,",
-					         		  pObj2@table@db_name,".",pObj2@table@table_name," b",
+					         " FROM ",remoteTable(pObj1@table)," a,",
+					         		  remoteTable(pObj2@table)," b",
 					         " WHERE a.",pObj1@table@primary_key,"=",pObj1@vector_id_value," 
 					           AND b.",pObj2@table@primary_key,"=",pObj2@vector_id_value,
 					         " AND a.",pObj1@table@var_id_name," MOD ",vMinSize," = b.",pObj2@table@var_id_name," MOD ",vMinSize)
 
-			t<-sqlQuery(pObj1@table@odbc_connection,vSqlStr)
+			t<-sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
 		}
 
 		else if(xor(pObj1@table@isDeep,pObj2@table@isDeep))
@@ -514,24 +496,24 @@ NULL
 				vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 						         " SELECT ",max_vector_id_value,vPrimaryKey,", 
 						         			CAST(a.",pObj1@col_name,"/b.",pObj2@col_name," AS NUMBER) ",
-						         " FROM ",pObj1@table@db_name,".",pObj1@table@table_name," a,",
-						         		  pObj2@table@db_name,".",pObj2@table@table_name," b",
+						         " FROM ",remoteTable(pObj1@table)," a,",
+						         		  remoteTable(pObj2@table)," b",
 						         " WHERE a.",pObj1@table@primary_key,"=",pObj1@vector_id_value,
 						         " AND a.",pObj1@table@var_id_name," MOD ",vMinSize," = b.",pObj2@table@primary_key," MOD ",vMinSize)
 
-			    t<-sqlQuery(pObj1@table@odbc_connection,vSqlStr)
+			    t<-sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
 			}
             else
             {
 				vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 						         " SELECT ",max_vector_id_value,vPrimaryKey,", 
 						         			CAST(a.",pObj1@col_name,"/b.",pObj2@col_name," AS NUMBER) ",
-						         " FROM ",pObj1@table@db_name,".",pObj1@table@table_name," a,",
-						         		  pObj2@table@db_name,".",pObj2@table@table_name," b",
+						         " FROM ",remoteTable(pObj1@table)," a,",
+						         		  remoteTable(pObj2@table)," b",
 						         " WHERE b.",pObj2@table@primary_key,"=",pObj2@vector_id_value,
 						         " AND b.",pObj2@table@var_id_name," MOD ",vMinSize," = a.",pObj1@table@primary_key," MOD ",vMinSize)
 
-			    t<-sqlQuery(pObj1@table@odbc_connection,vSqlStr)
+			    t<-sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
             }
 		}
 
@@ -540,11 +522,11 @@ NULL
 			vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 					         " SELECT ",max_vector_id_value,vPrimaryKey,", 
 					         			CAST(a.",pObj1@col_name,"/b.",pObj2@col_name," AS NUMBER) ",
-					         " FROM ",pObj1@table@db_name,".",pObj1@table@table_name," a,",
-					         		  pObj2@table@db_name,".",pObj2@table@table_name," b",
+					         " FROM ",remoteTable(pObj1@table)," a,",
+					         		  remoteTable(pObj2@table)," b",
 					         " WHERE b.",pObj2@table@var_id_name," MOD ",vMinSize," = a.",pObj1@table@primary_key," MOD ",vMinSize)
 
-			    t<-sqlQuery(pObj1@table@odbc_connection,vSqlStr)
+			    t<-sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
 		}
 
 			if(length(t)!=0) { stop("division by zero not supported currently") }

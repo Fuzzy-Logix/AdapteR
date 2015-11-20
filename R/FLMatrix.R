@@ -23,14 +23,15 @@ setClass(
 		odbc_connection = "ANY",
 		db_name = "character",
 		matrix_table = "character",
-		matrix_id_value	= "numeric",
+		matrix_id_value	= "character",
 		matrix_id_colname = "character",
 		row_id_colname = "character",
 		col_id_colname = "character",
 		cell_val_colname = "character",
 		nrow = "numeric",
 		ncol = "numeric",
-		dimnames = "list"
+		dimnames = "list",
+        whereconditions="character"
 	)
 )
 
@@ -67,11 +68,19 @@ FLMatrix <- function(connection,
 					 ncol = c(), 
 					 dimnames = list(c(),c()))
 {
-	fldims <- sqlQuery(connection, 
-					 paste0("SELECT max(",row_id_colname,") as nrow,
-                             max(",col_id_colname,") as ncol
+    if(""!=matrix_id_colname & ""!=matrix_id_value)
+        whereClause <- paste0(" WHERE ",matrix_id_colname,"=",matrix_id_value)
+    else
+        whereClause <- ""
+	rownames <- sqlQuery(connection, 
+                         paste0("SELECT unique(",row_id_colname,") as rownames
 							 FROM ",getRemoteTableName(database,matrix_table),
-							 " WHERE ",matrix_id_colname,"=",matrix_id_value))
+                             whereClause))$rownames
+    colnames <- sqlQuery(connection, 
+                         paste0("SELECT unique(",col_id_colname,") as colnames
+							 FROM ",getRemoteTableName(database,matrix_table),
+                             whereClause))$colnames
+    ##browser()
 	if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
 	  (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
 	{
@@ -83,31 +92,53 @@ FLMatrix <- function(connection,
 			odbc_connection = connection, 
 			db_name = database, 
 			matrix_table = matrix_table, 
-			matrix_id_value = matrix_id_value, 
+			matrix_id_value = as.character(matrix_id_value), 
 			matrix_id_colname = matrix_id_colname, 
 			row_id_colname = row_id_colname, 
 			col_id_colname = col_id_colname, 
 			cell_val_colname = cell_val_colname,
-			nrow = fldims[[1]], 
-			ncol = fldims[[2]], 
-			dimnames = dimnames)
+			nrow = length(rownames), 
+			ncol = length(colnames), 
+			dimnames = list(rownames,colnames),
+            whereconditions=whereClause)
     }
+}
+
+inCondition <- function(col,vals){
+    if(length(vals)>0)
+        paste0(col," IN (", paste0("'",vals,"'",collapse= ", "), ")")
+    else
+        ""
+}
+constructWhere <- function(conditions){
+    conditions <- setdiff(conditions,c(NA,""))
+    if(length(conditions)>0)
+        paste0(" WHERE ",paste0("(",
+                                conditions,")", collapse=" AND "))
+    else
+        ""
 }
 
 
 print.FLMatrix <- function(object)
 {
 	nrows <- object@nrow
+    ##browser()
 	valuedf <- sqlQuery(object@odbc_connection, 
-						paste0("SELECT * 
-								FROM ",object@matrix_table," 
-								WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," 
-								ORDER BY 1,2,3"))
-
-    m <- sparseMatrix(i = valuedf[,object@row_id_colname],
-                      j = valuedf[,object@col_id_colname],
-                      x = valuedf[,object@cell_val_colname],
-                      dimnames = object@dimnames)
+						paste0(" SELECT ",
+                               max_matrix_id_value,",",
+                               object@row_id_colname,",",
+                               object@col_id_colname,",",
+                               object@cell_val_colname,  
+                               " FROM ",remoteTable(object),
+                               constructWhere(
+                                   object@whereconditions)))
+    i <- as.factor(valuedf[[2]])
+    j <- as.factor(valuedf[[3]])
+    m <- sparseMatrix(i = as.numeric(i),
+                      j = as.numeric(j),
+                      x = valuedf[[4]],
+                      dimnames = list(levels(i),levels(j)))
     ##gk: todo: implement caching
 	print(m)
 }
