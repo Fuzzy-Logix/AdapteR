@@ -26,17 +26,16 @@ t<-function(x, ...){
 #' @export
 t.FLMatrix<-function(object)
 {
-	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
-
+	
 	flag1Check(object@odbc_connection)
 	
-	sqlQuery(object@odbc_connection, paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+	sqlSendUpdate(object@odbc_connection, paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 		                                    " SELECT ",max_matrix_id_value,
 		                                             ",a.",
 			                                          object@col_id_colname," AS ",object@row_id_colname,
 			                                          ",a.",object@row_id_colname," AS ",object@col_id_colname,
 			                                          ",a.",object@cell_val_colname," AS ",object@cell_val_colname,
-			                                " FROM ",object@matrix_table," a 
+			                                " FROM ",remoteTable(object)," a 
 			                                where a.",object@matrix_id_colname,"=",object@matrix_id_value))
 
 	max_matrix_id_value <<- max_matrix_id_value + 1

@@ -22,8 +22,9 @@ nrow.FLSparseMatrix<-function(object)
 nrow.FLTable<-function(object)
 {
 	connection<-object@odbc_connection
-	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
-	t<-sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@primary_key,") FROM ",object@table_name))[1,1]
+	t<-sqlQuery(object@odbc_connection,
+                    paste0(" SELECT max(",object@primary_key,") FROM ",
+                           remoteTable(object)))[1,1]
 	return(t)
 }
 
@@ -71,10 +72,9 @@ ncol.FLSparseMatrix<-function(object){
 
 ncol.FLTable<-function(object){
 	connection<-object@odbc_connection
-	sqlQuery(object@odbc_connection,paste0("DATABASE ",object@db_name,";"," SET ROLE ALL;"))
 	if(object@isDeep)
 	{
-		t <- sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@var_id_name,") FROM ",object@table_name))[1,1]
+		t <- sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@var_id_name,") FROM ",remoteTable(object)))[1,1]
 	}
 	else
 	{

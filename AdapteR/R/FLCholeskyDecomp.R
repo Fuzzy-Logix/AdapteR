@@ -49,7 +49,7 @@ chol.FLMatrix<-function(object)
 							a.",object@row_id_colname,", 
 							a.",object@col_id_colname,", 
 							a.",object@cell_val_colname," 
-							FROM  ",object@matrix_table," a 
+							FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,"
 							) 
 						SELECT ",max_matrix_id_value,",

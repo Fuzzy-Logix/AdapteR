@@ -14,8 +14,8 @@ NULL
 #'
 #' 
 #' @param object is a FLMatrix object
-#' @param nrow is a vector input corresponding to rows to be extracted
-#' @param ncol is a vector input corresponding to columns to be extracted
+#' @param rows is a vector input corresponding to rows to be extracted
+#' @param cols is a vector input corresponding to columns to be extracted
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
@@ -25,24 +25,60 @@ NULL
 #' resultFLmatrix <- flmatrix[1,]
 #' @export
 
-`[.FLMatrix`<-function(object,nrow=1,ncol=1)
+`[.FLMatrix`<-function(object,rows=1,cols=1)
 {
 	connection<-object@odbc_connection
-	sqlQuery(connection, paste("DATABASE", object@db_name,";
-								SET ROLE ALL;"))
 
 	if(nargs()==2 && missing(nrow)) { return(object[,]) }
 	if(nargs()==2)
 	{
 		if(nrow>object@nrow*object@ncol) { stop("subscript_out_of_bounds") }
 		return(sqlQuery(connection,paste0(" SELECT ",object@cell_val_colname,
-											" FROM ",object@matrix_table,
+											" FROM ",remoteTable(object),
 											" ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][nrow])
 	}
 	
-	if(is.character(nrow)){ nrow <- sapply(nrow, function(x) which(rownames(object) %in% x),USE.NAMES=FALSE) }  ## transform character index to numeric
-	if(is.character(ncol)){ ncol <- sapply(ncol, function(x) which(colnames(object) %in% x),USE.NAMES=FALSE) }
-	if(sum(abs(nrow) > object@nrow) > 0 || sum(abs(ncol) > object@ncol) > 0){ stop("subscript_out_of_bounds") }
+	#if(sum(abs(nrow) > object@nrow) > 0 || sum(abs(ncol) > object@ncol) > 0){ stop("subscript_out_of_bounds") }
+
+	flag1Check(connection)
+
+    newrownames <- object@dimnames[[1]][rows]
+    newcolnames <- object@dimnames[[2]][cols]
+    
+    return(new("FLMatrix", 
+               odbc_connection = connection, 
+               db_name = object@db_name, 
+               matrix_table = object@matrix_table, 
+               matrix_id_value = object@matrix_id_value,
+               matrix_id_colname = object@matrix_id_colname, 
+               row_id_colname = object@row_id_colname, 
+               col_id_colname = object@col_id_colname, 
+               cell_val_colname = object@cell_val_colname,
+               nrow = length(newrownames), 
+               ncol = length(newcolnames), 
+               dimnames = list(newrownames,object@dimnames[[2]]),
+               whereconditions=c(object@whereconditions,
+                                 inCondition(object@row_id_colname,newrownames),
+                                 inCondition(object@col_id_colname,newcolnames))))
+}
+
+
+`[.FLMatrix`<-function(object,nrow=1,ncol=1)
+{
+	connection<-object@odbc_connection
+
+	if(nargs()==2 && missing(nrow)) { return(object[,]) }
+	if(nargs()==2)
+	{
+		if(nrow>object@nrow*object@ncol) { stop("subscript_out_of_bounds") }
+		return(sqlQuery(connection,paste0(" SELECT ",object@cell_val_colname,
+											" FROM ",remoteTable(object),
+											" ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][nrow])
+	}
+	
+	#if(is.character(nrow)){ nrow <- sapply(nrow, function(x) which(rownames(object) %in% x),USE.NAMES=FALSE) }  ## transform character index to numeric
+	#if(is.character(ncol)){ ncol <- sapply(ncol, function(x) which(colnames(object) %in% x),USE.NAMES=FALSE) }
+	#if(sum(abs(nrow) > object@nrow) > 0 || sum(abs(ncol) > object@ncol) > 0){ stop("subscript_out_of_bounds") }
 
 	flag1Check(connection)
 
@@ -59,9 +95,9 @@ NULL
 								           ",",object@row_id_colname,
 								           ",",object@col_id_colname,
 								           ",",object@cell_val_colname,
-								  " FROM ",object@matrix_table,
+								  " FROM ",remoteTable(object),
 								  " WHERE ",object@matrix_id_colname," = ",object@matrix_id_value)
-					sqlQuery(connection,sqlstr)
+					sqlSendUpdate(connection,sqlstr)
 
 					max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -81,14 +117,17 @@ NULL
 				}
 				else
 				{
-					
+
+                    newrownames <- object@rownames[[nrow]]
 					sqlstr<-paste(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								  " SELECT ",max_matrix_id_value,",",object@row_id_colname,",",object@col_id_colname,",",object@cell_val_colname,  
-								  " FROM ",object@matrix_table,
-								  " WHERE ",object@row_id_colname," = ",nrow,
+								  " FROM ",remoteTable(object),
+								  " WHERE ",object@row_id_colname," IN (",
+                                  paste0("'",newrownames,"'",collapse= " "),
+                                  ")",
 								  " AND ",object@matrix_id_colname," = ",object@matrix_id_value)
 					
-					sqlQuery(connection,sqlstr)
+					sqlSendUpdate(connection,sqlstr)
 
 					max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -103,7 +142,7 @@ NULL
 				              cell_val_colname = "CELL_VAL",
 				              nrow = 1, 
 				              ncol = object@ncol, 
-				              dimnames = list(object@dimnames[[1]][nrow],object@dimnames[[2]])))				}
+				              dimnames = list(newrownames,object@dimnames[[2]])))				}
 			    }
 			else 
 			{
@@ -111,11 +150,11 @@ NULL
 				{
 					sqlstr<-paste(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								  " SELECT ",max_matrix_id_value,",",object@row_id_colname,",",object@col_id_colname,",",object@cell_val_colname,  
-								  " FROM ",object@matrix_table,
-								  " WHERE ",object@col_id_colname," = ",ncol,
+								  " FROM ",remoteTable(object),
+								  " WHERE ",object@col_id_colname," = ",object@colnames[[ncol]],
 								  " AND ",object@matrix_id_colname," = ",object@matrix_id_value)
 					
-					sqlQuery(connection,sqlstr)
+					sqlSendUpdate(connection,sqlstr)
 
 					max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -136,13 +175,13 @@ NULL
 				{
 					sqlstr<-paste(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								  " SELECT ",max_matrix_id_value,",",object@row_id_colname,",",object@col_id_colname,",",object@cell_val_colname,  
-								  " FROM ",object@matrix_table,
+								  " FROM ",remoteTable(object),
 								  " WHERE ",object@col_id_colname," = ",ncol,
-								  " AND ",object@row_id_colname," = ",nrow,
+								  " AND ",object@row_id_colname," = ",rownames[[nrow]],
 								  " AND ",object@matrix_id_colname," = ",object@matrix_id_value)
 						
 					
-					sqlQuery(connection,sqlstr)
+					sqlSendUpdate(connection,sqlstr)
 
 					max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -169,7 +208,7 @@ NULL
 				temp<-paste(temp,collapse=" ")
 				sqlstr <- paste("SELECT ",object@matrix_id_colname," AS MATRIX_ID, ",object@row_id_colname," AS ROW_ID, ",object@col_id_colname," AS COL_ID, ",
 								  object@cell_val_colname," AS CELL_VAL ",  
-								  " FROM ",object@db_name,".",object@matrix_table,
+								  " FROM ",remoteTable(object),
 							  " WHERE (",object@row_id_colname," = ",nrow[1],temp,
 							  " ) AND ", object@matrix_id_colname," = ",object@matrix_id_value,
 							  " ORDER BY 1,2,3;")
@@ -186,7 +225,7 @@ NULL
 				temp<-paste(temp,collapse=" ")
 				sqlstr<-paste("SELECT ",object@matrix_id_colname," AS MATRIX_ID, ",object@row_id_colname," AS ROW_ID, ",object@col_id_colname," AS COL_ID, ",
 								  object@cell_val_colname," AS CELL_VAL ",  
-							  " FROM ",object@matrix_table,
+							  " FROM ",remoteTable(object),
 							  "WHERE (",object@col_id_colname," = ",ncol[1],temp,
 							  " ) AND ", object@matrix_id_colname," = ",object@matrix_id_value,
 							  " ORDER BY 1,2,3;")
@@ -216,7 +255,7 @@ NULL
 
 				sqlstr<-paste("SELECT ",object@matrix_id_colname," AS MATRIX_ID, ",object@row_id_colname," AS ROW_ID, ",object@col_id_colname," AS COL_ID, ",
 							   object@cell_val_colname," AS CELL_VAL ",  
-							  " FROM ",object@matrix_table,
+							  " FROM ",remoteTable(object),
 							   temp1,temp2,")",temp3,temp4,")",
 							   " AND ",object@matrix_id_colname," = ",object@matrix_id_value,
 							   " ORDER BY 1,2,3;")
@@ -267,7 +306,7 @@ NULL
 		vTemp<-paste(vTemp,collapse=" ")
 		}
 		
-		sqlstr <- paste0("SELECT * FROM ",pObj@table@db_name,".",pObj@table@table_name, 
+		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj@table), 
                          " WHERE ",pObj@table@primary_key,"=",pObj@vector_id_value," AND ",pObj@table@var_id_name," IN(",pSet[1],vTemp,")")
 
 		vRetObj<-sqlQuery(pObj@table@odbc_connection,sqlstr)
@@ -289,7 +328,7 @@ NULL
 		}
 		
 		sqlstr <- paste0("SELECT * 
-						 FROM ",pObj@table@db_name,".",pObj@table@table_name, 
+						 FROM ",remoteTable(pObj@table), 
                          " WHERE ",pObj@table@primary_key," IN(",pSet[1],vTemp,")")
 
 		vRetObj<-sqlQuery(pObj@table@odbc_connection,sqlstr)

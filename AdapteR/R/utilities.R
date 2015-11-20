@@ -5,6 +5,7 @@ getRemoteTableName <- function(database,matrix_table) {
 }
 
 
+
 ################################################################################
 ######  provide methods for JDBC with same signature as ODBC methods
 ################################################################################
@@ -19,19 +20,25 @@ sqlSendUpdate.JDBCConnection <- function(channel,query) {
             dbSendUpdate(connection,q)
             dbCommit(connection)
         },
-        error=function(e) print(e))
+        error=function(e) print(traceback()))
     })
 }
 sqlQuery.JDBCConnection <- function(channel,query) {
     if(length(query)==1){
         if(FLdebugSQL) cat(paste0("QUERY SQL: \n",query,"\n"))
-        resd <- dbGetQuery(connection, query)
-        return(resd)
+        tryCatch({
+            resd <- dbGetQuery(connection, query)
+            return(resd)
+        },
+        error=function(e) print(traceback()))
     }
     lapply(query, function(q){
         if(FLdebugSQL) cat(paste0("QUERY SQL: \n",q,"\n"))
-        resd <- dbGetQuery(connection, q)
-        return(resd)
+        tryCatch({
+            resd <- dbGetQuery(connection, q)
+            return(resd)
+        },
+        error=function(e) print(traceback()))
     })
 }
 
@@ -141,10 +148,10 @@ FLodbcClose <- function(connection)
     	max_vector_id_value <<- 1
 }
 
-gen_table_name <- function(result_db_name,prefix,suffix){
+gen_table_name <- function(prefix,suffix){
     ifelse(is.null(suffix),
            paste0(prefix),
-           paste0(result_db_name,".",prefix,"_",suffix))
+           paste0(prefix,"_",suffix))
 }
 
 FLStartSession <- function(connection,
@@ -164,17 +171,17 @@ FLStartSession <- function(connection,
         paste0("SET ROLE ALL;"))
     sqlSendUpdate(connection, sendqueries)
 
-    result_Sparsematrix_table <<- gen_table_name(result_db_name,"tblMatrixMultiResultSparse",persistent)
+    result_Sparsematrix_table <<- gen_table_name("tblMatrixMultiResultSparse",persistent)
     ##max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
  	max_Sparsematrix_id_value <<- 0
 
     max_matrix_id_value <<- 0
     ##max_matrix_id_value <<- max_matrix_id_value + 1
-    result_matrix_table <<- gen_table_name(result_db_name,"tblMatrixMultiResult",persistent)
+    result_matrix_table <<- gen_table_name("tblMatrixMultiResult",persistent)
 
     max_vector_id_value <<- 0
     ##max_vector_id_value <- max_vector_id_value + 1
-    result_vector_table <<- gen_table_name(result_db_name,"tblVectorResult",persistent)
+    result_vector_table <<- gen_table_name("tblVectorResult",persistent)
 
     if(drop){
         sqlSendUpdate(connection,

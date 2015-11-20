@@ -86,10 +86,10 @@ cbind.FLMatrix<-function(object,...)
 				              a.",object@row_id_colname,",
 				              a.",object@col_id_colname,",
 				              a.",object@cell_val_colname," 
-				        FROM  ",object@db_name,".",object@matrix_table," a 
+				        FROM  ",remoteTable(object)," a 
 				        WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
-	    sqlQuery(connection,sqlstr0)
+	    sqlSendUpdate(connection,sqlstr0)
 
 	    colCount <- colCount + object@ncol
 
@@ -104,10 +104,10 @@ cbind.FLMatrix<-function(object,...)
 							              a.",object@row_id_colname,",
 							              a.",object@col_id_colname,"+",colCount,",
 							              a.",object@cell_val_colname," 
-							    FROM   ",object@db_name,".",object@matrix_table," a 
+							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
-	            sqlQuery(connection,sqlstr0)
+	            sqlSendUpdate(connection,sqlstr0)
 
                 colCount <- colCount + object@ncol
 			}
@@ -123,11 +123,11 @@ cbind.FLMatrix<-function(object,...)
 								             a.",object@table@var_id_name,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								             a.",object@table@var_id_name,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -138,11 +138,11 @@ cbind.FLMatrix<-function(object,...)
 										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										             a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -153,10 +153,10 @@ cbind.FLMatrix<-function(object,...)
 								             a.",object@table@primary_key,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -167,10 +167,10 @@ cbind.FLMatrix<-function(object,...)
 										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										              a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -194,7 +194,7 @@ cbind.FLMatrix<-function(object,...)
 										      colCount+1,","
 										      ,object[j])
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 		            j <- j+1
 		        }
 
@@ -209,7 +209,7 @@ cbind.FLMatrix<-function(object,...)
 				for (j in 1:nrow(object))
 				{
 				 	
-			 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -290,11 +290,11 @@ cbind.FLVector <- function(object,...)
 						             a.",object@table@var_id_name,",
 						             ",colCount+1,",
 						             a.",object@col_name," 
-						      FROM   ",object@table@db_name,".",object@table@table_name," a 
+						      FROM   ",remoteTable(object@table)," a 
 						      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 						             a.",object@table@var_id_name,"<",nrow+1)
 
-            sqlQuery(connection,sqlstr0)
+            sqlSendUpdate(connection,sqlstr0)
 
             if(object@size < nrow)
             {
@@ -305,11 +305,11 @@ cbind.FLVector <- function(object,...)
 								             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM ",object@table@db_name,".",object@table@table_name," a 
+								      FROM ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 
-                    sqlQuery(connection,sqlstr0)
+                    sqlSendUpdate(connection,sqlstr0)
             	}
             }
         }
@@ -320,10 +320,10 @@ cbind.FLVector <- function(object,...)
 						             a.",object@table@primary_key,",
 						             ",colCount+1,",
 						             a.",object@col_name," 
-						      FROM   ",object@table@db_name,".",object@table@table_name," a 
+						      FROM   ",remoteTable(object@table)," a 
 						      WHERE a.",object@table@primary_key,"<",nrow+1)
 
-            sqlQuery(connection,sqlstr0)
+            sqlSendUpdate(connection,sqlstr0)
 
             if(object@size < nrow)
             {
@@ -334,10 +334,10 @@ cbind.FLVector <- function(object,...)
 								             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 								             ",colCount+1,",
 								              a.",object@col_name," 
-								      FROM ",object@table@db_name,".",object@table@table_name," a 
+								      FROM ",remoteTable(object@table)," a 
 								      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 
-                    sqlQuery(connection,sqlstr0)
+                    sqlSendUpdate(connection,sqlstr0)
             	}
             }
         }
@@ -367,11 +367,11 @@ cbind.FLVector <- function(object,...)
 						             a.",object@table@var_id_name,",
 						             ",colCount+1,",
 						             a.",object@col_name," 
-						      FROM   ",object@table@db_name,".",object@table@table_name," a 
+						      FROM   ",remoteTable(object@table)," a 
 						      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 						             a.",object@table@var_id_name,"<",nrow+1)
 
-            sqlQuery(connection,sqlstr0)
+            sqlSendUpdate(connection,sqlstr0)
 
             if(object@size < nrow)
             {
@@ -382,11 +382,11 @@ cbind.FLVector <- function(object,...)
 								             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM ",object@table@db_name,".",object@table@table_name," a 
+								      FROM ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 
-                    sqlQuery(connection,sqlstr0)
+                    sqlSendUpdate(connection,sqlstr0)
             	}
             }
         }
@@ -397,10 +397,10 @@ cbind.FLVector <- function(object,...)
 						             a.",object@table@primary_key,",
 						             ",colCount+1,",
 						             a.",object@col_name," 
-						      FROM   ",object@table@db_name,".",object@table@table_name," a 
+						      FROM   ",remoteTable(object@table)," a 
 						      WHERE a.",object@table@primary_key,"<",nrow+1)
 
-            sqlQuery(connection,sqlstr0)
+            sqlSendUpdate(connection,sqlstr0)
 
             if(object@size < nrow)
             {
@@ -411,10 +411,10 @@ cbind.FLVector <- function(object,...)
 								             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 								             ",colCount+1,",
 								              a.",object@col_name," 
-								      FROM ",object@table@db_name,".",object@table@table_name," a 
+								      FROM ",remoteTable(object@table)," a 
 								      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 
-                    sqlQuery(connection,sqlstr0)
+                    sqlSendUpdate(connection,sqlstr0)
             	}
             }
         }
@@ -437,10 +437,10 @@ cbind.FLVector <- function(object,...)
 							              a.",object@row_id_colname,",
 							              a.",object@col_id_colname,"+",colCount,",
 							              a.",object@cell_val_colname," 
-							    FROM   ",object@db_name,".",object@matrix_table," a 
+							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
-	            sqlQuery(connection,sqlstr0)
+	            sqlSendUpdate(connection,sqlstr0)
 
                 colCount <- colCount + object@ncol
 			}
@@ -456,11 +456,11 @@ cbind.FLVector <- function(object,...)
 								             a.",object@table@var_id_name,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								             a.",object@table@var_id_name,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -471,25 +471,25 @@ cbind.FLVector <- function(object,...)
 										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										             a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
 		        else if(!object@table@isDeep)
 		        {
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
 						            " SELECT ",max_matrix_id_value,",
 								             a.",object@table@primary_key,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -500,10 +500,10 @@ cbind.FLVector <- function(object,...)
 										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										              a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -527,7 +527,7 @@ cbind.FLVector <- function(object,...)
 										      colCount+1,","
 										      ,object[j])
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 		            j <- j+1
 		        }
 
@@ -542,7 +542,7 @@ cbind.FLVector <- function(object,...)
 				for (j in 1:nrow(object))
 				{
 				 	
-			 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -622,7 +622,7 @@ cbind.matrix <- function(object,...)
 		for (j in 1:nrow(object))
 		{
 		 	
-	 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+	 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 	 	 		                       " SELECT ",max_matrix_id_value,",",
 	 	 		                                  j,",",
 	 	 		                                  i,",",
@@ -648,10 +648,10 @@ cbind.matrix <- function(object,...)
 							              a.",object@row_id_colname,",
 							              a.",object@col_id_colname,"+",colCount,",
 							              a.",object@cell_val_colname," 
-							    FROM   ",object@db_name,".",object@matrix_table," a 
+							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
-	            sqlQuery(connection,sqlstr0)
+	            sqlSendUpdate(connection,sqlstr0)
 
                 colCount <- colCount + object@ncol
 			}
@@ -667,11 +667,11 @@ cbind.matrix <- function(object,...)
 								             a.",object@table@var_id_name,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								             a.",object@table@var_id_name,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -682,11 +682,11 @@ cbind.matrix <- function(object,...)
 										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										             a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -697,10 +697,10 @@ cbind.matrix <- function(object,...)
 								             a.",object@table@primary_key,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -711,10 +711,10 @@ cbind.matrix <- function(object,...)
 										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										              a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -738,7 +738,7 @@ cbind.matrix <- function(object,...)
 										      colCount+1,","
 										      ,object[j])
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 		            j <- j+1
 		        }
 
@@ -753,7 +753,7 @@ cbind.matrix <- function(object,...)
 				for (j in 1:nrow(object))
 				{
 				 	
-			 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -853,7 +853,7 @@ cbind.numeric <- function(object,...)
 								      colCount+1,","
 								      ,object[j])
 
-            sqlQuery(connection,sqlstr0)
+            sqlSendUpdate(connection,sqlstr0)
             j <- j+1
         }
 
@@ -875,10 +875,10 @@ cbind.numeric <- function(object,...)
 							              a.",object@row_id_colname,",
 							              a.",object@col_id_colname,"+",colCount,",
 							              a.",object@cell_val_colname," 
-							    FROM   ",object@db_name,".",object@matrix_table," a 
+							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
-	            sqlQuery(connection,sqlstr0)
+	            sqlSendUpdate(connection,sqlstr0)
 
                 colCount <- colCount + object@ncol
 			}
@@ -894,11 +894,11 @@ cbind.numeric <- function(object,...)
 								             a.",object@table@var_id_name,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								             a.",object@table@var_id_name,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -909,11 +909,11 @@ cbind.numeric <- function(object,...)
 										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										             a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -924,10 +924,10 @@ cbind.numeric <- function(object,...)
 								             a.",object@table@primary_key,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -938,10 +938,10 @@ cbind.numeric <- function(object,...)
 										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										              a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -965,7 +965,7 @@ cbind.numeric <- function(object,...)
 										      colCount+1,","
 										      ,object[j])
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 		            j <- j+1
 		        }
 
@@ -980,7 +980,7 @@ cbind.numeric <- function(object,...)
 				for (j in 1:nrow(object))
 				{
 				 	
-			 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -1060,7 +1060,7 @@ cbind.data.frame <- function(object,...)
 		for (j in 1:nrow(object))
 		{
 		 	
-	 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+	 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 	 	 		                       " SELECT ",max_matrix_id_value,",",
 	 	 		                                  j,",",
 	 	 		                                  i,",",
@@ -1086,10 +1086,10 @@ cbind.data.frame <- function(object,...)
 							              a.",object@row_id_colname,",
 							              a.",object@col_id_colname,"+",colCount,",
 							              a.",object@cell_val_colname," 
-							    FROM   ",object@db_name,".",object@matrix_table," a 
+							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
-	            sqlQuery(connection,sqlstr0)
+	            sqlSendUpdate(connection,sqlstr0)
 
                 colCount <- colCount + object@ncol
 			}
@@ -1105,11 +1105,11 @@ cbind.data.frame <- function(object,...)
 								             a.",object@table@var_id_name,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
 								             a.",object@table@var_id_name,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -1120,11 +1120,11 @@ cbind.data.frame <- function(object,...)
 										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										             a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
 										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -1135,10 +1135,10 @@ cbind.data.frame <- function(object,...)
 								             a.",object@table@primary_key,",
 								             ",colCount+1,",
 								             a.",object@col_name," 
-								      FROM   ",object@table@db_name,".",object@table@table_name," a 
+								      FROM   ",remoteTable(object@table)," a 
 								      WHERE a.",object@table@primary_key,"<",nrow+1)
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 
 		            if(object@size < nrow)
 		            {
@@ -1149,10 +1149,10 @@ cbind.data.frame <- function(object,...)
 										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
 										             ",colCount+1,",
 										              a.",object@col_name," 
-										      FROM ",object@table@db_name,".",object@table@table_name," a 
+										      FROM ",remoteTable(object@table)," a 
 										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",nrow+1)
 	
-		                    sqlQuery(connection,sqlstr0)
+		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
@@ -1176,7 +1176,7 @@ cbind.data.frame <- function(object,...)
 										      colCount+1,","
 										      ,object[j])
 	
-		            sqlQuery(connection,sqlstr0)
+		            sqlSendUpdate(connection,sqlstr0)
 		            j <- j+1
 		        }
 
@@ -1187,11 +1187,12 @@ cbind.data.frame <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
+                                ##gk: refactor to apply!  remove for loops!
 				for (i in (colCount+1):(colCount+ncol(object)))
 				for (j in 1:nrow(object))
 				{
 				 	
-			 	 	sqlQuery(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",

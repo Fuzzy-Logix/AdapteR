@@ -31,7 +31,8 @@ cor.FLMatrix <- function(x,y=x)
 		if(x@nrow==y@nrow)
 		{
 			sqlstr <- paste0("SELECT a.",x@col_id_colname," AS A ,b.",y@col_id_colname," AS B ,",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",
-							y@cell_val_colname,") AS C FROM ",x@db_name,".", x@matrix_table," a, ",y@db_name,".",y@matrix_table," b WHERE  a.",
+                                         y@cell_val_colname,") AS C FROM ",
+                                         remoteTable(x)," a, ",remoteTable(y)," b WHERE  a.",
 					        x@row_id_colname," = b.",y@row_id_colname," and a.",x@matrix_id_colname,"=",x@matrix_id_value,
 					        " and b.",y@matrix_id_colname,"=",y@matrix_id_value," GROUP BY a.",x@col_id_colname,", b.",y@col_id_colname," ORDER BY 1,2 ")
 			
@@ -76,14 +77,11 @@ cor.FLMatrix <- function(x,y=x)
 	{
 		if(nrow(y) == x@nrow)
 		{
-			sqlQuery(x@odbc_connection,
-					 paste0("DATABASE ",x@db_name,"; 
-					 		 SET ROLE ALL;"))
 			sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",
 									 x@db_name,".FLCorrel(a.",x@cell_val_colname,",
 									 					  b.",y@col_name,") AS C 
-							  FROM ",x@db_name,".", x@matrix_table," a, 
-							  	   ",y@table@db_name,".",y@table@table_name," b 
+							  FROM ",remoteTable(x)," a, 
+							  	   ",remoteTable(y@table)," b 
 							  WHERE a.",x@row_id_colname," = b.",y@table@primary_key," 
 							  AND a.",x@matrix_id_colname,"=",x@matrix_id_value," 
 							  GROUP BY a.",x@col_id_colname," 
@@ -117,12 +115,9 @@ cor.numeric <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		sqlQuery(y@table@odbc_connection, 
-				 paste("DATABASE",y@table@db_name,";
-				 		SET ROLE ALL;"))
 		nrowy <- sqlQuery(y@table@odbc_connection, 
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+						  		  FROM ",remoteTable(y@table)," a"))[1,1]
 		if(nrowy == length(x))
 		{
 			x <- matrix(x,nrowy)
@@ -154,12 +149,9 @@ cor.matrix <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		sqlQuery(y@table@odbc_connection,
-				 paste("DATABASE",y@table@db_name,";
-				 		SET ROLE ALL;"))
 		nrowy <- sqlQuery(y@table@odbc_connection,
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+						  		  FROM ",remoteTable(y@table)," a"))[1,1]
 		if(nrowy == nrow(x))
 		{
 			x <- as.FLMatrix(x,y@table@odbc_connection)
@@ -190,12 +182,9 @@ cor.data.frame <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		sqlQuery(y@table@odbc_connection,
-				 paste("DATABASE",y@table@db_name,";
-				 		SET ROLE ALL;"))
 		nrowy <- sqlQuery(y@table@odbc_connection,
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+						  		  FROM ",remoteTable(y@table)," a"))[1,1]
 		if(nrowy == nrow(x))
 		{
 			x <- as.matrix(x)
@@ -220,24 +209,21 @@ cor.data.frame <- function(x,y=x)
 
 cor.FLVector <- function(x,y=x)
 {	
-	sqlQuery(x@table@odbc_connection,
-			 paste("DATABASE",x@table@db_name,";
-			 		SET ROLE ALL;"))
 	nrowx <- sqlQuery(x@table@odbc_connection,
 					  paste0("SELECT COUNT(a.",x@col_name,") 
-					  		  FROM ",x@table@db_name,".",x@table@table_name," a"))[1,1]
+					  		  FROM ",remoteTable(x@table)," a"))[1,1]
 
 	if(is.FLVector(y))
 	{
 		nrowy <- sqlQuery(y@table@odbc_connection,
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",y@table@db_name,".",y@table@table_name," a"))[1,1]
+						  		  FROM ",remoteTable(y@table)," a"))[1,1]
 		if(nrowx == nrowy)
 		{
 			sqlstr<-paste("SELECT ",x@table@db_name,".FLCorrel(a.",x@col_name,",
 															   b.",y@col_name,") 
-						   FROM ",x@table@db_name,".", x@table@table_name," AS a,",
-						   		  x@table@db_name,".", y@table@table_name," AS b 
+						   FROM ",remoteTable(x@table)," AS a,",
+						   		  remoteTable(x@table)," AS b 
 						   WHERE a.",x@table@primary_key,"=b.",y@table@primary_key, sep="")
 			retobj<-sqlQuery(x@table@odbc_connection,sqlstr)
 			return(retobj[1,1])
@@ -288,9 +274,6 @@ cor.FLVector <- function(x,y=x)
 
 cor.FLTable <- function(x,y=x)
 {
-	sqlQuery(x@odbc_connection,
-			 paste0(" DATABASE ",x@db_name,"; 
-			 		  SET ROLE ALL;"))
 	nrowx <- nrow(x)
 	ncolx <- ncol(x)
 	if(is.FLTable(y))
@@ -303,8 +286,8 @@ cor.FLTable <- function(x,y=x)
 										 b.",y@var_id_name," AS B ,",
 										 x@db_name,".FLCorrel(a.",x@num_val_name,",
 										 					  b.",y@num_val_name,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a,
-								  	   ",y@db_name,".",y@table_name," b 
+								  FROM ",remoteTable(x)," a,
+								  	   ",remoteTable(y)," b 
 								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
 								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
 								  ORDER BY 1,2 ")
@@ -348,8 +331,8 @@ cor.FLTable <- function(x,y=x)
 										 b.",y@var_id_name," AS B ,
 										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",
 										   						  b.",y@num_val_name,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a, 
-								  	   ",y@db_name,".",y@table_name," b 
+								  FROM ",remoteTable(x)," a, 
+								  	   ",remoteTable(y)," b 
 								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
 								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
 								  ORDER BY 1,2 ")
@@ -392,8 +375,8 @@ cor.FLTable <- function(x,y=x)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,
 										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@num_val_name,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a,
-								  	   ",y@db_name,".",y@table_name," b 
+								  FROM ",remoteTable(x)," a,
+								  	   ",remoteTable(y)," b 
 								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
 								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
 								  ORDER BY 1,2 ")
@@ -424,8 +407,8 @@ cor.FLTable <- function(x,y=x)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@col_id_colname," AS B ,
 										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@cell_val_colname,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a,
-								  	   ",y@db_name,".",y@matrix_table," b 
+								  FROM ",remoteTable(x)," a,
+								  	   ",remoteTable(y)," b 
 								  WHERE a.",x@primary_key," = b.",y@row_id_colname," 
 								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
 								  GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," 
@@ -452,8 +435,8 @@ cor.FLTable <- function(x,y=x)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A,
 										 b.",y@col_id_colname," AS B,
 										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@cell_val_colname,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a,
-								  	   ",y@db_name,".",y@matrix_table," b 
+								  FROM ",remoteTable(x)," a,
+								  	   ",remoteTable(y)," b 
 								  WHERE a.",x@primary_key," = b.",y@row_id_colname," 
 								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
 								  GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," 
@@ -478,14 +461,11 @@ cor.FLTable <- function(x,y=x)
 		{
 			if(x@isDeep)
 			{
-				sqlQuery(x@odbc_connection,
-						 paste0("DATABASE ",x@db_name,"; 
-						 		 SET ROLE ALL;"))
 				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
 										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",
 										   						  b.",y@col_name,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a, 
-								  	   ",y@table@db_name,".",y@table@table_name," b 
+								  FROM ",remoteTable(x)," a, 
+								  	   ",remoteTable(y@table)," b 
 								  WHERE a.",x@primary_key," = b.",y@table@primary_key," 
 								  GROUP BY a.",x@var_id_name," 
 								  ORDER BY 1")
@@ -509,8 +489,8 @@ cor.FLTable <- function(x,y=x)
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
 										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C 
-								  FROM ",x@db_name,".", x@table_name," a, 
-								  	   ",y@table@db_name,".",y@table@table_name," b 
+								  FROM ",remoteTable(x)," a, 
+								  	   ",remoteTable(y@table)," b 
 								  WHERE a.",x@primary_key," = b.",y@table@primary_key," 
 								  GROUP BY a.",x@var_id_name," 
 								  ORDER BY 1")

@@ -20,14 +20,14 @@ as.vector.FLVector <- function(object,mode="any")
 	if(object@table@isDeep)
 	{
 		sqlstr <- paste0("SELECT *
-						 FROM ",object@table@db_name,".",object@table@table_name,"
+						 FROM ",remoteTable(object)," 
 						 WHERE ",object@table@primary_key,"=",object@vector_id_value,"
 						 ORDER BY 1,2")
 	}
 	else
 	{
 		sqlstr <- paste0("SELECT *
-						 FROM ",object@table@db_name,".",object@table@table_name,"
+						 FROM ",remoteTable(object)," 
 						 ORDER BY 1,2")
 	}
 	return(sqlQuery(object@table@odbc_connection,sqlstr)[,object@col_name])
@@ -71,7 +71,7 @@ as.matrix.FLMatrix <- function(object)
 	nrow <- object@nrow
 	valuedf <- sqlQuery(object@odbc_connection,
 					    paste0("SELECT *
-					    		FROM ",object@matrix_table,
+					    		FROM ",remoteTable(object),
                                " WHERE ",object@matrix_id_colname,"=",object@matrix_id_value,
                                " ORDER BY 1,2,3"))
 	matrix(sparseMatrix(i=valuedf[,object@row_id_colname],
@@ -132,7 +132,10 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
         sqlstatements <-
             base::apply(mdeep,1,
                         function(r)
-                            paste0(" INSERT INTO ",result_matrix_table,
+                            paste0(" INSERT INTO ",
+                                   getRemoteTableName(
+                                       result_db_name,
+                                       result_matrix_table),
                                    " (matrix_id, row_id, col_id, cell_val) VALUES (",
                                    paste0(c(max_matrix_id_value,r), collapse=", "),
                                    ");"))
@@ -158,6 +161,20 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
                    dimnames = dimnames(object)))
     }
 }
+
+setGeneric("remoteTable", function(object) {
+    standardGeneric("remoteTable")
+})
+setMethod("remoteTable", signature(object = "FLMatrix"),
+          function(object)
+              getRemoteTableName(object@db_name,object@matrix_table))
+setMethod("remoteTable", signature(object = "FLTable"),
+          function(object)
+              getRemoteTableName(object@db_name,object@table_name))
+setMethod("remoteTable", signature(object = "FLVector"),
+          function(object)
+              remoteTable(object@table))
+
 
 setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE) {
     standardGeneric("as.FLMatrix")
@@ -188,10 +205,15 @@ setMethod("as.FLMatrix", signature(object = "dgCMatrix",
                                    sparse="logical"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
-
+##
 setMethod("as.FLMatrix", signature(object = "dgCMatrix",
                                    connection="ANY",
                                    sparse="logical"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.Matrix(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "dgCMatrix",
+                                   connection="ANY",
+                                   sparse="missing"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
 
@@ -211,22 +233,22 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
                       if(k > length(m))
                           k<-1
                       if(!m@table@isDeep)
-                          sqlQuery(connection,
+                          sqlSendUpdate(connection,
                                    paste0(" INSERT INTO ",result_matrix_table,
                                           " SELECT ",max_matrix_id_value,",
 					 				 ",j,",
 					 				 ",i,",
 					 				 b.",m@col_name,
-                                     " FROM ",m@table@db_name,".",m@table@table_name," b",
+                                     " FROM ",remoteTable(m@table)," b",
                                      " WHERE b.",m@table@primary_key,"=",k))
                       else
-                          sqlQuery(connection,
+                          sqlSendUpdate(connection,
                                    paste0(" INSERT INTO ",result_matrix_table,
                                           " SELECT ",max_matrix_id_value,",
 					 				 ",j,",
 					 				 ",i,",
 					 				 b.",m@col_name,
-                                     " FROM ",m@table@db_name,".",m@table@table_name," b",
+                                     " FROM ",remoteTable(m@table)," b",
                                      " WHERE b.",m@table@var_id_name,"=",k,"
 							  AND b.",m@table@primary_key,"=",m@vector_id_value))
                       k<-k+1
@@ -258,7 +280,7 @@ as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
         for (i in 1:ncol(m))
             for (j in 1:nrow(m))
             {
-                sqlQuery(connection,
+                sqlSendUpdate(connection,
                          paste0(" INSERT INTO ",result_matrix_table,"
 	 	 			 		  SELECT ",max_matrix_id_value,",
 	 	 			 		  ",j,",
@@ -271,7 +293,7 @@ as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
  	 			 		  			   ",m@row_id_colname," AS rid,
  	 			 		  			   ",m@col_id_colname," AS cid,
  	 			 		  	           ",m@cell_val_colname," AS cval
- 	 			 		  	    FROM ",m@db_name,".",m@matrix_table,"
+ 	 			 		  	    FROM ",remoteTable(m),"
  	 			 		  	    WHERE ",m@matrix_id_colname,"=",m@matrix_id_value,") c
  	 			          SET CELL_VAL = c.cval
  	 			          WHERE ROW_ID = c.rid AND
@@ -394,7 +416,7 @@ as.FLVector <- function(obj,connection,size=length(obj))
 		j <- 1
 		for(i in 1:size)
 		{
-			sqlQuery(connection,
+			sqlSendUpdate(connection,
 					 paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 							" SELECT ",max_vector_id_value,", ",i,", '",obj[j],"'"))
 			j<-j+1
@@ -420,13 +442,13 @@ as.FLVector <- function(obj,connection,size=length(obj))
 	{
 		flag3Check(connection)
 
-		sqlQuery(connection,
+		sqlSendUpdate(connection,
 				 paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 						" SELECT ",max_vector_id_value,
                         ", ROW_NUMBER() OVER (ORDER BY a.",obj@col_id_colname,
                         ",a.",obj@row_id_colname,") AS ROW_NUM
 				                ,CAST(a.",obj@cell_val_colname," AS NUMBER)
-				         FROM ",obj@db_name,".",obj@matrix_table," a
+				         FROM ",remoteTable(obj)," a
 				          WHERE a.",obj@matrix_id_colname,"=",obj@matrix_id_value))
 
 		max_vector_id_value <<- max_vector_id_value + 1
@@ -450,7 +472,7 @@ as.FLVector <- function(obj,connection,size=length(obj))
 
 	    valuedf <- sqlQuery(obj@odbc_connection,
                             paste0("SELECT *
-					    		FROM ",obj@matrix_table,
+					    		FROM ",remoteTable(obj),
                                 " WHERE ",obj@matrix_id_colname,"=",obj@matrix_id_value,
                                 " ORDER BY 1,2,3"))
 
