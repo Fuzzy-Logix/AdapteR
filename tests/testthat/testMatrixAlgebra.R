@@ -1,21 +1,68 @@
 
 test_that("subsetting matrices", {
+
     ## Testing Subsetting
     ## Non-symmetric singular matrix of dimension 5x5
+    ## in R memory
     rMatrix <- matrix(1:25,5)
     rMatrix
+    dim(rMatrix)
+    diag(rMatrix)
     
+    ## converting the R matrix into 
+    ## an in-DB object,
+    ## CAREFUL: DATA IS TRANSFERED THROUGH NETWORK
     m <- as.FLMatrix(rMatrix,connection)
-    m
-    m[1,]
+    dim(m)
+    ##diag(m)
+
+    m1 <- m[1,]
     m[,1]
     m[2:3,4:5]
 
-    diag(m) ## oops
-     solve(m)
+##############################ä
+    ## GOAL:
+    dbGetQuery(connection,"SELECT a.TickerSymbol AS Ticker1,
+b.TickerSymbol AS Ticker2,
+FLCorrel(a.EquityReturn, b.EquityReturn) AS FLCorrel
+FROM finEquityReturns a,
+finEquityReturns b
+WHERE b.TxnDate = a.TxnDate
+AND a.TickerSymbol = 'MSFT'
+AND b.TickerSymbol IN ('AAPL','HPQ','IBM','MSFT','ORCL')
+GROUP BY a.TickerSymbol, b.TickerSymbol
+ORDER BY 1, 2;")
+    
+    eqnRtn <- FLMatrix(connection,database="FL_DEMO",
+                       matrix_table="finEquityReturns",
+                       matrix_id_value = "",
+                       matrix_id_colname = "",
+                       row_id_colname = "TickerSymbol",
+                       col_id_colname = "TxnDate",
+                       cell_val_colname = "EquityReturn")
 
+    head(rownames(eqnRtn))
+    
+    E <- eqnRtn[1:10,1]
+    eqnRtn["ROVI",1:10]
+
+    eqnRtn[1:10,
+           grep("2005-12.*",colnames(eqnRtn))]
+
+    
+    constructWhere(constraintsSQL(eqnRtn))
+    constructWhere(constraintsSQL(E,"a"))
+    
+    myCorr <- cor(t(eqnRtn[c('HPQ','IBM','MSFT','ORCL'),]),
+                  t(eqnRtn[c('HPQ','IBM','MSFT','ORCL'),]))
+    myCorr
+    
+    require(corrplot)
+    corrplot(myCorr)
+
+    
     dbGetQuery(connection,"
-show function FLMatrixDetUdt")
+show function FLCorrel")
 
     
     dbSendQuery(connection,"
@@ -42,34 +89,8 @@ LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
 ORDER BY 1;
 ")
     
-    dbGetQuery(connection,"SELECT a.TickerSymbol AS Ticker1,
-b.TickerSymbol AS Ticker2,
-FLCorrel(a.EquityReturn, b.EquityReturn) AS FLCorrel
-FROM finEquityReturns a,
-finEquityReturns b
-WHERE b.TxnDate = a.TxnDate
-AND a.TickerSymbol = 'MSFT'
-AND b.TickerSymbol IN ('AAPL','HPQ','IBM','MSFT','ORCL')
-GROUP BY a.TickerSymbol, b.TickerSymbol
-ORDER BY 1, 2;")
-    
-    eqnRtn <- FLMatrix(connection,database="FL_DEMO",
-                       matrix_table="finEquityReturns",
-                       matrix_id_value = "",
-                       matrix_id_colname = "",
-                       row_id_colname = "TickerSymbol",
-                       col_id_colname = "TxnDate",
-                       cell_val_colname = "EquityReturn")
-
-    myCorr <- cor(eqnRtn)
-    corrplot(myCorr)
 
     
-    rownames(eqnRtn)
-    eqnRtn[1,]
-    eqnRtn["ROVI",] ##!!
-    eqnRtn[1:2,]
-
 
     
     test_that("selection of entire matrix",

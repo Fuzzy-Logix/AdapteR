@@ -4,14 +4,14 @@
 \alias{[.FLMatrix}
 \title{Extract part of FLMatrix object.}
 \usage{
-\method{[}{FLMatrix}(object, nrow = 1, ncol = 1)
+\method{[}{FLMatrix}(object, rows = 1, cols = 1)
 }
 \arguments{
 \item{object}{is a FLMatrix object}
 
-\item{nrow}{is a vector input corresponding to rows to be extracted}
+\item{rows}{is a vector input corresponding to rows to be extracted}
 
-\item{ncol}{is a vector input corresponding to columns to be extracted}
+\item{cols}{is a vector input corresponding to columns to be extracted}
 }
 \value{
 \code{[]} returns FLMatrix object after extraction

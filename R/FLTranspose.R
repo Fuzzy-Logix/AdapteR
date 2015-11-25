@@ -26,31 +26,16 @@ t<-function(x, ...){
 #' @export
 t.FLMatrix<-function(object)
 {
-	
-	flag1Check(object@odbc_connection)
-	
-	sqlSendUpdate(object@odbc_connection, paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
-		                                    " SELECT ",max_matrix_id_value,
-		                                             ",a.",
-			                                          object@col_id_colname," AS ",object@row_id_colname,
-			                                          ",a.",object@row_id_colname," AS ",object@col_id_colname,
-			                                          ",a.",object@cell_val_colname," AS ",object@cell_val_colname,
-			                                " FROM ",remoteTable(object)," a 
-			                                where a.",object@matrix_id_colname,"=",object@matrix_id_value))
-
-	max_matrix_id_value <<- max_matrix_id_value + 1
-
 	new("FLMatrix", 
 		odbc_connection = object@odbc_connection, 
-		db_name = result_db_name, 
-		matrix_table = result_matrix_table, 
-		matrix_id_value = max_matrix_id_value - 1, 
-		matrix_id_colname = "MATRIX_ID", 
-		row_id_colname = "ROW_ID", 
-		col_id_colname = "COL_ID", 
-		cell_val_colname = "CELL_VAL", 
-		nrow = object@ncol, 
-		ncol = object@nrow, 
-		dimnames = list(object@dimnames[[2]],object@dimnames[[1]]))
+		db_name = object@db_name, 
+		matrix_table = object@matrix_table, 
+		matrix_id_value = object@matrix_id_value,
+		matrix_id_colname = object@matrix_id_colname, 
+		row_id_colname = object@col_id_colname, 
+		col_id_colname = object@row_id_colname, 
+		cell_val_colname = object@cell_val_colname, 
+		dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
+        whereconditions=object@whereconditions)
 	
 }

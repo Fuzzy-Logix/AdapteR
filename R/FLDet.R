@@ -35,7 +35,7 @@ det.FLMatrix<-function(object)
 {
 	connection<-object@odbc_connection
 	flag3Check(connection)
-	if(object@nrow != object@ncol)
+	if(nrow(object) != ncol(object))
 	{
 		stop("input object must be square matrix")
 	}

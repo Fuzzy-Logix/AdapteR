@@ -6,6 +6,10 @@ getRemoteTableName <- function(database,matrix_table) {
 
 
 
+sqlError <- function(e){
+    print(e)
+    sys.call()
+}
 ################################################################################
 ######  provide methods for JDBC with same signature as ODBC methods
 ################################################################################
@@ -15,12 +19,12 @@ if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod(
 FLdebugSQL <- TRUE
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
-        if(FLdebugSQL) cat(paste0("SENDING SQL: \n",q,"\n"))
+        if(FLdebugSQL) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
         tryCatch({
             dbSendUpdate(connection,q)
             dbCommit(connection)
         },
-        error=function(e) print(traceback()))
+        error=function(e) sqlError(e))
     })
 }
 sqlQuery.JDBCConnection <- function(channel,query) {
@@ -30,7 +34,7 @@ sqlQuery.JDBCConnection <- function(channel,query) {
             resd <- dbGetQuery(connection, query)
             return(resd)
         },
-        error=function(e) print(traceback()))
+        error=function(e) cat(paste0(sqlError(e))))
     }
     lapply(query, function(q){
         if(FLdebugSQL) cat(paste0("QUERY SQL: \n",q,"\n"))
@@ -38,7 +42,7 @@ sqlQuery.JDBCConnection <- function(channel,query) {
             resd <- dbGetQuery(connection, q)
             return(resd)
         },
-        error=function(e) print(traceback()))
+        error=function(e) cat(paste0(sqlError(e))))
     })
 }
 

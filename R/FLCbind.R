@@ -72,7 +72,7 @@ cbind.FLMatrix<-function(object,...)
 	flag1Check(connection)
 
 	colCount <- 0
-	nrow <- object@nrow
+	nrow <- nrow(object)
 
 	if(length(objectVec) == 1) 
 	{
@@ -91,7 +91,7 @@ cbind.FLMatrix<-function(object,...)
 
 	    sqlSendUpdate(connection,sqlstr0)
 
-	    colCount <- colCount + object@ncol
+	    colCount <- colCount + ncol(object)
 
 	    for (i in 2:length(objectVec))
 		{
@@ -109,7 +109,7 @@ cbind.FLMatrix<-function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                colCount <- colCount + object@ncol
+                colCount <- colCount + ncol(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -427,7 +427,7 @@ cbind.FLVector <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@nrow != nrow)
+				if(nrow(object) != nrow)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
@@ -442,7 +442,7 @@ cbind.FLVector <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                colCount <- colCount + object@ncol
+                colCount <- colCount + ncol(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -638,7 +638,7 @@ cbind.matrix <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@nrow != nrow)
+				if(nrow(object) != nrow)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
@@ -653,7 +653,7 @@ cbind.matrix <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                colCount <- colCount + object@ncol
+                colCount <- colCount + ncol(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -865,7 +865,7 @@ cbind.numeric <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@nrow != nrow)
+				if(nrow(object) != nrow)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
@@ -880,7 +880,7 @@ cbind.numeric <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                colCount <- colCount + object@ncol
+                colCount <- colCount + ncol(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -1076,7 +1076,7 @@ cbind.data.frame <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@nrow != nrow)
+				if(nrow(object) != nrow)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
@@ -1091,7 +1091,7 @@ cbind.data.frame <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                colCount <- colCount + object@ncol
+                colCount <- colCount + ncol(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")

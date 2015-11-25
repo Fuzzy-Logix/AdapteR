@@ -26,24 +26,25 @@ cor.default<-stats::cor
 
 cor.FLMatrix <- function(x,y=x)
 {
-	if(is.FLMatrix(y))
-	{
-		if(x@nrow==y@nrow)
-		{
-			sqlstr <- paste0("SELECT a.",x@col_id_colname," AS A ,b.",y@col_id_colname," AS B ,",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",
-                                         y@cell_val_colname,") AS C FROM ",
-                                         remoteTable(x)," a, ",remoteTable(y)," b WHERE  a.",
-					        x@row_id_colname," = b.",y@row_id_colname," and a.",x@matrix_id_colname,"=",x@matrix_id_value,
-					        " and b.",y@matrix_id_colname,"=",y@matrix_id_value," GROUP BY a.",x@col_id_colname,", b.",y@col_id_colname," ORDER BY 1,2 ")
+    ##browser()
+    if(is.FLMatrix(y))
+    {
+        sqlstr <- paste0("SELECT a.",x@col_id_colname," AS A, b.",y@col_id_colname," AS B, ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",
+                         y@cell_val_colname,") AS C FROM ",
+                         remoteTable(x)," a, ",remoteTable(y)," b ",
+                         constructWhere(
+                             c(
+                                 constraintsSQL(y, "a"),
+                                 constraintsSQL(x, "b"),
+                                 paste0("a.", x@row_id_colname," = b.",y@row_id_colname))),
+                         " GROUP BY a.",x@col_id_colname,", b.",y@col_id_colname," ORDER BY 1,2 ")
 			
-			vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
-			correlflmat<-as.FLMatrix(matrix(vec,ncol(x),byrow=T,dimnames=list(x@dimnames[[2]],y@dimnames[[2]])),x@odbc_connection);
-			#print(correlflmat)
-			#print(correlmat)
-			return(correlflmat)
-		}
-		else stop("incompatible dimensions")
-	}
+        vec <- sqlQuery(x@odbc_connection,sqlstr)
+        ##correlflmat<-as.FLMatrix(matrix(vec,ncol(x),byrow=T,dimnames=list(x@dimnames[[2]],y@dimnames[[2]])),x@odbc_connection);
+                                        #print(correlflmat)
+                                        #print(correlmat)
+        return(vec)
+    }
 	if(is.data.frame(y))
 	{
 		y <- as.matrix(y)
@@ -56,7 +57,7 @@ cor.FLMatrix <- function(x,y=x)
 	}
 	if(is.vector(y))
 	{
-		if(x@nrow!=length(y)) { stop(" invalid dimensions ") }
+		if(nrow(x)!=length(y)) { stop(" invalid dimensions ") }
 		else 
 		{
 			y <- matrix(y,length(y),1)
@@ -66,7 +67,7 @@ cor.FLMatrix <- function(x,y=x)
 	}
 	if(is.matrix(y))
 	{
-		if(x@nrow!=nrow(y)) { stop(" invalid dimensions ") }
+		if(nrow(x)!=nrow(y)) { stop(" invalid dimensions ") }
 		else
 		{
 			y <- as.FLMatrix(y,x@odbc_connection)
@@ -75,7 +76,7 @@ cor.FLMatrix <- function(x,y=x)
 	}
 	if(is.FLVector(y))
 	{
-		if(nrow(y) == x@nrow)
+		if(nrow(y) == nrow(x))
 		{
 			sqlstr <- paste0("SELECT a.",x@col_id_colname,", ",
 									 x@db_name,".FLCorrel(a.",x@cell_val_colname,",
@@ -98,7 +99,7 @@ cor.FLMatrix <- function(x,y=x)
 	}
 	if(is.FLTable(y))
 	{
-		if(x@nrow!=nrow(y)) { stop(" invalid dimensions ") }
+		if(nrow(x)!=nrow(y)) { stop(" invalid dimensions ") }
 		else 
 		{
 			return(t(cor(y,x)))
@@ -400,7 +401,7 @@ cor.FLTable <- function(x,y=x)
 	
 	if(is.FLMatrix(y))
 	{
-		if(nrowx == y@nrow)
+		if(nrowx == nrow(y))
 		{
 			if(x@isDeep)
 			{
