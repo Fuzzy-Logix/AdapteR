@@ -18,7 +18,7 @@ FLStartSession(connection, persistent="test")
 ###############################################################
 ############# POSITIVE TEST CASES #############################
 ###############################################################
-
+## gk: todo: fix rownames
 test_that("Casting base R matrix <---> in-database Matrices",{
     ## Creating simple FLMatrices from base R matrix
     matrix1 <- matrix(1:25,5)
@@ -301,14 +301,15 @@ test_that("check FLTrace return type",
                     ))
 
 # Testing FLSolve
-test_that("check inverse calculation of matrix", 
-      solve(m4)
-      )
+test_that("check inverse calculation of matrix", {
+    m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5)
+    solve(m4)
+    test_that("check the result of the inverse of matrix",  
+              expect_equal(
+                  as.matrix(solve(m4)), as.matrix(as.FLMatrix(solve(as.matrix(m4)),connection))
+              ))
+})
 
-test_that("check the result of the inverse of matrix",  
-    expect_equal(
-    as.matrix(solve(m4)), as.matrix(as.FLMatrix(solve(as.matrix(m4)),connection))
-))
 
 
 #Testing FLDiag

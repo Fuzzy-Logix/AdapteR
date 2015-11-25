@@ -64,21 +64,36 @@ as.matrix.numeric <- base::as.matrix.default
 ## 	vec <- df[,flmatobj1@cell_val_colname]
 ## 	return(matrix(vec,nrow,ncol,byrow=TRUE,dimnames=flmatobj1@dimnames))
 ## }
-
-#' Converts FLSparseMatrix object to a matrix in R
-as.matrix.FLMatrix <- function(object)
-{
-	nrow <- object@nrow
-	valuedf <- sqlQuery(object@odbc_connection,
-					    paste0("SELECT *
-					    		FROM ",remoteTable(object),
-                               " WHERE ",object@matrix_id_colname,"=",object@matrix_id_value,
-                               " ORDER BY 1,2,3"))
-	matrix(sparseMatrix(i=valuedf[,object@row_id_colname],
-                        j=valuedf[,object@col_id_colname],
-                        x=valuedf[,object@cell_val_colname],
-                        dimnames = object@dimnames),object@nrow,object@ncol,dimnames=object@dimnames)
+as.matrix.FLMatrix <- function(object) {
+    ##browser()
+    valuedf <- sqlQuery(object@odbc_connection, 
+                        paste0(" SELECT ",
+                               object@row_id_colname,",",
+                               object@col_id_colname,",",
+                               object@cell_val_colname,  
+                               " FROM ",remoteTable(object),
+                               constructWhere(constraintsSQL(object))))
+    i <- valuedf[[1]]
+    i <- as.factor(i)
+    j <- valuedf[[2]]
+    j <- as.factor(j)
+    m <- sparseMatrix(i = as.numeric(i),
+                      j = as.numeric(j),
+                      x = valuedf[[3]],
+                      dimnames = list(levels(i),levels(j)))
+    matrix(m,
+           nrow(object),
+           ncol(object),
+           dimnames=object@dimnames)
 }
+
+## setGeneric("as.matrix", function(object){
+##     standardGeneric("as.matrix")
+## })
+## #' Converts FLSparseMatrix object to a matrix in R
+## setMethod("as.matrix", signature(object="FLMatrix"),
+##           as.matrix.FLMatrix)
+
 
 #' Converts FLVector object to a matrix in R
 as.matrix.FLVector <- function(obj)
@@ -121,6 +136,7 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
     }
     else
     {
+        ##browser()
         mwide <- Matrix(object, sparse=TRUE)
         mdeep <- Matrix::summary(mwide)
         ## insert one 0 at nrow,ncol for
@@ -147,9 +163,15 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
         if(length(dimnames(object))==0) { dimnames(object) <- list(c(),c()) }
         if(length(rownames(object))==0) { rownames(object) <- c() }
         if(length(colnames(object))==0) { colnames(object) <- c() }
-        return(new("FLMatrix",
-                   odbc_connection = connection,
-                   db_name = result_db_name,
+        mydims <- list(rownames(object),
+                       colnames(object))
+        if(is.null(mydims[[1]]))
+            mydims[[1]] <- 1:nrow(object)
+        if(is.null(mydims[[2]]))
+            mydims[[2]] <- 1:ncol(object)
+        return(FLMatrix(
+                   connection = connection,
+                   database = result_db_name,
                    matrix_table = result_matrix_table,
                    matrix_id_value = max_matrix_id_value-1,
                    matrix_id_colname = "MATRIX_ID",
@@ -158,7 +180,7 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
                    cell_val_colname = "CELL_VAL",
                    nrow = nrow(object),
                    ncol = ncol(object),
-                   dimnames = dimnames(object)))
+                   dimnames = mydims))
     }
 }
 
@@ -254,9 +276,9 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
                       k<-k+1
                   }
               max_matrix_id_value <<- max_matrix_id_value + 1
-              return(new("FLMatrix",
-                         odbc_connection = connection,
-                         db_name = result_db_name,
+              return(FLMatrix(
+                         connection = connection,
+                         database = result_db_name,
                          matrix_table = result_matrix_table,
                          matrix_id_value = max_matrix_id_value-1,
                          matrix_id_colname = "MATRIX_ID",
@@ -304,9 +326,9 @@ as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
 
         max_matrix_id_value <<- max_matrix_id_value + 1
 
-        return(new("FLMatrix",
-                   odbc_connection = connection,
-                   db_name = result_db_name,
+        return(FLMatrix(
+                   connection = connection,
+                   database = result_db_name,
                    matrix_table = result_matrix_table,
                    matrix_id_value = max_matrix_id_value-1,
                    matrix_id_colname = "MATRIX_ID",

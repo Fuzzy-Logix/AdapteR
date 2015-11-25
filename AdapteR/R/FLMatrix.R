@@ -23,13 +23,11 @@ setClass(
 		odbc_connection = "ANY",
 		db_name = "character",
 		matrix_table = "character",
-		matrix_id_value	= "character",
+		matrix_id_value	= "ANY",
 		matrix_id_colname = "character",
 		row_id_colname = "character",
 		col_id_colname = "character",
 		cell_val_colname = "character",
-		nrow = "numeric",
-		ncol = "numeric",
 		dimnames = "list",
         whereconditions="character"
 	)
@@ -64,29 +62,39 @@ FLMatrix <- function(connection,
 					 row_id_colname = "ROW_ID", 
 					 col_id_colname = "COL_ID", 
 					 cell_val_colname = "CELL_VAL", 
-					 nrow = c(), 
+					 nrow = c(), ## gk: delete these, obsolete!
 					 ncol = c(), 
-					 dimnames = list(c(),c()))
+					 dimnames = NULL,
+                     conditionDims=c(FALSE,FALSE),
+                     whereClause=c(""))
 {
-    if(""!=matrix_id_colname & ""!=matrix_id_value)
-        whereClause <- paste0(" WHERE ",matrix_id_colname,"=",matrix_id_value)
-    else
-        whereClause <- ""
-	rownames <- sqlQuery(connection, 
-                         paste0("SELECT unique(",row_id_colname,") as rownames
+    if(is.null(dimnames)){
+        dimnames <- list(
+            sqlQuery(connection, 
+                     paste0("SELECT unique(",row_id_colname,") as rownames
 							 FROM ",getRemoteTableName(database,matrix_table),
-                             whereClause))$rownames
-    colnames <- sqlQuery(connection, 
-                         paste0("SELECT unique(",col_id_colname,") as colnames
+                            constructWhere(whereClause)))$rownames,
+            sqlQuery(connection, 
+                     paste0("SELECT unique(",col_id_colname,") as colnames
 							 FROM ",getRemoteTableName(database,matrix_table),
-                             whereClause))$colnames
+                            constructWhere(whereClause)))$colnames)
+    }
+    if(conditionDims[[1]])
+        whereClause <- c(whereClause,
+                         inCondition(paste0(matrix_table,".",row_id_colname),
+                                     dimnames[[1]]))
+    if(conditionDims[[2]])
+        whereClause <- c(whereClause,
+                         inCondition(paste0(matrix_table,".",col_id_colname),
+                                     dimnames[[2]]))
+
     ##browser()
-	if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
-	  (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
-	{
-		stop(" ERROR in dimnames: length of dimnames not equal to array extent ")
-	}
-    else
+	## if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
+	##   (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
+	## {
+	## 	stop(" ERROR in dimnames: length of dimnames not equal to array extent ")
+	## }
+    ## else
     {
 		new("FLMatrix", 
 			odbc_connection = connection, 
@@ -97,9 +105,7 @@ FLMatrix <- function(connection,
 			row_id_colname = row_id_colname, 
 			col_id_colname = col_id_colname, 
 			cell_val_colname = cell_val_colname,
-			nrow = length(rownames), 
-			ncol = length(colnames), 
-			dimnames = list(rownames,colnames),
+			dimnames = dimnames,
             whereconditions=whereClause)
     }
 }
@@ -110,7 +116,30 @@ inCondition <- function(col,vals){
     else
         ""
 }
-constructWhere <- function(conditions){
+
+setGeneric("constraintsSQL", function(object, localName) {
+    standardGeneric("constraintsSQL")
+})
+setMethod("constraintsSQL", signature(object = "FLMatrix",localName="character"),
+          function(object,localName="") {
+              conditions <- object@whereconditions
+              ## todo: generalize!
+              if(""!=object@matrix_id_value)
+                  conditions <- c(conditions,
+                                  paste0(object@matrix_id_colname,
+                                         "=",object@matrix_id_value))
+              if(localName!="")
+                  conditions <- gsub(object@matrix_table,
+                                     localName,
+                                     conditions)
+              return(conditions)
+          })
+setMethod("constraintsSQL", signature(object = "FLMatrix",localName="missing"),
+          function(object) constraintsSQL(object,""))
+
+constructWhere <- function(conditions) {
+    if(!is.character(conditions))
+        stop("Provide constraints als character vector")
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)>0)
         paste0(" WHERE ",paste0("(",
@@ -122,8 +151,6 @@ constructWhere <- function(conditions){
 
 print.FLMatrix <- function(object)
 {
-	nrows <- object@nrow
-    ##browser()
 	valuedf <- sqlQuery(object@odbc_connection, 
 						paste0(" SELECT ",
                                max_matrix_id_value,",",
@@ -132,7 +159,7 @@ print.FLMatrix <- function(object)
                                object@cell_val_colname,  
                                " FROM ",remoteTable(object),
                                constructWhere(
-                                   object@whereconditions)))
+                                   constraintsSQL(object))))
     i <- as.factor(valuedf[[2]])
     j <- as.factor(valuedf[[3]])
     m <- sparseMatrix(i = as.numeric(i),

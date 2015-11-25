@@ -34,14 +34,14 @@ solve <- function (x, ...){
 solve.FLMatrix<-function(object)
 {
 
-	if(object@nrow != object@ncol) 
+	if(nrow(object) != ncol(object)) 
 	{ 
 		stop("solve function is applicable on square matrix only") 
 	}
 
 	connection<-object@odbc_connection
 	flag1Check(connection)
-
+    MID <- max_matrix_id_value
 	sqlstr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 						AS (SELECT a.",object@matrix_id_colname,", 
@@ -50,7 +50,7 @@ solve.FLMatrix<-function(object)
 								   a.",object@cell_val_colname,
 							" FROM  ",object@matrix_table," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_matrix_id_value,
+					SELECT ",MID,
 					       ",a.OutputRowNum,
 					        a.OutputColNum,
 					        a.OutputVal 
@@ -60,24 +60,21 @@ solve.FLMatrix<-function(object)
 	
 	t<-sqlSendUpdate(connection,sqlstr)
 
-	if(length(t) > 0) 
-	{ 
-		stop(" Error Inverting Matrix - Matrix might be exactly singular ") 
-	}
+	## if(length(t) > 0) 
+	## { 
+	## 	stop(" Error Inverting Matrix - Matrix might be exactly singular ") 
+	## }
 	
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	return(new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
-		       matrix_table = result_matrix_table, 
-			   matrix_id_value = max_matrix_id_value-1,
-			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "ROW_ID", 
-			   col_id_colname = "COL_ID", 
-			   cell_val_colname = "CELL_VAL",
-			   nrow = object@nrow, 
-			   ncol = object@ncol, 
-			   dimnames = list(c(),c()))
-	      )
+	return(FLMatrix(
+            connection = connection, 
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = MID,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "ROW_ID", 
+            col_id_colname = "COL_ID", 
+            cell_val_colname = "CELL_VAL")
+            )
 }

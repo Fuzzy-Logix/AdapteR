@@ -11,12 +11,12 @@ nrow.default<-base::nrow
 
 nrow.FLMatrix<-function(object)
 {
-	return(object@nrow)
+	return(length(object@dimnames[[1]]))
 }
 
 nrow.FLSparseMatrix<-function(object)
 {
-	return(object@nrow)
+	return(length(object@dimnames[[1]]))
 }
 
 nrow.FLTable<-function(object)
@@ -63,11 +63,11 @@ ncol.integer<-base::ncol
 ncol.default<-base::ncol
 
 ncol.FLMatrix<-function(object){
-	return(object@ncol)
+	return(length(object@dimnames[[2]]))
 }
 
 ncol.FLSparseMatrix<-function(object){
-	return(object@ncol)
+	return(length(object@dimnames[[2]]))
 }
 
 ncol.FLTable<-function(object){
@@ -116,12 +116,12 @@ NCOL.FLVector<-function(object){
 # Returns the dimensions of the object
 dim.FLMatrix <- function(object)
 {
-	 return(c(object@nrow,object@ncol))
+	 return(c(nrow(object),ncol(object)))
 }
 
 dim.FLSparseMatrix <- function(object)
 {
-	 return(c(object@nrow,object@ncol))
+	 return(c(nrow(object),ncol(object)))
 }
 
 dim.FLTable <- function(object)
