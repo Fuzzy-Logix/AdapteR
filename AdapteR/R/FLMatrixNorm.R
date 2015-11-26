@@ -51,7 +51,7 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 								   a.",object@row_id_colname,", 
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname,  
-							" FROM  ",object@matrix_table," a 
+							" FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_vector_id_value,
 					       ",1, 
@@ -60,7 +60,7 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 					HASH BY z.Matrix_ID 
 					LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_vector_id_value <<- max_vector_id_value + 1
 	

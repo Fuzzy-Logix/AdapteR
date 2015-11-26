@@ -76,31 +76,5 @@ FLVector <- function(table,
     }
 }
 
-print.FLVector <- function(object)
-{
-    if(object@table@isDeep && length(object@vector_id_value))
-    {
-        valuedf <- sqlQuery(object@table@odbc_connection,
-                            paste0("SELECT * FROM ",
-                                   getRemoteTableName(object@table@db_name,
-                                                      object@table@table_name),
-                                   " WHERE ",object@table@primary_key,"=",
-                                   object@vector_id_value,
-                                   " ORDER BY ",object@table@var_id_name))
-        print(as.vector(valuedf[,object@col_name]))
-    }
-    else if(!object@table@isDeep)
-    {
-        valuedf <- sqlQuery(object@table@odbc_connection,
-                            paste0("SELECT ",
-                                   object@table@primary_key,",",
-                                   object@col_name,
-                                   " FROM ",
-                                   getRemoteTableName(object@table@db_name,
-                                                      object@table@table_name),
-                                   " ORDER BY ",object@table@primary_key))
-        print(as.vector(valuedf[,object@col_name]))
-    }
-}
-
 setMethod("show","FLVector",print.FLVector)
+

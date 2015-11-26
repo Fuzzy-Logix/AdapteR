@@ -36,7 +36,7 @@ chol.FLMatrix<-function(object)
 
 	flag1Check(connection)
 	
-	if (object@nrow != object@ncol)
+	if (nrow(object) != ncol(object))
 	{
 		stop ("Input matrix is not a square matrix")
 	}
@@ -63,7 +63,7 @@ chol.FLMatrix<-function(object)
 									) 
 						AS a;")
 
-		retobj <- sqlQuery(connection,sqlstr)
+		retobj <- sqlSendUpdate(connection,sqlstr)
 		
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -73,17 +73,17 @@ chol.FLMatrix<-function(object)
 		}
 		else
 		{
-			return(new("FLMatrix", 
-				       odbc_connection = connection, 
-				       db_name = result_db_name, 
+			return(FLMatrix( 
+				       connection = connection, 
+				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
 					   matrix_id_value = max_matrix_id_value-1,
 					   matrix_id_colname = "MATRIX_ID", 
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
 					   cell_val_colname = "CELL_VAL",
-					   nrow = object@nrow, 
-					   ncol = object@ncol, 
+					   nrow = nrow(object), 
+					   ncol = ncol(object), 
 					   dimnames = list(c(),c())))
 		}
 	}

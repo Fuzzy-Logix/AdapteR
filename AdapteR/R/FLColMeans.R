@@ -41,7 +41,7 @@ colMeans.FLMatrix<-function(object)
 					WHERE a.",object@matrix_id_colname,"=",object@matrix_id_value,
 					" GROUP BY a.",object@col_id_colname)
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 	
 	max_vector_id_value <<- max_vector_id_value + 1
 	
@@ -56,5 +56,5 @@ colMeans.FLMatrix<-function(object)
 		table = table, 
 		col_name = table@num_val_name, 
 		vector_id_value = max_vector_id_value-1, 
-		size = object@ncol)
+		size = ncol(object))
 }

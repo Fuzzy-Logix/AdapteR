@@ -30,7 +30,7 @@ FLMatrixRREF <- function (x, ...){
 FLMatrixRREF.FLMatrix<-function(object)
 {
 
-	if(object@nrow != object@ncol) 
+	if(nrow(object) != ncol(object)) 
 	{ 
 		stop("FLMatrixRREF function is applicable on square matrix only") 
 	}
@@ -44,7 +44,7 @@ FLMatrixRREF.FLMatrix<-function(object)
 								   a.",object@row_id_colname,", 
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname,
-							" FROM  ",object@matrix_table," a 
+							" FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,
 					       ",a.OutputRowNum,
@@ -54,21 +54,21 @@ FLMatrixRREF.FLMatrix<-function(object)
 						HASH BY z.Matrix_ID 
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 	
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	return(new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
+	return(FLMatrix( 
+		       connection = connection, 
+		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 
 			   row_id_colname = "ROW_ID", 
 			   col_id_colname = "COL_ID", 
 			   cell_val_colname = "CELL_VAL",
-			   nrow = object@nrow, 
-			   ncol = object@ncol, 
+			   nrow = nrow(object), 
+			   ncol = ncol(object), 
 			   dimnames = list(c(),c()))
 	      )
 }

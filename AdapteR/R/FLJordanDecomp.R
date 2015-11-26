@@ -39,7 +39,7 @@ jordan.FLMatrix<-function(object)
 	connection<-object@odbc_connection
 	flag1Check(connection)
 	flag3Check(connection)
-	if(object@nrow == object@ncol)
+	if(nrow(object) == ncol(object))
 	{	
 		sqlstrP<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
 						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -61,9 +61,6 @@ jordan.FLMatrix<-function(object)
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		
 		retobj <- sqlSendUpdate(connection,sqlstrP)
-		# print(retobj)
-                                        # print(length(retobj))
-
 
 		PMatrix <- FLMatrix(
 				       connection = connection, 
@@ -74,8 +71,6 @@ jordan.FLMatrix<-function(object)
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
 					   cell_val_colname = "CELL_VAL",
-					   nrow = object@nrow, 
-					   ncol = object@ncol, 
 					   dimnames = list(c(),c()))
         ## gk: todo, check this on remote object!
 		## if(length(retobj) != 0)
@@ -110,17 +105,15 @@ jordan.FLMatrix<-function(object)
 		## }
 
 		PInvMatrix <- FLMatrix(
-					       connection = connection, 
-					       database = result_db_name, 
-					       matrix_table = result_matrix_table, 
-						   matrix_id_value = max_matrix_id_value-1,
-						   matrix_id_colname = "MATRIX_ID", 
-						   row_id_colname = "ROW_ID", 
-						   col_id_colname = "COL_ID", 
-						   cell_val_colname = "CELL_VAL",
-						   nrow = object@nrow, 
-						   ncol = object@ncol, 
-						   dimnames = list(c(),c()))
+            connection = connection, 
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = max_matrix_id_value-1,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "ROW_ID", 
+            col_id_colname = "COL_ID", 
+            cell_val_colname = "CELL_VAL",
+            dimnames = list(c(),c()))
 
 		sqlstrJ<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"
 						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -154,7 +147,7 @@ jordan.FLMatrix<-function(object)
 						table = table, 
 						col_name = table@num_val_name, 
 						vector_id_value = max_vector_id_value-1, 
-						size = min(object@nrow,object@ncol))
+						size = min(nrow(object),ncol(object)))
 
 		result<-list(J = JVector,
 					 P = PMatrix,
@@ -169,27 +162,27 @@ jordan.FLMatrix<-function(object)
 	# {
 	# 	result<-list(J = JVector,
 	# 				 P = PMatrix,
-	# 				 PInv = PInvMatrix[1:object@ncol,1:min(object@nrow,object@ncol)])
+	# 				 PInv = PInvMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
 	# }
 
 	# else if (is.null(nu))
 	# {
 	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:object@nrow,1:min(object@nrow,object@ncol)],
-	# 				 v = VMatrix[1:object@ncol,1:min(nv,object@ncol)])
+	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),ncol(object))],
+	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	# }
 
 	# else if (is.null(nv))
 	# {
 	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:object@nrow,1:min(object@nrow,nu)],
-	# 				 v = VMatrix[1:object@ncol,1:min(object@nrow,object@ncol)])
+	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
+	# 				 v = VMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
 	# }
 
 	# else
 	# {
 	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:object@nrow,1:min(object@nrow,nu)],
-	# 				 v = VMatrix[1:object@ncol,1:min(nv,object@ncol)])
+	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
+	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	# }
 

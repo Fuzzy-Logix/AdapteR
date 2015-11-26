@@ -32,7 +32,7 @@ NULL
 	if(nargs()==2 && missing(nrow)) { return(object[,]) }
 	if(nargs()==2)
 	{
-		if(nrow>object@nrow*object@ncol) { stop("subscript_out_of_bounds") }
+		if(nrow>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
 		return(sqlQuery(connection,paste0(" SELECT ",object@cell_val_colname,
                                           " FROM ",remoteTable(object),
                                           " ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][nrow])
@@ -47,7 +47,7 @@ NULL
     if(is.numeric(cols))
         newcolnames <- object@dimnames[[2]][cols]
     else
-        newcolnames <- rows
+        newcolnames <- cols
 
     ##browser()
     if(missing(cols)) {
@@ -103,14 +103,14 @@ NULL
 ## 	if(nargs()==2 && missing(nrow)) { return(object[,]) }
 ## 	if(nargs()==2)
 ## 	{
-## 		if(nrow>object@nrow*object@ncol) { stop("subscript_out_of_bounds") }
+## 		if(nrow>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
 ## 		return(sqlQuery(connection,paste0(" SELECT ",object@cell_val_colname,
 ## 											" FROM ",remoteTable(object),
 ## 											" ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][nrow])
 ## 	}
 ## 	#if(is.character(nrow)){ nrow <- sapply(nrow, function(x) which(rownames(object) %in% x),USE.NAMES=FALSE) }  ## transform character index to numeric
 ## 	#if(is.character(ncol)){ ncol <- sapply(ncol, function(x) which(colnames(object) %in% x),USE.NAMES=FALSE) }
-## 	#if(sum(abs(nrow) > object@nrow) > 0 || sum(abs(ncol) > object@ncol) > 0){ stop("subscript_out_of_bounds") }
+## 	#if(sum(abs(nrow) > nrow(object)) > 0 || sum(abs(ncol) > ncol(object)) > 0){ stop("subscript_out_of_bounds") }
 ## 	flag1Check(connection)
 ## 	if(length(nrow)>0 && length(ncol)>0)
 ## 	{
@@ -129,17 +129,17 @@ NULL
 ## 								  " WHERE ",object@matrix_id_colname," = ",object@matrix_id_value)
 ## 					sqlSendUpdate(connection,sqlstr)
 ## 					max_matrix_id_value <<- max_matrix_id_value + 1
-## 			 		return(new("FLMatrix", 
-## 			 			       odbc_connection = connection, 
-## 			 			       db_name = result_db_name, 
+## 			 		return(FLMatrix( 
+## 			 			       connection = connection, 
+## 			 			       database = result_db_name, 
 ## 			 			       matrix_table = result_matrix_table, 
 ## 			 	               matrix_id_value = max_matrix_id_value-1,
 ## 				               matrix_id_colname = "MATRIX_ID", 
 ## 				               row_id_colname = "ROW_ID", 
 ## 				               col_id_colname = "COL_ID", 
 ## 				               cell_val_colname = "CELL_VAL",
-## 				               nrow = object@nrow, 
-## 				               ncol = object@ncol, 
+## 				               nrow = nrow(object), 
+## 				               ncol = ncol(object), 
 ## 				               dimnames = object@dimnames))
 ## 				}
 ## 				else
@@ -154,9 +154,9 @@ NULL
 ## 								  " AND ",object@matrix_id_colname," = ",object@matrix_id_value)
 ## 					sqlSendUpdate(connection,sqlstr)
 ## 					max_matrix_id_value <<- max_matrix_id_value + 1
-## 			 		return(new("FLMatrix", 
-## 			 			      odbc_connection = connection, 
-## 			 			      db_name = result_db_name, 
+## 			 		return(FLMatrix( 
+## 			 			      connection = connection, 
+## 			 			      database = result_db_name, 
 ## 			 			      matrix_table = result_matrix_table, 
 ## 			 	    	      matrix_id_value = max_matrix_id_value-1,
 ## 				              matrix_id_colname = "MATRIX_ID", 
@@ -164,7 +164,7 @@ NULL
 ## 				              col_id_colname = "COL_ID", 
 ## 				              cell_val_colname = "CELL_VAL",
 ## 				              nrow = 1, 
-## 				              ncol = object@ncol, 
+## 				              ncol = ncol(object), 
 ## 				              dimnames = list(newrownames,object@dimnames[[2]])))				}
 ## 			    }
 ## 			else 
@@ -178,16 +178,16 @@ NULL
 ## 								  " AND ",object@matrix_id_colname," = ",object@matrix_id_value)
 ## 					sqlSendUpdate(connection,sqlstr)
 ## 					max_matrix_id_value <<- max_matrix_id_value + 1
-## 			 		return(new("FLMatrix", 
-## 			 			       odbc_connection = connection, 
-## 			 			       db_name = result_db_name, 
+## 			 		return(FLMatrix( 
+## 			 			       connection = connection, 
+## 			 			       database = result_db_name, 
 ## 			 			       matrix_table = result_matrix_table, 
 ## 			 	               matrix_id_value = max_matrix_id_value-1,
 ## 				               matrix_id_colname = "MATRIX_ID", 
 ## 				               row_id_colname = "ROW_ID", 
 ## 				               col_id_colname = "COL_ID", 
 ## 				               cell_val_colname = "CELL_VAL",
-## 				               nrow = object@nrow, 
+## 				               nrow = nrow(object), 
 ## 				               ncol = 1, 
 ## 				               dimnames = list(object@dimnames[[1]],object@dimnames[[2]][ncol])))
 ## 				}
@@ -201,9 +201,9 @@ NULL
 ## 								  " AND ",object@matrix_id_colname," = ",object@matrix_id_value)
 ## 					sqlSendUpdate(connection,sqlstr)
 ## 					max_matrix_id_value <<- max_matrix_id_value + 1
-## 			 		return(new("FLMatrix", 
-## 			 			      odbc_connection = connection, 
-## 			 			      db_name = result_db_name, 
+## 			 		return(FLMatrix( 
+## 			 			      connection = connection, 
+## 			 			      database = result_db_name, 
 ## 			 			      matrix_table = result_matrix_table, 
 ## 			 	              matrix_id_value = max_matrix_id_value-1,
 ## 				              matrix_id_colname = "MATRIX_ID", 

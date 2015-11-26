@@ -6,9 +6,9 @@
 \usage{
 FLMatrix(connection, database = result_db_name, matrix_table, matrix_id_value,
   matrix_id_colname = "MATRIX_ID", row_id_colname = "ROW_ID",
-  col_id_colname = "COL_ID", cell_val_colname = "CELL_VAL", nrow = c(),
-  ncol = c(), dimnames = NULL, conditionDims = c(FALSE, FALSE),
-  whereClause = c(""))
+  col_id_colname = "COL_ID", cell_val_colname = "CELL_VAL", nrow = 0,
+  ncol = 0, dimnames = NULL, conditionDims = c(FALSE, FALSE),
+  whereconditions = c(""))
 }
 \arguments{
 \item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}

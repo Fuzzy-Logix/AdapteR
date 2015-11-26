@@ -26,9 +26,9 @@ t<-function(x, ...){
 #' @export
 t.FLMatrix<-function(object)
 {
-	new("FLMatrix", 
-		odbc_connection = object@odbc_connection, 
-		db_name = object@db_name, 
+	FLMatrix( 
+		connection = object@odbc_connection, 
+		database = object@db_name, 
 		matrix_table = object@matrix_table, 
 		matrix_id_value = object@matrix_id_value,
 		matrix_id_colname = object@matrix_id_colname, 

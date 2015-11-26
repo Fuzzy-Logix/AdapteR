@@ -74,8 +74,8 @@ FLTable <- function(connection,
 	else
 	{
 		new("FLTable", 
-			odbc_connection = connection,
-			db_name = database, 
+			 odbc_connection = connection,
+			 db_name = database, 
 			table_name = table,
 			primary_key = primary_key,
 			var_id_name = var_id_name,

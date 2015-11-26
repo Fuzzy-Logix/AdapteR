@@ -48,10 +48,11 @@ solve.FLMatrix<-function(object)
 								   a.",object@row_id_colname,", 
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname,
-							" FROM  ",object@matrix_table," a 
-							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",MID,
-					       ",a.OutputRowNum,
+                   " FROM  ",remoteTable(object)," a ",
+                   constructWhere(constraintsSQL(object,"a")),
+                   " ) ",
+                   " SELECT ",MID,
+                   ",a.OutputRowNum,
 					        a.OutputColNum,
 					        a.OutputVal 
 					FROM TABLE (FLMatrixInvUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
@@ -59,7 +60,7 @@ solve.FLMatrix<-function(object)
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	
 	t<-sqlSendUpdate(connection,sqlstr)
-
+    ## browser()
 	## if(length(t) > 0) 
 	## { 
 	## 	stop(" Error Inverting Matrix - Matrix might be exactly singular ") 
@@ -76,5 +77,5 @@ solve.FLMatrix<-function(object)
             row_id_colname = "ROW_ID", 
             col_id_colname = "COL_ID", 
             cell_val_colname = "CELL_VAL")
-            )
+           )
 }

@@ -4,7 +4,7 @@
 \alias{as.matrix}
 \title{Converts \code{x} to matrix in R}
 \usage{
-as.matrix(x)
+as.matrix(x, ...)
 }
 \description{
 Converts \code{x} to matrix in R

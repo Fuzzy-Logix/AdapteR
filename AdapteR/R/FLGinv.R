@@ -52,20 +52,20 @@ ginv.FLMatrix<-function(object)
 						HASH BY z.Matrix_ID 
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	return(new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
+	return(FLMatrix( 
+		       connection = connection, 
+		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 
 			   row_id_colname = "ROW_ID", 
 			   col_id_colname = "COL_ID", 
 			   cell_val_colname = "CELL_VAL",
-			   nrow = object@ncol, 
-			   ncol = object@nrow, 
+			   nrow = ncol(object), 
+			   ncol = nrow(object), 
 			   dimnames = list(c(),c())))
 }

@@ -39,13 +39,13 @@ tr.FLMatrix<-function(object){
 						         ",1, 
 						         CAST(FLMatrixTrace(a.",object@row_id_colname,", a.",object@col_id_colname,
 						              ", a.",object@cell_val_colname,") AS NUMBER) ",
-					    " FROM ",object@matrix_table," a",
+					    " FROM ",remoteTable(object)," a",
 					    " GROUP BY a.",object@matrix_id_colname,
 					    " WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,
-					    " AND a.", object@row_id_colname," <= ",min(object@nrow,object@ncol),
-					    " AND a.",object@col_id_colname, " <= ", min(object@nrow,object@ncol))
+					    " AND a.", object@row_id_colname," <= ",min(nrow(object),ncol(object)),
+					    " AND a.",object@col_id_colname, " <= ", min(nrow(object),ncol(object)))
 	
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 	
 	max_vector_id_value <<- max_vector_id_value + 1
 

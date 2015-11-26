@@ -84,7 +84,7 @@ identical.FLMatrix <- function(object1, object2)
 {
 	if(is.FLSparseMatrix(object1) && is.FLSparseMatrix(object2))
 	{
-		if((object2@nrow != object1@nrow) || (object1@ncol != object2@ncol))
+		if((nrow(object2) != nrow(object1)) || (ncol(object1) != ncol(object2)))
 		return(FALSE)
 
 		sqlstr <- paste("DATABASE ",object1@db_name,";
