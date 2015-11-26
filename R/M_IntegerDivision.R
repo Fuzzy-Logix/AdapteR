@@ -70,11 +70,11 @@ NULL
 	sqlQuery(flmatobj1@odbc_connection,
 			 paste("DATABASE", flmatobj1@db_name,";
 			 		SET ROLE ALL;"))
-	nrow1 <- flmatobj1@nrow
-	ncol1 <- flmatobj1@ncol
+	nrow1 <- nrow(flmatobj1)
+	ncol1 <- ncol(flmatobj1)
 	if(is.FLMatrix(flmatobj2))
 	{
-		if(flmatobj1@nrow == flmatobj2@nrow && flmatobj1@ncol == flmatobj2@ncol)
+		if(nrow(flmatobj1) == nrow(flmatobj2) && ncol(flmatobj1) == ncol(flmatobj2))
 		{
 			flag1Check(flmatobj1@odbc_connection)
 			t<-sqlQuery(flmatobj1@odbc_connection,
@@ -92,9 +92,9 @@ NULL
 			
 			if(length(t)!=0) { stop("division by zero not supported currently") }
 			max_matrix_id_value <<- max_matrix_id_value + 1
-			new("FLMatrix", 
-				odbc_connection = flmatobj1@odbc_connection, 
-				db_name = result_db_name, 
+			FLMatrix( 
+				connection = flmatobj1@odbc_connection, 
+				database = result_db_name, 
 				matrix_table = result_matrix_table, 
 				matrix_id_value = max_matrix_id_value - 1, 
 				matrix_id_colname = "MATRIX_ID", 
@@ -173,9 +173,9 @@ NULL
 		}
 		if(length(t)!=0) { stop("division by zero not supported currently") }
 		max_matrix_id_value <<- max_matrix_id_value + 1
-		new("FLMatrix", 
-			odbc_connection = flmatobj1@odbc_connection, 
-			db_name = result_db_name, 
+		FLMatrix( 
+			connection = flmatobj1@odbc_connection, 
+			database = result_db_name, 
 			matrix_table = result_matrix_table, 
 			matrix_id_value = max_matrix_id_value - 1, 
 			matrix_id_colname = "MATRIX_ID", 
@@ -221,13 +221,13 @@ NULL
 	sqlQuery(flmatobj1@odbc_connection,
 			 paste("DATABASE", flmatobj1@db_name,";
 			 		SET ROLE ALL;"))
-	nrow1 <- flmatobj1@nrow
-	ncol1 <- flmatobj1@ncol
+	nrow1 <- nrow(flmatobj1)
+	ncol1 <- ncol(flmatobj1)
 	
 	if(is.FLMatrix(flmatobj2) || is.FLSparseMatrix(flmatobj2))
 	{
-		nrow2 <- flmatobj2@nrow
-		ncol2 <- flmatobj2@ncol
+		nrow2 <- nrow(flmatobj2)
+		ncol2 <- ncol(flmatobj2)
 
 		if(nrow1 == nrow2 && ncol1 == ncol2)
 		{
@@ -252,7 +252,7 @@ NULL
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
 					odbc_connection = flmatobj1@odbc_connection, 
-					db_name = result_db_name, 
+					database = result_db_name, 
 					matrix_table = result_Sparsematrix_table, 
 					matrix_id_value = max_Sparsematrix_id_value - 1, 
 					matrix_id_colname = "MATRIX_ID", 
@@ -301,9 +301,9 @@ NULL
 				
 				if(length(t)!=0) { stop("division by zero not supported currently") }
 				max_matrix_id_value <<- max_matrix_id_value + 1
-				new("FLMatrix", 
-					odbc_connection = flmatobj2@odbc_connection, 
-					db_name = result_db_name, 
+				FLMatrix( 
+					connection = flmatobj2@odbc_connection, 
+					database = result_db_name, 
 					matrix_table = result_matrix_table, 
 					matrix_id_value = max_matrix_id_value - 1, 
 					matrix_id_colname = "MATRIX_ID", 
@@ -346,7 +346,7 @@ NULL
 		            		   	 		flmatobj2@table@db_name,".",flmatobj2@table@table_name," b 
 		            		   	 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 		            		   	 AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value," 
-		            		   	 AND (((a.",flmatobj1@col_id_colname,"-1)*",flmatobj1@nrow,")+",
+		            		   	 AND (((a.",flmatobj1@col_id_colname,"-1)*",nrow(flmatobj1),")+",
 		            					flmatobj1@row_id_colname,") MOD ",flmatobj2@size," = b.",flmatobj2@table@var_id_name," MOD ",flmatobj2@size))
 			}
 			else
@@ -360,22 +360,22 @@ NULL
 		            		   	 FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 		            		   	 		flmatobj2@table@db_name,".",flmatobj2@table@table_name," b 
 		            		   	 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-		            		   	 AND (((a.",flmatobj1@col_id_colname,"-1)*",flmatobj1@nrow,")+",
+		            		   	 AND (((a.",flmatobj1@col_id_colname,"-1)*",nrow(flmatobj1),")+",
 		            						flmatobj1@row_id_colname,") MOD ",flmatobj2@size," = b.",flmatobj2@table@primary_key," MOD ",flmatobj2@size))
 			}
 			if(length(t)!=0) { stop("division by zero not supported currently") }
 			max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 			new("FLSparseMatrix", 
 				odbc_connection = flmatobj1@odbc_connection, 
-				db_name = result_db_name, 
+				database = result_db_name, 
 				matrix_table = result_Sparsematrix_table, 
 				matrix_id_value = max_Sparsematrix_id_value - 1, 
 				matrix_id_colname = "MATRIX_ID", 
 				row_id_colname = "ROW_ID", 
 				col_id_colname = "COL_ID", 
 				cell_val_colname = "CELL_VAL", 
-				nrow = flmatobj1@nrow, 
-				ncol = flmatobj1@ncol, 
+				nrow = nrow(flmatobj1), 
+				ncol = ncol(flmatobj1), 
 				dimnames= list(c(),c()))
 		}
 	else stop("Operation Currently Not Supported")
@@ -438,17 +438,17 @@ NULL
 		}
 		if(length(t)!=0) { stop("division by zero not supported currently") }
 		max_matrix_id_value <<- max_matrix_id_value + 1
-		new("FLMatrix", 
-			odbc_connection = flmatobj1@odbc_connection, 
-			db_name = result_db_name, 
+		FLMatrix( 
+			connection = flmatobj1@odbc_connection, 
+			database = result_db_name, 
 			matrix_table = result_matrix_table, 
 			matrix_id_value = max_matrix_id_value - 1, 
 			matrix_id_colname = "MATRIX_ID", 
 			row_id_colname = "ROW_ID", 
 			col_id_colname = "COL_ID", 
 			cell_val_colname = "CELL_VAL", 
-			nrow = flmatobj1@nrow, 
-			ncol = flmatobj1@ncol)
+			nrow = nrow(flmatobj1), 
+			ncol = ncol(flmatobj1))
 	}
 	else if(is.vector(pObj2))
 	{

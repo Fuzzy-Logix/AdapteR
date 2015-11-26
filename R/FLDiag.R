@@ -66,7 +66,7 @@ diag.FLMatrix<-function(object){
 		table = table, 
 		col_name = table@num_val_name, 
 		vector_id_value = max_vector_id_value-1, 
-		size = object@nrow
+		size = nrow(object)
 		)
 }
 
@@ -103,9 +103,9 @@ diag.FLVector <- function(object)
 	 	 
 	 	 max_matrix_id_value <<- max_matrix_id_value + 1
 
-		 return(new("FLMatrix", 
-		 	        odbc_connection = connection, 
-		 	        db_name = result_db_name, 
+		 return(FLMatrix( 
+		 	        connection = connection, 
+		 	        database = result_db_name, 
 		 	        matrix_table = result_matrix_table, 
 		 	        matrix_id_value = max_matrix_id_value-1,
 			        matrix_id_colname = "MATRIX_ID", 
@@ -158,9 +158,9 @@ diag.FLVector <- function(object)
 		 	 
 		 	 max_matrix_id_value <<- max_matrix_id_value + 1
 		 	 
-			 return(new("FLMatrix", 
-			 	        odbc_connection = connection, 
-			 	        db_name = result_db_name, 
+			 return(FLMatrix( 
+			 	        connection = connection, 
+			 	        database = result_db_name, 
 			 	        matrix_table = result_matrix_table, 
 			 	        matrix_id_value = max_matrix_id_value-1,
 				        matrix_id_colname = "MATRIX_ID", 

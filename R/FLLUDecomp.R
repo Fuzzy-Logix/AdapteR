@@ -94,7 +94,7 @@ lu.FLMatrix<-function(object)
 		           	          a.",object@row_id_colname,", 
 		           	          a.",object@col_id_colname,", 
 		           	          a.",object@cell_val_colname,
-		           	   " FROM  ",object@matrix_table," a 
+		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
 	                      ",a.OutputRowNum
@@ -106,7 +106,7 @@ lu.FLMatrix<-function(object)
 				   WHERE a.OutputRowNum > a.OutputColNum 
 				   AND a.OutputValL IS NOT NULL;")
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z(Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -114,7 +114,7 @@ lu.FLMatrix<-function(object)
 		           	          a.",object@row_id_colname,", 
 		           	          a.",object@col_id_colname,", 
 		           	          a.",object@cell_val_colname,
-		           	   " FROM  ",object@matrix_table," a 
+		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
 	                      ",a.OutputRowNum
@@ -126,21 +126,21 @@ lu.FLMatrix<-function(object)
 				   WHERE a.OutputRowNum <= a.OutputColNum 
 				   AND a.OutputValU IS NOT NULL;")
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	LUMatrix  <- new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+	LUMatrix  <- FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "ROW_ID", 
 				   col_id_colname = "COL_ID", 
 				   cell_val_colname = "CELL_VAL",
-				   nrow = object@nrow, 
-				   ncol = object@ncol, 
+				   nrow = nrow(object), 
+				   ncol = ncol(object), 
 				   dimnames = list(c(),c()))
 
 	# calculating x FLVector
@@ -152,7 +152,7 @@ lu.FLMatrix<-function(object)
 	               FROM  ",remoteTable(LUMatrix)," AS a 
 				   WHERE a.",LUMatrix@matrix_id_colname,"=",LUMatrix@matrix_id_value)
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 	
 
 	max_vector_id_value <<- max_vector_id_value + 1
@@ -168,7 +168,7 @@ lu.FLMatrix<-function(object)
 		     table = table, 
 		     col_name = table@num_val_name, 
 		     vector_id_value = max_vector_id_value-1, 
-		     size = ((object@nrow)*(object@ncol)))
+		     size = ((nrow(object))*(ncol(object))))
 
 
 	# calculating Permutation FLMatrix
@@ -178,7 +178,7 @@ lu.FLMatrix<-function(object)
 		           	          a.",object@row_id_colname,", 
 		           	          a.",object@col_id_colname,", 
 		           	          a.",object@cell_val_colname,
-		           	   " FROM  ",object@matrix_table," a 
+		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
 	                      ",a.OutputRowNum
@@ -189,26 +189,26 @@ lu.FLMatrix<-function(object)
 	               LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a 
 				   WHERE a.OutputPermut IS NOT NULL;")
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	data_perm <- new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+	data_perm <- FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "ROW_ID", 
 				   col_id_colname = "COL_ID", 
 				   cell_val_colname = "CELL_VAL",
-				   nrow = object@nrow, 
-				   ncol = object@nrow, 
+				   nrow = nrow(object), 
+				   ncol = nrow(object), 
 				   dimnames = list(c(),c()))
 
 
 	# finding limit
-	limit<-sqrt((object@nrow)*(object@ncol))
+	limit<-sqrt((nrow(object))*(ncol(object)))
 
 	# calculating perm FLVector
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,
@@ -217,7 +217,7 @@ lu.FLMatrix<-function(object)
 		           	          a.",object@row_id_colname,", 
 		           	          a.",object@col_id_colname,", 
 		           	          a.",object@cell_val_colname,
-		           	   " FROM  ",object@matrix_table," a 
+		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_vector_id_value,
 	                      ",a.OutputColNum
@@ -227,7 +227,7 @@ lu.FLMatrix<-function(object)
 	               LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a 
 				   WHERE a.OutputPermut = 1;")
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_vector_id_value <<- max_vector_id_value + 1
 	
@@ -242,7 +242,7 @@ lu.FLMatrix<-function(object)
 		         table = table, 
 		         col_name = table@num_val_name, 
 		         vector_id_value = max_vector_id_value-1, 
-		         size = object@ncol)   ###############################  check this for non-square matrices
+		         size = ncol(object))   ###############################  check this for non-square matrices
 
 	#position<-which(data_perm!=0,arr.ind=TRUE)
 	#erm<-position[,1]
@@ -257,7 +257,7 @@ lu.FLMatrix<-function(object)
 		           	          a.",object@row_id_colname,", 
 		           	          a.",object@col_id_colname,", 
 		           	          a.",object@cell_val_colname,
-		           	   " FROM  ",object@matrix_table," a 
+		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
 	                      ",a.OutputRowNum
@@ -268,20 +268,20 @@ lu.FLMatrix<-function(object)
 	               LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a 
 				   WHERE a.OutputValL IS NOT NULL;")
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	nr <- object@nrow
-	nc <- object@ncol
-	if(object@nrow < object@ncol)
+	nr <- nrow(object)
+	nc <- ncol(object)
+	if(nrow(object) < ncol(object))
 	{
-		nc <- object@nrow
+		nc <- nrow(object)
 	}
 
-	l<-new("FLMatrix", 
-	       odbc_connection = connection, 
-	       db_name = result_db_name, 
+	l<-FLMatrix( 
+	       connection = connection, 
+	       database = result_db_name, 
 	       matrix_table = result_matrix_table, 
 		   matrix_id_value = max_matrix_id_value-1,
 		   matrix_id_colname = "MATRIX_ID", 
@@ -300,7 +300,7 @@ lu.FLMatrix<-function(object)
 		           	          a.",object@row_id_colname,", 
 		           	          a.",object@col_id_colname,", 
 		           	          a.",object@cell_val_colname,
-		           	   " FROM  ",object@matrix_table," a 
+		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
 	                      ",a.OutputRowNum
@@ -311,20 +311,20 @@ lu.FLMatrix<-function(object)
 	               LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a 
 				   WHERE a.OutputValU IS NOT NULL;")
 
-	sqlQuery(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	nr <- object@nrow
-	nc <- object@ncol
-	if(object@nrow > object@ncol)
+	nr <- nrow(object)
+	nc <- ncol(object)
+	if(nrow(object) > ncol(object))
 	{
-		nr <- object@ncol
+		nr <- ncol(object)
 	}
 
-	u<-new("FLMatrix", 
-	       odbc_connection = connection, 
-	       db_name = result_db_name, 
+	u<-FLMatrix( 
+	       connection = connection, 
+	       database = result_db_name, 
 	       matrix_table = result_matrix_table, 
 		   matrix_id_value = max_matrix_id_value-1,
 		   matrix_id_colname = "MATRIX_ID", 

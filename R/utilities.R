@@ -1,6 +1,11 @@
 # Contains the support functions
 
-getRemoteTableName <- function(database,matrix_table) {
+getRemoteTableName <- function(database,
+                               matrix_table) {
+## gk: todo: use options(...) and start  session if required
+##    if(is.null(result_matrix_table))
+##        FLStartSession()
+       
     return(paste0(database,".",matrix_table))
 }
 
@@ -16,20 +21,22 @@ sqlError <- function(e){
 if(!exists("sqlQuery")) sqlQuery <- function(channel,query) UseMethod("sqlQuery")
 if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
 
-FLdebugSQL <- TRUE
+options(debugSQL=TRUE)
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
-        if(FLdebugSQL) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+        ##browser()
+        if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
         tryCatch({
-            dbSendUpdate(connection,q)
-            dbCommit(connection)
+            R <- dbSendUpdate(connection,q)
+            ##dbCommit(connection)
+            return(R)
         },
         error=function(e) sqlError(e))
     })
 }
 sqlQuery.JDBCConnection <- function(channel,query) {
     if(length(query)==1){
-        if(FLdebugSQL) cat(paste0("QUERY SQL: \n",query,"\n"))
+        if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
         tryCatch({
             resd <- dbGetQuery(connection, query)
             return(resd)
@@ -37,7 +44,7 @@ sqlQuery.JDBCConnection <- function(channel,query) {
         error=function(e) cat(paste0(sqlError(e))))
     }
     lapply(query, function(q){
-        if(FLdebugSQL) cat(paste0("QUERY SQL: \n",q,"\n"))
+        if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
         tryCatch({
             resd <- dbGetQuery(connection, q)
             return(resd)

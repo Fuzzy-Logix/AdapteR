@@ -48,7 +48,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,",
 							a.OutputRowNum,
@@ -59,22 +59,23 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 					WHERE a.OutUVal IS NOT NULL;")
 	
-	sqlQuery(connection,sqlstrU)
+	sqlSendUpdate(connection,sqlstrU)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	UMatrix <- new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
-			       matrix_table = result_matrix_table, 
-				   matrix_id_value = max_matrix_id_value-1,
-				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
-				   nrow = object@nrow, 
-				   ncol = object@nrow, 
-				   dimnames = list(c(),c()))
+	UMatrix <- FLMatrix( 
+            connection = connection, 
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = max_matrix_id_value-1,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "ROW_ID", 
+            col_id_colname = "COL_ID", 
+            cell_val_colname = "CELL_VAL",
+            nrow = nrow(object), 
+            ncol = nrow(object), 
+            dimnames = list(rownames(object),
+                            rownames(object)))
 
 	sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
 					WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -82,7 +83,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,",
 							a.OutputRowNum,
@@ -93,22 +94,22 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 					WHERE a.OutVVal IS NOT NULL;")
 	
-	sqlQuery(connection,sqlstrV)
+	sqlSendUpdate(connection,sqlstrV)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	VMatrix <- new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
-			       matrix_table = result_matrix_table, 
-				   matrix_id_value = max_matrix_id_value-1,
-				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
-				   nrow = object@ncol, 
-				   ncol = object@ncol, 
-				   dimnames = list(c(),c()))
+	VMatrix <- FLMatrix( 
+            connection = connection, 
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = max_matrix_id_value-1,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "ROW_ID", 
+            col_id_colname = "COL_ID", 
+            cell_val_colname = "CELL_VAL",
+            nrow = ncol(object), 
+            ncol = ncol(object), 
+            dimnames = list(colnames(object),colnames(object)))
 
 	sqlstrS<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"
 					WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -116,7 +117,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_vector_id_value,",
 							a.OutputRowNum,
@@ -127,7 +128,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 					WHERE a.OutSVal IS NOT NULL
 					AND   a.OutputRowNum = a.OutputColNum;")
 	
-	sqlQuery(connection,sqlstrS)
+	sqlSendUpdate(connection,sqlstrS)
 
 	max_vector_id_value <<- max_vector_id_value + 1
 	
@@ -139,37 +140,37 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 		             "VECTOR_VALUE")
 
 	SVector <- new("FLVector", 
-					table = table, 
-					col_name = table@num_val_name, 
-					vector_id_value = max_vector_id_value-1, 
-					size = min(object@nrow,object@ncol))
+                       table = table, 
+                       col_name = table@num_val_name, 
+                       vector_id_value = max_vector_id_value-1, 
+                       size = min(nrow(object),ncol(object)))
 
 	if (is.null(nu) && is.null(nv))
 	{
 		result<-list(d = SVector,
-					 u = UMatrix[1:object@nrow,1:min(object@nrow,object@ncol)],
-					 v = VMatrix[1:object@ncol,1:min(object@nrow,object@ncol)])
+					 u = UMatrix[1:nrow(object),1:min(nrow(object),ncol(object))],
+					 v = VMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
 	}
 
 	else if (is.null(nu))
 	{
 		result<-list(d = SVector,
-					 u = UMatrix[1:object@nrow,1:min(object@nrow,object@ncol)],
-					 v = VMatrix[1:object@ncol,1:min(nv,object@ncol)])
+					 u = UMatrix[1:nrow(object),1:min(nrow(object),ncol(object))],
+					 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	}
 
 	else if (is.null(nv))
 	{
 		result<-list(d = SVector,
-					 u = UMatrix[1:object@nrow,1:min(object@nrow,nu)],
-					 v = VMatrix[1:object@ncol,1:min(object@nrow,object@ncol)])
+					 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
+					 v = VMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
 	}
 
 	else
 	{
 		result<-list(d = SVector,
-					 u = UMatrix[1:object@nrow,1:min(object@nrow,nu)],
-					 v = VMatrix[1:object@ncol,1:min(nv,object@ncol)])
+					 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
+					 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	}
 	result
 }

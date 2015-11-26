@@ -37,7 +37,7 @@ hessen.FLMatrix<-function(object)
 	connection<-object@odbc_connection
 	flag1Check(connection)
 	
-	if(object@nrow == object@ncol)
+	if(nrow(object) == ncol(object))
 	{
 		sqlstrP<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
 						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
@@ -69,8 +69,8 @@ hessen.FLMatrix<-function(object)
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
 					   cell_val_colname = "CELL_VAL",
-					   nrow = object@nrow, 
-					   ncol = object@ncol, 
+					   nrow = nrow(object), 
+					   ncol = ncol(object), 
 					   dimnames = list(c(),c()))
 
 		sqlstrH <- paste0( "INSERT INTO ",result_db_name,".",result_matrix_table,"
@@ -103,8 +103,8 @@ hessen.FLMatrix<-function(object)
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
 					   cell_val_colname = "CELL_VAL",
-					   nrow = object@nrow, 
-					   ncol = object@ncol, 
+					   nrow = nrow(object), 
+					   ncol = ncol(object), 
 					   dimnames = list(c(),c()))
 
 		result<-list(P = PMatrix,
@@ -117,27 +117,27 @@ hessen.FLMatrix<-function(object)
 	# {
 	# 	result<-list(J = JVector,
 	# 				 P = PMatrix,
-	# 				 PInv = PInvMatrix[1:object@ncol,1:min(object@nrow,object@ncol)])
+	# 				 PInv = PInvMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
 	# }
 
 	# else if (is.null(nu))
 	# {
 	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:object@nrow,1:min(object@nrow,object@ncol)],
-	# 				 v = VMatrix[1:object@ncol,1:min(nv,object@ncol)])
+	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),ncol(object))],
+	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	# }
 
 	# else if (is.null(nv))
 	# {
 	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:object@nrow,1:min(object@nrow,nu)],
-	# 				 v = VMatrix[1:object@ncol,1:min(object@nrow,object@ncol)])
+	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
+	# 				 v = VMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
 	# }
 
 	# else
 	# {
 	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:object@nrow,1:min(object@nrow,nu)],
-	# 				 v = VMatrix[1:object@ncol,1:min(nv,object@ncol)])
+	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
+	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	# }
 }

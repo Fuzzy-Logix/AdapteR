@@ -224,9 +224,9 @@ cbind.FLMatrix<-function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -344,9 +344,9 @@ cbind.FLVector <- function(object,...)
 
         max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -557,9 +557,9 @@ cbind.FLVector <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -768,9 +768,9 @@ cbind.matrix <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -995,9 +995,9 @@ cbind.numeric <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -1207,9 +1207,9 @@ cbind.data.frame <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 

@@ -34,7 +34,7 @@ solveExcl <- function (x, ...){
 solveExcl.FLMatrix<-function(object,ExclIdx)
 {
 
-	if(object@nrow != object@ncol) 
+	if(nrow(object) != ncol(object)) 
 	{ 
 		stop("solveExcl function is applicable on square matrix only") 
 	}
@@ -49,7 +49,7 @@ solveExcl.FLMatrix<-function(object,ExclIdx)
 								   a.",object@col_id_colname,", 
 								   a.",object@cell_val_colname,",",
 								   ExclIdx, 
-							" FROM  ",object@matrix_table," a 
+							" FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,
 					       ",a.OutputRowNum,
@@ -68,17 +68,17 @@ solveExcl.FLMatrix<-function(object,ExclIdx)
 	
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	if(ExclIdx > object@nrow)
+	if(ExclIdx > nrow(object))
 	{
-		nr <- object@nrow
+		nr <- nrow(object)
 	}
 	else
 	{
-		nr <- object@nrow - 1
+		nr <- nrow(object) - 1
 	}
-	return(new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
+	return(FLMatrix( 
+		       connection = connection, 
+		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 

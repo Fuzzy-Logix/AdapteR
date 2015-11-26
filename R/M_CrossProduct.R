@@ -44,14 +44,14 @@ NULL
 {
 	if(is.FLMatrix(flmatobj1))
 	{
-		if(ncol(x)!=flmatobj1@nrow) {stop("non-conformable dimensions")}
+		if(ncol(x)!=nrow(flmatobj1)) {stop("non-conformable dimensions")}
 
 		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
 		flmatobj2%*%flmatobj1
 	}
 	else if(is.FLSparseMatrix(flmatobj1))
 	{
-		if(ncol(x)!=flmatobj1@nrow) {stop("non-conformable dimensions")}
+		if(ncol(x)!=nrow(flmatobj1)) {stop("non-conformable dimensions")}
 
 		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
 		flmatobj2%*%flmatobj1
@@ -74,11 +74,11 @@ NULL
 
 `%*%.FLMatrix` <- function(flmatobj1, flmatobj2)
 {
-	nrow1 <- flmatobj1@nrow
-	ncol1 <- flmatobj1@ncol
+	nrow1 <- nrow(flmatobj1)
+	ncol1 <- ncol(flmatobj1)
 	if(is.FLMatrix(flmatobj2))
 	{
-		if(flmatobj1@ncol == flmatobj2@nrow)
+		if(ncol(flmatobj1) == nrow(flmatobj2))
 		{
 			flag1Check(flmatobj1@odbc_connection)
 			sqlSendUpdate(flmatobj1@odbc_connection,
@@ -95,9 +95,9 @@ NULL
 									 GROUP BY 1,2,3"))
 			
 			max_matrix_id_value <<- max_matrix_id_value + 1
-			new("FLMatrix", 
-				 odbc_connection = flmatobj1@odbc_connection, 
-				 db_name = result_db_name, 
+			FLMatrix( 
+				 connection = flmatobj1@odbc_connection, 
+				 database = result_db_name, 
 				 matrix_table = result_matrix_table, 
 				 matrix_id_value = max_matrix_id_value - 1, 
 				 matrix_id_colname = "MATRIX_ID", 
@@ -105,35 +105,35 @@ NULL
 				 col_id_colname = "COL_ID", 
 				 cell_val_colname = "CELL_VAL", 
 				 nrow = nrow1, 
-				 ncol = flmatobj2@ncol)
+				 ncol = ncol(flmatobj2))
 		}
 		else stop("non-conformable dimensions")
 	}
 	else if(is.vector(flmatobj2))
 	{
-		if(length(flmatobj2)!=flmatobj1@ncol) { stop("non-conformable dimensions") }
+		if(length(flmatobj2)!=ncol(flmatobj1)) { stop("non-conformable dimensions") }
 		flmatobj2 <- as.FLVector(flmatobj2,flmatobj1@odbc_connection)
 		flmatobj1%*%flmatobj2
 	}
 	else if(is.matrix(flmatobj2))
 	{
-		if(flmatobj1@ncol != nrow(flmatobj2)) { stop("non-conformable dimensions") }
+		if(ncol(flmatobj1) != nrow(flmatobj2)) { stop("non-conformable dimensions") }
 		flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
 		flmatobj1 %*% flmatobj2
 	}
 	else if(class(flmatobj2)=="dgCMatrix")
 	{
-		if(nrow(flmatobj2)!=flmatobj1@ncol) { stop("non-conformable dimensions") }
+		if(nrow(flmatobj2)!=ncol(flmatobj1)) { stop("non-conformable dimensions") }
 		flmatobj2 <- as.FLSparseMatrix(flmatobj2,flmatobj1@odbc_connection)
 		flmatobj1 %*% flmatobj2
 	}
 	else if(is.FLSparseMatrix(flmatobj2))
 	{
-		if(flmatobj1@ncol == flmatobj2@nrow)
+		if(ncol(flmatobj1) == nrow(flmatobj2))
 		{
 
 			vTempFlv <- as.FLVector(0,flmatobj1@odbc_connection)
-			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=flmatobj1@nrow,nc=flmatobj2@ncol)
+			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=nrow(flmatobj1),nc=ncol(flmatobj2))
 
 			vSqlStr <- paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 							  " FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
@@ -158,7 +158,7 @@ NULL
 	}
 	else if(is.FLVector(flmatobj2))
 	{
-		if(flmatobj2@size==flmatobj1@ncol)
+		if(flmatobj2@size==ncol(flmatobj1))
 		{
 			flag1Check(flmatobj2@odbc_connection)
 
@@ -168,12 +168,12 @@ NULL
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 										 a.",flmatobj1@row_id_colname," AS ROW_ID , 
-										 CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",flmatobj1@ncol,")+1 as INT) AS COL_ID , 
+										 CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS COL_ID , 
 										 SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS CELL_VAL 
 								   FROM ",remoteTable(flmatobj1)," a,",
 								   		  remoteTable(flmatobj2@table)," b 
 								   WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@primary_key,"-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",flmatobj1@ncol,") as INT) *",flmatobj1@ncol,") 
+								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@primary_key,"-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 								   GROUP BY 1,2,3"))
 			}
 
@@ -183,26 +183,26 @@ NULL
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 										 a.",flmatobj1@row_id_colname," AS ROW_ID , 
-										 CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj1@ncol,")+1 as INT) AS COL_ID , 
+										 CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS COL_ID , 
 										 SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS CELL_VAL 
 								   FROM ",remoteTable(flmatobj1)," a,",
 								   		  remoteTable(flmatobj2@table)," b 
 								   WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 								   AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value," 
 								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@var_id_name,
-								 "-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj1@ncol,") as INT) *",flmatobj1@ncol,") 
+								 "-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 								   GROUP BY 1,2,3"))
 			max_matrix_id_value <<- max_matrix_id_value + 1
-			new("FLMatrix", 
-				 odbc_connection = flmatobj1@odbc_connection, 
-				 db_name = result_db_name, 
+			FLMatrix( 
+				 connection = flmatobj1@odbc_connection, 
+				 database = result_db_name, 
 				 matrix_table = result_matrix_table, 
 				 matrix_id_value = max_matrix_id_value - 1, 
 				 matrix_id_colname = "MATRIX_ID", 
 				 row_id_colname = "ROW_ID", 
 				 col_id_colname = "COL_ID", 
 				 cell_val_colname = "CELL_VAL", 
-				 nrow = flmatobj1@nrow, ncol = 1)
+				 nrow = nrow(flmatobj1), ncol = 1)
 			}
 		}
 		else stop("non-conformable dimensions")
@@ -219,14 +219,14 @@ NULL
 	}
 	if(is.FLMatrix(obj1))
 	{
-		if(obj1@nrow != length(x)) stop("non-conformable dimensions")
+		if(nrow(obj1) != length(x)) stop("non-conformable dimensions")
 
 		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj2 %*% obj1
 	}
 	else if(class(obj1)=="FLSparseMatrix")
 	{
-		if(obj1@nrow != length(x)) stop("non-conformable dimensions")
+		if(nrow(obj1) != length(x)) stop("non-conformable dimensions")
 		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj2 %*% obj1
 	}
@@ -245,13 +245,13 @@ NULL
 
 `%*%.FLSparseMatrix` <- function(flmatobj1, flmatobj2)
 {
-	nrow1 <- flmatobj1@nrow
-	ncol1 <- flmatobj1@ncol
+	nrow1 <- nrow(flmatobj1)
+	ncol1 <- ncol(flmatobj1)
 	
 	if(is.FLMatrix(flmatobj2) || is.FLSparseMatrix(flmatobj2))
 	{
-		nrow2 <- flmatobj2@nrow
-		ncol2 <- flmatobj2@ncol
+		nrow2 <- nrow(flmatobj2)
+		ncol2 <- ncol(flmatobj2)
 
 		if(ncol1 == nrow2)
 		{
@@ -275,7 +275,7 @@ NULL
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
 					 odbc_connection = flmatobj1@odbc_connection, 
-					 db_name = result_db_name, 
+					 database = result_db_name, 
 					 matrix_table = result_Sparsematrix_table, 
 					 matrix_id_value = max_Sparsematrix_id_value - 1, 
 					 matrix_id_colname = "MATRIX_ID", 
@@ -290,7 +290,7 @@ NULL
 			{
 				
 				vTempFlv <- as.FLVector(0,flmatobj1@odbc_connection)
-				vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=flmatobj1@ncol,nc=flmatobj2@nrow)
+				vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=ncol(flmatobj1),nc=nrow(flmatobj2))
 
 				vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
@@ -316,42 +316,42 @@ NULL
 	}
 	else if(is.vector(flmatobj2))
 		{
-			if(length(flmatobj2) != flmatobj1@ncol) stop("non-conformable dimensions")
+			if(length(flmatobj2) != ncol(flmatobj1)) stop("non-conformable dimensions")
 
 			flmatobj2 <- as.FLVector(flmatobj2,flmatobj1@odbc_connection)
 			flmatobj1 %*% flmatobj2
 		}
 	else if(is.matrix(flmatobj2))
 		{
-			if(nrow(flmatobj2) != flmatobj1@ncol) stop("non-conformable dimensions")
+			if(nrow(flmatobj2) != ncol(flmatobj1)) stop("non-conformable dimensions")
 			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
 			flmatobj1 %*% flmatobj2
 		}
 	else if(class(flmatobj2)=="dgCMatrix")
 		{
-			if(nrow(flmatobj2) != flmatobj1@ncol) stop("non-conformable dimensions")
+			if(nrow(flmatobj2) != ncol(flmatobj1)) stop("non-conformable dimensions")
 			flmatobj2 <- as.FLSparseMatrix(flmatobj2,flmatobj1@odbc_connection)
 			flmatobj1 %*% flmatobj2
 		}
 	else if(is.FLVector(flmatobj2))
 		{
-			if(flmatobj2@size != flmatobj1@ncol) stop("non-conformable dimensions")
+			if(flmatobj2@size != ncol(flmatobj1)) stop("non-conformable dimensions")
 
 			vTempFlv <- as.FLVector(0,flmatobj1@odbc_connection)
-			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=flmatobj1@ncol,nc=1)
+			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=ncol(flmatobj1),nc=1)
 
 			if(!flmatobj2@table@isDeep)
 			{
 			    vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
 												a.",flmatobj1@row_id_colname," AS rid , 
-												CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",flmatobj1@ncol,")+1 as INT) AS cid , 
+												CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
 												SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS cval 
 										 FROM ",remoteTable(flmatobj1)," a,",
 										 		remoteTable(flmatobj2@table)," b 
 										 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 										 AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@primary_key,
-									    "-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",flmatobj1@ncol,") as INT) *",flmatobj1@ncol,") 
+									    "-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 									    GROUP BY 1,2,3",") c ",
 							    " SET ",vTempFlm@cell_val_colname,"= c.cval ",
 							    " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -363,14 +363,14 @@ NULL
 				vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
 												a.",flmatobj1@row_id_colname," AS rid , 
-												CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj1@ncol,")+1 as INT) AS cid , 
+												CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
 												SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS cval 
 										 FROM ",remoteTable(flmatobj1)," a,",
 													   remoteTable(flmatobj2@table)," b 
 										 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 										 AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
 									   " AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@var_id_name,
-									   " -(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj1@ncol,") as INT) *",flmatobj1@ncol,") 
+									   " -(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 										 GROUP BY 1,2,3",") c ",
 							    " SET ",vTempFlm@cell_val_colname,"= c.cval ",
 							    " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -389,7 +389,7 @@ NULL
 	vNrow1 <- pObj1@size
 	if(is.FLMatrix(pObj2))
 	{
-		if(pObj1@size != pObj2@nrow) stop("non-conformable dimensions")
+		if(pObj1@size != nrow(pObj2)) stop("non-conformable dimensions")
 		flag1Check(flmatobj1@odbc_connection)
 		flmatobj1 <- pObj2
 		flmatobj2 <- pObj1
@@ -425,9 +425,9 @@ NULL
 			}
 			sqlSendUpdate(flmatobj1@odbc_connection, vSqlStr)
 			max_matrix_id_value <<- max_matrix_id_value + 1
-			new("FLMatrix", 
-				 odbc_connection = flmatobj1@odbc_connection, 
-				 db_name = result_db_name, 
+			FLMatrix( 
+				 connection = flmatobj1@odbc_connection, 
+				 database = result_db_name, 
 				 matrix_table = result_matrix_table, 
 				 matrix_id_value = max_matrix_id_value - 1, 
 				 matrix_id_colname = "MATRIX_ID", 
@@ -435,7 +435,7 @@ NULL
 				 col_id_colname = "COL_ID", 
 				 cell_val_colname = "CELL_VAL", 
 				 nrow = 1, 
-				 ncol = flmatobj1@ncol)
+				 ncol = ncol(flmatobj1))
 	}
 	else if(is.vector(pObj2))
 	{
@@ -457,10 +457,10 @@ NULL
 		flmatobj1 <- pObj2
 		flmatobj2 <- pObj1
 
-		if(flmatobj2@size != flmatobj1@nrow) stop("non-conformable dimensions")
+		if(flmatobj2@size != nrow(flmatobj1)) stop("non-conformable dimensions")
 
 			vTempFlv <- as.FLVector(0,flmatobj1@odbc_connection)
-			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=1,nc=flmatobj1@nrow)
+			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=1,nc=nrow(flmatobj1))
 
 			if(!flmatobj2@table@isDeep)
 			{
@@ -586,9 +586,9 @@ NULL
 		}
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
-		new("FLMatrix",
-			 odbc_connection = flmatobj1@table@odbc_connection, 
-			 db_name = result_db_name, 
+		FLMatrix(
+			 connection = flmatobj1@table@odbc_connection, 
+			 database = result_db_name, 
 			 matrix_table = result_matrix_table, 
 			 matrix_id_value = max_matrix_id_value - 1, 
 			 matrix_id_colname = "MATRIX_ID", 

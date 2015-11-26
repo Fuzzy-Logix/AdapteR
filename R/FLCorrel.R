@@ -29,21 +29,34 @@ cor.FLMatrix <- function(x,y=x)
     ##browser()
     if(is.FLMatrix(y))
     {
-        sqlstr <- paste0("SELECT a.",x@col_id_colname," AS A, b.",y@col_id_colname," AS B, ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",
-                         y@cell_val_colname,") AS C FROM ",
-                         remoteTable(x)," a, ",remoteTable(y)," b ",
-                         constructWhere(
-                             c(
-                                 constraintsSQL(y, "a"),
-                                 constraintsSQL(x, "b"),
-                                 paste0("a.", x@row_id_colname," = b.",y@row_id_colname))),
-                         " GROUP BY a.",x@col_id_colname,", b.",y@col_id_colname," ORDER BY 1,2 ")
+        sqlstr <- paste0("SELECT a.",x@col_id_colname," AS A, ",
+                         " b.",y@col_id_colname," AS B, ",
+                         x@db_name,".FLCorrel(a.",x@cell_val_colname,
+                         ",b.",y@cell_val_colname,") AS C ",
+                         "FROM ",remoteTable(x)," a, ",
+                         remoteTable(y)," b ",
+                         constructWhere(c(
+                             constraintsSQL(y, "a"),
+                             constraintsSQL(x, "b"),
+                             paste0("a.", x@row_id_colname," = b.",y@row_id_colname))),
+                         " GROUP BY a.",x@col_id_colname,
+                         ", b.", y@col_id_colname,
+                         " ORDER BY 1,2 ")
 			
         vec <- sqlQuery(x@odbc_connection,sqlstr)
-        ##correlflmat<-as.FLMatrix(matrix(vec,ncol(x),byrow=T,dimnames=list(x@dimnames[[2]],y@dimnames[[2]])),x@odbc_connection);
-                                        #print(correlflmat)
-                                        #print(correlmat)
-        return(vec)
+        i <- match(vec[[1]],colnames(y))
+        j <- match(vec[[2]],colnames(y))
+        if(any(is.na(i)) | any(is.na(j)))
+            stop("matrix rowname mapping needs to be implemented")
+        m <- sparseMatrix(i = j,
+                          j = i,
+                          x = vec[[3]],
+                          dims = c(ncol(x),
+                                   ncol(y)),
+                          dimnames = list(
+                              colnames(x),
+                              colnames(y)))
+        return(m)
     }
 	if(is.data.frame(y))
 	{

@@ -62,7 +62,7 @@ qr.FLMatrix<-function(object)
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,",
 							 a.OutputRowNum,
@@ -76,17 +76,17 @@ qr.FLMatrix<-function(object)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	QMatrix <- new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
+	QMatrix <- FLMatrix( 
+		       connection = connection, 
+		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 
 			   row_id_colname = "ROW_ID", 
 			   col_id_colname = "COL_ID", 
 			   cell_val_colname = "CELL_VAL",
-			   nrow = object@nrow, 
-			   ncol = object@ncol, 
+			   nrow = nrow(object), 
+			   ncol = ncol(object), 
 			   dimnames = list(c(),c()))
 
 	# calculating RMatrix
@@ -96,7 +96,7 @@ qr.FLMatrix<-function(object)
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,",
 							 a.OutputRowNum,
@@ -110,17 +110,17 @@ qr.FLMatrix<-function(object)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	RMatrix <- new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
+	RMatrix <- FLMatrix( 
+		       connection = connection, 
+		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 
 			   row_id_colname = "ROW_ID", 
 			   col_id_colname = "COL_ID", 
 			   cell_val_colname = "CELL_VAL",
-			   nrow = object@nrow, 
-			   ncol = object@ncol, 
+			   nrow = nrow(object), 
+			   ncol = ncol(object), 
 			   dimnames = list(c(),c()))
 
 	#calculating qraux
@@ -130,7 +130,7 @@ qr.FLMatrix<-function(object)
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_vector_id_value,",
 							 a.OutputRowNum,
@@ -155,7 +155,7 @@ qr.FLMatrix<-function(object)
 		        table = table, 
 				col_name = table@num_val_name, 
 				vector_id_value = max_vector_id_value-1, 
-				size = object@nrow)
+				size = nrow(object))
 	
 	#calculating rank
 	r<-rankMatrix(object)
@@ -167,7 +167,7 @@ qr.FLMatrix<-function(object)
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,",
 							 a.OutputRowNum,
@@ -186,7 +186,7 @@ qr.FLMatrix<-function(object)
 							   a.",object@row_id_colname,", 
 							   a.",object@col_id_colname,", 
 							   a.",object@cell_val_colname," 
-						FROM  ",object@matrix_table," a 
+						FROM  ",remoteTable(object)," a 
 						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					SELECT ",max_matrix_id_value,",
 							 a.OutputRowNum,
@@ -201,17 +201,17 @@ qr.FLMatrix<-function(object)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	QRMatrix <- new("FLMatrix", 
-		       odbc_connection = connection, 
-		       db_name = result_db_name, 
+	QRMatrix <- FLMatrix( 
+		       connection = connection, 
+		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 
 			   row_id_colname = "ROW_ID", 
 			   col_id_colname = "COL_ID", 
 			   cell_val_colname = "CELL_VAL",
-			   nrow = object@nrow, 
-			   ncol = object@ncol, 
+			   nrow = nrow(object), 
+			   ncol = ncol(object), 
 			   dimnames = list(c(),c()))
 
 	resultList <- list(QRMatrix = QRMatrix,

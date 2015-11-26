@@ -32,14 +32,13 @@ rankMatrix.FLMatrix<-function(object)
 
 	flag3Check(connection)
 
-	sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
-					" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS 
+	sqlstr0<-paste0( " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS 
 					  (
 					  SELECT a.",object@matrix_id_colname,",
 					         a.",object@row_id_colname,",
 					         a.",object@col_id_colname,",
 					         a.",object@cell_val_colname,"
-					  FROM   ",object@matrix_table," a
+					  FROM   ",remoteTable(object)," a
 					  WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value,"
 					  )
 					  SELECT ",max_vector_id_value,",1,a.OutputMtxRank
@@ -49,10 +48,9 @@ rankMatrix.FLMatrix<-function(object)
 					             LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
 					             ) AS a ")
 	
-	sqlQuery(connection,sqlstr0)
-	
-	max_vector_id_value <<- max_vector_id_value + 1
-	
+	r <- sqlQuery(connection,sqlstr0)
+	options("debugSQL"=TRUE)
+	##browser()
 	table <- FLTable(connection,
 		             result_db_name,
 		             result_vector_table,

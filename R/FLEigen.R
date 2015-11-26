@@ -35,7 +35,7 @@ eigen.default<-base::eigen
 
 eigen.FLMatrix<-function(object)
 {
-	if(object@nrow != object@ncol) 
+	if(nrow(object) != ncol(object)) 
 	{ 
 		stop("eigen function applicable on square matrix only") 
 	}
@@ -79,7 +79,7 @@ FLEigenValues.FLMatrix<-function(object)
 					             ) AS a
 					WHERE a.OutputRowNum = a.OutputColNum;")
 	
-	retobj<- sqlQuery(connection,sqlstr0)
+	retobj<- sqlSendUpdate(connection,sqlstr0)
 	max_vector_id_value <<- max_vector_id_value + 1
 
 	if(length(retobj) > 0)
@@ -99,7 +99,7 @@ FLEigenValues.FLMatrix<-function(object)
 			table = table, 
 			col_name = table@num_val_name, 
 			vector_id_value = max_vector_id_value-1, 
-			size = object@nrow)
+			size = nrow(object))
 	}
 }
 
@@ -133,7 +133,7 @@ FLEigenVectors.FLMatrix<-function(object)
 					             LOCAL ORDER BY z.Matrix_ID
 					             ) AS a;")
 	
-	retobj <- sqlQuery(connection,sqlstr0)
+	retobj <- sqlSendUpdate(connection,sqlstr0)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -144,17 +144,17 @@ FLEigenVectors.FLMatrix<-function(object)
 	else
 	{
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "ROW_ID", 
 				   col_id_colname = "COL_ID", 
 				   cell_val_colname = "CELL_VAL",
-				   nrow = object@nrow, 
-				   ncol = object@ncol, 
+				   nrow = nrow(object), 
+				   ncol = ncol(object), 
 				   dimnames = list(c(),c())))
 	}
 }

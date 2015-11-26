@@ -98,8 +98,8 @@ FLSparseMatrix <- function(connection,
 ##     else
 ##     {
 ## 		new("FLSparseMatrix",
-## 			 odbc_connection = connection,
-## 			 db_name = database, 
+## 			 connection = connection,
+## 			 database = database, 
 ## 			 matrix_table = matrix_table, 
 ## 			 matrix_id_value = matrix_id_value, 
 ## 			 matrix_id_colname = matrix_id_colname, 
@@ -117,21 +117,3 @@ pToj <- function(p)
 	dp <- diff(p)
   	rep(seq_along(dp), dp)
 }
-
-# Prints FLSparseMatrix object
-print.FLSparseMatrix <- function(object)
-{
-	nrow <- object@nrow
-	valuedf <- sqlQuery(object@odbc_connection,
-					    paste0("SELECT * 
-								FROM ",object@matrix_table," 
-								WHERE ",object@matrix_id_colname,"=",object@matrix_id_value," AND ", object@cell_val_colname,"<>0
-								ORDER BY 1,2,3"))
-	sparseMatrix(i=valuedf[,object@row_id_colname],
-				 j=valuedf[,object@col_id_colname],
-				 x=valuedf[,object@cell_val_colname],
-				 dimnames = object@dimnames)
-}
-
-setMethod("show","FLSparseMatrix",print.FLSparseMatrix)
-

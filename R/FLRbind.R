@@ -72,7 +72,7 @@ rbind.FLMatrix<-function(object,...)
 	flag1Check(connection)
 
 	rowCount <- 0
-	ncol <- object@ncol
+	ncol <- ncol(object)
 
 	if(length(objectVec) == 1) 
 	{
@@ -91,7 +91,7 @@ rbind.FLMatrix<-function(object,...)
 
 	    sqlSendUpdate(connection,sqlstr0)
 
-	    rowCount <- rowCount + object@nrow
+	    rowCount <- rowCount + nrow(object)
 
 	    for (i in 2:length(objectVec))
 		{
@@ -109,7 +109,7 @@ rbind.FLMatrix<-function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                rowCount <- rowCount + object@nrow
+                rowCount <- rowCount + nrow(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -224,9 +224,9 @@ rbind.FLMatrix<-function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -344,9 +344,9 @@ rbind.FLVector <- function(object,...)
 
         max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -427,7 +427,7 @@ rbind.FLVector <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@ncol != ncol)
+				if(ncol(object) != ncol)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
@@ -441,7 +441,7 @@ rbind.FLVector <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                rowCount <- rowCount + object@nrow
+                rowCount <- rowCount + nrow(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -556,9 +556,9 @@ rbind.FLVector <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -647,7 +647,7 @@ rbind.matrix <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                rowCount <- rowCount + object@nrow
+                rowCount <- rowCount + nrow(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -762,9 +762,9 @@ rbind.matrix <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -859,7 +859,7 @@ rbind.numeric <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@ncol != ncol)
+				if(ncol(object) != ncol)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
@@ -873,7 +873,7 @@ rbind.numeric <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                rowCount <- rowCount + object@nrow
+                rowCount <- rowCount + nrow(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -988,9 +988,9 @@ rbind.numeric <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -1079,7 +1079,7 @@ rbind.data.frame <- function(object,...)
 
 	            sqlSendUpdate(connection,sqlstr0)
 
-                rowCount <- rowCount + object@nrow
+                rowCount <- rowCount + nrow(object)
 			}
 
 			if (class(objectVec[[i]]) == "FLVector")
@@ -1194,9 +1194,9 @@ rbind.data.frame <- function(object,...)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		return(new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = result_db_name, 
+		return(FLMatrix( 
+			       connection = connection, 
+			       database = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
