@@ -137,12 +137,11 @@ setMethod("constraintsSQL", signature(object = "FLMatrix",localName="character")
                       tableCondition <-
                       paste0(object@matrix_id_colname,
                           "=",object@matrix_id_value)
-                  
                   conditions <- c(conditions,
                                   tableCondition)
               }
               if(localName!="")
-                  conditions <- gsub(remoteTable(object),
+                  conditions <- gsub(object@matrix_table,
                                      localName,
                                      conditions)
               return(conditions)

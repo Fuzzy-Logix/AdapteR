@@ -1,6 +1,7 @@
 
 test_that("subsetting matrices", {
 
+    options(debugSQL=TRUE)
     ## Testing Subsetting
     ## Non-symmetric singular matrix of dimension 5x5
     ## in R memory
@@ -20,7 +21,7 @@ test_that("subsetting matrices", {
     m[,1]
     m[2:3,4:5]
 
-##############################ä
+##############################
 ## The SQL way to compute a correlation matrix:
     dbGetQuery(connection,
 "SELECT a.TickerSymbol AS Ticker1,
@@ -49,22 +50,26 @@ ORDER BY 1, 2;")
     dim(eqnRtn)
 
     ## with ticker columns and date rows
-    head(colnames(eqnRtn))
+    sample(colnames(eqnRtn),20)
     head(rownames(eqnRtn))
 
     dec2006 <- grep("2006-12",rownames(eqnRtn))
     ## Inspecting Data is easier in R:
     eqnRtn[dec2006, "ROVI"]
 
-    eqnRtn[dec2006, 1:10]
+    as.matrix(eqnRtn[dec2006, 1:4])
 
     E <- eqnRtn[dec2006, sample(colnames(eqnRtn),5)]
 
+    E@whereconditions
     ## Selection constructs dynamic where clauses
     constructWhere(constraintsSQL(E))
     ## dynamic where clauses support local names
     constructWhere(constraintsSQL(E,"a"))
 
+    Nstocks <- 10
+    subEqnRtn <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL'),
+                           sample(colnames(eqnRtn),Nstocks))]
 
     ## Let us look at memory consumption:
     ## only dimension names are in local memory:
@@ -73,25 +78,37 @@ ORDER BY 1, 2;")
     print(object.size(subEqnRtn),units = "Kb")
     print(object.size(subEqnRtn@dimnames),units = "Kb")
 
-
     ## Download a subset of the remote Table into R Memory
-    Nstocks <- 10
-    subEqnRtn <- eqnRtn[,c(c('AAPL','HPQ','IBM','MSFT','ORCL'),
-                           sample(colnames(eqnRtn),Nstocks))]
     rEqnRtn <- as.matrix(subEqnRtn)
 
     ## compare memory consumption:
     print(object.size(rEqnRtn),units = "Kb")
 
+
+    
+##############################
+## The SQL way to compute a correlation matrix:
+    dbGetQuery(connection,
+"SELECT a.TickerSymbol AS Ticker1,
+        b.TickerSymbol AS Ticker2,
+        FLCorrel(a.EquityReturn, b.EquityReturn) AS FLCorrel
+FROM    finEquityReturns a,
+        finEquityReturns b
+WHERE   b.TxnDate = a.TxnDate
+AND     a.TickerSymbol = 'MSFT'
+AND     b.TickerSymbol IN ('AAPL','HPQ','IBM','MSFT','ORCL')
+GROUP BY a.TickerSymbol, b.TickerSymbol
+ORDER BY 1, 2;")
+
     rEqnRtn <- na.omit(rEqnRtn)
     rCorr <- cor(
-        rEqnRtn,
-        rEqnRtn[,c('HPQ','IBM','MSFT')])
+        rEqnRtn[,'MSFT'],
+        rEqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
     round(rCorr,2)
     
     flCorr <- cor(
-        eqnRtn[,c('HPQ','IBM','MSFT')],
-        eqnRtn[,c('HPQ','IBM','MSFT','ORCL')])
+        eqnRtn[,'MSFT'],
+        eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
     round(rCorr,2)
 
     corrplot(cor(subEqnRtn))
@@ -102,8 +119,8 @@ ORDER BY 1, 2;")
     flCorr <- cor(
         eqnRtn[,1:300],
         eqnRtn[,1:300])
-                                        #flCorr
-    as.matrix(flCorr)
+##flCorr
+    # as.matrix(flCorr)
     require(corrplot)
     corrplot(as.matrix(flCorr))
 
