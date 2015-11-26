@@ -18,7 +18,8 @@ require(Matrix)
 
 ignoreDimNames <- TRUE
 
-options(debugSQL=FALSE)
+options(debugSQL=TRUE)
+
 ###############################################################
 ############# POSITIVE TEST CASES #############################
 ###############################################################

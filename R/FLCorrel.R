@@ -38,11 +38,11 @@ cor.FLMatrix <- function(x,y=x)
                          constructWhere(c(
                              constraintsSQL(y, "a"),
                              constraintsSQL(x, "b"),
-                             paste0("a.", x@row_id_colname," = b.",y@row_id_colname))),
+                             paste0("a.", x@row_id_colname,
+                                    " = b.",y@row_id_colname))),
                          " GROUP BY a.",x@col_id_colname,
                          ", b.", y@col_id_colname,
                          " ORDER BY 1,2 ")
-			
         vec <- sqlQuery(x@odbc_connection,sqlstr)
         i <- match(vec[[1]],colnames(y))
         j <- match(vec[[2]],colnames(y))
@@ -58,7 +58,7 @@ cor.FLMatrix <- function(x,y=x)
                               colnames(y)))
         return(m)
     }
-	if(is.data.frame(y))
+    if(is.data.frame(y))
 	{
 		y <- as.matrix(y)
 		if(is.numeric(y)) 
