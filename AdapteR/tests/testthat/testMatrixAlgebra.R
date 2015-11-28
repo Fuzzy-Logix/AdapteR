@@ -106,10 +106,11 @@ ORDER BY 1, 2;")
         rEqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
     round(rCorr,2)
     
+    ### Phani-- This test case is not running. Mapping needs to be implemented.
     flCorr <- cor(
         eqnRtn[,'MSFT'],
         eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
-    round(rCorr,2)
+    round(flCorr,2)
 
     corrplot(cor(subEqnRtn))
     

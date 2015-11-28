@@ -28,14 +28,13 @@ NULL
 `[.FLMatrix`<-function(object,rows=1,cols=1)
 {
 	connection<-object@odbc_connection
-
-	if(nargs()==2 && missing(nrow)) { return(object[,]) }
+	if(nargs()==2 && missing(rows)) { return(object[,]) }
 	if(nargs()==2)
 	{
-		if(nrow>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
+		if(rows>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
 		return(sqlQuery(connection,paste0(" SELECT ",object@cell_val_colname,
                                           " FROM ",remoteTable(object),
-                                          " ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][nrow])
+                                          " ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][rows])
 	}
 
 
@@ -50,22 +49,25 @@ NULL
         newcolnames <- cols
 
     ##browser()
-    if(missing(cols)) {
-        if (missing(rows)) return(object)
+    if(missing(cols)) 
+    {
+        if (missing(rows)) 
+        return(object)
 
-        return(FLMatrix(
-            connection = object@odbc_connection, 
-            database = object@db_name, 
-            matrix_table = object@matrix_table, 
-            matrix_id_value = object@matrix_id_value,
-            matrix_id_colname = object@matrix_id_colname, 
-            row_id_colname = object@row_id_colname, 
-            col_id_colname = object@col_id_colname, 
-            cell_val_colname = object@cell_val_colname,
-            dimnames = list(newrownames,
-                            object@dimnames[[2]]),
-            conditionDims=c(TRUE,FALSE)))
-    } else { ## !missing(cols)
+        else return(FLMatrix(
+                    connection = object@odbc_connection, 
+                    database = object@db_name, 
+                    matrix_table = object@matrix_table, 
+                    matrix_id_value = object@matrix_id_value,
+                    matrix_id_colname = object@matrix_id_colname, 
+                    row_id_colname = object@row_id_colname, 
+                    col_id_colname = object@col_id_colname, 
+                    cell_val_colname = object@cell_val_colname,
+                    dimnames = list(newrownames,
+                                    object@dimnames[[2]]),
+                    conditionDims=c(TRUE,FALSE)))
+    }
+    else { ## !missing(cols)
         if(missing(rows)) {
             return(FLMatrix(
                 connection = object@odbc_connection, 
@@ -79,7 +81,7 @@ NULL
                 dimnames = list(object@dimnames[[1]],
                                 newcolnames),
                 conditionDims=c(FALSE,TRUE)))
-        } else {  ## !missing(cols)  ## !missing(rows)
+        } else {  ## !missing(cols) and !missing(rows)
             return(FLMatrix(
                 connection = object@odbc_connection, 
                 database = object@db_name, 

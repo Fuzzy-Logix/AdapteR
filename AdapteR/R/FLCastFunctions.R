@@ -190,17 +190,11 @@ setMethod("as.FLMatrix", signature(object = "dgeMatrix",
                                    sparse="logical"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
-setMethod("as.FLMatrix", signature(object = "dgCMatrix",
+setMethod("as.FLMatrix", signature(object = "dgeMatrix",
                                    connection="ANY",
                                    sparse="missing"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
-setMethod("as.FLMatrix", signature(object = "dgCMatrix",
-                                   connection="ANY",
-                                   sparse="logical"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
-##
 setMethod("as.FLMatrix", signature(object = "dgCMatrix",
                                    connection="ANY",
                                    sparse="logical"),
@@ -211,6 +205,13 @@ setMethod("as.FLMatrix", signature(object = "dgCMatrix",
                                    sparse="missing"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
+
+### phani - set sparse to logical if sparse is not missing in above methods
+# setMethod("as.FLMatrix", signature(object = "dgCMatrix",
+#                                    connection="ANY",
+#                                    sparse="missing"),
+#           function(object,connection,sparse=TRUE)
+#               as.FLMatrix.Matrix(object,connection,sparse))
 
 ## gk: refactor to ONE sql query from matrix table to vactor table!
 setMethod("as.FLMatrix", signature(object = "FLVector",
@@ -264,15 +265,16 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
 
 as.sparseMatrix.FLMatrix <- function(object) {
     ##browser()
+    ### phani -- in the below query, is selecting max_matrix_id_value necessary
+    ###          or should I remove it?
 	valuedf <- sqlQuery(object@odbc_connection, 
 						paste0(" SELECT ",
-                               max_matrix_id_value,",",
-                               object@row_id_colname,",",
-                               object@col_id_colname,",",
-                               object@cell_val_colname,  
-                               " FROM ",remoteTable(object),
-                               constructWhere(
-                                   constraintsSQL(object))))
+                   max_matrix_id_value,",",
+                   object@row_id_colname,",",
+                   object@col_id_colname,",",
+                   object@cell_val_colname,  
+                   " FROM ",remoteTable(object),
+                   constructWhere(constraintsSQL(object))))
     i <- match(valuedf[[2]],rownames(object))
     j <- match(valuedf[[3]],colnames(object))
     if(any(is.na(i)) | any(is.na(j)))
