@@ -22,6 +22,7 @@ if(!exists("sqlQuery")) sqlQuery <- function(channel,query) UseMethod("sqlQuery"
 if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
 
 options(debugSQL=TRUE)
+FLdebugSQL <<- TRUE
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
         ##browser()
@@ -34,6 +35,29 @@ sqlSendUpdate.JDBCConnection <- function(channel,query) {
         error=function(e) sqlError(e))
     })
 }
+
+sqlSendUpdate.RODBC <- function(connection,query) {
+    odbcSetAutoCommit(connection, autoCommit = FALSE)
+    sapply(query, function(q){
+        if(FLdebugSQL) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+        err<-sqlQuery(connection,q,errors=FALSE)
+        errmsg<- odbcGetErrMsg(connection)
+        if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
+        {
+        	odbcEndTran(connection, commit = TRUE)
+        }
+        else
+        {
+        	odbcEndTran(connection, commit = FALSE)
+        	print(errmsg)
+        }
+        odbcClearError(connection)
+	})
+    odbcSetAutoCommit(connection, autoCommit = TRUE)
+    cat("DONE...")
+}
+
+
 sqlQuery.JDBCConnection <- function(channel,query) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))

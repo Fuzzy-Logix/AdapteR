@@ -30,7 +30,7 @@ setClass(
 		col_id_colname = "character",
 		cell_val_colname = "character",
 		dimnames = "list",
-        whereconditions="character"
+    whereconditions="character"
 	)
 )
 
@@ -93,11 +93,11 @@ FLMatrix <- function(connection,
     }
     if(conditionDims[[1]])
         whereconditions <- c(whereconditions,
-                         inCondition(paste0(matrix_table,".",row_id_colname),
+                         inCondition(paste0(database,".",matrix_table,".",row_id_colname),
                                      dimnames[[1]]))
     if(conditionDims[[2]])
         whereconditions <- c(whereconditions,
-                         inCondition(paste0(matrix_table,".",col_id_colname),
+                         inCondition(paste0(database,".",matrix_table,".",col_id_colname),
                                      dimnames[[2]]))
     ##browser()
     ## if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
@@ -152,7 +152,7 @@ setMethod("constraintsSQL", signature(object = "FLMatrix",localName="missing"),
 
 constructWhere <- function(conditions) {
     if(!is.character(conditions))
-        stop("Provide constraints als character vector")
+        stop("Provide constraints as character vector")
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)>0)
         paste0(" WHERE ",paste0("(",
