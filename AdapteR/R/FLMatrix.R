@@ -166,3 +166,80 @@ constructWhere <- function(conditions) {
 setMethod("show","FLMatrix",print.FLMatrix)
 
 setMethod("show","FLSparseMatrix",print.FLSparseMatrix)
+
+setGeneric("checkSquare", function(object,func_name) {
+    standardGeneric("checkSquare")
+})
+setMethod("checkSquare", signature(object = "FLMatrix",func_name="character"),
+          function(object,func_name="") {
+              if(nrow(object) != ncol(object)) 
+        stop(paste0(func_name," function is applicable on square matrix only"))
+          })
+
+setMethod("checkSquare", signature(object = "FLMatrix",func_name="missing"),
+          function(object) checkSquare(object,""))
+
+
+setGeneric("viewSelectMatrix", function(object,localName) {
+    standardGeneric("viewSelectMatrix")
+})
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character"),
+          function(object,localName) {
+              return(paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+              AS (SELECT ",localName,".",object@matrix_id_colname,", 
+                     ",localName,".",object@row_id_colname,", 
+                     ",localName,".",object@col_id_colname,", 
+                     ",localName,".",object@cell_val_colname))
+          })
+
+
+setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames) {
+    standardGeneric("outputSelectMatrix")
+})
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list"),
+          function(func_name,includeMID=TRUE,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+          {
+            return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,paste0("a.OutputMatrixID")),
+                    paste0(",a.",outColNames,collapse="")," 
+          FROM TABLE (",func_name,"(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+          HASH BY z.Matrix_ID 
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list"),
+          function(func_name,includeMID=TRUE,outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+          {
+            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing"),
+          function(func_name,includeMID=TRUE,outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+          {
+            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames=list("OutputRowNum","OutputColNum","OutputVal")))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing"),
+          function(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+          {
+            return(outputSelectMatrix(func_name,includeMID,outColNames))
+          })
+
+
+setGeneric("checkSingularity", function(object) {
+    standardGeneric("checkSingularity")
+})
+setMethod("checkSingularity", signature(object="FLMatrix"),
+          function(object) {
+          rank <- rankMatrix(object)
+          if(rank < base::min(nrow(object),ncol(object)))
+          stop("input matrix is exactly singular")
+          })
+
+
+setGeneric("checkHermitianPositiveDefinite", function(object) {
+    standardGeneric("checkHermitianPositiveDefinite")
+})
+setMethod("checkHermitianPositiveDefinite", signature(object="FLMatrix"),
+          function(object) {
+          ### Phani-- check if matrix = its conjugated transpose (hermitian)
+          ### Phani-- check if eigenvalues of matrix are all +ve.
+          return(TRUE)
+          })

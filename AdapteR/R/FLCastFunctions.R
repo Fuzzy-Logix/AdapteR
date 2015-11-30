@@ -113,6 +113,8 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
     {
         ##browser()
         mwide <- Matrix(object, sparse=TRUE)
+        if(class(mwide)=="dsCMatrix")
+        mwide <- as(mwide,"dgTMatrix")
         mdeep <- Matrix::summary(mwide)
         ## insert one 0 at nrow,ncol for
         ## "storing" matrix dimensions
@@ -201,6 +203,26 @@ setMethod("as.FLMatrix", signature(object = "dgCMatrix",
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
 setMethod("as.FLMatrix", signature(object = "dgCMatrix",
+                                   connection="ANY",
+                                   sparse="missing"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.Matrix(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "dgTMatrix",
+                                   connection="ANY",
+                                   sparse="logical"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.Matrix(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "dgTMatrix",
+                                   connection="ANY",
+                                   sparse="missing"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.Matrix(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "dsCMatrix",
+                                   connection="ANY",
+                                   sparse="logical"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.Matrix(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "dsCMatrix",
                                    connection="ANY",
                                    sparse="missing"),
           function(object,connection,sparse=TRUE)
