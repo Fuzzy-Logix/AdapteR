@@ -26,6 +26,7 @@ t<-function(x, ...){
 #' @export
 t.FLMatrix<-function(object)
 {
+	return(
 	FLMatrix( 
 		connection = object@odbc_connection, 
 		database = object@db_name, 
@@ -37,5 +38,5 @@ t.FLMatrix<-function(object)
 		cell_val_colname = object@cell_val_colname, 
 		dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
         whereconditions=object@whereconditions)
-	
+	)
 }

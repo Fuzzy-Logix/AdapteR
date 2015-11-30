@@ -30,38 +30,30 @@ rankMatrix.FLMatrix<-function(object)
 {
 	connection<-object@odbc_connection
 
+
+	### Phani-- This might go away
 	flag3Check(connection)
 
-	sqlstr0<-paste0( " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS 
-					  (
-					  SELECT a.",object@matrix_id_colname,",
-					         a.",object@row_id_colname,",
-					         a.",object@col_id_colname,",
-					         a.",object@cell_val_colname,"
-					  FROM   ",remoteTable(object)," a
-					  WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value,"
-					  )
-					  SELECT ",max_vector_id_value,",1,a.OutputMtxRank
-					  FROM   TABLE (
-					             FLMatrixRankUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val)
-					             HASH BY z.Matrix_ID
-					             LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
-					             ) AS a ")
+	sqlstr<-paste0(viewSelectMatrix(object,"a"),
+					" FROM   ",remoteTable(object)," a ",
+					  constructWhere(constraintsSQL(object,"a")),
+					  ") ",
+					outputSelectMatrix("FLMatrixRankUdt",includeMID=FALSE,outColNames=list("OutputMtxRank"))
+					)
 	
-	r <- sqlQuery(connection,sqlstr0)
-	options("debugSQL"=TRUE)
+	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
 	##browser()
-	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_ID",
-		             "VECTOR_INDEX",
-		             "VECTOR_VALUE"
-		             )
-	new("FLVector", 
-		table = table, 
-		col_name = table@num_val_name, 
-		vector_id_value = max_vector_id_value-1, 
-		size = 1)
-	
+	### Phani-- below lines are absolete
+	# table <- FLTable(connection,
+	# 	             result_db_name,
+	# 	             result_vector_table,
+	# 	             "VECTOR_ID",
+	# 	             "VECTOR_INDEX",
+	# 	             "VECTOR_VALUE"
+	# 	             )
+	# new("FLVector", 
+	# 	table = table, 
+	# 	col_name = table@num_val_name, 
+	# 	vector_id_value = max_vector_id_value-1, 
+	# 	size = 1)	
 }

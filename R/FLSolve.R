@@ -34,6 +34,7 @@ solve <- function (x, ...){
 solve.FLMatrix<-function(object)
 {
 	checkSquare(object,"solve")
+	checkSingularity(object)
 
 	connection <- object@odbc_connection
 
@@ -50,7 +51,7 @@ solve.FLMatrix<-function(object)
 					outputSelectMatrix("FLMatrixInvUdt")
                    )
 	
-	sqlSendUpdate(connection,sqlstr)
+	t <- sqlSendUpdate(connection,sqlstr)
 
 	### Phani-- If the input matrix is singular, sqlSendUpdate in above line returns the error message
 	###         thrown by teradata. Is it sufficient or shall we include a query which checks singulairty
@@ -76,41 +77,4 @@ solve.FLMatrix<-function(object)
            )
 }
 
-setGeneric("checkSquare", function(object,func_name) {
-    standardGeneric("checkSquare")
-})
-setMethod("checkSquare", signature(object = "FLMatrix",func_name="character"),
-          function(object,func_name="") {
-              if(nrow(object) != ncol(object)) 
-				stop(paste0(func_name," function is applicable on square matrix only"))
-          })
 
-setMethod("checkSquare", signature(object = "FLMatrix",func_name="missing"),
-          function(object) checkSquare(object,""))
-
-
-setGeneric("viewSelectMatrix", function(object,localName) {
-    standardGeneric("viewSelectMatrix")
-})
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character"),
-          function(object,localName) {
-              return(paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-							AS (SELECT ",localName,".",object@matrix_id_colname,", 
-									   ",localName,".",object@row_id_colname,", 
-									   ",localName,".",object@col_id_colname,", 
-									   ",localName,".",object@cell_val_colname))
-          })
-
-setGeneric("outputSelectMatrix", function(func_name) {
-    standardGeneric("outputSelectMatrix")
-})
-setMethod("outputSelectMatrix", signature(func_name="character"),
-          function(func_name) {
-            return(paste0(" SELECT ",max_matrix_id_value,
-			               ",a.OutputRowNum,
-							 a.OutputColNum,
-							 a.OutputVal 
-					FROM TABLE (",func_name,"(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-					HASH BY z.Matrix_ID 
-					LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"))
-          })
