@@ -31,7 +31,6 @@ rankMatrix.FLMatrix<-function(object)
 	connection<-object@odbc_connection
 
 
-	### Phani-- This might go away
 	flag3Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a"),
@@ -43,7 +42,8 @@ rankMatrix.FLMatrix<-function(object)
 	
 	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
 	##browser()
-	### Phani-- below lines are absolete
+### Phani-- below lines are absolete
+### gk: delete the cruft. ;-)
 	# table <- FLTable(connection,
 	# 	             result_db_name,
 	# 	             result_vector_table,

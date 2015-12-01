@@ -288,7 +288,8 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
 as.sparseMatrix.FLMatrix <- function(object) {
     ##browser()
     ### phani -- in the below query, is selecting max_matrix_id_value necessary
-    ###          or should I remove it?
+###          or should I remove it?
+    ### gk: remove it.  in similar cases remove too.
 	valuedf <- sqlQuery(object@odbc_connection, 
 						paste0(" SELECT ",
                    max_matrix_id_value,",",

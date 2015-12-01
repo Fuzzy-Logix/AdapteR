@@ -38,24 +38,21 @@ solve.FLMatrix<-function(object)
 
 	connection <- object@odbc_connection
 
-	#### Phani-- Are flagChecks and flags 1,2,3 are absolete? Shall I delete them?
-
 	flag1Check(connection)
     MID <- max_matrix_id_value
 
-	sqlstr<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
-					viewSelectMatrix(object,"a"),
-                   " FROM  ",remoteTable(object)," a ",
-                   constructWhere(constraintsSQL(object,"a")),
-                   " ) ",
-					outputSelectMatrix("FLMatrixInvUdt")
+	sqlstr<-paste0(" INSERT INTO ",
+                   getRemoteTableName(result_db_name,result_matrix_table),
+                   viewSelectMatrix(object,"a"),
+                   outputSelectMatrix("FLMatrixInvUdt")
                    )
 	
 	t <- sqlSendUpdate(connection,sqlstr)
 
 	### Phani-- If the input matrix is singular, sqlSendUpdate in above line returns the error message
 	###         thrown by teradata. Is it sufficient or shall we include a query which checks singulairty
-	###         before finding inverse?
+###         before finding inverse?
+        ### gk: TD error is sufficient!
 
     ## browser()
 	## if(length(t) > 0) 
