@@ -34,7 +34,8 @@ chol.FLMatrix<-function(object)
 {
 	connection<-object@odbc_connection
 
-	### Phani-- delete
+### Phani-- delete
+        ### gk:  keep for now, there is intelligence in setting these checks.  Maybe can be used as savety device for auto-session start.
 	flag1Check(connection)
 	
 	checkSquare(object,"chol")

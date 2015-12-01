@@ -167,6 +167,8 @@ setMethod("show","FLMatrix",print.FLMatrix)
 
 setMethod("show","FLSparseMatrix",print.FLSparseMatrix)
 
+
+### gk::  can you please comment these?  I like that you take abstraction seriously!
 setGeneric("checkSquare", function(object,func_name) {
     standardGeneric("checkSquare")
 })
@@ -180,6 +182,11 @@ setMethod("checkSquare", signature(object = "FLMatrix",func_name="missing"),
           function(object) checkSquare(object,""))
 
 
+
+## gk: I applaude the purpose, but the implementation was still inconsistent.
+## gk: Never return partial expressions -- very error prone! (your bracket "with z(" was not closed within the function)!
+## gk:  add second parameter for z please.
+## gk: comment
 setGeneric("viewSelectMatrix", function(object,localName) {
     standardGeneric("viewSelectMatrix")
 })
@@ -189,7 +196,11 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character
               AS (SELECT ",localName,".",object@matrix_id_colname,", 
                      ",localName,".",object@row_id_colname,", 
                      ",localName,".",object@col_id_colname,", 
-                     ",localName,".",object@cell_val_colname))
+                     ",localName,".",object@cell_val_colname,
+              " FROM  ",remoteTable(object)," ",localName," ",
+              constructWhere(constraintsSQL(object,localName)),
+                   " ) ",
+))
           })
 
 
