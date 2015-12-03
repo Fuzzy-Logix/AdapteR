@@ -33,15 +33,15 @@ solve <- function (x, ...){
 
 solve.FLMatrix<-function(object)
 {
-	checkSquare(object,"solve")
-	checkSingularity(object)
+    ## gk: I do not see why we need these, see below!
+    ## checkSquare(object,"solve")
+    ## checkSingularity(object)
 
-	connection <- object@odbc_connection
+    connection <- object@odbc_connection
 
-	flag1Check(connection)
+    flag1Check(connection)
     MID <- max_matrix_id_value
-
-	sqlstr<-paste0(" INSERT INTO ",
+    sqlstr<-paste0(" INSERT INTO ",
                    getRemoteTableName(result_db_name,result_matrix_table),
                    viewSelectMatrix(object,"a"),
                    outputSelectMatrix("FLMatrixInvUdt")

@@ -1,7 +1,6 @@
 library(AdapteR)
 
 library(testthat)
-                                        # test_check("AdapteR")
 require(Matrix)
 
 ## if (exists("connection")) {
@@ -13,8 +12,7 @@ require(Matrix)
 ##     connection <- tdConnect(host,user,passwd,database,"jdbc")
 ## }
 
-## FLStartSession(connection, persistent="test")
-## options(debugSQL=FALSE)
+FLStartSession(connection, persistent="test")
 
 ignoreDimNames <- TRUE
 
@@ -287,11 +285,11 @@ test_that("Wide tables and Vectors",
 })
 
 ## Testing FLSolve
-### Phani-- tested
 test_that("check inverse calculation of matrix", {
     m4 <- FLMatrix(connection,
                    "FL_TRAIN",
-                   "tblmatrixMulti",5) # Symmetric non-singular matrix    m4 <- m2
+                   "tblmatrixMulti",5)
+    ## Symmetric non-singular matrix    m4 <- m2
     dim(m4)
     s.fl <- solve(m4)
     m4.r <- as.matrix(m4)
@@ -299,8 +297,6 @@ test_that("check inverse calculation of matrix", {
     expect_equal(s.r,as.matrix(s.fl))
 })
 
-## gk: please fix
-### Phani-- fixed
 test_that("check storing of diagonal matrices is working.",  
           expect_equal(
               as.matrix(solve(m4)),
@@ -376,14 +372,25 @@ test_that("check Jordan Decomposition",
 test_that("check Hessenberg Decomposition",
 {
     hessen(m4) 
-    hessen(m) 
+    hessen(m)
 })
+
+expect_flequal <- function(a,b){
+    if(is.list(a))
+        for(i in 1:length(a))
+            expect_flequal(a[[i]],b[[i]])
+
+    if(is.FLMatrix(a)) a <- as.matrix(a)
+    if(is.FLMatrix(b)) b <- as.matrix(b)
+    expect_equal(a,b)
+}
+
 ## Testing FLSVDecomp
 test_that("check Singular Value Decomposition",
 {
     flv <- svd(m4)
     print(flv)
-    svd(m) 
+    expect_flequal(svd(m), svd(as.matrix(m)))
     svd(m3) 
 })
                                         # Testing FLLUDecomp

@@ -43,13 +43,10 @@ chol.FLMatrix<-function(object)
 
 	MID <- max_matrix_id_value
 
-	sqlstr<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
+	sqlstr<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,
+                                                      result_matrix_table),
 					viewSelectMatrix(object,"a"),
-                   " FROM  ",remoteTable(object)," a ",
-                   constructWhere(constraintsSQL(object,"a")),
-                   " ) ",
-					outputSelectMatrix("FLCholeskyDecompUdt")
-                   )
+                   outputSelectMatrix("FLCholeskyDecompUdt"))
 
 	# sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 	# 				" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
