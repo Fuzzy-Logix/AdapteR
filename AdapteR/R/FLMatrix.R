@@ -187,22 +187,23 @@ setMethod("checkSquare", signature(object = "FLMatrix",func_name="missing"),
 ## gk: Never return partial expressions -- very error prone! (your bracket "with z(" was not closed within the function)!
 ## gk:  add second parameter for z please.
 ## gk: comment
-setGeneric("viewSelectMatrix", function(object,localName) {
+setGeneric("viewSelectMatrix", function(object,localName, withName="z") {
     standardGeneric("viewSelectMatrix")
 })
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character"),
-          function(object,localName) {
-              return(paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",
+                                        localName="character",
+                                        withName="character"),
+          function(object,localName, withName="z") {
+              return(paste0(" WITH ",withName,
+                            " (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
               AS (SELECT ",localName,".",object@matrix_id_colname,", 
                      ",localName,".",object@row_id_colname,", 
                      ",localName,".",object@col_id_colname,", 
                      ",localName,".",object@cell_val_colname,
               " FROM  ",remoteTable(object)," ",localName," ",
               constructWhere(constraintsSQL(object,localName)),
-                   " ) ",
-))
+              " ) "))
           })
-
 
 setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames) {
     standardGeneric("outputSelectMatrix")

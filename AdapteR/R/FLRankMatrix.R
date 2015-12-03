@@ -34,11 +34,8 @@ rankMatrix.FLMatrix<-function(object)
 	flag3Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a"),
-					" FROM   ",remoteTable(object)," a ",
-					  constructWhere(constraintsSQL(object,"a")),
-					  ") ",
-					outputSelectMatrix("FLMatrixRankUdt",includeMID=FALSE,outColNames=list("OutputMtxRank"))
-					)
+                       outputSelectMatrix("FLMatrixRankUdt",includeMID=FALSE,outColNames=list("OutputMtxRank"))
+                       )
 	
 	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
 	##browser()

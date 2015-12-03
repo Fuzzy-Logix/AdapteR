@@ -43,13 +43,14 @@ cor.FLMatrix <- function(x,y=x)
                          " GROUP BY a.",x@col_id_colname,
                          ", b.", y@col_id_colname,
                          " ORDER BY 1,2 ")
+        ##browser()
         vec <- sqlQuery(x@odbc_connection,sqlstr)
-        i <- match(vec[[1]],colnames(y))
-        j <- match(vec[[2]],colnames(y))
+        i <- match(vec[[2]],colnames(x))
+        j <- match(vec[[1]],colnames(y))
         if(any(is.na(i)) | any(is.na(j)))
             stop("matrix rowname mapping needs to be implemented")
-        m <- sparseMatrix(i = j,
-                          j = i,
+        m <- sparseMatrix(i = i,
+                          j = j,
                           x = vec[[3]],
                           dims = c(ncol(x),
                                    ncol(y)),

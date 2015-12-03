@@ -36,21 +36,17 @@ svd.default<-base::svd
 #' resultList$u
 #' resultList$v
 #' @export
-
 svd.FLMatrix<-function(object,nu=c(),nv=c())
 {
 	connection<-object@odbc_connection
 	flag1Check(connection)
 	flag3Check(connection)
-	sqlstrU<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
-					WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-					AS (SELECT a.",object@matrix_id_colname,", 
-							   a.",object@row_id_colname,", 
-							   a.",object@col_id_colname,", 
-							   a.",object@cell_val_colname," 
-						FROM  ",remoteTable(object)," a 
-						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_matrix_id_value,",
+
+    ## gk:  you are executing the analysis 3 times!
+    ## gk:  we need to store such things more efficiently
+	sqlstrU<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
+                    viewSelectMatrix(object, "a"),
+                    " SELECT ",max_matrix_id_value ," a.OutputMatrixID,
 							a.OutputRowNum,
 							a.OutputColNum,
 							a.OutUVal 
@@ -77,15 +73,9 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             dimnames = list(rownames(object),
                             rownames(object)))
 
-	sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
-					WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-					AS (SELECT a.",object@matrix_id_colname,", 
-							   a.",object@row_id_colname,", 
-							   a.",object@col_id_colname,", 
-							   a.",object@cell_val_colname," 
-						FROM  ",remoteTable(object)," a 
-						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_matrix_id_value,",
+	sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
+                    viewSelectMatrix(object, "a"),
+					" SELECT ",max_matrix_id_value,",
 							a.OutputRowNum,
 							a.OutputColNum,
 							a.OutVVal 
@@ -111,15 +101,9 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             ncol = ncol(object), 
             dimnames = list(colnames(object),colnames(object)))
 
-	sqlstrS<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"
-					WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-					AS (SELECT a.",object@matrix_id_colname,", 
-							   a.",object@row_id_colname,", 
-							   a.",object@col_id_colname,", 
-							   a.",object@cell_val_colname," 
-						FROM  ",remoteTable(object)," a 
-						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_vector_id_value,",
+	sqlstrS<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
+                    viewSelectMatrix(object, "a"),
+					"SELECT ",max_vector_id_value,",
 							a.OutputRowNum,
 							CAST(a.OutSVal AS NUMBER) 
 					FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
