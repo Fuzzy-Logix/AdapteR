@@ -62,7 +62,7 @@ glm.FLTable<-function(formula,data,rushil="binomial",iter=25,threshold=0.1,...){
 	cols<-names(data)
 
 	unused_cols <- cols[!cols %in% all.vars(formula)]
-	unused_cols <- unused_cols[unused_cols!=data@primary_key]
+	unused_cols <- unused_cols[unused_cols!=data@obs_id_colname]
 	unused_cols_str <- ""
 	i<-1
 	while(i<=length(unused_cols)){
@@ -75,7 +75,7 @@ glm.FLTable<-function(formula,data,rushil="binomial",iter=25,threshold=0.1,...){
 			 paste0("DATABASE ",data@db_name,";
 			 		 SET ROLE ALL;"))
 	sqlstr<-paste0("CALL FLRegrDataPrep('",data@table_name,"',
-										'",data@primary_key,"',
+										'",data@obs_id_colname,"',
 										'",dependent,"',
 										'",deeptablename,"',
 										'ObsID',

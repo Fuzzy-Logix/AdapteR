@@ -19,19 +19,7 @@ nrow.FLSparseMatrix<-function(object)
 	return(length(object@dimnames[[1]]))
 }
 
-nrow.FLTable<-function(object)
-{
-	connection<-object@odbc_connection
-	t<-sqlQuery(object@odbc_connection,
-                    paste0(" SELECT max(",object@primary_key,") FROM ",
-                           remoteTable(object)))[1,1]
-	return(t)
-}
-
-nrow.FLVector<-function(object)
-{
-	return(object@size)
-}
+nrow.FLTable<-function(object)	return(length(object@dimnames[[1]]))
 
 NROW<-function(x, ...){
 	UseMethod("NROW",x)
@@ -51,10 +39,6 @@ NROW.FLTable<-function(object){
 	nrow(object)
 }
 
-NROW.FLVector<-function(object){
-	nrow(object)
-}
-
 # ncol and NCOL gives the number of rows of the objects
 ncol<-function(x, ...){
 	UseMethod("ncol",x)
@@ -70,26 +54,8 @@ ncol.FLSparseMatrix<-function(object){
 	return(length(object@dimnames[[2]]))
 }
 
-ncol.FLTable<-function(object){
-	connection<-object@odbc_connection
-	if(object@isDeep)
-	{
-		t <- sqlQuery(object@odbc_connection, paste0(" SELECT max(",object@var_id_name,") FROM ",remoteTable(object)))[1,1]
-	}
-	else
-	{
-		t <- sqlQuery(object@odbc_connection,paste("SELECT COUNT(DISTINCT ColumnName) 
-													FROM dbc.columns 
-													WHERE TableName='tblAbaloneWide' 
-													AND DatabaseName='FL_TRAIN'
-													GROUP BY TableName"))[1,1]
-	}
-	return(t)
-}
+ncol.FLTable<-function(object) 	return(length(object@dimnames[[2]]))
 
-ncol.FLVector<-function(object){
-	return(1)
-}
 
 NCOL<-function(x, ...){
 	UseMethod("NCOL",x)
@@ -109,9 +75,6 @@ NCOL.FLTable<-function(object){
 	ncol(object)
 }
 
-NCOL.FLVector<-function(object){
-	return(1)
-}
 
 # Returns the dimensions of the object
 dim.FLMatrix <- function(object)
@@ -127,11 +90,6 @@ dim.FLSparseMatrix <- function(object)
 dim.FLTable <- function(object)
 {
 	 return(c(nrow(object),ncol(object)))
-}
-
-dim.FLVector <- function(object)
-{
-	 return(c(object@size,1))
 }
 
 dim.default<-base::dim

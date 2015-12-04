@@ -145,7 +145,7 @@ jordan.FLMatrix<-function(object)
 
 		JVector <- new("FLVector", 
 						table = table, 
-						col_name = table@num_val_name, 
+						col_name = table@cell_val_colname, 
 						vector_id_value = max_vector_id_value-1, 
 						size = min(nrow(object),ncol(object)))
 

@@ -45,7 +45,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
     ## gk:  you are executing the analysis 3 times!
     ## gk:  we need to store such things more efficiently
 	sqlstrU<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
-                    viewSelectMatrix(object, "a"),
+                    viewSelectMatrix(object, "a","z"),
                     " SELECT ",max_matrix_id_value ," a.OutputMatrixID,
 							a.OutputRowNum,
 							a.OutputColNum,
@@ -74,7 +74,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
                             rownames(object)))
 
 	sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
-                    viewSelectMatrix(object, "a"),
+                    viewSelectMatrix(object, "a","z"),
 					" SELECT ",max_matrix_id_value,",
 							a.OutputRowNum,
 							a.OutputColNum,
@@ -102,7 +102,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             dimnames = list(colnames(object),colnames(object)))
 
 	sqlstrS<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
-                    viewSelectMatrix(object, "a"),
+                    viewSelectMatrix(object, "a","z"),
 					"SELECT ",max_vector_id_value,",
 							a.OutputRowNum,
 							CAST(a.OutSVal AS NUMBER) 
@@ -125,7 +125,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
 	SVector <- new("FLVector", 
                        table = table, 
-                       col_name = table@num_val_name, 
+                       col_name = table@cell_val_colname, 
                        vector_id_value = max_vector_id_value-1, 
                        size = min(nrow(object),ncol(object)))
 

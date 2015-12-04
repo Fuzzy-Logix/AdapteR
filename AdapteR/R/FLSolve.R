@@ -8,6 +8,9 @@ NULL
 solve <- function (x, ...){
 	UseMethod("solve", x)
 }
+#solve.default <- base::solve
+# do not define solve.default in this package as it is already defined in base::solve.default.
+# It might lead to stack overflow.
 
 #' Inverse of a Matrix.
 #'
@@ -26,11 +29,6 @@ solve <- function (x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' resultFLMatrix <- solve(flmatrix)
 #' @export
-
-#solve.default <- base::solve
-# do not define solve.default in this package as it is already defined in base::solve.default.
-# It might lead to stack overflow.
-
 solve.FLMatrix<-function(object)
 {
 	# checkSquare(object,"solve")

@@ -1,4 +1,4 @@
-library(AdapteR)
+##library(AdapteR)
 
 library(testthat)
 require(Matrix)
@@ -16,7 +16,7 @@ FLStartSession(connection, persistent="test")
 
 ignoreDimNames <- TRUE
 
-options(debugSQL=TRUE)
+options(debugSQL=FALSE)
 
 ###############################################################
 ############# POSITIVE TEST CASES #############################
@@ -37,10 +37,8 @@ test_that("Casting base R matrix <---> in-database Matrices",{
     m2 <- as.FLMatrix(matrix2, connection)
     expect_equal(dim(m1),c(5,5))
     expect_equal(dim(m2),c(5,5))
-    expect_equal(as.vector(m1),
-                 as.vector(matrix1))
-    expect_equal(as.vector(m2),
-                 as.vector(matrix2))
+    expect_equal(as.vector(m1), as.vector(matrix1))
+    expect_equal(as.vector(m2), as.vector(matrix2))
     ##
     ##
     ## FLMatrix -> R matrix
@@ -234,13 +232,61 @@ m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",3) #  Non-Square Matrix of
 m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5) # Symmetric non-singular matrix of dimension 5x5
 m5 <- as.FLMatrix(matrix(runif(25,-30,30),5,5),connection) # Random matrix of dimension 5x5
 
-    WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-    v1 <- FLVector(WideTable,"vector_value")
-    DeepTable <- FLTable(connection,"FL_TRAIN","tblVectorDeep","vector_id","vector_key","vector_value")
-    v2 <- FLVector(DeepTable,"vector_value",1)
+WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
+colnames(WideTable)
+rownames(WideTable)
+dim(WideTable)
+as.data.frame(WideTable)
 
+
+as.data.frame(WideTable)
+v1 <- WideTable[,"vector_value"]
+
+
+WideTable
+rownames(WideTable)
+WideTable[1:3,]
+WideTable[c("1","2"),]
+
+c(as.vector(v1))
+
+v1
+
+
+#############################################################
+## For in-database analytix the matrix is in the warehouse
+## to begin with.
+## 
+## A remote matrix is easily created by specifying
+##
+m <- eqnRtn <- FLMatrix(connection,
+                        database          = "FL_DEMO",
+                        matrix_table      = "finEquityReturns",
+                        matrix_id_value   = "",
+                        matrix_id_colname = "",
+                        row_id_colname    = "TxnDate",
+                        col_id_colname    = "TickerSymbol",
+                        cell_val_colname  = "EquityReturn")
+
+
+
+DeepTable <- FLTable(connection,
+                     database          = "FL_DEMO",
+                     table      = "finEquityReturns",
+                     obs_id_colname = "TxnDate",
+                     var_id_colnames = "TickerSymbol",
+                     cell_val_colname = "EquityReturn")
+DeepTable[1:10,1:10]
+
+DeepTable <- DeepTable[sort(rownames(DeepTable)),]
+
+v2 <- DeepTable[,"WSR"]
+v2
 # options(debugSQL=FALSE)
 
+
+require(reshape2)
+as.FLVector(as.vector(v1),connection)
 
 test_that("Wide tables and Vectors",
 {
@@ -254,9 +300,9 @@ test_that("Wide tables and Vectors",
     )
     test_that("check class and reproducibility of FLVector",
     {
-        expect_true(
-            v1 == as.FLVector(as.vector(v1),connection)
-        )
+        expect_equal(
+            as.vector(v1),as.vector(
+                              as.FLVector(as.vector(v1),connection)))
     })
     test_that("check class of a Table",
     {
@@ -287,8 +333,13 @@ test_that("Wide tables and Vectors",
 ## Testing FLSolve
 test_that("check inverse calculation of matrix", {
     m4 <- FLMatrix(connection,
-                   "FL_TRAIN",
-                   "tblmatrixMulti",5)
+              database          = "FL_dev",
+              matrix_table      = "tblMatrixMulti",
+              matrix_id_value   = "5",
+              matrix_id_colname = "Matrix_ID",
+              row_id_colname    = "Row_ID",
+              col_id_colname    = "Col_ID",
+              cell_val_colname  = "Cell_Val")
     ## Symmetric non-singular matrix    m4 <- m2
     dim(m4)
     s.fl <- solve(m4)

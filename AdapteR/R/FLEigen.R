@@ -97,7 +97,7 @@ FLEigenValues.FLMatrix<-function(object)
 
 		new("FLVector", 
 			table = table, 
-			col_name = table@num_val_name, 
+			col_name = table@cell_val_colname, 
 			vector_id_value = max_vector_id_value-1, 
 			size = nrow(object))
 	}

@@ -7,15 +7,4 @@
 \description{
 An S4 class to represent FLVector
 }
-\section{Slots}{
-
-\describe{
-\item{\code{table}}{object of class FLTable}
-
-\item{\code{col_name}}{A character column name}
-
-\item{\code{vector_id_value}}{numeric}
-
-\item{\code{size}}{numeric}
-}}
 

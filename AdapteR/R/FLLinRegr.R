@@ -58,7 +58,7 @@ lm.FLTable<-function(formula,data,...){
 		cols<-names(data)
 
 		unused_cols <- cols[!cols %in% all.vars(formula)]
-		unused_cols <- unused_cols[unused_cols!=data@primary_key]
+		unused_cols <- unused_cols[unused_cols!=data@obs_id_colname]
 
 		unused_cols_str <- ""
 		for(i in 1:length(unused_cols)){
@@ -72,7 +72,7 @@ lm.FLTable<-function(formula,data,...){
 				 paste0("DATABASE ",data@db_name,";
 				         SET ROLE ALL;"))
 		sqlstr<-paste0("CALL FLRegrDataPrep('",data@table_name,"',
-											'",data@primary_key,"',
+											'",data@obs_id_colname,"',
 											'",dependent,"',
 											'",deeptablename,"',
 											'ObsID',
@@ -120,9 +120,9 @@ lm.FLTable<-function(formula,data,...){
 
  		AnalysisID<-as.vector(sqlQuery(data@odbc_connection,
  									   paste0("CALL FLLinRegr('",deeptablename,"',
- 									   						  '",data@primary_key,"', 
+ 									   						  '",data@obs_id_colname,"', 
  									   						  '",data@var_id_name,"', 
- 									   						  '",data@num_val_name,"', 
+ 									   						  '",data@cell_val_colname,"', 
  									   						  'Test', 
  									   						  AnalysisID);"))[1,1])
 
@@ -269,9 +269,9 @@ lmdata.FLLinRegr<-function(object){
 												 oAnalysisID);")
 		err<-sqlQuery(object@datatable@odbc_connection,queryscore)
 		querydeeptowide<-paste0("CALL FLDeepToWide('",object@table_name,"',
-												   '",object@datatable@primary_key,"',
+												   '",object@datatable@obs_id_colname,"',
 												   '",object@datatable@var_id_name,"',
-												   '",object@datatable@num_val_name,"',
+												   '",object@datatable@cell_val_colname,"',
 												   NULL,
 												   NULL,
 												   '",widetable,"',

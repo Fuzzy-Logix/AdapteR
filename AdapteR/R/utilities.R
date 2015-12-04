@@ -58,11 +58,11 @@ sqlSendUpdate.RODBC <- function(connection,query) {
 }
 
 
-sqlQuery.JDBCConnection <- function(channel,query) {
+sqlQuery.JDBCConnection <- function(channel,query, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
         tryCatch({
-            resd <- dbGetQuery(connection, query)
+            resd <- dbGetQuery(connection, query, ...)
             return(resd)
         },
         error=function(e) cat(paste0(sqlError(e))))
@@ -70,7 +70,7 @@ sqlQuery.JDBCConnection <- function(channel,query) {
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
         tryCatch({
-            resd <- dbGetQuery(connection, q)
+            resd <- dbGetQuery(connection, q, ...)
             return(resd)
         },
         error=function(e) cat(paste0(sqlError(e))))

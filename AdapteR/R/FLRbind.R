@@ -116,59 +116,59 @@ rbind.FLMatrix<-function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@table@isDeep)
+				if(object@isDeep)
 				{
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@var_id_name,",
+								             a.",object@var_id_name,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								             a.",object@table@var_id_name,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								             a.",object@var_id_name,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 										             a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
-		        else if(!object@table@isDeep)
+		        else if(!object@isDeep)
 		        {
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@primary_key,",
+								             a.",object@obs_id_colname,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 										              a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
@@ -242,7 +242,7 @@ rbind.FLMatrix<-function(object,...)
 rbind.FLVector <- function(object,...)
 {
 	objectVec<-list(object,...)
-	connection<-object@table@odbc_connection
+	connection<-object@odbc_connection
 
 	ncol <-0
 
@@ -283,59 +283,59 @@ rbind.FLVector <- function(object,...)
 
 	if(length(objectVec) == 1) 
 	{
-		if(object@table@isDeep)
+		if(object@isDeep)
 		{
 			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
-						             a.",object@table@var_id_name,",
+						             a.",object@var_id_name,",
 						             a.",object@col_name," 
-						      FROM   ",remoteTable(object@table)," a 
-						      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-						             a.",object@table@var_id_name,"<",ncol+1)
+						      FROM   ",remoteTable(object)," a 
+						      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+						             a.",object@var_id_name,"<",ncol+1)
 
             sqlSendUpdate(connection,sqlstr0)
 
-            if(object@size < ncol)
+            if(length(object) < ncol)
             {
-            	for(k in 1:(ncol%/%object@size))
+            	for(k in 1:(ncol%/%length(object)))
             	{
             		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+								             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 								             a.",object@col_name," 
-								      FROM ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+								      FROM ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
                     sqlSendUpdate(connection,sqlstr0)
             	}
             }
         }
-        else if(!object@table@isDeep)
+        else if(!object@isDeep)
         {
 			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
-						             a.",object@table@primary_key,",
+						             a.",object@obs_id_colname,",
 						             a.",object@col_name," 
-						      FROM   ",remoteTable(object@table)," a 
-						      WHERE a.",object@table@primary_key,"<",ncol+1)
+						      FROM   ",remoteTable(object)," a 
+						      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
             sqlSendUpdate(connection,sqlstr0)
 
-            if(object@size < ncol)
+            if(length(object) < ncol)
             {
-            	for(k in 1:(ncol%/%object@size))
+            	for(k in 1:(ncol%/%length(object)))
             	{
             		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+								             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 								              a.",object@col_name," 
-								      FROM ",remoteTable(object@table)," a 
-								      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+								      FROM ",remoteTable(object)," a 
+								      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
                     sqlSendUpdate(connection,sqlstr0)
             	}
@@ -360,59 +360,59 @@ rbind.FLVector <- function(object,...)
 
 	else if (length(objectVec) > 1)
 	{
-	    if(object@table@isDeep)
+	    if(object@isDeep)
 		{
 			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
-						             a.",object@table@var_id_name,",
+						             a.",object@var_id_name,",
 						             a.",object@col_name," 
-						      FROM   ",remoteTable(object@table)," a 
-						      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-						             a.",object@table@var_id_name,"<",ncol+1)
+						      FROM   ",remoteTable(object)," a 
+						      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+						             a.",object@var_id_name,"<",ncol+1)
 
             sqlSendUpdate(connection,sqlstr0)
 
-            if(object@size < ncol)
+            if(length(object) < ncol)
             {
-            	for(k in 1:(ncol%/%object@size))
+            	for(k in 1:(ncol%/%length(object)))
             	{
             		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+								             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 								             a.",object@col_name," 
-								      FROM ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+								      FROM ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
                     sqlSendUpdate(connection,sqlstr0)
             	}
             }
         }
-        else if(!object@table@isDeep)
+        else if(!object@isDeep)
         {
 			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
-						             a.",object@table@primary_key,",
+						             a.",object@obs_id_colname,",
 						             a.",object@col_name," 
-						      FROM   ",remoteTable(object@table)," a 
-						      WHERE a.",object@table@primary_key,"<",ncol+1)
+						      FROM   ",remoteTable(object)," a 
+						      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
             sqlSendUpdate(connection,sqlstr0)
 
-            if(object@size < ncol)
+            if(length(object) < ncol)
             {
-            	for(k in 1:(ncol%/%object@size))
+            	for(k in 1:(ncol%/%length(object)))
             	{
             		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+								             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 								              a.",object@col_name," 
-								      FROM ",remoteTable(object@table)," a 
-								      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+								      FROM ",remoteTable(object)," a 
+								      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
                     sqlSendUpdate(connection,sqlstr0)
             	}
@@ -448,59 +448,59 @@ rbind.FLVector <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@table@isDeep)
+				if(object@isDeep)
 				{
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@var_id_name,",
+								             a.",object@var_id_name,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								             a.",object@table@var_id_name,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								             a.",object@var_id_name,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 										             a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
-		        else if(!object@table@isDeep)
+		        else if(!object@isDeep)
 		        {
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@primary_key,",
+								             a.",object@obs_id_colname,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 										              a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
@@ -596,7 +596,7 @@ rbind.matrix <- function(object,...)
 		}
 		if(is.FLVector(objectVec[[j]]))
 		{
-			connection <- objectVec[[j]]@table@odbc_connection
+			connection <- objectVec[[j]]@odbc_connection
 		}
 		else if(is.FLSparseMatrix(objectVec[[j]]) || class(objectVec[[j]])=="dgCMatrix")
 		{
@@ -654,59 +654,59 @@ rbind.matrix <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@table@isDeep)
+				if(object@isDeep)
 				{
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@var_id_name,",
+								             a.",object@var_id_name,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								             a.",object@table@var_id_name,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								             a.",object@var_id_name,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 										             a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
-		        else if(!object@table@isDeep)
+		        else if(!object@isDeep)
 		        {
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@primary_key,",
+								             a.",object@obs_id_colname,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 										              a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
@@ -802,7 +802,7 @@ rbind.numeric <- function(object,...)
 		}
 		if(is.FLVector(objectVec[[j]]))
 		{
-			connection <- objectVec[[j]]@table@odbc_connection
+			connection <- objectVec[[j]]@odbc_connection
 		}
 		else if(is.FLSparseMatrix(objectVec[[j]]) || class(objectVec[[j]])=="dgCMatrix")
 		{
@@ -880,59 +880,59 @@ rbind.numeric <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@table@isDeep)
+				if(object@isDeep)
 				{
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@var_id_name,",
+								             a.",object@var_id_name,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								             a.",object@table@var_id_name,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								             a.",object@var_id_name,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 										             a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
-		        else if(!object@table@isDeep)
+		        else if(!object@isDeep)
 		        {
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@primary_key,",
+								             a.",object@obs_id_colname,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 										              a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
@@ -1028,7 +1028,7 @@ rbind.data.frame <- function(object,...)
 		}
 		if(is.FLVector(objectVec[[j]]))
 		{
-			connection <- objectVec[[j]]@table@odbc_connection
+			connection <- objectVec[[j]]@odbc_connection
 		}
 		else if(is.FLSparseMatrix(objectVec[[j]]) || class(objectVec[[j]])=="dgCMatrix")
 		{
@@ -1086,59 +1086,59 @@ rbind.data.frame <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				if(object@table@isDeep)
+				if(object@isDeep)
 				{
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@var_id_name,",
+								             a.",object@var_id_name,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE  a.",object@table@primary_key," = ",object@vector_id_value," AND 
-								             a.",object@table@var_id_name,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+								             a.",object@var_id_name,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@var_id_name,"+(",k,"*",object@size,")),
+										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 										             a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE a.",object@table@primary_key," = ",object@vector_id_value," AND 
-										            (a.",object@table@var_id_name,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND 
+										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}
 		            }
 		        }
-		        else if(!object@table@isDeep)
+		        else if(!object@isDeep)
 		        {
 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
-								             a.",object@table@primary_key,",
+								             a.",object@obs_id_colname,",
 								             a.",object@col_name," 
-								      FROM   ",remoteTable(object@table)," a 
-								      WHERE a.",object@table@primary_key,"<",ncol+1)
+								      FROM   ",remoteTable(object)," a 
+								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 	
 		            sqlSendUpdate(connection,sqlstr0)
 
-		            if(object@size < ncol)
+		            if(length(object) < ncol)
 		            {
-		            	for(k in 1:(ncol%/%object@size))
+		            	for(k in 1:(ncol%/%length(object)))
 		            	{
 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
-										             (a.",object@table@primary_key,"+(",k,"*",object@size,")),
+										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 										              a.",object@col_name," 
-										      FROM ",remoteTable(object@table)," a 
-										      WHERE (a.",object@table@primary_key,"+(",k,"*",object@size,"))<",ncol+1)
+										      FROM ",remoteTable(object)," a 
+										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 	
 		                    sqlSendUpdate(connection,sqlstr0)
 		            	}

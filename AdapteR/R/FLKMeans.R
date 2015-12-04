@@ -113,7 +113,7 @@ kmeans.FLTable<-function(table,
 		deeptablename <- gen_deep_table_name(table@table_name)
 		ret <- sqlQuery(table@odbc_connection,
 					  paste0("CALL FLWideToDeep('",table@table_name,"',
-					  		 '",table@primary_key,"',
+					  		 '",table@obs_id_colname,"',
 					  		 '",deeptablename,"', 
 					  		 'ObsID', 
 					  		 'VarID',
@@ -260,9 +260,9 @@ cluster.FLKMeans<-function(object)
 
 		clustervector <- new("FLVector", 
 							table = table, 
-							col_name = table@num_val_name, 
+							col_name = table@cell_val_colname, 
 							vector_id_value = max_vector_id_value-1, 
-							size = length(object@table))
+							size = length(object))
 
 		object@resultsfetched["cluster"] <- TRUE
 		object@results <- c(object@results,list(cluster = clustervector))
@@ -365,7 +365,7 @@ tot.withinss.FLKMeans<-function(object){
 
 		tot_withinssvector <- new("FLVector", 
 								table = table, 
-								col_name = table@num_val_name, 
+								col_name = table@cell_val_colname, 
 								vector_id_value = max_vector_id_value-1, 
 								size = 1)
 		
@@ -413,7 +413,7 @@ withinss.FLKMeans<-function(object){
 
 		withinssvector <- new("FLVector", 
 							table = table, 
-							col_name = table@num_val_name, 
+							col_name = table@cell_val_colname, 
 							vector_id_value = max_vector_id_value-1, 
 							size = object@no_of_centers)
 
@@ -466,7 +466,7 @@ betweenss.FLKMeans<-function(object){
 
 		betweenssvector <- new("FLVector", 
 							table = table, 
-							col_name = table@num_val_name, 
+							col_name = table@cell_val_colname, 
 							vector_id_value = max_vector_id_value-1, 
 							size = 1)
 
@@ -511,7 +511,7 @@ totss.FLKMeans<-function(object){
 
 		totssvector <- new("FLVector", 
 							table = table, 
-							col_name = table@num_val_name, 
+							col_name = table@cell_val_colname, 
 							vector_id_value = max_vector_id_value-1, 
 							size = 1)
 
@@ -565,7 +565,7 @@ size.FLKMeans<-function(object)
 
 		sizevector <- new("FLVector", 
 							table = table, 
-							col_name = table@num_val_name, 
+							col_name = table@cell_val_colname, 
 							vector_id_value = max_vector_id_value-1, 
 							size = object@no_of_centers)
 

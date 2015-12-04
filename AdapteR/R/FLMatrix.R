@@ -1,6 +1,7 @@
 #' @include utilities.R
 NULL
 setOldClass("RODBC")
+
 #' An S4 class to represent FLMatrix
 #'
 #' @slot odbc_connection ODBC connectivity for R
@@ -15,8 +16,6 @@ setOldClass("RODBC")
 #' @slot ncol numeric number of cols of FLMatrix object
 #' @slot dimnames list dimension names of FLMatrix object
 #'
-
-# Creating FLMatrix datatype
 setClass(
 	"FLMatrix",
 	slots = list(
@@ -29,7 +28,7 @@ setClass(
 		col_id_colname = "character",
 		cell_val_colname = "character",
 		dimnames = "list",
-    whereconditions="character"
+        whereconditions="character"
 	)
 )
 
@@ -117,36 +116,60 @@ inCondition <- function(col,vals){
         ""
 }
 
+equalityConstraint <- function(tableColName,constantValue){
+    if(""==constantValue)
+        ""
+    else
+        paste0(tableColName, "=",constantValue)
+}
+
+localizeConstraints <- function(constraints, fullname, localName=""){
+    ##browser()
+    if(localName!="")
+        gsub(fullname, localName, constraints)
+    else 
+        gsub(paste0(fullname,"."), localName, constraints)
+}
+
 setGeneric("constraintsSQL", function(object, localName) {
     standardGeneric("constraintsSQL")
 })
 setMethod("constraintsSQL", signature(object = "FLMatrix",localName="character"),
           function(object,localName="") {
-              conditions <- object@whereconditions
-              ## todo: generalize!
-              if(""!=object@matrix_id_value){
-                  if(""!=localName)
-                      tableCondition <-
-                      paste0(
-                          remoteTable(object),
-                          ".",
-                          object@matrix_id_colname,
-                          "=",object@matrix_id_value)
-                  else
-                      tableCondition <-
-                      paste0(object@matrix_id_colname,
-                          "=",object@matrix_id_value)
-                  conditions <- c(conditions,
-                                  tableCondition)
-              }
-              if(localName!="")
-                  conditions <- gsub(object@matrix_table,
-                                     localName,
-                                     conditions)
-              return(conditions)
+              constraints <- c(
+                  object@whereconditions,
+                  equalityConstraint(
+                      tableColName =  paste0(remoteTable(object),".",object@matrix_id_colname),
+                      constantValue = object@matrix_id_value))
+              return(localizeConstraints(constraints,
+                                         remoteTable(object),
+                                         localName))
           })
-
 setMethod("constraintsSQL", signature(object = "FLMatrix",localName="missing"),
+          function(object) constraintsSQL(object,""))
+
+setMethod("constraintsSQL", signature(object = "FLTable",localName="character"),
+          function(object,localName="") {
+              conditions <- c(object@whereconditions)
+              return(localizeConstraints(conditions,
+                                         remoteTable(object),
+                                         localName))
+          })
+setMethod("constraintsSQL", signature(object = "FLTable",localName="missing"),
+          function(object) constraintsSQL(object,""))
+
+setMethod("constraintsSQL", signature(object = "FLVector",localName="character"),
+          function(object,localName="") {
+              conditions <- c(
+                  object@whereconditions,
+                  object@whereconditions)
+              ## equalityConstraint(tableColName =  paste0(remoteTable(object),".",object@obs_id_colname),
+              ##                    constantValue = object@vector_id_value))
+              return(localizeConstraints(conditions,
+                                         remoteTable(object),
+                                         localName))
+          })
+setMethod("constraintsSQL", signature(object = "FLVector",localName="missing"),
           function(object) constraintsSQL(object,""))
 
 constructWhere <- function(conditions) {
@@ -188,17 +211,21 @@ setMethod("show","FLSparseMatrix",print.FLSparseMatrix)
 
 ## gk: I applaude the purpose, but the implementation was still inconsistent.
 ## gk: Never return partial expressions -- very error prone! (your bracket "with z(" was not closed within the function)!
-## gk:  add second parameter for z please. ### Phani-- Added
-## gk: comment ###Phani-- Added
-
-#viewSelectMatrix makes a view of given FLMatrix object also including a localName for
-#FLMatrix object and a viewname
-setGeneric("viewSelectMatrix", function(object,localName,viewName="z") {
+## gk:  add second parameter for z please.
+## gk: comment
+setGeneric("viewSelectMatrix", function(object,localName, withName) {
     standardGeneric("viewSelectMatrix")
 })
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character",viewName="character"),
-          function(object,localName,viewName="z") {
-              return(paste0(" WITH ",viewName," (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",
+                                        localName="character",
+                                        withName="missing"),
+          function(object,localName, withName="z") viewSelectMatrix(object,localName,"z"))
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",
+                                        localName="character",
+                                        withName="character"),
+          function(object,localName, withName="z") {
+              return(paste0(" WITH ",withName,
+                            " (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
               AS (SELECT ",localName,".",object@matrix_id_colname,", 
                      ",localName,".",object@row_id_colname,", 
                      ",localName,".",object@col_id_colname,", 
@@ -207,9 +234,9 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character
               constructWhere(constraintsSQL(object,localName)),
                    " ) "))
           })
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character",viewName="missing"),
-          function(object,localName,viewName="z") {
-            viewSelectMatrix(object,localName,viewName="z")
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character",withName="missing"),
+          function(object,localName,withName="z") {
+            viewSelectMatrix(object,localName,withName="z")
             })
 
 # outputSelectMatrix apples function given by func_name to view given by viewname

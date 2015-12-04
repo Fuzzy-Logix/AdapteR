@@ -58,9 +58,9 @@ NULL
 	}
 	else if(is.FLVector(flmatobj1))
 	{
-		if(flmatobj1@size==ncol(x))
+		if(length(flmatobj1)==ncol(x))
 		{
-			flmatobj2 <- as.FLMatrix(x,flmatobj1@table@odbc_connection)
+			flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
 			flmatobj2%*%flmatobj1
 		}
 		else stop("non-conformable dimensions")
@@ -88,12 +88,12 @@ NULL
 									 b.",flmatobj2@col_id_colname," AS COL_ID , 
 									 SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@cell_val_colname,") AS CELL_VAL 
 									 FROM ",remoteTable(flmatobj1)," a,",
-									 		remoteTable(flmatobj2)," b 
-									 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-									 AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-									 AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@row_id_colname," 
-									 GROUP BY 1,2,3"))
-			
+                            remoteTable(flmatobj2)," b ",
+                            constructWhere(c(
+                                constraintsSQL(flmatobj1, "a"),
+                                constraintsSQL(flmatobj2, "b"),
+                                paste0("a.",flmatobj1@col_id_colname,"=b.",flmatobj2@row_id_colname))),
+                            " GROUP BY 1,2,3"))
 			max_matrix_id_value <<- max_matrix_id_value + 1
 			FLMatrix( 
 				 connection = flmatobj1@odbc_connection, 
@@ -158,22 +158,22 @@ NULL
 	}
 	else if(is.FLVector(flmatobj2))
 	{
-		if(flmatobj2@size==ncol(flmatobj1))
+		if(length(flmatobj2)==ncol(flmatobj1))
 		{
 			flag1Check(flmatobj2@odbc_connection)
 
-			if(!flmatobj2@table@isDeep)
+			if(!flmatobj2@isDeep)
 			{
 				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 										 a.",flmatobj1@row_id_colname," AS ROW_ID , 
-										 CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS COL_ID , 
+										 CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS COL_ID , 
 										 SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS CELL_VAL 
 								   FROM ",remoteTable(flmatobj1)," a,",
-								   		  remoteTable(flmatobj2@table)," b 
+								   		  remoteTable(flmatobj2)," b 
 								   WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@primary_key,"-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
+								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@obs_id_colname,"-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 								   GROUP BY 1,2,3"))
 			}
 
@@ -183,14 +183,14 @@ NULL
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 										 a.",flmatobj1@row_id_colname," AS ROW_ID , 
-										 CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS COL_ID , 
+										 CAST(((b.",flmatobj2@var_id_name,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS COL_ID , 
 										 SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS CELL_VAL 
 								   FROM ",remoteTable(flmatobj1)," a,",
-								   		  remoteTable(flmatobj2@table)," b 
+								   		  remoteTable(flmatobj2)," b 
 								   WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-								   AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value," 
-								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@var_id_name,
-								 "-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
+								   AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value," 
+								   AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@var_id_name,
+								 "-(CAST(((b.",flmatobj2@var_id_name,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 								   GROUP BY 1,2,3"))
 			max_matrix_id_value <<- max_matrix_id_value + 1
 			FLMatrix( 
@@ -232,8 +232,8 @@ NULL
 	}
 	else if(class(obj1)=="FLVector")
 	{
-		if(obj1@size != length(x)) stop("non-conformable dimensions")
-		obj2 <- as.FLVector(x,obj1@table@odbc_connection)
+		if(length(obj1) != length(x)) stop("non-conformable dimensions")
+		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj2 %*% obj1
 	}
 	else
@@ -335,23 +335,23 @@ NULL
 		}
 	else if(is.FLVector(flmatobj2))
 		{
-			if(flmatobj2@size != ncol(flmatobj1)) stop("non-conformable dimensions")
+			if(length(flmatobj2) != ncol(flmatobj1)) stop("non-conformable dimensions")
 
 			vTempFlv <- as.FLVector(0,flmatobj1@odbc_connection)
 			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=ncol(flmatobj1),nc=1)
 
-			if(!flmatobj2@table@isDeep)
+			if(!flmatobj2@isDeep)
 			{
 			    vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
 												a.",flmatobj1@row_id_colname," AS rid , 
-												CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
+												CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
 												SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS cval 
 										 FROM ",remoteTable(flmatobj1)," a,",
-										 		remoteTable(flmatobj2@table)," b 
+										 		remoteTable(flmatobj2)," b 
 										 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-										 AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@primary_key,
-									    "-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
+										 AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@obs_id_colname,
+									    "-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 									    GROUP BY 1,2,3",") c ",
 							    " SET ",vTempFlm@cell_val_colname,"= c.cval ",
 							    " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -363,14 +363,14 @@ NULL
 				vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
 												a.",flmatobj1@row_id_colname," AS rid , 
-												CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
+												CAST(((b.",flmatobj2@var_id_name,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
 												SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS cval 
 										 FROM ",remoteTable(flmatobj1)," a,",
-													   remoteTable(flmatobj2@table)," b 
+													   remoteTable(flmatobj2)," b 
 										 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-										 AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
-									   " AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@table@var_id_name,
-									   " -(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
+										 AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value,
+									   " AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@var_id_name,
+									   " -(CAST(((b.",flmatobj2@var_id_name,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 										 GROUP BY 1,2,3",") c ",
 							    " SET ",vTempFlm@cell_val_colname,"= c.cval ",
 							    " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -386,25 +386,25 @@ NULL
 
 `%*%.FLVector` <- function(pObj1,pObj2)
 {
-	vNrow1 <- pObj1@size
+	vNrow1 <- length(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
-		if(pObj1@size != nrow(pObj2)) stop("non-conformable dimensions")
+		if(length(pObj1) != nrow(pObj2)) stop("non-conformable dimensions")
 		flag1Check(flmatobj1@odbc_connection)
 		flmatobj1 <- pObj2
 		flmatobj2 <- pObj1
-			if(!flmatobj2@table@isDeep)
+			if(!flmatobj2@isDeep)
 			{
 			    vSqlStr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-										 b.",flmatobj2@table@primary_key,
-										"-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/1) as INT) * 1) AS ROW_ID , 
+										 b.",flmatobj2@obs_id_colname,
+										"-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1) as INT) * 1) AS ROW_ID , 
 										a.",flmatobj1@col_id_colname," AS COL_ID , 
 										SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS CELL_VAL 
 							       FROM ",remoteTable(flmatobj1)," a,",
-										   remoteTable(flmatobj2@table)," b 
+										   remoteTable(flmatobj2)," b 
 								   WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-								   AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@table@primary_key,"-0.5)/1)+1 as INT) 
+								   AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1)+1 as INT) 
 								   GROUP BY 1,2,3")
 			}
 
@@ -412,15 +412,15 @@ NULL
 			{
 				vSqlStr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-										 b.",flmatobj2@table@var_id_name,
-										"-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/1) as INT) * 1) AS ROW_ID , 
+										 b.",flmatobj2@var_id_name,
+										"-(CAST(((b.",flmatobj2@var_id_name,"-0.5)/1) as INT) * 1) AS ROW_ID , 
 										a.",flmatobj1@col_id_colname," AS COL_ID , 
 										SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS CELL_VAL 
 								   FROM ",remoteTable(flmatobj1)," a,",
-										   remoteTable(flmatobj2@table)," b 
+										   remoteTable(flmatobj2)," b 
 								   WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-								   AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
-								  "AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/1)+1 as INT) 
+								   AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value,
+								  "AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@var_id_name,"-0.5)/1)+1 as INT) 
 								   GROUP BY 1,2,3")
 			}
 			sqlSendUpdate(flmatobj1@odbc_connection, vSqlStr)
@@ -439,17 +439,17 @@ NULL
 	}
 	else if(is.vector(pObj2))
 	{
-		pObj2 <- as.FLVector(pObj2,pObj1@table@odbc_connection)
+		pObj2 <- as.FLVector(pObj2,pObj1@odbc_connection)
 		pObj1 %*% pObj2
 	}
 	else if(is.matrix(pObj2))
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@table@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
 		pObj1 %*% pObj2
 	}
 	else if(class(pObj2)=="dgCMatrix")
 	{
-		pObj2 <- as.FLSparseMatrix(pObj2,pObj1@table@odbc_connection)
+		pObj2 <- as.FLSparseMatrix(pObj2,pObj1@odbc_connection)
 		pObj1 %*% pObj2
 	}
 	else if(is.FLSparseMatrix(pObj2))
@@ -457,24 +457,24 @@ NULL
 		flmatobj1 <- pObj2
 		flmatobj2 <- pObj1
 
-		if(flmatobj2@size != nrow(flmatobj1)) stop("non-conformable dimensions")
+		if(length(flmatobj2) != nrow(flmatobj1)) stop("non-conformable dimensions")
 
 			vTempFlv <- as.FLVector(0,flmatobj1@odbc_connection)
 			vTempFlm <- as.FLMatrix(vTempFlv,flmatobj1@odbc_connection,nr=1,nc=nrow(flmatobj1))
 
-			if(!flmatobj2@table@isDeep)
+			if(!flmatobj2@isDeep)
 			{
 			    sqlSendUpdate(flmatobj1@odbc_connection,
 			    		 paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
-												b.",flmatobj2@table@primary_key,
-											    "-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/1) as INT) * 1) AS rid , 
+												b.",flmatobj2@obs_id_colname,
+											    "-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1) as INT) * 1) AS rid , 
 											    a.",flmatobj1@col_id_colname," AS cid , 
 											    SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS cval 
 										 FROM ",remoteTable(flmatobj1)," a,",
-										 		remoteTable(flmatobj2@table)," b 
+										 		remoteTable(flmatobj2)," b 
 										 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-										 AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@table@primary_key,"-0.5)/1)+1 as INT) 
+										 AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1)+1 as INT) 
 										 GROUP BY 1,2,3",") c ",
 							    " SET ",vTempFlm@cell_val_colname,"= c.cval ",
 							    " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -488,15 +488,15 @@ NULL
 				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 								" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
-												b.",flmatobj2@table@var_id_name,
-												"-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/1) as INT) * 1) AS rid , 
+												b.",flmatobj2@var_id_name,
+												"-(CAST(((b.",flmatobj2@var_id_name,"-0.5)/1) as INT) * 1) AS rid , 
 												a.",flmatobj1@col_id_colname," AS cid , 
 												SUM(a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,") AS cval 
 												FROM ",remoteTable(flmatobj1)," a,",
-													   remoteTable(flmatobj2@table)," b 
+													   remoteTable(flmatobj2)," b 
 												WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-												AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
-											  " AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/1)+1 as INT) 
+												AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value,
+											  " AND a.",flmatobj1@row_id_colname,"= CAST(((b.",flmatobj2@var_id_name,"-0.5)/1)+1 as INT) 
 											    GROUP BY 1,2,3",") c ",
 							    " SET ",vTempFlm@cell_val_colname,"= c.cval ",
 							    " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -507,87 +507,87 @@ NULL
 	}
 	else if(is.FLVector(pObj2))
 	{
-		if(pObj2@size != pObj1@size) stop(" non-conformable dimensions ")
-		flag1Check(pObj1@table@odbc_connection)
+		if(length(pObj2) != length(pObj1)) stop(" non-conformable dimensions ")
+		flag1Check(pObj1@odbc_connection)
 
 		flmatobj1 <- pObj1
 		flmatobj2 <- pObj2
 		
-		if(pObj1@table@isDeep && pObj2@table@isDeep)
+		if(pObj1@isDeep && pObj2@isDeep)
 		{
 			vSqlStr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-									 a.",flmatobj1@table@var_id_name,
-									"-(CAST(((a.",flmatobj1@table@var_id_name,"-0.5)/1) as INT) *1) AS ROW_ID , 
-									 CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj2@size,")+1 as INT) AS COL_ID , 
+									 a.",flmatobj1@var_id_name,
+									"-(CAST(((a.",flmatobj1@var_id_name,"-0.5)/1) as INT) *1) AS ROW_ID , 
+									 CAST(((b.",flmatobj2@var_id_name,"-0.5)/",length(flmatobj2),")+1 as INT) AS COL_ID , 
 									 SUM(a.",flmatobj1@col_name," * b.",flmatobj2@col_name,") AS CELL_VAL 
-									 FROM ",remoteTable(flmatobj1@table)," a,",
-									 		remoteTable(flmatobj2@table)," b 
-									 WHERE a.",flmatobj1@table@primary_key,"=",flmatobj1@vector_id_value," 
-									 AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
-									"AND CAST(((a.",flmatobj1@table@var_id_name,"-0.5)/1)+1 as INT)","=b.",flmatobj2@table@var_id_name,
-									"-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj2@size,") as INT) *",flmatobj2@size,") 
+									 FROM ",remoteTable(flmatobj1)," a,",
+									 		remoteTable(flmatobj2)," b 
+									 WHERE a.",flmatobj1@obs_id_colname,"=",flmatobj1@vector_id_value," 
+									 AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value,
+									"AND CAST(((a.",flmatobj1@var_id_name,"-0.5)/1)+1 as INT)","=b.",flmatobj2@var_id_name,
+									"-(CAST(((b.",flmatobj2@var_id_name,"-0.5)/",length(flmatobj2),") as INT) *",length(flmatobj2),") 
 									GROUP BY 1,2,3")
 
-			sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 		}
 
-		else if(xor(pObj1@table@isDeep,pObj2@table@isDeep))
+		else if(xor(pObj1@isDeep,pObj2@isDeep))
 		{
-			if(pObj1@table@isDeep)
+			if(pObj1@isDeep)
 			{
 				vSqlStr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-										 a.",flmatobj1@table@var_id_name,"-(CAST(((a.",flmatobj1@table@var_id_name,"-0.5)/1) as INT) *1) AS ROW_ID , 
-										 CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",flmatobj2@size,")+1 as INT) AS COL_ID , 
+										 a.",flmatobj1@var_id_name,"-(CAST(((a.",flmatobj1@var_id_name,"-0.5)/1) as INT) *1) AS ROW_ID , 
+										 CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",length(flmatobj2),")+1 as INT) AS COL_ID , 
 										 SUM(a.",flmatobj1@col_name," * b.",flmatobj2@col_name,") AS CELL_VAL 
-										 FROM ",remoteTable(flmatobj1@table)," a,",
-										 		remoteTable(flmatobj2@table)," b 
-										 WHERE a.",flmatobj1@table@primary_key,"=",flmatobj1@vector_id_value,
-										"AND CAST(((a.",flmatobj1@table@var_id_name,"-0.5)/1)+1 as INT)","=b.",flmatobj2@table@primary_key,
-											"-(CAST(((b.",flmatobj2@table@primary_key,"-0.5)/",flmatobj2@size,") as INT) *",flmatobj2@size,") 
+										 FROM ",remoteTable(flmatobj1)," a,",
+										 		remoteTable(flmatobj2)," b 
+										 WHERE a.",flmatobj1@obs_id_colname,"=",flmatobj1@vector_id_value,
+										"AND CAST(((a.",flmatobj1@var_id_name,"-0.5)/1)+1 as INT)","=b.",flmatobj2@obs_id_colname,
+											"-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",length(flmatobj2),") as INT) *",length(flmatobj2),") 
 										 GROUP BY 1,2,3")
-			    sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 			}
             else
             {
 				vSqlStr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-								  		 a.",flmatobj1@table@primary_key,"-(CAST(((a.",flmatobj1@table@primary_key,"-0.5)/1) as INT) *1) AS ROW_ID , 
-								  		 CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj2@size,")+1 as INT) AS COL_ID , 
+								  		 a.",flmatobj1@obs_id_colname,"-(CAST(((a.",flmatobj1@obs_id_colname,"-0.5)/1) as INT) *1) AS ROW_ID , 
+								  		 CAST(((b.",flmatobj2@var_id_name,"-0.5)/",length(flmatobj2),")+1 as INT) AS COL_ID , 
 								  		 SUM(a.",flmatobj1@col_name," * b.",flmatobj2@col_name,") AS CELL_VAL 
-								  FROM ",remoteTable(flmatobj1@table)," a,",
-								   		  remoteTable(flmatobj2@table)," b 
-								  WHERE b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
-								" AND CAST(((a.",flmatobj1@table@primary_key,"-0.5)/1)+1 as INT)","=b.",flmatobj2@table@var_id_name,
-									"-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj2@size,") as INT) *",flmatobj2@size,") 
+								  FROM ",remoteTable(flmatobj1)," a,",
+								   		  remoteTable(flmatobj2)," b 
+								  WHERE b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value,
+								" AND CAST(((a.",flmatobj1@obs_id_colname,"-0.5)/1)+1 as INT)","=b.",flmatobj2@var_id_name,
+									"-(CAST(((b.",flmatobj2@var_id_name,"-0.5)/",length(flmatobj2),") as INT) *",length(flmatobj2),") 
 								  GROUP BY 1,2,3")
-			    sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
             }
 		}
 
-		else if(!pObj1@table@isDeep && !pObj2@table@isDeep)
+		else if(!pObj1@isDeep && !pObj2@isDeep)
 		{
 			vSqlStr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-									 a.",flmatobj1@table@var_id_name,
-									"-(CAST(((a.",flmatobj1@table@var_id_name,"-0.5)/1) as INT) *1) AS ROW_ID , 
-									 CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj2@size,")+1 as INT) AS COL_ID , 
+									 a.",flmatobj1@var_id_name,
+									"-(CAST(((a.",flmatobj1@var_id_name,"-0.5)/1) as INT) *1) AS ROW_ID , 
+									 CAST(((b.",flmatobj2@var_id_name,"-0.5)/",length(flmatobj2),")+1 as INT) AS COL_ID , 
 									 SUM(a.",flmatobj1@col_name," * b.",flmatobj2@col_name,") AS CELL_VAL 
-									 FROM ",remoteTable(flmatobj1@table)," a,",
-									 		remoteTable(flmatobj2@table)," b 
-									 WHERE a.",flmatobj1@table@primary_key,"=",flmatobj1@vector_id_value," 
-									 AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value,
-									"AND CAST(((a.",flmatobj1@table@var_id_name,"-0.5)/1)+1 as INT)","=b.",flmatobj2@table@var_id_name,
-										"-(CAST(((b.",flmatobj2@table@var_id_name,"-0.5)/",flmatobj2@size,") as INT) *",flmatobj2@size,") 
+									 FROM ",remoteTable(flmatobj1)," a,",
+									 		remoteTable(flmatobj2)," b 
+									 WHERE a.",flmatobj1@obs_id_colname,"=",flmatobj1@vector_id_value," 
+									 AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value,
+									"AND CAST(((a.",flmatobj1@var_id_name,"-0.5)/1)+1 as INT)","=b.",flmatobj2@var_id_name,
+										"-(CAST(((b.",flmatobj2@var_id_name,"-0.5)/",length(flmatobj2),") as INT) *",length(flmatobj2),") 
 									 GROUP BY 1,2,3")
 
-			sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 		}
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		FLMatrix(
-			 connection = flmatobj1@table@odbc_connection, 
+			 connection = flmatobj1@odbc_connection, 
 			 database = result_db_name, 
 			 matrix_table = result_matrix_table, 
 			 matrix_id_value = max_matrix_id_value - 1, 
@@ -611,7 +611,7 @@ NULL
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLSparseMatrix(x,flmatobj@table@odbc_connection)
+		flmatobj2 <- as.FLSparseMatrix(x,flmatobj@odbc_connection)
 		flmatobj2 %*% flmatobj
 	}
 	else

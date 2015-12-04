@@ -96,8 +96,8 @@ cor.FLMatrix <- function(x,y=x)
 									 x@db_name,".FLCorrel(a.",x@cell_val_colname,",
 									 					  b.",y@col_name,") AS C 
 							  FROM ",remoteTable(x)," a, 
-							  	   ",remoteTable(y@table)," b 
-							  WHERE a.",x@row_id_colname," = b.",y@table@primary_key," 
+							  	   ",remoteTable(y)," b 
+							  WHERE a.",x@row_id_colname," = b.",y@obs_id_colname," 
 							  AND a.",x@matrix_id_colname,"=",x@matrix_id_value," 
 							  GROUP BY a.",x@col_id_colname," 
 							  ORDER BY 1")
@@ -130,13 +130,13 @@ cor.numeric <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		nrowy <- sqlQuery(y@table@odbc_connection, 
+		nrowy <- sqlQuery(y@odbc_connection, 
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",remoteTable(y@table)," a"))[1,1]
+						  		  FROM ",remoteTable(y)," a"))[1,1]
 		if(nrowy == length(x))
 		{
 			x <- matrix(x,nrowy)
-			x <- as.FLMatrix(x,y@table@odbc_connection)
+			x <- as.FLMatrix(x,y@odbc_connection)
 			return (cor(x,y))
 		}
 		else stop(" invalid dimensions ")
@@ -164,12 +164,12 @@ cor.matrix <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		nrowy <- sqlQuery(y@table@odbc_connection,
+		nrowy <- sqlQuery(y@odbc_connection,
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",remoteTable(y@table)," a"))[1,1]
+						  		  FROM ",remoteTable(y)," a"))[1,1]
 		if(nrowy == nrow(x))
 		{
-			x <- as.FLMatrix(x,y@table@odbc_connection)
+			x <- as.FLMatrix(x,y@odbc_connection)
 			return (cor(x,y))
 		}
 		else stop(" invalid dimensions ")
@@ -197,13 +197,13 @@ cor.data.frame <- function(x,y=x)
 	}
 	else if(is.FLVector(y))
 	{
-		nrowy <- sqlQuery(y@table@odbc_connection,
+		nrowy <- sqlQuery(y@odbc_connection,
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",remoteTable(y@table)," a"))[1,1]
+						  		  FROM ",remoteTable(y)," a"))[1,1]
 		if(nrowy == nrow(x))
 		{
 			x <- as.matrix(x)
-			x <- as.FLMatrix(x,y@table@odbc_connection)
+			x <- as.FLMatrix(x,y@odbc_connection)
 			return (cor(x,y))
 		}
 		else stop(" invalid dimensions ")
@@ -224,23 +224,23 @@ cor.data.frame <- function(x,y=x)
 
 cor.FLVector <- function(x,y=x)
 {	
-	nrowx <- sqlQuery(x@table@odbc_connection,
+	nrowx <- sqlQuery(x@odbc_connection,
 					  paste0("SELECT COUNT(a.",x@col_name,") 
-					  		  FROM ",remoteTable(x@table)," a"))[1,1]
+					  		  FROM ",remoteTable(x)," a"))[1,1]
 
 	if(is.FLVector(y))
 	{
-		nrowy <- sqlQuery(y@table@odbc_connection,
+		nrowy <- sqlQuery(y@odbc_connection,
 						  paste0("SELECT COUNT(a.",y@col_name,") 
-						  		  FROM ",remoteTable(y@table)," a"))[1,1]
+						  		  FROM ",remoteTable(y)," a"))[1,1]
 		if(nrowx == nrowy)
 		{
-			sqlstr<-paste("SELECT ",x@table@db_name,".FLCorrel(a.",x@col_name,",
+			sqlstr<-paste("SELECT ",x@db_name,".FLCorrel(a.",x@col_name,",
 															   b.",y@col_name,") 
-						   FROM ",remoteTable(x@table)," AS a,",
-						   		  remoteTable(x@table)," AS b 
-						   WHERE a.",x@table@primary_key,"=b.",y@table@primary_key, sep="")
-			retobj<-sqlQuery(x@table@odbc_connection,sqlstr)
+						   FROM ",remoteTable(x)," AS a,",
+						   		  remoteTable(x)," AS b 
+						   WHERE a.",x@obs_id_colname,"=b.",y@obs_id_colname, sep="")
+			retobj<-sqlQuery(x@odbc_connection,sqlstr)
 			return(retobj[1,1])
 		}
 		else stop(" invalid dimensions ")
@@ -299,11 +299,11 @@ cor.FLTable <- function(x,y=x)
 			{
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,",
-										 x@db_name,".FLCorrel(a.",x@num_val_name,",
-										 					  b.",y@num_val_name,") AS C 
+										 x@db_name,".FLCorrel(a.",x@cell_val_colname,",
+										 					  b.",y@cell_val_colname,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
-								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
+								  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
 								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
 								  ORDER BY 1,2 ")
 			
@@ -317,11 +317,11 @@ cor.FLTable <- function(x,y=x)
 				deeptablenamex <- gen_deep_table_name(x@table_name)
 				deeptablenamey <- gen_deep_table_name(y@table_name)
 				
-				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
+				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
 
-				sqlstr<-paste0("CALL FLWideToDeep('",y@table_name,"','",y@primary_key,"','",deeptablenamey,
+				sqlstr<-paste0("CALL FLWideToDeep('",y@table_name,"','",y@obs_id_colname,"','",deeptablenamey,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDy <- as.vector(retobj<-sqlQuery(y@odbc_connection,sqlstr)[1,1])
 
@@ -331,7 +331,7 @@ cor.FLTable <- function(x,y=x)
 						  table_name = deeptablenamex,
 						  primary_key = "ObsID",
 						  var_id_name = "VarID",
-						  num_val_name="Num_Val",
+						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				y <- new("FLTable", 
 						  odbc_connection = y@odbc_connection,
@@ -339,16 +339,16 @@ cor.FLTable <- function(x,y=x)
 						  table_name = deeptablenamey,
 						  primary_key = "ObsID",
 						  var_id_name = "VarID",
-						  num_val_name="Num_Val",
+						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,
-										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",
-										   						  b.",y@num_val_name,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",
+										   						  b.",y@cell_val_colname,") AS C 
 								  FROM ",remoteTable(x)," a, 
 								  	   ",remoteTable(y)," b 
-								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
+								  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
 								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
 								  ORDER BY 1,2 ")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
@@ -376,7 +376,7 @@ cor.FLTable <- function(x,y=x)
 			if(y@isDeep && !x@isDeep)
 			{
 				deeptablenamex <- gen_deep_table_name(x@table_name)
-				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
+				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
 				x <- new("FLTable", 
@@ -385,14 +385,14 @@ cor.FLTable <- function(x,y=x)
 						  table_name = deeptablenamex,
 						  primary_key = "ObsID",
 						  var_id_name = "VarID",
-						  num_val_name="Num_Val",
+						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,
-										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@num_val_name,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@cell_val_colname,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
-								  WHERE  a.",x@primary_key," = b.",y@primary_key," 
+								  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
 								  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
 								  ORDER BY 1,2 ")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
@@ -421,10 +421,10 @@ cor.FLTable <- function(x,y=x)
 			{
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@col_id_colname," AS B ,
-										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@cell_val_colname,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@cell_val_colname,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
-								  WHERE a.",x@primary_key," = b.",y@row_id_colname," 
+								  WHERE a.",x@obs_id_colname," = b.",y@row_id_colname," 
 								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
 								  GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," 
 								  ORDER BY 1,2 ")
@@ -436,7 +436,7 @@ cor.FLTable <- function(x,y=x)
 			if(!x@isDeep)
 			{
 				deeptablenamex <- gen_deep_table_name(x@table_name)
-				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
+				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
 				x <- new("FLTable", 
@@ -445,14 +445,14 @@ cor.FLTable <- function(x,y=x)
 						  table_name = deeptablenamex,
 						  primary_key = "ObsID",
 						  var_id_name = "VarID",
-						  num_val_name="Num_Val",
+						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A,
 										 b.",y@col_id_colname," AS B,
-										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@cell_val_colname,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@cell_val_colname,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
-								  WHERE a.",x@primary_key," = b.",y@row_id_colname," 
+								  WHERE a.",x@obs_id_colname," = b.",y@row_id_colname," 
 								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
 								  GROUP BY a.",x@var_id_name,", b.",y@col_id_colname," 
 								  ORDER BY 1,2 ")
@@ -477,11 +477,11 @@ cor.FLTable <- function(x,y=x)
 			if(x@isDeep)
 			{
 				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
-										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",
+										   ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",
 										   						  b.",y@col_name,") AS C 
 								  FROM ",remoteTable(x)," a, 
-								  	   ",remoteTable(y@table)," b 
-								  WHERE a.",x@primary_key," = b.",y@table@primary_key," 
+								  	   ",remoteTable(y)," b 
+								  WHERE a.",x@obs_id_colname," = b.",y@obs_id_colname," 
 								  GROUP BY a.",x@var_id_name," 
 								  ORDER BY 1")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
@@ -491,7 +491,7 @@ cor.FLTable <- function(x,y=x)
 			if(!x@isDeep)
 			{
 				deeptablenamex <- gen_deep_table_name(x@table_name)
-				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@primary_key,"','",deeptablenamex,
+				sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
 								"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
 				dataprepIDx <- as.vector(retobj<-sqlQuery(x@odbc_connection,sqlstr)[1,1])
 				x <- new("FLTable", 
@@ -500,13 +500,13 @@ cor.FLTable <- function(x,y=x)
 						  table_name = deeptablenamex,
 						  primary_key = "ObsID",
 						  var_id_name = "VarID",
-						  num_val_name="Num_Val",
+						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
-										   ",x@db_name,".FLCorrel(a.",x@num_val_name,",b.",y@col_name,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@cell_val_colname,",b.",y@col_name,") AS C 
 								  FROM ",remoteTable(x)," a, 
-								  	   ",remoteTable(y@table)," b 
-								  WHERE a.",x@primary_key," = b.",y@table@primary_key," 
+								  	   ",remoteTable(y)," b 
+								  WHERE a.",x@obs_id_colname," = b.",y@obs_id_colname," 
 								  GROUP BY a.",x@var_id_name," 
 								  ORDER BY 1")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]

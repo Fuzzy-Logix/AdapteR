@@ -59,28 +59,27 @@ diag.FLMatrix<-function(object){
 		             result_vector_table,
 		             "VECTOR_ID",
 		             "VECTOR_INDEX",
-		             "VECTOR_VALUE"
-		             )
+                         "VECTOR_VALUE",
+                         whereconditions=equalityConstraint(
+                             paste0(
+                                 remoteTable(result_db_name,result_vector_table),
+                                 ".VECTOR_ID"),
+                             max_vector_id_value-1))
 
-	new("FLVector", 
-		table = table, 
-		col_name = table@num_val_name, 
-		vector_id_value = max_vector_id_value-1, 
-		size = nrow(object)
-		)
+	new("FLVector", table)
 }
 
 diag.FLVector <- function(object)
 {
-	connection <- object@table@odbc_connection
+	connection <- object@odbc_connection
 
-	if(object@size==1)
+	if(length(object)==1)
 	{
 		flag1Check(connection)
 		value <- sqlQuery(connection,
-						  paste("SELECT a.",object@table@num_val_name,
-						  		 "FROM ",remoteTable(object@table)," a",
-						  		 "WHERE a.",object@table@primary_key,"=",object@vector_id_value))[1,1]
+						  paste("SELECT a.",object@cell_val_colname,
+						  		 "FROM ",remoteTable(object)," a",
+						  		 "WHERE a.",object@obs_id_colname,"=",object@vector_id_value))[1,1]
 		 for (i in 1:value)
 		 for (j in 1:value)
 		 {
@@ -112,17 +111,17 @@ diag.FLVector <- function(object)
 			        row_id_colname = "ROW_ID", 
 			        col_id_colname = "COL_ID", 
 			        cell_val_colname = "CELL_VAL",
-			        nrow = object@size, 
-			        ncol = object@size, 
+			        nrow = length(object), 
+			        ncol = length(object), 
 			        dimnames = list(c(),c())))
 	
 	}
-	else if(object@size>1)
+	else if(length(object)>1)
 	{
 		flag1Check(connection)
 
-			 for (i in 1:object@size)
-			 for (j in 1:object@size)
+			 for (i in 1:length(object))
+			 for (j in 1:length(object))
 			 {
 			 	if(i!=j)
 			 		sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
@@ -132,26 +131,25 @@ diag.FLVector <- function(object)
 			 			                                  0))
 			 	else 
 			 	{
-				 	if(object@table@isDeep)
+				 	if(object@isDeep)
 				 	{
 					 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 					 		                       " SELECT ",max_matrix_id_value,",",
 					 		                                  j,",",
 					 		                                  i,
-					 							              ",a.",object@col_name,
-					 							   " FROM ",remoteTable(object@table),
-					 							   " a WHERE a.",object@table@primary_key,"=",object@vector_id_value,
-					 							   " AND a.",object@table@var_id_name,"=",i))
+					 							              ",a.",object@var_id_colname,
+					 							   " FROM ",remoteTable(object), " a ",
+                                                   constructWhere(constraintsSQL(object))))
 				 	}
-			 	 	else if (!object@table@isDeep)
+			 	 	else if (!object@isDeep)
 			 	 	{
 					 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 					 		                       " SELECT ",max_matrix_id_value,",",
 					 		                                  j,",",
 					 		                                  i,
-					 							            ",a.",object@col_name,
-					 							   " FROM ",remoteTable(object@table),
-					 							   " a WHERE a.",object@table@primary_key,"=",i))
+					 							            ",a.",object@var_id_colname,
+					 							   " FROM ",remoteTable(object),
+					 							   " a WHERE a.",object@obs_id_colname,"=",i))
 			 	 	}
 		 	 	}
 		 	 }
@@ -167,8 +165,8 @@ diag.FLVector <- function(object)
 				        row_id_colname = "ROW_ID", 
 				        col_id_colname = "COL_ID", 
 				        cell_val_colname = "CELL_VAL",
-				        nrow = object@size, 
-				        ncol = object@size, 
+				        nrow = length(object), 
+				        ncol = length(object), 
 				        dimnames = list(c(),c())))
 	}
 }
