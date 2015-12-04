@@ -30,27 +30,10 @@ rankMatrix.FLMatrix<-function(object)
 {
 	connection<-object@odbc_connection
 
-
-	flag3Check(connection)
-
 	sqlstr<-paste0(viewSelectMatrix(object,"a"),
-                       outputSelectMatrix("FLMatrixRankUdt",includeMID=FALSE,outColNames=list("OutputMtxRank"))
-                       )
+				   outputSelectMatrix("FLMatrixRankUdt",includeMID=FALSE,
+				   					outColNames=list("OutputMtxRank"),viewName="z",localName="a")
+					)
 	
 	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
-	##browser()
-### Phani-- below lines are absolete
-### gk: delete the cruft. ;-)
-	# table <- FLTable(connection,
-	# 	             result_db_name,
-	# 	             result_vector_table,
-	# 	             "VECTOR_ID",
-	# 	             "VECTOR_INDEX",
-	# 	             "VECTOR_VALUE"
-	# 	             )
-	# new("FLVector", 
-	# 	table = table, 
-	# 	col_name = table@num_val_name, 
-	# 	vector_id_value = max_vector_id_value-1, 
-	# 	size = 1)	
 }

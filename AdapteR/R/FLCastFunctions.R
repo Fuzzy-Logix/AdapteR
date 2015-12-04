@@ -229,11 +229,6 @@ setMethod("as.FLMatrix", signature(object = "dsCMatrix",
               as.FLMatrix.Matrix(object,connection,sparse))
 
 ### phani - set sparse to logical if sparse is not missing in above methods
-# setMethod("as.FLMatrix", signature(object = "dgCMatrix",
-#                                    connection="ANY",
-#                                    sparse="missing"),
-#           function(object,connection,sparse=TRUE)
-#               as.FLMatrix.Matrix(object,connection,sparse))
 
 ## gk: refactor to ONE sql query from matrix table to vactor table!
 setMethod("as.FLMatrix", signature(object = "FLVector",
@@ -286,25 +281,20 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
           })
 
 as.sparseMatrix.FLMatrix <- function(object) {
-    ##browser()
-    ### phani -- in the below query, is selecting max_matrix_id_value necessary
-###          or should I remove it?
-    ### gk: remove it.  in similar cases remove too.
 	valuedf <- sqlQuery(object@odbc_connection, 
 						paste0(" SELECT ",
-                   max_matrix_id_value,",",
                    object@row_id_colname,",",
                    object@col_id_colname,",",
                    object@cell_val_colname,  
                    " FROM ",remoteTable(object),
                    constructWhere(constraintsSQL(object))))
-    i <- match(valuedf[[2]],rownames(object))
-    j <- match(valuedf[[3]],colnames(object))
+    i <- match(valuedf[[1]],rownames(object))
+    j <- match(valuedf[[2]],colnames(object))
     if(any(is.na(i)) | any(is.na(j)))
         stop("matrix rowname mapping needs to be implemented")
     m <- sparseMatrix(i = i,
                       j = j,
-                      x = valuedf[[4]],
+                      x = valuedf[[3]],
                       dims = dim(object),
                       dimnames = dimnames(object))
     return(m)

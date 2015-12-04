@@ -33,33 +33,22 @@ solve <- function (x, ...){
 
 solve.FLMatrix<-function(object)
 {
-    ## gk: I do not see why we need these, see below!
-    ## checkSquare(object,"solve")
-    ## checkSingularity(object)
+	# checkSquare(object,"solve")
+	# checkSingularity(object)
 
-    connection <- object@odbc_connection
+	connection <- object@odbc_connection
 
-    flag1Check(connection)
-    MID <- max_matrix_id_value
-    sqlstr<-paste0(" INSERT INTO ",
+	flag1Check(connection)
+  MID <- max_matrix_id_value
+
+	sqlstr<-paste0(" INSERT INTO ",
                    getRemoteTableName(result_db_name,result_matrix_table),
-                   viewSelectMatrix(object,"a"),
-                   outputSelectMatrix("FLMatrixInvUdt")
+                   viewSelectMatrix(object,"a",viewName="z"),
+                   outputSelectMatrix("FLMatrixInvUdt",viewName="z",localName="a")
                    )
 	
-	t <- sqlSendUpdate(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
-	### Phani-- If the input matrix is singular, sqlSendUpdate in above line returns the error message
-	###         thrown by teradata. Is it sufficient or shall we include a query which checks singulairty
-###         before finding inverse?
-        ### gk: TD error is sufficient!
-
-    ## browser()
-	## if(length(t) > 0) 
-	## { 
-	## 	stop(" Error Inverting Matrix - Matrix might be exactly singular ") 
-	## }
-	
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
 	return(FLMatrix(

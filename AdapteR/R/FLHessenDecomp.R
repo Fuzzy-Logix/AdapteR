@@ -34,27 +34,18 @@ hessen<-function(x, ...){
 
 hessen.FLMatrix<-function(object)
 {
+	checkSquare(object,"hessen")
 	connection<-object@odbc_connection
 	flag1Check(connection)
-	
-	if(nrow(object) == ncol(object))
-	{
-		sqlstrP<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
-						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-						AS (SELECT a.",object@matrix_id_colname,", 
-								   a.",object@row_id_colname,", 
-								   a.",object@col_id_colname,", 
-								   a.",object@cell_val_colname," 
-							FROM  ",remoteTable(object)," a 
-							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-						SELECT ",max_matrix_id_value,",
-								a.OutputRowNum,
-								a.OutputColNum,
-								a.OutputPVal 
-						FROM TABLE (FLHessenbergDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-									HASH BY z.Matrix_ID 
-									LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-						WHERE a.OutputPVal IS NOT NULL;")
+	MID <- max_matrix_id_value
+
+		sqlstrP<-paste0("INSERT INTO ",
+						getRemoteTableName(result_db_name,result_matrix_table),
+                   		viewSelectMatrix(object,"a",viewName="z"),
+                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",
+                   			outColNames=list("OutputRowNum","OutputColNum","OutputPVal"), viewName="z",
+                   			whereClause=" WHERE a.OutputPVal IS NOT NULL ")
+                   		)
 		
 		sqlSendUpdate(connection,sqlstrP)
 
@@ -64,31 +55,21 @@ hessen.FLMatrix<-function(object)
 				       connection = connection, 
 				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
-					   matrix_id_value = max_matrix_id_value-1,
+					   matrix_id_value = MID,
 					   matrix_id_colname = "MATRIX_ID", 
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
-					   cell_val_colname = "CELL_VAL",
-					   nrow = nrow(object), 
-					   ncol = ncol(object), 
-					   dimnames = list(c(),c()))
+					   cell_val_colname = "CELL_VAL")
 
-		sqlstrH <- paste0( "INSERT INTO ",result_db_name,".",result_matrix_table,"
-							WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-							AS (SELECT a.",object@matrix_id_colname,", 
-									   a.",object@row_id_colname,", 
-									   a.",object@col_id_colname,", 
-									   a.",object@cell_val_colname," 
-								FROM  ",remoteTable(object)," a 
-								WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-							SELECT ",max_matrix_id_value,",
-									a.OutputRowNum,
-									a.OutputColNum,
-									a.OutputHVal 
-							FROM TABLE (FL_DEMO.FLHessenbergDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-										HASH BY z.Matrix_ID 
-										LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-							WHERE a.OutputHVal IS NOT NULL;")
+		MID <- max_matrix_id_value
+
+		sqlstrH <- paste0("INSERT INTO ",
+						getRemoteTableName(result_db_name,result_matrix_table),
+                   		viewSelectMatrix(object,"a",viewName="z"),
+                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",
+                   			outColNames=list("OutputRowNum","OutputColNum","OutputHVal"), viewName="z",
+                   			whereClause=" WHERE a.OutputHVal IS NOT NULL ")
+                   		)
 		
 		sqlSendUpdate(connection,sqlstrH)
 
@@ -98,46 +79,13 @@ hessen.FLMatrix<-function(object)
 				       connection = connection, 
 				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
-					   matrix_id_value = max_matrix_id_value-1,
+					   matrix_id_value = MID,
 					   matrix_id_colname = "MATRIX_ID", 
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
-					   cell_val_colname = "CELL_VAL",
-					   nrow = nrow(object), 
-					   ncol = ncol(object), 
-					   dimnames = list(c(),c()))
+					   cell_val_colname = "CELL_VAL")
 
 		result<-list(P = PMatrix,
 					 H = HMatrix)
 		result
-	}
-	else
-		stop ("Input matrix is non-square")
-	# if (is.null(nu) && is.null(nv))
-	# {
-	# 	result<-list(J = JVector,
-	# 				 P = PMatrix,
-	# 				 PInv = PInvMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
-	# }
-
-	# else if (is.null(nu))
-	# {
-	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),ncol(object))],
-	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
-	# }
-
-	# else if (is.null(nv))
-	# {
-	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
-	# 				 v = VMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
-	# }
-
-	# else
-	# {
-	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
-	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
-	# }
 }

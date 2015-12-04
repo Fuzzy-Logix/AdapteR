@@ -43,33 +43,12 @@ chol.FLMatrix<-function(object)
 
 	MID <- max_matrix_id_value
 
-	sqlstr<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,
-                                                      result_matrix_table),
-					viewSelectMatrix(object,"a"),
-                   outputSelectMatrix("FLCholeskyDecompUdt"))
+	sqlstr<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
+					viewSelectMatrix(object,"a",viewName="z"),
+					outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",localName="a")
+                   )
 
-	# sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
-	# 				" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-	# 				AS (
-	# 					SELECT a.",object@matrix_id_colname,", 
-	# 					a.",object@row_id_colname,", 
-	# 					a.",object@col_id_colname,", 
-	# 					a.",object@cell_val_colname," 
-	# 					FROM  ",remoteTable(object)," a 
-	# 					WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,"
-	# 					) 
-	# 				SELECT ",max_matrix_id_value,",
-	# 				         a.OutputColNum,
-	# 				         a.OutputRowNum,
-	# 				         a.OutputVal 
-	# 				FROM TABLE (
-	# 							FLCholeskyDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-	# 							HASH BY z.Matrix_ID 
-	# 							LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
-	# 							) 
-	# 				AS a;")
-
-	retobj <- sqlSendUpdate(connection,sqlstr)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 

@@ -1,4 +1,3 @@
-
 #' @include utilities.R
 NULL
 setOldClass("RODBC")
@@ -169,89 +168,149 @@ setMethod("show","FLSparseMatrix",print.FLSparseMatrix)
 
 
 ### gk::  can you please comment these?  I like that you take abstraction seriously!
-setGeneric("checkSquare", function(object,func_name) {
-    standardGeneric("checkSquare")
-})
-setMethod("checkSquare", signature(object = "FLMatrix",func_name="character"),
-          function(object,func_name="") {
-              if(nrow(object) != ncol(object)) 
-        stop(paste0(func_name," function is applicable on square matrix only"))
-          })
+### Phani-- added comments
 
-setMethod("checkSquare", signature(object = "FLMatrix",func_name="missing"),
-          function(object) checkSquare(object,""))
+# checkSquare takes FLMatrix object and a character indicating name of function
+# If the object is non-square, error is thrown inside the given function
+# setGeneric("checkSquare", function(object,func_name) {
+#     standardGeneric("checkSquare")
+# })
+# setMethod("checkSquare", signature(object = "FLMatrix",func_name="character"),
+#           function(object,func_name="") {
+#               if(nrow(object) != ncol(object)) 
+#         stop(paste0(func_name," function is applicable on square matrix only"))
+#           })
+
+# setMethod("checkSquare", signature(object = "FLMatrix",func_name="missing"),
+#           function(object) checkSquare(object,""))
 
 
 
 ## gk: I applaude the purpose, but the implementation was still inconsistent.
 ## gk: Never return partial expressions -- very error prone! (your bracket "with z(" was not closed within the function)!
-## gk:  add second parameter for z please.
-## gk: comment
-setGeneric("viewSelectMatrix", function(object,localName, withName="z") {
+## gk:  add second parameter for z please. ### Phani-- Added
+## gk: comment ###Phani-- Added
+
+#viewSelectMatrix makes a view of given FLMatrix object also including a localName for
+#FLMatrix object and a viewname
+setGeneric("viewSelectMatrix", function(object,localName,viewName="z") {
     standardGeneric("viewSelectMatrix")
 })
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",
-                                        localName="character",
-                                        withName="character"),
-          function(object,localName, withName="z") {
-              return(paste0(" WITH ",withName,
-                            " (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character",viewName="character"),
+          function(object,localName,viewName="z") {
+              return(paste0(" WITH ",viewName," (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
               AS (SELECT ",localName,".",object@matrix_id_colname,", 
                      ",localName,".",object@row_id_colname,", 
                      ",localName,".",object@col_id_colname,", 
                      ",localName,".",object@cell_val_colname,
               " FROM  ",remoteTable(object)," ",localName," ",
               constructWhere(constraintsSQL(object,localName)),
-              " ) "))
+                   " ) "))
           })
+setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character",viewName="missing"),
+          function(object,localName,viewName="z") {
+            viewSelectMatrix(object,localName,viewName="z")
+            })
 
-setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames) {
+# outputSelectMatrix apples function given by func_name to view given by viewname
+# and returns columns specified by outcolnames list. IncludeMID tells if max_matrix_id_value
+# should be one of the columns returned.
+setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames,viewName,localName,whereClause) {
     standardGeneric("outputSelectMatrix")
 })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list"),
-          function(func_name,includeMID=TRUE,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
+                                          viewName="character",localName="character",whereClause="character"),
+          function(func_name,includeMID,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
           {
             return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,paste0("a.OutputMatrixID")),
                     paste0(",a.",outColNames,collapse="")," 
-          FROM TABLE (",func_name,"(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+          FROM TABLE (",func_name,
+            "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
           HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"))
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause))
           })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list"),
-          function(func_name,includeMID=TRUE,outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
+                                          viewName="character",localName="character",whereClause="character"),
+          function(func_name,includeMID=TRUE,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames))
+            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames,viewName,localName,whereClause))
           })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing"),
-          function(func_name,includeMID=TRUE,outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
+                                          viewName="character",localName="character",whereClause="character"),
+          function(func_name,includeMID=TRUE,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames=list("OutputRowNum","OutputColNum","OutputVal")))
+            return(outputSelectMatrix(func_name,includeMID=TRUE,
+              outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause))
           })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing"),
-          function(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal"))
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
+                                          viewName="character",localName="character",whereClause="character"),
+          function(func_name,includeMID,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
           {
-            return(outputSelectMatrix(func_name,includeMID,outColNames))
+            return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
+                                          viewName="character",localName="character",whereClause="missing"),
+          function(func_name,includeMID,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          {
+            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames,viewName,localName,whereClause=";"))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
+                                          viewName="character",localName="character",whereClause="missing"),
+          function(func_name,includeMID=TRUE,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          {
+            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames,viewName,localName,whereClause=";"))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
+                                          viewName="character",localName="character",whereClause="missing"),
+          function(func_name,includeMID=TRUE,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          {
+            return(outputSelectMatrix(func_name,includeMID=TRUE,
+              outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";"))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
+                                          viewName="character",localName="character",whereClause="missing"),
+          function(func_name,includeMID,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          {
+            return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause=";"))
           })
 
 
-setGeneric("checkSingularity", function(object) {
-    standardGeneric("checkSingularity")
-})
-setMethod("checkSingularity", signature(object="FLMatrix"),
-          function(object) {
-          rank <- rankMatrix(object)
-          if(rank < base::min(nrow(object),ncol(object)))
-          stop("input matrix is exactly singular")
-          })
+# checkSingularity throws error if FLMatrix object is singular
+# setGeneric("checkSingularity", function(object) {
+#     standardGeneric("checkSingularity")
+# })
+# setMethod("checkSingularity", signature(object="FLMatrix"),
+#           function(object) {
+#           rank <- rankMatrix(object)
+#           if(rank < base::min(nrow(object),ncol(object)))
+#           stop("input matrix is exactly singular")
+#           })
 
+# # checkHermitianPositiveDefinite throws error if FLMatrix object is not HermitianPositiveDefinite
+# setGeneric("checkHermitianPositiveDefinite", function(object) {
+#     standardGeneric("checkHermitianPositiveDefinite")
+# })
+# setMethod("checkHermitianPositiveDefinite", signature(object="FLMatrix"),
+#           function(object) {
+#           ### Phani-- check if matrix = its conjugated transpose (hermitian)
+#           ### Phani-- check if eigenvalues of matrix are all +ve.
+#           return(TRUE)
+#           })
 
-setGeneric("checkHermitianPositiveDefinite", function(object) {
-    standardGeneric("checkHermitianPositiveDefinite")
-})
-setMethod("checkHermitianPositiveDefinite", signature(object="FLMatrix"),
-          function(object) {
-          ### Phani-- check if matrix = its conjugated transpose (hermitian)
-          ### Phani-- check if eigenvalues of matrix are all +ve.
-          return(TRUE)
-          })
+# # checkSameDims throws error if FLMatrix objects have different dims
+# setGeneric("checkSameDims", function(object1,object2) {
+#     standardGeneric("checkSameDims")
+# })
+# setMethod("checkSameDims", signature(object1="FLMatrix",object2="FLMatrix"),
+#           function(object1,object2) {
+#           if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
+#           return(stop("ERROR: Invalid matrix dimensions for Operation"))
+#           })
