@@ -17,20 +17,13 @@ as.vector.FLMatrix <- function(object,mode="any")
 #' Converts FLVector object to vector in R
 as.vector.FLVector <- function(object,mode="any")
 {
-	if(object@table@isDeep)
-	{
-		sqlstr <- paste0("SELECT *
-						 FROM ",remoteTable(object)," 
-						 WHERE ",object@table@primary_key,"=",object@vector_id_value,"
-						 ORDER BY 1,2")
-	}
-	else
-	{
-		sqlstr <- paste0("SELECT *
-						 FROM ",remoteTable(object)," 
-						 ORDER BY 1,2")
-	}
-	return(sqlQuery(object@table@odbc_connection,sqlstr)[,object@col_name])
+    if(ncol(object)==1)
+        x <- as.data.frame(object)[[1]]
+    if(nrow(object)==1)
+        x <- as.vector(as.data.frame(object)[1,])
+    if(!any(names(x)!=1:length(x)))
+        names(x) <- NULL
+    return(x)
 }
 
 #' Converts FLSparseMatrix object to vector in R
@@ -40,6 +33,48 @@ as.vector.FLSparseMatrix <- function(object,mode="any")
 	return(as.vector(Rmatrix))
 }
 
+as.data.frame <- function(x, ...)
+{
+	UseMethod("as.data.frame",x)
+}
+as.data.frame.FLTable <- function(x, ...){
+    if(!x@isDeep) {
+        D <- sqlQuery(x@odbc_connection,
+                      paste0("SELECT ",paste(colnames(x),collapse=", "),
+                             " FROM ",remoteTable(x),
+                             constructWhere(c(constraintsSQL(x)))),...)
+    } else {
+        ##browser()
+        sqlstr <- paste0("SELECT ",
+                         paste(c(x@obs_id_colname,
+                             x@var_id_colname,
+                             x@cell_val_colname),
+                           collapse=", "),
+                     " FROM ",remoteTable(x),
+                     constructWhere(c(constraintsSQL(x))))
+        D <- sqlQuery(x@odbc_connection,sqlstr)
+        names(D) <- toupper(names(D))
+        ##i <- match(D[[1]],rownames(x))
+        ##j <- match(D[[2]],colnames(x))
+        ##if(any(is.na(i)) | any(is.na(j)))
+        ##    stop("matrix rowname mapping needs to be implemented")
+        ## m <- sparseMatrix(i = i,
+        ##                   j = j,
+        ##                   x = D[[3]],
+        ##                   dims = dim(x),
+        ##                   dimnames = dimnames(x))
+        ## D <- as.data.frame(as.matrix(m))
+        D <- dcast(D, paste0(toupper(x@obs_id_colname),
+                             " ~ ",
+                             toupper(x@var_id_colname)),
+                   value.var = toupper(x@cell_val_colname))
+        ##rownames(D) <- D$
+    }
+    if(any(D[[x@obs_id_colname]]!=1:nrow(D)))
+        rownames(D) <- D[[x@obs_id_colname]]
+    D[[x@obs_id_colname]] <- NULL
+    return(D)
+}
 
 ##############################################################################################################
 #' Converts \code{x} to matrix in R
@@ -160,18 +195,18 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
     }
 }
 
-setGeneric("remoteTable", function(object) {
+setGeneric("remoteTable", function(object, table) {
     standardGeneric("remoteTable")
 })
-setMethod("remoteTable", signature(object = "FLMatrix"),
+setMethod("remoteTable", signature(object = "FLMatrix", table="missing"),
           function(object)
               getRemoteTableName(object@db_name,object@matrix_table))
-setMethod("remoteTable", signature(object = "FLTable"),
+setMethod("remoteTable", signature(object = "FLTable", table="missing"),
           function(object)
               getRemoteTableName(object@db_name,object@table_name))
-setMethod("remoteTable", signature(object = "FLVector"),
-          function(object)
-              remoteTable(object@table))
+setMethod("remoteTable", signature(object = "character", table="character"),
+          function(object,table)
+              getRemoteTableName(object,table))
 
 
 setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE) {
@@ -227,58 +262,6 @@ setMethod("as.FLMatrix", signature(object = "dsCMatrix",
                                    sparse="missing"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
-
-### phani - set sparse to logical if sparse is not missing in above methods
-
-## gk: refactor to ONE sql query from matrix table to vactor table!
-setMethod("as.FLMatrix", signature(object = "FLVector",
-                                   connection="ANY",
-                                   sparse="logical"),
-          function(object,connection,sparse=TRUE) {
-              flag1Check(connection)
-              k<-1
-              ## gk: important!  refactor this to a single sql call!
-              ## gk: please apply throughout: NO sqlQuery inside loops!
-              ## gk: also: R does not at all like loops.  Use apply-like functional approaches.
-              for(i in 1:nc)
-                  for(j in 1:nr)
-                  {
-                      if(k > length(m))
-                          k<-1
-                      if(!m@table@isDeep)
-                          sqlSendUpdate(connection,
-                                   paste0(" INSERT INTO ",result_matrix_table,
-                                          " SELECT ",max_matrix_id_value,",
-					 				 ",j,",
-					 				 ",i,",
-					 				 b.",m@col_name,
-                                     " FROM ",remoteTable(m@table)," b",
-                                     " WHERE b.",m@table@primary_key,"=",k))
-                      else
-                          sqlSendUpdate(connection,
-                                   paste0(" INSERT INTO ",result_matrix_table,
-                                          " SELECT ",max_matrix_id_value,",
-					 				 ",j,",
-					 				 ",i,",
-					 				 b.",m@col_name,
-                                     " FROM ",remoteTable(m@table)," b",
-                                     " WHERE b.",m@table@var_id_name,"=",k,"
-							  AND b.",m@table@primary_key,"=",m@vector_id_value))
-                      k<-k+1
-                  }
-              max_matrix_id_value <<- max_matrix_id_value + 1
-              return(FLMatrix(
-                         connection = connection,
-                         database = result_db_name,
-                         matrix_table = result_matrix_table,
-                         matrix_id_value = max_matrix_id_value-1,
-                         matrix_id_colname = "MATRIX_ID",
-                         row_id_colname = "ROW_ID",
-                         col_id_colname = "COL_ID",
-                         cell_val_colname = "CELL_VAL",
-                         nrow = nr,
-                         ncol = nc))
-          })
 
 as.sparseMatrix.FLMatrix <- function(object) {
 	valuedf <- sqlQuery(object@odbc_connection, 
@@ -363,60 +346,6 @@ as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
 as.FLSparseMatrix <- function(m,connection)
     as.FLMatrix(m,connection,TRUE)
 
-## as.FLSparseMatrix <- function(m,connection)
-## {
-## 	if(class(m)=="dgCMatrix")
-## 	{
-## 		ROW_ID <- m@i + 1
-## 		COL_ID <- pToj(m@p)
-## 		CELL_VAL <- m@x
-
-##                                         # setting last element of matrix to zero if it is not non-zero to store the order of matrix
-## 		if(max(ROW_ID) < m@Dim[1])
-## 		{
-## 			ROW_ID <- append(ROW_ID,m@Dim[1])
-## 			CELL_VAL <- append(CELL_VAL,0)
-## 			if(max(COL_ID) < m@Dim[2]) { COL_ID <- append(COL_ID,m@Dim[2]) }
-## 			else { COL_ID <- append(COL_ID,max(COL_ID)) }
-## 		}
-## 		else if(max(COL_ID) < m@Dim[2])
-## 		{
-## 			ROW_ID <- append(ROW_ID,max(ROW_ID))
-## 			COL_ID <- append(COL_ID,m@Dim[2])
-## 			CELL_VAL <- append(CELL_VAL,0)
-## 		}
-
-## 		if(length(dimnames(m))==0) { dimnames(m) <- list(c(),c())}
-## 		flag2Check(connection)
-
-## 		## gk: important!  refactor this to a single sql call!
-## 		## gk: please apply throughout: NO sqlQuery inside loops!
-## 		## gk: also: R does not at all like loops.  Use apply-like functional approaches.
-## 		for(i in 1:length(ROW_ID))
-##             sqlQuery(connection,
-##                      paste("INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
-##                            " SELECT ",max_Sparsematrix_id_value,",",
-##                            ROW_ID[i],",",
-##                            COL_ID[i],",",
-##                            CELL_VAL[i]))
-
-## 		max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
-
-## 		return(new("FLSparseMatrix",
-##                    connection = connection,
-##                    database = result_db_name,
-##                    matrix_table = result_Sparsematrix_table,
-##                    matrix_id_value = max_Sparsematrix_id_value - 1,
-##                    matrix_id_colname = "MATRIX_ID",
-##                    row_id_colname = "ROW_ID",
-##                    col_id_colname = "COL_ID",
-##                    cell_val_colname = "CELL_VAL",
-##                    nrow = nrow(m),
-##                    ncol = ncol(m),
-##                    dimnames = dimnames(m)))
-## 	}
-## 	else stop("input a sparse matrix of class dgCMatrix")
-## }
 
 ######################################################################################################################
 #' casting to FLVector
@@ -428,7 +357,6 @@ as.FLSparseMatrix <- function(m,connection)
 #' @param size number of elements in resulting FLVector.
 #' size input is not applicable only in case of FLMatrix,FLSparseMatrix
 #' @return FLVector object after casting.
-
 as.FLVector <- function(obj,connection,size=length(obj))
 {
 	if(is.vector(obj) || is.matrix(obj) || class(obj)=="dgCMatrix" || is.data.frame(obj))
@@ -456,18 +384,16 @@ as.FLVector <- function(obj,connection,size=length(obj))
 		}
 
 		max_vector_id_value <<- max_vector_id_value + 1
-
+        ##browser()
 		table <- FLTable(connection,
-						 result_db_name,
-						 result_vector_table,
-						 "VECTOR_ID",
-						 "VECTOR_INDEX",
-						 "VECTOR_VALUE")
-		return(new("FLVector",
-                   table = table,
-                   col_name = "VECTOR_VALUE",
-                   vector_id_value = max_vector_id_value-1,
-                   size = size))
+						 database=result_db_name,
+						 table=result_vector_table,
+						 obs_id_colname="VECTOR_ID",
+						 var_id_colnames="VECTOR_INDEX",
+						 cell_val_colname="VECTOR_VALUE",
+                         equalityConstraint(
+                             remoteTable(result_vector_table,"VECTOR_ID"),max_vector_id_value-1))
+		return(new("FLVector",table))
 	}
 
 	if(is.FLMatrix(obj))
@@ -494,7 +420,7 @@ as.FLVector <- function(obj,connection,size=length(obj))
 
 		return(new("FLVector",
                    table = table,
-                   col_name = table@num_val_name,
+                   col_name = table@cell_val_colname,
                    vector_id_value = max_vector_id_value-1,
                    size = size))
 	}

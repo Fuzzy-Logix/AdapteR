@@ -3,19 +3,20 @@
 NULL
 #' An S4 class to represent FLVector
 #'
-#' @slot table object of class FLTable
-#' @slot col_name A character column name
-#' @slot vector_id_value numeric
-#' @slot size numeric
 setClass(
 	"FLVector",
-	slots = list(
-		table = "FLTable",
-		col_name = "character",
-		vector_id_value = "numeric",
-		size = "numeric"
-	)
-)
+    contains="FLTable",
+    slots = list(
+		odbc_connection = "ANY",
+		db_name         = "character",
+		table_name      = "character",
+		dimnames        = "list",
+        whereconditions = "character",
+		obs_id_colname  = "character", ## former primary_key
+		isDeep = "logical",
+        var_id_colname="character", ## 
+		cell_val_colname = "character"
+	))
 
 #' Constructor function for FLVector, representing a vector in database, either a deep or a wide matrix.
 #' gk: how can we support row vectors?
@@ -38,43 +39,54 @@ setClass(
 #' DeepTable <- FLTable(connection, "FL_TRAIN", "tblVectorDeep","vector_id","vector_key","vector_value")
 #' flvectorDeep <- FLVector(DeepTable,"vector_value",1)
 #' @export
-
 FLVector <- function(table,
-                     col_name,
-                     vector_id_value=numeric(0), 
-                     size=numeric(0))
-{
-	if(table@isDeep && length(vector_id_value))
-	{
-		size <- sqlQuery(table@odbc_connection,
-						 paste0("SELECT max(",table@var_id_name,")
-						 		 FROM ",
-                                getRemoteTableName(table@db_name, table@table_name),
-                                " WHERE ",table@primary_key,"=",vector_id_value))[1,1]
-        new("FLVector",
-        	table = table, 
-        	col_name = table@num_val_name, 
-        	vector_id_value = vector_id_value, 
-        	size = size)
+                     val_col_name = character(),
+                     val_row_name = character(),
+                     whereconditions=character()) {
+    stop("Please use subsetting to create vectors")
+    V <- NULL
+	if(table@isDeep) {
+        if(length(val_col_name)) { ## column vector deep table
+            V <- new("FLVector",
+                     table = table, 
+                     val_col_name = table@cell_val_colname,
+                     whereconditions = c(whereconditions,
+                                         equalityConstraint(
+                                             table@var_id_colname,"=",cell_val_colname)))
+            ##V <- V[val_row_name]
+        } else if(length(val_row_name)) { ## column vector deep table
+            V <- new("FLVector",
+                     table = table, 
+                     val_col_name = table@cell_val_colname,
+                     whereconditions = c(whereconditions,
+                                         paste0(table@obs_id_colname,"=",val_row_name)))
+        }
+    } else if(!table@isDeep) {
+        if(length(val_col_name)) { 
+            V <- new("FLVector",
+                     table = table, 
+                     val_col_name = val_col_name,
+                     whereconditions = c(whereconditions))
+            ##V <- V[val_row_name]
+        } else if(length(val_row_name)) { ## column vector deep table
+            V <- new("FLVector",
+                     table = table, 
+                     val_col_name = names(table),
+                     whereconditions = c(whereconditions,
+                                         paste0(table@obs_id_colname,"=",val_row_name)))
+        }
     }
-    else if(!table@isDeep)
-    {
-        size <- sqlQuery(table@odbc_connection,
-                         paste0("SELECT max(",table@primary_key,")
-        				 		 FROM ",
-                                getRemoteTableName(table@db_name,
-                                                   table@table_name)))[1,1]
-        new("FLVector", 
-        	table = table, 
-        	col_name = col_name, 
-        	vector_id_value = vector_id_value, 
-        	size = size)
-    }
-    else
-    {
-    	stop("column not in wide table or invalid inputs for deep table")	
-    }
+    if(is.null(V))
+        stop("column not in wide table or invalid inputs for deep table")
+    
+    ## length(V) <- sqlQuery(table@odbc_connection,
+    ##                    paste0("SELECT count(",table@obs_id_colname,")
+	## 					 		 FROM ",
+    ##                           remoteTable(V),
+    ##                           constructWhere(c(constraintsSQL(V)))))[1,1]
+    return(V)
 }
 
-setMethod("show","FLVector",print.FLVector)
+setMethod("show","FLVector",function(object) print(as.vector(object)))
+
 

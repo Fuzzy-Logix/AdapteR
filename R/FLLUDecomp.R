@@ -166,7 +166,7 @@ lu.FLMatrix<-function(object)
 
 	x <- new("FLVector", 
 		     table = table, 
-		     col_name = table@num_val_name, 
+		     col_name = table@cell_val_colname, 
 		     vector_id_value = max_vector_id_value-1, 
 		     size = ((nrow(object))*(ncol(object))))
 
@@ -240,7 +240,7 @@ lu.FLMatrix<-function(object)
 
 	perm <- new("FLVector", 
 		         table = table, 
-		         col_name = table@num_val_name, 
+		         col_name = table@cell_val_colname, 
 		         vector_id_value = max_vector_id_value-1, 
 		         size = ncol(object))   ###############################  check this for non-square matrices
 

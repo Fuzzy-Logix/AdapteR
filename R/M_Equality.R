@@ -9,16 +9,14 @@ identical.FLMatrix <- function(object1, object2)
 {
 	if(is.FLMatrix(object1) && is.FLMatrix(object2))
 	{
-		sqlstr <- paste("DATABASE ",object1@db_name,";
-						 SET ROLE ALL;")
 		sqlstr <- paste("SELECT 0
-						 FROM ",object1@db_name,".",object1@matrix_table,"a,
-						 	  ",object2@db_name,".",object2@matrix_table,"b
-						 WHERE a.",object1@matrix_id_colname,"=",object1@matrix_id_value,"
-						 AND   b.",object2@matrix_id_colname,"=",object2@matrix_id_value,"
-						 AND   a.",object1@row_id_colname,"= b.",object2@row_id_colname,"
-						 AND   a.",object1@col_id_colname,"= b.",object2@col_id_colname,"
-						 AND   a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname)
+						 FROM ",remoteTable(object1),"a,
+						 	  ",remoteTable(object2),"b",
+                        constructWhere(c(constraintsSQL(object1,"a"),
+                                         constraintsSQL(object2,"b"),
+                                         paste0("a.",object1@row_id_colname,"= b.",object2@row_id_colname),
+                                         paste0("a.",object1@col_id_colname,"= b.",object2@col_id_colname),
+                                         paste0("a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname))))
 		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
 		if(nrow(retobj) == 0)
 		{
@@ -52,22 +50,19 @@ identical.FLMatrix <- function(object1, object2)
 {
 	if(is.FLMatrix(object1) && is.FLMatrix(object2))
 	{
-		sqlstr <- paste("DATABASE ",object1@db_name,";
-						 SET ROLE ALL;")
 		sqlstr <- paste("SELECT 0
-						 FROM ",object1@db_name,".",object1@matrix_table," a,
-						 	  ",object2@db_name,".",object2@matrix_table," b
-						 WHERE a.",object1@matrix_id_colname,"=",object1@matrix_id_value," 
-						 AND   b.",object2@matrix_id_colname,"=",object2@matrix_id_value," 
-						 AND   a.",object1@row_id_colname,"= b.",object2@row_id_colname," 
-						 AND   a.",object1@col_id_colname,"= b.",object2@col_id_colname," 
-						 AND   a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname)
+						 FROM ",remoteTable(object1),"a,
+						 	  ",remoteTable(object2),"b",
+                        constructWhere(c(constraintsSQL(object1,"a"),
+                                         constraintsSQL(object2,"b"),
+                                         paste0("a.",object1@row_id_colname,"= b.",object2@row_id_colname),
+                                         paste0("a.",object1@col_id_colname,"= b.",object2@col_id_colname),
+                                         paste0("a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname))))
 		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
 
 		if(nrow(retobj) == 0)
 		{
 			return(TRUE)
-
 		}
 		else if (nrow(retobj) > 0)
 		{
@@ -87,86 +82,57 @@ identical.FLMatrix <- function(object1, object2)
 		if((nrow(object2) != nrow(object1)) || (ncol(object1) != ncol(object2)))
 		return(FALSE)
 
-		sqlstr <- paste("DATABASE ",object1@db_name,";
-						 SET ROLE ALL;")
 		sqlstr <- paste("SELECT 0
-						 FROM ",object1@db_name,".",object1@matrix_table," a,
-						 	  ",object2@db_name,".",object2@matrix_table," b
-						 WHERE a.",object1@matrix_id_colname,"=",object1@matrix_id_value," 
-						 AND   b.",object2@matrix_id_colname,"=",object2@matrix_id_value," 
-						 AND   a.",object1@row_id_colname,"= b.",object2@row_id_colname," 
-						 AND   a.",object1@col_id_colname,"= b.",object2@col_id_colname," 
-						 AND   a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname)
-		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
+						 FROM ",remoteTable(object1),"a,
+						 	  ",remoteTable(object2),"b",
+                        constructWhere(c(constraintsSQL(object1,"a"),
+                                         constraintsSQL(object2,"b"),
+                                         paste0("a.",object1@row_id_colname,"= b.",object2@row_id_colname),
+                                         paste0("a.",object1@col_id_colname,"= b.",object2@col_id_colname),
+                                         paste0("a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname))))
 
-		if(nrow(retobj) == 0)
-		{
-			return(TRUE)
-
-		}
-		else if (nrow(retobj) > 0)
-		{
-			return(FALSE)
-		}
-	}
-	else
-	{
-		base::identical(object1,object2)
-	}
-}
-
-`==.FLVector` <- function(object1,object2)
-{
-	if(is.FLVector(object1) && is.FLVector(object2))
-	{
-		if(object2@size != object1@size)
-		return(FALSE)
-
-		sqlstr <- paste("DATABASE ",object1@table@db_name,";
-						 SET ROLE ALL;")
-
-		if(object1@table@isDeep && object2@table@isDeep)
+		if(object1@isDeep && object2@isDeep)
 		{
 			sqlstr <- paste("SELECT 0
-							 FROM ",object1@table@db_name,".",object1@table@table_name,"a,
-							 	  ",object2@table@db_name,".",object2@table@table_name,"b
-							 WHERE a.",object1@table@primary_key,"=",object1@vector_id_value,"
-							 AND   b.",object2@table@primary_key,"=",object2@vector_id_value,"
-							 AND   a.",object1@table@var_id_name,"= b.",object2@table@var_id_name,"
+							 FROM ",object1@db_name,".",object1@table_name,"a,
+							 	  ",object2@db_name,".",object2@table_name,"b
+							 WHERE a.",object1@obs_id_colname,"=",object1@vector_id_value,"
+							 AND   b.",object2@obs_id_colname,"=",object2@vector_id_value,"
+							 AND   a.",object1@var_id_name,"= b.",object2@var_id_name,"
 							 AND   a.",object1@col_name," <> b.",object2@col_name)
 		}
 
-		if(!object1@table@isDeep && object2@table@isDeep)
+		if(!object1@isDeep && object2@isDeep)
 		{
 			sqlstr <- paste("SELECT 0
-							 FROM ",object1@table@db_name,".",object1@table@table_name,"a,
-							 	  ",object2@table@db_name,".",object2@table@table_name,"b
-							 WHERE b.",object2@table@primary_key,"=",object2@vector_id_value,"
-							 AND   a.",object1@table@primary_key,"= b.",object2@table@var_id_name,"
+							 FROM ",object1@db_name,".",object1@table_name,"a,
+							 	  ",object2@db_name,".",object2@table_name,"b
+							 WHERE b.",object2@obs_id_colname,"=",object2@vector_id_value,"
+							 AND   a.",object1@obs_id_colname,"= b.",object2@var_id_name,"
 							 AND   a.",object1@col_name," <> b.",object2@col_name)
 		}
 
-		if(object1@table@isDeep && !object2@table@isDeep)
+		if(object1@isDeep && !object2@isDeep)
 		{
 			sqlstr <- paste("SELECT 0
-							 FROM ",object1@table@db_name,".",object1@table@table_name,"a,
-							 	  ",object2@table@db_name,".",object2@table@table_name,"b
-							 WHERE a.",object1@table@primary_key,"=",object1@vector_id_value,"
-							 AND   b.",object2@table@primary_key,"= a.",object1@table@var_id_name,"
+							 FROM ",object1@db_name,".",object1@table_name,"a,
+							 	  ",object2@db_name,".",object2@table_name,"b
+							 WHERE a.",object1@obs_id_colname,"=",object1@vector_id_value,"
+							 AND   b.",object2@obs_id_colname,"= a.",object1@var_id_name,"
 							 AND   a.",object1@col_name," <> b.",object2@col_name)
 		}
 
-		if(!object1@table@isDeep && !object2@table@isDeep)
+		if(!object1@isDeep && !object2@isDeep)
 		{
 			sqlstr <- paste("SELECT 0
-							 FROM ",object1@table@db_name,".",object1@table@table_name,"a,
-							 	  ",object2@table@db_name,".",object2@table@table_name,"b
-							 WHERE a.",object1@table@primary_key,"= b.",object2@table@primary_key," 
+							 FROM ",object1@db_name,".",object1@table_name,"a,
+							 	  ",object2@db_name,".",object2@table_name,"b
+							 WHERE a.",object1@obs_id_colname,"= b.",object2@obs_id_colname," 
 							 AND   a.",object1@col_name,"<> b.",object2@col_name)
 		}
 
 
-		retobj<-sqlQuery(object1@table@odbc_connection,sqlstr)
+		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
 
 		if(nrow(retobj) == 0)
 		{

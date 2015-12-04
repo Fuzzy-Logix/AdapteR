@@ -4,8 +4,9 @@
 \alias{FLTable}
 \title{Constructor function for FLTable.}
 \usage{
-FLTable(connection, database, table, primary_key, var_id_name = character(0),
-  num_val_name = character(0))
+FLTable(connection, database, table, obs_id_colname,
+  var_id_colnames = character(0), cell_val_colname = character(0),
+  whereconditions = character(0))
 }
 \arguments{
 \item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}
@@ -14,11 +15,11 @@ FLTable(connection, database, table, primary_key, var_id_name = character(0),
 
 \item{table}{name of the table}
 
-\item{primary_key}{column name set as primary key}
+\item{obs_id_colname}{column name set as primary key}
 
-\item{var_id_name}{column name where variable id's are stored if \code{FLTable} is deep}
+\item{cell_val_colname}{column name where cell values are stored if \code{FLTable} is deep}
 
-\item{num_val_name}{column name where cell values are stored if \code{FLTable} is deep}
+\item{var_id_colname}{column name where variable id's are stored if \code{FLTable} is deep}
 }
 \value{
 \code{FLTable} returns an object of class FLTable mapped to a table

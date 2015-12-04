@@ -5,15 +5,16 @@
 \title{Constructor function for FLVector, representing a vector in database, either a deep or a wide matrix.
 gk: how can we support row vectors?}
 \usage{
-FLVector(table, col_name, vector_id_value = numeric(0), size = numeric(0))
+FLVector(table, val_col_name = character(), val_row_name = character(),
+  whereconditions = character())
 }
 \arguments{
 \item{table}{FLTable object as returned by \code{\link[AdapteR]{FLTable}}
 where the vector is stored}
 
-\item{vector_id_value}{unique identifier for the vector if stored in deep table}
-
 \item{colname}{name of the column in \code{table} where vector elements are stored}
+
+\item{vector_id_value}{unique identifier for the vector if stored in deep table}
 }
 \value{
 \code{FLVector} returns an object of class FLVector mapped to an in-database vector.

@@ -19,11 +19,11 @@ An S4 class to represent FLTable
 
 \item{\code{table_name}}{character}
 
-\item{\code{primary_key}}{character}
+\item{\code{obs_id_colname}}{character}
 
-\item{\code{var_id_name}}{character}
+\item{\code{var_id_colnames}}{character}
 
-\item{\code{num_val_name}}{character}
+\item{\code{cell_val_colname}}{character}
 
 \item{\code{isDeep}}{logical}
 }}

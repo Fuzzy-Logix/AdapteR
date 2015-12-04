@@ -4,7 +4,7 @@
 \alias{[.FLMatrix}
 \title{Extract part of FLMatrix object.}
 \usage{
-\method{[}{FLMatrix}(object, rows = 1, cols = 1)
+\method{[}{FLMatrix}(object, rows = 1, cols = 1, drop = TRUE)
 }
 \arguments{
 \item{object}{is a FLMatrix object}

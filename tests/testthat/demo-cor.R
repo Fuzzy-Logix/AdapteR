@@ -1,5 +1,38 @@
+##################################################################
+## Starting a session
+##
+## loading AdapteR
+setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR")
+devtools::load_all(".")
+
+## Unit tests for all functions
+require(testthat)
+## devtools::test()
+devtools::document()
+
+
+## ODBJ and JDBC is supported
+## here we use jdbc
+library(RJDBC) 
+## the jdbc driver from teradata developer network
+## add jdbc driver and security jars to classpath
+.jaddClassPath("/Users/gregor/fuzzylogix/terajdbc4.jar")
+.jaddClassPath("/Users/gregor/fuzzylogix/tdgssconfig.jar")
+library(teradataR)
+
+connection <- tdConnect("10.200.4.116",
+                        "gkappler",
+                        yourPassword,
+                        database="FL_DEMO",
+                        dType="jdbc")
+## need to add class path twice (recurring problem in MAC as of:
+## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
+## note: wait for some time before rerunning?
+ls()
+
+
+options(debugSQL=FALSE)
 FLStartSession(connection)
-options(debugSQL=TRUE)
 
 
 ## a in-memory matrix in R 
@@ -122,65 +155,78 @@ flCorr <- cor(
     eqnRtn[,randomstocks])
 round(flCorr,2)
 
+
+options(debugSQL = TRUE)
+M <- cor(eqnRtn[,randomstocks])
+M
+## And of course you can now use the full power of
+## tens of thousands of R packages, e.g.
+##
 require(gplots)
-require(corrplot)
-corrplot(cor(rEqnRtn))
+heatmap.2(as.matrix(M),
+          symm=TRUE, 
+          distfun=function(c) as.dist(1 - c),
+          trace="none",
+          col=redgreen(100),
+          cexCol = 1,
+          cexRow = 1)
 
-corrplot(as.matrix(flCorr))
-
-randomstocks <- sample(colnames(eqnRtn),
-                       100)
-
-
-flCorr <- cor(eqnRtn[,randomstocks])
-
-corrplot(as.matrix(flCorr),
-         method="color",
-         outline = FALSE,
-         order = "hclust",
-         hclust.method = "ward",
-         addrect = 10,
-         tl.col="black",tl.cex = .5)
+## From this we will see an interactive "shiny" demo
 
 
-ord <- corrMatOrder(flCorr,
-                    order = "hclust",
-                    hclust.method = "ward")
-flCorr <- flCorr[ord, ord]
+###########################################################
+##
+## -- but first a look under the hood:
+##
+## memory consumption
+##
+Nstocks <- 100
+subEqnRtn <- eqnRtn[, sample(colnames(eqnRtn),Nstocks)]
+dim(eqnRtn)
+dim(subEqnRtn)
+
+## only dimension names are in local memory:
+print(object.size(eqnRtn),units = "Kb")
+print(object.size(eqnRtn@dimnames),units = "Kb")
+print(object.size(subEqnRtn),units = "Kb")
+print(object.size(subEqnRtn@dimnames),units = "Kb")
+
+## Download a subset of the remote Table into R Memory
+rEqnRtn <- as.matrix(subEqnRtn)
+
+## compare memory consumption:
+print(object.size(rEqnRtn),units = "Kb")
 
 
-library(seriation) ## for pimage and hmap
-pimage(as.matrix(flCorr))
+##
+## SQL construction
+## with this option each R command that uses DBLytix will log
+## the SQL sent to Teradata.
+## Such a dump can in many cases be used as a pure-sql script!
+options(debugSQL=TRUE)
 
-hmap(as.matrix(flCorr))
+## Try some commands above 
 
-
-## heatmap with correlation-based distance, green-red color (greenred is 
-## predefined) and optimal leaf ordering and no row label
-dist_cor <- function(x) as.dist(1-cor(t(x)))
-
-     
-
-hmap(as.matrix(flCorr),
-     method="OLO", distfun = dist_cor,
-     col=greenred(100),
-     zlim=c(-1,1),
-     labRow=FALSE)
-
-     ## order-based heatmap
-     hmap(as.matrix(flCorr), method="MDS_angle", distfun = dist_cor, col=greenred(100))  
-     
-     ## order-based without dissimilarity matrices
-     hmap(as.matrix(flCorr), method="MDS_angle", distfun = dist_cor, showdist = FALSE, 
-       col=greenred(100))  
+## BTW:
+E <- subEqnRtn
+## where clauses are dynamically constructed
+constructWhere(constraintsSQL(E))
+## dynamic where clauses support local names
+## so that SQL can be constructed flexibly
+constructWhere(constraintsSQL(E,"a"))
 
 
+###########################################################
+## Finally the
+## Shiny Demo
+##
+## metadata can be quickly combined on the client
+##
 metaInfo <- read.csv("~/Downloads/companylist.csv")
 table(metaInfo$industry)
 table(metaInfo$Sector)
 
-
-
+## BTW: there is more demo after shiny: matrix inversion and multiplication
 randomstocks <- c('AAPL','HPQ','IBM','MSFT','ORCL')
 require(R.utils)
 require(shiny)
@@ -232,39 +278,51 @@ shinyApp(
 )
 
 
+lm(y ~ x + x2 + x3, data=D)
+lm("y ~ x + x2 + x3", data=D)
 
-image(as.matrix(flCorr))
+formula <- "y ~ x + x2 + x3"
+formula <- prepare(data=D,DV=y)
+lm(formula, data=D)
 
-## Selection constructs dynamic where clauses
-constructWhere(constraintsSQL(E))
-## dynamic where clauses support local names
-constructWhere(constraintsSQL(E,"a"))
-
-
-
-##################################################################
-## Let us look at memory consumption:
+###########################################################
 ##
-Nstocks <- 10
-subEqnRtn <- eqnRtn[, sample(colnames(eqnRtn),Nstocks)]
+## Matrix Inversion
+##
+## The SQL-through R way a la Manual:
+dbGetQuery(connection, "
+WITH z (Matrix_ID, Row_ID, Col_ID, NumVal) AS
+(
+SELECT a.Matrix_ID,
+a.Row_ID,
+a.Col_ID,
+a.Cell_Val
+FROM fl_dev.tblMatrixMulti a
+WHERE a.Matrix_ID = 5
+)
+SELECT a.*
+FROM TABLE (
+FLMatrixInvUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.NumVal)
+HASH BY z.Matrix_ID
+LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+) AS a
+ORDER BY 1,2,3;")
 
-## only dimension names are in local memory:
-print(object.size(eqnRtn),units = "Kb")
-print(object.size(eqnRtn@dimnames),units = "Kb")
-print(object.size(subEqnRtn),units = "Kb")
-print(object.size(subEqnRtn@dimnames),units = "Kb")
+m <- FLMatrix(connection,
+              database          = "FL_dev",
+              matrix_table      = "tblMatrixMulti",
+              matrix_id_value   = "5",
+              matrix_id_colname = "Matrix_ID",
+              row_id_colname    = "Row_ID",
+              col_id_colname    = "Col_ID",
+              cell_val_colname  = "Cell_Val")
+m
+ms <- solve(m)
+ms
 
-## Download a subset of the remote Table into R Memory
-rEqnRtn <- as.matrix(subEqnRtn)
+expect_equal(as.matrix(ms), solve(as.matrix(m)))
 
-## compare memory consumption:
-print(object.size(rEqnRtn),units = "Kb")
-
-
-
-
-
-
+m %*% ms
 
 
 

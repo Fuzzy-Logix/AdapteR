@@ -54,7 +54,7 @@ NULL
 	}
 	else if(is.FLVector(flmatobj1))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@table@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
 		flmatobj2+flmatobj1
 	}
 	else 
@@ -132,7 +132,7 @@ NULL
 	{
 		flag1Check(flmatobj1@odbc_connection)
 
-		if(!flmatobj2@table@isDeep)
+		if(!flmatobj2@isDeep)
 		{
 			sqlSendUpdate(flmatobj1@odbc_connection,
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
@@ -149,9 +149,9 @@ NULL
 					          		  Z.ROW_ID,
 					          		  Z.COL_ID,
 					          		  Z.CELL_VAL+b.",flmatobj2@col_name,
-					        " FROM ",remoteTable(flmatobj2@table)," b,
+					        " FROM ",remoteTable(flmatobj2)," b,
 					        		Z 
-					          WHERE Z.ROW_NUM MOD ",flmatobj2@size," = b.",flmatobj2@table@primary_key," MOD ",flmatobj2@size))
+					          WHERE Z.ROW_NUM MOD ",length(flmatobj2)," = b.",flmatobj2@obs_id_colname," MOD ",length(flmatobj2)))
 		}
 
 		else
@@ -171,10 +171,10 @@ NULL
 	         				  		 Z.ROW_ID,
 	         				  		 Z.COL_ID,
 	         				  		 Z.CELL_VAL+b.",flmatobj2@col_name,
-	         				" FROM ",remoteTable(flmatobj2@table)," b,
+	         				" FROM ",remoteTable(flmatobj2)," b,
 	         						 Z 
-	          				  WHERE Z.ROW_NUM MOD ",flmatobj2@size," = b.",flmatobj2@table@var_id_name," MOD ",flmatobj2@size,
-	          				" AND b.",flmatobj2@table@primary_key,"=",flmatobj2@vector_id_value))
+	          				  WHERE Z.ROW_NUM MOD ",length(flmatobj2)," = b.",flmatobj2@var_id_name," MOD ",length(flmatobj2),
+	          				" AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value))
 		}
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
@@ -216,7 +216,7 @@ NULL
 
 	else if(class(obj1)=="FLVector")
 	{
-		obj2 <- as.FLVector(x,obj1@table@odbc_connection)
+		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj1+obj2
 	}
 
@@ -396,24 +396,24 @@ NULL
 
 `+.FLVector` <- function(pObj1,pObj2)
 {
-	vNrow1 <- pObj1@size
+	vNrow1 <- length(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
 		return(pObj2+pObj1)
 	}
 	else if(is.vector(pObj2))
 	{
-		pObj2 <- as.FLVector(pObj2,pObj1@table@odbc_connection)
+		pObj2 <- as.FLVector(pObj2,pObj1@odbc_connection)
 		pObj2+pObj1
 	}
 	else if(is.matrix(pObj2))
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@table@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
 		pObj2+pObj1
 	}
 	else if(class(pObj2)=="dgCMatrix")
 	{
-		pObj2 <- as.FLSparseMatrix(pObj2,pObj1@table@odbc_connection)
+		pObj2 <- as.FLSparseMatrix(pObj2,pObj1@odbc_connection)
 		pObj2+pObj1
 	}
 	else if(is.FLSparseMatrix(pObj2))
@@ -422,71 +422,71 @@ NULL
 	}
 	else if(is.FLVector(pObj2))
 	{
-		flag3Check(pObj1@table@odbc_connection)
-		if(pObj2@size > pObj1@size)
+		flag3Check(pObj1@odbc_connection)
+		if(length(pObj2) > length(pObj1))
 		{
 			vTemp <- pObj1
 			pObj1 <- pObj2
 			pObj2 <- vTemp
 		}
-		vMinSize <- pObj2@size
+		vMinSize <- length(pObj2)
 
-		if(pObj1@table@isDeep && pObj2@table@isDeep)
+		if(pObj1@isDeep && pObj2@isDeep)
 		{
 			vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 					         " SELECT ",max_vector_id_value,",
-					         		  a.",pObj1@table@var_id_name,", 
+					         		  a.",pObj1@var_id_name,", 
 					         		  CAST(a.",pObj1@col_name,"+b.",pObj2@col_name," AS NUMBER) ",
-					         " FROM ",remoteTable(pObj1@table)," a,",
-					         		  remoteTable(pObj2@table)," b",
-					         " WHERE a.",pObj1@table@primary_key,"=",pObj1@vector_id_value," 
-					           AND b.",pObj2@table@primary_key,"=",pObj2@vector_id_value,
-					         " AND a.",pObj1@table@var_id_name," MOD ",vMinSize," = b.",pObj2@table@var_id_name," MOD ",vMinSize)
+					         " FROM ",remoteTable(pObj1)," a,",
+					         		  remoteTable(pObj2)," b",
+					         " WHERE a.",pObj1@obs_id_colname,"=",pObj1@vector_id_value," 
+					           AND b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
+					         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@var_id_name," MOD ",vMinSize)
 
-			sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 		}
 
-		else if(xor(pObj1@table@isDeep,pObj2@table@isDeep))
+		else if(xor(pObj1@isDeep,pObj2@isDeep))
 		{
-			if(pObj1@table@isDeep)
+			if(pObj1@isDeep)
 			{
 				vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 						         " SELECT ",max_vector_id_value,",
-						         		  a.",pObj1@table@var_id_name,", 
+						         		  a.",pObj1@var_id_name,", 
 						         		  CAST(a.",pObj1@col_name,"+b.",pObj2@col_name," AS NUMBER) ",
-						         " FROM ",remoteTable(pObj1@table)," a,",
-						         		  remoteTable(pObj2@table)," b",
-						         " WHERE a.",pObj1@table@primary_key,"=",pObj1@vector_id_value,
-						         " AND a.",pObj1@table@var_id_name," MOD ",vMinSize," = b.",pObj2@table@primary_key," MOD ",vMinSize)
+						         " FROM ",remoteTable(pObj1)," a,",
+						         		  remoteTable(pObj2)," b",
+						         " WHERE a.",pObj1@obs_id_colname,"=",pObj1@vector_id_value,
+						         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@obs_id_colname," MOD ",vMinSize)
 
-			    sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 			}
             else
             {
 				vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 						         " SELECT ",max_vector_id_value,",
-						         		  a.",pObj1@table@primary_key,", 
+						         		  a.",pObj1@obs_id_colname,", 
 						         		  CAST(a.",pObj1@col_name,"+b.",pObj2@col_name," AS NUMBER) ",
-						         " FROM ",remoteTable(pObj1@table)," a,",
-						         		  remoteTable(pObj2@table)," b",
-						         " WHERE b.",pObj2@table@primary_key,"=",pObj2@vector_id_value,
-						         " AND b.",pObj2@table@var_id_name," MOD ",vMinSize," = a.",pObj1@table@primary_key," MOD ",vMinSize)
+						         " FROM ",remoteTable(pObj1)," a,",
+						         		  remoteTable(pObj2)," b",
+						         " WHERE b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
+						         " AND b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
-			    sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
             }
 		}
 
-		else if(!pObj1@table@isDeep && !pObj2@table@isDeep)
+		else if(!pObj1@isDeep && !pObj2@isDeep)
 		{
 			vSqlStr <-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 					         " SELECT ",max_vector_id_value,",
-					         		  a.",pObj1@table@primary_key,", 
+					         		  a.",pObj1@obs_id_colname,", 
 					         		  CAST(a.",pObj1@col_name,"+b.",pObj2@col_name," AS NUMBER) ",
-					         " FROM ",remoteTable(pObj1@table)," a,",
-					         		  remoteTable(pObj2@table)," b",
-					         " WHERE b.",pObj2@table@var_id_name," MOD ",vMinSize," = a.",pObj1@table@primary_key," MOD ",vMinSize)
+					         " FROM ",remoteTable(pObj1)," a,",
+					         		  remoteTable(pObj2)," b",
+					         " WHERE b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
-			    sqlSendUpdate(pObj1@table@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 		}
 
 			max_vector_id_value <<- max_vector_id_value + 1
@@ -499,9 +499,9 @@ NULL
 
 			new("FLVector", 
 				 table = table, 
-				 col_name = table@num_val_name, 
+				 col_name = table@cell_val_colname, 
 				 vector_id_value = max_vector_id_value-1, 
-				 size = pObj1@size)
+				 size = length(pObj1))
 			
 	}
 	else cat("ERROR::Operation Currently Not Supported")
@@ -517,7 +517,7 @@ NULL
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLSparseMatrix(x,flmatobj@table@odbc_connection)
+		flmatobj2 <- as.FLSparseMatrix(x,flmatobj@odbc_connection)
 		flmatobj2 + flmatobj
 	}
 	else

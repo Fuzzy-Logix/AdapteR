@@ -21,24 +21,24 @@ print.FLSparseMatrix <- function(object)
 print.FLVector <- function(object)
 {
     ##browser()
-    if(object@table@isDeep && length(object@vector_id_value))
+    if(object@isDeep && length(object@vector_id_value))
     {
-        valuedf <- sqlQuery(object@table@odbc_connection,
+        valuedf <- sqlQuery(object@odbc_connection,
                             paste0("SELECT * FROM ",
                                    remoteTable(object),
-                                   " WHERE ",object@table@primary_key,"=",
+                                   " WHERE ",object@obs_id_colname,"=",
                                    object@vector_id_value,
-                                   " ORDER BY ",object@table@var_id_name))
+                                   " ORDER BY ",object@var_id_name))
         print(valuedf[,object@col_name])
         ##print(valuedf)
-    } else if(!object@table@isDeep) {
-        valuedf <- sqlQuery(object@table@odbc_connection,
+    } else if(!object@isDeep) {
+        valuedf <- sqlQuery(object@odbc_connection,
                             paste0("SELECT ",
-                                   object@table@primary_key,",",
+                                   object@obs_id_colname,",",
                                    object@col_name,
                                    " FROM ",
                                    remoteTable(object),
-                                   " ORDER BY ",object@table@primary_key))
+                                   " ORDER BY ",object@obs_id_colname))
         print(valuedf[,object@col_name])
     }
     ls()
