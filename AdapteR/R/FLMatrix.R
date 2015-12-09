@@ -274,7 +274,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           function(func_name,includeMID,
             outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
           {
-            return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause))
+            return(outputSelectMatrix(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal")
+              ,viewName,localName,whereClause))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
                                           viewName="character",localName="character",whereClause="missing"),
@@ -303,7 +304,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           function(func_name,includeMID,
             outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
           {
-            return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause=";"))
+            return(outputSelectMatrix(func_name,includeMID,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";"))
           })
 
 

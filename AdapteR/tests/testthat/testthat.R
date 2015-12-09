@@ -134,7 +134,7 @@ test_that("check class and result of FLMatrix",
         as.vector(as.matrix(m)),as.vector(matrix1)
     )
     ## Testing FLTranspose
-    ### Phani-- tested
+    
     test_that("check transpose",
               expect_equal(
               (t(m) == as.FLMatrix(t(as.matrix(m)),connection)),
@@ -241,7 +241,16 @@ as.data.frame(WideTable)
 
 as.data.frame(WideTable)
 v1 <- WideTable[,"vector_value"]
-v1[2:1]
+### Phani-- subsetting FLVector
+v2 <- v1[2:1]
+print(v2)
+### Phani-- subsetting FLMatrix with mapping
+m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",1,dimnames=list(c("a","b","c"),1:3))
+m3[c("b","c"),]
+m3[,]
+m3[]
+m3[,2:1]
+m3[c("b","c"),1:2]
 
 
 WideTable
@@ -371,7 +380,6 @@ test_that("check the result of the diag of matrix",
 })
 
 ## Testing FLRankMatrix
-### Phani--tested
 test_that("check rankMatrix return type",
           expect_true(
               is.vector(rankMatrix(m4))
@@ -438,6 +446,8 @@ expect_flequal <- function(a,b){
 }
 
 ## Testing FLSVDecomp
+## Phani -- results differ in Teradata and R
+### but function works.
 test_that("check Singular Value Decomposition",
 {
     flv <- svd(m4)
@@ -694,7 +704,7 @@ test_that("check result type and dimensions for FLMatrixRREF",
 test_that("check result type and dimensions for FLMatrixNorm",
 {
     expect_true(
-        is.FLVector(FLMatrixNorm(m3,3))
+        is.vector(FLMatrixNorm(m3,3))
     )
 
     expect_true(
@@ -726,7 +736,6 @@ test_that("check result type and dimensions for FLSolveExcl",
 })
 
 # Testing FLCholeskyDecomp
-### Phani-- tested
 test_that("check if FLCholeskyDecomp is working ",
 {
     chol(m4)
@@ -822,7 +831,7 @@ test_that("check non-compatibility of matrix for Hessenberg Decomposition",
           ))
 
                                         # Testing FLSolve
-                                        ### Phani--tested
+                                      
 test_that("check non-compatibility of matrix for calculating inverse",
 {  expect_error(solve(m3))
     expect_error(solve(m))
@@ -903,7 +912,7 @@ test_that("check parameter NormMethod range for FLMatrixNorm",
           )
 
                                         # Testing FLCholeskyDecomp
-                                        ### Phani-- not_tested need to implement checkHermPosDefi..
+                                      
 test_that("check non-compatibility of matrices for Cholesky Decomposition",
 {     expect_error(chol(m))
     expect_error(chol(m3))
