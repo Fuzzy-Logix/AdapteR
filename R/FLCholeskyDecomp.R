@@ -35,8 +35,8 @@ chol.FLMatrix<-function(object)
 	connection<-object@odbc_connection
 	flag1Check(connection)
 	
-	checkSquare(object,"chol")
-	checkHermitianPositiveDefinite(object)
+	# checkSquare(object,"chol")
+	# checkHermitianPositiveDefinite(object)
 
 	MID <- max_matrix_id_value
 
