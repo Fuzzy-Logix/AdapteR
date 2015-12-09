@@ -241,6 +241,7 @@ as.data.frame(WideTable)
 
 as.data.frame(WideTable)
 v1 <- WideTable[,"vector_value"]
+v1[2:1]
 
 
 WideTable
@@ -479,6 +480,8 @@ test_that("check dimensions returned for FLSV",
           ))
 
                                         #Testing RowMeans
+                                        ### Phani-- very less difference in results
+                                        ### but test case-3 fails
 test_that("check return type and working for rowMeans",
           expect_true(
               is.FLVector(rowMeans(m5))
@@ -855,12 +858,6 @@ test_that("check nrow non-compatibility for cbind",
 test_that("check input type non-compatibility for cbind",
           expect_error(
               cbind(m4,sm1)
-          ))
-
-                                        #Testing FLSV
-test_that("check non-compatibility for non-square matrices for FLSV",
-          expect_error(
-              FLSV(m3)
           ))
 
                                         # Testing FLEigen

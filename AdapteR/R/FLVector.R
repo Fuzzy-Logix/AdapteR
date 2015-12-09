@@ -52,14 +52,15 @@ FLVector <- function(table,
                      val_col_name = table@cell_val_colname,
                      whereconditions = c(whereconditions,
                                          equalityConstraint(
-                                             table@var_id_colname,"=",cell_val_colname)))
+                                             table@var_id_colname,val_col_name)))
             ##V <- V[val_row_name]
         } else if(length(val_row_name)) { ## column vector deep table
             V <- new("FLVector",
                      table = table, 
                      val_col_name = table@cell_val_colname,
                      whereconditions = c(whereconditions,
-                                         paste0(table@obs_id_colname,"=",val_row_name)))
+                                         equalityConstraint(
+                                             table@obs_id_colname,val_row_name)))
         }
     } else if(!table@isDeep) {
         if(length(val_col_name)) { 

@@ -219,7 +219,8 @@ setGeneric("viewSelectMatrix", function(object,localName, withName) {
 setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         localName="character",
                                         withName="missing"),
-          function(object,localName, withName="z") viewSelectMatrix(object,localName,"z"))
+          function(object,localName, withName="z") 
+          {viewSelectMatrix(object,localName,withName="z")})
 setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         localName="character",
                                         withName="character"),
@@ -234,10 +235,6 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
               constructWhere(constraintsSQL(object,localName)),
                    " ) "))
           })
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",localName="character",withName="missing"),
-          function(object,localName,withName="z") {
-            viewSelectMatrix(object,localName,withName="z")
-            })
 
 # outputSelectMatrix apples function given by func_name to view given by viewname
 # and returns columns specified by outcolnames list. IncludeMID tells if max_matrix_id_value
@@ -250,8 +247,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           function(func_name,includeMID,
             outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
           {
-            return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,paste0("a.OutputMatrixID")),
-                    paste0(",a.",outColNames,collapse="")," 
+            return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,max_vector_id_value),
+                    paste0(",",localName,".",outColNames,collapse="")," 
           FROM TABLE (",func_name,
             "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
           HASH BY z.Matrix_ID 
@@ -284,7 +281,7 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           function(func_name,includeMID,
             outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames,viewName,localName,whereClause=";"))
+            return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause=";"))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
                                           viewName="character",localName="character",whereClause="missing"),

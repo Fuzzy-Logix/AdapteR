@@ -66,16 +66,16 @@ FLTable <- function(connection,
 	## }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-        cols <- sqlQuery(connection,
+        cols <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 var_id_colnames,") as VarID
 						  FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID
-        rows <- sqlQuery(connection,
+                          " ",constructWhere(whereconditions)))$VarID)
+        rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
 						  FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID
+                          " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
 		new("FLTable",
@@ -96,10 +96,10 @@ FLTable <- function(connection,
 						  FROM dbc.columns
 						  WHERE tablename='",table,"' 
 						  AND databasename='",database,"';"))$ColumnName
-        rows <- sqlQuery(connection,
+        rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
-						  FROM ",remoteTable(database,table)))$VarID
+						  FROM ",remoteTable(database,table)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
         if(length(var_id_colnames)==0)

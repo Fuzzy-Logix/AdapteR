@@ -39,10 +39,14 @@ as.data.frame <- function(x, ...)
 }
 as.data.frame.FLTable <- function(x, ...){
     if(!x@isDeep) {
-        D <- sqlQuery(x@odbc_connection,
-                      paste0("SELECT ",paste(colnames(x),collapse=", "),
+        
+            sqlstr <- paste0("SELECT ",
+                            ifelse(x@obs_id_colname %in% colnames(x),paste0(" "),paste0(x@obs_id_colname,",")),
+                            paste(colnames(x),collapse=", "),
                              " FROM ",remoteTable(x),
-                             constructWhere(c(constraintsSQL(x)))),...)
+                             constructWhere(c(constraintsSQL(x))),
+                             " ORDER BY ",x@obs_id_colname)
+      D <- sqlQuery(x@odbc_connection,sqlstr)
     } else {
         ##browser()
         sqlstr <- paste0("SELECT ",
@@ -70,12 +74,20 @@ as.data.frame.FLTable <- function(x, ...){
                    value.var = toupper(x@cell_val_colname))
         ##rownames(D) <- D$
     }
-    if(any(D[[x@obs_id_colname]]!=1:nrow(D)))
-        rownames(D) <- D[[x@obs_id_colname]]
-    D[[x@obs_id_colname]] <- NULL
+    names(D) <- toupper(names(D))
+    i <- match(rownames(x),D[[toupper(x@obs_id_colname)]])
+    D <- D[i,]
+    if(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
+        rownames(D) <- D[[toupper(x@obs_id_colname)]]
+    D[[toupper(x@obs_id_colname)]] <- NULL
     return(D)
 }
 
+as.data.frame.FLMatrix <- function(x,...)
+{
+  temp_m <- as.matrix(x)
+  return(as.data.frame(temp_v))
+}
 ##############################################################################################################
 #' Converts \code{x} to matrix in R
 as.matrix <- function(x, ...)
@@ -124,6 +136,12 @@ as.matrix.FLVector <- function(obj)
 	return(as.matrix(Rvector))
 }
 
+as.matrix.FLTable <- function(x,...)
+{
+  temp_df <- as.data.frame(x)
+  return(as.matrix(temp_df))
+}
+
 ###############################################################################################################
 #' Casting to FLMatrix
 #'
@@ -138,7 +156,7 @@ as.matrix.FLVector <- function(obj)
 #' nr and nc inputs are applicable only in case of vector,FLVector
 #' @return FLMatrix object after casting.
 #' @param sparse 
-as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE) {
+as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
     ##browser()
     if((is.matrix(object) && !is.numeric(object)) || (is.data.frame(object) && !is.numeric(as.matrix(object))))
     {
@@ -209,7 +227,7 @@ setMethod("remoteTable", signature(object = "character", table="character"),
               getRemoteTableName(object,table))
 
 
-setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE) {
+setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE,...) {
     standardGeneric("as.FLMatrix")
 })
 setMethod("as.FLMatrix", signature(object = "matrix",
@@ -262,19 +280,54 @@ setMethod("as.FLMatrix", signature(object = "dsCMatrix",
                                    sparse="missing"),
           function(object,connection,sparse=TRUE)
               as.FLMatrix.Matrix(object,connection,sparse))
+###########################################################################
+setMethod("as.FLMatrix", signature(object = "vector",
+                                   connection="ANY",
+                                   sparse="logical"),
+          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.vector(object,connection,sparse,rows,cols,...))
+setMethod("as.FLMatrix", signature(object = "vector",
+                                   connection="ANY",
+                                   sparse="missing"),
+          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.vector(object,connection,sparse,rows,cols,...))
+setMethod("as.FLMatrix", signature(object = "data.frame",
+                                   connection="ANY",
+                                   sparse="logical"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.data.frame(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "data.frame",
+                                   connection="ANY",
+                                   sparse="missing"),
+          function(object,connection,sparse=TRUE)
+              as.FLMatrix.data.frame(object,connection,sparse))
+setMethod("as.FLMatrix", signature(object = "FLVector",
+                                   connection="ANY",
+                                   sparse="logical"),
+          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.vector(object,connection,sparse,rows,cols,...))
+setMethod("as.FLMatrix", signature(object = "FLVector",
+                                   connection="ANY",
+                                   sparse="missing"),
+          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.vector(object,connection,sparse,rows,cols,...))
+
 
 as.sparseMatrix.FLMatrix <- function(object) {
-	valuedf <- sqlQuery(object@odbc_connection, 
-						paste0(" SELECT ",
+  valuedf <- sqlQuery(object@odbc_connection, 
+            paste0(" SELECT ",
                    object@row_id_colname,",",
                    object@col_id_colname,",",
                    object@cell_val_colname,  
                    " FROM ",remoteTable(object),
                    constructWhere(constraintsSQL(object))))
+
     i <- match(valuedf[[1]],rownames(object))
+    if(any(is.na(i)))
+    i <- match(valuedf[[1]],match(rownames(object),rownames(object)))
     j <- match(valuedf[[2]],colnames(object))
-    if(any(is.na(i)) | any(is.na(j)))
-        stop("matrix rowname mapping needs to be implemented")
+    if(any(is.na(j)))
+    j <- match(valuedf[[2]],match(colnames(object),colnames(object)))
     m <- sparseMatrix(i = i,
                       j = j,
                       x = valuedf[[3]],
@@ -283,56 +336,80 @@ as.sparseMatrix.FLMatrix <- function(object) {
     return(m)
 }
 
-as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
+as.FLMatrix.FLVector <- function(object,connection=object@odbc_connection,sparse=TRUE,rows,cols)
 {
-	if(is.FLSparseMatrix(m))
-	{
-        flag1Check(connection)
+  ### Phani-- working on this.. 9th Dec,2015
+  sqlstr <- paste0("INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
+                  " SELECT ",max_matrix_id_value,
+                            ",floor(a.",object@obs_id_colname,"+0.1 MOD ",rows,")
+                             ,a.",object@obs_id_colname,"-floor(a.",object@obs_id_colname,"+0.1 MOD ",rows,")
+                             ,a.",object@dimnames[[2]],
+                  " FROM ",object@db_name,".",object@table_name," AS a",
+                  constructWhere(constraintsSQL(object)))
 
-        ## gk: important!  refactor this to a single sql call!
-        ## gk: please apply throughout: NO sqlQuery inside loops!
-        ## gk: also: R does not at all like loops.  Use apply-like functional approaches.
-        for (i in 1:ncol(m))
-            for (j in 1:nrow(m))
-            {
-                sqlSendUpdate(connection,
-                         paste0(" INSERT INTO ",result_matrix_table,"
-	 	 			 		  SELECT ",max_matrix_id_value,",
-	 	 			 		  ",j,",
-	 	 			 		  ",i,",
-	 	 			 		  ",0))
-            }
-
- 	 	sqlstr <- paste0("UPDATE ",result_matrix_table,"
- 	 			 		  FROM (SELECT ",max_matrix_id_value," AS mid,
- 	 			 		  			   ",m@row_id_colname," AS rid,
- 	 			 		  			   ",m@col_id_colname," AS cid,
- 	 			 		  	           ",m@cell_val_colname," AS cval
- 	 			 		  	    FROM ",remoteTable(m),"
- 	 			 		  	    WHERE ",m@matrix_id_colname,"=",m@matrix_id_value,") c
- 	 			          SET CELL_VAL = c.cval
- 	 			          WHERE ROW_ID = c.rid AND
- 	 			                COL_ID = c.cid AND
- 	 			                MATRIX_ID = c.mid")
-
-        sqlSendUpdate(connection,sqlstr)
-
-        max_matrix_id_value <<- max_matrix_id_value + 1
-
-        return(FLMatrix(
-                   connection = connection,
-                   database = result_db_name,
-                   matrix_table = result_matrix_table,
-                   matrix_id_value = max_matrix_id_value-1,
-                   matrix_id_colname = "MATRIX_ID",
-                   row_id_colname = "ROW_ID",
-                   col_id_colname = "COL_ID",
-                   cell_val_colname = "CELL_VAL",
-                   nrow = nrow(m),
-                   ncol = ncol(m),
-                   dimnames = dimnames(m)))
-	}
 }
+
+as.FLMatrix.vector <- function(object,connection,sparse=TRUE,rows=length(x),cols=1)
+{
+  temp_m <- Matrix::Matrix(object,rows,cols,sparse=TRUE)
+  return(as.FLMatrix(temp_m,connection))
+}
+
+as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
+{
+  temp_m <- Matrix::Matrix(as.matrix(object),sparse=TRUE)
+  return(as.FLMatrix(temp_m,connection))
+}
+# as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
+# {
+# 	if(is.FLSparseMatrix(m))
+# 	{
+#         flag1Check(connection)
+
+#         ## gk: important!  refactor this to a single sql call!
+#         ## gk: please apply throughout: NO sqlQuery inside loops!
+#         ## gk: also: R does not at all like loops.  Use apply-like functional approaches.
+#         for (i in 1:ncol(m))
+#             for (j in 1:nrow(m))
+#             {
+#                 sqlSendUpdate(connection,
+#                          paste0(" INSERT INTO ",result_matrix_table,"
+# 	 	 			 		  SELECT ",max_matrix_id_value,",
+# 	 	 			 		  ",j,",
+# 	 	 			 		  ",i,",
+# 	 	 			 		  ",0))
+#             }
+
+#  	 	sqlstr <- paste0("UPDATE ",result_matrix_table,"
+#  	 			 		  FROM (SELECT ",max_matrix_id_value," AS mid,
+#  	 			 		  			   ",m@row_id_colname," AS rid,
+#  	 			 		  			   ",m@col_id_colname," AS cid,
+#  	 			 		  	           ",m@cell_val_colname," AS cval
+#  	 			 		  	    FROM ",remoteTable(m),"
+#  	 			 		  	    WHERE ",m@matrix_id_colname,"=",m@matrix_id_value,") c
+#  	 			          SET CELL_VAL = c.cval
+#  	 			          WHERE ROW_ID = c.rid AND
+#  	 			                COL_ID = c.cid AND
+#  	 			                MATRIX_ID = c.mid")
+
+#         sqlSendUpdate(connection,sqlstr)
+
+#         max_matrix_id_value <<- max_matrix_id_value + 1
+
+#         return(FLMatrix(
+#                    connection = connection,
+#                    database = result_db_name,
+#                    matrix_table = result_matrix_table,
+#                    matrix_id_value = max_matrix_id_value-1,
+#                    matrix_id_colname = "MATRIX_ID",
+#                    row_id_colname = "ROW_ID",
+#                    col_id_colname = "COL_ID",
+#                    cell_val_colname = "CELL_VAL",
+#                    nrow = nrow(m),
+#                    ncol = ncol(m),
+#                    dimnames = dimnames(m)))
+# 	}
+# }
 
 #################################################################################################################
 #' Casting to FLSparseMatrix
@@ -343,8 +420,8 @@ as.FLMatrix.FLSparseMatrix <- function(m,connection,nr=nrow(m),nc=ncol(m))
 #' @param connection ODBC connection object
 #' @return FLSparseMatrix object after casting.
 
-as.FLSparseMatrix <- function(m,connection)
-    as.FLMatrix(m,connection,TRUE)
+# as.FLSparseMatrix <- function(m,connection)
+#     as.FLMatrix(m,connection,TRUE)
 
 
 ######################################################################################################################
@@ -370,9 +447,12 @@ as.FLVector <- function(obj,connection,size=length(obj))
 
 		flag3Check(connection)
 
+    ### Phani-- I will work on this and remove the for loops.. 9th Dec,2015
 		## gk: important!  refactor this to a single sql call!
 		## gk: please apply throughout: NO sqlQuery inside loops!
 		## gk: also: R does not at all like loops.  Use apply-like functional approaches.
+
+    ### Phani-- I will work on this and remove the for loops.. 9th Dec,2015
 		j <- 1
 		for(i in 1:size)
 		{

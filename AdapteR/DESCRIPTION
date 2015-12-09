@@ -17,14 +17,14 @@ Imports:
 License: GPL-2
 LazyData: true
 Collate:
-    'FLDims.R'
-    'FLIs.R'
-    'FLPrint.R'
     'utilities.R'
     'FLTable.R'
     'FLVector.R'
     'FLSparseMatrix.R'
+    'FLPrint.R'
     'FLMatrix.R'
+    'FLIs.R'
+    'FLDims.R'
     'FLCastFunctions.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'

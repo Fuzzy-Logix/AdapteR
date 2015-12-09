@@ -32,6 +32,7 @@ setClass(
 	slots=list(
 		no_of_centers="numeric",
 		AnalysisID="character",
+		wideToDeepAnalysisId="character",
 		odbc_connection="RODBC",
 		table="FLTable",
 		resultsfetched="vector",
@@ -106,14 +107,18 @@ kmeans.FLTable<-function(table,
 	validate_args(argList, typeList, classList)
 
 	database<-table@db_name
+	sqlQuery(connection, 
+			 paste("DATABASE", database,";
+					SET ROLE ALL;"))
 
 	class_spec <- list_to_class_spec(class_spec)
 	
 	if(!table@isDeep){
-		deeptablename <- gen_deep_table_name(table@table_name)
-		ret <- sqlQuery(table@odbc_connection,
-					  paste0("CALL FLWideToDeep('",table@table_name,"',
-					  		 '",table@obs_id_colname,"',
+		#deeptablename <- gen_deep_table_name(table@table_name)
+		deeptablename <- "temp_deep_unique_1234_5678"
+		
+		sqlstr <- paste0("CALL FLWideToDeep('",table@table_name,"',
+					  		 '",table@primary_key,"',
 					  		 '",deeptablename,"', 
 					  		 'ObsID', 
 					  		 'VarID',
@@ -121,7 +126,12 @@ kmeans.FLTable<-function(table,
 					  		 exclude,"','",
 					  		 class_spec,"','",
 					  		 where_clause,"',
-					  		 AnalysisID);"))
+					  		 AnalysisID);")
+		print(sqlstr)
+		
+		ret <- sqlQuery(table@odbc_connection,sqlstr)
+		print(ret)
+		wideToDeepAnalysisId <- as.character(ret[1,1])
 	}
 	else 
 	{
@@ -146,18 +156,21 @@ kmeans.FLTable<-function(table,
 			 					   'Num_Val',
 			 					    NULL,",
 			 					    centers,",
-			 					   ", max.iter,",",
+			 					   ",max.iter,",",
 			 					    nstart,",
 			 					   'KMeans, clusters=2, maxiter=10, hypothesis=2',
 			 					   AnalysisID )")
 	
+	print(sqlstr)
 	retobj <- sqlQuery(table@odbc_connection,sqlstr)
 
-	AnalysisID = as.character(retobj[1,1])
+	print(retobj)
+	AnalysisID <- as.character(retobj[1,1])
 
 	new("FLKMeans",
 		no_of_centers=centers,
 		AnalysisID=AnalysisID,
+		wideToDeepAnalysisId=wideToDeepAnalysisId,
 		odbc_connection=table@odbc_connection,
 		table=table,
 		resultsfetched=c(cluster=FALSE,
@@ -246,7 +259,7 @@ cluster.FLKMeans<-function(object)
 						WHERE AnalysisID = '",AnalysisID,"' AND
 						HypothesisID = ",object@nstart)
 
-		sqlSendUpdate(connection,sqlstr)
+		sqlQuery(connection,sqlstr)
 		#clustervector <- as.vector(retobj$ClusterID)
 		#clustervector <- as.integer(substr(clustervector,nchar(clustervector),nchar(clustervector)))
 		max_vector_id_value <<- max_vector_id_value + 1
@@ -260,9 +273,9 @@ cluster.FLKMeans<-function(object)
 
 		clustervector <- new("FLVector", 
 							table = table, 
-							col_name = table@cell_val_colname, 
+							col_name = table@num_val_name, 
 							vector_id_value = max_vector_id_value-1, 
-							size = length(object))
+							size = length(object@table))
 
 		object@resultsfetched["cluster"] <- TRUE
 		object@results <- c(object@results,list(cluster = clustervector))
@@ -298,7 +311,7 @@ centers.FLKMeans<-function(object)
 						WHERE AnalysisID = '",AnalysisID,"' 
 						AND HypothesisID = ",object@nstart)
 
-		sqlSendUpdate(connection,sqlstr)
+		sqlQuery(connection,sqlstr)
 		#centers<-as.vector(retobj$Centroid)
 		#row=object@no_of_centers
 		#col=length(centers)/row
@@ -309,9 +322,9 @@ centers.FLKMeans<-function(object)
 
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
-		centersmatrix <- FLMatrix( 
-			       connection = connection, 
-			       database = result_db_name, 
+		centersmatrix <- new("FLMatrix", 
+			       odbc_connection = connection, 
+			       db_name = result_db_name, 
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
@@ -353,7 +366,7 @@ tot.withinss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID 
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID")
 
-		sqlSendUpdate(object@odbc_connection,sqlstr)
+		sqlQuery(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -365,7 +378,7 @@ tot.withinss.FLKMeans<-function(object){
 
 		tot_withinssvector <- new("FLVector", 
 								table = table, 
-								col_name = table@cell_val_colname, 
+								col_name = table@num_val_name, 
 								vector_id_value = max_vector_id_value-1, 
 								size = 1)
 		
@@ -401,7 +414,7 @@ withinss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID 
 						GROUP BY fzzlKMeansClusterID.ClusterID")
 
-		sqlSendUpdate(object@odbc_connection,sqlstr)
+		sqlQuery(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -413,7 +426,7 @@ withinss.FLKMeans<-function(object){
 
 		withinssvector <- new("FLVector", 
 							table = table, 
-							col_name = table@cell_val_colname, 
+							col_name = table@num_val_name, 
 							vector_id_value = max_vector_id_value-1, 
 							size = object@no_of_centers)
 
@@ -454,7 +467,7 @@ betweenss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID 
 						AND a.VarID = ",object@deeptablename,".VarID")
 
-		sqlSendUpdate(object@odbc_connection,sqlstr)
+		sqlQuery(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -466,7 +479,7 @@ betweenss.FLKMeans<-function(object){
 
 		betweenssvector <- new("FLVector", 
 							table = table, 
-							col_name = table@cell_val_colname, 
+							col_name = table@num_val_name, 
 							vector_id_value = max_vector_id_value-1, 
 							size = 1)
 
@@ -499,7 +512,7 @@ totss.FLKMeans<-function(object){
 							 object@deeptablename," 
 						WHERE a.VarID = ",object@deeptablename,".VarID;")
 		
-		sqlSendUpdate(object@odbc_connection,sqlstr)
+		sqlQuery(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -511,7 +524,7 @@ totss.FLKMeans<-function(object){
 
 		totssvector <- new("FLVector", 
 							table = table, 
-							col_name = table@cell_val_colname, 
+							col_name = table@num_val_name, 
 							vector_id_value = max_vector_id_value-1, 
 							size = 1)
 
@@ -553,7 +566,7 @@ size.FLKMeans<-function(object)
 	                      AND HypothesisID = ",object@nstart," 
 	                      GROUP BY ClusterID")
 
-		sqlSendUpdate(object@odbc_connection,sqlstr)
+		sqlQuery(object@odbc_connection,sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -565,7 +578,7 @@ size.FLKMeans<-function(object)
 
 		sizevector <- new("FLVector", 
 							table = table, 
-							col_name = table@cell_val_colname, 
+							col_name = table@num_val_name, 
 							vector_id_value = max_vector_id_value-1, 
 							size = object@no_of_centers)
 
@@ -618,3 +631,70 @@ setMethod("show","FLKMeans",
 			}
 		 )
 
+plot.FLKMeans <- function(object)
+{
+	if(!object@table@isDeep)
+	{
+		#maptable <- gen_wide_table_name(paste0(object@table@table_name,"map"))
+		maptable <- "tempmap_unique_wide_1234_5678"
+		print(maptable)
+
+		sqlstr <- paste0(" CREATE TABLE ",maptable," AS ( 
+			    	     SELECT a.Final_VarID AS VarID,
+			    	     	    a.COLUMN_NAME AS ColumnName,
+			    	     	    a.FROM_TABLE AS MapName 
+			    	     FROM fzzlRegrDataPrepMap a 
+			    	     WHERE a.AnalysisID = '",object@wideToDeepAnalysisId,"' 
+			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
+		
+		print(sqlstr)
+		print(sqlQuery(object@odbc_connection,sqlstr))
+
+		#widetable <- gen_wide_table_name(paste0(object@table@table_name,"new"))
+		widetable <- "temp_unique_wide_1234_5678"
+		print(widetable)
+
+		sqlstr <- paste0(" CALL FLDeepToWide('",object@deeptablename,"',
+						'ObsID',
+						'VarID',
+						'Num_Val',
+						'",maptable,"',
+						'",object@table@table_name,"',
+						'",widetable,"',
+						Message);")
+
+		print(sqlstr)
+		print(sqlQuery(object@odbc_connection,sqlstr))
+
+		x <- sqlQuery(object@odbc_connection,
+					 paste0(" SELECT * FROM ",widetable," ORDER BY ObsID"))
+		
+		x <- as.data.frame(x)
+		x$"ObsID" <- NULL
+	}
+	else
+	{
+		#widetable <- gen_wide_table_name(paste0(object@table@table_name,"new"))
+		widetable <- "temp_unique_wide_1234_5678"
+
+		sqlstr <- paste0(" CALL FLDeepToWide('",object@deeptablename,"',
+						'",object@table@primary_key,"',
+						'",object@table@var_id_name,"',
+						'",object@table@num_val_name,"',
+						NULL,
+						NULL,
+						'",widetable,"',
+						Message);")
+		print(sqlstr)
+		print(sqlQuery(object@odbc_connection,sqlstr))
+
+		x <- sqlQuery(object@odbc_connection,
+					 paste0(" SELECT * FROM ",widetable," ORDER BY ",object@table@primary_key))
+		x <- as.data.frame(x)
+		x$object@table@primary_key <- NULL
+	}
+
+	print(x[20,])
+	plot(x,col=as.vector(object$cluster))
+	points(as.matrix(object$centers),col=1:object@no_of_centers,pch=8,cex=2)
+}

@@ -30,8 +30,8 @@ rankMatrix.FLMatrix<-function(object)
 {
 	connection<-object@odbc_connection
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a"),
-				   outputSelectMatrix("FLMatrixRankUdt",includeMID=FALSE,
+	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+				   outputSelectMatrix("FLMatrixRankUdt",
 				   					outColNames=list("OutputMtxRank"),viewName="z",localName="a")
 					)
 	

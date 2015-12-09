@@ -30,43 +30,54 @@ FLSV <- function (x, ...){
 
 FLSV.FLMatrix<-function(object)
 {
-	if(nrow(object) != ncol(object))
-	{
-		stop("not a square matrix")
-	}
+	#checkSquare(object)
 	connection<-object@odbc_connection
 	flag3Check(connection)
 
-	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,
-				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-					AS (SELECT a.",object@matrix_id_colname,", 
-							   a.",object@row_id_colname,", 
-							   a.",object@col_id_colname,",
-							   a.",object@cell_val_colname," 
-						FROM  ",remoteTable(object)," a 
-						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_vector_id_value,
-					       ",a.OutputID,
-					       CAST(a.OutputSV AS NUMBER) 
-					FROM TABLE (FLSVUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-								HASH BY z.Matrix_ID 
-								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) 
-					AS a;")
-
+	sqlstr<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_vector_table)," ",
+					viewSelectMatrix(object,"a",withName="z"),
+                   outputSelectMatrix("FLSVUdt",includeMID=FALSE,
+                   	outColNames=list("OutputID","OutputSV"),viewName="z",localName="a")
+                   )
+					# result_db_name,".",result_vector_table,
+				 #   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
+					# AS (SELECT a.",object@matrix_id_colname,", 
+					# 		   a.",object@row_id_colname,", 
+					# 		   a.",object@col_id_colname,",
+					# 		   a.",object@cell_val_colname," 
+					# 	FROM  ",remoteTable(object)," a 
+					# 	WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
+					# SELECT ",max_vector_id_value,
+					#        ",a.OutputID,
+					#        CAST(a.OutputSV AS NUMBER) 
+					# FROM TABLE (FLSVUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+					# 			HASH BY z.Matrix_ID 
+					# 			LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) 
+					# AS a;")
 	sqlSendUpdate(connection,sqlstr)
 	
 	max_vector_id_value <<- max_vector_id_value + 1
-	
+
 	table <- FLTable(connection,
 		             result_db_name,
 		             result_vector_table,
-		             "VECTOR_ID",
 		             "VECTOR_INDEX",
-		             "VECTOR_VALUE")
+		             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+		             )
 
-	new("FLVector", 
-		table = table, 
-		col_name = table@cell_val_colname, 
-		vector_id_value = max_vector_id_value-1, 
-		size = nrow(object))
+	return(table[,"VECTOR_VALUE"])
+	
+	# table <- FLTable(connection,
+	# 	             result_db_name,
+	# 	             result_vector_table,
+	# 	             "VECTOR_ID",
+	# 	             "VECTOR_INDEX",
+	# 	             "VECTOR_VALUE")
+
+	# new("FLVector", 
+	# 	table = table, 
+	# 	col_name = table@cell_val_colname, 
+	# 	vector_id_value = max_vector_id_value-1, 
+	# 	size = nrow(object))
 }
