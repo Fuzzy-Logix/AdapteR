@@ -36,8 +36,8 @@ FLMatrixRREF.FLMatrix<-function(object)
 
 	sqlstr<-paste0(" INSERT INTO ",
                    getRemoteTableName(result_db_name,result_matrix_table),
-                   viewSelectMatrix(object,"a",viewName="z"),
-                   outputSelectMatrix("FLMatrixRREFUdt",viewName="z",localName="a")
+                   viewSelectMatrix(object,"a",withName="z"),
+                   outputSelectMatrix("FLMatrixRREFUdt",viewName="z",localName="a",includeMID=TRUE)
                    )
 	
 	sqlSendUpdate(connection,sqlstr)

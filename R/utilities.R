@@ -251,7 +251,7 @@ FLStartSession <- function(connection,
                "
 			 		 ( VECTOR_ID INT, 
 			 		   VECTOR_INDEX INT, 
-				 	   VECTOR_VALUE VARCHAR(20) )
+				 	   VECTOR_VALUE FLOAT )
 			 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
     sqlSendUpdate(connection, sendqueries)
  	cat("DONE..\n")

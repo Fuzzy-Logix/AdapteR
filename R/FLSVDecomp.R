@@ -44,16 +44,21 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
     ## gk:  you are executing the analysis 3 times!
     ## gk:  we need to store such things more efficiently
-	sqlstrU<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
+	sqlstrU<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_matrix_table)," ",
                     viewSelectMatrix(object, "a","z"),
-                    " SELECT ",max_matrix_id_value ," a.OutputMatrixID,
-							a.OutputRowNum,
-							a.OutputColNum,
-							a.OutUVal 
-					FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-								HASH BY z.Matrix_ID 
-								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-					WHERE a.OutUVal IS NOT NULL;")
+                    outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",includeMID=TRUE,
+                    	outColNames=list("OutputRowNum","OutputColNum","OutUVal"),
+                    	whereClause=" WHERE a.OutUVal IS NOT NULL;")
+                   )
+   					# " SELECT ",max_matrix_id_value ," a.OutputMatrixID,
+					# 		a.OutputRowNum,
+					# 		a.OutputColNum,
+					# 		a.OutUVal 
+					# FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+					# 			HASH BY z.Matrix_ID 
+					# 			LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
+					# WHERE a.OutUVal IS NOT NULL;")
 	
 	sqlSendUpdate(connection,sqlstrU)
 
@@ -67,22 +72,27 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "ROW_ID", 
             col_id_colname = "COL_ID", 
-            cell_val_colname = "CELL_VAL",
-            nrow = nrow(object), 
-            ncol = nrow(object), 
-            dimnames = list(rownames(object),
-                            rownames(object)))
+            cell_val_colname = "CELL_VAL"
+            )
 
-	sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
+	sqlstrV<- paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_matrix_table)," ",
                     viewSelectMatrix(object, "a","z"),
-					" SELECT ",max_matrix_id_value,",
-							a.OutputRowNum,
-							a.OutputColNum,
-							a.OutVVal 
-					FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-								HASH BY z.Matrix_ID 
-								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-					WHERE a.OutVVal IS NOT NULL;")
+                    outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",includeMID=TRUE,
+                    	outColNames=list("OutputRowNum","OutputColNum","OutVVal"),
+                    	whereClause=" WHERE a.OutVVal IS NOT NULL;")
+                    )
+
+	# sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
+ #                    viewSelectMatrix(object, "a","z"),
+	# 				" SELECT ",max_matrix_id_value,",
+	# 						a.OutputRowNum,
+	# 						a.OutputColNum,
+	# 						a.OutVVal 
+	# 				FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+	# 							HASH BY z.Matrix_ID 
+	# 							LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
+	# 				WHERE a.OutVVal IS NOT NULL;")
 	
 	sqlSendUpdate(connection,sqlstrV)
 
@@ -96,38 +106,51 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "ROW_ID", 
             col_id_colname = "COL_ID", 
-            cell_val_colname = "CELL_VAL",
-            nrow = ncol(object), 
-            ncol = ncol(object), 
-            dimnames = list(colnames(object),colnames(object)))
+            cell_val_colname = "CELL_VAL"
+            )
 
-	sqlstrS<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
-                    viewSelectMatrix(object, "a","z"),
-					"SELECT ",max_vector_id_value,",
-							a.OutputRowNum,
-							CAST(a.OutSVal AS NUMBER) 
-					FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-								HASH BY z.Matrix_ID 
-								LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-					WHERE a.OutSVal IS NOT NULL
-					AND   a.OutputRowNum = a.OutputColNum;")
+	sqlstrS<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_vector_table)," ",
+					viewSelectMatrix(object,"a",withName="z"),
+                   outputSelectMatrix("FLSVDUdt",viewName="z",
+                   	localName="a",includeMID=FALSE,outColNames=list("OutputRowNum","OutSVal"),
+                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;")
+                   )
+     #                viewSelectMatrix(object, "a","z"),
+					# "SELECT ",max_vector_id_value,",
+					# 		a.OutputRowNum,
+					# 		CAST(a.OutSVal AS NUMBER) 
+					# FROM TABLE (FLSVDUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
+					# 			HASH BY z.Matrix_ID 
+					# 			LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
+					# WHERE a.OutSVal IS NOT NULL
+					# AND   a.OutputRowNum = a.OutputColNum;")
 	
 	sqlSendUpdate(connection,sqlstrS)
 
 	max_vector_id_value <<- max_vector_id_value + 1
-	
+
 	table <- FLTable(connection,
 		             result_db_name,
 		             result_vector_table,
-		             "VECTOR_ID",
 		             "VECTOR_INDEX",
-		             "VECTOR_VALUE")
+		             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+		             )
 
-	SVector <- new("FLVector", 
-                       table = table, 
-                       col_name = table@cell_val_colname, 
-                       vector_id_value = max_vector_id_value-1, 
-                       size = min(nrow(object),ncol(object)))
+	SVector <- table[,"VECTOR_VALUE"]
+	
+	# table <- FLTable(connection,
+	# 	             result_db_name,
+	# 	             result_vector_table,
+	# 	             "VECTOR_ID",
+	# 	             "VECTOR_INDEX",
+	# 	             "VECTOR_VALUE")
+
+	# SVector <- new("FLVector", 
+ 	#                      table = table, 
+ 	#                      col_name = table@cell_val_colname, 
+ 	#                      vector_id_value = max_vector_id_value-1, 
+ 	#                      size = min(nrow(object),ncol(object)))
 
 	if (is.null(nu) && is.null(nv))
 	{

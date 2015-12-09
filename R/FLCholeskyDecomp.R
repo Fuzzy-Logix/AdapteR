@@ -33,9 +33,6 @@ chol <- function (x, ...){
 chol.FLMatrix<-function(object)
 {
 	connection<-object@odbc_connection
-
-### Phani-- delete
-        ### gk:  keep for now, there is intelligence in setting these checks.  Maybe can be used as savety device for auto-session start.
 	flag1Check(connection)
 	
 	checkSquare(object,"chol")
@@ -44,8 +41,8 @@ chol.FLMatrix<-function(object)
 	MID <- max_matrix_id_value
 
 	sqlstr<-paste0(" INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
-					viewSelectMatrix(object,"a",viewName="z"),
-					outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",localName="a")
+					viewSelectMatrix(object,"a",withName="z"),
+					outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",localName="a",includeMID=TRUE)
                    )
 
 	sqlSendUpdate(connection,sqlstr)

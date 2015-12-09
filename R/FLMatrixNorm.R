@@ -45,7 +45,7 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 	if(NormMethod > 4 || NormMethod < 1)
 	stop("NormMethod parameter should be whole number from 1 to 4")
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",viewName="z"),
+	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
                    " SELECT a.OutputNorm 
 					FROM TABLE (FLMatrixNormUdt(z.Matrix_ID,",NormMethod,", z.Row_ID, z.Col_ID, z.Cell_Val) 
 					HASH BY z.Matrix_ID 

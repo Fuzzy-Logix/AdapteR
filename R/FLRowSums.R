@@ -33,12 +33,13 @@ rowSums.FLMatrix<-function(object)
 	connection<-object@odbc_connection
 	flag3Check(connection)
 
-	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table, 
+	sqlstr<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_vector_table),
 					" SELECT ",max_vector_id_value,
 					         ",a.",object@row_id_colname,
-					         ", CAST(SUM(a.",object@cell_val_colname,") AS NUMBER) 
-					FROM ",remoteTable(object)," a 
-					WHERE a.",object@matrix_id_colname,"=",object@matrix_id_value,
+					         ",SUM(a.",object@cell_val_colname,") 
+					FROM ",remoteTable(object)," a ",
+					constructWhere(constraintsSQL(object,"a")),
 					" GROUP BY a.",object@row_id_colname)
 
 	sqlSendUpdate(connection,sqlstr)
@@ -48,13 +49,9 @@ rowSums.FLMatrix<-function(object)
 	table <- FLTable(connection,
 		             result_db_name,
 		             result_vector_table,
-		             "VECTOR_ID",
 		             "VECTOR_INDEX",
-		             "VECTOR_VALUE")
+		             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+		             )
 
-	new("FLVector", 
-		table = table, 
-		col_name = table@cell_val_colname, 
-		vector_id_value = max_vector_id_value-1, 
-		size = nrow(object))
+	return(table[,"VECTOR_VALUE"])
 }

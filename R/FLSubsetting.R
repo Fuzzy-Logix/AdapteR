@@ -39,14 +39,20 @@ NULL
     ##                                       " ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][rows])
 	## }
     if(is.numeric(rows))
-        newrownames <- object@dimnames[[1]][rows]
+        newrownames <- match(object@dimnames[[1]][rows],object@dimnames[[1]])
     else
-        newrownames <- rows
+        #newrownames <- rows
+        newrownames <- match(rows,object@dimnames[[1]])
+        if(any(is.na(newrownames)))
+        stop("subscript_out_of_bounds")
 
     if(is.numeric(cols))
-        newcolnames <- object@dimnames[[2]][cols]
+        newcolnames <- match(object@dimnames[[2]][cols],object@dimnames[[2]])
     else
-        newcolnames <- cols
+        #newcolnames <- cols
+        newcolnames <- match(cols,object@dimnames[[2]])
+        if(any(is.na(newcolnames)))
+        stop("subscript_out_of_bounds")
 
     ##browser()
     if(missing(cols)) 
@@ -141,7 +147,7 @@ NULL
                                    object@dimnames[[2]])
         }
     } else if(missing(rows)) { ## !missing(cols)
-        object@dimnames <- list(object@dimnames[[1]],
+        object@dimnames <- list(sort(object@dimnames[[1]]),
                                 newcolnames)
         if(object@isDeep){
             object@whereconditions <-
@@ -195,50 +201,61 @@ NULL
 #' flvectorDeep <- FLVector(DeepTable,"vector_value",1)
 #' resultFLVector <- flvectorDeep[1:2]
 #' @export
-`[.FLVector` <- function(pObj,pSet=1:length(pObj))
+
+`[.FLVector` <- function(object,pSet=1:length(object@dimnames[[1]]))
 {
-	flag3Check(pObj@odbc_connection)
-
-	if(pObj@isDeep)
-	{
-		vTemp <- character(0)
-		if(length(pSet)>1)
-		{
-            vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
-            vTemp<-paste(vTemp,collapse=" ")
-		}
-		
-		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj), 
-                         " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
-
-		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
-		vResultVec <- c()
-
-		for(vIter in pSet)
-            vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@var_id_name]==vIter),pObj@col_name])
-
-		return(as.FLVector(vResultVec,pObj@odbc_connection))
-	}
-
-	if(!pObj@isDeep)
-	{
-		vTemp <- character(0)
-		if(length(pSet)>1)
-		{
-            vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
-            vTemp<-paste(vTemp,collapse=" ")
-		}
-		
-		sqlstr <- paste0("SELECT * 
-						 FROM ",remoteTable(pObj), 
-                         " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
-
-		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
-		vResultVec <- c()
-
-		for(vIter in pSet)
-            vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@obs_id_colname]==vIter),pObj@col_name])
-
-		return(as.FLVector(vResultVec,pObj@odbc_connection))
-	}
+    newrownames <- sort(object@dimnames[[1]])[pSet]
+    if(!setequal(object@dimnames[[1]], newrownames))
+            object@whereconditions <-
+            c(object@whereconditions,
+              inCondition(paste0(object@db_name,".",
+                                 object@table_name,".",
+                                 object@obs_id_colname),
+                          newrownames))
+    object@dimnames[[1]] <- newrownames
+    return(object)
 }
+#     pObj[pSet,]
+# 	if(pObj@isDeep)
+# 	{
+# 		vTemp <- character(0)
+# 		if(length(pSet)>1)
+# 		{
+#             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
+#             vTemp<-paste(vTemp,collapse=" ")
+# 		}
+		
+# 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj), 
+#                          " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
+
+# 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
+# 		vResultVec <- c()
+
+# 		for(vIter in pSet)
+#             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@var_id_name]==vIter),pObj@col_name])
+
+# 		return(as.FLVector(vResultVec,pObj@odbc_connection))
+# 	}
+
+# 	if(!pObj@isDeep)
+# 	{
+# 		vTemp <- character(0)
+# 		if(length(pSet)>1)
+# 		{
+#             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
+#             vTemp<-paste(vTemp,collapse=" ")
+# 		}
+		
+# 		sqlstr <- paste0("SELECT * 
+# 						 FROM ",remoteTable(pObj), 
+#                          " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
+
+# 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
+# 		vResultVec <- c()
+
+# 		for(vIter in pSet)
+#             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@obs_id_colname]==vIter),pObj@col_name])
+
+# 		return(as.FLVector(vResultVec,pObj@odbc_connection))
+# 	}
+# }

@@ -41,8 +41,8 @@ hessen.FLMatrix<-function(object)
 
 		sqlstrP<-paste0("INSERT INTO ",
 						getRemoteTableName(result_db_name,result_matrix_table),
-                   		viewSelectMatrix(object,"a",viewName="z"),
-                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",
+                   		viewSelectMatrix(object,"a",withName="z"),
+                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
                    			outColNames=list("OutputRowNum","OutputColNum","OutputPVal"), viewName="z",
                    			whereClause=" WHERE a.OutputPVal IS NOT NULL ")
                    		)
@@ -65,8 +65,8 @@ hessen.FLMatrix<-function(object)
 
 		sqlstrH <- paste0("INSERT INTO ",
 						getRemoteTableName(result_db_name,result_matrix_table),
-                   		viewSelectMatrix(object,"a",viewName="z"),
-                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",
+                   		viewSelectMatrix(object,"a",withName="z"),
+                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
                    			outColNames=list("OutputRowNum","OutputColNum","OutputHVal"), viewName="z",
                    			whereClause=" WHERE a.OutputHVal IS NOT NULL ")
                    		)
