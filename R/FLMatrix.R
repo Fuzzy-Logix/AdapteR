@@ -242,32 +242,36 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
 setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames,viewName,localName,whereClause) {
     standardGeneric("outputSelectMatrix")
 })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
                                           viewName="character",localName="character",whereClause="character"),
-          function(func_name,includeMID,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause)
           {
-            return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,max_vector_id_value),
-                    paste0(",",localName,".",outColNames,collapse="")," 
+            return(paste0(" SELECT ",paste0(localName,".",outColNames,collapse=","),paste0(" 
           FROM TABLE (",func_name,
             "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
           HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause))
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause)))
           })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
+
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
                                           viewName="character",localName="character",whereClause="character"),
-          function(func_name,includeMID=TRUE,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause)
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames,viewName,localName,whereClause))
+            return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,max_vector_id_value),
+                    paste0(",",localName,".",outColNames,collapse=""),paste0(" 
+          FROM TABLE (",func_name,
+            "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
+          HASH BY z.Matrix_ID 
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause)))
           })
+
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
                                           viewName="character",localName="character",whereClause="character"),
-          function(func_name,includeMID=TRUE,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause)
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,
-              outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause))
+            return(outputSelectMatrix(func_name,
+              outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName=viewName,
+              localName=localName,whereClause=whereClause))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
                                           viewName="character",localName="character",whereClause="character"),
@@ -279,25 +283,26 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
                                           viewName="character",localName="character",whereClause="missing"),
-          function(func_name,includeMID,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";")
           {
             return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause=";"))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
                                           viewName="character",localName="character",whereClause="missing"),
-          function(func_name,includeMID=TRUE,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";")
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,outColNames,viewName,localName,whereClause=";"))
+            return(outputSelectMatrix(func_name,outColNames=outColNames,viewName=viewName,
+              localName=localName,whereClause=";"))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
                                           viewName="character",localName="character",whereClause="missing"),
-          function(func_name,includeMID=TRUE,
-            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+          function(func_name,includeMID,
+            outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+            viewName,localName,whereClause=";")
           {
-            return(outputSelectMatrix(func_name,includeMID=TRUE,
-              outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";"))
+            return(outputSelectMatrix(func_name,
+              outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName=viewName,
+              localName=localName,whereClause=";"))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
                                           viewName="character",localName="character",whereClause="missing"),

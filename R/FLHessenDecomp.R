@@ -39,53 +39,84 @@ hessen.FLMatrix<-function(object)
 	flag1Check(connection)
 	MID <- max_matrix_id_value
 
-		sqlstrP<-paste0("INSERT INTO ",
-						getRemoteTableName(result_db_name,result_matrix_table),
-                   		viewSelectMatrix(object,"a",withName="z"),
-                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
-                   			outColNames=list("OutputRowNum","OutputColNum","OutputPVal"), viewName="z",
-                   			whereClause=" WHERE a.OutputPVal IS NOT NULL ")
-                   		)
-		
-		sqlSendUpdate(connection,sqlstrP)
+	tempResultTable <- gen_unique_table_name("tblHessenResult")
 
-		max_matrix_id_value <<- max_matrix_id_value + 1
+    sqlstr0 <- paste0("CREATE TABLE ",tempResultTable," AS(",
+    				 viewSelectMatrix(object, "a","z"),
+                     outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
+                    	outColNames=list("OutputMatrixID","OutputRowNum",
+                    		"OutputColNum","OutputPVal","OutputHVal"),
+                    	whereClause=") WITH DATA;")
+                   )
+
+    sqlSendUpdate(connection,sqlstr0)
+
+    MID1 <- max_matrix_id_value
+    max_matrix_id_value <<- max_matrix_id_value + 1
+	MID2 <- max_matrix_id_value
+
+		sqlstrP<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_matrix_table),
+					" SELECT ",MID1,
+					         ",OutputRowNum
+					          ,OutputColNum
+					          ,OutputPVal
+					  FROM ",tempResultTable,
+					 " WHERE OutputPVal IS NOT NULL;")
+
+		# sqlstrP<-paste0("INSERT INTO ",
+		# 				getRemoteTableName(result_db_name,result_matrix_table),
+  #                  		viewSelectMatrix(object,"a",withName="z"),
+  #                  		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
+  #                  			outColNames=list("OutputRowNum","OutputColNum","OutputPVal"), viewName="z",
+  #                  			whereClause=" WHERE a.OutputPVal IS NOT NULL ;")
+  #                  		)
+
+		sqlstrH<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_matrix_table),
+					" SELECT ",MID2,
+					         ",OutputRowNum
+					          ,OutputColNum
+					          ,OutputPVal
+					  FROM ",tempResultTable,
+					 " WHERE OutputHVal IS NOT NULL;")
+
+		# sqlstrH <- paste0("INSERT INTO ",
+		# 				getRemoteTableName(result_db_name,result_matrix_table),
+  #                  		viewSelectMatrix(object,"a",withName="z"),
+  #                  		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
+  #                  			outColNames=list("OutputRowNum","OutputColNum","OutputHVal"), viewName="z",
+  #                  			whereClause=" WHERE a.OutputHVal IS NOT NULL ")
+  #                  		)
+
+		sqlstr <- paste0(sqlstrP,sqlstrH)
+		sqlSendUpdate(connection,sqlstr)
 
 		PMatrix <- FLMatrix(
 				       connection = connection, 
 				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
-					   matrix_id_value = MID,
+					   matrix_id_value = MID1,
 					   matrix_id_colname = "MATRIX_ID", 
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
 					   cell_val_colname = "CELL_VAL")
-
-		MID <- max_matrix_id_value
-
-		sqlstrH <- paste0("INSERT INTO ",
-						getRemoteTableName(result_db_name,result_matrix_table),
-                   		viewSelectMatrix(object,"a",withName="z"),
-                   		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
-                   			outColNames=list("OutputRowNum","OutputColNum","OutputHVal"), viewName="z",
-                   			whereClause=" WHERE a.OutputHVal IS NOT NULL ")
-                   		)
-		
-		sqlSendUpdate(connection,sqlstrH)
-
-		max_matrix_id_value <<- max_matrix_id_value + 1
 
 		HMatrix <- FLMatrix(
 				       connection = connection, 
 				       database = result_db_name, 
 				       matrix_table = result_matrix_table, 
-					   matrix_id_value = MID,
+					   matrix_id_value = MID2,
 					   matrix_id_colname = "MATRIX_ID", 
 					   row_id_colname = "ROW_ID", 
 					   col_id_colname = "COL_ID", 
 					   cell_val_colname = "CELL_VAL")
 
+		max_matrix_id_value <<- max_matrix_id_value + 1
+
 		result<-list(P = PMatrix,
 					 H = HMatrix)
+
+		sqlSendUpdate(connection,paste0(" DROP TABLE ",tempResultTable))
 		result
 }

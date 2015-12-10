@@ -44,13 +44,52 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
     ## gk:  you are executing the analysis 3 times!
     ## gk:  we need to store such things more efficiently
-	sqlstrU<-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table)," ",
-                    viewSelectMatrix(object, "a","z"),
-                    outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",includeMID=TRUE,
-                    	outColNames=list("OutputRowNum","OutputColNum","OutUVal"),
-                    	whereClause=" WHERE a.OutUVal IS NOT NULL;")
+    ### Phani-- done by using temp table
+
+    tempResultTable <- gen_unique_table_name("tblSVDResult")
+
+    sqlstr0 <- paste0("CREATE TABLE ",tempResultTable," AS(",
+    				 viewSelectMatrix(object, "a","z"),
+                     outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",
+                    	outColNames=list("OutputMatrixID","OutputRowNum",
+                    		"OutputColNum","OutUVal","OutSVal","OutVVal"),
+                    	whereClause=") WITH DATA;")
                    )
+
+    sqlSendUpdate(connection,sqlstr0)
+
+    MID1 <- max_matrix_id_value
+    max_matrix_id_value <<- max_matrix_id_value + 1
+	MID2 <- max_matrix_id_value
+
+	sqlstrU<-paste0("INSERT INTO ",
+					getRemoteTableName(result_db_name,result_matrix_table),
+					" SELECT ",MID1,
+					         ",OutputRowNum
+					          ,OutputColNum
+					          ,OutUVal
+					  FROM ",tempResultTable,
+					 " WHERE OutUVal IS NOT NULL;")
+
+	sqlstrV<-paste0("INSERT INTO ",
+						getRemoteTableName(result_db_name,result_matrix_table),
+						" SELECT ",MID2,
+						         ",OutputRowNum
+						          ,OutputColNum
+						          ,OutVVal
+						  FROM ",tempResultTable,
+						 " WHERE OutVVal IS NOT NULL;")
+
+
+	sqlstrS<-paste0("INSERT INTO ",
+						getRemoteTableName(result_db_name,result_vector_table),
+						" SELECT ",max_vector_id_value,
+						         ",OutputRowNum
+						          ,OutSVal
+						  FROM ",tempResultTable,
+						 " WHERE OutputColNum=OutputRowNum;")
+    
+    sqlstr <- paste0(sqlstrU,sqlstrV,sqlstrS)
    					# " SELECT ",max_matrix_id_value ," a.OutputMatrixID,
 					# 		a.OutputRowNum,
 					# 		a.OutputColNum,
@@ -60,7 +99,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 					# 			LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 					# WHERE a.OutUVal IS NOT NULL;")
 	
-	sqlSendUpdate(connection,sqlstrU)
+	sqlSendUpdate(connection,sqlstr)
 
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
@@ -68,20 +107,22 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             connection = connection, 
             database = result_db_name, 
             matrix_table = result_matrix_table, 
-            matrix_id_value = max_matrix_id_value-1,
+            matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "ROW_ID", 
             col_id_colname = "COL_ID", 
             cell_val_colname = "CELL_VAL"
             )
 
-	sqlstrV<- paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table)," ",
-                    viewSelectMatrix(object, "a","z"),
-                    outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",includeMID=TRUE,
-                    	outColNames=list("OutputRowNum","OutputColNum","OutVVal"),
-                    	whereClause=" WHERE a.OutVVal IS NOT NULL;")
-                    )
+	
+
+	# sqlstrV<- paste0("INSERT INTO ",
+	# 				getRemoteTableName(result_db_name,result_matrix_table)," ",
+ #                    viewSelectMatrix(object, "a","z"),
+ #                    outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",includeMID=TRUE,
+ #                    	outColNames=list("OutputRowNum","OutputColNum","OutVVal"),
+ #                    	whereClause=" WHERE a.OutVVal IS NOT NULL;")
+ #                    )
 
 	# sqlstrV<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," ",
  #                    viewSelectMatrix(object, "a","z"),
@@ -93,29 +134,25 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 	# 							HASH BY z.Matrix_ID 
 	# 							LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 	# 				WHERE a.OutVVal IS NOT NULL;")
-	
-	sqlSendUpdate(connection,sqlstrV)
-
-	max_matrix_id_value <<- max_matrix_id_value + 1
 
 	VMatrix <- FLMatrix( 
             connection = connection, 
             database = result_db_name, 
             matrix_table = result_matrix_table, 
-            matrix_id_value = max_matrix_id_value-1,
+            matrix_id_value = MID2,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "ROW_ID", 
             col_id_colname = "COL_ID", 
             cell_val_colname = "CELL_VAL"
             )
 
-	sqlstrS<-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_vector_table)," ",
-					viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLSVDUdt",viewName="z",
-                   	localName="a",includeMID=FALSE,outColNames=list("OutputRowNum","OutSVal"),
-                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;")
-                   )
+	# sqlstrS<-paste0("INSERT INTO ",
+	# 				getRemoteTableName(result_db_name,result_vector_table)," ",
+	# 				viewSelectMatrix(object,"a",withName="z"),
+ #                   outputSelectMatrix("FLSVDUdt",viewName="z",
+ #                   	localName="a",includeMID=FALSE,outColNames=list("OutputRowNum","OutSVal"),
+ #                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;")
+ #                   )
      #                viewSelectMatrix(object, "a","z"),
 					# "SELECT ",max_vector_id_value,",
 					# 		a.OutputRowNum,
@@ -125,8 +162,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 					# 			LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
 					# WHERE a.OutSVal IS NOT NULL
 					# AND   a.OutputRowNum = a.OutputColNum;")
-	
-	sqlSendUpdate(connection,sqlstrS)
 
 	max_vector_id_value <<- max_vector_id_value + 1
 
@@ -179,6 +214,8 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 					 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
 					 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	}
+
+	sqlSendUpdate(connection,paste0(" DROP TABLE ",tempResultTable))
 	result
 }
 
