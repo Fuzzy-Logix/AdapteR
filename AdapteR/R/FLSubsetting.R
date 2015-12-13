@@ -147,7 +147,10 @@ NULL
                                    object@dimnames[[2]])
         }
     } else if(missing(rows)) { ## !missing(cols)
-        object@dimnames <- list(sort(object@dimnames[[1]]),
+        ifelse(any(is.na(as.numeric(object@dimnames[[1]]))),
+            newrownames <- sort(object@dimnames[[1]]),
+            newrownames <- sort(as.numeric(object@dimnames[[1]])))
+        object@dimnames <- list(newrownames,
                                 newcolnames)
         if(object@isDeep){
             object@whereconditions <-
