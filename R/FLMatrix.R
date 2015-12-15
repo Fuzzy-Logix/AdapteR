@@ -336,12 +336,12 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
 #           return(TRUE)
 #           })
 
-# # checkSameDims throws error if FLMatrix objects have different dims
-# setGeneric("checkSameDims", function(object1,object2) {
-#     standardGeneric("checkSameDims")
-# })
-# setMethod("checkSameDims", signature(object1="FLMatrix",object2="FLMatrix"),
-#           function(object1,object2) {
-#           if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
-#           return(stop("ERROR: Invalid matrix dimensions for Operation"))
-#           })
+#checkSameDims throws error if FLMatrix objects have different dimensions
+setGeneric("checkSameDims", function(object1,object2) {
+    standardGeneric("checkSameDims")
+})
+setMethod("checkSameDims", signature(object1="FLMatrix",object2="FLMatrix"),
+          function(object1,object2) {
+          if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
+          return(stop("ERROR: Invalid matrix dimensions for Operation"))
+          })
