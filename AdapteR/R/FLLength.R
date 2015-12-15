@@ -35,7 +35,9 @@ length.FLSparseMatrix <- function(obj)
 #' @return \code{length} returns a R Vector giving the length of input object.
 length.FLVector <- function(obj)
 {
-    return(nrow(obj))
+    if(length(dimnames(obj)[[2]])>length(dimnames(obj)[[1]]))
+    return(length(dimnames(obj)[[2]]))
+    else return(length(dimnames(obj)[[1]]))
 }
 
 #' computes the length of FLTable object.
