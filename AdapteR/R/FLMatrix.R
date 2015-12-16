@@ -79,15 +79,22 @@ FLMatrix <- function(connection,
                   dimnames = list(),
                   whereconditions=whereconditions)
     if(is.null(dimnames)){
-        dimnames <- list(
-            sort(sqlQuery(connection, 
+       
+    rownames <- sort(sqlQuery(connection, 
                      paste0("SELECT unique(",row_id_colname,") as rownames
 							 FROM ",getRemoteTableName(database,matrix_table),
-                            constructWhere(constraintsSQL(RESULT))))$rownames),
-            sort(sqlQuery(connection, 
+                            constructWhere(constraintsSQL(RESULT))))$rownames)
+    if(is.numeric(rownames) && length(rownames)!=max(rownames))
+    rownames <- base::union(1:max(rownames),rownames)
+
+    colnames <- sort(sqlQuery(connection, 
                      paste0("SELECT unique(",col_id_colname,") as colnames
 							 FROM ",getRemoteTableName(database,matrix_table),
-                             constructWhere(constraintsSQL(RESULT))))$colnames))
+                             constructWhere(constraintsSQL(RESULT))))$colnames)
+    if(is.numeric(colnames) && length(colnames)!=max(colnames))
+    colnames <- base::union(1:max(colnames),colnames)
+    
+             dimnames <- list(rownames,colnames)
     }
     if(conditionDims[[1]])
         whereconditions <- c(whereconditions,
