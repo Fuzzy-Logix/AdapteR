@@ -4,12 +4,12 @@
 \alias{[.FLVector}
 \title{Extract part of FLVector object.}
 \usage{
-\method{[}{FLVector}(pObj, pSet = 1:length(pObj))
+\method{[}{FLVector}(object, pSet = 1:length(object@dimnames[[1]]))
 }
 \arguments{
-\item{pObj}{is a FLVector object}
-
 \item{pSet}{is a vector representing the indices of elements to extract}
+
+\item{pObj}{is a FLVector object}
 }
 \value{
 \code{[]} returns FLVector object after extraction

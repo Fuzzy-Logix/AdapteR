@@ -1,17 +1,16 @@
-<<<<<<< .mine
-##library(AdapteR)
+library(AdapteR)
 
 library(testthat)
 require(Matrix)
 
-## if (exists("connection")) {
-##     dbDisconnect(connection)
-##     rm(connection)
-## }
-## if(!exists("connection")){
-##     ##connection <- odbcConnect("Gandalf")
-##     connection <- tdConnect(host,user,passwd,database,"jdbc")
-## }
+if (exists("connection")) {
+    dbDisconnect(connection)
+    rm(connection)
+}
+if(!exists("connection")){
+    ##connection <- odbcConnect("Gandalf")
+    connection <- tdConnect(host,user,passwd,database,"jdbc")
+}
 
 FLStartSession(connection, persistent="test")
 
@@ -22,14 +21,19 @@ options(debugSQL=FALSE)
 ###############################################################
 ############# POSITIVE TEST CASES #############################
 ###############################################################
-
-expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,n) 
+## gk: yes that is what I meant, I changed a bit with ..., passing any parameters on to the init function.
+## so we can set more than one dimension etc
+## we can extend with benchmarking
+expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
-  expect_equal(FLcomputationF(initF(n)$FL),RcomputationF(initF(n)$R),check.attributes=FALSE)
+    expect_equal(FLcomputationF(initF(...)$FL),
+                 RcomputationF(initF(...)$R),
+                 check.attributes=FALSE)
 }
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
+## gk:  yes, that looks good
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
   sqlSendUpdate(connection,
@@ -47,25 +51,37 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
-
   Rmatrix <- as.matrix(flm)
   return(list(FL=flm,R=Rmatrix))
 }
 
 
+setMethod("expect_equal",signature("FLMatrix","matrix"),
+          function(object,expected) expect_equal(as.matrix(object),expected))
+
 ## Testing FLSolve
-###Phani-- This fails because we dont'have expect_equal(flmatrixobject,Rmatrix)
+### Phani-- This fails because we dont'have expect_equal(flmatrixobject,Rmatrix)
 ### will try to overload all.equal to work for FLMatrix objects.
+### gk: I would prefer the solution above.  Does not run here, because of remaining dimnames inconsistencies
+### 
 test_that("check inverse calculation of matrix", {
-    expect_eval_equal(initF.FLMatrix,AdapteR::solve,base::solve,5)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::solve,
+                      base::solve,
+                      n=5)
 })
 
+options(debugSQL=TRUE)
 # Testing rankMatrix
 test_that("check rankMatrix result",{
-    expect_eval_equal(initF.FLMatrix,AdapteR::rankMatrix,Matrix::rankMatrix,5)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rankMatrix,
+                      Matrix::rankMatrix,
+                      n=5)
 })
 
-
+## gk: good, please continue in this manner.
+## gk:  I did 
 
 
 
@@ -2005,4 +2021,3 @@ test_that("check division by zero for M_Division",
           (m/1:3/matrix1/v1)==as.FLMatrix(matrix1/1:3/matrix1/as.vector(v1),connection)
           ))
 
->>>>>>> .r207
