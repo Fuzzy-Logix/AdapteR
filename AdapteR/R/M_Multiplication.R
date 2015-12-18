@@ -68,9 +68,6 @@ NULL
 {
     ## gk: this needs to go.
     ## gk: NEVER CHANGE DATABASE TO THE DATABASE where the table is, we need to stay in the dblytix installation table!
-	sqlQuery(flmatobj1@odbc_connection,
-			 paste("DATABASE", flmatobj1@db_name,";
-			 		SET ROLE ALL;"))
 	nrow1 <- nrow(flmatobj1)
 	ncol1 <- ncol(flmatobj1)
 	if(is.FLMatrix(flmatobj2))
@@ -78,7 +75,7 @@ NULL
 		if(nrow(flmatobj1) == nrow(flmatobj2) && ncol(flmatobj1) == ncol(flmatobj2))
 		{
 			flag1Check(flmatobj1@odbc_connection)
-			sqlQuery(flmatobj1@odbc_connection,
+			sqlSendUpdate(flmatobj1@odbc_connection,
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 					 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 					 				 a.",flmatobj1@row_id_colname," AS ROW_ID ,
@@ -131,7 +128,7 @@ NULL
 		flag1Check(flmatobj1@odbc_connection)
 		if(!flmatobj2@isDeep)
 		{
-			sqlQuery(flmatobj1@odbc_connection,
+			sqlSendUpdate(flmatobj1@odbc_connection,
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
@@ -153,7 +150,7 @@ NULL
 		}
 		else
 		{
-			sqlQuery(flmatobj1@odbc_connection,
+			sqlSendUpdate(flmatobj1@odbc_connection,
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
@@ -194,25 +191,16 @@ NULL
 `*.numeric` <- function(x,obj1)
 {	if(is.FLMatrix(obj1))
 	{
-		sqlQuery(obj1@odbc_connection,
-				 paste("DATABASE", obj1@db_name,";
-				 		SET ROLE ALL;"))
 		obj2 <- as.FLMatrix(matrix(x,nrow(obj1),ncol(obj1)),obj1@odbc_connection)
 		obj2 * obj1
 	}
 	else if(class(obj1)=="FLSparseMatrix")
 	{
-		sqlQuery(obj1@odbc_connection,
-				 paste("DATABASE", obj1@db_name,";
-				 		SET ROLE ALL;"))
 		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj1*obj2
 	}
 	else if(class(obj1)=="FLVector")
 	{
-		sqlQuery(obj1@odbc_connection,
-				 paste("DATABASE", obj1@db_name,";
-				 		SET ROLE ALL;"))
 		obj2 <- as.FLVector(x,obj1@odbc_connection)
 		obj1*obj2
 	}
@@ -225,9 +213,6 @@ NULL
 
 `*.FLSparseMatrix` <- function(flmatobj1, flmatobj2)
 {
-	sqlQuery(flmatobj1@odbc_connection,
-			 paste("DATABASE", flmatobj1@db_name,";
-			 		SET ROLE ALL;"))
 	nrow1 <- nrow(flmatobj1)
 	ncol1 <- ncol(flmatobj1)
 	
@@ -241,7 +226,7 @@ NULL
 			if(is.FLSparseMatrix(flmatobj2))
 			{
 				flag2Check(flmatobj1@odbc_connection)
-				sqlQuery(flmatobj1@odbc_connection,
+				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
 			            				a.",flmatobj1@row_id_colname,",
@@ -269,11 +254,8 @@ NULL
 			}
 			else
 			{
-				sqlQuery(flmatobj2@odbc_connection,
-						 paste("DATABASE", flmatobj2@db_name,";
-						 		SET ROLE ALL;"))
 				flag1Check(flmatobj2@odbc_connection)
-				sqlQuery(flmatobj2@odbc_connection,
+				sqlSendUpdate(flmatobj2@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT DISTINCT ",max_matrix_id_value,",
 										 b.",flmatobj2@row_id_colname,",
@@ -340,7 +322,7 @@ NULL
 			flag2Check(flmatobj1@odbc_connection)
 
 				if(flmatobj2@isDeep)
-				sqlQuery(flmatobj1@odbc_connection,
+				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
 			            				a.",flmatobj1@row_id_colname,",
@@ -356,7 +338,7 @@ NULL
 				
 				else
 				{
-				sqlQuery(flmatobj1@odbc_connection,
+				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
 			            				 a.",flmatobj1@row_id_colname,",
@@ -389,9 +371,6 @@ NULL
 `*.FLVector` <- function(pObj1,pObj2)
 {
 	vNrow1 <- length(pObj1)
-	sqlQuery(pObj1@odbc_connection,
-			 paste("DATABASE", pObj1@db_name,";
-			 		SET ROLE ALL;"))
 	if(is.FLMatrix(pObj2))
 	{
 		return(pObj2*pObj1)
@@ -438,7 +417,7 @@ NULL
 					           AND b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
 					         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@var_id_name," MOD ",vMinSize)
 
-			sqlQuery(pObj1@odbc_connection,vSqlStr)
+			sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 		}
 
 		else if(xor(pObj1@isDeep,pObj2@isDeep))
@@ -454,7 +433,7 @@ NULL
 						         " WHERE a.",pObj1@obs_id_colname,"=",pObj1@vector_id_value,
 						         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@obs_id_colname," MOD ",vMinSize)
 
-			    sqlQuery(pObj1@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 			}
             else
             {
@@ -467,7 +446,7 @@ NULL
 						         " WHERE b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
 						         " AND b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
-			    sqlQuery(pObj1@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
             }
 		}
 
@@ -481,7 +460,7 @@ NULL
 					         		  pObj2@db_name,".",pObj2@table_name," b",
 					         " WHERE b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
-			    sqlQuery(pObj1@odbc_connection,vSqlStr)
+			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
 		}
 
 			max_vector_id_value <<- max_vector_id_value + 1
