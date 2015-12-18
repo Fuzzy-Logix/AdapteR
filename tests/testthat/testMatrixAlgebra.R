@@ -1,3 +1,7 @@
+require(testthat)
+
+## roadmap:
+## 
 
 test_that("subsetting matrices", {
 
@@ -17,10 +21,19 @@ test_that("subsetting matrices", {
     dim(m)
     ##diag(m)
 
-    m1 <- m[1,]
-    m[,1]
-    m[2:3,4:5]
+    test_that("selections of submatrix by index",
+    {
+        expect_equal(as.matrix(m),rMatrix)
+        expect_equal(as.matrix(m[1,]),rMatrix[1,])
+        expect_equal(as.matrix(m[2:3,4:5]),rMatrix[2:3,4:5])
+    })
     
+    test_that("selection of row by name ",{
+        expect_equal(m[1,],
+                     m[rownames(m)[[1]],])
+        expect_equal(as.matrix(m[1,]),m[rownames(m)[[1]],])
+    })
+
     ## A remote matrix is easily created by specifying 
     eqnRtn <- FLMatrix(
         connection,
@@ -33,126 +46,93 @@ test_that("subsetting matrices", {
         cell_val_colname  = "EquityReturn")
 
 
+    test_that("selection of column by name works",
+              expect_equal(m[,1], m[,colnames(m)[[1]]]))
 
-    
-##############################
-## The SQL way to compute a correlation matrix:
-    dbGetQuery(connection,
-"SELECT a.TickerSymbol AS Ticker1,
-        b.TickerSymbol AS Ticker2,
-        FLCorrel(a.EquityReturn, b.EquityReturn) AS FLCorrel
-FROM    finEquityReturns a,
-        finEquityReturns b
-WHERE   b.TxnDate = a.TxnDate
-AND     a.TickerSymbol = 'MSFT'
-AND     b.TickerSymbol IN ('AAPL','HPQ','IBM','MSFT','ORCL')
-GROUP BY a.TickerSymbol, b.TickerSymbol
-ORDER BY 1, 2;")
-
-    
-    dbGetQuery(connection,"
-show function FLCorrel")
-
-    
-    dbSendQuery(connection,"
-DATABASE FL_DEV ")
-
-    
-    
-    dbGetQuery(connection,"
-WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS
-(
-SELECT a.Matrix_ID,
-a.Row_ID,
-a.Col_ID,
-a.Cell_Val
-FROM tblMatrixMulti a
-WHERE a.Matrix_ID = 5
-)
-SELECT a.*
-FROM TABLE (
-FLMatrixDetUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val)
-HASH BY z.Matrix_ID
-LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
-) AS a
-ORDER BY 1;
-")
-    
-
-    
-
-    
-    test_that("selection of entire matrix",
-    {
-        expect_true(
-            is.FLMatrix(
-                m[,]
-            ))
-        expect_true(nrow(m[,])==nrow(m))
-        expect_true(ncol(m[,])==ncol(m))
-    })
-    
-    test_that("selection of cell row 1, column 1",
-    {
-        expect_true(
-            is.FLMatrix(
-                m[1,1]
-            ))
-        expect_true(
-            length(m[1,1])==1
-        )
-    })
-
-test_that("selection of first row",
-{
-    expect_true(
-        is.FLMatrix(
-            m[1,]
-        ))
-    expect_true(
-        length(m[1,])==ncol(m))
-})
 
 test_that("selection of row by name works",
-          expect_equal(
-            (m[1,] == m[rownames(m)[[1]],]),
-            TRUE
-              ))
+          expect_equal(m[1:2,],
+                       m[rownames(m)[1:2],]))
 
 test_that("selection of column by name works",
-          expect_equal(
-              (m[,1] == m[,colnames(m)[[1]]]),
-              TRUE))
+          expect_equal(m[,1:2],
+                       m[,colnames(m)[1:2]]))
 
-test_that("selection of a part of the matrix",
+
+
+# Testing Addition/Subtraction
+test_that("check matrix addition/subtraction",
 {
-    expect_equal(3,
-                 nrow(m[1:3,]))
-    expect_equal(ncol(m),
-                 ncol(m[1:3,]))
+    expect_equal(as.matrix(m2 <- .5*m),
+                 as.matrix(.5*m))
+    expect_equal(as.matrix(m + m2),
+                 as.matrix(m)+as.matrix(m2))
+    expect_equal(as.matrix(m - m2),
+                 as.matrix(m)-as.matrix(m2))
 })
 
-test_that("selection of a part of the matrix",
+
+test_that("check sparse matrix addition/subtraction",
 {
-    expect_equal(3,
-                 ncol(m[,1:3]))
-    expect_equal(nrow(m),
-                 nrow(m[,1:3]))
-    expect_equal(rownames(m),
-                 rownames(m[,1:3]))
+  sm2 + sm2
+  sm1 - sm1 
 })
 
-test_that("selection of row by name works",
-          expect_equal(
-              (m[1:2,] == m[rownames(m)[1:2],]),
-              TRUE
-          ))
 
-test_that("selection of column by name works",
+test_that("check sum of matrices",
+          expect_equal(as.matrix(m + m), as.matrix(2*m)))
+
+## gk:  the fate of sparse matrices?
+test_that("check sum of sparse matrices",
+          expect_equal(sm2 + sm2, 2*sm2))
+
+test_that("check commutative law",
+          expect_equal((m2 + m),(m + m2)))
+
+test_that("check associative law for addition",
           expect_equal(
-              (m[,1:2] == m[,colnames(m)[1:2]]),
-              TRUE
-          ))
+            ((m + m) + m2),(m + (m + m2))))
+
+test_that("check identity of addition",
+          expect_equal(
+            (m + m0), (m0 + m)))
+
+# Testing Multiplication
+test_that("check matrix multiplication",
+{
+  m * m2
+  m3 %*% m2
+  m %*% m2 
+})
+
+test_that("check associative law for multiplication",
+          expect_equal((m3 %*% m) %*% m2),
+          (m3 %*% (m %*% m2)))
+
+test_that("check two scalar multiplication for matrices",
+          expect_equal(((2 * 3) * m),
+          (2 * (3 * m))))
+
+test_that("check two scalar multiplication for sparse matrices",
+          expect_equal(((2 * 3) * sm2),
+          (2 * (3 * sm2))))
+
+test_that("check distributive properties for matrices",
+{
+    expect_equal((m3 %*% (m2 + m)),
+    ((m3 %*% m2) + (m3 %*% m)))
+    expect_equal(((m2 + m) %*% m),
+                 ((m2 %*% m) + (m %*% m)))
+    expect_equal((2 * (m2 + m)),
+                 ((2 * m2) + (2 * m)))  
+    expect_equal(((2 + 3) *m),
+                 ((2 * m) + (3 * m)))
+})
+
+
+############################################################ 
+##  Vectors
+
 
 test_that("selection of entire vector",
 {
@@ -181,37 +161,11 @@ test_that("selection of an element from a vector",
 expect_true(length(v1[2])==1)
 })
 
-
-# Testing Addition/Subtraction
-test_that("check matrix addition/subtraction",
-{
-  m + m2
-  m - m2 
-})
-
-test_that("check sparse matrix addition/subtraction",
-{
-  sm2 + sm2
-  sm1 - sm1 
-})
-
 test_that("check vector addition/subtraction",
 {
   v1 + v1
   v2 - v2 
 })
-
-test_that("check sum of matrices",
-          expect_equal(
-            ((m + m) == 2*m),
-            TRUE
-              ))
-
-test_that("check sum of sparse matrices",
-          expect_equal(
-            ((sm2 + sm2) == 2*sm2),
-            TRUE
-              ))
 
 test_that("check sum of vectors",
           expect_equal(
@@ -219,49 +173,7 @@ test_that("check sum of vectors",
             TRUE
               ))
 
-test_that("check commutative law",
-          expect_equal(
-            ((m2 + m) == (m + m2)),
-            TRUE
-              ))
 
-test_that("check associative law for addition",
-          expect_equal(
-            (((m + m) + m2) == (m + (m + m2))),
-            TRUE
-              ))
-
-test_that("check identity of addition",
-          expect_equal(
-            ( (m + m0) == (m0 + m) ),
-            TRUE
-              ))
-
-# Testing Multiplication
-test_that("check matrix multiplication",
-{
-  m * m2
-  m3 %*% m2
-  m %*% m2 
-})
-
-test_that("check associative law for multiplication",
-          expect_equal(
-            ( ((m3 %*% m) %*% m2) == (m3 %*% (m %*% m2)) ),
-            TRUE
-              ))
-
-test_that("check two scalar multiplication for matrices",
-          expect_equal(
-            ( ((2 * 3) * m) == (2 * (3 * m)) ),
-            TRUE
-              ))
-
-test_that("check two scalar multiplication for sparse matrices",
-          expect_equal(
-            ( ((2 * 3) * sm2) == (2 * (3 * sm2)) ),
-            TRUE
-              ))
 
 test_that("check two scalar multiplication for vectors",
           expect_equal(
@@ -274,23 +186,3 @@ test_that("check scalar multiplication for matrices",
             ( ((2 * m) %*% m2) == (2 * (m %*% m2)) ),
             TRUE
               ))
-
-test_that("check distributive properties for matrices",
-{
-    expect_equal(
-          ( (m3 %*% (m2 + m)) == ((m3 %*% m2) + (m3 %*% m)) ),
-          TRUE
-            )
-    expect_equal(
-          ( ((m2 + m) %*% m) == ((m2 %*% m) + (m %*% m)) ),
-          TRUE
-            )  
-    expect_equal(
-          ( (2 * (m2 + m)) == ((2 * m2) + (2 * m)) ),
-          TRUE
-            )  
-    expect_equal(
-          ( ((2 + 3) *m) == ((2 * m) + (3 * m)) ),
-          TRUE
-            )  
-})          

@@ -64,6 +64,8 @@ NULL
 	}
 }
 
+
+## gk: can we delete this?
 # `-.FLMatrix` <- function(flmatobj1, flmatobj2)
 # {
 # 	nrow1 <- nrow(flmatobj1)
@@ -73,7 +75,6 @@ NULL
 # 		checkSameDims(flmatobj1,flmatobj2)
 # 		flag1Check(flmatobj1@odbc_connection)
 # 		MID <- max_matrix_id_value
-		
 # 		sqlstr <- paste0(" INSERT INTO ",
 # 						getRemoteTableName(result_db_name,result_matrix_table),
 # 				 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
@@ -87,7 +88,6 @@ NULL
 # 					 		  	paste0("a.",flmatobj1@row_id_colname,"=b.",flmatobj2@row_id_colname),
 # 					 		  	paste0("a.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname)))
 # 				 		)
-
 # 		# sqlstr <- paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 # 		# 		 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 # 		# 		 				a.",flmatobj1@row_id_colname," AS ROW_ID ,
@@ -99,7 +99,6 @@ NULL
 # 		# 		 		  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 # 		# 		 		  AND a.",flmatobj1@row_id_colname,"=b.",flmatobj2@row_id_colname," 
 # 		# 		 		  AND a.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname))
-		
 # 		sqlSendUpdate(flmatobj1@odbc_connection,sqlstr)
 # 		max_matrix_id_value <<- max_matrix_id_value + 1
 # 		FLMatrix( 
@@ -138,7 +137,6 @@ NULL
 # 				vSwap <- flmatobj2
 # 				flmatobj2 <- flmatobj1
 # 				flmatobj1 <- vSwap
-
 # 				sqlQuery(flmatobj2@odbc_connection,
 # 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 # 								" SELECT DISTINCT ",max_matrix_id_value,",
@@ -170,7 +168,6 @@ NULL
 # 					              AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 # 					              AND a.",flmatobj1@row_id_colname," = b.",flmatobj2@row_id_colname," 
 # 					              AND a.",flmatobj1@col_id_colname," =b.",flmatobj2@col_id_colname))
-				
 # 				max_matrix_id_value <<- max_matrix_id_value + 1
 # 				FLMatrix( 
 # 					connection = flmatobj2@odbc_connection, 
@@ -190,7 +187,6 @@ NULL
 # 	else if(is.FLVector(flmatobj2))
 # 	{
 # 		flag1Check(flmatobj2@odbc_connection)
-
 # 		if(!flmatobj2@table@isDeep)
 # 		{
 # 			sqlQuery(flmatobj1@odbc_connection,
@@ -246,7 +242,6 @@ NULL
 # 			cell_val_colname = "CELL_VAL", 
 # 			nrow = nrow1, 
 # 			ncol = ncol1)
-			
 # 	}
 # 	else cat("ERROR::Operation Currently Not Supported")
 # }
@@ -283,13 +278,12 @@ NULL
 
 `-.FLMatrix` <- function(flmatobj1, flmatobj2)
 {
-	
+	nrow1 <- nrow(flmatobj1)
+	ncol1 <- ncol(flmatobj1)
 	if(is.FLMatrix(flmatobj2))
 	{
 		checkSameDims(flmatobj1,flmatobj2)
-
 		flag1Check(flmatobj1@odbc_connection)
-
 		sqlstr <-paste0(" INSERT INTO ",
 				 		getRemoteTableName(result_db_name,result_matrix_table),
 						" SELECT DISTINCT ",max_matrix_id_value,",
@@ -387,7 +381,6 @@ NULL
 					        constructWhere(c(paste0(flmatobj2@matrix_id_colname,"= c.mid "),
 					        	paste0(flmatobj2@row_id_colname,"= c.rid "),
 					        	paste0(flmatobj2@col_id_colname,"= c.cid "))))
-
 			sqlstr1 <-paste0(" UPDATE ",
 							remoteTable(flmatobj2),
 							" FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
@@ -408,7 +401,7 @@ NULL
 					        	paste0(flmatobj2@col_id_colname,"= c.cid "))))
 
 			sqlstr <- paste(sqlstr0,sqlstr1,sep=";")
-			sqlQuery(flmatobj1@odbc_connection,sqlstr)
+			sqlSendUpdate(flmatobj1@odbc_connection,sqlstr)
 
 			return(flmatobj2)
 		}
@@ -558,10 +551,11 @@ NULL
 
 		if(ncol(pObj1)==1 && ncol(pObj2)==1)
 		{
-			###Phani-- Subtraction is done based on matching of
-			### primary keys in both vectors.If one vector is short, it is
-			### not repeated as is done in R.
-
+			## Phani-- Subtraction is done based on matching of
+			## primary keys in both vectors.If one vector is short, it is
+            ## not repeated as is done in R.
+            ##
+            ## gk: we can defer this for now, we need modulo.
 			sqlstr <- paste0("INSERT INTO ",
 							getRemoteTableName(result_db_name,result_vector_table),
 							" SELECT ",max_vector_id_value,

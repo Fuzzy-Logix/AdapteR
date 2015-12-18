@@ -113,10 +113,15 @@ as.matrix.numeric <- base::as.matrix.default
 as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
     if(sparse)
         return(object)
+    dn <- dimnames(object)
+    if(is.null(dn[[1]]) & is.null(dn[[2]]))
+        matrix(as.vector(object),
+               nrow(object),
+               ncol(object))
     else matrix(as.vector(object),
                 nrow(object),
                 ncol(object),
-                dimnames=dimnames(object))
+                dimnames=dn)
 }
 
 ## #' Converts input FLMatrix object to matrix in R
@@ -124,10 +129,15 @@ as.matrix.FLMatrix <- function(object,sparse=FALSE) {
     m <- as.sparseMatrix.FLMatrix(object)
     if(sparse)
         m
+    dn <- dimnames(m)
+    if(is.null(dn[[1]]) & is.null(dn[[2]]))
+        matrix(as.vector(m),
+                nrow(m),
+                ncol(m))
     else matrix(as.vector(m),
                 nrow(m),
                 ncol(m),
-                dimnames=dimnames(m))
+                dimnames=dn)
 }
 
 ## setGeneric("as.matrix", function(object){
@@ -330,17 +340,30 @@ as.sparseMatrix.FLMatrix <- function(object) {
                    object@cell_val_colname,  
                    " FROM ",remoteTable(object),
                    constructWhere(constraintsSQL(object))))
-
     i <- match(valuedf[[1]],rownames(object))
-    if(any(is.na(i)))
-    i <- match(valuedf[[1]],match(rownames(object),rownames(object)))
     j <- match(valuedf[[2]],colnames(object))
-    if(any(is.na(j)))
-    j <- match(valuedf[[2]],match(colnames(object),colnames(object)))
-    m <- sparseMatrix(i = i,
-                      j = j,
-                      x = valuedf[[3]],
-                      dims = dim(object))
+    if(any(is.na(i)) | any(is.na(j)))
+        stop("matrix rowname mapping needs to be implemented")
+
+    dn <- dimnames(object)
+    for(index in 1:2)
+        if(!is.null(dn[[index]])){
+            if(all(dn[[index]]==as.character(1:(dim(object)[[index]]))))
+                dn[index] <- list(NULL)
+        }
+    ##browser()
+
+    if(is.null(dn[[1]]) & is.null(dn[[2]]))
+        m <- sparseMatrix(i = i,
+                          j = j,
+                          x = valuedf[[3]],
+                          dims = dim(object))
+    else
+        m <- sparseMatrix(i = i,
+                          j = j,
+                          x = valuedf[[3]],
+                          dims = dim(object),
+                          dimnames = dn)
     return(m)
 }
 
