@@ -1,6 +1,9 @@
 library(AdapteR)
 library(testthat)
 require(Matrix)
+require(reshape2)
+require(psych)
+require(MASS)
 
 if (exists("connection")) {
     dbDisconnect(connection)
@@ -17,32 +20,61 @@ ignoreDimNames <- TRUE
 
 options(debugSQL=FALSE)
 
-###############################################################
-############# POSITIVE TEST CASES #############################
-###############################################################
-## gk: yes that is what I meant, I changed a bit with ..., passing any parameters on to the init function.
-## so we can set more than one dimension etc
-## we can extend with benchmarking
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
-    I <- initF(...)
+  I <- initF(...)
     expect_equal(FLcomputationF(I$FL),
                  RcomputationF(I$R),
                  check.attributes=FALSE)
 }
 
+expect_flequal <- function(a,b,...){
+    if(is.list(a))
+        for(i in 1:length(a))
+            expect_flequal(a[[i]],b[[i]],...)
+
+    expect_equal(a,b,...)
+}
+
+## Increase n for increasing length of FLVector.
+## If isRowVec=TRUE, rowVector(one observation of all columns) is returned.
+initF.FLVector <- function(n,isRowVec=FALSE)
+{
+  sqlSendUpdate(connection,
+                      c(paste0("DROP TABLE FL_DEMO.test_vectortable_AdapteR;"),
+                        paste0("CREATE TABLE FL_DEMO.test_vectortable_AdapteR 
+                          AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
+                            CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
+                          FROM FL_DEMO.fzzlserial a 
+                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
+
+  table <- FLTable(connection,
+                 "FL_DEMO",
+                 "test_vectortable_AdapteR",
+                 "VECTOR_INDEX",
+                 whereconditions=paste0("FL_DEMO.test_vectortable_AdapteR.VECTOR_ID = 1")
+                 )
+
+  if(isRowVec)
+  flv <- table[1,base::sample(c("VECTOR_VALUE","VECTOR_INDEX"),n,replace=TRUE)]
+  else
+  flv <- table[1:n,"VECTOR_VALUE"]
+
+  Rvector <- as.vector(flv)
+  return(list(FL=flv,R=Rvector))
+}
+
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
-## gk:  yes, that looks good
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
   sqlSendUpdate(connection,
                       c(paste0("DROP TABLE FL_DEMO.test_matrixtable_AdapteR;"),
                         paste0("CREATE TABLE FL_DEMO.test_matrixtable_AdapteR 
                           AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
-                            b.serialval AS COL_ID,random(0,100) AS CELL_VAL 
+                            b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
                           FROM FL_DEMO.fzzlserial a,FL_DEMO.fzzlserial b
-                          WHERE a.serialval < ",n," and b.serialval < ",ifelse(isSquare,n,n-1),") WITH DATA ")))
+                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
   flm <- FLMatrix(connection,
               database          = "FL_DEMO",
               matrix_table      = "test_matrixtable_AdapteR",
@@ -55,20 +87,43 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
   return(list(FL=flm,R=Rmatrix))
 }
 
+initF.FLTable <- function(rows,cols)
+{
+  WideTable <- FLTable(connection, "FL_DEMO", "fzzlserial","serialval",whereconditions=paste0("FL_DEMO.fzzlserial.serialval<100"))
+  return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
+}
 
 setMethod("expect_equal",signature("FLMatrix","matrix"),
-          function(object,expected) expect_equal(as.matrix(object),expected))
+          function(object,expected,...) expect_equal(as.matrix(object),expected,...))
+setMethod("expect_equal",signature("FLMatrix","FLMatrix"),
+          function(object,expected,...) expect_equal(as.matrix(object),as.matrix(expected),...))
+setMethod("expect_equal",signature("dgCMatrix","FLMatrix"),
+          function(object,expected,...) expect_equal(object,as.matrix(expected),...))
+
+setMethod("expect_equal",signature("FLVector","vector"),
+          function(object,expected,...) expect_equal(as.vector(object),expected,...))
+setMethod("expect_equal",signature("FLVector","FLVector"),
+          function(object,expected,...) expect_equal(as.vector(object),as.vector(expected),...))
+setMethod("expect_equal",signature("matrix","matrix"),
+          function(object,expected,...) testthat::expect_equal(as.vector(object),as.vector(expected),...))
+
+setMethod("expect_equal",signature("list","list"),
+          function(object,expected,...) 
+            for(i in 1:length(object))
+            expect_equal(object[[i]],expected[[i]],...))
+
+
+###############################################################
+############# WORKING POSITIVE TEST CASES #####################
+###############################################################
 
 ## Testing FLSolve
-### Phani-- This fails because we dont'have expect_equal(flmatrixobject,Rmatrix)
-### will try to overload all.equal to work for FLMatrix objects.
-### gk: I would prefer the solution above.  Does not run here, because of remaining dimnames inconsistencies
-### 
 test_that("check inverse calculation of matrix", {
     expect_eval_equal(initF.FLMatrix,
                       AdapteR::solve,
                       base::solve,
-                      n=5)
+                      n=5,
+                      isSquare=TRUE)
 })
 
 options(debugSQL=TRUE)
@@ -80,1944 +135,415 @@ test_that("check rankMatrix result",{
                       n=5)
 })
 
-## gk: good, please continue in this manner.
-## gk:  I did 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-################################################################################
-############################# OLD TESTS ########################################
-################################################################################
-## gk: todo: fix rownames
-test_that("Casting base R matrix <---> in-database Matrices",{
-    ## Creating simple base R matrix
-    matrix1 <- matrix(1:25,5)
-    matrix2 <- matrix(1:25,5)
-    if(!ignoreDimNames){
-        rownames(matrix1) <- c("a","b","c","d","e")
-        colnames(matrix1) <- c("p","q","r","s","t")
-        rownames(matrix2) <- c("A","B","C","D","E")
-        colnames(matrix2) <- c("P","Q","R","S","T")
-    }
-    ##  FLMatrices from R matrices
-    m1 <- as.FLMatrix(matrix1, connection)
-    m2 <- as.FLMatrix(matrix2, connection)
-    expect_equal(dim(m1),c(5,5))
-    expect_equal(dim(m2),c(5,5))
-    expect_equal(as.vector(m1), as.vector(matrix1))
-    expect_equal(as.vector(m2), as.vector(matrix2))
-    ##
-    ##
-    ## FLMatrix -> R matrix
-    matrix3 <- as.matrix(m2)
-    expect_equal(dim(matrix3),
-                 c(5,5))
-    expect_equal(as.vector(m2),
-                 as.vector(matrix3))
-    if(!ignoreDimNames)
-    test_that({
-        expect_equal(rownames(m2),
-                     rownames(matrix3))
-        expect_equal(colnames(m2),
-                     colnames(matrix3))
-        expect_equal(rownames(m1),
-                     rownames(matrix1))
-        expect_equal(colnames(m1),
-                     colnames(matrix1))
-        expect_equal(rownames(m2),
-                     rownames(matrix2))
-        expect_equal(colnames(m2),
-                     colnames(matrix2))
-    })
+## Testing FLTranspose
+test_that("check transpose",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::t,base::t,n=5)
 })
 
-
-test_that("Casting R matrix Packages <---> in-database Matrices",{
-    ## Creating simple FLMatrices from base R matrix
-    matrix1 <- matrix(1:25,5)
-    matrix2 <- matrix(1:25,5)
-    if(!ignoreDimNames){
-        rownames(matrix1) <- c("a","b","c","d","e")
-        colnames(matrix1) <- c("p","q","r","s","t")
-        rownames(matrix2) <- c("A","B","C","D","E")
-        colnames(matrix2) <- c("P","Q","R","S","T")
-    }
-    m1 <- as.FLMatrix(matrix1, connection) # Identity matrix of dimension 5x5
-    m2 <- as.FLMatrix(matrix2, connection) # Identity matrix of dimension 5x5
-    expect_equal(dim(m1),c(5,5))
-    expect_equal(dim(m2),c(5,5))
-    ##
-    matrix3 <- as.matrix(m2)
-    expect_equal(dim(matrix3),c(5,5))
-    expect_equal(as.vector(m2),as.vector(matrix3))
-    if(!ignoreDimNames){
-        expect_equal(rownames(m1),rownames(matrix1))
-        expect_equal(colnames(m1),colnames(matrix1))
-        expect_equal(rownames(m2),rownames(matrix2))
-        expect_equal(colnames(m2),colnames(matrix2))
-        expect_equal(rownames(m2),rownames(matrix3))
-        expect_equal(colnames(m2),colnames(matrix3))
-    }
-})
-
-test_that("Casting base R matrix <---> in-database Matrices",{
-    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-    class(as.matrix(smatrix1))
-    sm1 <- as.FLMatrix(smatrix1,connection)
-    expect_equal(dim(smatrix1),dim(sm1))
-    expect_equal(as.vector(sm1),as.vector(smatrix1))
-    if(!ignoreDimNames){
-        expect_equal(rownames(sm1),rownames(smatrix1))
-        expect_equal(colnames(sm1),colnames(smatrix1))
-    }
-##    expect_equal(as.matrix(sm1,sparse=TRUE),smatrix1)
-})
-
-                                        # Testing FLIs
-test_that("check class of a Matrix",
+## Testing M_Subtraction
+test_that("check result for M_Subtraction",
 {
-    m <- as.FLMatrix(matrix(1:25,5),connection)   # Non-symmetric singular matrix of dimension 5x5
-    expect_is(
-        m, "FLMatrix"
-    )
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,10),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,10),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+
+    expect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
+    expect_equal(V1-V2,V1R-V2R,check.attributes=FALSE)
+    expect_equal(P1$FL-P1$FL,P1$R-P1$R,check.attributes=FALSE)
+    expect_equal(V1-P1$FL,V1R-P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL-V2,P1$R-V2R,check.attributes=FALSE)
+    expect_equal(M1$FL-V2,M1$R-V2R,check.attributes=FALSE)
+    expect_equal(M1$FL-P1$FL,M1$R-P1$R,check.attributes=FALSE)
+    expect_equal(V1-M2,V1R-M2R,check.attributes=FALSE)
+    expect_equal(P1$FL-M2,P1$R-M2R,check.attributes=FALSE)
+
+    expect_equal(P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2,
+      P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
+      check.attributes=FALSE)
 })
 
-
-                                        # Testing FLMatrix
-test_that("check class and result of FLMatrix",
+## Testing M_IntegerDivision
+test_that("check result for M_IntegerDivision",
 {
-    matrix1 <- matrix(1:25,5)
-    m <- as.FLMatrix(matrix1,connection)   # Non-symmetric singular ma
-    expect_is(
-        m, "FLMatrix"
-    )
-    expect_equal(
-        nrow(m),nrow(as.matrix(m))
-    )
-    expect_equal(
-        ncol(m),ncol(as.matrix(m))
-    )
-    expect_equal(
-        as.vector(as.matrix(m)),as.vector(matrix1)
-    )
-    ## Testing FLTranspose
-    
-    test_that("check transpose",
-              expect_equal(
-              (t(m) == as.FLMatrix(t(as.matrix(m)),connection)),
-              TRUE
-              ))
-    ##
-    ## Testing FLDet
-    test_that("check determinant return type",
-              expect_true(
-                  is.numeric(det(m))
-              ))
-    ##
-    test_that("check determinant result",
-              expect_true(
-                  as.vector(det(m))==det(as.matrix(m))
-              ))
-    ##
-    ##Testing FLDims
-    test_that("get dimensions of a Matrix",
-    { ## gk: redundant!?
-        expect_true(
-            is.numeric(
-                ncol(m)
-            ))
-        expect_true(
-            is.numeric(
-                NCOL(m)
-            ))
-        expect_true(
-            is.numeric(
-                nrow(m)
-            ))
-        expect_true(
-            is.numeric(
-                NROW(m)
-            ))
-        expect_true(
-            is.numeric(
-                dim(m)
-            ))
-    }) 
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,10),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,10),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+
+    expect_equal(M1$FL%/%M2,M1$R%/%M2R,check.attributes=FALSE)
+    expect_equal(V1%/%V2,V1R%/%V2R,check.attributes=FALSE)
+    expect_equal(P1$FL%/%P1$FL,P1$R%/%P1$R,check.attributes=FALSE)
+    expect_equal(V1%/%P1$FL,V1R%/%P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL%/%V2,P1$R%/%V2R,check.attributes=FALSE)
+    expect_equal(M1$FL%/%V2,M1$R%/%V2R,check.attributes=FALSE)
+    expect_equal(M1$FL%/%P1$FL,M1$R%/%P1$R,check.attributes=FALSE)
+    expect_equal(V1%/%M2,V1R%/%M2R,check.attributes=FALSE)
+    expect_equal(P1$FL%/%M2,P1$R%/%M2R,check.attributes=FALSE)
+
+    expect_equal(P1$FL%/%P1$FL%/%V1%/%V2%/%M2%/%P1$FL%/%M1$FL%/%V2,
+      P1$R%/%P1$R%/%V1R%/%V2R%/%M2R%/%P1$R%/%M1$R%/%V2R,
+      check.attributes=FALSE)
 })
 
-                                        # Testing FLSparseMatrix
-test_that("check class and result of FLSparseMatrix",
+## Testing M_CrossProduct
+test_that("check result for M_CrossProduct",
 {
-    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-    sm1 <- as.FLMatrix(smatrix1,connection)
-    expect_is(
-        sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
-    )
-    expect_equal(
-        nrow(sm1),nrow(smatrix1)
-    )
-    expect_equal(
-        ncol(sm1),ncol(smatrix1)
-    )
+  M1 <- initF.FLMatrix(n=5) # 5*4 matrix
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3) # 4*5 matrix
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,5),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,5),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
+
+    expect_equal(M1$FL%*%M2,M1$R%*%M2R,check.attributes=FALSE)
+    expect_equal(V1%*%V1,V1R%*%V1R,check.attributes=FALSE)
+    expect_equal(P1$FL%*%P1$FL,P1$R%*%P1$R,check.attributes=FALSE)
+    expect_equal(V1%*%P1$FL,V1R%*%P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL%*%V1,P1$R%*%V1R,check.attributes=FALSE)
+    expect_equal(M2%*%V2,M2R%*%V2R,check.attributes=FALSE)
+    expect_equal(M2%*%P1$FL,M2R%*%P1$R,check.attributes=FALSE)
+    expect_equal(V1%*%M1$FL,V1R%*%M1$R,check.attributes=FALSE)
+    expect_equal(P1$FL%*%M1$FL,P1$R%*%M1$R,check.attributes=FALSE)
 })
 
-
-test_that("get dimensions of a Sparse Matrix",
+## Testing FLIs
+test_that("check FLIs",
 {
-    sm2 <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMultiSparse", 2)
-    expect_true(
-        is.numeric(
-            ncol(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            nrow(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            NCOL(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            NROW(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            dim(sm2)
-        ))
+    expect_eval_equal(initF.FLMatrix,AdapteR::is.FLMatrix,base::is.matrix,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::is.FLVector,base::is.vector,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::is.FLVector,base::is.vector,n=5,isRowVec=TRUE)
+    expect_is(initF.FLTable(rows=5,cols=4),"FLTable")
 })
 
-
-## gk: works, please condition out warnings!
-## Zero matrix of dimension 5x5
-m0 <- as.FLMatrix(matrix(0,5,5), connection)
-
-## Identity matrix of dimension 5x5
-m <- as.FLMatrix(matrix(1:25,5),connection)   # Non-symmetric singular matrix of dimension 5x5
-m2 <- as.FLMatrix(matrix(26:50,5), connection) # Non Symmetric singular matrix of dimension 5x5
-m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",3) #  Non-Square Matrix of dimension 4x5
-m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5) # Symmetric non-singular matrix of dimension 5x5
-m5 <- as.FLMatrix(matrix(runif(25,-30,30),5,5),connection) # Random matrix of dimension 5x5
-
-WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-colnames(WideTable)
-rownames(WideTable)
-dim(WideTable)
-as.data.frame(WideTable)
-
-
-as.data.frame(WideTable)
-v1 <- WideTable[,"vector_value"]
-### Phani-- subsetting FLVector
-v2 <- v1[2:1]
-print(v2)
-### Phani-- subsetting FLMatrix with mapping
-m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",1,dimnames=list(c("a","b","c"),1:3))
-m3[c("b","c"),]
-m3[,]
-m3[]
-m3[,2:1]
-m3[c("b","c"),1:2]
-
-
-WideTable
-rownames(WideTable)
-WideTable[1:3,]
-WideTable[c("1","2"),]
-
-c(as.vector(v1))
-
-v1
-
-
-#############################################################
-## For in-database analytix the matrix is in the warehouse
-## to begin with.
-## 
-## A remote matrix is easily created by specifying
-##
-m <- eqnRtn <- FLMatrix(connection,
-                        database          = "FL_DEMO",
-                        matrix_table      = "finEquityReturns",
-                        matrix_id_value   = "",
-                        matrix_id_colname = "",
-                        row_id_colname    = "TxnDate",
-                        col_id_colname    = "TickerSymbol",
-                        cell_val_colname  = "EquityReturn")
-
-
-
-DeepTable <- FLTable(connection,
-                     database          = "FL_DEMO",
-                     table      = "finEquityReturns",
-                     obs_id_colname = "TxnDate",
-                     var_id_colnames = "TickerSymbol",
-                     cell_val_colname = "EquityReturn")
-DeepTable[1:10,1:10]
-
-DeepTable <- DeepTable[sort(rownames(DeepTable)),]
-
-v2 <- DeepTable[,"WSR"]
-v2
-# options(debugSQL=FALSE)
-
-
-require(reshape2)
-as.FLVector(as.vector(v1),connection)
-
-test_that("Wide tables and Vectors",
+## Testing FLCastFunctions
+test_that("check FLCastFunctions",
 {
-    ## # Creating FLVectors
-    ## Testing FLvector
-    expect_is(
-        v1, "FLVector"
-    )
-    expect_is(
-        v2, "FLVector"
-    )
-    test_that("check class and reproducibility of FLVector",
-    {
-        expect_equal(
-            as.vector(v1),as.vector(
-                              as.FLVector(as.vector(v1),connection)))
-    })
-    test_that("check class of a Table",
-    {
-        expect_is(
-            DeepTable, "FLTable"
-        )
-        expect_is(
-            WideTable, "FLTable"
-        )
-    })
-    test_that("get dimensions of a Vector",
-    {
-        expect_true(
-            is.numeric(
-                NCOL(v1)
-            ))
-        expect_true(
-            is.numeric(
-                NROW(v1)
-            ))
-        expect_true(
-            is.numeric(
-                dim(v1)
-            ))
-    })
+  M1 <- initF.FLMatrix(n=5)
+  V1 <- as.FLVector(sample(1:100,5),connection)
+  V1R <- as.vector(V1)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
+  T1 <- initF.FLTable(rows=5,cols=5)
+    expect_equal(as.vector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
+    expect_equal(as.vector(P1$FL),as.vector(P1$R),check.attributes=FALSE)
+    expect_equal(as.data.frame(M1$FL),as.data.frame(M1$R),check.attributes=FALSE)
+    testthat::expect_equal(as.matrix(P1$FL),as.matrix(P1$R),check.attributes=FALSE)
+    testthat::expect_equal(as.matrix(V1),as.matrix(V1R),check.attributes=FALSE)
+    expect_equal(as.FLMatrix(M1$R,connection),as.matrix(M1$FL),check.attributes=FALSE)
+    expect_equal(as.FLMatrix(P1$FL),as.matrix(P1$R),check.attributes=FALSE)
+    expect_equal(as.FLMatrix(V1),as.matrix(V1R),check.attributes=FALSE)
+    expect_equal(as.FLMatrix(P1$R,connection),as.matrix(P1$R),check.attributes=FALSE)
+    expect_equal(as.FLVector(M1$R,connection),as.vector(M1$R),check.attributes=FALSE)
+    expect_equal(as.FLVector(M1$FL),as.matrix(M1$R),check.attributes=FALSE)
 })
 
-test_that("check storing of diagonal matrices is working.",  
-          expect_equal(
-              as.matrix(solve(m4)),
-              as.matrix(
-                  as.FLMatrix(
-                      solve(as.matrix(m4)),
-                      connection))))
-
-## gk: I need to refactor FLVector, currently it seems to store strings?
-##Testing FLDiag
-test_that("check the result of the diag of matrix",
+## Testing FLGinv
+test_that("check FLGinv",
 {
-    expect_equal(
-        as.vector(diag(m4)),
-        diag(as.matrix(m4)))
-    expect_equal(
-        as.matrix(diag(as.FLVector(1:2,connection))) , diag(1:2), check.attributes=FALSE)
-    expect_equal(
-        as.matrix(diag(as.FLVector(2,connection))), diag(2), check.attributes=FALSE)
+    expect_eval_equal(initF.FLMatrix,AdapteR::ginv,MASS::ginv,n=5)
 })
 
-## Testing FLRankMatrix
-test_that("check rankMatrix return type",
-          expect_true(
-              is.vector(rankMatrix(m4))
-          ))
-test_that("check rankMatrix result",{
-    rRank <- rankMatrix(as.matrix(m4))
-    expect_true(
-        rankMatrix(m4)==rRank
-    )
+## Testing FLRowMeans
+test_that("check rowMeans",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::rowMeans,base::rowMeans,n=5)
 })
 
-
-## gk: REFACTOR: rbind is using for loops and data copy!!
-##Testing rbind
-test_that("check return type and working for rbind",
-          expect_true(
-              is.FLMatrix(rbind(m4,1:3,data.frame(1,2,3,4,5),v1,matrix(1:25,5)))
-          ))
-test_that("check dimensions returned for rbind", {
-    expect_true(
-        nrow(rbind(m4,1:3))==nrow(m4)+1)
-    expect_true(
-        ncol(rbind(m4,1:3))==ncol(m4)
-    )
-    expect_true(
-        ncol(rbind(1:5,1:3))==5
-    )
+## Testing FLRowSums
+test_that("check rowSums",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::rowSums,base::rowSums,n=5)
 })
-##Testing cbind
-test_that("check return type and working for cbind",
-          expect_true(
-              is.FLMatrix(cbind(m4,1:3,data.frame(1:5),v1,matrix(1:25,5)))
-          ))
-test_that("check dimensions returned for cbind", {
-    expect_true(
-        ncol(cbind(m4,1:3))==ncol(m4)+1)
-    expect_true(
-        nrow(cbind(m4,1:3))==nrow(m4)
-    )
-    expect_true(
-        nrow(cbind(1:5,1:3))==5
-    )
+
+## Testing FLDims
+test_that("check FLDims",
+{
+  m <- Matrix(c(0,1,0,2),2,sparse=T)
+  m <- as(m,"dgCMatrix")
+  M <- as.FLMatrix(m,connection)
+  T1 <- initF.FLTable(rows=5,cols=5)
+  T1R <- as.data.frame(T1)
+    expect_equal(AdapteR::dim.FLMatrix(M),base::dim(m),check.attributes=FALSE)
+    expect_equal(AdapteR::dim.FLTable(T1),base::dim(T1R),check.attributes=FALSE)
 })
 
 
-test_that("check Jordan Decomposition",
-          jordan(m4))
+#################################################################
+########### no equivqlent R functions to test against ###########
+################### but functions work ##########################
 
 ## Testing FLHessenDecomp
 test_that("check Hessenberg Decomposition",
 {
-    hessen(m4) 
-    hessen(m)
+    FLHessen(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
-expect_flequal <- function(a,b){
-    if(is.list(a))
-        for(i in 1:length(a))
-            expect_flequal(a[[i]],b[[i]])
+## Testing FLSV
+test_that("check FLSV working",
+{
+    expect_equal(
+              length(FLSV(initF.FLMatrix(n=5,isSquare=TRUE)$FL)),
+              nrow(m5)
+          )
+})
 
-    if(is.FLMatrix(a)) a <- as.matrix(a)
-    if(is.FLMatrix(b)) b <- as.matrix(b)
-    expect_equal(a,b)
-}
+## Testing FLMatrixRREF
+test_that("check FLMatrixRREF working",
+{
+  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+    expect_equal(
+              dim(FLMatrixRREF(M)),
+              dim(M)
+          )
+})
+
+## Testing FLMatrixNorm
+test_that("check FLMatrixNorm working",
+{
+  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+  FLMatrixNorm(M,3)
+})
+
+
+#################################################################################
+################### Functions work but output slightly differs ##################
+###################### from corresponding R functions ###########################
+
+## Testing FLCholskeyDecomp
+### Phani-- needs a hermitian positive definite matrix as input
+### Teradata result is transpose of R result.
+test_that("check FLCholskeyDecomp",
+{
+  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  expect_equal(chol(m4), t(Matrix::chol(as.matrix(m4))))
+})
+
+## Testing FLEigen
+## Phani -- results differ in Teradata and R
+test_that("check FLEigen",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::eigen,base::eigen,n=5,isSquare=TRUE)
+})
 
 ## Testing FLSVDecomp
 ## Phani -- results differ in Teradata and R
-### but function works.
 test_that("check Singular Value Decomposition",
 {
-    flv <- svd(m4)
-    print(flv)
-    expect_flequal(svd(m), svd(as.matrix(m)))
-    svd(m3) 
+    expect_eval_equal(initF.FLMatrix,AdapteR::svd,base::svd,n=5)
 })
-                                        # Testing FLLUDecomp
+
+
+####################################################################################################
+####################################################################################################
+#***************************************************************************************************
+#***************************************************************************************************
+#################################################################################
+############################# Non Working Tests #################################
+#################################################################################
+
+# Testing FLLUDecomp
 test_that("check LU Decomposition",
 {
-    lu(m4) 
-    lu(m) 
-    lu(m3) 
+  m <- initF.FLMatrix(n=5)
+   expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),Matrix::expand(Matrix::lu(m$R)))
 })
-## Testing FLTrace
-test_that("check LU Decomposition",
+
+test_that("check FLTrace",
 {
-    tr(m) 
-    tr(m3) 
-})
-test_that("check FLTrace return type",
-          expect_true(
-              is.FLVector(tr(m))
-          ))
-test_that("check length of FLTrace result",
-          expect_true(
-              length(tr(m))==1
-          ))
-
-
-                                        #Testing FLSV
-test_that("check return type and working for FLSV",
-          expect_true(
-              is.FLVector(FLSV(m5))
-          ))
-
-test_that("check dimensions returned for FLSV",
-          expect_true(
-              length(FLSV(m5))==nrow(m5)
-          ))
-
-                                        #Testing RowMeans
-                                        ### Phani-- very less difference in results
-                                        ### but test case-3 fails
-test_that("check return type and working for rowMeans",
-          expect_true(
-              is.FLVector(rowMeans(m5))
-          ))
-
-test_that("check dimensions returned for rowMeans",
-          expect_true(
-              length(rowMeans(m5))==nrow(m5)
-          ))
-
-test_that("check result for rowMeans",
-          expect_equal(as.vector(rowMeans(m5)), rowMeans(as.matrix(m5)))
-          )
-
-                                        #Testing ColMeans
-test_that("check return type and working for colMeans",
-          expect_true(
-              is.FLVector(colMeans(m5))
-          ))
-
-test_that("check dimensions returned for colMeans",
-          expect_true(
-              length(colMeans(m5))==ncol(m5)
-          ))
-
-test_that("check result for colMeans",
-          expect_equal(as.vector(colMeans(m5)), colMeans(as.matrix(m5)))
-          )
-
-                                        #Testing RowSums
-test_that("check return type and working for rowSums",
-          expect_true(
-              is.FLVector(rowSums(m5))
-          ))
-
-test_that("check dimensions returned for rowSums",
-          expect_true(
-              length(rowSums(m5))==nrow(m5)
-          ))
-
-test_that("check result for rowSums",
-          expect_equal(as.vector(rowSums(m5)), rowSums(as.matrix(m5)))
-          )
-
-                                        #Testing colSums
-test_that("check return type and working for colSums",
-          expect_true(
-              is.FLVector(colSums(m5))
-          ))
-
-test_that("check dimensions returned for colSums",
-          expect_true(
-              length(colSums(m5))==ncol(m5)
-          ))
-
-test_that("check result for colSums",
-          expect_equal(as.vector(colSums(m5)), colSums(as.matrix(m5)))
-          )
-
-                                        # Testing M_Addition
-test_that("check result for M_Addition",
-          expect_true(
-          (m+1:3+matrix1+v1)==as.FLMatrix(matrix1+1:3+matrix1+as.vector(v1),connection)
-          ))
-
-                                        # Testing M_Subtraction
-test_that("check result for M_Subtraction",
-          expect_true(
-          (m-1:3-matrix1-v1)==as.FLMatrix(matrix1-1:3-matrix1-as.vector(v1),connection)
-          ))
-
-                                        # Testing M_Multiplication
-test_that("check result for M_Multiplication",
-          expect_true(
-          (m*1:3*matrix1*v1)==as.FLMatrix(matrix1*1:3*matrix1*as.vector(v1),connection)
-          ))
-
-                                        # Testing M_CrossProduct
-test_that("check result for M_CrossProduct",
-          expect_true(
-          (1:5%*%matrix1%*%m)==as.FLMatrix(1:5%*%matrix1%*%matrix1,connection)
-          ))
-
-                                        # Testing M_IntegerDivision
-test_that("check result for M_IntegerDivision",
-          expect_true(
-          (m%/%1:3%/%matrix1%/%v1)==as.FLMatrix(matrix1%/%1:3%/%matrix1%/%as.vector(v1),connection)
-          ))
-
-                                        # Testing M_Remainder
-test_that("check working of M_Remainder",
-          m%%1:3%%matrix1%%v1
-          )
-
-                                        # Testing FLEigen
-test_that("check if FLEigen is working ",
-{      eigen(m4)
-    eigen(m5)
+    expect_eval_equal(initF.FLMatrix,AdapteR::tr,psych::tr,n=5)
 })
 
-                                        # Testing FLLength
-test_that("check if FLLength is working ",
-{     length(m4)
-    length(v1)
-    length(sm1) })
-
-                                        # Testing FL_CastingFunctions
-test_that("different types of casting works",
-{        as.vector(m)
-    as.vector(v1)
-    as.vector(v2)
-    as.vector(sm1)
-    as.matrix(m)
-    as.matrix(v1)
-    as.matrix(v2)
-    as.matrix(sm1)
-    as.FLMatrix(v1,connection)
-    as.FLMatrix(v2,connection)
-    as.FLMatrix(sm1,connection)
-    as.FLMatrix(data.frame(1:2,3:4),connection)
-    as.FLMatrix(as.vector(v1),connection)
-    as.FLVector(m,connection)
-    as.FLVector(sm1,connection)
-    as.FLVector(smatrix1,connection)
-    as.FLVector(data.frame(1:2,3:4),connection)
-    as.FLVector(as.vector(v1),connection)
-} )
-
-                                        # Testing FLCorrel
-test_that("different input combinations work for FLCorrel",
-{         cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,2),connection))
-    cor(as.FLMatrix(matrix(c(0,-1,4,-10),2),connection),as.FLMatrix(matrix(1:6,2),connection))
-    cor(v1,as.FLMatrix(matrix(1:12,6),connection))
-    cor(v1,v1)
-    cor(matrix(1:12,6),v1)
-    cor(1:2,as.FLMatrix(matrix(1:4,2),connection))
-    cor(data.frame(-2:-1,c(1,0)),as.FLMatrix(matrix(1:6,2),connection))
-    cor(v1,data.frame(6:1,11:16))
-    cor(WideTable,WideTable)
-                                        # cor(DeepTable,DeepTable)
+## Testing FLDet
+test_that("check determinant result",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
 })
 
-test_that("check output dimensions for FLCorrel",
-{
-    expect_true(
-        nrow(cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,2),connection)))==2
-    )
-
-    expect_true(
-        ncol(cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,2),connection)))==3
-    )
-})
-
-                                        # Testing FLQRDecomp
-test_that("check if FLQRDecomp is working ",
-{      qr(m4)
-    qr(m)
-    qr(m3)
-})
-
-                                        #Testing FLTriDiag
-test_that("check result type and dimensions for FLTriDiag",
-{
-    expect_true(
-        is.FLMatrix(FLTriDiag(m5))
-    )
-
-    expect_true(
-        nrow(FLTriDiag(m5))==nrow(m5)
-    )
-
-    expect_true(
-        ncol(FLTriDiag(m5))==ncol(m5)
-    )
-})
-
-                                        #Testing FLMatrixREF
-test_that("check result type and dimensions for FLMatrixREF",
-{
-    expect_true(
-        is.FLMatrix(FLMatrixREF(m5))
-    )
-
-    expect_true(
-        nrow(FLMatrixREF(m5))==nrow(m5)
-    )
-
-    expect_true(
-        ncol(FLMatrixREF(m5))==ncol(m5)
-    )
-})
-
-                                        #Testing FLMatrixRREF
-test_that("check result type and dimensions for FLMatrixRREF",
-{
-    expect_true(
-        is.FLMatrix(FLMatrixRREF(m5))
-    )
-
-    expect_true(
-        nrow(FLMatrixRREF(m5))==nrow(m5)
-    )
-
-    expect_true(
-        ncol(FLMatrixRREF(m5))==ncol(m5)
-    )
-})
-
-                                        #Testing FLMatrixNorm
-test_that("check result type and dimensions for FLMatrixNorm",
-{
-    expect_true(
-        is.vector(FLMatrixNorm(m3,3))
-    )
-
-    expect_true(
-        length(FLMatrixNorm(m3,4))==1
-    )
-})
-
-                                        #Testing FLSolveExcl
-test_that("check result type and dimensions for FLSolveExcl",
-{
-    expect_true(
-        is.FLMatrix(solveExcl(m5,3))
-    )
-    
-    expect_true(
-        nrow(solveExcl(m5,6))==nrow(m5)
-    )
-    expect_true(
-        ncol(solveExcl(m5,6))==ncol(m5)
-    )
-
-    expect_true(
-        nrow(solveExcl(m5,3))==(nrow(m5)-1)
-    )
-    expect_true(
-        ncol(solveExcl(m5,3))==(ncol(m5)-1)
-    )
-
-})
-
-# Testing FLCholeskyDecomp
-test_that("check if FLCholeskyDecomp is working ",
-{
-    chol(m4)
-    expect_equal(as.matrix(chol(m4)), t(chol(as.matrix(m4))))
-})
-
-# Testing FLGInv
-test_that("check if FLGInv is working ",
-{     ginv(m2)
-    expect_equal(as.matrix(ginv(m4)),ginv(as.matrix(m4)),check.attributes=FALSE)
-    expect_equal(as.matrix(ginv(m3)),ginv(as.matrix(m3)),check.attributes=FALSE)
-})
-###############################################################
-############# NEGATIVE TEST CASES #############################
-###############################################################
-
-test_that("check connection to correct DSN",
-          expect_warning(
-              odbcConnect("RandomDSN")
-          )
-          )
-
-                                        # Testing FLIs
-test_that("check class of a Matrix",
-{
-    expect_false(
-        is.FLMatrix(matrix1)
-    )
-})
-
-                                        # Testing FLSubsetting
-test_that("check subscript out of bounds for matrix",
-{
-    expect_error(
-        m[1:6,]
-    )
-    expect_error(
-        m[,1:6]
-    )
-})
-
-test_that("check non-equality of matrices",
-          expect_false(
-              m0 == m1
-          ))
-
-test_that("check non-compatibility of matrices for addition/subtraction",
-{   
-    expect_error(
-    (m2 + m3)
-    )
-    expect_error(
-    (m2 - m3)
-    )
-})
-
-test_that("check non-compatibility of matrices for multiplication",
-{   
-    expect_error(
-    (m2 * m3)
-    )
-    expect_error(
-    (m2 %*% m3)
-    )
-})
-
-                                        # Testing FLDet
-test_that("check non-compatibility of non-square matrix for determinant",
-          expect_error(
-              det(m3)
-          ))
-
-test_that("check non-compatibility of det for flvector",
-          expect_error(
-              det(v1)
-          ))
-
-                                        # Testing FLJordanDecomp
-test_that("check non-compatibility of matrix for Jordan Decomposition",
-{     
-    expect_error(
-        jordan(m2)
-    )
-    expect_error(
-        jordan(m3)
-    )
-})
-
-                                        # Testing FLHessenDecomp
-test_that("check non-compatibility of matrix for Hessenberg Decomposition",
-          expect_error(
-              hessen(m3)
-          ))
-
-                                        # Testing FLSolve
-                                      
-test_that("check non-compatibility of matrix for calculating inverse",
-{  expect_error(solve(m3))
-    expect_error(solve(m))
-})
-
-                                        # Testing FLCastFunctions
-test_that("check non-compatibility of matrix for calculating inverse",
-{  expect_null(
-       as.FLMatrix(as.FLMatrix(matrix(1:4,2),connection),connection)
-   )
-       expect_null(
-           as.FLVector(as.FLVector(c(1:4),connection),connection)
-       )
-})
-
-                                        #Testing rbind
-test_that("check ncol non-compatibility for rbind",
-          expect_error(
-              rbind(m4,matrix(1:16,4))
-          ))
-
-test_that("check input type non-compatibility for rbind",
-          expect_error(
-              rbind(m4,sm1)
-          ))
-
-                                        #Testing cbind
-test_that("check nrow non-compatibility for cbind",
-          expect_error(
-              cbind(m4,matrix(1:16,4))
-          ))
-
-test_that("check input type non-compatibility for cbind",
-          expect_error(
-              cbind(m4,sm1)
-          ))
-
-                                        # Testing FLEigen
-test_that("check non-compatibility of matrix for calculating eigenvalues and eigenvectors",
-{  expect_error(eigen(m3))
-    expect_error(eigen(m))
-})
-
-                                        # Testing FLCorrel
-
-test_that("check non-compatibility of input dimensions for FLCorrel",
-{ expect_error(
-      cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,3),connection))
-  )
-
-      expect_error(
-          cor(data.frame(1,2),as.FLMatrix(matrix(1:6,3),connection))
-      )
-})
-
-                                        # Testing FLTriDiag
-test_that("check non-compatibility for non-square matrices for FLTriDiag",
-          expect_error(
-              FLTriDiag(m3)
-          ))
-
-                                        # Testing FLMatrixRREF
-test_that("check non-compatibility for non-square matrices for FLMatrixRREF",
-          expect_error(
-              FLMatrixRREF(m3)
-          ))
-
-                                        # Testing FLMatrixREF
-test_that("check non-compatibility for non-square matrices for FLMatrixRREF",
-          expect_error(
-              FLMatrixREF(m3)
-          ))
-
-                                        #Testing FLMatrixNorm
-test_that("check parameter NormMethod range for FLMatrixNorm",
-          expect_error(
-              FLMatrixNorm(m5,5))
-          )
-
-                                        # Testing FLCholeskyDecomp
-                                      
-test_that("check non-compatibility of matrices for Cholesky Decomposition",
-{     expect_error(chol(m))
-    expect_error(chol(m3))
-})
-
-                                        # Testing FLSolveExcl
-test_that("check non-compatibility for non-square matrices for FLSolveExcl",
-          expect_error(
-              solveExcl(m3)
-          ))
-
-                                        # Testing M_Division
-test_that("check division by zero for M_Division",
-          expect_error(
-          (m/1:3/matrix1/v1)==as.FLMatrix(matrix1/1:3/matrix1/as.vector(v1),connection)
-          ))
-
-=======
-##library(AdapteR)
-
-library(testthat)
-require(Matrix)
-
-## if (exists("connection")) {
-##     dbDisconnect(connection)
-##     rm(connection)
-## }
-## if(!exists("connection")){
-##     ##connection <- odbcConnect("Gandalf")
-##     connection <- tdConnect(host,user,passwd,database,"jdbc")
-## }
-
-FLStartSession(connection, persistent="test")
-
-ignoreDimNames <- TRUE
-
-options(debugSQL=FALSE)
-
-###############################################################
-############# POSITIVE TEST CASES #############################
-###############################################################
-
-expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,n) 
-{
-  expect_equal(FLcomputationF(initF(n)$FL),RcomputationF(initF(n)$R),check.attributes=FALSE)
-}
-
-
-initF.FLMatrix <- function(n,isSquare=FALSE)
-{
-  sqlSendUpdate(connection,
-                      c(paste0("DROP TABLE FL_DEMO.test_matrixtable_AdapteR;"),
-                        paste0("CREATE TABLE FL_DEMO.test_matrixtable_AdapteR 
-                          AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
-                            b.serialval AS COL_ID,random(0,100) AS CELL_VAL 
-                          FROM FL_DEMO.fzzlserial a,FL_DEMO.fzzlserial b
-                          WHERE a.serialval < ",n," and b.serialval < ",ifelse(isSquare,n,n-1),") WITH DATA ")))
-  flm <- FLMatrix(connection,
-              database          = "FL_DEMO",
-              matrix_table      = "test_matrixtable_AdapteR",
-              matrix_id_value   = 1,
-              matrix_id_colname = "Matrix_ID",
-              row_id_colname    = "Row_ID",
-              col_id_colname    = "Col_ID",
-              cell_val_colname  = "Cell_Val")
-
-  Rmatrix <- as.matrix(flm)
-  return(list(FL=flm,R=Rmatrix))
-}
-
-
-## Testing FLSolve
-###Phani-- This fails because we dont'have expect_equal(flmatrixobject,Rmatrix)
-### will try to overload all.equal to work for FLMatrix objects.
-test_that("check inverse calculation of matrix", {
-    expect_eval_equal(initF.FLMatrix,AdapteR::solve,base::solve,5)
-})
-
-# Testing rankMatrix
-test_that("check rankMatrix result",{
-    expect_eval_equal(initF.FLMatrix,AdapteR::rankMatrix,Matrix::rankMatrix,5)
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-################################################################################
-############################# OLD TESTS ########################################
-################################################################################
-## gk: todo: fix rownames
-test_that("Casting base R matrix <---> in-database Matrices",{
-    ## Creating simple base R matrix
-    matrix1 <- matrix(1:25,5)
-    matrix2 <- matrix(1:25,5)
-    if(!ignoreDimNames){
-        rownames(matrix1) <- c("a","b","c","d","e")
-        colnames(matrix1) <- c("p","q","r","s","t")
-        rownames(matrix2) <- c("A","B","C","D","E")
-        colnames(matrix2) <- c("P","Q","R","S","T")
-    }
-    ##  FLMatrices from R matrices
-    m1 <- as.FLMatrix(matrix1, connection)
-    m2 <- as.FLMatrix(matrix2, connection)
-    expect_equal(dim(m1),c(5,5))
-    expect_equal(dim(m2),c(5,5))
-    expect_equal(as.vector(m1), as.vector(matrix1))
-    expect_equal(as.vector(m2), as.vector(matrix2))
-    ##
-    ##
-    ## FLMatrix -> R matrix
-    matrix3 <- as.matrix(m2)
-    expect_equal(dim(matrix3),
-                 c(5,5))
-    expect_equal(as.vector(m2),
-                 as.vector(matrix3))
-    if(!ignoreDimNames)
-    test_that({
-        expect_equal(rownames(m2),
-                     rownames(matrix3))
-        expect_equal(colnames(m2),
-                     colnames(matrix3))
-        expect_equal(rownames(m1),
-                     rownames(matrix1))
-        expect_equal(colnames(m1),
-                     colnames(matrix1))
-        expect_equal(rownames(m2),
-                     rownames(matrix2))
-        expect_equal(colnames(m2),
-                     colnames(matrix2))
-    })
-})
-
-
-test_that("Casting R matrix Packages <---> in-database Matrices",{
-    ## Creating simple FLMatrices from base R matrix
-    matrix1 <- matrix(1:25,5)
-    matrix2 <- matrix(1:25,5)
-    if(!ignoreDimNames){
-        rownames(matrix1) <- c("a","b","c","d","e")
-        colnames(matrix1) <- c("p","q","r","s","t")
-        rownames(matrix2) <- c("A","B","C","D","E")
-        colnames(matrix2) <- c("P","Q","R","S","T")
-    }
-    m1 <- as.FLMatrix(matrix1, connection) # Identity matrix of dimension 5x5
-    m2 <- as.FLMatrix(matrix2, connection) # Identity matrix of dimension 5x5
-    expect_equal(dim(m1),c(5,5))
-    expect_equal(dim(m2),c(5,5))
-    ##
-    matrix3 <- as.matrix(m2)
-    expect_equal(dim(matrix3),c(5,5))
-    expect_equal(as.vector(m2),as.vector(matrix3))
-    if(!ignoreDimNames){
-        expect_equal(rownames(m1),rownames(matrix1))
-        expect_equal(colnames(m1),colnames(matrix1))
-        expect_equal(rownames(m2),rownames(matrix2))
-        expect_equal(colnames(m2),colnames(matrix2))
-        expect_equal(rownames(m2),rownames(matrix3))
-        expect_equal(colnames(m2),colnames(matrix3))
-    }
-})
-
-test_that("Casting base R matrix <---> in-database Matrices",{
-    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-    class(as.matrix(smatrix1))
-    sm1 <- as.FLMatrix(smatrix1,connection)
-    expect_equal(dim(smatrix1),dim(sm1))
-    expect_equal(as.vector(sm1),as.vector(smatrix1))
-    if(!ignoreDimNames){
-        expect_equal(rownames(sm1),rownames(smatrix1))
-        expect_equal(colnames(sm1),colnames(smatrix1))
-    }
-##    expect_equal(as.matrix(sm1,sparse=TRUE),smatrix1)
-})
-
-                                        # Testing FLIs
-test_that("check class of a Matrix",
-{
-    m <- as.FLMatrix(matrix(1:25,5),connection)   # Non-symmetric singular matrix of dimension 5x5
-    expect_is(
-        m, "FLMatrix"
-    )
-})
-
-
-                                        # Testing FLMatrix
-test_that("check class and result of FLMatrix",
-{
-    matrix1 <- matrix(1:25,5)
-    m <- as.FLMatrix(matrix1,connection)   # Non-symmetric singular ma
-    expect_is(
-        m, "FLMatrix"
-    )
-    expect_equal(
-        nrow(m),nrow(as.matrix(m))
-    )
-    expect_equal(
-        ncol(m),ncol(as.matrix(m))
-    )
-    expect_equal(
-        as.vector(as.matrix(m)),as.vector(matrix1)
-    )
-    ## Testing FLTranspose
-    
-    test_that("check transpose",
-              expect_equal(
-              (t(m) == as.FLMatrix(t(as.matrix(m)),connection)),
-              TRUE
-              ))
-    ##
-    ## Testing FLDet
-    test_that("check determinant return type",
-              expect_true(
-                  is.numeric(det(m))
-              ))
-    ##
-    test_that("check determinant result",
-              expect_true(
-                  as.vector(det(m))==det(as.matrix(m))
-              ))
-    ##
-    ##Testing FLDims
-    test_that("get dimensions of a Matrix",
-    { ## gk: redundant!?
-        expect_true(
-            is.numeric(
-                ncol(m)
-            ))
-        expect_true(
-            is.numeric(
-                NCOL(m)
-            ))
-        expect_true(
-            is.numeric(
-                nrow(m)
-            ))
-        expect_true(
-            is.numeric(
-                NROW(m)
-            ))
-        expect_true(
-            is.numeric(
-                dim(m)
-            ))
-    }) 
-})
-
-                                        # Testing FLSparseMatrix
-test_that("check class and result of FLSparseMatrix",
-{
-    smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-    sm1 <- as.FLSparseMatrix(smatrix1,connection)
-    expect_is(
-        sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
-    )
-    expect_equal(
-        nrow(sm1),nrow(smatrix1)
-    )
-    expect_equal(
-        ncol(sm1),ncol(smatrix1)
-    )
-})
-
-
-test_that("get dimensions of a Sparse Matrix",
-{
-    sm2 <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMultiSparse", 2)
-    expect_true(
-        is.numeric(
-            ncol(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            nrow(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            NCOL(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            NROW(sm2)
-        ))
-    expect_true(
-        is.numeric(
-            dim(sm2)
-        ))
-})
-
-
-## gk: works, please condition out warnings!
-## Zero matrix of dimension 5x5
-m0 <- as.FLMatrix(matrix(0,5,5), connection)
-
-## Identity matrix of dimension 5x5
-m <- as.FLMatrix(matrix(1:25,5),connection)   # Non-symmetric singular matrix of dimension 5x5
-m2 <- as.FLMatrix(matrix(26:50,5), connection) # Non Symmetric singular matrix of dimension 5x5
-m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",3) #  Non-Square Matrix of dimension 4x5
-m4 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",5) # Symmetric non-singular matrix of dimension 5x5
-m5 <- as.FLMatrix(matrix(runif(25,-30,30),5,5),connection) # Random matrix of dimension 5x5
-
-WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-colnames(WideTable)
-rownames(WideTable)
-dim(WideTable)
-as.data.frame(WideTable)
-
-
-as.data.frame(WideTable)
-v1 <- WideTable[,"vector_value"]
-### Phani-- subsetting FLVector
-v2 <- v1[2:1]
-print(v2)
-### Phani-- subsetting FLMatrix with mapping
-m3 <- FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",1,dimnames=list(c("a","b","c"),1:3))
-m3[c("b","c"),]
-m3[,]
-m3[]
-m3[,2:1]
-m3[c("b","c"),1:2]
-
-
-WideTable
-rownames(WideTable)
-WideTable[1:3,]
-WideTable[c("1","2"),]
-
-c(as.vector(v1))
-
-v1
-
-
-#############################################################
-## For in-database analytix the matrix is in the warehouse
-## to begin with.
-## 
-## A remote matrix is easily created by specifying
-##
-m <- eqnRtn <- FLMatrix(connection,
-                        database          = "FL_DEMO",
-                        matrix_table      = "finEquityReturns",
-                        matrix_id_value   = "",
-                        matrix_id_colname = "",
-                        row_id_colname    = "TxnDate",
-                        col_id_colname    = "TickerSymbol",
-                        cell_val_colname  = "EquityReturn")
-
-
-
-DeepTable <- FLTable(connection,
-                     database          = "FL_DEMO",
-                     table      = "finEquityReturns",
-                     obs_id_colname = "TxnDate",
-                     var_id_colnames = "TickerSymbol",
-                     cell_val_colname = "EquityReturn")
-DeepTable[1:10,1:10]
-
-DeepTable <- DeepTable[sort(rownames(DeepTable)),]
-
-v2 <- DeepTable[,"WSR"]
-v2
-# options(debugSQL=FALSE)
-
-
-require(reshape2)
-as.FLVector(as.vector(v1),connection)
-
-test_that("Wide tables and Vectors",
-{
-    ## # Creating FLVectors
-    ## Testing FLvector
-    expect_is(
-        v1, "FLVector"
-    )
-    expect_is(
-        v2, "FLVector"
-    )
-    test_that("check class and reproducibility of FLVector",
-    {
-        expect_equal(
-            as.vector(v1),as.vector(
-                              as.FLVector(as.vector(v1),connection)))
-    })
-    test_that("check class of a Table",
-    {
-        expect_is(
-            DeepTable, "FLTable"
-        )
-        expect_is(
-            WideTable, "FLTable"
-        )
-    })
-    test_that("get dimensions of a Vector",
-    {
-        expect_true(
-            is.numeric(
-                NCOL(v1)
-            ))
-        expect_true(
-            is.numeric(
-                NROW(v1)
-            ))
-        expect_true(
-            is.numeric(
-                dim(v1)
-            ))
-    })
-})
-
-test_that("check storing of diagonal matrices is working.",  
-          expect_equal(
-              as.matrix(solve(m4)),
-              as.matrix(
-                  as.FLMatrix(
-                      solve(as.matrix(m4)),
-                      connection))))
-
-## gk: I need to refactor FLVector, currently it seems to store strings?
 ##Testing FLDiag
 test_that("check the result of the diag of matrix",
 {
-    expect_equal(
-        as.vector(diag(m4)),
-        diag(as.matrix(m4)))
-    expect_equal(
-        as.matrix(diag(as.FLVector(1:2,connection))) , diag(1:2), check.attributes=FALSE)
-    expect_equal(
-        as.matrix(diag(as.FLVector(2,connection))), diag(2), check.attributes=FALSE)
+    expect_eval_equal(initF.FLMatrix,AdapteR::diag,base::diag,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::diag,base::diag,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::diag,base::diag,n=1)
 })
 
-## Testing FLRankMatrix
-test_that("check rankMatrix return type",
-          expect_true(
-              is.vector(rankMatrix(m4))
-          ))
-test_that("check rankMatrix result",{
-    rRank <- rankMatrix(as.matrix(m4))
-    expect_true(
-        rankMatrix(m4)==rRank
-    )
-})
-
-
-## gk: REFACTOR: rbind is using for loops and data copy!!
-##Testing rbind
-test_that("check return type and working for rbind",
-          expect_true(
-              is.FLMatrix(rbind(m4,1:3,data.frame(1,2,3,4,5),v1,matrix(1:25,5)))
-          ))
-test_that("check dimensions returned for rbind", {
-    expect_true(
-        nrow(rbind(m4,1:3))==nrow(m4)+1)
-    expect_true(
-        ncol(rbind(m4,1:3))==ncol(m4)
-    )
-    expect_true(
-        ncol(rbind(1:5,1:3))==5
-    )
-})
-##Testing cbind
-test_that("check return type and working for cbind",
-          expect_true(
-              is.FLMatrix(cbind(m4,1:3,data.frame(1:5),v1,matrix(1:25,5)))
-          ))
-test_that("check dimensions returned for cbind", {
-    expect_true(
-        ncol(cbind(m4,1:3))==ncol(m4)+1)
-    expect_true(
-        nrow(cbind(m4,1:3))==nrow(m4)
-    )
-    expect_true(
-        nrow(cbind(1:5,1:3))==5
-    )
-})
-
-
-test_that("check Jordan Decomposition",
-          jordan(m4))
-
-## Testing FLHessenDecomp
-test_that("check Hessenberg Decomposition",
-{
-    hessen(m4) 
-    hessen(m)
-})
-
-expect_flequal <- function(a,b){
-    if(is.list(a))
-        for(i in 1:length(a))
-            expect_flequal(a[[i]],b[[i]])
-
-    if(is.FLMatrix(a)) a <- as.matrix(a)
-    if(is.FLMatrix(b)) b <- as.matrix(b)
-    expect_equal(a,b)
-}
-
-## Testing FLSVDecomp
-## Phani -- results differ in Teradata and R
-### but function works.
-test_that("check Singular Value Decomposition",
-{
-    flv <- svd(m4)
-    print(flv)
-    expect_flequal(svd(m), svd(as.matrix(m)))
-    svd(m3) 
-})
-                                        # Testing FLLUDecomp
-test_that("check LU Decomposition",
-{
-    lu(m4) 
-    lu(m) 
-    lu(m3) 
-})
-## Testing FLTrace
-test_that("check LU Decomposition",
-{
-    tr(m) 
-    tr(m3) 
-})
-test_that("check FLTrace return type",
-          expect_true(
-              is.FLVector(tr(m))
-          ))
-test_that("check length of FLTrace result",
-          expect_true(
-              length(tr(m))==1
-          ))
-
-
-                                        #Testing FLSV
-test_that("check return type and working for FLSV",
-          expect_true(
-              is.FLVector(FLSV(m5))
-          ))
-
-test_that("check dimensions returned for FLSV",
-          expect_true(
-              length(FLSV(m5))==nrow(m5)
-          ))
-
-                                        #Testing RowMeans
-                                        ### Phani-- very less difference in results
-                                        ### but test case-3 fails
-test_that("check return type and working for rowMeans",
-          expect_true(
-              is.FLVector(rowMeans(m5))
-          ))
-
-test_that("check dimensions returned for rowMeans",
-          expect_true(
-              length(rowMeans(m5))==nrow(m5)
-          ))
-
-test_that("check result for rowMeans",
-          expect_equal(as.vector(rowMeans(m5)), rowMeans(as.matrix(m5)))
-          )
-
-                                        #Testing ColMeans
-test_that("check return type and working for colMeans",
-          expect_true(
-              is.FLVector(colMeans(m5))
-          ))
-
-test_that("check dimensions returned for colMeans",
-          expect_true(
-              length(colMeans(m5))==ncol(m5)
-          ))
-
-test_that("check result for colMeans",
-          expect_equal(as.vector(colMeans(m5)), colMeans(as.matrix(m5)))
-          )
-
-                                        #Testing RowSums
-test_that("check return type and working for rowSums",
-          expect_true(
-              is.FLVector(rowSums(m5))
-          ))
-
-test_that("check dimensions returned for rowSums",
-          expect_true(
-              length(rowSums(m5))==nrow(m5)
-          ))
-
-test_that("check result for rowSums",
-          expect_equal(as.vector(rowSums(m5)), rowSums(as.matrix(m5)))
-          )
-
-                                        #Testing colSums
-test_that("check return type and working for colSums",
-          expect_true(
-              is.FLVector(colSums(m5))
-          ))
-
-test_that("check dimensions returned for colSums",
-          expect_true(
-              length(colSums(m5))==ncol(m5)
-          ))
-
-test_that("check result for colSums",
-          expect_equal(as.vector(colSums(m5)), colSums(as.matrix(m5)))
-          )
-
-                                        # Testing M_Addition
+## Testing M_Addition
 test_that("check result for M_Addition",
-          expect_true(
-          (m+1:3+matrix1+v1)==as.FLMatrix(matrix1+1:3+matrix1+as.vector(v1),connection)
-          ))
+{
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,10),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,10),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
 
-                                        # Testing M_Subtraction
-test_that("check result for M_Subtraction",
-          expect_true(
-          (m-1:3-matrix1-v1)==as.FLMatrix(matrix1-1:3-matrix1-as.vector(v1),connection)
-          ))
+    expect_equal(M1$FL+M2,M1$R+M2R,check.attributes=FALSE)
+    expect_equal(V1+V2,V1R+V2R,check.attributes=FALSE)
+    expect_equal(P1$FL+P1$FL,P1$R+P1$R,check.attributes=FALSE)
+    expect_equal(V1+P1$FL,V1R+P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL+V2,P1$R+V2R,check.attributes=FALSE)
+    expect_equal(M1$FL+V2,M1$R+V2R,check.attributes=FALSE)
+    expect_equal(M1$FL+P1$FL,M1$R+P1$R,check.attributes=FALSE)
+    expect_equal(V1+M2,V1R+M2R,check.attributes=FALSE)
+    expect_equal(P1$FL+M2,P1$R+M2R,check.attributes=FALSE)
 
-                                        # Testing M_Multiplication
+    expect_equal(P1$FL+P1$FL+V1+V2+M2+P1$FL+M1$FL+V2,
+      P1$R+P1$R+V1R+V2R+M2R+P1$R+M1$R+V2R,
+      check.attributes=FALSE)
+})
+
+## Testing M_Division
+test_that("check result for M_Division",
+{
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,10),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,10),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+
+    expect_equal(M1$FL/M2,M1$R/M2R,check.attributes=FALSE)
+    expect_equal(V1/V2,V1R/V2R,check.attributes=FALSE)
+    expect_equal(P1$FL/P1$FL,P1$R/P1$R,check.attributes=FALSE)
+    expect_equal(V1/P1$FL,V1R/P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL/V2,P1$R/V2R,check.attributes=FALSE)
+    expect_equal(M1$FL/V2,M1$R/V2R,check.attributes=FALSE)
+    expect_equal(M1$FL/P1$FL,M1$R/P1$R,check.attributes=FALSE)
+    expect_equal(V1/M2,V1R/M2R,check.attributes=FALSE)
+    expect_equal(P1$FL/M2,P1$R/M2R,check.attributes=FALSE)
+
+    expect_equal(P1$FL/P1$FL/V1/V2/M2/P1$FL/M1$FL/V2,
+      P1$R/P1$R/V1R/V2R/M2R/P1$R/M1$R/V2R,
+      check.attributes=FALSE)
+})
+
+## Testing M_Multiplication
 test_that("check result for M_Multiplication",
-          expect_true(
-          (m*1:3*matrix1*v1)==as.FLMatrix(matrix1*1:3*matrix1*as.vector(v1),connection)
-          ))
-
-                                        # Testing M_CrossProduct
-test_that("check result for M_CrossProduct",
-          expect_true(
-          (1:5%*%matrix1%*%m)==as.FLMatrix(1:5%*%matrix1%*%matrix1,connection)
-          ))
-
-                                        # Testing M_IntegerDivision
-test_that("check result for M_IntegerDivision",
-          expect_true(
-          (m%/%1:3%/%matrix1%/%v1)==as.FLMatrix(matrix1%/%1:3%/%matrix1%/%as.vector(v1),connection)
-          ))
-
-                                        # Testing M_Remainder
-test_that("check working of M_Remainder",
-          m%%1:3%%matrix1%%v1
-          )
-
-                                        # Testing FLEigen
-test_that("check if FLEigen is working ",
-{      eigen(m4)
-    eigen(m5)
-})
-
-                                        # Testing FLLength
-test_that("check if FLLength is working ",
-{     length(m4)
-    length(v1)
-    length(sm1) })
-
-                                        # Testing FL_CastingFunctions
-test_that("different types of casting works",
-{        as.vector(m)
-    as.vector(v1)
-    as.vector(v2)
-    as.vector(sm1)
-    as.matrix(m)
-    as.matrix(v1)
-    as.matrix(v2)
-    as.matrix(sm1)
-    as.FLMatrix(v1,connection)
-    as.FLMatrix(v2,connection)
-    as.FLMatrix(sm1,connection)
-    as.FLMatrix(data.frame(1:2,3:4),connection)
-    as.FLMatrix(as.vector(v1),connection)
-    as.FLVector(m,connection)
-    as.FLVector(sm1,connection)
-    as.FLVector(smatrix1,connection)
-    as.FLVector(data.frame(1:2,3:4),connection)
-    as.FLVector(as.vector(v1),connection)
-} )
-
-                                        # Testing FLCorrel
-test_that("different input combinations work for FLCorrel",
-{         cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,2),connection))
-    cor(as.FLMatrix(matrix(c(0,-1,4,-10),2),connection),as.FLMatrix(matrix(1:6,2),connection))
-    cor(v1,as.FLMatrix(matrix(1:12,6),connection))
-    cor(v1,v1)
-    cor(matrix(1:12,6),v1)
-    cor(1:2,as.FLMatrix(matrix(1:4,2),connection))
-    cor(data.frame(-2:-1,c(1,0)),as.FLMatrix(matrix(1:6,2),connection))
-    cor(v1,data.frame(6:1,11:16))
-    cor(WideTable,WideTable)
-                                        # cor(DeepTable,DeepTable)
-})
-
-test_that("check output dimensions for FLCorrel",
 {
-    expect_true(
-        nrow(cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,2),connection)))==2
-    )
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,10),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,10),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
 
-    expect_true(
-        ncol(cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,2),connection)))==3
-    )
+    expect_equal(M1$FL*M2,M1$R*M2R,check.attributes=FALSE)
+    expect_equal(V1*V2,V1R*V2R,check.attributes=FALSE)
+    expect_equal(P1$FL*P1$FL,P1$R*P1$R,check.attributes=FALSE)
+    expect_equal(V1*P1$FL,V1R*P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL*V2,P1$R*V2R,check.attributes=FALSE)
+    expect_equal(M1$FL*V2,M1$R*V2R,check.attributes=FALSE)
+    expect_equal(M1$FL*P1$FL,M1$R*P1$R,check.attributes=FALSE)
+    expect_equal(V1*M2,V1R*M2R,check.attributes=FALSE)
+    expect_equal(P1$FL*M2,P1$R*M2R,check.attributes=FALSE)
+
+    expect_equal(P1$FL*P1$FL*V1*V2*M2*P1$FL*M1$FL*V2,
+      P1$R*P1$R*V1R*V2R*M2R*P1$R*M1$R*V2R,
+      check.attributes=FALSE)
 })
 
-                                        # Testing FLQRDecomp
-test_that("check if FLQRDecomp is working ",
-{      qr(m4)
-    qr(m)
-    qr(m3)
-})
-
-                                        #Testing FLTriDiag
-test_that("check result type and dimensions for FLTriDiag",
+## Testing M_Remainder
+test_that("check result for M_Remainder",
 {
-    expect_true(
-        is.FLMatrix(FLTriDiag(m5))
-    )
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2R <- as.matrix(M2)
+  V1 <- as.FLVector(sample(1:100,10),connection)
+  V1R <- as.vector(V1)
+  V2 <- as.FLVector(sample(1:100,10),connection)
+  V2R <- as.vector(V2)
+  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
 
-    expect_true(
-        nrow(FLTriDiag(m5))==nrow(m5)
-    )
+    expect_equal(M1$FL%%M2,M1$R%%M2R,check.attributes=FALSE)
+    expect_equal(V1%%V2,V1R%%V2R,check.attributes=FALSE)
+    expect_equal(P1$FL%%P1$FL,P1$R%%P1$R,check.attributes=FALSE)
+    expect_equal(V1%%P1$FL,V1R%%P1$R,check.attributes=FALSE)
+    expect_equal(P1$FL%%V2,P1$R%%V2R,check.attributes=FALSE)
+    expect_equal(M1$FL%%V2,M1$R%%V2R,check.attributes=FALSE)
+    expect_equal(M1$FL%%P1$FL,M1$R%%P1$R,check.attributes=FALSE)
+    expect_equal(V1%%M2,V1R%%M2R,check.attributes=FALSE)
+    expect_equal(P1$FL%%M2,P1$R%%M2R,check.attributes=FALSE)
 
-    expect_true(
-        ncol(FLTriDiag(m5))==ncol(m5)
-    )
+    expect_equal(P1$FL%%P1$FL%%V1%%V2%%M2%%P1$FL%%M1$FL%%V2,
+      P1$R%%P1$R%%V1R%%V2R%%M2R%%P1$R%%M1$R%%V2R,
+      check.attributes=FALSE)
 })
 
-                                        #Testing FLMatrixREF
-test_that("check result type and dimensions for FLMatrixREF",
+## Testing FLQRDecomposition
+test_that("check FLQRDecomposition",
 {
-    expect_true(
-        is.FLMatrix(FLMatrixREF(m5))
-    )
-
-    expect_true(
-        nrow(FLMatrixREF(m5))==nrow(m5)
-    )
-
-    expect_true(
-        ncol(FLMatrixREF(m5))==ncol(m5)
-    )
+    expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
 })
 
-                                        #Testing FLMatrixRREF
-test_that("check result type and dimensions for FLMatrixRREF",
+## Testing FLColMeans
+test_that("check colMeans",
 {
-    expect_true(
-        is.FLMatrix(FLMatrixRREF(m5))
-    )
-
-    expect_true(
-        nrow(FLMatrixRREF(m5))==nrow(m5)
-    )
-
-    expect_true(
-        ncol(FLMatrixRREF(m5))==ncol(m5)
-    )
+    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
 })
 
-                                        #Testing FLMatrixNorm
-test_that("check result type and dimensions for FLMatrixNorm",
+## Testing FLColSums
+test_that("check colSums",
 {
-    expect_true(
-        is.vector(FLMatrixNorm(m3,3))
-    )
-
-    expect_true(
-        length(FLMatrixNorm(m3,4))==1
-    )
+    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })
 
-                                        #Testing FLSolveExcl
-test_that("check result type and dimensions for FLSolveExcl",
+## Testing FLLength
+test_that("check length",
 {
-    expect_true(
-        is.FLMatrix(solveExcl(m5,3))
-    )
-    
-    expect_true(
-        nrow(solveExcl(m5,6))==nrow(m5)
-    )
-    expect_true(
-        ncol(solveExcl(m5,6))==ncol(m5)
-    )
-
-    expect_true(
-        nrow(solveExcl(m5,3))==(nrow(m5)-1)
-    )
-    expect_true(
-        ncol(solveExcl(m5,3))==(ncol(m5)-1)
-    )
-
+  T1 <- initF.FLTable(rows=5,cols=5)
+  T1R <- as.data.frame(T1)
+    expect_eval_equal(initF.FLMatrix,AdapteR::length,base::length,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
+    expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
 })
 
-# Testing FLCholeskyDecomp
-test_that("check if FLCholeskyDecomp is working ",
+### Phani-- no equivalent R function to test against.
+##Testing FLJordon
+test_that("check Jordan Decomposition",
 {
-    chol(m4)
-    expect_equal(as.matrix(chol(m4)), t(chol(as.matrix(m4))))
+    FLJordan(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
-# Testing FLGInv
-test_that("check if FLGInv is working ",
-{     ginv(m2)
-    expect_equal(as.matrix(ginv(m4)),ginv(as.matrix(m4)),check.attributes=FALSE)
-    expect_equal(as.matrix(ginv(m3)),ginv(as.matrix(m3)),check.attributes=FALSE)
-})
-###############################################################
-############# NEGATIVE TEST CASES #############################
-###############################################################
-
-test_that("check connection to correct DSN",
-          expect_warning(
-              odbcConnect("RandomDSN")
-          )
-          )
-
-                                        # Testing FLIs
-test_that("check class of a Matrix",
+## Testing FLTriDiag
+test_that("check FLTriDiag",
 {
-    expect_false(
-        is.FLMatrix(matrix1)
-    )
+    FLTriDiag(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
-                                        # Testing FLSubsetting
-test_that("check subscript out of bounds for matrix",
+## Testing FLMatrixREF
+test_that("check FLMatrixREF",
 {
-    expect_error(
-        m[1:6,]
-    )
-    expect_error(
-        m[,1:6]
-    )
+    FLMatrixREF(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
-test_that("check non-equality of matrices",
-          expect_false(
-              m0 == m1
-          ))
-
-test_that("check non-compatibility of matrices for addition/subtraction",
-{   
-    expect_error(
-    (m2 + m3)
-    )
-    expect_error(
-    (m2 - m3)
-    )
+## Testing FLSolveExcl
+test_that("check FLSolveExcl",
+{
+  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+    expect_equal(dim(FLSolveExcl(M,3)),dim(M)-1)
+    expect_equal(dim(FLSolveExcl(M,6)),dim(M))
 })
 
-test_that("check non-compatibility of matrices for multiplication",
-{   
-    expect_error(
-    (m2 * m3)
-    )
-    expect_error(
-    (m2 %*% m3)
-    )
-})
 
-                                        # Testing FLDet
-test_that("check non-compatibility of non-square matrix for determinant",
-          expect_error(
-              det(m3)
-          ))
 
-test_that("check non-compatibility of det for flvector",
-          expect_error(
-              det(v1)
-          ))
 
-                                        # Testing FLJordanDecomp
-test_that("check non-compatibility of matrix for Jordan Decomposition",
-{     
-    expect_error(
-        jordan(m2)
-    )
-    expect_error(
-        jordan(m3)
-    )
-})
 
-                                        # Testing FLHessenDecomp
-test_that("check non-compatibility of matrix for Hessenberg Decomposition",
-          expect_error(
-              hessen(m3)
-          ))
 
-                                        # Testing FLSolve
-                                      
-test_that("check non-compatibility of matrix for calculating inverse",
-{  expect_error(solve(m3))
-    expect_error(solve(m))
-})
 
-                                        # Testing FLCastFunctions
-test_that("check non-compatibility of matrix for calculating inverse",
-{  expect_null(
-       as.FLMatrix(as.FLMatrix(matrix(1:4,2),connection),connection)
-   )
-       expect_null(
-           as.FLVector(as.FLVector(c(1:4),connection),connection)
-       )
-})
-
-                                        #Testing rbind
-test_that("check ncol non-compatibility for rbind",
-          expect_error(
-              rbind(m4,matrix(1:16,4))
-          ))
-
-test_that("check input type non-compatibility for rbind",
-          expect_error(
-              rbind(m4,sm1)
-          ))
-
-                                        #Testing cbind
-test_that("check nrow non-compatibility for cbind",
-          expect_error(
-              cbind(m4,matrix(1:16,4))
-          ))
-
-test_that("check input type non-compatibility for cbind",
-          expect_error(
-              cbind(m4,sm1)
-          ))
-
-                                        # Testing FLEigen
-test_that("check non-compatibility of matrix for calculating eigenvalues and eigenvectors",
-{  expect_error(eigen(m3))
-    expect_error(eigen(m))
-})
-
-                                        # Testing FLCorrel
-
-test_that("check non-compatibility of input dimensions for FLCorrel",
-{ expect_error(
-      cor(matrix(1:4,2),as.FLMatrix(matrix(1:6,3),connection))
-  )
-
-      expect_error(
-          cor(data.frame(1,2),as.FLMatrix(matrix(1:6,3),connection))
-      )
-})
-
-                                        # Testing FLTriDiag
-test_that("check non-compatibility for non-square matrices for FLTriDiag",
-          expect_error(
-              FLTriDiag(m3)
-          ))
-
-                                        # Testing FLMatrixRREF
-test_that("check non-compatibility for non-square matrices for FLMatrixRREF",
-          expect_error(
-              FLMatrixRREF(m3)
-          ))
-
-                                        # Testing FLMatrixREF
-test_that("check non-compatibility for non-square matrices for FLMatrixRREF",
-          expect_error(
-              FLMatrixREF(m3)
-          ))
-
-                                        #Testing FLMatrixNorm
-test_that("check parameter NormMethod range for FLMatrixNorm",
-          expect_error(
-              FLMatrixNorm(m5,5))
-          )
-
-                                        # Testing FLCholeskyDecomp
-                                      
-test_that("check non-compatibility of matrices for Cholesky Decomposition",
-{     expect_error(chol(m))
-    expect_error(chol(m3))
-})
-
-                                        # Testing FLSolveExcl
-test_that("check non-compatibility for non-square matrices for FLSolveExcl",
-          expect_error(
-              solveExcl(m3)
-          ))
-
-                                        # Testing M_Division
-test_that("check division by zero for M_Division",
-          expect_error(
-          (m/1:3/matrix1/v1)==as.FLMatrix(matrix1/1:3/matrix1/as.vector(v1),connection)
-          ))
 
