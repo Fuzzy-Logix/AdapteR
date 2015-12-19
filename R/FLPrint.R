@@ -58,3 +58,6 @@ print.FLSparseMatrix <- function(object)
 }
 
 
+setMethod("show","FLMatrix",print.FLMatrix)
+setMethod("show","FLUnionMatrix",print.FLMatrix)
+y
