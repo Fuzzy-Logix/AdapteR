@@ -74,9 +74,10 @@ FLTable <- function(connection,
 						  WHERE tablename='",table,"' 
 						  AND databasename='",database,"';"))$ColumnName
         rows <- sort(sqlQuery(connection,
-                         paste0("SELECT DISTINCT(",
+                            paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
-						  FROM ",remoteTable(database,table)))$VarID)
+						  FROM ",remoteTable(database,table),
+                          " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
         if(length(var_id_colnames)==0)

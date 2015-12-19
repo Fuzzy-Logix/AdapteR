@@ -8,33 +8,33 @@
 NULL
 
 
-hessen<-function(x, ...){
-	UseMethod("hessen",x)
+FLHessen<-function(x, ...){
+	UseMethod("FLHessen",x)
 }
 
 #' Hessenberg Decomposition of a Matrix.
 #'
-#' \code{hessen} computes the Hessenberg decomposition for FLMatrix objects.
+#' \code{FLHessen} computes the Hessenberg decomposition for FLMatrix objects.
 #'
 #' The wrapper overloads hessen and implicitly calls FLHessenbergDecompUdt.
 #' @param object is of class FLMatrix
 #' @section Constraints:
 #' Input can only be square matrix with maximum dimension limitations of (700 x 700).
-#' @return \code{hessen} returns a list of two components:
+#' @return \code{FLHessen} returns a list of two components:
 #'       \item{P}{FLMatrix representing P matrix obtained from Hessenberg decomposition}
 #'       \item{H}{FLMatrix representing H matrix obtained from Hessenberg decomposition}
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultList <- hessen(flmatrix)
+#' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
 #' @export
 
-hessen.FLMatrix<-function(object)
+FLHessen.FLMatrix<-function(object)
 {
-	#checkSquare(object,"hessen")
+	#checkSquare(object,"FLHessen")
 	connection<-getConnection(object)
 	flag1Check(connection)
 	MID <- max_matrix_id_value

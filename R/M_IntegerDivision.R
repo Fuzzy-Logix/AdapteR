@@ -435,7 +435,7 @@ NULL
 				             result_db_name,
 				             result_vector_table,
 				             "VECTOR_INDEX",
-				             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
 				             )
 
 			return(table[,"VECTOR_VALUE"])
@@ -463,7 +463,7 @@ NULL
 				             result_db_name,
 				             result_vector_table,
 				             "VECTOR_INDEX",
-				             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
 				             )
 
 			return(table[,"VECTOR_VALUE"])
@@ -494,7 +494,7 @@ NULL
 				             result_db_name,
 				             result_vector_table,
 				             "VECTOR_INDEX",
-				             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
 				             )
 
 			return(table[,"VECTOR_VALUE"])
@@ -525,7 +525,7 @@ NULL
 				             result_db_name,
 				             result_vector_table,
 				             "VECTOR_INDEX",
-				             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
 				             )
 
 			return(table[,"VECTOR_VALUE"])
