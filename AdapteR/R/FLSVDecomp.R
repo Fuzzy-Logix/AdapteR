@@ -169,7 +169,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 		             result_db_name,
 		             result_vector_table,
 		             "VECTOR_INDEX",
-		             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
 		             )
 
 	SVector <- table[,"VECTOR_VALUE"]

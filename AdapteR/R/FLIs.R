@@ -9,14 +9,6 @@ is.FLMatrix <- function(object)
 	else 	return (FALSE)
 }
 
-#' Check if the object is an FLSparseMatrix object
-is.FLSparseMatrix <- function(object)
-{
-	if ( class(object) == "FLSparseMatrix")
-			return (TRUE)
-	else 	return (FALSE)
-} 
-
 #' Check if the object is an FLVector object
 is.FLVector <- function(object)
 {

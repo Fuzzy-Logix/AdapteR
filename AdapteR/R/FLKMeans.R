@@ -107,9 +107,6 @@ kmeans.FLTable<-function(table,
 	validate_args(argList, typeList, classList)
 
 	database<-table@db_name
-	sqlQuery(connection, 
-			 paste("DATABASE", database,";
-					SET ROLE ALL;"))
 
 	class_spec <- list_to_class_spec(class_spec)
 	
