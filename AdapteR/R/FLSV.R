@@ -31,7 +31,7 @@ FLSV <- function (x, ...){
 FLSV.FLMatrix<-function(object)
 {
 	#checkSquare(object)
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 
 	sqlstr<-paste0("INSERT INTO ",

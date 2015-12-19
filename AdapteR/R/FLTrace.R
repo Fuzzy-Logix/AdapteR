@@ -30,7 +30,7 @@ tr<-function(x, ...){
 }
 
 tr.FLMatrix<-function(object){
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	
 	flag3Check(connection)
 

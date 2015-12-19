@@ -48,7 +48,7 @@ rbind <- function (x, ...){
 rbind.FLMatrix<-function(object,...)
 {
 	objectVec<-list(object,...)
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 
 	ncol <-0
 
@@ -242,7 +242,7 @@ rbind.FLMatrix<-function(object,...)
 rbind.FLVector <- function(object,...)
 {
 	objectVec<-list(object,...)
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 
 	ncol <-0
 

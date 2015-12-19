@@ -28,7 +28,7 @@ t.FLMatrix<-function(object)
 {
 	return(
 	FLMatrix( 
-		connection = object@odbc_connection, 
+		connection = getConnection(object), 
 		database = object@db_name, 
 		matrix_table = object@matrix_table, 
 		matrix_id_value = object@matrix_id_value,

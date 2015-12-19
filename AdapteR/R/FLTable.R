@@ -1,31 +1,8 @@
 #' @include utilities.R
+#' @include FLMatrix.R
 NULL
-setOldClass("RODBC")
-#' An S4 class to represent FLTable
-#'
-#' @slot odbc_connection ODBC connectivity for R
-#' @slot db_name character
-#' @slot table_name character
-#' @slot obs_id_colname character
-#' @slot var_id_colnames character 
-#' @slot cell_val_colname character
-#' @slot isDeep logical
-#' @method names FLTable
-#' @param object retrieves the column names of FLTable object
-setClass(
-	"FLTable",
-	slots = list(
-		odbc_connection = "ANY",
-		db_name         = "character",
-		table_name      = "character",
-		dimnames        = "list",
-        whereconditions = "character",
-		obs_id_colname  = "character", ## former primary_key
-		isDeep = "logical",
-        var_id_colname  = "character", ## 
-		cell_val_colname = "character"
-	)
-)
+
+
 
 #' Constructor function for FLTable.
 #'

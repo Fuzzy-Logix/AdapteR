@@ -39,7 +39,7 @@ solveExcl.FLMatrix<-function(object,ExclIdx)
 		stop("solveExcl function is applicable on square matrix only") 
 	}
 
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 
 	sqlstr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,

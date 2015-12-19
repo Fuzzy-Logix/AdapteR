@@ -1,22 +1,8 @@
 #' @include utilities.R
+#' @include FLMatrix.R
 #' @include FLTable.R
 NULL
-#' An S4 class to represent FLVector
-#'
-setClass(
-	"FLVector",
-    contains="FLTable",
-    slots = list(
-		odbc_connection = "ANY",
-		db_name         = "character",
-		table_name      = "character",
-		dimnames        = "list",
-        whereconditions = "character",
-		obs_id_colname  = "character", ## former primary_key
-		isDeep = "logical",
-        var_id_colname="character", ## 
-		cell_val_colname = "character"
-	))
+
 
 #' Constructor function for FLVector, representing a vector in database, either a deep or a wide matrix.
 #' gk: how can we support row vectors?

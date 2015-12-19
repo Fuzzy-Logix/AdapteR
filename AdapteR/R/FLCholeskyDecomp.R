@@ -32,7 +32,7 @@ chol <- function (x, ...){
 
 chol.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 	
 	# checkSquare(object,"chol")

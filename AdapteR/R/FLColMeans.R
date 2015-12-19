@@ -30,7 +30,7 @@ colMeans.default <- base::colMeans
 
 colMeans.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table, 

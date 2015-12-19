@@ -9,12 +9,19 @@ nrow.integer<-base::nrow
 nrow.matrix<-base::nrow
 nrow.default<-base::nrow
 
+nrow.FLUnionMatrix<-function(object)
+{
+	if(object@by=="rows")
+        return(sum(sapply(object@parts,nrow)))
+	else
+        return(nrow(object@parts[[1]]))
+}
 nrow.FLMatrix<-function(object)
 {
 	if(is.numeric(object@dimnames[[1]]))
-	return(max(object@dimnames[[1]]))
+        return(max(object@dimnames[[1]]))
 	else
-	return(length(object@dimnames[[1]]))
+        return(length(object@dimnames[[1]]))
 }
 
 # nrow.FLSparseMatrix<-function(object)
@@ -57,6 +64,13 @@ ncol.FLMatrix<-function(object)
 	return(length(object@dimnames[[2]]))
 }
 
+ncol.FLUnionMatrix<-function(object)
+{
+	if(object@by=="cols")
+        return(sum(sapply(object@parts,ncol)))
+	else
+        return(nrow(object@parts[[1]]))
+}
 # ncol.FLSparseMatrix<-function(object){
 # 	return(length(object@dimnames[[2]]))
 # }
@@ -85,6 +99,12 @@ NCOL.FLTable<-function(object){
 
 # Returns the dimensions of the object
 dim.FLMatrix <- function(object)
+{
+	 return(c(nrow(object),ncol(object)))
+}
+
+# Returns the dimensions of the object
+dim.FLUnionMatrix <- function(object)
 {
 	 return(c(nrow(object),ncol(object)))
 }

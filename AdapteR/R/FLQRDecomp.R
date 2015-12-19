@@ -42,7 +42,7 @@ qr<-function(x, ...){
 
 qr.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 	flag3Check(connection)
 

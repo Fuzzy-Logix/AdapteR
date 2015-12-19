@@ -29,24 +29,24 @@ solve <- function (x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' resultFLMatrix <- solve(flmatrix)
 #' @export
-solve.FLMatrix<-function(object)
+solve.FLMatrix <- function(object)
 {
-	# checkSquare(object,"solve")
-	# checkSingularity(object)
+    ## checkSquare(object,"solve")
+	## checkSingularity(object)
 
-	connection <- object@odbc_connection
+	connection <- getConnection(object)
 
 	flag1Check(connection)
-  MID <- max_matrix_id_value
+    MID <- max_matrix_id_value
 
 	sqlstr<-paste0(" INSERT INTO ",
-                   getRemoteTableName(result_db_name,result_matrix_table),
-                   viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLMatrixInvUdt",viewName="z",localName="a",includeMID=TRUE)
+                   getRemoteTableName(result_db_name, result_matrix_table),
+                   viewSelectMatrix(object, "a", withName="z"),
+                   outputSelectMatrix("FLMatrixInvUdt", viewName="z", localName="a", includeMID=TRUE)
                    )
 	
 	sqlSendUpdate(connection,sqlstr)
-
+    ##
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
 	return(FLMatrix(
