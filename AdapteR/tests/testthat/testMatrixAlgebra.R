@@ -1,5 +1,13 @@
 require(testthat)
 
+## class tests
+expect_equal(constructSelect(new("FLTable",
+                                 odbc_connection=NULL,
+                                 variables=c("a","b","c"),
+                                 whereconditions=equalityConstraint("Matrix_id",1),
+                                 order="")),
+
+
 ## roadmap:
 ## 
 
