@@ -36,7 +36,7 @@ jordan<-function(x, ...){
 
 jordan.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 	flag3Check(connection)
 	if(nrow(object) == ncol(object))

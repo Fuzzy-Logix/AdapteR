@@ -38,7 +38,7 @@ svd.default<-base::svd
 #' @export
 svd.FLMatrix<-function(object,nu=c(),nv=c())
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 	flag3Check(connection)
 

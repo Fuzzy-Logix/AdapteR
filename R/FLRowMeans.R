@@ -30,7 +30,7 @@ rowMeans.default <- base::rowMeans
 
 rowMeans.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 
 	sqlstr<-paste0("INSERT INTO ",

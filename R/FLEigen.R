@@ -41,7 +41,7 @@ eigen.FLMatrix<-function(object)
 	# }
 	# checkSquare(object)
 	# checkSingular(object)
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 
 	retobj <- list(values = FLEigenValues(object), vectors = FLEigenVectors(object))
 	retobj
@@ -57,7 +57,7 @@ FLEigenValues<-function(x,...)
 FLEigenValues.FLMatrix<-function(object)
 {
 	
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 
 	sqlstr0<-paste0("INSERT INTO ",
@@ -88,7 +88,7 @@ FLEigenVectors<-function(x,...)
 
 FLEigenVectors.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 
 	sqlstr0<-paste0("INSERT INTO ",

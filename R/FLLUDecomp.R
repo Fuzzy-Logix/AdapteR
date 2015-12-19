@@ -83,7 +83,7 @@ lu.default <- Matrix::lu
 
 lu.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 	flag1Check(connection)
 	
@@ -248,7 +248,7 @@ lu.FLMatrix<-function(object)
 	#erm<-position[,1]
 
 	# calculating Dim FLVector
-	Dim<-as.FLVector(dim(data_perm),object@odbc_connection)
+	Dim<-as.FLVector(dim(data_perm),getConnection(object))
 
 	# calculating l FLmatrix
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,

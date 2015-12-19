@@ -1,3 +1,4 @@
+
 #' @include utilities.R
 #' @include FLMatrix.R
 #' @include FLSparseMatrix.R
@@ -26,7 +27,7 @@ NULL
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	## if(nargs()==2 && missing(rows)) { return(object[,]) }
 	## if(nargs()==2)
 	## {
@@ -39,19 +40,22 @@ NULL
     ##                                       " ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][rows])
 	## }
     if(is.numeric(rows))
-        newrownames <- match(object@dimnames[[1]][rows],object@dimnames[[1]])
+    ##     newrownames <- match(object@dimnames[[1]][rows],object@dimnames[[1]])
+    ## else
+        newrownames <- object@dimnames[[1]][rows] ## gk: reverted to my version
     else
-        #newrownames <- rows
-        newrownames <- match(rows,object@dimnames[[1]])
-        if(any(is.na(newrownames)))
+        newrownames <- rows
+    if(any(is.na(newrownames)))
         stop("subscript_out_of_bounds")
 
+    ##browser()
     if(is.numeric(cols))
-        newcolnames <- match(object@dimnames[[2]][cols],object@dimnames[[2]])
+    ##     newcolnames <- match(object@dimnames[[2]][cols],object@dimnames[[2]])
+    ## else
+        newcolnames <- object@dimnames[[2]][cols] ## gk: reverted to my version
     else
-        #newcolnames <- cols
-        newcolnames <- match(cols,object@dimnames[[2]])
-        if(any(is.na(newcolnames)))
+        newcolnames <- cols
+    if(any(is.na(newcolnames)))
         stop("subscript_out_of_bounds")
 
     ##browser()
@@ -59,22 +63,22 @@ NULL
     {
         if (missing(rows)) return(object)
         else return(FLMatrix(
-                    connection = object@odbc_connection, 
-                    database = object@db_name, 
-                    matrix_table = object@matrix_table, 
-                    matrix_id_value = object@matrix_id_value,
-                    matrix_id_colname = object@matrix_id_colname, 
-                    row_id_colname = object@row_id_colname, 
-                    col_id_colname = object@col_id_colname, 
-                    cell_val_colname = object@cell_val_colname,
-                    dimnames = list(newrownames,
-                                    object@dimnames[[2]]),
-                    conditionDims=c(TRUE,FALSE)))
+                 connection = getConnection(object), 
+                 database = object@db_name, 
+                 matrix_table = object@matrix_table, 
+                 matrix_id_value = object@matrix_id_value,
+                 matrix_id_colname = object@matrix_id_colname, 
+                 row_id_colname = object@row_id_colname, 
+                 col_id_colname = object@col_id_colname, 
+                 cell_val_colname = object@cell_val_colname,
+                 dimnames = list(newrownames,
+                                 object@dimnames[[2]]),
+                 conditionDims=c(TRUE,FALSE)))
     }
     else { ## !missing(cols)
         if(missing(rows)) {
             return(FLMatrix(
-                connection = object@odbc_connection, 
+                connection = getConnection(object), 
                 database = object@db_name, 
                 matrix_table = object@matrix_table, 
                 matrix_id_value = object@matrix_id_value,
@@ -87,7 +91,7 @@ NULL
                 conditionDims=c(FALSE,TRUE)))
         } else {  ## !missing(cols) and !missing(rows)
             return(FLMatrix(
-                connection = object@odbc_connection, 
+                connection = getConnection(object), 
                 database = object@db_name, 
                 matrix_table = object@matrix_table, 
                 matrix_id_value = object@matrix_id_value,
@@ -120,7 +124,7 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
     if(is.numeric(rows))
         newrownames <- object@dimnames[[1]][rows]
     else
@@ -137,19 +141,18 @@ NULL
         if (!missing(rows)) {
             if(!setequal(object@dimnames[[1]],
                          newrownames))
-                object@whereconditions <-
-                c(object@whereconditions,
-                  inCondition(paste0(object@db_name,".",
-                                     object@table_name,".",
-                                     object@obs_id_colname),
-                              newrownames))
+                object@whereconditions <- c(object@whereconditions,
+                                            inCondition(paste0(object@db_name,".",
+                                                               object@table_name,".",
+                                                               object@obs_id_colname),
+                                                        newrownames))
             object@dimnames = list(newrownames,
                                    object@dimnames[[2]])
         }
     } else if(missing(rows)) { ## !missing(cols)
         ifelse(any(is.na(as.numeric(object@dimnames[[1]]))),
-            newrownames <- sort(object@dimnames[[1]]),
-            newrownames <- sort(as.numeric(object@dimnames[[1]])))
+               newrownames <- sort(object@dimnames[[1]]),
+               newrownames <- sort(as.numeric(object@dimnames[[1]])))
         object@dimnames <- list(newrownames,
                                 newcolnames)
         if(object@isDeep){
@@ -209,56 +212,56 @@ NULL
 {
     newrownames <- sort(object@dimnames[[1]])[pSet]
     if(!setequal(object@dimnames[[1]], newrownames))
-            object@whereconditions <-
-            c(object@whereconditions,
-              inCondition(paste0(object@db_name,".",
-                                 object@table_name,".",
-                                 object@obs_id_colname),
-                          newrownames))
+        object@whereconditions <-
+        c(object@whereconditions,
+          inCondition(paste0(object@db_name,".",
+                             object@table_name,".",
+                             object@obs_id_colname),
+                      newrownames))
     object@dimnames[[1]] <- newrownames
     return(object)
 }
-#     pObj[pSet,]
-# 	if(pObj@isDeep)
-# 	{
-# 		vTemp <- character(0)
-# 		if(length(pSet)>1)
-# 		{
-#             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
-#             vTemp<-paste(vTemp,collapse=" ")
-# 		}
-		
-# 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj), 
-#                          " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
+                                        #     pObj[pSet,]
+                                        # 	if(pObj@isDeep)
+                                        # 	{
+                                        # 		vTemp <- character(0)
+                                        # 		if(length(pSet)>1)
+                                        # 		{
+                                        #             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
+                                        #             vTemp<-paste(vTemp,collapse=" ")
+                                        # 		}
 
-# 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
-# 		vResultVec <- c()
+                                        # 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj), 
+                                        #                          " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
 
-# 		for(vIter in pSet)
-#             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@var_id_name]==vIter),pObj@col_name])
+                                        # 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
+                                        # 		vResultVec <- c()
 
-# 		return(as.FLVector(vResultVec,pObj@odbc_connection))
-# 	}
+                                        # 		for(vIter in pSet)
+                                        #             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@var_id_name]==vIter),pObj@col_name])
 
-# 	if(!pObj@isDeep)
-# 	{
-# 		vTemp <- character(0)
-# 		if(length(pSet)>1)
-# 		{
-#             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
-#             vTemp<-paste(vTemp,collapse=" ")
-# 		}
-		
-# 		sqlstr <- paste0("SELECT * 
-# 						 FROM ",remoteTable(pObj), 
-#                          " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
+                                        # 		return(as.FLVector(vResultVec,pObj@odbc_connection))
+                                        # 	}
 
-# 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
-# 		vResultVec <- c()
+                                        # 	if(!pObj@isDeep)
+                                        # 	{
+                                        # 		vTemp <- character(0)
+                                        # 		if(length(pSet)>1)
+                                        # 		{
+                                        #             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
+                                        #             vTemp<-paste(vTemp,collapse=" ")
+                                        # 		}
 
-# 		for(vIter in pSet)
-#             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@obs_id_colname]==vIter),pObj@col_name])
+                                        # 		sqlstr <- paste0("SELECT * 
+                                        # 						 FROM ",remoteTable(pObj), 
+                                        #                          " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
 
-# 		return(as.FLVector(vResultVec,pObj@odbc_connection))
-# 	}
-# }
+                                        # 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
+                                        # 		vResultVec <- c()
+
+                                        # 		for(vIter in pSet)
+                                        #             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@obs_id_colname]==vIter),pObj@col_name])
+
+                                        # 		return(as.FLVector(vResultVec,pObj@odbc_connection))
+                                        # 	}
+                                        # }

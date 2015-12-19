@@ -39,7 +39,7 @@ FLMatrixNorm <- function (x, ...){
 FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 {
 
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 
 	if(NormMethod > 4 || NormMethod < 1)

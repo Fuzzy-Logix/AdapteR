@@ -82,14 +82,16 @@ m[2:5,4:5]
 ## 
 ## A remote matrix is easily created by specifying
 ##
-m <- eqnRtn <- FLMatrix(connection,
-                        database          = "FL_DEMO",
-                        matrix_table      = "finEquityReturns",
-                        matrix_id_value   = "",
-                        matrix_id_colname = "",
-                        row_id_colname    = "TxnDate",
-                        col_id_colname    = "TickerSymbol",
-                        cell_val_colname  = "EquityReturn")
+m <- 
+ eqnRtn <- FLMatrix(
+         connection,
+         database          = "FL_DEMO",
+         matrix_table      = "finEquityReturns",
+         matrix_id_value   = "",
+         matrix_id_colname = "",
+         row_id_colname    = "TxnDate",
+         col_id_colname    = "TickerSymbol",
+         cell_val_colname  = "EquityReturn")
 
 
 ## you can run above functions on m=Equity Returns Example again!
@@ -107,8 +109,7 @@ dec2006 <- grep("2006-12",dates)
 eqnRtn[dec2006, "MSFT"]
 
 
-E <- eqnRtn[dec2006,
-            randomstocks]
+E <- eqnRtn[dec2006, randomstocks]
 E
 
 
@@ -311,8 +312,8 @@ ORDER BY 1,2,3;")
 m <- FLMatrix(connection,
               database          = "FL_dev",
               matrix_table      = "tblMatrixMulti",
-              matrix_id_value   = "5",
               matrix_id_colname = "Matrix_ID",
+              matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")

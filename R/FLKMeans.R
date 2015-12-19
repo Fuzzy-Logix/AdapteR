@@ -247,9 +247,9 @@ cluster.FLKMeans<-function(object)
 	}
 	else
 	{
-		flag3Check(object@odbc_connection)
+		flag3Check(getConnection(object))
 
-		connection = object@odbc_connection
+		connection = getConnection(object)
 		AnalysisID = object@AnalysisID
 		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"  
 						SELECT ",max_vector_id_value,",
@@ -293,14 +293,14 @@ centers <- function (x, ...)
 
 centers.FLKMeans<-function(object)
 {
-	flag1Check(object@odbc_connection)
+	flag1Check(getConnection(object))
 	if(object@resultsfetched["centers"])
 	{
 		return(object@results[["centers"]])
 	}
 	else
 	{
-		connection=object@odbc_connection
+		connection=getConnection(object)
 		AnalysisID=object@AnalysisID
 		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," 
 						SELECT ",max_matrix_id_value,
@@ -348,7 +348,7 @@ tot.withinss<-function(object,...){
 }
 
 tot.withinss.FLKMeans<-function(object){
-	flag3Check(object@odbc_connection)
+	flag3Check(getConnection(object))
 	if(object@resultsfetched["tot.withinss"])
 	{
 		return(object@results[["tot.withinss"]])
@@ -366,7 +366,7 @@ tot.withinss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID 
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlQuery(getConnection(object),sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -395,7 +395,7 @@ withinss<-function(object){
 }
 
 withinss.FLKMeans<-function(object){
-	flag3Check(object@odbc_connection)
+	flag3Check(getConnection(object))
 	if(object@resultsfetched["withinss"])
 	{
 		return(object@results[["withinss"]])
@@ -414,7 +414,7 @@ withinss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID 
 						GROUP BY fzzlKMeansClusterID.ClusterID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlQuery(getConnection(object),sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -444,7 +444,7 @@ betweenss<-function(object){
 }
 
 betweenss.FLKMeans<-function(object){
-	flag3Check(object@odbc_connection)
+	flag3Check(getConnection(object))
 	if(object@resultsfetched["betweenss"])
 	{
 		return(object@results[["betweenss"]])
@@ -467,7 +467,7 @@ betweenss.FLKMeans<-function(object){
 						AND fzzlKMeansClusterID.ObsID = ",object@deeptablename,".ObsID 
 						AND a.VarID = ",object@deeptablename,".VarID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlQuery(getConnection(object),sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -496,7 +496,7 @@ totss<-function(object){
 }
 
 totss.FLKMeans<-function(object){
-	flag3Check(object@odbc_connection)
+	flag3Check(getConnection(object))
 	if(object@resultsfetched["totss"])
 	{
 		return(object@results[["totss"]])
@@ -512,7 +512,7 @@ totss.FLKMeans<-function(object){
 							 object@deeptablename," 
 						WHERE a.VarID = ",object@deeptablename,".VarID;")
 		
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlQuery(getConnection(object),sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -550,7 +550,7 @@ size.FLKMeans<-function(object)
 	# 	i<-i+1
 	# }
 	# sizevector
-	flag3Check(object@odbc_connection)
+	flag3Check(getConnection(object))
 	if(object@resultsfetched["size"])
 	{
 		return(object@results[["size"]])
@@ -566,7 +566,7 @@ size.FLKMeans<-function(object)
 	                      AND HypothesisID = ",object@nstart," 
 	                      GROUP BY ClusterID")
 
-		sqlQuery(object@odbc_connection,sqlstr)
+		sqlQuery(getConnection(object),sqlstr)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
@@ -648,7 +648,7 @@ plot.FLKMeans <- function(object)
 			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
 		
 		print(sqlstr)
-		print(sqlQuery(object@odbc_connection,sqlstr))
+		print(sqlQuery(getConnection(object),sqlstr))
 
 		#widetable <- gen_wide_table_name(paste0(object@table@table_name,"new"))
 		widetable <- "temp_unique_wide_1234_5678"
@@ -664,9 +664,9 @@ plot.FLKMeans <- function(object)
 						Message);")
 
 		print(sqlstr)
-		print(sqlQuery(object@odbc_connection,sqlstr))
+		print(sqlQuery(getConnection(object),sqlstr))
 
-		x <- sqlQuery(object@odbc_connection,
+		x <- sqlQuery(getConnection(object),
 					 paste0(" SELECT * FROM ",widetable," ORDER BY ObsID"))
 		
 		x <- as.data.frame(x)
@@ -686,9 +686,9 @@ plot.FLKMeans <- function(object)
 						'",widetable,"',
 						Message);")
 		print(sqlstr)
-		print(sqlQuery(object@odbc_connection,sqlstr))
+		print(sqlQuery(getConnection(object),sqlstr))
 
-		x <- sqlQuery(object@odbc_connection,
+		x <- sqlQuery(getConnection(object),
 					 paste0(" SELECT * FROM ",widetable," ORDER BY ",object@table@primary_key))
 		x <- as.data.frame(x)
 		x$object@table@primary_key <- NULL

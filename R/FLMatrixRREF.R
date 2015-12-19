@@ -31,7 +31,7 @@ FLMatrixRREF.FLMatrix<-function(object)
 {
 
 	# checkSquare(object,"FLMatrixRREF")
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 
 	sqlstr<-paste0(" INSERT INTO ",

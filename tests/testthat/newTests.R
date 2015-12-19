@@ -1,5 +1,4 @@
 library(AdapteR)
-
 library(testthat)
 require(Matrix)
 
@@ -26,8 +25,9 @@ options(debugSQL=FALSE)
 ## we can extend with benchmarking
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
-    expect_equal(FLcomputationF(initF(...)$FL),
-                 RcomputationF(initF(...)$R),
+    I <- initF(...)
+    expect_equal(FLcomputationF(I$FL),
+                 RcomputationF(I$R),
                  check.attributes=FALSE)
 }
 
@@ -288,7 +288,7 @@ test_that("check class and result of FLMatrix",
 test_that("check class and result of FLSparseMatrix",
 {
     smatrix1 <-sparseMatrix(c(1,3:8), c(2,9,6:10), x = 7 * (1:7))
-    sm1 <- as.FLSparseMatrix(smatrix1,connection)
+    sm1 <- as.FLMatrix(smatrix1,connection)
     expect_is(
         sm1, "FLMatrix" ## gk:: we do not need a separate class, introduces too much complexity
     )

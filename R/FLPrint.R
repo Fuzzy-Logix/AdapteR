@@ -23,7 +23,7 @@ print.FLVector <- function(object)
     ##browser()
     if(object@isDeep && length(object@vector_id_value))
     {
-        valuedf <- sqlQuery(object@odbc_connection,
+        valuedf <- sqlQuery(getConnection(object),
                             paste0("SELECT * FROM ",
                                    remoteTable(object),
                                    " WHERE ",object@obs_id_colname,"=",
@@ -32,7 +32,7 @@ print.FLVector <- function(object)
         print(valuedf[,object@col_name])
         ##print(valuedf)
     } else if(!object@isDeep) {
-        valuedf <- sqlQuery(object@odbc_connection,
+        valuedf <- sqlQuery(getConnection(object),
                             paste0("SELECT ",
                                    object@obs_id_colname,",",
                                    object@col_name,

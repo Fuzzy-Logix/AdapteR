@@ -28,7 +28,7 @@ rankMatrix.default <- Matrix::rankMatrix
 
 rankMatrix.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
 				   outputSelectMatrix("FLMatrixRankUdt",

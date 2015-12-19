@@ -33,7 +33,7 @@ ginv.default <- MASS::ginv
 ginv.FLMatrix<-function(object)
 {
 
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 
 	MID <- max_matrix_id_value

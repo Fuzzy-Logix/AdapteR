@@ -35,7 +35,7 @@ hessen<-function(x, ...){
 hessen.FLMatrix<-function(object)
 {
 	#checkSquare(object,"hessen")
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag1Check(connection)
 	MID <- max_matrix_id_value
 

@@ -38,7 +38,7 @@ diag.default <- base::diag
 
 diag.FLMatrix<-function(object){
 	
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 
 	sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
@@ -71,7 +71,7 @@ diag.FLMatrix<-function(object){
 
 diag.FLVector <- function(object)
 {
-	connection <- object@odbc_connection
+	connection <- getConnection(object)
 
 	if(length(object)==1)
 	{

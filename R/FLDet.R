@@ -33,7 +33,7 @@ det.default <- base::det
 
 det.FLMatrix<-function(object)
 {
-	connection<-object@odbc_connection
+	connection<-getConnection(object)
 	flag3Check(connection)
 	if(nrow(object) != ncol(object))
 	{
