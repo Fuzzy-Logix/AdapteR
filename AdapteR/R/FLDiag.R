@@ -43,12 +43,12 @@ diag.FLMatrix<-function(object){
 
 	sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 					" SELECT ",max_vector_id_value,
-					         ",a.",object@row_id_colname,
-					         ",CAST(a.", object@cell_val_colname,
+					         ",a.",object@variables$rowId,
+					         ",CAST(a.", object@variables$value,
 					                "  AS NUMBER) 
 	                  FROM ",remoteTable(object)," a
 					  WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,"
-					  AND a.",object@row_id_colname," = ",object@col_id_colname,";")
+					  AND a.",object@variables$rowId," = ",object@variables$colId,";")
 
 	sqlSendUpdate(connection,sqlstr0)
 
@@ -77,7 +77,7 @@ diag.FLVector <- function(object)
 	{
 		flag1Check(connection)
 		value <- sqlQuery(connection,
-						  paste("SELECT a.",object@cell_val_colname,
+						  paste("SELECT a.",object@variables$value,
 						  		 "FROM ",remoteTable(object)," a",
 						  		 "WHERE a.",object@obs_id_colname,"=",object@vector_id_value))[1,1]
 		 for (i in 1:value)

@@ -34,11 +34,11 @@ colSums.FLMatrix<-function(object)
 
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table, 
 					" SELECT ",max_vector_id_value,
-					         ",a.",object@col_id_colname,
-					         ", CAST(SUM(a.",object@cell_val_colname,") AS NUMBER) 
+					         ",a.",object@variables$colId,
+					         ", CAST(SUM(a.",object@variables$value,") AS NUMBER) 
 					FROM ",remoteTable(object)," a 
 					WHERE a.",object@matrix_id_colname,"=",object@matrix_id_value,
-					" GROUP BY a.",object@col_id_colname)
+					" GROUP BY a.",object@variables$colId)
 
 	sqlSendUpdate(connection,sqlstr)
 	
@@ -53,7 +53,7 @@ colSums.FLMatrix<-function(object)
 
 	new("FLVector", 
 		table = table, 
-		col_name = table@cell_val_colname, 
+		col_name = table@variables$value, 
 		vector_id_value = max_vector_id_value-1, 
 		size = ncol(object))
 }

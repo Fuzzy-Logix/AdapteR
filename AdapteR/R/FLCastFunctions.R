@@ -48,7 +48,7 @@ as.data.frame.FLTable <- function(x, ...){
         D <- dcast(D, paste0(toupper(x@obs_id_colname),
                              " ~ ",
                              toupper(x@var_id_colname)),
-                   value.var = toupper(x@cell_val_colname))
+                   value.var = toupper(x@variables$value))
     } 
     ## gk:  this is broken
     i <- charmatch(rownames(x),D[[toupper(x@obs_id_colname)]],nomatch=0)
@@ -377,9 +377,9 @@ as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 
 #  	 	sqlstr <- paste0("UPDATE ",result_matrix_table,"
 #  	 			 		  FROM (SELECT ",max_matrix_id_value," AS mid,
-#  	 			 		  			   ",m@row_id_colname," AS rid,
-#  	 			 		  			   ",m@col_id_colname," AS cid,
-#  	 			 		  	           ",m@cell_val_colname," AS cval
+#  	 			 		  			   ",m@variables$rowId," AS rid,
+#  	 			 		  			   ",m@variables$colId," AS cid,
+#  	 			 		  	           ",m@variables$value," AS cval
 #  	 			 		  	    FROM ",remoteTable(m),"
 #  	 			 		  	    WHERE ",m@matrix_id_colname,"=",m@matrix_id_value,") c
 #  	 			          SET CELL_VAL = c.cval
@@ -503,9 +503,9 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   sqlstr <- paste0(" INSERT INTO ",
                     getRemoteTableName(result_db_name,result_vector_table),
                    " SELECT ",max_vector_id_value,
-                   ", ROW_NUMBER() OVER (ORDER BY a.",object@col_id_colname,
-                   ",a.",object@row_id_colname,") AS ROW_NUM
-                   ,a.",object@cell_val_colname,
+                   ", ROW_NUMBER() OVER (ORDER BY a.",object@variables$colId,
+                   ",a.",object@variables$rowId,") AS ROW_NUM
+                   ,a.",object@variables$value,
                    " FROM ",remoteTable(object)," a ",
                    constructWhere(constraintsSQL(object,localName="a")))
 
@@ -564,9 +564,9 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 # 		sqlSendUpdate(connection,
 # 				 paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
 # 						" SELECT ",max_vector_id_value,
-#                         ", ROW_NUMBER() OVER (ORDER BY a.",obj@col_id_colname,
-#                         ",a.",obj@row_id_colname,") AS ROW_NUM
-# 				                ,CAST(a.",obj@cell_val_colname," AS NUMBER)
+#                         ", ROW_NUMBER() OVER (ORDER BY a.",obj@variables$colId,
+#                         ",a.",obj@variables$rowId,") AS ROW_NUM
+# 				                ,CAST(a.",obj@variables$value," AS NUMBER)
 # 				         FROM ",remoteTable(obj)," a
 # 				          WHERE a.",obj@matrix_id_colname,"=",obj@matrix_id_value))
 
@@ -581,7 +581,7 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 
 # 		return(new("FLVector",
 #                    table = table,
-#                    col_name = table@cell_val_colname,
+#                    col_name = table@variables$value,
 #                    vector_id_value = max_vector_id_value-1,
 #                    size = size))
 # 	}
@@ -595,9 +595,9 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
  #                                " WHERE ",obj@matrix_id_colname,"=",obj@matrix_id_value,
  #                                " ORDER BY 1,2,3"))
 
-	#     RSparseMatrix <- sparseMatrix(i=valuedf[,obj@row_id_colname],
- #                                      j=valuedf[,obj@col_id_colname],
- #                                      x=valuedf[,obj@cell_val_colname],
+	#     RSparseMatrix <- sparseMatrix(i=valuedf[,obj@variables$rowId],
+ #                                      j=valuedf[,obj@variables$colId],
+ #                                      x=valuedf[,obj@variables$value],
  #                                      dimnames = obj@dimnames)
 
 	#     return(as.FLVector(RSparseMatrix,obj@odbc_connection))

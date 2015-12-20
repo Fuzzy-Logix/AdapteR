@@ -122,7 +122,7 @@ lm.FLTable<-function(formula,data,...){
  									   paste0("CALL FLLinRegr('",deeptablename,"',
  									   						  '",data@obs_id_colname,"', 
  									   						  '",data@var_id_name,"', 
- 									   						  '",data@cell_val_colname,"', 
+ 									   						  '",data@variables$value,"', 
  									   						  'Test', 
  									   						  AnalysisID);"))[1,1])
 
@@ -271,7 +271,7 @@ lmdata.FLLinRegr<-function(object){
 		querydeeptowide<-paste0("CALL FLDeepToWide('",object@table_name,"',
 												   '",object@datatable@obs_id_colname,"',
 												   '",object@datatable@var_id_name,"',
-												   '",object@datatable@cell_val_colname,"',
+												   '",object@datatable@variables$value,"',
 												   NULL,
 												   NULL,
 												   '",widetable,"',

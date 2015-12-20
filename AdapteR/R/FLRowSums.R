@@ -36,11 +36,11 @@ rowSums.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",
 					getRemoteTableName(result_db_name,result_vector_table),
 					" SELECT ",max_vector_id_value,
-					         ",a.",object@row_id_colname,
-					         ",SUM(a.",object@cell_val_colname,") 
+					         ",a.",object@variables$rowId,
+					         ",SUM(a.",object@variables$value,") 
 					FROM ",remoteTable(object)," a ",
 					constructWhere(constraintsSQL(object,"a")),
-					" GROUP BY a.",object@row_id_colname)
+					" GROUP BY a.",object@variables$rowId)
 
 	sqlSendUpdate(connection,sqlstr)
 	

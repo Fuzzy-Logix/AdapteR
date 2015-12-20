@@ -78,16 +78,16 @@ NULL
 			sqlSendUpdate(flmatobj1@odbc_connection,
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 					 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-					 				 a.",flmatobj1@row_id_colname," AS ROW_ID ,
-					 				 a.",flmatobj1@col_id_colname," AS COL_ID ,
-					 				 a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@cell_val_colname," AS CELL_VAL 
+					 				 a.",flmatobj1@variables$rowId," AS ROW_ID ,
+					 				 a.",flmatobj1@variables$colId," AS COL_ID ,
+					 				 a.",flmatobj1@variables$value,"*b.",flmatobj2@variables$value," AS CELL_VAL 
 					 		  FROM ",remoteTable(flmatobj1)," a,",
                             remoteTable(flmatobj2)," b ",
                             constructWhere(c(
                                 constraintsSQL(flmatobj1, "a"),
                                 constraintsSQL(flmatobj2, "b"),
-                                paste0("a.",flmatobj1@row_id_colname,"=b.",flmatobj2@row_id_colname),
-                                paste0("b.",flmatobj1@col_id_colname,"=b.",flmatobj2@col_id_colname)))))
+                                paste0("a.",flmatobj1@variables$rowId,"=b.",flmatobj2@variables$rowId),
+                                paste0("b.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$colId)))))
 			
 			max_matrix_id_value <<- max_matrix_id_value + 1
 			FLMatrix( 
@@ -132,11 +132,11 @@ NULL
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
-							  			 a.",flmatobj1@row_id_colname,",
-							  			 a.",flmatobj1@col_id_colname,",
-							  			 a.",flmatobj1@cell_val_colname,", 
-							  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@col_id_colname,",
-							  			 							 a.",flmatobj1@row_id_colname,") AS ROW_NUM  
+							  			 a.",flmatobj1@variables$rowId,",
+							  			 a.",flmatobj1@variables$colId,",
+							  			 a.",flmatobj1@variables$value,", 
+							  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@variables$colId,",
+							  			 							 a.",flmatobj1@variables$rowId,") AS ROW_NUM  
 			        			  FROM ",flmatobj1@matrix_table," a 
 			        			  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 					         SELECT ",max_matrix_id_value,",
@@ -154,11 +154,11 @@ NULL
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
-							  			 a.",flmatobj1@row_id_colname,",
-							  			 a.",flmatobj1@col_id_colname,",
-							  			 a.",flmatobj1@cell_val_colname,", 
-							  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@col_id_colname,",
-							  			 							 a.",flmatobj1@row_id_colname,") AS ROW_NUM  
+							  			 a.",flmatobj1@variables$rowId,",
+							  			 a.",flmatobj1@variables$colId,",
+							  			 a.",flmatobj1@variables$value,", 
+							  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@variables$colId,",
+							  			 							 a.",flmatobj1@variables$rowId,") AS ROW_NUM  
 			        			 FROM ",flmatobj1@matrix_table," a 
 			        			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 					         SELECT ",max_matrix_id_value,",
@@ -229,15 +229,15 @@ NULL
 				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
-			            				a.",flmatobj1@row_id_colname,",
-			            				a.",flmatobj1@col_id_colname,",
-			            				a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@cell_val_colname,
+			            				a.",flmatobj1@variables$rowId,",
+			            				a.",flmatobj1@variables$colId,",
+			            				a.",flmatobj1@variables$value,"*b.",flmatobj2@variables$value,
 			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 			            				 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-			            		  AND a.",flmatobj1@row_id_colname," = b.",flmatobj2@row_id_colname," 
-			            		  AND a.",flmatobj1@col_id_colname," =b.",flmatobj2@col_id_colname))
+			            		  AND a.",flmatobj1@variables$rowId," = b.",flmatobj2@variables$rowId," 
+			            		  AND a.",flmatobj1@variables$colId," =b.",flmatobj2@variables$colId))
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
 					odbc_connection = flmatobj1@odbc_connection, 
@@ -258,33 +258,33 @@ NULL
 				sqlSendUpdate(flmatobj2@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT DISTINCT ",max_matrix_id_value,",
-										 b.",flmatobj2@row_id_colname,",
-										 b.",flmatobj2@col_id_colname," ,
+										 b.",flmatobj2@variables$rowId,",
+										 b.",flmatobj2@variables$colId," ,
 										 0 ",
 								" FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 								  WHERE b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value,
 					            " except ",
 					            "SELECT ",max_matrix_id_value,",
-					            		b.",flmatobj2@row_id_colname,",
-					            		b.",flmatobj2@col_id_colname," ,
+					            		b.",flmatobj2@variables$rowId,",
+					            		b.",flmatobj2@variables$colId," ,
 					            		0 
 					             FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 					             		flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 					             WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 					             AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-					             AND b.",flmatobj2@row_id_colname," = a.",flmatobj1@row_id_colname," 
-					             AND b.",flmatobj2@col_id_colname,"=a.",flmatobj1@col_id_colname,
+					             AND b.",flmatobj2@variables$rowId," = a.",flmatobj1@variables$rowId," 
+					             AND b.",flmatobj2@variables$colId,"=a.",flmatobj1@variables$colId,
 					            " UNION ALL ",
 								"SELECT DISTINCT ",max_matrix_id_value,",
-										a.",flmatobj1@row_id_colname,",
-										a.",flmatobj1@col_id_colname,",
-										a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@cell_val_colname,
+										a.",flmatobj1@variables$rowId,",
+										a.",flmatobj1@variables$colId,",
+										a.",flmatobj1@variables$value,"*b.",flmatobj2@variables$value,
 								"FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 										flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 								WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 								AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-								AND a.",flmatobj1@row_id_colname," = b.",flmatobj2@row_id_colname," 
-								AND a.",flmatobj1@col_id_colname," =b.",flmatobj2@col_id_colname))
+								AND a.",flmatobj1@variables$rowId," = b.",flmatobj2@variables$rowId," 
+								AND a.",flmatobj1@variables$colId," =b.",flmatobj2@variables$colId))
 				max_matrix_id_value <<- max_matrix_id_value + 1
 				FLMatrix( 
 					connection = flmatobj2@odbc_connection, 
@@ -325,15 +325,15 @@ NULL
 				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
-			            				a.",flmatobj1@row_id_colname,",
-			            				a.",flmatobj1@col_id_colname,",
-			            				a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,
+			            				a.",flmatobj1@variables$rowId,",
+			            				a.",flmatobj1@variables$colId,",
+			            				a.",flmatobj1@variables$value,"*b.",flmatobj2@col_name,
 			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 			            				 flmatobj2@db_name,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value," 
-			            		  AND (((a.",flmatobj1@col_id_colname,"-1)*",nrow(flmatobj1),")+",
-			            					 flmatobj1@row_id_colname,") MOD ",length(flmatobj2)," = b.",
+			            		  AND (((a.",flmatobj1@variables$colId,"-1)*",nrow(flmatobj1),")+",
+			            					 flmatobj1@variables$rowId,") MOD ",length(flmatobj2)," = b.",
 						 					 flmatobj2@var_id_name," MOD ",length(flmatobj2)))
 				
 				else
@@ -341,14 +341,14 @@ NULL
 				sqlSendUpdate(flmatobj1@odbc_connection,
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
-			            				 a.",flmatobj1@row_id_colname,",
-			            				 a.",flmatobj1@col_id_colname,",
-			            				 a.",flmatobj1@cell_val_colname,"*b.",flmatobj2@col_name,
+			            				 a.",flmatobj1@variables$rowId,",
+			            				 a.",flmatobj1@variables$colId,",
+			            				 a.",flmatobj1@variables$value,"*b.",flmatobj2@col_name,
 			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 			            				 flmatobj2@db_name,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-			            		  AND (((a.",flmatobj1@col_id_colname,"-1)*",nrow(flmatobj1),")+",
-			            					 flmatobj1@row_id_colname,") MOD ",length(flmatobj2)," = b.",
+			            		  AND (((a.",flmatobj1@variables$colId,"-1)*",nrow(flmatobj1),")+",
+			            					 flmatobj1@variables$rowId,") MOD ",length(flmatobj2)," = b.",
 						 					 flmatobj2@obs_id_colname," MOD ",length(flmatobj2)))
 				}
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
@@ -473,7 +473,7 @@ NULL
 
 			new("FLVector", 
 				table = table, 
-				col_name = table@cell_val_colname, 
+				col_name = table@variables$value, 
 				vector_id_value = max_vector_id_value-1, 
 				size = length(pObj1))
 			

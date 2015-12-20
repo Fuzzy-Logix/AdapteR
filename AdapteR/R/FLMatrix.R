@@ -4,74 +4,19 @@
 NULL
 setOldClass("RODBC")
 
-## gk: localName maybe needs adding
-setGeneric("constructSelect", function(object) {
-    standardGeneric("constructSelect")
-})
-setMethod("constructSelect", signature(object = "FLMatrix"),
-          function(object) {
-              paste0(" SELECT ",
-                     object@row_id_colname,",",
-                     object@col_id_colname,",",
-                     object@cell_val_colname,  
-                     " FROM ",remoteTable(object),
-                     constructWhere(constraintsSQL(object)))
-          })
-setMethod("constructSelect", signature(object = "FLTable"),
-          function(object) {
-              if(!object@isDeep) {
-                  return(paste0("SELECT ",
-                                paste0(object@obs_id_colname,","),
-                                paste(colnames(object),collapse=", "),
-                                " FROM ",remoteTable(object),
-                                constructWhere(c(constraintsSQL(object))),
-                                " ORDER BY ",object@obs_id_colname))
-              } else {
-                  return(paste0("SELECT ",
-                                paste(c(object@obs_id_colname,
-                                        object@var_id_colname,
-                                        object@cell_val_colname),
-                                      collapse=", "),
-                                " FROM ",remoteTable(object),
-                                constructWhere(c(constraintsSQL(object)))))
-              }
-          })
-setMethod("constructSelect", signature(object = "FLUnionMatrix"),
-          function(object) {
-              paste0(sapply(object@parts,constructSelect),
-                     collapse="\nUNION ALL ")
-          })
-setMethod("constructSelect", signature(object = "FLSelectFrom"),
-          function(object) {
-              variables <- object@variables
-              if(is.null(names(variables)))
-                  names(variables) <- variables
-              else
-                  names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-              if(length(object@order)==0)
-                  ordering <- ""
-              else
-                  ordering <- paste0(" ORDER BY ",paste0(object@obs_id_colname,collapse = ", "))
-              
-              return(paste0("SELECT ",
-                            paste0(variables, "as", names(variables), collapse = ","),
-                            " FROM ",remoteTable(object),
-                            constructWhere(c(constraintsSQL(object))),
-                            ordering))
-          })
 
 
-## gk: please move all classes into AllClasses.R
+## A table query models a select or a table result of a sql statement
 setClass("FLTableQuery",
          slots=list(
              odbc_connection = "ANY",
-             variables="character",
+             variables="list",
              whereconditions="character",
              order = "character"
          ))
 
 
-## gk: please move all classes into AllClasses.R
+## A select from models a select from a table
 setClass("FLSelectFrom",
          contains="FLTableQuery",
          slots=list(
@@ -111,7 +56,7 @@ setClass("FLUnionTables",
 #'
 setClass(
     "FLMatrix",
-    contains="FLTableQuery",
+    contains="FLSelectFrom",
     slots = list(
         dimnames = "list"
     )
@@ -152,6 +97,64 @@ setClass(
     	cell_val_colname = "character"
     ))
 
+
+## gk: localName maybe needs adding
+setGeneric("constructSelect", function(object) {
+    standardGeneric("constructSelect")
+})
+setMethod("constructSelect", signature(object = "FLMatrix"),
+          function(object) {
+              paste0(" SELECT ",
+                     object@variables$rowId,",",
+                     object@variables$colId,",",
+                     object@variables$value,  
+                     " FROM ",remoteTable(object),
+                     constructWhere(constraintsSQL(object)))
+          })
+setMethod("constructSelect", signature(object = "FLTable"),
+          function(object) {
+              if(!object@isDeep) {
+                  return(paste0("SELECT ",
+                                paste0(object@obs_id_colname,","),
+                                paste(colnames(object),collapse=", "),
+                                " FROM ",remoteTable(object),
+                                constructWhere(c(constraintsSQL(object))),
+                                " ORDER BY ",object@obs_id_colname))
+              } else {
+                  return(paste0("SELECT ",
+                                paste(c(object@obs_id_colname,
+                                        object@var_id_colname,
+                                        object@variables$value),
+                                      collapse=", "),
+                                " FROM ",remoteTable(object),
+                                constructWhere(c(constraintsSQL(object)))))
+              }
+          })
+setMethod("constructSelect", signature(object = "FLUnionTables"),
+          function(object) {
+              paste0(sapply(object@parts,constructSelect),
+                     collapse="\nUNION ALL ")
+          })
+setMethod("constructSelect", signature(object = "FLSelectFrom"),
+          function(object) {
+              variables <- object@variables
+              if(is.null(names(variables)))
+                  names(variables) <- variables
+              else
+                  names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
+              if(length(object@order)==0)
+                  ordering <- ""
+              else
+                  ordering <- paste0(" ORDER BY ",paste0(object@obs_id_colname,collapse = ", "))
+              
+              return(paste0("SELECT ",
+                            paste0(variables, "as", names(variables), collapse = ","),
+                            " FROM ",remoteTable(object),
+                            constructWhere(c(constraintsSQL(object))),
+                            ordering))
+          })
+
+
 #' Constructor function for FLMatrix.
 #'
 #' \code{FLMatrix} constructs an object of class \code{FLMatrix}.
@@ -174,10 +177,10 @@ setClass(
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' @export
 FLMatrix <- function(connection, 
-					 database=result_db_name, 
+					 databaseName=result_db_name, 
 					 matrix_table, 
-					 matrix_id_value,
-					 matrix_id_colname = "MATRIX_ID", 
+					 matrix_id_value = "",
+					 matrix_id_colname = "", 
 					 row_id_colname = "ROW_ID", 
 					 col_id_colname = "COL_ID", 
 					 cell_val_colname = "CELL_VAL", 
@@ -190,11 +193,10 @@ FLMatrix <- function(connection,
                   odbc_connection = connection, 
                   db_name = database, 
                   matrix_table = matrix_table, 
-                  matrix_id_value = as.character(matrix_id_value), 
-                  matrix_id_colname = matrix_id_colname, 
-                  row_id_colname = row_id_colname, 
-                  col_id_colname = col_id_colname, 
-                  cell_val_colname = cell_val_colname,
+                  variables=list(rowId=row_id_colname,
+                                 colId=col_id_colname,
+                                 value=cell_val_colname),
+                  order = "",
                   dimnames = list(),
                   whereconditions=whereconditions)
     if(is.null(dimnames)){
@@ -224,6 +226,12 @@ FLMatrix <- function(connection,
         whereconditions <- c(whereconditions,
                              inCondition(paste0(database,".",matrix_table,".",col_id_colname),
                                          dimnames[[2]]))
+    if(""!=matrix_id_value)
+        whereconditions <- c(whereconditions,
+                             equalityConstraint(
+                                 tableColName =  paste0(getRemoteTableName(databaseName,matrix_table),
+                                                        ".",matrix_id_colname),
+                                 constantValue = matrix_id_value))
     ##browser()
     ## if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
     ##                            (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
@@ -271,7 +279,7 @@ setMethod("getConnection", signature(object = "FLMatrix"),
           function(object) object@odbc_connection)
 setMethod("getConnection", signature(object = "FLTable"),
           function(object) object@odbc_connection)
-setMethod("getConnection", signature(object = "FLUnionMatrix"),
+setMethod("getConnection", signature(object = "FLUnionTables"),
           function(object) object@parts[[1]]@odbc_connection)
 
 
@@ -280,11 +288,7 @@ setGeneric("constraintsSQL", function(object, localName) {
 })
 setMethod("constraintsSQL", signature(object = "FLMatrix",localName="character"),
           function(object,localName="") {
-              constraints <- c(
-                  object@whereconditions,
-                  equalityConstraint(
-                      tableColName =  paste0(remoteTable(object),".",object@matrix_id_colname),
-                      constantValue = object@matrix_id_value))
+              constraints <- object@whereconditions
               return(localizeConstraints(constraints,
                                          remoteTable(object),
                                          localName))
@@ -304,9 +308,7 @@ setMethod("constraintsSQL", signature(object = "FLTable",localName="missing"),
 
 setMethod("constraintsSQL", signature(object = "FLVector",localName="character"),
           function(object,localName="") {
-              conditions <- c(
-                  object@whereconditions,
-                  object@whereconditions)
+              conditions <- c(object@whereconditions)
               ## equalityConstraint(tableColName =  paste0(remoteTable(object),".",object@obs_id_colname),
               ##                    constantValue = object@vector_id_value))
               return(localizeConstraints(conditions,
@@ -383,9 +385,9 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
               return(paste0(" WITH ",withName,
                             " (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
               AS (SELECT ",localName,".",object@matrix_id_colname,", 
-                     ",localName,".",object@row_id_colname,", 
-                     ",localName,".",object@col_id_colname,", 
-                     ",localName,".",object@cell_val_colname,
+                     ",localName,".",object@variables$rowId,", 
+                     ",localName,".",object@variables$colId,", 
+                     ",localName,".",object@variables$value,
               " FROM  ",remoteTable(object)," ",localName," ",
               constructWhere(constraintsSQL(object,localName)),
               " ) "))
@@ -500,3 +502,7 @@ setMethod("checkSameDims", signature(object1="FLMatrix",object2="FLMatrix"),
               if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
                   return(stop("ERROR: Invalid matrix dimensions for Operation"))
           })
+
+setMethod("show","FLMatrix",print.FLMatrix)
+setMethod("show","FLUnionTables",print.FLMatrix)
+

@@ -183,7 +183,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
 	# SVector <- new("FLVector", 
  	#                      table = table, 
- 	#                      col_name = table@cell_val_colname, 
+ 	#                      col_name = table@variables$value, 
  	#                      vector_id_value = max_vector_id_value-1, 
  	#                      size = min(nrow(object),ncol(object)))
 

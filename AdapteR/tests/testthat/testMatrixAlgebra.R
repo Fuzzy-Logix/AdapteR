@@ -1,32 +1,18 @@
-require(testthat)
-
-## class tests
-expect_equal(constructSelect(new("FLTable",
-                                 odbc_connection=NULL,
-                                 variables=c("a","b","c"),
-                                 whereconditions=equalityConstraint("Matrix_id",1),
-                                 order="")),
-
-
-## roadmap:
+## Hi Phani, Manish,
+##
+## I implemented further in a unified system of selects classes, and
+## did change quite a bit in FLMatrix. Look at the constructor.
 ## 
-
-
-options(debugSQL=TRUE)
-## Testing Subsetting
-## Non-symmetric singular matrix of dimension 5x5
-## in R memory
-rMatrix <- matrix(1:25,5)
-rMatrix
-dim(rMatrix)
-diag(rMatrix)
-
-## converting the R matrix into 
-## an in-DB object,
-## CAREFUL: DATA IS TRANSFERED THROUGH NETWORK
-m <- as.FLMatrix(rMatrix,connection)
-dim(m)
-##diag(m)
+## Not everything is working, please investigate 
+## by running from here and looking at FLMatrix and
+## involved functions.
+##
+## Your next steps:
+## 1. investigate addition/multiplication, all tests fail
+##
+## My next steps:
+## 1. design conditions in cbind
+## 2. will we need FLVector, FLTable with the new classes?
 
 
 ## A remote matrix is easily created by specifying 
@@ -41,21 +27,34 @@ eqnRtn <- FLMatrix(
     cell_val_colname  = "EquityReturn")
 
 
-m <- eqnRtn[,"MSFT"]
-m2 <- eqnRtn[,"ORCL"]
-mm2 <- cbind(m,m2)
+m <- eqnRtn[1:10,"MSFT"]
+m2 <- eqnRtn[1:10,"ORCL"]
 
-colnames(m2)
-as.matrix(mm2)
+m
+m2
 
-## gk:  hi Phani, please start here.
-## I had a 3h long conversation with Partha
-mm <- cbind(m,m)
-ncol(mm)
-nrow(mm)
-dim(mm)
 
-as.matrix(mm)
+require(testthat)
+options(debugSQL=TRUE)
+## Testing Subsetting
+## Non-symmetric singular matrix of dimension 5x5
+## in R memory
+rMatrix <- matrix(1:25,5)
+rMatrix
+dim(rMatrix)
+diag(rMatrix)
+
+## converting the R matrix into 
+## an in-DB object,
+## CAREFUL: DATA IS TRANSFERED THROUGH NETWORK
+m <- as.FLMatrix(rMatrix,connection)
+dim(m)
+m
+rMatrix
+##diag(m)
+
+########################################
+## STOP RUNNING HERE, below 
 
 
 

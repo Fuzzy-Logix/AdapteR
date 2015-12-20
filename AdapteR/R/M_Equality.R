@@ -14,9 +14,9 @@ identical.FLMatrix <- function(object1, object2)
 						 	  ",remoteTable(object2),"b",
                         constructWhere(c(constraintsSQL(object1,"a"),
                                          constraintsSQL(object2,"b"),
-                                         paste0("a.",object1@row_id_colname,"= b.",object2@row_id_colname),
-                                         paste0("a.",object1@col_id_colname,"= b.",object2@col_id_colname),
-                                         paste0("a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname))))
+                                         paste0("a.",object1@variables$rowId,"= b.",object2@variables$rowId),
+                                         paste0("a.",object1@variables$colId,"= b.",object2@variables$colId),
+                                         paste0("a.",object1@variables$value,"<> b.",object2@variables$value))))
 		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
 		if(nrow(retobj) == 0)
 		{
@@ -55,9 +55,9 @@ identical.FLMatrix <- function(object1, object2)
 						 	  ",remoteTable(object2),"b",
                         constructWhere(c(constraintsSQL(object1,"a"),
                                          constraintsSQL(object2,"b"),
-                                         paste0("a.",object1@row_id_colname,"= b.",object2@row_id_colname),
-                                         paste0("a.",object1@col_id_colname,"= b.",object2@col_id_colname),
-                                         paste0("a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname))))
+                                         paste0("a.",object1@variables$rowId,"= b.",object2@variables$rowId),
+                                         paste0("a.",object1@variables$colId,"= b.",object2@variables$colId),
+                                         paste0("a.",object1@variables$value,"<> b.",object2@variables$value))))
 		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
 
 		if(nrow(retobj) == 0)
@@ -87,9 +87,9 @@ identical.FLMatrix <- function(object1, object2)
 						 	  ",remoteTable(object2),"b",
                         constructWhere(c(constraintsSQL(object1,"a"),
                                          constraintsSQL(object2,"b"),
-                                         paste0("a.",object1@row_id_colname,"= b.",object2@row_id_colname),
-                                         paste0("a.",object1@col_id_colname,"= b.",object2@col_id_colname),
-                                         paste0("a.",object1@cell_val_colname,"<> b.",object2@cell_val_colname))))
+                                         paste0("a.",object1@variables$rowId,"= b.",object2@variables$rowId),
+                                         paste0("a.",object1@variables$colId,"= b.",object2@variables$colId),
+                                         paste0("a.",object1@variables$value,"<> b.",object2@variables$value))))
 
 		if(object1@isDeep && object2@isDeep)
 		{

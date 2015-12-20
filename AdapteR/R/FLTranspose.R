@@ -33,9 +33,9 @@ t.FLMatrix<-function(object)
 		matrix_table = object@matrix_table, 
 		matrix_id_value = object@matrix_id_value,
 		matrix_id_colname = object@matrix_id_colname, 
-		row_id_colname = object@col_id_colname, 
-		col_id_colname = object@row_id_colname, 
-		cell_val_colname = object@cell_val_colname, 
+		row_id_colname = object@variables$colId, 
+		col_id_colname = object@variables$rowId, 
+		cell_val_colname = object@variables$value, 
 		dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
         whereconditions=object@whereconditions)
 	)

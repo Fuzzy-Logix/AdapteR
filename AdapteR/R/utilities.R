@@ -1,12 +1,12 @@
 # Contains the support functions
 
-getRemoteTableName <- function(database,
-                               matrix_table) {
+getRemoteTableName <- function(databaseName,
+                               tableName) {
 ## gk: todo: use options(...) and start  session if required
 ##    if(is.null(result_matrix_table))
 ##        FLStartSession()
        
-    return(paste0(database,".",matrix_table))
+    return(paste0(databaseName,".",tableName))
 }
 
 

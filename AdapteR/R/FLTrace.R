@@ -37,13 +37,13 @@ tr.FLMatrix<-function(object){
 	sqlstr<-paste0(     " INSERT INTO ",result_db_name,".",result_vector_table,
 						" SELECT ",max_vector_id_value,
 						         ",1, 
-						         CAST(FLMatrixTrace(a.",object@row_id_colname,", a.",object@col_id_colname,
-						              ", a.",object@cell_val_colname,") AS NUMBER) ",
+						         CAST(FLMatrixTrace(a.",object@variables$rowId,", a.",object@variables$colId,
+						              ", a.",object@variables$value,") AS NUMBER) ",
 					    " FROM ",remoteTable(object)," a",
 					    " GROUP BY a.",object@matrix_id_colname,
 					    " WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,
-					    " AND a.", object@row_id_colname," <= ",min(nrow(object),ncol(object)),
-					    " AND a.",object@col_id_colname, " <= ", min(nrow(object),ncol(object)))
+					    " AND a.", object@variables$rowId," <= ",min(nrow(object),ncol(object)),
+					    " AND a.",object@variables$colId, " <= ", min(nrow(object),ncol(object)))
 	
 	sqlSendUpdate(connection,sqlstr)
 	
@@ -58,7 +58,7 @@ tr.FLMatrix<-function(object){
 
 	new("FLVector", 
 		table = table, 
-		col_name = table@cell_val_colname, 
+		col_name = table@variables$value, 
 		vector_id_value = max_vector_id_value-1, 
 		size = 1)
 }

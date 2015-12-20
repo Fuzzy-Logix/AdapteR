@@ -51,7 +51,7 @@ cbind.FLMatrix<-function(object,...)
 {
     objectList<-list(object,...)
     if(all(sapply(objectList,is.FLMatrix))){
-        R <- new("FLUnionMatrix",
+        R <- new("FLUnionTables",
                  parts=objectList,
                  by="cols")
     }
@@ -93,9 +93,9 @@ cbind.FLMatrix<-function(object,...)
 ## 	{
 ## 	    sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 ## 		                " SELECT ",max_matrix_id_value,",
-## 				              a.",object@row_id_colname,",
-## 				              a.",object@col_id_colname,",
-## 				              a.",object@cell_val_colname," 
+## 				              a.",object@variables$rowId,",
+## 				              a.",object@variables$colId,",
+## 				              a.",object@variables$value," 
 ## 				        FROM  ",remoteTable(object)," a 
 ## 				        WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -111,9 +111,9 @@ cbind.FLMatrix<-function(object,...)
 
 ## 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 ## 					            " SELECT ",max_matrix_id_value,",
-## 							              a.",object@row_id_colname,",
-## 							              a.",object@col_id_colname,"+",colCount,",
-## 							              a.",object@cell_val_colname," 
+## 							              a.",object@variables$rowId,",
+## 							              a.",object@variables$colId,"+",colCount,",
+## 							              a.",object@variables$value," 
 ## 							    FROM   ",remoteTable(object)," a 
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -444,9 +444,9 @@ cbind.FLVector <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@row_id_colname,",
-							              a.",object@col_id_colname,"+",colCount,",
-							              a.",object@cell_val_colname," 
+							              a.",object@variables$rowId,",
+							              a.",object@variables$colId,"+",colCount,",
+							              a.",object@variables$value," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -655,9 +655,9 @@ cbind.matrix <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@row_id_colname,",
-							              a.",object@col_id_colname,"+",colCount,",
-							              a.",object@cell_val_colname," 
+							              a.",object@variables$rowId,",
+							              a.",object@variables$colId,"+",colCount,",
+							              a.",object@variables$value," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -882,9 +882,9 @@ cbind.numeric <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@row_id_colname,",
-							              a.",object@col_id_colname,"+",colCount,",
-							              a.",object@cell_val_colname," 
+							              a.",object@variables$rowId,",
+							              a.",object@variables$colId,"+",colCount,",
+							              a.",object@variables$value," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -1093,9 +1093,9 @@ cbind.data.frame <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@row_id_colname,",
-							              a.",object@col_id_colname,"+",colCount,",
-							              a.",object@cell_val_colname," 
+							              a.",object@variables$rowId,",
+							              a.",object@variables$colId,"+",colCount,",
+							              a.",object@variables$value," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
