@@ -8,9 +8,11 @@
 ## involved functions.
 ##
 ## Your next steps:
-## 1. investigate addition/multiplication, all tests fail
+## 2. replace where clauses and select clauses with constructSelect
+## 3. test cases
 ##
 ## My next steps:
+## 1. investigate addition/multiplication, all tests fail
 ## 1. design conditions in cbind
 ## 2. will we need FLVector, FLTable with the new classes?
 
