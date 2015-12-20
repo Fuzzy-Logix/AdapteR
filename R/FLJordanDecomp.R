@@ -44,9 +44,9 @@ jordan.FLMatrix<-function(object)
 		sqlstrP<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
 						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 						AS (SELECT a.",object@matrix_id_colname,", 
-								   a.",object@row_id_colname,", 
-								   a.",object@col_id_colname,", 
-								   a.",object@cell_val_colname," 
+								   a.",object@variables$rowId,", 
+								   a.",object@variables$colId,", 
+								   a.",object@variables$value," 
 							FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 						SELECT ",max_matrix_id_value,",
@@ -81,9 +81,9 @@ jordan.FLMatrix<-function(object)
 		sqlstrPInv<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
 							WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 							AS (SELECT a.",object@matrix_id_colname,", 
-									   a.",object@row_id_colname,", 
-									   a.",object@col_id_colname,", 
-									   a.",object@cell_val_colname," 
+									   a.",object@variables$rowId,", 
+									   a.",object@variables$colId,", 
+									   a.",object@variables$value," 
 								FROM  ",remoteTable(object)," a 
 								WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 							SELECT ",max_matrix_id_value,",
@@ -118,9 +118,9 @@ jordan.FLMatrix<-function(object)
 		sqlstrJ<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"
 						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 						AS (SELECT a.",object@matrix_id_colname,", 
-								   a.",object@row_id_colname,", 
-								   a.",object@col_id_colname,", 
-								   a.",object@cell_val_colname," 
+								   a.",object@variables$rowId,", 
+								   a.",object@variables$colId,", 
+								   a.",object@variables$value," 
 							FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 						SELECT ",max_vector_id_value," AS VECTOR_ID,
@@ -145,7 +145,7 @@ jordan.FLMatrix<-function(object)
 
 		JVector <- new("FLVector", 
 						table = table, 
-						col_name = table@cell_val_colname, 
+						col_name = table@variables$value, 
 						vector_id_value = max_vector_id_value-1, 
 						size = min(nrow(object),ncol(object)))
 

@@ -27,17 +27,18 @@ NULL
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
 {
+    ##browser()
 	connection<-getConnection(object)
 	## if(nargs()==2 && missing(rows)) { return(object[,]) }
 	## if(nargs()==2)
 	## {
     ##     stop("FLVector, drop?")
 	## 	if(rows>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
-	## 	return(sqlQuery(connection,paste0(" SELECT ",object@cell_val_colname,
+	## 	return(sqlQuery(connection,paste0(" SELECT ",object@variables$value,
     ##                                       " FROM ",remoteTable(object),
     ##                                       constructWhere(
     ##                                           constraintsSQL(object)),
-    ##                                       " ORDER BY ",object@matrix_id_colname,",",object@col_id_colname,",",object@row_id_colname))[[1]][rows])
+    ##                                       " ORDER BY ",object@matrix_id_colname,",",object@variables$colId,",",object@variables$rowId))[[1]][rows])
 	## }
     if(is.numeric(rows))
     ##     newrownames <- match(object@dimnames[[1]][rows],object@dimnames[[1]])
@@ -58,7 +59,6 @@ NULL
     if(any(is.na(newcolnames)))
         stop("subscript_out_of_bounds")
 
-    ##browser()
     if(missing(cols)) 
     {
         if (missing(rows)) return(object)
@@ -66,11 +66,10 @@ NULL
                  connection = getConnection(object), 
                  database = object@db_name, 
                  matrix_table = object@matrix_table, 
-                 matrix_id_value = object@matrix_id_value,
-                 matrix_id_colname = object@matrix_id_colname, 
-                 row_id_colname = object@row_id_colname, 
-                 col_id_colname = object@col_id_colname, 
-                 cell_val_colname = object@cell_val_colname,
+                 row_id_colname = object@variables$rowId, 
+                 col_id_colname = object@variables$colId, 
+                 cell_val_colname = object@variables$value,
+                 whereconditions = object@whereconditions,
                  dimnames = list(newrownames,
                                  object@dimnames[[2]]),
                  conditionDims=c(TRUE,FALSE)))
@@ -81,11 +80,10 @@ NULL
                 connection = getConnection(object), 
                 database = object@db_name, 
                 matrix_table = object@matrix_table, 
-                matrix_id_value = object@matrix_id_value,
-                matrix_id_colname = object@matrix_id_colname, 
-                row_id_colname = object@row_id_colname, 
-                col_id_colname = object@col_id_colname, 
-                cell_val_colname = object@cell_val_colname, 
+                row_id_colname = object@variables$rowId, 
+                col_id_colname = object@variables$colId, 
+                cell_val_colname = object@variables$value,
+                whereconditions = object@whereconditions,
                 dimnames = list(object@dimnames[[1]],
                                 newcolnames),
                 conditionDims=c(FALSE,TRUE)))
@@ -94,11 +92,10 @@ NULL
                 connection = getConnection(object), 
                 database = object@db_name, 
                 matrix_table = object@matrix_table, 
-                matrix_id_value = object@matrix_id_value,
-                matrix_id_colname = object@matrix_id_colname, 
-                row_id_colname = object@row_id_colname, 
-                col_id_colname = object@col_id_colname, 
-                cell_val_colname = object@cell_val_colname, 
+                row_id_colname = object@variables$rowId, 
+                col_id_colname = object@variables$colId, 
+                cell_val_colname = object@variables$value, 
+                whereconditions = object@whereconditions,
                 dimnames = list(newrownames,
                                 newcolnames),
                 conditionDims=c(TRUE,TRUE)))
@@ -135,7 +132,7 @@ NULL
     else
         newcolnames <- cols
 
-    ##browser()
+    browser()
     if(missing(cols)) 
     {
         if (!missing(rows)) {

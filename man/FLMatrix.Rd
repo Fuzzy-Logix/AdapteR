@@ -4,16 +4,14 @@
 \alias{FLMatrix}
 \title{Constructor function for FLMatrix.}
 \usage{
-FLMatrix(connection, database = result_db_name, matrix_table, matrix_id_value,
-  matrix_id_colname = "MATRIX_ID", row_id_colname = "ROW_ID",
+FLMatrix(connection, databaseName = result_db_name, matrix_table,
+  matrix_id_value = "", matrix_id_colname = "", row_id_colname = "ROW_ID",
   col_id_colname = "COL_ID", cell_val_colname = "CELL_VAL", nrow = 0,
   ncol = 0, dimnames = NULL, conditionDims = c(FALSE, FALSE),
   whereconditions = c(""))
 }
 \arguments{
 \item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}
-
-\item{database}{name of the database}
 
 \item{matrix_table}{name of the matrix table}
 
@@ -26,6 +24,8 @@ FLMatrix(connection, database = result_db_name, matrix_table, matrix_id_value,
 \item{col_id_colname}{column name in \code{matrix_table} where column numbers are stored}
 
 \item{cell_val_colname}{column name in \code{matrix_table} where matrix elements are stored}
+
+\item{database}{name of the database}
 }
 \value{
 \code{FLMatrix} returns an object of class FLMatrix mapped

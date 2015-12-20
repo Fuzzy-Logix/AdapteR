@@ -91,9 +91,9 @@ lu.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z(Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 		           AS (SELECT a.",object@matrix_id_colname,", 
-		           	          a.",object@row_id_colname,", 
-		           	          a.",object@col_id_colname,", 
-		           	          a.",object@cell_val_colname,
+		           	          a.",object@variables$rowId,", 
+		           	          a.",object@variables$colId,", 
+		           	          a.",object@variables$value,
 		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
@@ -111,9 +111,9 @@ lu.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z(Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 		           AS (SELECT a.",object@matrix_id_colname,", 
-		           	          a.",object@row_id_colname,", 
-		           	          a.",object@col_id_colname,", 
-		           	          a.",object@cell_val_colname,
+		           	          a.",object@variables$rowId,", 
+		           	          a.",object@variables$colId,", 
+		           	          a.",object@variables$value,
 		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
@@ -147,8 +147,8 @@ lu.FLMatrix<-function(object)
 
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table, 
 	               " SELECT ",max_vector_id_value,
-	                        ",ROW_NUMBER() OVER(ORDER BY a.",LUMatrix@col_id_colname,",a.",LUMatrix@row_id_colname,")
-	                       , CAST(a.",LUMatrix@cell_val_colname," AS NUMBER)  
+	                        ",ROW_NUMBER() OVER(ORDER BY a.",LUMatrix@variables$colId,",a.",LUMatrix@variables$rowId,")
+	                       , CAST(a.",LUMatrix@variables$value," AS NUMBER)  
 	               FROM  ",remoteTable(LUMatrix)," AS a 
 				   WHERE a.",LUMatrix@matrix_id_colname,"=",LUMatrix@matrix_id_value)
 
@@ -166,7 +166,7 @@ lu.FLMatrix<-function(object)
 
 	x <- new("FLVector", 
 		     table = table, 
-		     col_name = table@cell_val_colname, 
+		     col_name = table@variables$value, 
 		     vector_id_value = max_vector_id_value-1, 
 		     size = ((nrow(object))*(ncol(object))))
 
@@ -175,9 +175,9 @@ lu.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 		           AS (SELECT a.",object@matrix_id_colname,", 
-		           	          a.",object@row_id_colname,", 
-		           	          a.",object@col_id_colname,", 
-		           	          a.",object@cell_val_colname,
+		           	          a.",object@variables$rowId,", 
+		           	          a.",object@variables$colId,", 
+		           	          a.",object@variables$value,
 		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
@@ -214,9 +214,9 @@ lu.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 		           AS (SELECT a.",object@matrix_id_colname,", 
-		           	          a.",object@row_id_colname,", 
-		           	          a.",object@col_id_colname,", 
-		           	          a.",object@cell_val_colname,
+		           	          a.",object@variables$rowId,", 
+		           	          a.",object@variables$colId,", 
+		           	          a.",object@variables$value,
 		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_vector_id_value,
@@ -240,7 +240,7 @@ lu.FLMatrix<-function(object)
 
 	perm <- new("FLVector", 
 		         table = table, 
-		         col_name = table@cell_val_colname, 
+		         col_name = table@variables$value, 
 		         vector_id_value = max_vector_id_value-1, 
 		         size = ncol(object))   ###############################  check this for non-square matrices
 
@@ -254,9 +254,9 @@ lu.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 		           AS (SELECT a.",object@matrix_id_colname,", 
-		           	          a.",object@row_id_colname,", 
-		           	          a.",object@col_id_colname,", 
-		           	          a.",object@cell_val_colname,
+		           	          a.",object@variables$rowId,", 
+		           	          a.",object@variables$colId,", 
+		           	          a.",object@variables$value,
 		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,
@@ -297,9 +297,9 @@ lu.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 		           AS (SELECT a.",object@matrix_id_colname,", 
-		           	          a.",object@row_id_colname,", 
-		           	          a.",object@col_id_colname,", 
-		           	          a.",object@cell_val_colname,
+		           	          a.",object@variables$rowId,", 
+		           	          a.",object@variables$colId,", 
+		           	          a.",object@variables$value,
 		           	   " FROM  ",remoteTable(object)," a 
 		           	   WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 	               SELECT ",max_matrix_id_value,

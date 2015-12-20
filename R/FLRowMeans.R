@@ -36,11 +36,11 @@ rowMeans.FLMatrix<-function(object)
 	sqlstr<-paste0("INSERT INTO ",
 					getRemoteTableName(result_db_name,result_vector_table),
 					" SELECT ",max_vector_id_value,
-					         ",a.",object@row_id_colname,
-					         ",AVG(a.",object@cell_val_colname,")  
+					         ",a.",object@variables$rowId,
+					         ",AVG(a.",object@variables$value,")  
 					FROM ",remoteTable(object)," a ",
 					constructWhere(constraintsSQL(object,"a")),
-					" GROUP BY a.",object@row_id_colname)
+					" GROUP BY a.",object@variables$rowId)
 
 	sqlSendUpdate(connection,sqlstr)
 	
@@ -64,7 +64,7 @@ rowMeans.FLMatrix<-function(object)
 
 	# new("FLVector", 
 	# 	table = table, 
-	# 	col_name = table@cell_val_colname, 
+	# 	col_name = table@variables$value, 
 	# 	vector_id_value = max_vector_id_value-1, 
 	# 	size = nrow(object))
 }

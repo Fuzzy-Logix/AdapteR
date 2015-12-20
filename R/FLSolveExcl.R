@@ -45,9 +45,9 @@ solveExcl.FLMatrix<-function(object,ExclIdx)
 	sqlstr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
 						AS (SELECT a.",object@matrix_id_colname,", 
-								   a.",object@row_id_colname,", 
-								   a.",object@col_id_colname,", 
-								   a.",object@cell_val_colname,",",
+								   a.",object@variables$rowId,", 
+								   a.",object@variables$colId,", 
+								   a.",object@variables$value,",",
 								   ExclIdx, 
 							" FROM  ",remoteTable(object)," a 
 							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
