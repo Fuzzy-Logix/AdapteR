@@ -206,13 +206,15 @@ FLStartSession <- function(connection,
         paste0("SET ROLE ALL;"))
     sqlSendUpdate(connection, sendqueries)
 
+    options(resultMatrixTable = gen_table_name("tblMatrixMultiResult",persistent))
+    ##options(resultMatrixColName="")
     result_Sparsematrix_table <<- gen_table_name("tblMatrixMultiResultSparse",persistent)
     ##max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
  	max_Sparsematrix_id_value <<- 0
 
     max_matrix_id_value <<- 0
     ##max_matrix_id_value <<- max_matrix_id_value + 1
-    result_matrix_table <<- gen_table_name("tblMatrixMultiResult",persistent)
+    result_matrix_table <<- 
 
     max_vector_id_value <<- 0
     ##max_vector_id_value <- max_vector_id_value + 1
