@@ -66,7 +66,7 @@ rMatrix
 test_that("selections of submatrix by index",
 {
     expect_equal(as.matrix(m),rMatrix)
-    expect_equal(as.matrix(m[1,]),rMatrix[1,])
+    expect_equal(as.matrix(m[1,]),as.matrix(rMatrix[1,]))
     expect_equal(as.matrix(m[2:3,4:5]),rMatrix[2:3,4:5])
 })
 

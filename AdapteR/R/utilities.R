@@ -199,23 +199,21 @@ FLStartSession <- function(connection,
 				     CHECKSUM = DEFAULT,
 				     DEFAULT MERGEBLOCKRATIO")
 {
-    result_db_name <<- db_name
 ##    browser()
+	
+	result_db_name <<- db_name
+	result_matrix_table <<- gen_table_name("tblMatrixMultiResult",persistent)
+	result_Sparsematrix_table <<- gen_table_name("tblMatrixMultiSparseResult",persistent)
     sendqueries <- c(
         paste0("DATABASE ",result_db_name,";"),
         paste0("SET ROLE ALL;"))
     sqlSendUpdate(connection, sendqueries)
 
-    options(resultMatrixTable = gen_table_name("tblMatrixMultiResult",persistent))
-    ##options(resultMatrixColName="")
-    result_Sparsematrix_table <<- gen_table_name("tblMatrixMultiResultSparse",persistent)
-    ##max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
- 	max_Sparsematrix_id_value <<- 0
+    # options(result_db_name = db_name)
+    # options(result_matrix_table = gen_table_name("tblMatrixMultiResult",persistent))
 
     max_matrix_id_value <<- 0
-    ##max_matrix_id_value <<- max_matrix_id_value + 1
-    result_matrix_table <<- 
-
+    max_Sparsematrix_id_value <<- 0
     max_vector_id_value <<- 0
     ##max_vector_id_value <- max_vector_id_value + 1
     result_vector_table <<- gen_table_name("tblVectorResult",persistent)

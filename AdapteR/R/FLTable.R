@@ -60,10 +60,11 @@ FLTable <- function(connection,
             db_name = database, 
             table_name = table,
             dimnames = list(rows,cols),
-            obs_id_colname = obs_id_colname,
-            var_id_colname = var_id_colnames,
+            variables = list(
+                obs_id_colname = obs_id_colname,
+                var_id_colname = var_id_colnames,
+                cell_val_colname = cell_val_colname),
             whereconditions=whereconditions,
-            cell_val_colname = cell_val_colname,
             isDeep = TRUE)
 	}
 	else
@@ -90,9 +91,10 @@ FLTable <- function(connection,
                  table_name = table,
                  dimnames = list(rows,var_id_colnames),
                  whereconditions = whereconditions,
-                 obs_id_colname = obs_id_colname,
-                 #var_id_colname = "",
-                 cell_val_colname = cell_val_colname,
+                 variables = list(
+                    obs_id_colname = obs_id_colname,
+                    #var_id_colname = var_id_colnames,
+                    cell_val_colname = cell_val_colname),
                  isDeep = FALSE)
 	}
 }
