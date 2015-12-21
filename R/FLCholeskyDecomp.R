@@ -55,8 +55,8 @@ chol.FLMatrix<-function(object)
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = MID,
 			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "ROW_ID", 
-			   col_id_colname = "COL_ID", 
+			   row_id_colname = "COL_ID", 
+			   col_id_colname = "ROW_ID", 
 			   cell_val_colname = "CELL_VAL"
 			   ))
 }

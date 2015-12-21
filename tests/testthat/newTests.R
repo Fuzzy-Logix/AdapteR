@@ -1,3 +1,4 @@
+require(plyr)
 library(AdapteR)
 library(testthat)
 require(Matrix)
@@ -108,9 +109,10 @@ setMethod("expect_equal",signature("matrix","matrix"),
           function(object,expected,...) testthat::expect_equal(as.vector(object),as.vector(expected),...))
 
 setMethod("expect_equal",signature("list","list"),
-          function(object,expected,...) 
-            for(i in 1:length(object))
-            expect_equal(object[[i]],expected[[i]],...))
+          function(object,expected,...)
+              llply(names(object),
+                    function(i)
+                        expect_equal(object[[i]],expected[[i]],...))
 
 
 ###############################################################
@@ -143,10 +145,14 @@ test_that("check transpose",{
 ## Testing FLGinv
 test_that("check FLGinv",
 {
-    expect_eval_equal(initF.FLMatrix,AdapteR::ginv,MASS::ginv,n=5)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::ginv,
+                      MASS::ginv,
+                      n=5)
 })
 
 ## Testing FLSV
+## gk: fix test case
 test_that("check FLSV working",
 {
     expect_equal(
@@ -158,14 +164,21 @@ test_that("check FLSV working",
 ## Testing FLRowMeans
 test_that("check rowMeans",
 {
-    expect_eval_equal(initF.FLMatrix,AdapteR::rowMeans,base::rowMeans,n=5)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowMeans,
+                      base::rowMeans,
+                      n=5)
 })
 
 ## Testing FLRowSums
 test_that("check rowSums",
 {
-    expect_eval_equal(initF.FLMatrix,AdapteR::rowSums,base::rowSums,n=5)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowSums,
+                      base::rowSums,
+                      n=5)
 })
+
 
 ## Testing FLDims
 test_that("check FLDims",
@@ -175,11 +188,28 @@ test_that("check FLDims",
   M <- as.FLMatrix(m,connection)
   T1 <- initF.FLTable(rows=5,cols=5)
   T1R <- as.data.frame(T1)
-    expect_equal(AdapteR::dim.FLMatrix(M),base::dim(m),check.attributes=FALSE)
-    expect_equal(AdapteR::dim.FLTable(T1),base::dim(T1R),check.attributes=FALSE)
+  expect_equal(AdapteR::dim.FLMatrix(M),
+               base::dim(m),
+               check.attributes=FALSE)
+  expect_equal(AdapteR::dim.FLTable(T1),
+               base::dim(T1R),
+               check.attributes=FALSE)
 })
 
 ## Testing M_Subtraction
+## gk: todo: refactor SQL statements for performance.  This is bad performance.
+test_that("check result for Matrix M_Subtraction",
+{
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
+  M2R <- as.matrix(M2)
+
+  expect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
+})
+
+
+## Testing M_Subtraction
+## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for M_Subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
@@ -190,20 +220,18 @@ test_that("check result for M_Subtraction",
   V2 <- as.FLVector(sample(1:100,10),connection)
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
-
-    expect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
-    expect_equal(V1-V2,V1R-V2R,check.attributes=FALSE)
-    expect_equal(P1$FL-P1$FL,P1$R-P1$R,check.attributes=FALSE)
-    expect_equal(V1-P1$FL,V1R-P1$R,check.attributes=FALSE)
-    expect_equal(P1$FL-V2,P1$R-V2R,check.attributes=FALSE)
-    expect_equal(M1$FL-V2,M1$R-V2R,check.attributes=FALSE)
-    expect_equal(M1$FL-P1$FL,M1$R-P1$R,check.attributes=FALSE)
-    expect_equal(V1-M2,V1R-M2R,check.attributes=FALSE)
-    expect_equal(P1$FL-M2,P1$R-M2R,check.attributes=FALSE)
-
-    expect_equal(P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2,
-      P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
-      check.attributes=FALSE)
+  expect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
+  expect_equal(V1-V2,V1R-V2R,check.attributes=FALSE)
+  expect_equal(P1$FL-P1$FL,P1$R-P1$R,check.attributes=FALSE)
+  expect_equal(V1-P1$FL,V1R-P1$R,check.attributes=FALSE)
+  expect_equal(P1$FL-V2,P1$R-V2R,check.attributes=FALSE)
+  expect_equal(M1$FL-V2,M1$R-V2R,check.attributes=FALSE)
+  expect_equal(M1$FL-P1$FL,M1$R-P1$R,check.attributes=FALSE)
+  expect_equal(V1-M2,V1R-M2R,check.attributes=FALSE)
+  expect_equal(P1$FL-M2,P1$R-M2R,check.attributes=FALSE)
+  expect_equal(P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2,
+               P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
+               check.attributes=FALSE)
 })
 
 ## Testing M_IntegerDivision
@@ -245,7 +273,7 @@ test_that("check result for M_CrossProduct",
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=5,isRowVec=TRUE)
 
-    expect_equal(M1$FL%*%M2,M1$R%*%M2R,check.attributes=FALSE)
+    expect_equal(M1$FL %*% M2,M1$R%*%M2R,check.attributes=FALSE)
     expect_equal(V1%*%V1,V1R%*%V1R,check.attributes=FALSE)
     expect_equal(P1$FL%*%P1$FL,P1$R%*%P1$R,check.attributes=FALSE)
     expect_equal(V1%*%P1$FL,V1R%*%P1$R,check.attributes=FALSE)
@@ -300,10 +328,14 @@ test_that("check Hessenberg Decomposition",
 test_that("check FLMatrixRREF working",
 {
   M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
-    expect_equal(
-              dim(FLMatrixRREF(M)),
-              dim(M)
-          )
+  expect_equal(
+      dim(FLMatrixRREF(M)),
+      dim(M)
+  )
+  expect_equal(
+      dimnames(FLMatrixRREF(M)),
+      dimnames(M)
+  )
 })
 
 ## Testing FLMatrixNorm
@@ -313,26 +345,32 @@ test_that("check FLMatrixNorm working",
   FLMatrixNorm(M,3)
 })
 
-
-
-#################################################################################
-################### Functions work but output slightly differs ##################
-###################### from corresponding R functions ###########################
-
 ## Testing FLCholskeyDecomp
 ### Phani-- needs a hermitian positive definite matrix as input
 ### Teradata result is transpose of R result.
 test_that("check FLCholskeyDecomp",
 {
   m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
-  expect_equal(chol(m4), t(Matrix::chol(as.matrix(m4))))
+  expect_equal(chol(m4),
+               Matrix::chol(as.matrix(m4)))
 })
 
+#################################################################################
+################### Functions work but output slightly differs ##################
+###################### from corresponding R functions ###########################
+
+## gk: discuss with Raman for JIRA DBlytix
 ## Testing FLEigen
 ## Phani -- results differ in Teradata and R
 test_that("check FLEigen",
 {
-    expect_eval_equal(initF.FLMatrix,AdapteR::eigen,base::eigen,n=5,isSquare=TRUE)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::eigen,
+                      function(m)
+                          llply(base::eigen(m),
+                                as.numeric),
+                      n=5,
+                      isSquare=TRUE)
 })
 
 ## Testing FLSVDecomp
@@ -355,7 +393,8 @@ test_that("check Singular Value Decomposition",
 test_that("check LU Decomposition",
 {
   m <- initF.FLMatrix(n=5)
-   expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),Matrix::expand(Matrix::lu(m$R)))
+  expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
+               Matrix::expand(Matrix::lu(m$R)))
 })
 
 ## Testing FLTrace
@@ -372,11 +411,24 @@ test_that("check determinant result",{
 ##Testing FLDiag
 test_that("check the result of the diag of matrix",
 {
-    expect_eval_equal(initF.FLMatrix,AdapteR::diag,base::diag,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::diag,base::diag,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::diag,base::diag,n=1)
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=1)
 })
 
+
+
+
+## prio D
 ## Testing M_Addition
 test_that("check result for M_Addition",
 {
@@ -389,48 +441,106 @@ test_that("check result for M_Addition",
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
 
-    expect_equal(M1$FL+M2,M1$R+M2R,check.attributes=FALSE)
-    expect_equal(V1+V2,V1R+V2R,check.attributes=FALSE)
-    expect_equal(P1$FL+P1$FL,P1$R+P1$R,check.attributes=FALSE)
-    expect_equal(V1+P1$FL,V1R+P1$R,check.attributes=FALSE)
-    expect_equal(P1$FL+V2,P1$R+V2R,check.attributes=FALSE)
-    expect_equal(M1$FL+V2,M1$R+V2R,check.attributes=FALSE)
-    expect_equal(M1$FL+P1$FL,M1$R+P1$R,check.attributes=FALSE)
-    expect_equal(V1+M2,V1R+M2R,check.attributes=FALSE)
-    expect_equal(P1$FL+M2,P1$R+M2R,check.attributes=FALSE)
-
-    expect_equal(P1$FL+P1$FL+V1+V2+M2+P1$FL+M1$FL+V2,
-      P1$R+P1$R+V1R+V2R+M2R+P1$R+M1$R+V2R,
-      check.attributes=FALSE)
+  expect_eval_equal(initF=function(n) {
+      a <- initF.FLMatrix(n=5,isSquare=TRUE)
+      b <- FLMatrix(connection,
+                    "FL_DEMO", "tblmatrixMulti",
+                    5, "matrix_id")
+      list(R=list(a$R,
+                  as.matrix(b)),
+           FL=list(a$FL,
+                   b))
+  },function(x) do.call("-",x),
+  function(x) do.call("-",x)
+  )
+  
+  ## gk: try refactoring in eval_equal function(x) do.call("+",x) == a+b
+  expect_equal(M1$FL+M2,
+               M1$R+M2R,
+               check.attributes=FALSE)
+  expect_equal(V1+V2,
+               V1R+V2R,
+               check.attributes=FALSE)
+  expect_equal(P1$FL+P1$FL,
+               P1$R+P1$R,
+               check.attributes=FALSE)
+  expect_equal(V1+P1$FL,
+               V1R+P1$R,
+               check.attributes=FALSE)
+  expect_equal(P1$FL+V2,
+               P1$R+V2R,
+               check.attributes=FALSE)
+  expect_equal(M1$FL+V2,
+               M1$R+V2R,
+               check.attributes=FALSE)
+  expect_equal(M1$FL+P1$FL,
+               M1$R+P1$R,
+               check.attributes=FALSE)
+  expect_equal(V1+M2,
+               V1R+M2R,
+               check.attributes=FALSE)
+  expect_equal(P1$FL+M2,
+               P1$R+M2R,
+               check.attributes=FALSE)
+  expect_equal(P1$FL+P1$FL+V1+V2+M2+P1$FL+M1$FL+V2,
+               P1$R+P1$R+V1R+V2R+M2R+P1$R+M1$R+V2R,
+               check.attributes=FALSE)
 })
 
+## prio D
 ## Testing M_Division
 test_that("check result for M_Division",
 {
-  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
-  M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10),connection)
-  V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10),connection)
-  V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
-
-    expect_equal(M1$FL/M2,M1$R/M2R,check.attributes=FALSE)
-    expect_equal(V1/V2,V1R/V2R,check.attributes=FALSE)
-    expect_equal(P1$FL/P1$FL,P1$R/P1$R,check.attributes=FALSE)
-    expect_equal(V1/P1$FL,V1R/P1$R,check.attributes=FALSE)
-    expect_equal(P1$FL/V2,P1$R/V2R,check.attributes=FALSE)
-    expect_equal(M1$FL/V2,M1$R/V2R,check.attributes=FALSE)
-    expect_equal(M1$FL/P1$FL,M1$R/P1$R,check.attributes=FALSE)
-    expect_equal(V1/M2,V1R/M2R,check.attributes=FALSE)
-    expect_equal(P1$FL/M2,P1$R/M2R,check.attributes=FALSE)
-
+    M1 <- initF.FLMatrix(n=5,
+                         isSquare=TRUE)
+    M2 <- FLMatrix(connection,
+                   "FL_DEMO",
+                   "tblmatrixMulti",
+                   5)
+    M2R <- as.matrix(M2)
+    V1 <- as.FLVector(sample(1:100,
+                             10),
+                      connection)
+    V1R <- as.vector(V1)
+    V2 <- as.FLVector(sample(1:100,
+                             10),
+                      connection)
+    V2R <- as.vector(V2)
+    P1 <- initF.FLVector(n=10,
+                         isRowVec=TRUE)
+    expect_equal(M1$FL/M2,
+                 M1$R/M2R,
+                 check.attributes=FALSE)
+    expect_equal(V1/V2,
+                 V1R/V2R,
+                 check.attributes=FALSE)
+    expect_equal(P1$FL/P1$FL,
+                 P1$R/P1$R,
+                 check.attributes=FALSE)
+    expect_equal(V1/P1$FL,
+                 V1R/P1$R,
+                 check.attributes=FALSE)
+    expect_equal(P1$FL/V2,
+                 P1$R/V2R,
+                 check.attributes=FALSE)
+    expect_equal(M1$FL/V2,
+                 M1$R/V2R,
+                 check.attributes=FALSE)
+    expect_equal(M1$FL/P1$FL,
+                 M1$R/P1$R,
+                 check.attributes=FALSE)
+    expect_equal(V1/M2,
+                 V1R/M2R,
+                 check.attributes=FALSE)
+    expect_equal(P1$FL/M2,
+                 P1$R/M2R,
+                 check.attributes=FALSE)
     expect_equal(P1$FL/P1$FL/V1/V2/M2/P1$FL/M1$FL/V2,
-      P1$R/P1$R/V1R/V2R/M2R/P1$R/M1$R/V2R,
-      check.attributes=FALSE)
+                 P1$R/P1$R/V1R/V2R/M2R/P1$R/M1$R/V2R,
+                 check.attributes=FALSE)
 })
 
+## prio D
 ## Testing M_Multiplication
 test_that("check result for M_Multiplication",
 {
@@ -458,6 +568,7 @@ test_that("check result for M_Multiplication",
       check.attributes=FALSE)
 })
 
+## prio D
 ## Testing M_Remainder
 test_that("check result for M_Remainder",
 {
@@ -485,24 +596,28 @@ test_that("check result for M_Remainder",
       check.attributes=FALSE)
 })
 
+## prio A
 ## Testing FLQRDecomposition
 test_that("check FLQRDecomposition",
 {
     expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
 })
 
+## prio A
 ## Testing FLColMeans
 test_that("check colMeans",
 {
     expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
 })
 
+## prio A
 ## Testing FLColSums
 test_that("check colSums",
 {
     expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })
 
+## prio A
 ## Testing FLLength
 test_that("check length",
 {

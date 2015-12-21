@@ -103,6 +103,7 @@ NULL
 	{
 		checkSameDims(flmatobj1,flmatobj2)
 		flag1Check(flmatobj1@odbc_connection)
+        ## gk: todo:refactor
 		sqlstr <-paste0(" INSERT INTO ",
 				 		getRemoteTableName(result_db_name,result_matrix_table),
 						" SELECT DISTINCT ",max_matrix_id_value,",

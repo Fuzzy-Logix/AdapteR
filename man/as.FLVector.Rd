@@ -2,33 +2,23 @@
 % Please edit documentation in R/FLCastFunctions.R
 \name{as.FLVector}
 \alias{as.FLVector}
-\title{Casting to FLSparseMatrix}
+\title{casting to FLVector}
 \usage{
 as.FLVector(object, connection, ...)
 }
 \arguments{
 \item{connection}{ODBC connection object}
 
-\item{m}{a sparseMatrix in R of type "dgCMatrix" which
-needs to be casted to FLSparseMatrix}
-
 \item{obj}{matrix,vector,data frame,sparseMatrix,FLMatrix or FLSparseMatrix which
 needs to be casted to FLVector}
-
-\item{connection}{ODBC connection object}
 
 \item{size}{number of elements in resulting FLVector.
 size input is not applicable only in case of FLMatrix,FLSparseMatrix}
 }
 \value{
-FLSparseMatrix object after casting.
-casting to FLVector
-
-Converts input \code{obj} to FLVector object
-
 FLVector object after casting.
 }
 \description{
-Converts input \code{m} to FLMatrix object
+Converts input \code{obj} to FLVector object
 }
 

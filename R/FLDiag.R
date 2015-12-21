@@ -80,11 +80,11 @@ diag.FLVector <- function(object)
 						  paste("SELECT a.",object@variables$value,
 						  		 "FROM ",remoteTable(object)," a",
 						  		 "WHERE a.",object@obs_id_colname,"=",object@vector_id_value))[1,1]
-		 for (i in 1:value)
+        ## gk: refactor to apply, very bad performance
+        for (i in 1:value)
 		 for (j in 1:value)
 		 {
 		 	if(i!=j)
-
 		 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
 		 		                       " SELECT ",max_matrix_id_value,",",
 		 		                                 j,",",
@@ -119,8 +119,7 @@ diag.FLVector <- function(object)
 	else if(length(object)>1)
 	{
 		flag1Check(connection)
-
-			 for (i in 1:length(object))
+        for (i in 1:length(object))
 			 for (j in 1:length(object))
 			 {
 			 	if(i!=j)
