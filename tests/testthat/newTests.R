@@ -140,11 +140,50 @@ test_that("check transpose",{
     expect_eval_equal(initF.FLMatrix,AdapteR::t,base::t,n=5)
 })
 
+## Testing FLGinv
+test_that("check FLGinv",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::ginv,MASS::ginv,n=5)
+})
+
+## Testing FLSV
+test_that("check FLSV working",
+{
+    expect_equal(
+              length(FLSV(initF.FLMatrix(n=5,isSquare=TRUE)$FL)),
+              nrow(m5)
+          )
+})
+
+## Testing FLRowMeans
+test_that("check rowMeans",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::rowMeans,base::rowMeans,n=5)
+})
+
+## Testing FLRowSums
+test_that("check rowSums",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::rowSums,base::rowSums,n=5)
+})
+
+## Testing FLDims
+test_that("check FLDims",
+{
+  m <- Matrix(c(0,1,0,2),2,sparse=T)
+  m <- as(m,"dgCMatrix")
+  M <- as.FLMatrix(m,connection)
+  T1 <- initF.FLTable(rows=5,cols=5)
+  T1R <- as.data.frame(T1)
+    expect_equal(AdapteR::dim.FLMatrix(M),base::dim(m),check.attributes=FALSE)
+    expect_equal(AdapteR::dim.FLTable(T1),base::dim(T1R),check.attributes=FALSE)
+})
+
 ## Testing M_Subtraction
 test_that("check result for M_Subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10),connection)
   V1R <- as.vector(V1)
@@ -171,7 +210,7 @@ test_that("check result for M_Subtraction",
 test_that("check result for M_IntegerDivision",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10),connection)
   V1R <- as.vector(V1)
@@ -198,7 +237,7 @@ test_that("check result for M_IntegerDivision",
 test_that("check result for M_CrossProduct",
 {
   M1 <- initF.FLMatrix(n=5) # 5*4 matrix
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3) # 4*5 matrix
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID") # 4*5 matrix
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,5),connection)
   V1R <- as.vector(V1)
@@ -247,37 +286,6 @@ test_that("check FLCastFunctions",
     expect_equal(as.FLVector(M1$FL),as.matrix(M1$R),check.attributes=FALSE)
 })
 
-## Testing FLGinv
-test_that("check FLGinv",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::ginv,MASS::ginv,n=5)
-})
-
-## Testing FLRowMeans
-test_that("check rowMeans",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::rowMeans,base::rowMeans,n=5)
-})
-
-## Testing FLRowSums
-test_that("check rowSums",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::rowSums,base::rowSums,n=5)
-})
-
-## Testing FLDims
-test_that("check FLDims",
-{
-  m <- Matrix(c(0,1,0,2),2,sparse=T)
-  m <- as(m,"dgCMatrix")
-  M <- as.FLMatrix(m,connection)
-  T1 <- initF.FLTable(rows=5,cols=5)
-  T1R <- as.data.frame(T1)
-    expect_equal(AdapteR::dim.FLMatrix(M),base::dim(m),check.attributes=FALSE)
-    expect_equal(AdapteR::dim.FLTable(T1),base::dim(T1R),check.attributes=FALSE)
-})
-
-
 #################################################################
 ########### no equivqlent R functions to test against ###########
 ################### but functions work ##########################
@@ -286,15 +294,6 @@ test_that("check FLDims",
 test_that("check Hessenberg Decomposition",
 {
     FLHessen(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
-})
-
-## Testing FLSV
-test_that("check FLSV working",
-{
-    expect_equal(
-              length(FLSV(initF.FLMatrix(n=5,isSquare=TRUE)$FL)),
-              nrow(m5)
-          )
 })
 
 ## Testing FLMatrixRREF
@@ -315,6 +314,7 @@ test_that("check FLMatrixNorm working",
 })
 
 
+
 #################################################################################
 ################### Functions work but output slightly differs ##################
 ###################### from corresponding R functions ###########################
@@ -324,7 +324,7 @@ test_that("check FLMatrixNorm working",
 ### Teradata result is transpose of R result.
 test_that("check FLCholskeyDecomp",
 {
-  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5)
+  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
   expect_equal(chol(m4), t(Matrix::chol(as.matrix(m4))))
 })
 
@@ -358,6 +358,7 @@ test_that("check LU Decomposition",
    expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),Matrix::expand(Matrix::lu(m$R)))
 })
 
+## Testing FLTrace
 test_that("check FLTrace",
 {
     expect_eval_equal(initF.FLMatrix,AdapteR::tr,psych::tr,n=5)

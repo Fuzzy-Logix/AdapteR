@@ -30,6 +30,7 @@ nrow.FLMatrix<-function(object)
 # }
 
 nrow.FLTable<-function(object)	return(length(object@dimnames[[1]]))
+nrow.FLVector<-function(object)	return(length(object@dimnames[[1]]))
 
 NROW<-function(x, ...){
 	UseMethod("NROW",x)
@@ -76,7 +77,7 @@ ncol.FLUnionMatrix<-function(object)
 # }
 
 ncol.FLTable<-function(object) 	return(length(object@dimnames[[2]]))
-
+ncol.FLVector<-function(object) return(length(object@dimnames[[2]]))
 
 NCOL<-function(x, ...){
 	UseMethod("NCOL",x)
@@ -115,6 +116,11 @@ dim.FLUnionMatrix <- function(object)
 # }
 
 dim.FLTable <- function(object)
+{
+	 return(c(nrow(object),ncol(object)))
+}
+
+dim.FLVector <- function(object)
 {
 	 return(c(nrow(object),ncol(object)))
 }

@@ -30,9 +30,9 @@ t.FLMatrix<-function(object)
 	FLMatrix( 
 		connection = getConnection(object), 
 		database = object@db_name, 
-		matrix_table = object@matrix_table, 
-		matrix_id_value = object@matrix_id_value,
-		matrix_id_colname = object@matrix_id_colname, 
+		matrix_table = object@table_name, 
+		matrix_id_value = "",
+		matrix_id_colname = object@variables$matrixId, 
 		row_id_colname = object@variables$colId, 
 		col_id_colname = object@variables$rowId, 
 		cell_val_colname = object@variables$value, 
