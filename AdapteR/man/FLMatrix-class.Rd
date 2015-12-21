@@ -10,26 +10,6 @@ An S4 class to represent FLMatrix
 \section{Slots}{
 
 \describe{
-\item{\code{odbc_connection}}{ODBC connectivity for R}
-
-\item{\code{db_name}}{character}
-
-\item{\code{matrix_table}}{character}
-
-\item{\code{matrix_id_value}}{numeric id value}
-
-\item{\code{matrix_id_colname}}{character}
-
-\item{\code{row_id_colname}}{character}
-
-\item{\code{col_id_colname}}{character}
-
-\item{\code{cell_val_colname}}{character}
-
-\item{\code{nrow}}{numeric number of rows of FLMatrix object}
-
-\item{\code{ncol}}{numeric number of cols of FLMatrix object}
-
 \item{\code{dimnames}}{list dimension names of FLMatrix object}
 }}
 

@@ -41,10 +41,10 @@ eigen.FLMatrix<-function(object)
 	# }
 	# checkSquare(object)
 	# checkSingular(object)
-	connection<-getConnection(object)
-
-	retobj <- list(values = FLEigenValues(object), vectors = FLEigenVectors(object))
-	retobj
+    connection<-getConnection(object)
+    retobj <- list(values = FLEigenValues(object),
+                   vectors = FLEigenVectors(object))
+    retobj
 }
 
 
