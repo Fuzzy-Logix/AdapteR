@@ -88,6 +88,7 @@ lu.FLMatrix<-function(object)
 	flag1Check(connection)
 	
 	tempResultTable <- gen_unique_table_name("tblLUDecompResult")
+	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
     sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
@@ -133,7 +134,7 @@ lu.FLMatrix<-function(object)
 				   row_id_colname = "OutputRowNum", 
 				   col_id_colname = "OutputColNum", 
 				   cell_val_colname = "OutputPermut",
-				   whereconditions=" OutputPermut IS NOT NULL ")
+				   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputPermut IS NOT NULL "))
 
 
 	# calculating l FLmatrix
@@ -146,7 +147,7 @@ lu.FLMatrix<-function(object)
 		   row_id_colname = "OutputRowNum", 
 		   col_id_colname = "OutputColNum", 
 		   cell_val_colname = "OutputValL",
-		   whereconditions=" OutputValL IS NOT NULL ")
+		   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputValL IS NOT NULL "))
 
 
 	# calculating U FLmatrix
@@ -159,7 +160,7 @@ lu.FLMatrix<-function(object)
 		   row_id_colname = "OutputRowNum", 
 		   col_id_colname = "OutputColNum", 
 		   cell_val_colname = "OutputValU",
-		   whereconditions=" OutputValU IS NOT NULL ")
+		   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputValU IS NOT NULL "))
 
 	# calculating perm FLVector
 	VID1 <- max_vector_id_value
@@ -168,7 +169,7 @@ lu.FLMatrix<-function(object)
 		             result_db_name,
 		             tempResultTable,
 		             "OutputColNum",
-		             whereconditions=" OutputPermut = 1 "
+		             whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputPermut = 1 ")
 		             )
 
 	perm <- table[,"OutputRowNum"]

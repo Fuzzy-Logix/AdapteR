@@ -37,11 +37,11 @@ FLHessen.FLMatrix<-function(object)
 	#checkSquare(object,"FLHessen")
 	connection<-getConnection(object)
 	flag1Check(connection)
-	MID <- max_matrix_id_value
 
 	tempResultTable <- gen_unique_table_name("tblHessenResult")
+	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr0 <- paste0("CREATE TABLE ",tempResultTable," AS(",
+    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
@@ -51,72 +51,33 @@ FLHessen.FLMatrix<-function(object)
 
     sqlSendUpdate(connection,sqlstr0)
 
-    MID1 <- max_matrix_id_value
-    max_matrix_id_value <<- max_matrix_id_value + 1
-	MID2 <- max_matrix_id_value
-
-		sqlstrP<-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-					" SELECT ",MID1,
-					         ",OutputRowNum
-					          ,OutputColNum
-					          ,OutputPVal
-					  FROM ",tempResultTable,
-					 " WHERE OutputPVal IS NOT NULL;")
-
-		# sqlstrP<-paste0("INSERT INTO ",
-		# 				getRemoteTableName(result_db_name,result_matrix_table),
-  #                  		viewSelectMatrix(object,"a",withName="z"),
-  #                  		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
-  #                  			outColNames=list("OutputRowNum","OutputColNum","OutputPVal"), viewName="z",
-  #                  			whereClause=" WHERE a.OutputPVal IS NOT NULL ;")
-  #                  		)
-
-		sqlstrH<-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-					" SELECT ",MID2,
-					         ",OutputRowNum
-					          ,OutputColNum
-					          ,OutputPVal
-					  FROM ",tempResultTable,
-					 " WHERE OutputHVal IS NOT NULL;")
-
-		# sqlstrH <- paste0("INSERT INTO ",
-		# 				getRemoteTableName(result_db_name,result_matrix_table),
-  #                  		viewSelectMatrix(object,"a",withName="z"),
-  #                  		outputSelectMatrix("FLHessenbergDecompUdt",localName="a",includeMID=TRUE,
-  #                  			outColNames=list("OutputRowNum","OutputColNum","OutputHVal"), viewName="z",
-  #                  			whereClause=" WHERE a.OutputHVal IS NOT NULL ")
-  #                  		)
-
-		sqlstr <- paste0(sqlstrP,sqlstrH)
-		sqlSendUpdate(connection,sqlstr)
-
-		PMatrix <- FLMatrix(
+	PMatrix <- FLMatrix(
 				       connection = connection, 
 				       database = result_db_name, 
-				       matrix_table = result_matrix_table, 
-					   matrix_id_value = MID1,
-					   matrix_id_colname = "MATRIX_ID", 
-					   row_id_colname = "ROW_ID", 
-					   col_id_colname = "COL_ID", 
-					   cell_val_colname = "CELL_VAL")
+				       matrix_table = tempResultTable, 
+					   matrix_id_value = "",
+					   matrix_id_colname = "", 
+					   row_id_colname = "OutputRowNum", 
+					   col_id_colname = "OutputColNum", 
+					   cell_val_colname = "OutputPVal",
+					   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputPVal IS NOT NULL ")
+					   )
 
-		HMatrix <- FLMatrix(
+	HMatrix <- FLMatrix(
 				       connection = connection, 
 				       database = result_db_name, 
-				       matrix_table = result_matrix_table, 
-					   matrix_id_value = MID2,
-					   matrix_id_colname = "MATRIX_ID", 
-					   row_id_colname = "ROW_ID", 
-					   col_id_colname = "COL_ID", 
-					   cell_val_colname = "CELL_VAL")
-
-		max_matrix_id_value <<- max_matrix_id_value + 1
+				       matrix_table = tempResultTable, 
+					   matrix_id_value = "",
+					   matrix_id_colname = "", 
+					   row_id_colname = "OutputRowNum", 
+					   col_id_colname = "OutputColNum", 
+					   cell_val_colname = "OutputHVal",
+					   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputHVal IS NOT NULL ")
+		             )
 
 		result<-list(P = PMatrix,
 					 H = HMatrix)
 
-		sqlSendUpdate(connection,paste0(" DROP TABLE ",tempResultTable))
+		#sqlSendUpdate(connection,paste0(" DROP TABLE ",tempResultTable))
 		result
 }

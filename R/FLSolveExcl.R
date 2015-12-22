@@ -7,8 +7,8 @@
 #' @include FLDims.R
 NULL
 
-solveExcl <- function (x, ...){
-	UseMethod("solveExcl", x)
+FLSolveExcl <- function (x, ...){
+	UseMethod("FLSolveExcl", x)
 }
 
 #' Inverse of a Matrix excluding a dimension.
@@ -31,27 +31,27 @@ solveExcl <- function (x, ...){
 #' resultFLMatrix <- solveExcl(flmatrix,3)
 #' @export
 
-solveExcl.FLMatrix<-function(object,ExclIdx)
+FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 {
-
-	if(nrow(object) != ncol(object)) 
-	{ 
-		stop("solveExcl function is applicable on square matrix only") 
-	}
 
 	connection<-getConnection(object)
 	flag1Check(connection)
 
-	sqlstr<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+	  MID <- max_matrix_id_value
+
+	
+
+	sqlstr<-paste0(" INSERT INTO ",
+					getRemoteTableName(result_db_name, result_matrix_table),
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
-						AS (SELECT a.",object@matrix_id_colname,", 
+						AS (SELECT a.",object@variables$matrixId,", 
 								   a.",object@variables$rowId,", 
 								   a.",object@variables$colId,", 
 								   a.",object@variables$value,",",
 								   ExclIdx, 
-							" FROM  ",remoteTable(object)," a 
-							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-					SELECT ",max_matrix_id_value,
+							" FROM  ",remoteTable(object)," a ",
+							constructWhere(c(constraintsSQL(object))),") 
+					SELECT ",MID,
 					       ",a.OutputRowNum,
 					        a.OutputColNum,
 					        a.OutputVal 
@@ -59,33 +59,17 @@ solveExcl.FLMatrix<-function(object,ExclIdx)
 						HASH BY z.Matrix_ID 
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 	
-	t<-sqlQuery(connection,sqlstr)
-
-	if(length(t) > 0) 
-	{ 
-		stop(" Error Inverting Matrix - Matrix might be exactly singular ") 
-	}
-	
+	sqlSendUpdate(connection,sqlstr)
 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	if(ExclIdx > nrow(object))
-	{
-		nr <- nrow(object)
-	}
-	else
-	{
-		nr <- nrow(object) - 1
-	}
-	return(FLMatrix( 
-		       connection = connection, 
-		       database = result_db_name, 
-		       matrix_table = result_matrix_table, 
-			   matrix_id_value = max_matrix_id_value-1,
-			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "ROW_ID", 
-			   col_id_colname = "COL_ID", 
-			   cell_val_colname = "CELL_VAL",
-			   nrow = nr, 
-			   ncol = nr, 
-			   dimnames = list(c(),c())))
+	return(FLMatrix(
+            connection = connection, 
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = MID,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "ROW_ID", 
+            col_id_colname = "COL_ID", 
+            cell_val_colname = "CELL_VAL")
+           )
 }

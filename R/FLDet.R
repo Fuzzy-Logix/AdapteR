@@ -35,25 +35,12 @@ det.FLMatrix<-function(object)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)
-	if(nrow(object) != ncol(object))
-	{
-		stop("input object must be square matrix")
-	}
-	sqlstr<-paste0("WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) AS
-(SELECT a.",object@matrix_id_colname,", 
-							   a.",object@variables$rowId,", 
-							   a.",object@variables$colId,",
-							   a.",object@variables$value," 
-						FROM  ",remoteTable(object)," a 
-						WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,")
-SELECT ",max_vector_id_value,
-", a.*
-FROM TABLE (
-FLMatrixDetUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val)
-HASH BY z.Matrix_ID
-LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
-) AS a
- ");
 
-	sqlQuery(connection,sqlstr)[[3]]
+	sqlstr<-paste0(viewSelectMatrix(object, "a", withName="z"),
+                   outputSelectMatrix("FLMatrixDetUdt", 
+                   	viewName="z", 
+                   	localName="a",
+                   	outColNames=list("OutputDetVal") )
+                   )
+	sqlQuery(connection,sqlstr)[[1]]
 }

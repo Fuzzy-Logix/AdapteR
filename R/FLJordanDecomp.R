@@ -8,8 +8,8 @@
 NULL
 
 
-jordan<-function(x, ...){
-	UseMethod("jordan",x)
+FLJordan<-function(x, ...){
+	UseMethod("FLJordan",x)
 }
 
 #' Jordan Decomposition of a Matrix.
@@ -34,155 +34,61 @@ jordan<-function(x, ...){
 #' resultList$PInv
 #' @export
 
-jordan.FLMatrix<-function(object)
+FLJordan.FLMatrix<-function(object)
 {
 	connection<-getConnection(object)
 	flag1Check(connection)
 	flag3Check(connection)
-	if(nrow(object) == ncol(object))
-	{	
-		sqlstrP<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
-						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-						AS (SELECT a.",object@matrix_id_colname,", 
-								   a.",object@variables$rowId,", 
-								   a.",object@variables$colId,", 
-								   a.",object@variables$value," 
-							FROM  ",remoteTable(object)," a 
-							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-						SELECT ",max_matrix_id_value,",
-								a.OutputRowNum,
-								a.OutputColNum,
-								a.OutPVal 
-						FROM TABLE (FLJordanDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-									HASH BY z.Matrix_ID 
-									LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-						WHERE a.OutPVal IS NOT NULL;")
+	
+	tempResultTable <- gen_unique_table_name("tblJordonDecompResult")
+	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-		max_matrix_id_value <<- max_matrix_id_value + 1
-		
-		retobj <- sqlSendUpdate(connection,sqlstrP)
+    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
+    				 viewSelectMatrix(object, "a","z"),
+                     outputSelectMatrix("FLJordanDecompUdt",viewName="z",localName="a",
+                    	outColNames=list("OutputMatrixID","OutputRowNum",
+                    		"OutputColNum","OutPVal","OutJVal","OutPInvVal"),
+                    	whereClause=") WITH DATA;")
+                   )
 
-		PMatrix <- FLMatrix(
+    sqlSendUpdate(connection,sqlstr0)
+
+    PMatrix <- FLMatrix(
 				       connection = connection, 
 				       database = result_db_name, 
-				       matrix_table = result_matrix_table, 
-					   matrix_id_value = max_matrix_id_value-1,
-					   matrix_id_colname = "MATRIX_ID", 
-					   row_id_colname = "ROW_ID", 
-					   col_id_colname = "COL_ID", 
-					   cell_val_colname = "CELL_VAL",
-					   dimnames = list(c(),c()))
-        ## gk: todo, check this on remote object!
-		## if(length(retobj) != 0)
-		## {
-		## 	stop("Input matrix is singular")
-		## }
+				       matrix_table = tempResultTable, 
+					   matrix_id_value = "",
+					   matrix_id_colname = "", 
+					   row_id_colname = "OutputRowNum", 
+					   col_id_colname = "OutputColNum", 
+					   cell_val_colname = "OutPVal",
+					   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutPVal IS NOT NULL "))
 
-		sqlstrPInv<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,"
-							WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-							AS (SELECT a.",object@matrix_id_colname,", 
-									   a.",object@variables$rowId,", 
-									   a.",object@variables$colId,", 
-									   a.",object@variables$value," 
-								FROM  ",remoteTable(object)," a 
-								WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-							SELECT ",max_matrix_id_value,",
-									a.OutputRowNum,
-									a.OutputColNum,
-									a.OutPInvVal 
-							FROM TABLE (FLJordanDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-										HASH BY z.Matrix_ID 
-										LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-							WHERE a.OutPInvVal IS NOT NULL;")
-		
 
-		retobj <- sqlSendUpdate(connection,sqlstrPInv)
-		max_matrix_id_value <<- max_matrix_id_value + 1
-		
-		## if(length(retobj) != 0)
-		## {
-		## 	stop("Input matrix is singular")
-		## }
+    PInvMatrix <- FLMatrix(
+			            connection = connection, 
+			            database = result_db_name, 
+			            matrix_table = tempResultTable, 
+			            matrix_id_value = "",
+			            matrix_id_colname = "", 
+			            row_id_colname = "OutputRowNum", 
+			            col_id_colname = "OutputColNum", 
+			            cell_val_colname = "OutPInvVal",
+			            whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutPInvVal IS NOT NULL "))
 
-		PInvMatrix <- FLMatrix(
-            connection = connection, 
-            database = result_db_name, 
-            matrix_table = result_matrix_table, 
-            matrix_id_value = max_matrix_id_value-1,
-            matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "ROW_ID", 
-            col_id_colname = "COL_ID", 
-            cell_val_colname = "CELL_VAL",
-            dimnames = list(c(),c()))
+	table <- FLTable(connection,
+		             result_db_name,
+		             tempResultTable,
+		             "OutputRowNum",
+		             whereconditions=c(paste0(getRemoteTableName(result_db_name,tempResultTable),".OutJVal IS NOT NULL "),
+		             	paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputRowNum = ",
+		             	getRemoteTableName(result_db_name,tempResultTable),".OutputColNum "))
+		             )
 
-		sqlstrJ<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"
-						WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-						AS (SELECT a.",object@matrix_id_colname,", 
-								   a.",object@variables$rowId,", 
-								   a.",object@variables$colId,", 
-								   a.",object@variables$value," 
-							FROM  ",remoteTable(object)," a 
-							WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
-						SELECT ",max_vector_id_value," AS VECTOR_ID,
-								a.OutputRowNum AS VECTOR_INDEX,
-								CAST(a.OutJVal AS NUMBER) AS VECTOR_VALUE 
-						FROM TABLE (FLJordanDecompUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val) 
-									HASH BY z.Matrix_ID 
-									LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a
-						WHERE a.OutJVal IS NOT NULL
-						AND   a.OutputRowNum = a.OutputColNum;")
-		
-		sqlSendUpdate(connection,sqlstrJ)
+	JVector <- table[,"OutJVal"]
 
-		max_vector_id_value <<- max_vector_id_value + 1
-		
-		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
-			             "VECTOR_ID",
-			             "VECTOR_INDEX",
-			             "VECTOR_VALUE")
-
-		JVector <- new("FLVector", 
-						table = table, 
-						col_name = table@variables$value, 
-						vector_id_value = max_vector_id_value-1, 
-						size = min(nrow(object),ncol(object)))
-
-		result<-list(J = JVector,
-					 P = PMatrix,
-					 PInv = PInvMatrix)
-		result
-	}
-	else
-		stop ("Input matrix is non-square ")
+	result<-list(J = JVector,
+				 P = PMatrix,
+				 PInv = PInvMatrix)
+	result
 }
-
-	# if (is.null(nu) && is.null(nv))
-	# {
-	# 	result<-list(J = JVector,
-	# 				 P = PMatrix,
-	# 				 PInv = PInvMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
-	# }
-
-	# else if (is.null(nu))
-	# {
-	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),ncol(object))],
-	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
-	# }
-
-	# else if (is.null(nv))
-	# {
-	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
-	# 				 v = VMatrix[1:ncol(object),1:min(nrow(object),ncol(object))])
-	# }
-
-	# else
-	# {
-	# 	result<-list(d = SVector,
-	# 				 u = UMatrix[1:nrow(object),1:min(nrow(object),nu)],
-	# 				 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
-	# }
-

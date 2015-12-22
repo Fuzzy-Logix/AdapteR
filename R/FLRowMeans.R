@@ -50,21 +50,9 @@ rowMeans.FLMatrix<-function(object)
 		             result_db_name,
 		             result_vector_table,
 		             "VECTOR_INDEX",
-		             whereconditions=paste0("VECTOR_ID = ",max_vector_id_value-1)
+		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
 		             )
 
 	return(table[,"VECTOR_VALUE"])
 
-	# table <- FLTable(connection,
-	# 	             result_db_name,
-	# 	             result_vector_table,
-	# 	             "VECTOR_ID",
-	# 	             "VECTOR_INDEX",
-	# 	             "VECTOR_VALUE")
-
-	# new("FLVector", 
-	# 	table = table, 
-	# 	col_name = table@variables$value, 
-	# 	vector_id_value = max_vector_id_value-1, 
-	# 	size = nrow(object))
 }

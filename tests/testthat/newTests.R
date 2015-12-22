@@ -15,7 +15,7 @@ if(!exists("connection")){
     connection <- tdConnect(host,user,passwd,database,"jdbc")
 }
 
-FLStartSession(connection, persistent="test")
+FLStartSession(connection)
 
 ignoreDimNames <- TRUE
 
@@ -112,7 +112,7 @@ setMethod("expect_equal",signature("list","list"),
           function(object,expected,...)
               llply(names(object),
                     function(i)
-                        expect_equal(object[[i]],expected[[i]],...))
+                        expect_equal(object[[i]],expected[[i]],...)))
 
 
 ###############################################################
@@ -151,16 +151,6 @@ test_that("check FLGinv",
                       n=5)
 })
 
-## Testing FLSV
-## gk: fix test case
-test_that("check FLSV working",
-{
-    expect_equal(
-              length(FLSV(initF.FLMatrix(n=5,isSquare=TRUE)$FL)),
-              nrow(m5)
-          )
-})
-
 ## Testing FLRowMeans
 test_that("check rowMeans",
 {
@@ -179,6 +169,17 @@ test_that("check rowSums",
                       n=5)
 })
 
+## Testing FLColMeans
+test_that("check colMeans",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
+})
+
+## Testing FLColSums
+test_that("check colSums",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
+})
 
 ## Testing FLDims
 test_that("check FLDims",
@@ -234,7 +235,17 @@ test_that("check result for M_Subtraction",
                check.attributes=FALSE)
 })
 
+## Testing M_IntegerDivision. Only 2 FLMatrices
+test_that("check result for M_IntegerDivision",
+{
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
+  M2R <- as.matrix(M2)
+  expect_equal(M1$FL%/%M2,M1$R%/%M2R,check.attributes=FALSE)
+}
+
 ## Testing M_IntegerDivision
+## Bad performance
 test_that("check result for M_IntegerDivision",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
@@ -261,7 +272,17 @@ test_that("check result for M_IntegerDivision",
       check.attributes=FALSE)
 })
 
+## Testing M_CrossProduct only two FLMatrices
+test_that("check result for M_CrossProduct",
+{
+  M1 <- initF.FLMatrix(n=5) # 5*4 matrix
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID") # 4*5 matrix
+  M2R <- as.matrix(M2)
+  expect_equal(M1$FL %*% M2,M1$R%*%M2R,check.attributes=FALSE)
+}
+
 ## Testing M_CrossProduct
+## Bad performance
 test_that("check result for M_CrossProduct",
 {
   M1 <- initF.FLMatrix(n=5) # 5*4 matrix
@@ -314,9 +335,51 @@ test_that("check FLCastFunctions",
     expect_equal(as.FLVector(M1$FL),as.matrix(M1$R),check.attributes=FALSE)
 })
 
+## Testing FLCholskeyDecomp
+### Phani-- needs a hermitian positive definite matrix as input
+test_that("check FLCholskeyDecomp",
+{
+  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
+  expect_equal(chol(m4),
+               Matrix::chol(as.matrix(m4)))
+})
+
+# Testing FLLUDecomp
+test_that("check LU Decomposition",
+{
+  m <- initF.FLMatrix(n=5)
+  expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
+               Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
+})
+
+## Testing FLDet
+test_that("check determinant result",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
+})
+
+## Testing FLLength
+test_that("check length",
+{
+  T1 <- initF.FLTable(rows=5,cols=5)
+  T1R <- as.data.frame(T1)
+    expect_eval_equal(initF.FLMatrix,AdapteR::length,base::length,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
+    expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
+})
+
 #################################################################
 ########### no equivqlent R functions to test against ###########
 ################### but functions work ##########################
+## Testing FLSV
+test_that("check FLSV working",
+{
+  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+    expect_equal(
+              length(FLSV(M)),
+              nrow(M)
+          )
+})
 
 ## Testing FLHessenDecomp
 test_that("check Hessenberg Decomposition",
@@ -338,6 +401,12 @@ test_that("check FLMatrixRREF working",
   )
 })
 
+## Testing FLMatrixREF
+test_that("check FLMatrixREF",
+{
+    FLMatrixREF(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
+})
+
 ## Testing FLMatrixNorm
 test_that("check FLMatrixNorm working",
 {
@@ -345,14 +414,27 @@ test_that("check FLMatrixNorm working",
   FLMatrixNorm(M,3)
 })
 
-## Testing FLCholskeyDecomp
-### Phani-- needs a hermitian positive definite matrix as input
-### Teradata result is transpose of R result.
-test_that("check FLCholskeyDecomp",
+##Testing FLJordon
+### Phani-- works only with matrices with non-complex
+### eigen values. So input taken from DbLytix manual.
+test_that("check Jordan Decomposition",
 {
-  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
-  expect_equal(chol(m4),
-               Matrix::chol(as.matrix(m4)))
+  M <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
+    FLJordan(M)
+})
+
+## Testing FLSolveExcl
+test_that("check FLSolveExcl",
+{
+  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+    expect_equal(dim(FLSolveExcl(M,3)),dim(M)-1)
+    expect_equal(dim(FLSolveExcl(M,6)),dim(M))
+})
+
+## Testing FLTriDiag
+test_that("check FLTriDiag",
+{
+    FLTriDiag(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
 #################################################################################
@@ -380,6 +462,16 @@ test_that("check Singular Value Decomposition",
     expect_eval_equal(initF.FLMatrix,AdapteR::svd,base::svd,n=5)
 })
 
+## Testing FLQRDecomposition
+### Phani-- could not calculate pivot properly,
+### also, output qr matrix differs from R
+test_that("check FLQRDecomposition",
+{
+  M <- initF.FLMatrix(n=5)
+  print(qr(M$FL))
+  print(qr(M$R))
+    expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
+})
 
 ####################################################################################################
 ####################################################################################################
@@ -389,23 +481,10 @@ test_that("check Singular Value Decomposition",
 ############################# Non Working Tests #################################
 #################################################################################
 
-# Testing FLLUDecomp
-test_that("check LU Decomposition",
-{
-  m <- initF.FLMatrix(n=5)
-  expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
-               Matrix::expand(Matrix::lu(m$R)))
-})
-
 ## Testing FLTrace
 test_that("check FLTrace",
 {
     expect_eval_equal(initF.FLMatrix,AdapteR::tr,psych::tr,n=5)
-})
-
-## Testing FLDet
-test_that("check determinant result",{
-    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
 })
 
 ##Testing FLDiag
@@ -595,71 +674,3 @@ test_that("check result for M_Remainder",
       P1$R%%P1$R%%V1R%%V2R%%M2R%%P1$R%%M1$R%%V2R,
       check.attributes=FALSE)
 })
-
-## prio A
-## Testing FLQRDecomposition
-test_that("check FLQRDecomposition",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
-})
-
-## prio A
-## Testing FLColMeans
-test_that("check colMeans",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
-})
-
-## prio A
-## Testing FLColSums
-test_that("check colSums",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
-})
-
-## prio A
-## Testing FLLength
-test_that("check length",
-{
-  T1 <- initF.FLTable(rows=5,cols=5)
-  T1R <- as.data.frame(T1)
-    expect_eval_equal(initF.FLMatrix,AdapteR::length,base::length,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
-    expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
-})
-
-### Phani-- no equivalent R function to test against.
-##Testing FLJordon
-test_that("check Jordan Decomposition",
-{
-    FLJordan(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
-})
-
-## Testing FLTriDiag
-test_that("check FLTriDiag",
-{
-    FLTriDiag(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
-})
-
-## Testing FLMatrixREF
-test_that("check FLMatrixREF",
-{
-    FLMatrixREF(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
-})
-
-## Testing FLSolveExcl
-test_that("check FLSolveExcl",
-{
-  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
-    expect_equal(dim(FLSolveExcl(M,3)),dim(M)-1)
-    expect_equal(dim(FLSolveExcl(M,6)),dim(M))
-})
-
-
-
-
-
-
-
-
