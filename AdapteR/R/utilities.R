@@ -168,19 +168,22 @@ gen_unique_table_name <- function(TableName){
 
 FLodbcClose <- function(connection)
 {
-    	sqlQuery(connection, 
-    			 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
- 	  	sqlQuery(connection, 
- 	  			 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
- 	  	sqlQuery(connection, 
- 	  			 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
-    	odbcClose(connection)
-    	flag1 <<- 0
-    	flag2 <<- 0
-    	flag3 <<- 0
-    	max_matrix_id_value <<- 1
-    	max_Sparsematrix_id_value <<- 1
-    	max_vector_id_value <<- 1
+	sqlstr <- c(paste0("DROP TABLE ",result_matrix_table,";"),
+                        paste0("DROP TABLE ",result_Sparsematrix_table,";"),
+                        paste0("DROP TABLE ",result_vector_table,";"))
+
+	if(length(tempDecompTableVector)>0)
+	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
+
+    sqlSendUpdate(connection,sqlstr)
+	odbcClose(connection)
+	flag1 <<- 0
+	flag2 <<- 0
+	flag3 <<- 0
+	max_matrix_id_value <<- 1
+	max_Sparsematrix_id_value <<- 1
+	max_vector_id_value <<- 1
+	tempDecompTableVector <<- c()
 }
 
 gen_table_name <- function(prefix,suffix){
@@ -217,12 +220,17 @@ FLStartSession <- function(connection,
     max_vector_id_value <<- 0
     ##max_vector_id_value <- max_vector_id_value + 1
     result_vector_table <<- gen_table_name("tblVectorResult",persistent)
+    tempDecompTableVector <<- c()
 
     if(drop){
-        sqlSendUpdate(connection,
-                      c(paste0("DROP TABLE ",result_matrix_table,";"),
+    	sqlstr <- c(paste0("DROP TABLE ",result_matrix_table,";"),
                         paste0("DROP TABLE ",result_Sparsematrix_table,";"),
-                        paste0("DROP TABLE ",result_vector_table,";")))
+                        paste0("DROP TABLE ",result_vector_table,";"))
+
+    	if(length(tempDecompTableVector)>0)
+    	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
+
+        sqlSendUpdate(connection,sqlstr)
     }
     
     sendqueries <- c(
