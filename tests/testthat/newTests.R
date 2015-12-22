@@ -19,7 +19,7 @@ FLStartSession(connection)
 
 ignoreDimNames <- TRUE
 
-options(debugSQL=FALSE)
+options(FLdebugSQL=FALSE)
 
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
@@ -242,7 +242,7 @@ test_that("check result for M_IntegerDivision",
   M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
   M2R <- as.matrix(M2)
   expect_equal(M1$FL%/%M2,M1$R%/%M2R,check.attributes=FALSE)
-}
+})
 
 ## Testing M_IntegerDivision
 ## Bad performance
@@ -279,7 +279,7 @@ test_that("check result for M_CrossProduct",
   M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID") # 4*5 matrix
   M2R <- as.matrix(M2)
   expect_equal(M1$FL %*% M2,M1$R%*%M2R,check.attributes=FALSE)
-}
+})
 
 ## Testing M_CrossProduct
 ## Bad performance
