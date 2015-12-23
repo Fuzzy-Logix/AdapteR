@@ -90,7 +90,11 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
 
 initF.FLTable <- function(rows,cols)
 {
-  WideTable <- FLTable(connection, "FL_DEMO", "fzzlserial","serialval",whereconditions=paste0("FL_DEMO.fzzlserial.serialval<100"))
+  WideTable <- FLTable(connection, 
+                      "FL_DEMO", 
+                      "fzzlserial",
+                      "serialval",
+                      whereconditions=paste0("FL_DEMO.fzzlserial.serialval<100"))
   return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
 }
 
@@ -352,11 +356,6 @@ test_that("check LU Decomposition",
                Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
 })
 
-## Testing FLDet
-test_that("check determinant result",{
-    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
-})
-
 ## Testing FLLength
 test_that("check length",
 {
@@ -366,6 +365,42 @@ test_that("check length",
     expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
     expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
     expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
+})
+
+
+## Testing FLTrace
+test_that("check FLTrace",
+{
+    expect_eval_equal(initF.FLMatrix,
+                    AdapteR::tr,
+                    psych::tr,
+                    n=5,
+                    isSquare=TRUE)
+})
+
+##Testing FLDiag
+test_that("check the result of the diag of matrix",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5,isRowVec=TRUE)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=1)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=1,isRowVec=TRUE)
 })
 
 #################################################################
@@ -462,6 +497,12 @@ test_that("check Singular Value Decomposition",
     expect_eval_equal(initF.FLMatrix,AdapteR::svd,base::svd,n=5)
 })
 
+## Testing FLDet
+### Phani-- for some matrices R output = -(DBLytix output)
+test_that("check determinant result",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
+})
+
 ## Testing FLQRDecomposition
 ### Phani-- could not calculate pivot properly,
 ### also, output qr matrix differs from R
@@ -480,32 +521,6 @@ test_that("check FLQRDecomposition",
 #################################################################################
 ############################# Non Working Tests #################################
 #################################################################################
-
-## Testing FLTrace
-test_that("check FLTrace",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::tr,psych::tr,n=5)
-})
-
-##Testing FLDiag
-test_that("check the result of the diag of matrix",
-{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::diag,
-                      base::diag,
-                      n=5)
-    expect_eval_equal(initF.FLVector,
-                      AdapteR::diag,
-                      base::diag,
-                      n=5)
-    expect_eval_equal(initF.FLVector,
-                      AdapteR::diag,
-                      base::diag,
-                      n=1)
-})
-
-
-
 
 ## prio D
 ## Testing M_Addition

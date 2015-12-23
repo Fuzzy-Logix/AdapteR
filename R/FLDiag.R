@@ -36,136 +36,114 @@ diag<-function(x, ...)
 
 diag.default <- base::diag
 
-diag.FLMatrix<-function(object){
+diag.FLMatrix<-function(object)
+{
 	
 	connection<-getConnection(object)
 	flag3Check(connection)
 
-	sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_vector_table,
-					" SELECT ",max_vector_id_value,
-					         ",a.",object@variables$rowId,
-					         ",CAST(a.", object@variables$value,
-					                "  AS NUMBER) 
-	                  FROM ",remoteTable(object)," a
-					  WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,"
-					  AND a.",object@variables$rowId," = ",object@variables$colId,";")
-
-	sqlSendUpdate(connection,sqlstr0)
-
-	max_vector_id_value <<- max_vector_id_value + 1
-	
 	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_ID",
-		             "VECTOR_INDEX",
-                         "VECTOR_VALUE",
-                         whereconditions=equalityConstraint(
-                             paste0(
-                                 remoteTable(result_db_name,result_vector_table),
-                                 ".VECTOR_ID"),
-                             max_vector_id_value-1))
+		             object@db_name,
+		             object@table_name,
+		             object@variables$rowId,
+		             whereconditions=c(object@whereconditions,
+		             	paste0(getRemoteTableName(object@db_name,object@table_name),".",object@variables$rowId,
+		             		"=",getRemoteTableName(object@db_name,object@table_name),".",object@variables$colId)))
 
-	new("FLVector", table)
+	return(table[,object@variables$value])
 }
 
 diag.FLVector <- function(object)
 {
 	connection <- getConnection(object)
+	flag1Check(connection)
 
 	if(length(object)==1)
 	{
 		flag1Check(connection)
-		value <- sqlQuery(connection,
-						  paste("SELECT a.",object@variables$value,
-						  		 "FROM ",remoteTable(object)," a",
-						  		 "WHERE a.",object@obs_id_colname,"=",object@vector_id_value))[1,1]
-        ## gk: refactor to apply, very bad performance
-        for (i in 1:value)
-		 for (j in 1:value)
-		 {
-		 	if(i!=j)
-		 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
-		 		                       " SELECT ",max_matrix_id_value,",",
-		 		                                 j,",",
-		 		                                 i,",",
-		 		                                 0))
-		 	
-		 	else
+		value <- as.vector(object)
+		MID <- max_matrix_id_value
 
-		 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
-		 		                       " SELECT ",max_matrix_id_value,",",
-		 		                                  j,",",
-		 		                                  i,",",
-		 		                                  1))
-	 	 }
+        sqlstr <- paste(sapply(1:value,FUN=function(i)
+        				paste0(" INSERT INTO ",
+        				getRemoteTableName(result_db_name,result_matrix_table),
+        				" SELECT ",MID,",",
+        						   i,",",
+        						   i,",",
+        						   1)),collapse=";")
+
+        sqlSendUpdate(connection,sqlstr)
 	 	 
-	 	 max_matrix_id_value <<- max_matrix_id_value + 1
+	 	max_matrix_id_value <<- max_matrix_id_value + 1
 
-		 return(FLMatrix( 
+		return(FLMatrix( 
 		 	        connection = connection, 
 		 	        database = result_db_name, 
 		 	        matrix_table = result_matrix_table, 
-		 	        matrix_id_value = max_matrix_id_value-1,
+		 	        matrix_id_value = MID,
 			        matrix_id_colname = "MATRIX_ID", 
 			        row_id_colname = "ROW_ID", 
 			        col_id_colname = "COL_ID", 
-			        cell_val_colname = "CELL_VAL",
-			        nrow = length(object), 
-			        ncol = length(object), 
-			        dimnames = list(c(),c())))
+			        cell_val_colname = "CELL_VAL"
+			        ))
 	
 	}
 	else if(length(object)>1)
 	{
-		flag1Check(connection)
-        for (i in 1:length(object))
-			 for (j in 1:length(object))
-			 {
-			 	if(i!=j)
-			 		sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
-			 			                       " SELECT ",max_matrix_id_value,",",
-			 			                                  j,",",
-			 			                                  i,",",
-			 			                                  0))
-			 	else 
-			 	{
-				 	if(object@isDeep)
-				 	{
-					 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
-					 		                       " SELECT ",max_matrix_id_value,",",
-					 		                                  j,",",
-					 		                                  i,
-					 							              ",a.",object@var_id_colname,
-					 							   " FROM ",remoteTable(object), " a ",
-                                                   constructWhere(constraintsSQL(object))))
-				 	}
-			 	 	else if (!object@isDeep)
-			 	 	{
-					 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
-					 		                       " SELECT ",max_matrix_id_value,",",
-					 		                                  j,",",
-					 		                                  i,
-					 							            ",a.",object@var_id_colname,
-					 							   " FROM ",remoteTable(object),
-					 							   " a WHERE a.",object@obs_id_colname,"=",i))
-			 	 	}
-		 	 	}
-		 	 }
-		 	 
-		 	 max_matrix_id_value <<- max_matrix_id_value + 1
-		 	 
-			 return(FLMatrix( 
-			 	        connection = connection, 
-			 	        database = result_db_name, 
-			 	        matrix_table = result_matrix_table, 
-			 	        matrix_id_value = max_matrix_id_value-1,
-				        matrix_id_colname = "MATRIX_ID", 
-				        row_id_colname = "ROW_ID", 
-				        col_id_colname = "COL_ID", 
-				        cell_val_colname = "CELL_VAL",
-				        nrow = length(object), 
-				        ncol = length(object), 
-				        dimnames = list(c(),c())))
+		if(object@isDeep)
+		return(FLMatrix( 
+		 	        connection = connection, 
+		 	        database = object@db_name, 
+		 	        matrix_table = object@table_name, 
+		 	        matrix_id_value = "",
+			        matrix_id_colname = "", 
+			        row_id_colname = object@variables$obs_id_colname, 
+			        col_id_colname = object@variables$obs_id_colname, 
+			        cell_val_colname = object@variables$cell_val_colname,
+			        whereconditions = object@whereconditions
+			        ))
+
+		else
+		{
+			MID <- max_matrix_id_value
+			if(length(object@dimnames[[1]])==1)
+			{
+		        sqlstr <- paste(sapply(1:length(object),FUN=function(i)
+		        				paste0(" INSERT INTO ",
+		        				getRemoteTableName(result_db_name,result_matrix_table),
+		        				" SELECT ",MID,",",
+		        						   i,",",
+		        						   i,",",
+		        						   object@dimnames[[2]][i],
+		        				" FROM ",getRemoteTableName(object@db_name,object@table_name),
+		        				constructWhere(constraintsSQL(object)))),collapse=";")
+
+		        sqlSendUpdate(connection,sqlstr)
+
+			 	max_matrix_id_value <<- max_matrix_id_value + 1
+
+				return(FLMatrix( 
+				 	        connection = connection, 
+				 	        database = result_db_name, 
+				 	        matrix_table = result_matrix_table, 
+				 	        matrix_id_value = MID,
+					        matrix_id_colname = "MATRIX_ID", 
+					        row_id_colname = "ROW_ID", 
+					        col_id_colname = "COL_ID", 
+					        cell_val_colname = "CELL_VAL"
+					        ))
+			}
+			else return(FLMatrix( 
+				 	        connection = connection, 
+				 	        database = object@db_name, 
+				 	        matrix_table = object@table_name, 
+				 	        matrix_id_value = "",
+					        matrix_id_colname = "", 
+					        row_id_colname = object@variables$obs_id_colname, 
+					        col_id_colname = object@variables$obs_id_colname, 
+					        cell_val_colname = object@dimnames[[2]],
+					        whereconditions = object@whereconditions
+					        ))
+		}
 	}
 }
