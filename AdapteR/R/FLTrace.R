@@ -29,21 +29,25 @@ tr<-function(x, ...){
 	UseMethod("tr", x)
 }
 
+tr.default <- psych::tr
+
 tr.FLMatrix<-function(object){
 	connection<-getConnection(object)
 	
 	flag3Check(connection)
 
-	sqlstr<-paste0(     " INSERT INTO ",result_db_name,".",result_vector_table,
-						" SELECT ",max_vector_id_value,
-						         ",1, 
-						         CAST(FLMatrixTrace(a.",object@variables$rowId,", a.",object@variables$colId,
-						              ", a.",object@variables$value,") AS NUMBER) ",
-					    " FROM ",remoteTable(object)," a",
-					    " GROUP BY a.",object@matrix_id_colname,
-					    " WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,
-					    " AND a.", object@variables$rowId," <= ",min(nrow(object),ncol(object)),
-					    " AND a.",object@variables$colId, " <= ", min(nrow(object),ncol(object)))
+	sqlstr<-paste0( " INSERT INTO ",
+					getRemoteTableName(result_db_name,result_vector_table),
+					" SELECT ",max_vector_id_value,
+					         ",1, 
+					         FLMatrixTrace(",object@variables$rowId,
+					         			   ",",object@variables$colId,
+					              		   ",",object@variables$value,")",
+				    " FROM ",remoteTable(object)," a",
+				    " GROUP BY ",object@variables$matrixId,
+				    constructWhere(c(constraintsSQL(object),
+				    	paste0(object@variables$rowId," <= ",min(nrow(object),ncol(object))),
+				    	paste0(object@variables$colId, " <= ", min(nrow(object),ncol(object))))))
 	
 	sqlSendUpdate(connection,sqlstr)
 	
@@ -52,13 +56,9 @@ tr.FLMatrix<-function(object){
 	table <- FLTable(connection,
 		             result_db_name,
 		             result_vector_table,
-		             "VECTOR_ID",
 		             "VECTOR_INDEX",
-		             "VECTOR_VALUE")
+		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
+		             )
 
-	new("FLVector", 
-		table = table, 
-		col_name = table@variables$value, 
-		vector_id_value = max_vector_id_value-1, 
-		size = 1)
+	return(table[,"VECTOR_VALUE"])
 }
