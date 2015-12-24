@@ -1,23 +1,75 @@
-## Hi Phani, Manish,
+## Hi Partha, hi Phani
 ##
-## I implemented further in a unified system of selects classes, and
-## did change quite a bit in FLMatrix. Look at the constructor.
+## I added a system of select classes, and
+## also added a union class for cbind.
+## look at FLMatrix.R and FLMatrixBind.R.
+##
+## The code contains your name at places where we might want to discuss
 ## 
-## Not everything is working, please investigate 
-## by running from here and looking at FLMatrix and
+## Most is working, please investigate 
+## by running from here and 
 ## involved functions.
 ##
-## Your next steps:
-## 2. replace where clauses and select clauses with constructSelect
-## 3. test cases
+## Also, the correlation demo is functional (demo-cor.R in this folder)
 ##
-## My next steps:
-## 1. investigate addition/multiplication, all tests fail
-## 1. design conditions in cbind
-## 2. will we need FLVector, FLTable with the new classes?
 
 
-## A remote matrix is easily created by specifying 
+
+################################################################################
+## Load AdapteR
+##
+## if you want to clear the workspace
+##rm(list=ls())
+
+## if you want to unload the package after making changes:
+detach("package:AdapteR", unload = TRUE)
+
+## rebuild documentation and load as source package
+setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR")
+devtools::document()
+devtools::load_all(".")
+## devtools::test()
+
+
+################################################################################
+## Connect to Gandalf
+##
+##################
+##
+## library(RODBC) 
+## connection <- odbcConnect(“Gandalf”)
+
+library(RJDBC) 
+
+ ## add jdbc driver and security jars to classpath
+.jaddClassPath("/Users/gregor/fuzzylogix/terajdbc4.jar")
+.jaddClassPath("/Users/gregor/fuzzylogix/tdgssconfig.jar")
+library(teradataR)
+
+
+if (exists("connection")) {
+    ## reconnect to database (e.g. after VPN disconnects)
+    dbDisconnect(connection)
+    rm(connection)
+}
+connection <- tdConnect(host,user,passwd,database,"jdbc")
+## I need to add class path twice (recurring problem in MAC as of:
+## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
+## note: wait for some time before rerunning?
+
+
+########################################
+## Demo of the construction of selects
+## for rbind and cbind
+
+##options(debugSQL=FALSE)
+options(debugSQL=TRUE)
+## This needs to be eliminated,
+## legacy code setting singletons
+## for now, some parts need it
+FLStartSession(connection, persistent="test")
+
+## A remote deep matrix is easily referenced by specifying 
 eqnRtn <- FLMatrix(
     connection,
     database          = "FL_DEMO",
@@ -28,16 +80,57 @@ eqnRtn <- FLMatrix(
     col_id_colname    = "TickerSymbol",
     cell_val_colname  = "EquityReturn")
 
+## Subsetting is easy
+a <- eqnRtn[2001:2010,"MSFT"]
+b <- eqnRtn[2001:2010,"ORCL"]
+a2 <- eqnRtn[2011:2020,"MSFT"]
+b2 <- eqnRtn[2011:2020,"ORCL"]
 
-m <- eqnRtn[1:10,"MSFT"]
-m2 <- eqnRtn[1:10,"ORCL"]
+cat(constructSelect(a,"a"))
 
-m
-m2
+## print the Matrix
+a
 
+##############################
+## bind for matrices with character dimnames
+## note: no data movement.
+ab <- cbind(a,b)
+
+cat(constructSelect(ab))
+
+ab
+
+## note: currently only works for unique row and col ids (dimnames)
+dimnames(ab)
+
+# fable0906 alala
 
 require(testthat)
-options(debugSQL=TRUE)
+
+expect_equal(
+    dim(ab),
+    c(nrow(a), ncol(a)+ncol(b)))
+
+## cbind of 2 rbinds:
+a2b2 <- cbind(a2,b2)
+AB <- rbind(ab, a2b2)
+dimnames(AB)
+
+cat(constructSelect(AB))
+
+expect_equal(dim(AB),
+             c(nrow(a) + nrow(a2),
+               ncol(a) + ncol(b)))
+
+AB
+
+ABs <- store(AB)
+
+
+## Partha:  do you see the reason for the sql error here?
+AB %*% t(AB)
+
+
 ## Testing Subsetting
 ## Non-symmetric singular matrix of dimension 5x5
 ## in R memory
@@ -50,170 +143,12 @@ diag(rMatrix)
 ## an in-DB object,
 ## CAREFUL: DATA IS TRANSFERED THROUGH NETWORK
 m <- as.FLMatrix(rMatrix,connection)
+
 dim(m)
 m
 rMatrix
 ##diag(m)
 
-########################################
-## STOP RUNNING HERE, below 
 
 
 
-
-
-## gk: I do not know why this is now broken.  please fix
-test_that("selections of submatrix by index",
-{
-    expect_equal(as.matrix(m),rMatrix)
-    expect_equal(as.matrix(m[1,]),as.matrix(rMatrix[1,]))
-    expect_equal(as.matrix(m[2:3,4:5]),rMatrix[2:3,4:5])
-})
-
-test_that("selection of row by name ",{
-    expect_equal(m[1,],
-                 m[rownames(m)[[1]],])
-    expect_equal(as.matrix(m[1,]),as.matrix(m[rownames(m)[[1]],]))
-})
-
-
-test_that("selection of column by name works",
-          expect_equal(m[,1], m[,colnames(m)[[1]]]))
-
-
-test_that("selection of row by name works",
-          expect_equal(m[1:2,],
-                       m[rownames(m)[1:2],]))
-
-test_that("selection of column by name works",
-          expect_equal(m[,1:2],
-                       m[,colnames(m)[1:2]]))
-
-
-## gk: these are not working, please fix!
-                                        # Testing Addition/Subtraction
-test_that("check matrix addition/subtraction",
-{
-    expect_equal(as.matrix(m2 <- .5*m),
-                 as.matrix(.5*m))
-    expect_equal(as.matrix(m + m2),
-                 as.matrix(m)+as.matrix(m2))
-    expect_equal(as.matrix(m - m2),
-                 as.matrix(m)-as.matrix(m2))
-})
-
-
-test_that("check sparse matrix addition/subtraction",
-{
-    sm2 + sm2
-    sm1 - sm1 
-})
-
-
-test_that("check sum of matrices",
-          expect_equal(as.matrix(m + m), as.matrix(2*m)))
-
-## gk:  the fate of sparse matrices?
-test_that("check sum of sparse matrices",
-          expect_equal(sm2 + sm2, 2*sm2))
-
-test_that("check commutative law",
-          expect_equal((m2 + m),(m + m2)))
-
-test_that("check associative law for addition",
-          expect_equal(
-          ((m + m) + m2),(m + (m + m2))))
-
-test_that("check identity of addition",
-          expect_equal(
-          (m + m0), (m0 + m)))
-
-                                        # Testing Multiplication
-test_that("check matrix multiplication",
-{
-    m * m2
-    m3 %*% m2
-    m %*% m2 
-})
-
-test_that("check associative law for multiplication",
-          expect_equal((m3 %*% m) %*% m2),
-          (m3 %*% (m %*% m2)))
-
-test_that("check two scalar multiplication for matrices",
-          expect_equal(((2 * 3) * m),
-          (2 * (3 * m))))
-
-test_that("check two scalar multiplication for sparse matrices",
-          expect_equal(((2 * 3) * sm2),
-          (2 * (3 * sm2))))
-
-test_that("check distributive properties for matrices",
-{
-    expect_equal((m3 %*% (m2 + m)),
-    ((m3 %*% m2) + (m3 %*% m)))
-    expect_equal(((m2 + m) %*% m),
-    ((m2 %*% m) + (m %*% m)))
-    expect_equal((2 * (m2 + m)),
-    ((2 * m2) + (2 * m)))  
-    expect_equal(((2 + 3) *m),
-    ((2 * m) + (3 * m)))
-})
-
-
-############################################################ 
-##  Vectors
-
-
-test_that("selection of entire vector",
-{
-    expect_true(
-        is.FLVector(
-            v1[]
-        ))
-    expect_true(length(v1[])==length(v1))
-})
-
-test_that("selection of part of vector",
-{
-    expect_true(
-        is.FLVector(
-            v1[2:3]
-        ))
-    expect_true(length(v1[2:3])==2)
-})
-
-test_that("selection of an element from a vector",
-{
-    expect_true(
-        is.FLVector(
-            v1[2]
-        ))
-    expect_true(length(v1[2])==1)
-})
-
-test_that("check vector addition/subtraction",
-{
-    v1 + v1
-    v2 - v2 
-})
-
-test_that("check sum of vectors",
-          expect_equal(
-          ((v2 + v2) == 2*v2),
-          TRUE
-          ))
-
-
-
-test_that("check two scalar multiplication for vectors",
-          expect_equal(
-          ( ((2 * 3) * v1) == (2 * (3 * v1)) ),
-          TRUE
-          ))
-
-test_that("check scalar multiplication for matrices",
-          expect_equal(
-          ( ((2 * m) %*% m2) == (2 * (m %*% m2)) ),
-          TRUE
-          ))

@@ -21,6 +21,10 @@ length.FLMatrix <- function(obj)
 {
 	return(dim(obj)[1]*dim(obj)[2])
 }
+length.FLMatrixBind <- function(obj)
+{
+	return(dim(obj)[1]*dim(obj)[2])
+}
 
 #' computes the length of FLSparseMatrix object.
 #' @param obj is a FLSparseMatrix object.

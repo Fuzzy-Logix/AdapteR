@@ -34,11 +34,11 @@ NULL
 	## {
     ##     stop("FLVector, drop?")
 	## 	if(rows>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
-	## 	return(sqlQuery(connection,paste0(" SELECT ",object@variables$value,
+	## 	return(sqlQuery(connection,paste0(" SELECT ",getVariables(object)$valueColumn,
     ##                                       " FROM ",remoteTable(object),
     ##                                       constructWhere(
     ##                                           constraintsSQL(object)),
-    ##                                       " ORDER BY ",object@matrix_id_colname,",",object@variables$colId,",",object@variables$rowId))[[1]][rows])
+    ##                                       " ORDER BY ",object@matrix_id_colname,",",getVariables(object)$colIdColumn,",",getVariables(object)$rowIdColumn))[[1]][rows])
 	## }
     if(is.numeric(rows))
     ##     newrownames <- match(object@dimnames[[1]][rows],object@dimnames[[1]])
@@ -62,40 +62,25 @@ NULL
     if(missing(cols)) 
     {
         if (missing(rows)) return(object)
-        else return(FLMatrix(
-                 connection = getConnection(object), 
-                 database = object@db_name, 
-                 matrix_table = object@table_name, 
-                 row_id_colname = object@variables$rowId, 
-                 col_id_colname = object@variables$colId, 
-                 cell_val_colname = object@variables$value,
-                 whereconditions = object@whereconditions,
+        else return(restrictFLMatrix(
+                 object = object,
+                 whereconditions = object@select@whereconditions,
                  dimnames = list(newrownames,
                                  object@dimnames[[2]]),
                  conditionDims=c(TRUE,FALSE)))
     }
     else { ## !missing(cols)
         if(missing(rows)) {
-            return(FLMatrix(
-                connection = getConnection(object), 
-                database = object@db_name, 
-                matrix_table = object@table_name, 
-                row_id_colname = object@variables$rowId, 
-                col_id_colname = object@variables$colId, 
-                cell_val_colname = object@variables$value,
-                whereconditions = object@whereconditions,
+            return(restrictFLMatrix(
+                object = object,
+                whereconditions = object@select@whereconditions,
                 dimnames = list(object@dimnames[[1]],
                                 newcolnames),
                 conditionDims=c(FALSE,TRUE)))
         } else {  ## !missing(cols) and !missing(rows)
-            return(FLMatrix(
-                connection = getConnection(object), 
-                database = object@db_name, 
-                matrix_table = object@table_name, 
-                row_id_colname = object@variables$rowId, 
-                col_id_colname = object@variables$colId, 
-                cell_val_colname = object@variables$value, 
-                whereconditions = object@whereconditions,
+            return(restrictFLMatrix(
+                object = object,
+                whereconditions = object@select@whereconditions,
                 dimnames = list(newrownames,
                                 newcolnames),
                 conditionDims=c(TRUE,TRUE)))
@@ -141,7 +126,7 @@ NULL
                 object@whereconditions <- c(object@whereconditions,
                                             inCondition(paste0(object@db_name,".",
                                                                object@table_name,".",
-                                                               object@variables$obs_id_colname),
+                                                               getVariables(object)$obs_id_colname),
                                                         newrownames))
             object@dimnames = list(newrownames,
                                    object@dimnames[[2]])
@@ -157,7 +142,7 @@ NULL
                 c(object@whereconditions,
                   inCondition(paste0(object@db_name,".",
                                      object@table_name,".",
-                                     object@variables$var_id_colname),
+                                     getVariables(object)$var_id_colname),
                               object@dimnames[[2]]))
         } 
     } else {  ## !missing(cols) and !missing(rows)
@@ -167,14 +152,14 @@ NULL
             c(object@whereconditions,
               inCondition(paste0(object@db_name,".",
                                  object@table_name,".",
-                                 object@variables$obs_id_colname),
+                                 getVariables(object)$obs_id_colname),
                           newrownames))
         if(object@isDeep & !setequal(object@dimnames[[2]], newcolnames)){
             object@whereconditions <-
                 c(object@whereconditions,
                   inCondition(paste0(object@db_name,".",
                                      object@table_name,".",
-                                     object@variables$var_id_colname),
+                                     getVariables(object)$var_id_colname),
                               newcolnames))
         }
         object@dimnames = list(newrownames, newcolnames)
@@ -214,7 +199,7 @@ NULL
         c(object@whereconditions,
           inCondition(paste0(object@db_name,".",
                              object@table_name,".",
-                             object@variables$obs_id_colname),
+                             getVariables(object)$obs_id_colname),
                       newrownames))
     object@dimnames[[1]] <- newrownames
     return(object)

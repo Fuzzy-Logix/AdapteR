@@ -110,7 +110,7 @@ NULL
 	}
 }
 
-`%*%.FLMatrix` <- function(flmatobj1, flmatobj2)
+crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 {
 	ncol1 <- ncol(flmatobj1)
 	
@@ -121,34 +121,33 @@ NULL
 		if(ncol1 != nrow2)
 		stop("non-conformable dimensions")
 
-		flag1Check(flmatobj1@odbc_connection)
+		flag1Check(getConnection(flmatobj1))
 
+        ##gk: refactor to not store!
 		vSqlStr<-paste0(" INSERT INTO ",
-						getRemoteTableName(result_db_name,result_matrix_table),
-						" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-								 a.",flmatobj1@variables$rowId," AS ROW_ID ,
-								 b.",flmatobj2@variables$colId," AS COL_ID , 
-								 SUM(a.",flmatobj1@variables$value,"*b.",flmatobj2@variables$value,") AS CELL_VAL 
-								 FROM ",remoteTable(flmatobj1)," a,",
-								 		remoteTable(flmatobj2)," b ",
-								 constructWhere(c(constraintsSQL(flmatobj1,"a"),
-			 		  				constraintsSQL(flmatobj2,"b"),
-			 		  				paste0(" a.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$rowId))),
-			 		  					" GROUP BY 1,2,3")
+                        getRemoteTableName(result_db_name,result_matrix_table),
+                        " SELECT ",max_matrix_id_value," AS MATRIX_ID ,
+								 a.rowIdColumn AS ROW_ID ,
+								 b.colIdColumn AS COL_ID , 
+								 FLSUMPROD(a.valueColumn,b.valueColumn) AS CELL_VAL 
+								 FROM (",constructSelect(flmatobj1),") AS a,
+                                      (",constructSelect(flmatobj2),") AS b ",
+                        constructWhere("a.colIdColumn = b.rowIdColumn"),
+                        " GROUP BY ROW_ID,COL_ID")
 						
-		sqlSendUpdate(flmatobj1@odbc_connection, vSqlStr)
+		sqlSendUpdate(getConnection(flmatobj1), vSqlStr)
 
 		MID <- max_matrix_id_value	
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		return(FLMatrix( 
-		       connection = flmatobj1@odbc_connection, 
+		       connection = getConnection(flmatobj1), 
 		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = MID,
 			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "ROW_ID", 
-			   col_id_colname = "COL_ID", 
-			   cell_val_colname = "CELL_VAL",
+			   row_id_colname = "rowIdColumn", 
+			   col_id_colname = "colIdColumn", 
+			   cell_val_colname = "valueColumn",
 			   ))
 	}
 	else if(is.vector(flmatobj2))
@@ -186,24 +185,29 @@ NULL
 			
 			    # vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 							# 	" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
-							# 					a.",flmatobj1@variables$rowId," AS rid , 
+							# 					a.",flmatobj1@variables$rowIdColumn," AS rid , 
 							# 					CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
-							# 					SUM(a.",flmatobj1@variables$value,"*b.",flmatobj2@col_name,") AS cval 
+							# 					SUM(a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@col_name,") AS cval 
 							# 			 FROM ",remoteTable(flmatobj1)," a,",
 							# 			 		remoteTable(flmatobj2)," b 
 							# 			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-							# 			 AND a.",flmatobj1@variables$colId,"=b.",flmatobj2@obs_id_colname,
+							# 			 AND a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@obs_id_colname,
 							# 		    "-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 							# 		    GROUP BY 1,2,3",") c ",
-							#     " SET ",vTempFlm@variables$value,"= c.cval ",
+							#     " SET ",vTempFlm@variables$valueColumn,"= c.cval ",
 							#     " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
-							#       AND ",vTempFlm@variables$rowId,"= c.rid 
-							#       AND ",vTempFlm@variables$colId,"= c.cid")
+							#       AND ",vTempFlm@variables$rowIdColumn,"= c.rid 
+							#       AND ",vTempFlm@variables$colIdColumn,"= c.cid")
 			
 			return(flmatobj1 %*% flmatobj2)
 		}
 	else stop("Operation Currently Not Supported")
 }
+
+`%*%.FLMatrixBind` <- crossProdFLMatrix
+    
+`%*%.FLMatrix` <- crossProdFLMatrix
+
 
 `%*%.FLVector` <- function(pObj1,pObj2)
 {
@@ -239,17 +243,17 @@ NULL
 							# 	" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
 							# 					b.",flmatobj2@obs_id_colname,
 							# 				    "-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1) as INT) * 1) AS rid , 
-							# 				    a.",flmatobj1@variables$colId," AS cid , 
-							# 				    SUM(a.",flmatobj1@variables$value,"*b.",flmatobj2@col_name,") AS cval 
+							# 				    a.",flmatobj1@variables$colIdColumn," AS cid , 
+							# 				    SUM(a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@col_name,") AS cval 
 							# 			 FROM ",remoteTable(flmatobj1)," a,",
 							# 			 		remoteTable(flmatobj2)," b 
 							# 			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-							# 			 AND a.",flmatobj1@variables$rowId,"= CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1)+1 as INT) 
+							# 			 AND a.",flmatobj1@variables$rowIdColumn,"= CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1)+1 as INT) 
 							# 			 GROUP BY 1,2,3",") c ",
-							#     " SET ",vTempFlm@variables$value,"= c.cval ",
+							#     " SET ",vTempFlm@variables$valueColumn,"= c.cval ",
 							#     " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
-							#       AND ",vTempFlm@variables$rowId,"= c.rid 
-							#       AND ",vTempFlm@variables$colId,"= c.cid"))
+							#       AND ",vTempFlm@variables$rowIdColumn,"= c.rid 
+							#       AND ",vTempFlm@variables$colIdColumn,"= c.cid"))
 
 		return(pObj1 %*% pObj2)
 	}

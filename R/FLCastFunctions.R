@@ -109,7 +109,7 @@ as.matrix.FLMatrix <- function(object,sparse=FALSE) {
                 ncol(m),
                 dimnames=dn)
 }
-as.matrix.FLUnionMatrix <- as.matrix.FLMatrix
+as.matrix.FLMatrixBind <- as.matrix.FLMatrix
 
 ## setGeneric("as.matrix", function(object){
 ##     standardGeneric("as.matrix")
@@ -172,7 +172,7 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                                    getRemoteTableName(
                                        result_db_name,
                                        result_matrix_table),
-                                   " (matrix_id, row_id, col_id, cell_val) VALUES (",
+                                   " (matrix_id, rowIdColumn, colIdColumn, valueColumn) VALUES (",
                                    paste0(c(max_matrix_id_value,r), collapse=", "),
                                    ");"))
         ##flag1Check(connection)
@@ -196,9 +196,9 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                    matrix_table = result_matrix_table,
                    matrix_id_value = max_matrix_id_value-1,
                    matrix_id_colname = "MATRIX_ID",
-                   row_id_colname = "ROW_ID",
-                   col_id_colname = "COL_ID",
-                   cell_val_colname = "CELL_VAL",
+                   row_id_colname = "rowIdColumn",
+                   col_id_colname = "colIdColumn",
+                   cell_val_colname = "valueColumn",
                    dimnames = mydims))
     }
 }
@@ -291,31 +291,41 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
 
 as.sparseMatrix.FLMatrix <- function(object) {
   valuedf <- sqlQuery(getConnection(object), constructSelect(object))
-  i <- match(valuedf[[2]],rownames(object))
-  j <- match(valuedf[[3]],colnames(object))
+  i <- match(valuedf$rowIdColumn,rownames(object))
+  j <- match(valuedf$colIdColumn,colnames(object))
   if(any(is.na(i)) | any(is.na(j)))
       stop("matrix rowname mapping needs to be implemented")
   
   dn <- dimnames(object)
-    for(index in 1:2)
+  for(index in 1:2){
         if(!is.null(dn[[index]])){
             if(all(dn[[index]]==as.character(1:(dim(object)[[index]]))))
                 dn[index] <- list(NULL)
         }
-    ##browser()
-
-    if(is.null(dn[[1]]) & is.null(dn[[2]]))
-        m <- sparseMatrix(i = i,
-                          j = j,
-                          x = valuedf[[4]],
-                          dims = dim(object))
-    else
-        m <- sparseMatrix(i = i,
-                          j = j,
-                          x = valuedf[[4]],
-                          dims = dim(object),
-                          dimnames = dn)
-    return(m)
+      ##gk: fix this, currently dimnames needed
+      if(is.null(dn[[index]]))
+          dn[[index]] <- 1:dim(object)[[index]]
+  }
+ ##browser()
+  values <- valuedf$valueColumn
+  if(is.null(values))
+      m <- sparseMatrix(i = i,
+                        j = j,
+                        x = i,
+                        dims = dim(object),
+                        dimnames = dn)
+  else if(is.null(dn[[1]]) & is.null(dn[[2]]))
+      m <- sparseMatrix(i = i,
+                        j = j,
+                        x = values,
+                        dims = dim(object))
+  else
+      m <- sparseMatrix(i = i,
+                        j = j,
+                        x = values,
+                        dims = dim(object),
+                        dimnames = dn)
+  return(m)
 }
 
 as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=TRUE,rows=length(object),cols=1)
@@ -441,9 +451,9 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   sqlstr <- paste0(" INSERT INTO ",
                     getRemoteTableName(result_db_name,result_vector_table),
                    " SELECT ",max_vector_id_value,
-                   ", ROW_NUMBER() OVER (ORDER BY a.",object@variables$colId,
-                   ",a.",object@variables$rowId,") AS ROW_NUM
-                   ,a.",object@variables$value,
+                   ", ROW_NUMBER() OVER (ORDER BY a.",getVariables(object)$colIdColumn,
+                   ",a.",getVariables(object)$rowIdColumn,") AS ROW_NUM
+                   ,a.",getVariables(object)$valueColumn,
                    " FROM ",remoteTable(object)," a ",
                    constructWhere(constraintsSQL(object,localName="a")))
 

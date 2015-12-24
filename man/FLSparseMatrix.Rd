@@ -5,8 +5,8 @@
 \title{Constructor function for FLSparseMatrix.}
 \usage{
 FLSparseMatrix(connection, database, matrix_table, matrix_id_value,
-  matrix_id_colname = "MATRIX_ID", row_id_colname = "ROW_ID",
-  col_id_colname = "COL_ID", cell_val_colname = "CELL_VAL",
+  matrix_id_colname = "MATRIX_ID", row_id_colname = "rowIdColumn",
+  col_id_colname = "colIdColumn", cell_val_colname = "valueColumn",
   dimnames = list(c(), c()))
 }
 \arguments{

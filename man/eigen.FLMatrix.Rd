@@ -29,7 +29,7 @@ library(RODBC)
 connection <- odbcConnect("Gandalf")
 flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 resultList <- eigen(flmatrix)
-resultList$values
+resultList$valueColumns
 resultList$vectors
 }
 

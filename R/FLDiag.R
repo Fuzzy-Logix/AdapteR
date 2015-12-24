@@ -45,12 +45,12 @@ diag.FLMatrix<-function(object)
 	table <- FLTable(connection,
 		             object@db_name,
 		             object@table_name,
-		             object@variables$rowId,
+		             getVariables(object)$rowId,
 		             whereconditions=c(object@whereconditions,
-		             	paste0(getRemoteTableName(object@db_name,object@table_name),".",object@variables$rowId,
-		             		"=",getRemoteTableName(object@db_name,object@table_name),".",object@variables$colId)))
+		             	paste0(getRemoteTableName(object@db_name,object@table_name),".",getVariables(object)$rowId,
+		             		"=",getRemoteTableName(object@db_name,object@table_name),".",getVariables(object)$colId)))
 
-	return(table[,object@variables$value])
+	return(table[,getVariables(object)$value])
 }
 
 diag.FLVector <- function(object)
@@ -82,10 +82,9 @@ diag.FLVector <- function(object)
 		 	        matrix_table = result_matrix_table, 
 		 	        matrix_id_value = MID,
 			        matrix_id_colname = "MATRIX_ID", 
-			        row_id_colname = "ROW_ID", 
-			        col_id_colname = "COL_ID", 
-			        cell_val_colname = "CELL_VAL"
-			        ))
+			        row_id_colname = "rowIdColumn", 
+			        col_id_colname = "colIdColumn", 
+			        cell_val_colname = "valueColumn"))
 	
 	}
 	else if(length(object)>1)
@@ -97,9 +96,9 @@ diag.FLVector <- function(object)
 		 	        matrix_table = object@table_name, 
 		 	        matrix_id_value = "",
 			        matrix_id_colname = "", 
-			        row_id_colname = object@variables$obs_id_colname, 
-			        col_id_colname = object@variables$obs_id_colname, 
-			        cell_val_colname = object@variables$cell_val_colname,
+			        row_id_colname = getVariables(object)$obs_id_colname, 
+			        col_id_colname = getVariables(object)$obs_id_colname, 
+			        cell_val_colname = getVariables(object)$cell_val_colname,
 			        whereconditions = object@whereconditions
 			        ))
 
@@ -139,8 +138,8 @@ diag.FLVector <- function(object)
 				 	        matrix_table = object@table_name, 
 				 	        matrix_id_value = "",
 					        matrix_id_colname = "", 
-					        row_id_colname = object@variables$obs_id_colname, 
-					        col_id_colname = object@variables$obs_id_colname, 
+					        row_id_colname = getVariables(object)$obs_id_colname, 
+					        col_id_colname = getVariables(object)$obs_id_colname, 
 					        cell_val_colname = object@dimnames[[2]],
 					        whereconditions = object@whereconditions
 					        ))

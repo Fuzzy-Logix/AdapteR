@@ -202,8 +202,8 @@ FLStartSession <- function(connection,
 				     CHECKSUM = DEFAULT,
 				     DEFAULT MERGEBLOCKRATIO")
 {
+    result_db_name <<- db_name
 ##    browser()
-	
 	result_db_name <<- db_name
 	result_matrix_table <<- gen_table_name("tblMatrixMultiResult",persistent)
 	result_Sparsematrix_table <<- gen_table_name("tblMatrixMultiSparseResult",persistent)
@@ -212,11 +212,10 @@ FLStartSession <- function(connection,
         paste0("SET ROLE ALL;"))
     sqlSendUpdate(connection, sendqueries)
 
-    # options(result_db_name = db_name)
-    # options(result_matrix_table = gen_table_name("tblMatrixMultiResult",persistent))
 
     max_matrix_id_value <<- 0
-    max_Sparsematrix_id_value <<- 0
+    ##max_matrix_id_value <<- max_matrix_id_value + 1
+
     max_vector_id_value <<- 0
     ##max_vector_id_value <- max_vector_id_value + 1
     result_vector_table <<- gen_table_name("tblVectorResult",persistent)
@@ -239,20 +238,20 @@ FLStartSession <- function(connection,
                tableoptions,
 				"     (
 				      MATRIX_ID INTEGER,
-				      ROW_ID INTEGER,
-				      COL_ID INTEGER,
-				      CELL_VAL FLOAT)
-                     PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"),
+				      rowIdColumn INTEGER,
+					  colIdColumn INTEGER,
+					  valueColumn FLOAT)
+	    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
         paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
                result_Sparsematrix_table,
                tableoptions,
                "
 				     (
 				      MATRIX_ID INTEGER,
-				      ROW_ID INTEGER,
-				      COL_ID INTEGER,
-				      CELL_VAL FLOAT)
-	    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"),
+				      rowIdColumn INTEGER,
+					  colIdColumn INTEGER,
+					  valueColumn FLOAT)
+	    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
         paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
                result_vector_table,
                tableoptions,
@@ -280,10 +279,10 @@ flag1Check <- function(connection)
 							     DEFAULT MERGEBLOCKRATIO
 							     (
 							      MATRIX_ID INTEGER,
-							      ROW_ID INTEGER,
-							      COL_ID INTEGER,
-							      CELL_VAL FLOAT)
-				    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+							      rowIdColumn INTEGER,
+							      colIdColumn INTEGER,
+							      valueColumn FLOAT)
+				    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn);"))
 
 	 	if(temp!="No Data" || length(temp)!=1) 
 	 	{

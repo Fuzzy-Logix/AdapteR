@@ -107,52 +107,52 @@ NULL
 		sqlstr <-paste0(" INSERT INTO ",
 				 		getRemoteTableName(result_db_name,result_matrix_table),
 						" SELECT DISTINCT ",max_matrix_id_value,",
-								 a.",flmatobj1@variables$rowId,",
-								 a.",flmatobj1@variables$colId,",
-								 a.",flmatobj1@variables$value,
+								 a.",flmatobj1@variables$rowIdColumn,",
+								 a.",flmatobj1@variables$colIdColumn,",
+								 a.",flmatobj1@variables$valueColumn,
 						" FROM ",remoteTable(flmatobj1)," a ",
 						constructWhere(constraintsSQL(flmatobj1,"a")),
 			            " except ",
 			            "SELECT ",max_matrix_id_value,",
-			            		a.",flmatobj1@variables$rowId,",
-			            		a.",flmatobj1@variables$colId,",
-			            		a.",flmatobj1@variables$value,
+			            		a.",flmatobj1@variables$rowIdColumn,",
+			            		a.",flmatobj1@variables$colIdColumn,",
+			            		a.",flmatobj1@variables$valueColumn,
 			            " FROM ",remoteTable(flmatobj1)," a, ",
 			            		 remoteTable(flmatobj2)," b ",
 			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
 					 		  	constraintsSQL(flmatobj2,"b"),
-					 		  	paste0("a.",flmatobj1@variables$rowId,"=b.",flmatobj2@variables$rowId),
-					 		  	paste0("a.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$colId))),
+					 		  	paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
+					 		  	paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))),
 			            " UNION ALL ",
 			            "SELECT DISTINCT ",max_matrix_id_value,",
-			            		b.",flmatobj2@variables$rowId,",
-			            		b.",flmatobj2@variables$colId,",
-			            		b.",flmatobj2@variables$value,"*(-1) 
+			            		b.",flmatobj2@variables$rowIdColumn,",
+			            		b.",flmatobj2@variables$colIdColumn,",
+			            		b.",flmatobj2@variables$valueColumn,"*(-1) 
 			             FROM ",remoteTable(flmatobj2)," b ",
 			            constructWhere(constraintsSQL(flmatobj2,"b")),
 			            " except ",
 			            "SELECT ",max_matrix_id_value,",
-			            		b.",flmatobj2@variables$rowId,",
-			            		b.",flmatobj2@variables$colId,",
-			            		b.",flmatobj2@variables$value,"*(-1) 
+			            		b.",flmatobj2@variables$rowIdColumn,",
+			            		b.",flmatobj2@variables$colIdColumn,",
+			            		b.",flmatobj2@variables$valueColumn,"*(-1) 
 			             FROM ",remoteTable(flmatobj1)," a, ",
 			            		 remoteTable(flmatobj2)," b ",
 			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
 					 		  	constraintsSQL(flmatobj2,"b"),
-					 		  	paste0("a.",flmatobj1@variables$rowId,"=b.",flmatobj2@variables$rowId),
-					 		  	paste0("a.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$colId))),
+					 		  	paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
+					 		  	paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))),
 			            " UNION ALL ",
 			            " SELECT ",max_matrix_id_value,",
-			            		a.",flmatobj1@variables$rowId,",
-			            		a.",flmatobj1@variables$colId,",
-			            		a.",flmatobj1@variables$value,"-b.",
-			            		flmatobj2@variables$value,
+			            		a.",flmatobj1@variables$rowIdColumn,",
+			            		a.",flmatobj1@variables$colIdColumn,",
+			            		a.",flmatobj1@variables$valueColumn,"-b.",
+			            		flmatobj2@variables$valueColumn,
 			            " FROM ",remoteTable(flmatobj1)," a, ",
 			            		 remoteTable(flmatobj2)," b ",
 			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
 					 		  	constraintsSQL(flmatobj2,"b"),
-					 		  	paste0("a.",flmatobj1@variables$rowId,"=b.",flmatobj2@variables$rowId),
-					 		  	paste0("a.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$colId))))
+					 		  	paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
+					 		  	paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))))
 
 		sqlSendUpdate(flmatobj1@odbc_connection,sqlstr)
 		MID <- max_matrix_id_value	
@@ -163,9 +163,9 @@ NULL
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = MID,
 			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "ROW_ID", 
-			   col_id_colname = "COL_ID", 
-			   cell_val_colname = "CELL_VAL",
+			   row_id_colname = "rowIdColumn", 
+			   col_id_colname = "colIdColumn", 
+			   cell_val_colname = "valueColumn",
 			   ))
 	}
 	else if(is.vector(flmatobj2))
@@ -192,33 +192,33 @@ NULL
 			# sqlstr0 <-paste0(" UPDATE ",
 			# 				remoteTable(flmatobj2),
 			# 		        " FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
-			# 		        				a.",flmatobj2@variables$rowId," AS rid,
-			# 		        				a.",flmatobj2@variables$colId," AS cid,
-			# 		        				a.",flmatobj2@variables$value,"*(-1) AS cval 
+			# 		        				a.",flmatobj2@variables$rowIdColumn," AS rid,
+			# 		        				a.",flmatobj2@variables$colIdColumn," AS cid,
+			# 		        				a.",flmatobj2@variables$valueColumn,"*(-1) AS cval 
 			# 		        		 FROM ",remoteTable(flmatobj2)," a ",
 			# 		        		 constructWhere(constraintsSQL(flmatobj2,"a")),") c ",
-			# 		        " SET ",flmatobj2@variables$value,"= c.cval ",
+			# 		        " SET ",flmatobj2@variables$valueColumn,"= c.cval ",
 			# 		        constructWhere(c(paste0(flmatobj2@matrix_id_colname,"= c.mid "),
-			# 		        	paste0(flmatobj2@variables$rowId,"= c.rid "),
-			# 		        	paste0(flmatobj2@variables$colId,"= c.cid "))))
+			# 		        	paste0(flmatobj2@variables$rowIdColumn,"= c.rid "),
+			# 		        	paste0(flmatobj2@variables$colIdColumn,"= c.cid "))))
 			# sqlstr1 <-paste0(" UPDATE ",
 			# 				remoteTable(flmatobj2),
 			# 				" FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
-			# 								a.",flmatobj1@variables$rowId," AS rid,
-			# 								a.",flmatobj1@variables$colId," AS cid,
-			# 								a.",flmatobj1@variables$value,"+b.",
-			# 			            			flmatobj2@variables$value," AS cval 
+			# 								a.",flmatobj1@variables$rowIdColumn," AS rid,
+			# 								a.",flmatobj1@variables$colIdColumn," AS cid,
+			# 								a.",flmatobj1@variables$valueColumn,"+b.",
+			# 			            			flmatobj2@variables$valueColumn," AS cval 
 			# 			             FROM ",remoteTable(flmatobj1)," a, ",
 			# 			             		remoteTable(flmatobj2)," b ",
 			# 			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
 			# 		 		  		constraintsSQL(flmatobj2,"b"),
-			# 		 		  		paste0("a.",flmatobj1@variables$rowId,"=b.",flmatobj2@variables$rowId),
-			# 		 		  		paste0("a.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$colId))),
+			# 		 		  		paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
+			# 		 		  		paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))),
 			# 			            ") c ",
-			# 				" SET ",flmatobj2@variables$value,"= c.cval ",
+			# 				" SET ",flmatobj2@variables$valueColumn,"= c.cval ",
 			# 				constructWhere(c(paste0(flmatobj2@matrix_id_colname,"= c.mid "),
-			# 		        	paste0(flmatobj2@variables$rowId,"= c.rid "),
-			# 		        	paste0(flmatobj2@variables$colId,"= c.cid "))))
+			# 		        	paste0(flmatobj2@variables$rowIdColumn,"= c.rid "),
+			# 		        	paste0(flmatobj2@variables$colIdColumn,"= c.cid "))))
 
 			# sqlstr <- paste(sqlstr0,sqlstr1,sep=";")
 			# sqlSendUpdate(flmatobj1@odbc_connection,sqlstr)
@@ -255,20 +255,20 @@ NULL
 		# sqlstr <-paste0(" UPDATE ",
 		# 				remoteTable(flmatobj2),
 		# 		        " FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
-		# 		        				a.",flmatobj1@variables$rowId," AS rid,
-		# 		        				a.",flmatobj1@variables$colId," AS cid,
-		# 		        				b.",flmatobj2@variables$value,"-a.",flmatobj1@variables$value," AS cval 
+		# 		        				a.",flmatobj1@variables$rowIdColumn," AS rid,
+		# 		        				a.",flmatobj1@variables$colIdColumn," AS cid,
+		# 		        				b.",flmatobj2@variables$valueColumn,"-a.",flmatobj1@variables$valueColumn," AS cval 
 		# 		        		 FROM ",remoteTable(flmatobj1)," a, ",
 		# 		        		 		remoteTable(flmatobj2)," b ",
 		# 		        		 constructWhere(c(constraintsSQL(flmatobj1,"a"),
 		# 			 		  		constraintsSQL(flmatobj2,"b"),
-		# 			 		  		paste0("a.",flmatobj1@variables$rowId,"=b.",flmatobj2@variables$rowId),
-		# 			 		  		paste0("a.",flmatobj1@variables$colId,"=b.",flmatobj2@variables$colId))),
+		# 			 		  		paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
+		# 			 		  		paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))),
 		# 		        		 ") c ",
-		# 				" SET ",flmatobj2@variables$value,"= c.cval ",
+		# 				" SET ",flmatobj2@variables$valueColumn,"= c.cval ",
 		# 				constructWhere(c(paste0(flmatobj2@matrix_id_colname,"= c.mid "),
-		# 			        	paste0(flmatobj2@variables$rowId,"= c.rid "),
-		# 			        	paste0(flmatobj2@variables$colId,"= c.cid "))))
+		# 			        	paste0(flmatobj2@variables$rowIdColumn,"= c.rid "),
+		# 			        	paste0(flmatobj2@variables$colIdColumn,"= c.cid "))))
 
 		# sqlQuery(flmatobj1@odbc_connection,sqlstr)
 		return(flmatobj2-flmatobj1)

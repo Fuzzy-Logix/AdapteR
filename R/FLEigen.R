@@ -29,7 +29,7 @@ eigen.default<-base::eigen
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultList <- eigen(flmatrix)
-#' resultList$values
+#' resultList$valueColumns
 #' resultList$vectors
 #' @export
 
@@ -107,8 +107,8 @@ FLEigenVectors.FLMatrix<-function(object)
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = max_matrix_id_value-1,
 			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "ROW_ID", 
-			   col_id_colname = "COL_ID", 
-			   cell_val_colname = "CELL_VAL",
+			   row_id_colname = "rowIdColumn", 
+			   col_id_colname = "colIdColumn", 
+			   cell_val_colname = "valueColumn",
 			   ))
 }

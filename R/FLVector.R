@@ -35,7 +35,7 @@ FLVector <- function(table,
         if(length(val_col_name)) { ## column vector deep table
             V <- new("FLVector",
                      table = table, 
-                     val_col_name = table@variables$value,
+                     val_col_name = table@variables$valueColumn,
                      whereconditions = c(whereconditions,
                                          equalityConstraint(
                                              table@var_id_colname,val_col_name)))
@@ -43,7 +43,7 @@ FLVector <- function(table,
         } else if(length(val_row_name)) { ## column vector deep table
             V <- new("FLVector",
                      table = table, 
-                     val_col_name = table@variables$value,
+                     val_col_name = table@variables$valueColumn,
                      whereconditions = c(whereconditions,
                                          equalityConstraint(
                                              table@obs_id_colname,val_row_name)))

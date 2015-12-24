@@ -325,9 +325,9 @@ centers.FLKMeans<-function(object)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn",
 				   nrow = object@no_of_centers, 
 				   ncol = ncol, 
 				   dimnames = list(c(),c()))

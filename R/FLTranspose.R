@@ -24,19 +24,22 @@ t<-function(x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' resultFLMatrix <- t(flmatrix)
 #' @export
-t.FLMatrix<-function(object)
-{
-	return(
-	FLMatrix( 
-		connection = getConnection(object), 
-		database = object@db_name, 
-		matrix_table = object@table_name, 
-		matrix_id_value = "",
-		matrix_id_colname = object@variables$matrixId, 
-		row_id_colname = object@variables$colId, 
-		col_id_colname = object@variables$rowId, 
-		cell_val_colname = object@variables$value, 
-		dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
-        whereconditions=object@whereconditions)
-	)
+t.FLMatrix<-function(object){
+	return(FLMatrix( 
+            connection = getConnection(object), 
+            database = object@db_name, 
+            matrix_table = object@table_name, 
+            matrix_id_value = "",
+            matrix_id_colname = getVariables(object)$matrixId, 
+            row_id_colname = getVariables(object)$colIdColumn, 
+            col_id_colname = getVariables(object)$rowIdColumn, 
+            cell_val_colname = getVariables(object)$valueColumn, 
+            dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
+            whereconditions=object@whereconditions)
+            )
+}
+
+t.FLMatrixBind<-function(object){
+    ## gk: todo: design deep row/column index swap
+    return(t(store(object)))
 }

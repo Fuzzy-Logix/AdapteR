@@ -43,9 +43,9 @@ FLSV.FLMatrix<-function(object)
 					# result_db_name,".",result_vector_table,
 				 #   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
 					# AS (SELECT a.",object@matrix_id_colname,", 
-					# 		   a.",object@variables$rowId,", 
-					# 		   a.",object@variables$colId,",
-					# 		   a.",object@variables$value," 
+					# 		   a.",getVariables(object)$rowIdColumn,", 
+					# 		   a.",getVariables(object)$colIdColumn,",
+					# 		   a.",getVariables(object)$valueColumn," 
 					# 	FROM  ",remoteTable(object)," a 
 					# 	WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value,") 
 					# SELECT ",max_vector_id_value,
@@ -77,7 +77,7 @@ FLSV.FLMatrix<-function(object)
 
 	# new("FLVector", 
 	# 	table = table, 
-	# 	col_name = table@variables$value, 
+	# 	col_name = table@variables$valueColumn, 
 	# 	vector_id_value = max_vector_id_value-1, 
 	# 	size = nrow(object))
 }
