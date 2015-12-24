@@ -120,22 +120,29 @@ setClass(
 setGeneric("getVariables", function(object) {
     standardGeneric("getVariables")
 })
-setMethod("getVariables", signature(object = "FLTableQuery"),
-          function(object) getVariables(object))
-setMethod("getVariables", signature(object = "FLMatrix"),
+setMethod("getVariables",
+          signature(object = "FLTableQuery"),
+          function(object) object@variables)
+setMethod("getVariables",
+          signature(object = "FLMatrix"),
           function(object) getVariables(object@select))
 
 ## gk: localName maybe needs adding
 setGeneric("constructSelect", function(object,localName) {
     standardGeneric("constructSelect")
 })
-setMethod("constructSelect", signature(object = "FLMatrix",
-                                       localName="character"),
+setMethod("constructSelect",
+          signature(object = "FLMatrix",
+                    localName="character"),
           function(object,localName)
               constructSelect(object@select,localName))
-setMethod("constructSelect", signature(object = "FLMatrix",localName="missing"),
+setMethod("constructSelect",
+          signature(object = "FLMatrix",
+                    localName="missing"),
           function(object) constructSelect(object,""))
-setMethod("constructSelect", signature(object = "FLTable"),
+
+setMethod("constructSelect",
+          signature(object = "FLTable"),
           function(object) {
               if(!object@isDeep) {
                   return(paste0("SELECT ",
@@ -156,6 +163,7 @@ setMethod("constructSelect", signature(object = "FLTable"),
                                 "\n"))
               }
           })
+
 setMethod("constructSelect", signature(object = "FLVector"),
           function(object) {
               if(!object@isDeep) {
@@ -179,7 +187,8 @@ setMethod("constructSelect", signature(object = "FLVector"),
           })
 
 setMethod(
-    "constructSelect", signature(object = "FLSelectFrom"),
+    "constructSelect",
+    signature(object = "FLSelectFrom"),
     function(object) {
         variables <- getVariables(object)
         if(is.null(names(variables)))

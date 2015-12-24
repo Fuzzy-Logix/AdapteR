@@ -44,17 +44,17 @@ NULL
 {
 	if(is.FLMatrix(flmatobj1))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj2*flmatobj1
 	}
 	else if(is.FLSparseMatrix(flmatobj1))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj1*flmatobj2
 	}
 	else if(is.FLVector(flmatobj1))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj2*flmatobj1
 	}
 	else 
@@ -74,24 +74,24 @@ NULL
 	{
 		if(nrow(flmatobj1) == nrow(flmatobj2) && ncol(flmatobj1) == ncol(flmatobj2))
 		{
-			flag1Check(flmatobj1@odbc_connection)
-			sqlSendUpdate(flmatobj1@odbc_connection,
+			flag1Check(getConnection(flmatobj1))
+			sqlSendUpdate(getConnection(flmatobj1),
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 					 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
-					 				 a.",flmatobj1@variables$rowIdColumn," AS ROW_ID ,
-					 				 a.",flmatobj1@variables$colIdColumn," AS COL_ID ,
-					 				 a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@variables$valueColumn," AS CELL_VAL 
+					 				 a.",getVariables(flmatobj1)$rowIdColumn," AS ROW_ID ,
+					 				 a.",getVariables(flmatobj1)$colIdColumn," AS COL_ID ,
+					 				 a.",getVariables(flmatobj1)$valueColumn,"*b.",getVariables(flmatobj2)$valueColumn," AS CELL_VAL 
 					 		  FROM ",remoteTable(flmatobj1)," a,",
                             remoteTable(flmatobj2)," b ",
                             constructWhere(c(
                                 constraintsSQL(flmatobj1, "a"),
                                 constraintsSQL(flmatobj2, "b"),
-                                paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
-                                paste0("b.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn)))))
+                                paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
+                                paste0("b.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn)))))
 			
 			max_matrix_id_value <<- max_matrix_id_value + 1
 			FLMatrix( 
-				connection = flmatobj1@odbc_connection, 
+				connection = getConnection(flmatobj1), 
 				database = result_db_name, 
 				matrix_table = result_matrix_table, 
 				matrix_id_value = max_matrix_id_value - 1, 
@@ -106,17 +106,17 @@ NULL
 	}
 	else if(is.vector(flmatobj2))
 	{
-		flmatobj2 <- as.FLVector(flmatobj2,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLVector(flmatobj2,getConnection(flmatobj1))
 		flmatobj1*flmatobj2
 	}
 	else if(is.matrix(flmatobj2))
 	{
-		flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 		flmatobj1*flmatobj2
 	}
 	else if(class(flmatobj2)=="dgCMatrix")
 	{
-		flmatobj2 <- as.FLSparseMatrix(flmatobj2,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLSparseMatrix(flmatobj2,getConnection(flmatobj1))
 		flmatobj2*flmatobj1
 	}
 	else if(is.FLSparseMatrix(flmatobj2))
@@ -125,18 +125,18 @@ NULL
 	}
 	else if(is.FLVector(flmatobj2))
 	{
-		flag1Check(flmatobj1@odbc_connection)
+		flag1Check(getConnection(flmatobj1))
 		if(!flmatobj2@isDeep)
 		{
-			sqlSendUpdate(flmatobj1@odbc_connection,
+			sqlSendUpdate(getConnection(flmatobj1),
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
-							  			 a.",flmatobj1@variables$rowIdColumn,",
-							  			 a.",flmatobj1@variables$colIdColumn,",
-							  			 a.",flmatobj1@variables$valueColumn,", 
-							  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@variables$colIdColumn,",
-							  			 							 a.",flmatobj1@variables$rowIdColumn,") AS ROW_NUM  
+							  			 a.",getVariables(flmatobj1)$rowIdColumn,",
+							  			 a.",getVariables(flmatobj1)$colIdColumn,",
+							  			 a.",getVariables(flmatobj1)$valueColumn,", 
+							  			 ROW_NUMBER() OVER (ORDER BY a.",getVariables(flmatobj1)$colIdColumn,",
+							  			 							 a.",getVariables(flmatobj1)$rowIdColumn,") AS ROW_NUM  
 			        			  FROM ",flmatobj1@matrix_table," a 
 			        			  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 					         SELECT ",max_matrix_id_value,",
@@ -150,15 +150,15 @@ NULL
 		}
 		else
 		{
-			sqlSendUpdate(flmatobj1@odbc_connection,
+			sqlSendUpdate(getConnection(flmatobj1),
 					 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
-							  			 a.",flmatobj1@variables$rowIdColumn,",
-							  			 a.",flmatobj1@variables$colIdColumn,",
-							  			 a.",flmatobj1@variables$valueColumn,", 
-							  			 ROW_NUMBER() OVER (ORDER BY a.",flmatobj1@variables$colIdColumn,",
-							  			 							 a.",flmatobj1@variables$rowIdColumn,") AS ROW_NUM  
+							  			 a.",getVariables(flmatobj1)$rowIdColumn,",
+							  			 a.",getVariables(flmatobj1)$colIdColumn,",
+							  			 a.",getVariables(flmatobj1)$valueColumn,", 
+							  			 ROW_NUMBER() OVER (ORDER BY a.",getVariables(flmatobj1)$colIdColumn,",
+							  			 							 a.",getVariables(flmatobj1)$rowIdColumn,") AS ROW_NUM  
 			        			 FROM ",flmatobj1@matrix_table," a 
 			        			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 					         SELECT ",max_matrix_id_value,",
@@ -173,7 +173,7 @@ NULL
 		}
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		FLMatrix( 
-			connection = flmatobj1@odbc_connection, 
+			connection = getConnection(flmatobj1), 
 			database = result_db_name, 
 			matrix_table = result_matrix_table, 
 			matrix_id_value = max_matrix_id_value - 1, 
@@ -191,17 +191,17 @@ NULL
 `*.numeric` <- function(x,obj1)
 {	if(is.FLMatrix(obj1))
 	{
-		obj2 <- as.FLMatrix(matrix(x,nrow(obj1),ncol(obj1)),obj1@odbc_connection)
+		obj2 <- as.FLMatrix(matrix(x,nrow(obj1),ncol(obj1)),getConnection(obj1))
 		obj2 * obj1
 	}
 	else if(class(obj1)=="FLSparseMatrix")
 	{
-		obj2 <- as.FLVector(x,obj1@odbc_connection)
+		obj2 <- as.FLVector(x,getConnection(obj1))
 		obj1*obj2
 	}
 	else if(class(obj1)=="FLVector")
 	{
-		obj2 <- as.FLVector(x,obj1@odbc_connection)
+		obj2 <- as.FLVector(x,getConnection(obj1))
 		obj1*obj2
 	}
 	else
@@ -225,22 +225,22 @@ NULL
 		{
 			if(is.FLSparseMatrix(flmatobj2))
 			{
-				flag2Check(flmatobj1@odbc_connection)
-				sqlSendUpdate(flmatobj1@odbc_connection,
+				flag2Check(getConnection(flmatobj1))
+				sqlSendUpdate(getConnection(flmatobj1),
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
-			            				a.",flmatobj1@variables$rowIdColumn,",
-			            				a.",flmatobj1@variables$colIdColumn,",
-			            				a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@variables$valueColumn,
+			            				a.",getVariables(flmatobj1)$rowIdColumn,",
+			            				a.",getVariables(flmatobj1)$colIdColumn,",
+			            				a.",getVariables(flmatobj1)$valueColumn,"*b.",getVariables(flmatobj2)$valueColumn,
 			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 			            				 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-			            		  AND a.",flmatobj1@variables$rowIdColumn," = b.",flmatobj2@variables$rowIdColumn," 
-			            		  AND a.",flmatobj1@variables$colIdColumn," =b.",flmatobj2@variables$colIdColumn))
+			            		  AND a.",getVariables(flmatobj1)$rowIdColumn," = b.",getVariables(flmatobj2)$rowIdColumn," 
+			            		  AND a.",getVariables(flmatobj1)$colIdColumn," =b.",getVariables(flmatobj2)$colIdColumn))
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
-					odbc_connection = flmatobj1@odbc_connection, 
+					odbc_connection = getConnection(flmatobj1), 
 					database = result_db_name, 
 					matrix_table = result_Sparsematrix_table, 
 					matrix_id_value = max_Sparsematrix_id_value - 1, 
@@ -254,40 +254,40 @@ NULL
 			}
 			else
 			{
-				flag1Check(flmatobj2@odbc_connection)
-				sqlSendUpdate(flmatobj2@odbc_connection,
+				flag1Check(getConnection(flmatobj2))
+				sqlSendUpdate(getConnection(flmatobj2),
 						 paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
 								" SELECT DISTINCT ",max_matrix_id_value,",
-										 b.",flmatobj2@variables$rowIdColumn,",
-										 b.",flmatobj2@variables$colIdColumn," ,
+										 b.",getVariables(flmatobj2)$rowIdColumn,",
+										 b.",getVariables(flmatobj2)$colIdColumn," ,
 										 0 ",
 								" FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 								  WHERE b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value,
 					            " except ",
 					            "SELECT ",max_matrix_id_value,",
-					            		b.",flmatobj2@variables$rowIdColumn,",
-					            		b.",flmatobj2@variables$colIdColumn," ,
+					            		b.",getVariables(flmatobj2)$rowIdColumn,",
+					            		b.",getVariables(flmatobj2)$colIdColumn," ,
 					            		0 
 					             FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 					             		flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 					             WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 					             AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-					             AND b.",flmatobj2@variables$rowIdColumn," = a.",flmatobj1@variables$rowIdColumn," 
-					             AND b.",flmatobj2@variables$colIdColumn,"=a.",flmatobj1@variables$colIdColumn,
+					             AND b.",getVariables(flmatobj2)$rowIdColumn," = a.",getVariables(flmatobj1)$rowIdColumn," 
+					             AND b.",getVariables(flmatobj2)$colIdColumn,"=a.",getVariables(flmatobj1)$colIdColumn,
 					            " UNION ALL ",
 								"SELECT DISTINCT ",max_matrix_id_value,",
-										a.",flmatobj1@variables$rowIdColumn,",
-										a.",flmatobj1@variables$colIdColumn,",
-										a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@variables$valueColumn,
+										a.",getVariables(flmatobj1)$rowIdColumn,",
+										a.",getVariables(flmatobj1)$colIdColumn,",
+										a.",getVariables(flmatobj1)$valueColumn,"*b.",getVariables(flmatobj2)$valueColumn,
 								"FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 										flmatobj2@db_name,".",flmatobj2@matrix_table," b 
 								WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 								AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
-								AND a.",flmatobj1@variables$rowIdColumn," = b.",flmatobj2@variables$rowIdColumn," 
-								AND a.",flmatobj1@variables$colIdColumn," =b.",flmatobj2@variables$colIdColumn))
+								AND a.",getVariables(flmatobj1)$rowIdColumn," = b.",getVariables(flmatobj2)$rowIdColumn," 
+								AND a.",getVariables(flmatobj1)$colIdColumn," =b.",getVariables(flmatobj2)$colIdColumn))
 				max_matrix_id_value <<- max_matrix_id_value + 1
 				FLMatrix( 
-					connection = flmatobj2@odbc_connection, 
+					connection = getConnection(flmatobj2), 
 					database = result_db_name, 
 					matrix_table = result_matrix_table, 
 					matrix_id_value = max_matrix_id_value - 1, 
@@ -304,56 +304,56 @@ NULL
 	}
 	else if(is.vector(flmatobj2))
 		{
-			flmatobj2 <- as.FLMatrix(matrix(flmatobj2,nrow1,ncol1),flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(matrix(flmatobj2,nrow1,ncol1),getConnection(flmatobj1))
 			flmatobj1*flmatobj2
 		}
 	else if(is.matrix(flmatobj2))
 		{
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 			flmatobj1*flmatobj2
 		}
 	else if(class(flmatobj2)=="dgCMatrix")
 		{
-			flmatobj2 <- as.FLSparseMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLSparseMatrix(flmatobj2,getConnection(flmatobj1))
 			flmatobj1*flmatobj2
 		}
 	else if(is.FLVector(flmatobj2))
 		{
-			flag2Check(flmatobj1@odbc_connection)
+			flag2Check(getConnection(flmatobj1))
 
 				if(flmatobj2@isDeep)
-				sqlSendUpdate(flmatobj1@odbc_connection,
+				sqlSendUpdate(getConnection(flmatobj1),
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
-			            				a.",flmatobj1@variables$rowIdColumn,",
-			            				a.",flmatobj1@variables$colIdColumn,",
-			            				a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@col_name,
+			            				a.",getVariables(flmatobj1)$rowIdColumn,",
+			            				a.",getVariables(flmatobj1)$colIdColumn,",
+			            				a.",getVariables(flmatobj1)$valueColumn,"*b.",flmatobj2@col_name,
 			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 			            				 flmatobj2@db_name,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value," 
-			            		  AND (((a.",flmatobj1@variables$colIdColumn,"-1)*",nrow(flmatobj1),")+",
-			            					 flmatobj1@variables$rowIdColumn,") MOD ",length(flmatobj2)," = b.",
+			            		  AND (((a.",getVariables(flmatobj1)$colIdColumn,"-1)*",nrow(flmatobj1),")+",
+			            					 getVariables(flmatobj1)$rowIdColumn,") MOD ",length(flmatobj2)," = b.",
 						 					 flmatobj2@var_id_name," MOD ",length(flmatobj2)))
 				
 				else
 				{
-				sqlSendUpdate(flmatobj1@odbc_connection,
+				sqlSendUpdate(getConnection(flmatobj1),
 						 paste0(" INSERT INTO ",result_db_name,".",result_Sparsematrix_table,
 			            		" SELECT ",max_Sparsematrix_id_value,",
-			            				 a.",flmatobj1@variables$rowIdColumn,",
-			            				 a.",flmatobj1@variables$colIdColumn,",
-			            				 a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@col_name,
+			            				 a.",getVariables(flmatobj1)$rowIdColumn,",
+			            				 a.",getVariables(flmatobj1)$colIdColumn,",
+			            				 a.",getVariables(flmatobj1)$valueColumn,"*b.",flmatobj2@col_name,
 			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
 			            				 flmatobj2@db_name,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-			            		  AND (((a.",flmatobj1@variables$colIdColumn,"-1)*",nrow(flmatobj1),")+",
-			            					 flmatobj1@variables$rowIdColumn,") MOD ",length(flmatobj2)," = b.",
+			            		  AND (((a.",getVariables(flmatobj1)$colIdColumn,"-1)*",nrow(flmatobj1),")+",
+			            					 getVariables(flmatobj1)$rowIdColumn,") MOD ",length(flmatobj2)," = b.",
 						 					 flmatobj2@obs_id_colname," MOD ",length(flmatobj2)))
 				}
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
-					odbc_connection = flmatobj1@odbc_connection, 
+					odbc_connection = getConnection(flmatobj1), 
 					database = result_db_name, 
 					matrix_table = result_Sparsematrix_table, 
 					matrix_id_value = max_Sparsematrix_id_value - 1, 
@@ -377,17 +377,17 @@ NULL
 	}
 	else if(is.vector(pObj2))
 	{
-		pObj2 <- as.FLVector(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLVector(pObj2,getConnection(pObj1))
 		pObj2*pObj1
 	}
 	else if(is.matrix(pObj2))
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,getConnection(pObj1))
 		pObj2*pObj1
 	}
 	else if(class(pObj2)=="dgCMatrix")
 	{
-		pObj2 <- as.FLSparseMatrix(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLSparseMatrix(pObj2,getConnection(pObj1))
 		pObj2*pObj1
 	}
 	else if(is.FLSparseMatrix(pObj2))
@@ -396,7 +396,7 @@ NULL
 	}
 	else if(is.FLVector(pObj2))
 	{
-		flag3Check(pObj1@odbc_connection)
+		flag3Check(getConnection(pObj1))
 		if(length(pObj2) > length(pObj1))
 		{
 			vTemp <- pObj1
@@ -417,7 +417,7 @@ NULL
 					           AND b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
 					         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@var_id_name," MOD ",vMinSize)
 
-			sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
+			sqlSendUpdate(getConnection(pObj1),vSqlStr)
 		}
 
 		else if(xor(pObj1@isDeep,pObj2@isDeep))
@@ -433,7 +433,7 @@ NULL
 						         " WHERE a.",pObj1@obs_id_colname,"=",pObj1@vector_id_value,
 						         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@obs_id_colname," MOD ",vMinSize)
 
-			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
+			    sqlSendUpdate(getConnection(pObj1),vSqlStr)
 			}
             else
             {
@@ -446,7 +446,7 @@ NULL
 						         " WHERE b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
 						         " AND b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
-			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
+			    sqlSendUpdate(getConnection(pObj1),vSqlStr)
             }
 		}
 
@@ -460,7 +460,7 @@ NULL
 					         		  pObj2@db_name,".",pObj2@table_name," b",
 					         " WHERE b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
-			    sqlSendUpdate(pObj1@odbc_connection,vSqlStr)
+			    sqlSendUpdate(getConnection(pObj1),vSqlStr)
 		}
 
 			max_vector_id_value <<- max_vector_id_value + 1
@@ -486,12 +486,12 @@ NULL
 {
 	if(is.FLSparseMatrix(flmatobj) || is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLSparseMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLSparseMatrix(x,getConnection(flmatobj))
 		flmatobj2 * flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLSparseMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLSparseMatrix(x,getConnection(flmatobj))
 		flmatobj2 * flmatobj
 	}
 	else

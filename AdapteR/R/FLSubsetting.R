@@ -217,13 +217,13 @@ NULL
                                         # 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj), 
                                         #                          " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
 
-                                        # 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
+                                        # 		vRetObj<-sqlQuery(getConnection(pObj),sqlstr)
                                         # 		vResultVec <- c()
 
                                         # 		for(vIter in pSet)
                                         #             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@var_id_name]==vIter),pObj@col_name])
 
-                                        # 		return(as.FLVector(vResultVec,pObj@odbc_connection))
+                                        # 		return(as.FLVector(vResultVec,getConnection(pObj)))
                                         # 	}
 
                                         # 	if(!pObj@isDeep)
@@ -239,12 +239,12 @@ NULL
                                         # 						 FROM ",remoteTable(pObj), 
                                         #                          " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
 
-                                        # 		vRetObj<-sqlQuery(pObj@odbc_connection,sqlstr)
+                                        # 		vRetObj<-sqlQuery(getConnection(pObj),sqlstr)
                                         # 		vResultVec <- c()
 
                                         # 		for(vIter in pSet)
                                         #             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@obs_id_colname]==vIter),pObj@col_name])
 
-                                        # 		return(as.FLVector(vResultVec,pObj@odbc_connection))
+                                        # 		return(as.FLVector(vResultVec,getConnection(pObj)))
                                         # 	}
                                         # }
