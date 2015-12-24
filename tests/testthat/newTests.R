@@ -141,11 +141,6 @@ test_that("check rankMatrix result",{
                       n=5)
 })
 
-## Testing FLTranspose
-test_that("check transpose",{
-    expect_eval_equal(initF.FLMatrix,AdapteR::t,base::t,n=5)
-})
-
 ## Testing FLGinv
 test_that("check FLGinv",
 {
@@ -153,36 +148,6 @@ test_that("check FLGinv",
                       AdapteR::ginv,
                       MASS::ginv,
                       n=5)
-})
-
-## Testing FLRowMeans
-test_that("check rowMeans",
-{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::rowMeans,
-                      base::rowMeans,
-                      n=5)
-})
-
-## Testing FLRowSums
-test_that("check rowSums",
-{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::rowSums,
-                      base::rowSums,
-                      n=5)
-})
-
-## Testing FLColMeans
-test_that("check colMeans",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
-})
-
-## Testing FLColSums
-test_that("check colSums",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })
 
 ## Testing FLDims
@@ -206,7 +171,8 @@ test_that("check FLDims",
 test_that("check result for Matrix M_Subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID",
+                 "ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
 
   expect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
@@ -218,7 +184,7 @@ test_that("check result for Matrix M_Subtraction",
 test_that("check result for M_Subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10),connection)
   V1R <- as.vector(V1)
@@ -243,7 +209,7 @@ test_that("check result for M_Subtraction",
 test_that("check result for M_IntegerDivision",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   expect_equal(M1$FL%/%M2,M1$R%/%M2R,check.attributes=FALSE)
 })
@@ -253,7 +219,7 @@ test_that("check result for M_IntegerDivision",
 test_that("check result for M_IntegerDivision",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10),connection)
   V1R <- as.vector(V1)
@@ -280,7 +246,7 @@ test_that("check result for M_IntegerDivision",
 test_that("check result for M_CrossProduct",
 {
   M1 <- initF.FLMatrix(n=5) # 5*4 matrix
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID") # 4*5 matrix
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL") # 4*5 matrix
   M2R <- as.matrix(M2)
   expect_equal(M1$FL %*% M2,M1$R%*%M2R,check.attributes=FALSE)
 })
@@ -290,14 +256,13 @@ test_that("check result for M_CrossProduct",
 test_that("check result for M_CrossProduct",
 {
   M1 <- initF.FLMatrix(n=5) # 5*4 matrix
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID") # 4*5 matrix
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL") # 4*5 matrix
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,5),connection)
   V1R <- as.vector(V1)
   V2 <- as.FLVector(sample(1:100,5),connection)
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=5,isRowVec=TRUE)
-
     expect_equal(M1$FL %*% M2,M1$R%*%M2R,check.attributes=FALSE)
     expect_equal(V1%*%V1,V1R%*%V1R,check.attributes=FALSE)
     expect_equal(P1$FL%*%P1$FL,P1$R%*%P1$R,check.attributes=FALSE)
@@ -688,4 +653,43 @@ test_that("check result for M_Remainder",
     expect_equal(P1$FL%%P1$FL%%V1%%V2%%M2%%P1$FL%%M1$FL%%V2,
       P1$R%%P1$R%%V1R%%V2R%%M2R%%P1$R%%M1$R%%V2R,
       check.attributes=FALSE)
+})
+
+
+
+
+## Testing FLTranspose
+## gk:  that is broken since rbind
+test_that("check transpose",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::t,base::t,n=5)
+})
+
+## Testing FLRowMeans
+test_that("check rowMeans",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowMeans,
+                      base::rowMeans,
+                      n=5)
+})
+
+## Testing FLRowSums
+test_that("check rowSums",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowSums,
+                      base::rowSums,
+                      n=5)
+})
+
+## Testing FLColMeans
+test_that("check colMeans",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
+})
+
+## Testing FLColSums
+test_that("check colSums",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })

@@ -41,10 +41,10 @@ as.data.frame <- function(x, ...)
 }
 as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
-    D <- sqlQuery(x@odbc_connection,sqlstr)
+    D <- sqlQuery(getConnection(x),sqlstr)
     names(D) <- toupper(names(D))
     if(x@isDeep) {
-        D <- sqlQuery(x@odbc_connection,sqlstr)
+        D <- sqlQuery(getConnection(x),sqlstr)
         D <- dcast(D, paste0(toupper(x@variables$obs_id_colname),
                              " ~ ",
                              toupper(x@variables$var_id_colname)),

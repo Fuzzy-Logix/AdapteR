@@ -46,21 +46,21 @@ NULL
 	{
 		if(ncol(x)!=nrow(flmatobj1)) {stop("non-conformable dimensions")}
 
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj2%*%flmatobj1
 	}
 	# else if(is.FLSparseMatrix(flmatobj1))
 	# {
 	# 	if(ncol(x)!=nrow(flmatobj1)) {stop("non-conformable dimensions")}
 
-	# 	flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+	# 	flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 	# 	flmatobj2%*%flmatobj1
 	# }
 	else if(is.FLVector(flmatobj1))
 	{
 		if(length(flmatobj1)==ncol(x) || ncol(x)==1)
 		{
-			flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 			flmatobj2%*%flmatobj1
 		}
 		else stop("non-conformable dimensions")
@@ -84,9 +84,9 @@ NULL
 	if(is.FLMatrix(obj1))
 	{
 		if(nrow(obj1)==length(x))
-		obj2 <- as.FLMatrix(matrix(x,1),obj1@odbc_connection)
+		obj2 <- as.FLMatrix(matrix(x,1),getConnection(obj1))
 		else if(nrow(obj1)==1)
-		obj2 <- as.FLMatrix(matrix(x),obj1@odbc_connection)
+		obj2 <- as.FLMatrix(matrix(x),getConnection(obj1))
 		else
 		stop("non-conformable dimensions")
 		return(obj2 %*% obj1)
@@ -94,13 +94,13 @@ NULL
 	# else if(class(obj1)=="FLSparseMatrix")
 	# {
 	# 	if(nrow(obj1) != length(x)) stop("non-conformable dimensions")
-	# 	obj2 <- as.FLVector(x,obj1@odbc_connection)
+	# 	obj2 <- as.FLVector(x,getConnection(obj1))
 	# 	obj2 %*% obj1
 	# }
 	else if(class(obj1)=="FLVector")
 	{
 		if(length(obj1) != length(x)) stop("non-conformable dimensions")
-		obj2 <- as.FLMatrix(matrix(x,1),obj1@odbc_connection)
+		obj2 <- as.FLMatrix(matrix(x,1),getConnection(obj1))
 		obj2 %*% obj1
 	}
 	else
@@ -153,9 +153,9 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 	else if(is.vector(flmatobj2))
 		{
 			if(length(flmatobj2)==ncol1)
-			flmatobj2 <- as.FLMatrix(matrix(flmatobj2),flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(matrix(flmatobj2),getConnection(flmatobj1))
 			else if(ncol1==1)
-			flmatobj2 <- as.FLMatrix(matrix(flmatobj2,1),flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(matrix(flmatobj2,1),getConnection(flmatobj1))
 			else
 			stop("non-conformable dimensions")
 			return(flmatobj1 %*% flmatobj2)
@@ -163,35 +163,35 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 	else if(is.matrix(flmatobj2))
 		{
 			if(nrow(flmatobj2) != ncol1) stop("non-conformable dimensions")
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 			flmatobj1 %*% flmatobj2
 		}
 	else if(class(flmatobj2)=="dgCMatrix"||class(flmatobj2)=="dgeMatrix"
 		||class(flmatobj2)=="dsCMatrix"||class(flmatobj2)=="dgTMatrix")
 		{
 			if(nrow(flmatobj2) != ncol1) stop("non-conformable dimensions")
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 			flmatobj1 %*% flmatobj2
 		}
 	else if(is.FLVector(flmatobj2))
 		{
 			if(length(flmatobj2) == ncol1)
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 			else if(ncol1==1)
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection,rows=1,cols=length(flmatobj2))
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1),rows=1,cols=length(flmatobj2))
 			else
 			stop("non-conformable dimensions")
 
 			
 			    # vSqlStr<-paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 							# 	" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
-							# 					a.",flmatobj1@variables$rowIdColumn," AS rid , 
+							# 					a.",getVariables(flmatobj1)$rowIdColumn," AS rid , 
 							# 					CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),")+1 as INT) AS cid , 
-							# 					SUM(a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@col_name,") AS cval 
+							# 					SUM(a.",getVariables(flmatobj1)$valueColumn,"*b.",flmatobj2@col_name,") AS cval 
 							# 			 FROM ",remoteTable(flmatobj1)," a,",
 							# 			 		remoteTable(flmatobj2)," b 
 							# 			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-							# 			 AND a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@obs_id_colname,
+							# 			 AND a.",getVariables(flmatobj1)$colIdColumn,"=b.",flmatobj2@obs_id_colname,
 							# 		    "-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/",ncol(flmatobj1),") as INT) *",ncol(flmatobj1),") 
 							# 		    GROUP BY 1,2,3",") c ",
 							#     " SET ",vTempFlm@variables$valueColumn,"= c.cval ",
@@ -214,18 +214,18 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 	if(is.vector(pObj2))
 	{
 		if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		pObj2 <- as.FLMatrix(matrix(pObj2),pObj1@odbc_connection)
+		pObj2 <- as.FLMatrix(matrix(pObj2),getConnection(pObj1))
 		pObj1 %*% pObj2
 	}
 	else if(is.matrix(pObj2))
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,getConnection(pObj1))
 		pObj1 %*% pObj2
 	}
 	else if(class(pObj2)=="dgCMatrix"||class(pObj2)=="dgeMatrix"
 		||class(pObj2)=="dsCMatrix"||class(pObj2)=="dgTMatrix")
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,getConnection(pObj1))
 		pObj1 %*% pObj2
 	}
 	else if(is.FLMatrix(pObj2))
@@ -238,17 +238,17 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 		else
 		stop(" non-conformable dimensions ")
 
-			    # sqlSendUpdate(flmatobj1@odbc_connection,
+			    # sqlSendUpdate(getConnection(flmatobj1),
 			    # 		 paste0(" UPDATE ",vTempFlm@db_name,".",vTempFlm@matrix_table,
 							# 	" FROM ( SELECT ",vTempFlm@matrix_id_value," AS mid ,
 							# 					b.",flmatobj2@obs_id_colname,
 							# 				    "-(CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1) as INT) * 1) AS rid , 
-							# 				    a.",flmatobj1@variables$colIdColumn," AS cid , 
-							# 				    SUM(a.",flmatobj1@variables$valueColumn,"*b.",flmatobj2@col_name,") AS cval 
+							# 				    a.",getVariables(flmatobj1)$colIdColumn," AS cid , 
+							# 				    SUM(a.",getVariables(flmatobj1)$valueColumn,"*b.",flmatobj2@col_name,") AS cval 
 							# 			 FROM ",remoteTable(flmatobj1)," a,",
 							# 			 		remoteTable(flmatobj2)," b 
 							# 			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
-							# 			 AND a.",flmatobj1@variables$rowIdColumn,"= CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1)+1 as INT) 
+							# 			 AND a.",getVariables(flmatobj1)$rowIdColumn,"= CAST(((b.",flmatobj2@obs_id_colname,"-0.5)/1)+1 as INT) 
 							# 			 GROUP BY 1,2,3",") c ",
 							#     " SET ",vTempFlm@variables$valueColumn,"= c.cval ",
 							#     " WHERE ",vTempFlm@matrix_id_colname,"= c.mid 
@@ -260,7 +260,7 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 	else if(is.FLVector(pObj2))
 	{
 		if(length(pObj2) != length(pObj1)) stop(" non-conformable dimensions ")
-		flmatobj1 <- as.FLMatrix(pObj1,pObj1@odbc_connection,rows=1,cols=length(pObj1))
+		flmatobj1 <- as.FLMatrix(pObj1,getConnection(pObj1),rows=1,cols=length(pObj1))
 		flmatobj2 <- as.FLMatrix(pObj2,pObj2@odbc_connection)
 		return(flmatobj1 %*% flmatobj2)		
 	}
@@ -271,12 +271,12 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else
@@ -290,12 +290,12 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else
@@ -309,12 +309,12 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else
@@ -328,12 +328,12 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %*% flmatobj
 	}
 	else

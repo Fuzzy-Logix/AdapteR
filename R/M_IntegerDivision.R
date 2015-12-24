@@ -46,7 +46,7 @@ NULL
 {
 	if(is.FLMatrix(flmatobj1))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj2%/%flmatobj1
 	}
 	# else if(is.FLSparseMatrix(flmatobj1))
@@ -55,7 +55,7 @@ NULL
 	# }
 	else if(is.FLVector(flmatobj1))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj1@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj2%/%flmatobj1
 	}
 	else 
@@ -68,7 +68,7 @@ NULL
 `%/%.numeric` <- function(x,obj1)
 {	if(is.FLMatrix(obj1))
 	{
-		obj2 <- as.FLVector(x,obj1@odbc_connection)
+		obj2 <- as.FLVector(x,getConnection(obj1))
 		obj2 %/% obj1
 	}
 	# else if(class(obj1)=="FLSparseMatrix")
@@ -77,7 +77,7 @@ NULL
 	# }
 	else if(class(obj1)=="FLVector")
 	{
-		obj2 <- as.FLVector(x,obj1@odbc_connection)
+		obj2 <- as.FLVector(x,getConnection(obj1))
 		obj2 %/% obj1
 	}
 	else
@@ -97,31 +97,31 @@ NULL
 		###Phani-- division by 0 is ignored and 0 is returned.
 		checkSameDims(flmatobj1,flmatobj2)
 
-		flag1Check(flmatobj1@odbc_connection)
+		flag1Check(getConnection(flmatobj1))
 
 				
 		sqlstr <-   paste0(" INSERT INTO ",
 							getRemoteTableName(result_db_name,result_matrix_table),
 	            		   " SELECT ",max_matrix_id_value,",
-	            		   			a.",flmatobj1@variables$rowIdColumn,",
-	            		   			a.",flmatobj1@variables$colIdColumn,",
-	            		   			CAST(a.",flmatobj1@variables$valueColumn,"/b.",flmatobj2@variables$valueColumn," AS INT) 
+	            		   			a.",getVariables(flmatobj1)$rowIdColumn,",
+	            		   			a.",getVariables(flmatobj1)$colIdColumn,",
+	            		   			CAST(a.",getVariables(flmatobj1)$valueColumn,"/b.",getVariables(flmatobj2)$valueColumn," AS INT) 
 	            		    FROM ",remoteTable(flmatobj1)," a, ",
 	            		           remoteTable(flmatobj2)," b ",
 	            			constructWhere(c(constraintsSQL(flmatobj1,"a"),
 			 		  		constraintsSQL(flmatobj2,"b"),
-			 		  		paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
-			 		  		paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn),
-			 		  		paste0("b.",flmatobj2@variables$valueColumn,"!=0"))))
+			 		  		paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
+			 		  		paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn),
+			 		  		paste0("b.",getVariables(flmatobj2)$valueColumn,"!=0"))))
 		
-		t<-sqlQuery(flmatobj1@odbc_connection,sqlstr)
+		t<-sqlQuery(getConnection(flmatobj1),sqlstr)
 		
 		if(length(t)!=0) { stop("division by zero encountered") }
 
 		MID <- max_matrix_id_value	
 		max_matrix_id_value <<- max_matrix_id_value + 1
 		return(FLMatrix( 
-		       connection = flmatobj1@odbc_connection, 
+		       connection = getConnection(flmatobj1), 
 		       database = result_db_name, 
 		       matrix_table = result_matrix_table, 
 			   matrix_id_value = MID,
@@ -133,46 +133,46 @@ NULL
 	}
 	else if(is.vector(flmatobj2))
 		{
-			flmatobj2 <- as.FLMatrix(matrix(flmatobj2,nrow(flmatobj1),ncol(flmatobj1)),flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(matrix(flmatobj2,nrow(flmatobj1),ncol(flmatobj1)),getConnection(flmatobj1))
 			flmatobj1 %/% flmatobj2
 		}
 	else if(is.matrix(flmatobj2))
 		{
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 			flmatobj1 %/% flmatobj2
 		}
 	else if(class(flmatobj2)=="dgCMatrix"||class(flmatobj2)=="dgeMatrix"
 		||class(flmatobj2)=="dsCMatrix"||class(flmatobj2)=="dgTMatrix")
 		{
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection)
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1))
 			flmatobj1 %/% flmatobj2
 		}
 	else if(is.FLVector(flmatobj2))
 		{
-			flmatobj2 <- as.FLMatrix(flmatobj2,flmatobj1@odbc_connection,
+			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1),
 							sparse=TRUE,rows=nrow(flmatobj1),cols=ncol(flmatobj1))
 
 
 			# sqlstr <-paste0(" UPDATE ",
 			# 				remoteTable(flmatobj2),
 			# 				" FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
-			# 								a.",flmatobj1@variables$rowIdColumn," AS rid,
-			# 								a.",flmatobj1@variables$colIdColumn," AS cid,
-			# 								CAST(a.",flmatobj1@variables$valueColumn,"/b.",
-			# 			            			flmatobj2@variables$valueColumn," AS INT) AS cval 
+			# 								a.",getVariables(flmatobj1)$rowIdColumn," AS rid,
+			# 								a.",getVariables(flmatobj1)$colIdColumn," AS cid,
+			# 								CAST(a.",getVariables(flmatobj1)$valueColumn,"/b.",
+			# 			            			getVariables(flmatobj2)$valueColumn," AS INT) AS cval 
 			# 			             FROM ",remoteTable(flmatobj1)," a, ",
 			# 			             		remoteTable(flmatobj2)," b ",
 			# 			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
 			# 		 		  		constraintsSQL(flmatobj2,"b"),
-			# 		 		  		paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
-			# 		 		  		paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))),
+			# 		 		  		paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
+			# 		 		  		paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))),
 			# 			            ") c ",
-			# 				" SET ",flmatobj2@variables$valueColumn,"= c.cval ",
+			# 				" SET ",getVariables(flmatobj2)$valueColumn,"= c.cval ",
 			# 				constructWhere(c(paste0(flmatobj2@matrix_id_colname,"= c.mid "),
-			# 		        	paste0(flmatobj2@variables$rowIdColumn,"= c.rid "),
-			# 		        	paste0(flmatobj2@variables$colIdColumn,"= c.cid "))))
+			# 		        	paste0(getVariables(flmatobj2)$rowIdColumn,"= c.rid "),
+			# 		        	paste0(getVariables(flmatobj2)$colIdColumn,"= c.cid "))))
 
-			# t <- sqlQuery(flmatobj1@odbc_connection,sqlstr)
+			# t <- sqlQuery(getConnection(flmatobj1),sqlstr)
 
 			# if(length(t)!=0) { stop("division by zero not supported currently") }
 				
@@ -186,44 +186,44 @@ NULL
 	if(is.FLMatrix(pObj2))
 	{
 		flmatobj1 <- pObj2
-		flmatobj2 <- as.FLMatrix(pObj1,flmatobj1@odbc_connection,
+		flmatobj2 <- as.FLMatrix(pObj1,getConnection(flmatobj1),
 			sparse=TRUE,rows=nrow(flmatobj1),cols=ncol(flmatobj1))
 
 		# sqlstr <-paste0(" UPDATE ",
 		# 				remoteTable(flmatobj2),
 		# 		        " FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
-		# 		        				a.",flmatobj1@variables$rowIdColumn," AS rid,
-		# 		        				a.",flmatobj1@variables$colIdColumn," AS cid,
-		# 		        				b.",flmatobj2@variables$valueColumn,"/a.",flmatobj1@variables$valueColumn," AS cval 
+		# 		        				a.",getVariables(flmatobj1)$rowIdColumn," AS rid,
+		# 		        				a.",getVariables(flmatobj1)$colIdColumn," AS cid,
+		# 		        				b.",getVariables(flmatobj2)$valueColumn,"/a.",getVariables(flmatobj1)$valueColumn," AS cval 
 		# 		        		 FROM ",remoteTable(flmatobj1)," a, ",
 		# 		        		 		remoteTable(flmatobj2)," b ",
 		# 		        		 constructWhere(c(constraintsSQL(flmatobj1,"a"),
 		# 			 		  		constraintsSQL(flmatobj2,"b"),
-		# 			 		  		paste0("a.",flmatobj1@variables$rowIdColumn,"=b.",flmatobj2@variables$rowIdColumn),
-		# 			 		  		paste0("a.",flmatobj1@variables$colIdColumn,"=b.",flmatobj2@variables$colIdColumn))),
+		# 			 		  		paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
+		# 			 		  		paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))),
 		# 		        		 ") c ",
-		# 				" SET ",flmatobj2@variables$valueColumn,"= c.cval ",
+		# 				" SET ",getVariables(flmatobj2)$valueColumn,"= c.cval ",
 		# 				constructWhere(c(paste0(flmatobj2@matrix_id_colname,"= c.mid "),
-		# 			        	paste0(flmatobj2@variables$rowIdColumn,"= c.rid "),
-		# 			        	paste0(flmatobj2@variables$colIdColumn,"= c.cid "))))
+		# 			        	paste0(getVariables(flmatobj2)$rowIdColumn,"= c.rid "),
+		# 			        	paste0(getVariables(flmatobj2)$colIdColumn,"= c.cid "))))
 
-		# sqlQuery(flmatobj1@odbc_connection,sqlstr)
+		# sqlQuery(getConnection(flmatobj1),sqlstr)
 		return(flmatobj2 %/% flmatobj1)
 	}
 	else if(is.vector(pObj2))
 	{
-		pObj2 <- as.FLVector(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLVector(pObj2,getConnection(pObj1))
 		pObj1 %/% pObj2
 	}
 	else if(is.matrix(pObj2))
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,getConnection(pObj1))
 		pObj1 %/% pObj2
 	}
 	else if(class(pObj2)=="dgCMatrix"||class(pObj2)=="dgeMatrix"
 		||class(pObj2)=="dsCMatrix"||class(pObj2)=="dgTMatrix")
 	{
-		pObj2 <- as.FLMatrix(pObj2,pObj1@odbc_connection)
+		pObj2 <- as.FLMatrix(pObj2,getConnection(pObj1))
 		pObj1-pObj2
 	}
 	else if(is.FLVector(pObj2))
@@ -360,12 +360,12 @@ NULL
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else
@@ -380,12 +380,12 @@ NULL
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else
@@ -400,12 +400,12 @@ NULL
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else
@@ -420,12 +420,12 @@ NULL
 {
 	if(is.FLMatrix(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else if(is.FLVector(flmatobj))
 	{
-		flmatobj2 <- as.FLMatrix(x,flmatobj@odbc_connection)
+		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj))
 		flmatobj2 %/% flmatobj
 	}
 	else
