@@ -142,7 +142,7 @@ setMethod("constructSelect",
           function(object) constructSelect(object,""))
 
 setMethod("constructSelect",
-          signature(object = "FLTable"),
+          signature(object = "FLTable",localName="missing"),
           function(object) {
               if(!object@isDeep) {
                   return(paste0("SELECT ",
@@ -164,7 +164,7 @@ setMethod("constructSelect",
               }
           })
 
-setMethod("constructSelect", signature(object = "FLVector"),
+setMethod("constructSelect", signature(object = "FLVector",localName="missing"),
           function(object) {
               if(!object@isDeep) {
                   return(paste0("SELECT ",
@@ -172,8 +172,8 @@ setMethod("constructSelect", signature(object = "FLVector"),
                                 paste(colnames(object),collapse=", "),
                                 " FROM ",remoteTable(object),
                                 constructWhere(c(constraintsSQL(object))),
-                                " ORDER BY ",getVariables(object)$obs_id_colname),
-                                "\n")
+                                " ORDER BY ",getVariables(object)$obs_id_colname,
+                                "\n"))
               } else {
                   return(paste0("SELECT ",
                                 paste(c(getVariables(object)$obs_id_colname,
