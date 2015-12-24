@@ -9,6 +9,7 @@ Description: The DB Lytix(TM) suite of functions offers scalable and robust high
     by providing wrapper functions around the SQL interface of DB Lytix(TM).
 Depends:
     R (>= 3.2.0),
+    plyr,
 Imports:
     MASS (>= 7.3-10),
     Matrix (>= 1.1-5),
@@ -17,14 +18,15 @@ Imports:
 License: GPL-2
 LazyData: true
 Collate:
+    'AllClasses.R'
+    'FLDims.R'
+    'FLIs.R'
+    'FLPrint.R'
     'utilities.R'
     'FLMatrix.R'
     'FLTable.R'
     'FLVector.R'
     'FLSparseMatrix.R'
-    'FLPrint.R'
-    'FLIs.R'
-    'FLDims.R'
     'FLCastFunctions.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'
@@ -43,6 +45,7 @@ Collate:
     'data_prep.R'
     'FLLinRegr.R'
     'FLLogRegr.R'
+    'FLMatrixBind.R'
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'

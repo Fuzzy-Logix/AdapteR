@@ -29,22 +29,23 @@ cor.FLMatrix <- function(x,y=x)
     ##browser()
     if(is.FLMatrix(y))
     {
-        sqlstr <- paste0("SELECT a.",x@variables$colId," AS A, ",
-                         " b.",y@variables$colId," AS B, ",
-                         x@db_name,".FLCorrel(a.",x@variables$value,
-                         ",b.",y@variables$value,") AS C ",
+        sqlstr <- paste0("SELECT",
+                         " a.",getVariables(x)$colIdColumn," AS A, ",
+                         " b.",getVariables(y)$colIdColumn," AS B, ",
+                         "FLCorrel(a.",getVariables(x)$valueColumn,
+                         ",b.",getVariables(y)$valueColumn,") AS C ",
                          "FROM ",remoteTable(x)," a, ",
                          remoteTable(y)," b ",
                          constructWhere(c(
                              constraintsSQL(y, "a"),
                              constraintsSQL(x, "b"),
-                             paste0("a.", x@variables$rowId,
-                                    " = b.",y@variables$rowId))),
-                         " GROUP BY a.",x@variables$colId,
-                         ", b.", y@variables$colId,
+                             paste0("a.", getVariables(x)$rowIdColumn,
+                                    " = b.",getVariables(y)$rowIdColumn))),
+                         " GROUP BY a.",getVariables(x)$colIdColumn,
+                         ", b.", getVariables(y)$colIdColumn,
                          " ORDER BY 1,2 ")
         ##browser()
-        vec <- sqlQuery(x@odbc_connection,sqlstr)
+        vec <- sqlQuery(getConnection(x),sqlstr)
         i <- match(vec[[2]],colnames(x))
         j <- match(vec[[1]],colnames(y))
         if(any(is.na(i)) | any(is.na(j)))
@@ -92,14 +93,14 @@ cor.FLMatrix <- function(x,y=x)
 	{
 		if(nrow(y) == nrow(x))
 		{
-			sqlstr <- paste0("SELECT a.",x@variables$colId,", ",
-									 x@db_name,".FLCorrel(a.",x@variables$value,",
+			sqlstr <- paste0("SELECT a.",x@variables$colIdColumn,", ",
+									 x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
 									 					  b.",y@col_name,") AS C 
 							  FROM ",remoteTable(x)," a, 
 							  	   ",remoteTable(y)," b 
-							  WHERE a.",x@variables$rowId," = b.",y@obs_id_colname," 
+							  WHERE a.",x@variables$rowIdColumn," = b.",y@obs_id_colname," 
 							  AND a.",x@matrix_id_colname,"=",x@matrix_id_value," 
-							  GROUP BY a.",x@variables$colId," 
+							  GROUP BY a.",x@variables$colIdColumn," 
 							  ORDER BY 1")
 			vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 			correlmat <- matrix(vec,ncol(x),byrow=T)
@@ -299,8 +300,8 @@ cor.FLTable <- function(x,y=x)
 			{
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,",
-										 x@db_name,".FLCorrel(a.",x@variables$value,",
-										 					  b.",y@variables$value,") AS C 
+										 x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
+										 					  b.",y@variables$valueColumn,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
 								  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
@@ -344,8 +345,8 @@ cor.FLTable <- function(x,y=x)
 				
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,
-										   ",x@db_name,".FLCorrel(a.",x@variables$value,",
-										   						  b.",y@variables$value,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
+										   						  b.",y@variables$valueColumn,") AS C 
 								  FROM ",remoteTable(x)," a, 
 								  	   ",remoteTable(y)," b 
 								  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
@@ -389,7 +390,7 @@ cor.FLTable <- function(x,y=x)
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
 										 b.",y@var_id_name," AS B ,
-										   ",x@db_name,".FLCorrel(a.",x@variables$value,",b.",y@variables$value,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@variables$valueColumn,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
 								  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
@@ -420,13 +421,13 @@ cor.FLTable <- function(x,y=x)
 			if(x@isDeep)
 			{
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
-										 b.",y@variables$colId," AS B ,
-										   ",x@db_name,".FLCorrel(a.",x@variables$value,",b.",y@variables$value,") AS C 
+										 b.",y@variables$colIdColumn," AS B ,
+										   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@variables$valueColumn,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
-								  WHERE a.",x@obs_id_colname," = b.",y@variables$rowId," 
+								  WHERE a.",x@obs_id_colname," = b.",y@variables$rowIdColumn," 
 								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
-								  GROUP BY a.",x@var_id_name,", b.",y@variables$colId," 
+								  GROUP BY a.",x@var_id_name,", b.",y@variables$colIdColumn," 
 								  ORDER BY 1,2 ")
 			
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
@@ -448,13 +449,13 @@ cor.FLTable <- function(x,y=x)
 						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name," AS A,
-										 b.",y@variables$colId," AS B,
-										   ",x@db_name,".FLCorrel(a.",x@variables$value,",b.",y@variables$value,") AS C 
+										 b.",y@variables$colIdColumn," AS B,
+										   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@variables$valueColumn,") AS C 
 								  FROM ",remoteTable(x)," a,
 								  	   ",remoteTable(y)," b 
-								  WHERE a.",x@obs_id_colname," = b.",y@variables$rowId," 
+								  WHERE a.",x@obs_id_colname," = b.",y@variables$rowIdColumn," 
 								  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
-								  GROUP BY a.",x@var_id_name,", b.",y@variables$colId," 
+								  GROUP BY a.",x@var_id_name,", b.",y@variables$colIdColumn," 
 								  ORDER BY 1,2 ")
 				vec <- sqlQuery(x@odbc_connection,sqlstr)[,"C"]
 				varnamesx <- sqlQuery(x@odbc_connection,
@@ -477,7 +478,7 @@ cor.FLTable <- function(x,y=x)
 			if(x@isDeep)
 			{
 				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
-										   ",x@db_name,".FLCorrel(a.",x@variables$value,",
+										   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
 										   						  b.",y@col_name,") AS C 
 								  FROM ",remoteTable(x)," a, 
 								  	   ",remoteTable(y)," b 
@@ -503,7 +504,7 @@ cor.FLTable <- function(x,y=x)
 						  cell_val_colname="Num_Val",
 						  isDeep = TRUE)
 				sqlstr <- paste0("SELECT a.",x@var_id_name,", 
-										   ",x@db_name,".FLCorrel(a.",x@variables$value,",b.",y@col_name,") AS C 
+										   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@col_name,") AS C 
 								  FROM ",remoteTable(x)," a, 
 								  	   ",remoteTable(y)," b 
 								  WHERE a.",x@obs_id_colname," = b.",y@obs_id_colname," 

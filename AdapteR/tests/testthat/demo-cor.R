@@ -193,10 +193,10 @@ print(object.size(subEqnRtn),units = "Kb")
 print(object.size(subEqnRtn@dimnames),units = "Kb")
 
 ## Download a subset of the remote Table into R Memory
-rEqnRtn <- as.matrix(subEqnRtn)
+## rEqnRtn <- as.matrix(subEqnRtn)
 
 ## compare memory consumption:
-print(object.size(rEqnRtn),units = "Kb")
+## print(object.size(rEqnRtn),units = "Kb")
 
 
 ##
@@ -223,7 +223,7 @@ constructWhere(constraintsSQL(E,"a"))
 ##
 ## metadata can be quickly combined on the client
 ##
-metaInfo <- read.csv("~/Downloads/companylist.csv")
+metaInfo <- read.csv("companylist.csv")
 table(metaInfo$industry)
 table(metaInfo$Sector)
 
@@ -279,13 +279,6 @@ shinyApp(
 )
 
 
-lm(y ~ x + x2 + x3, data=D)
-lm("y ~ x + x2 + x3", data=D)
-
-formula <- "y ~ x + x2 + x3"
-formula <- prepare(data=D,DV=y)
-lm(formula, data=D)
-
 ###########################################################
 ##
 ## Matrix Inversion
@@ -310,30 +303,40 @@ LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
 ORDER BY 1,2,3;")
 
 m <- FLMatrix(connection,
-              database          = "FL_dev",
+              database          = "FL_DEMO",
               matrix_table      = "tblMatrixMulti",
               matrix_id_colname = "Matrix_ID",
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
-m
+dim(m)
+
+constructSelect(m)
+
+m.r <- as.matrix(m)
+
 ms <- solve(m)
-ms
+dim(ms)
+#ms
+#m.r
 
-expect_equal(as.matrix(ms), solve(as.matrix(m)))
+expect_equal(as.matrix(ms), solve(m.r))
 
+## gk: todo: do not fetch names
 m %*% ms
 
 
 
+## lm(y ~ x + x2 + x3, data=D)
+## lm("y ~ x + x2 + x3", data=D)
+
+## formula <- "y ~ x + x2 + x3"
+## formula <- prepare(data=D,DV=y)
+## lm(formula, data=D)
+
 ## many functions provide important
 ## functions on matrices
-dim(m)
-
-
-solve(m)
-
 
 ## multiplication
 2*m[2:5,4:5]

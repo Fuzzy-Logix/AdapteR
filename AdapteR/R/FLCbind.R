@@ -46,16 +46,15 @@ cbind <- function (x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLMatrix <- cbind(flmatrix,1:5,flmatrix)
 #' @export
-
 cbind.FLMatrix<-function(object,...)
 {
     objectList<-list(object,...)
     if(all(sapply(objectList,is.FLMatrix))){
-        R <- new("FLUnionTables",
-                 parts=objectList,
-                 by="cols")
+        return(FLMatrixBind(parts=objectList,by=2))
     }
+    stop()
 }
+cbind.FLMatrixBind <- cbind.FLMatrix
 ## {
 ## 	objectVec<-list(object,...)
 ## 	connection<-getConnection(object)
@@ -93,9 +92,9 @@ cbind.FLMatrix<-function(object,...)
 ## 	{
 ## 	    sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 ## 		                " SELECT ",max_matrix_id_value,",
-## 				              a.",object@variables$rowId,",
-## 				              a.",object@variables$colId,",
-## 				              a.",object@variables$value," 
+## 				              a.",getVariables(object)$rowIdColumn,",
+## 				              a.",getVariables(object)$colIdColumn,",
+## 				              a.",getVariables(object)$valueColumn," 
 ## 				        FROM  ",remoteTable(object)," a 
 ## 				        WHERE a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -111,9 +110,9 @@ cbind.FLMatrix<-function(object,...)
 
 ## 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 ## 					            " SELECT ",max_matrix_id_value,",
-## 							              a.",object@variables$rowId,",
-## 							              a.",object@variables$colId,"+",colCount,",
-## 							              a.",object@variables$value," 
+## 							              a.",getVariables(object)$rowIdColumn,",
+## 							              a.",getVariables(object)$colIdColumn,"+",colCount,",
+## 							              a.",getVariables(object)$valueColumn," 
 ## 							    FROM   ",remoteTable(object)," a 
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -240,9 +239,9 @@ cbind.FLMatrix<-function(object,...)
 ## 			       matrix_table = result_matrix_table, 
 ## 				   matrix_id_value = max_matrix_id_value-1,
 ## 				   matrix_id_colname = "MATRIX_ID", 
-## 				   row_id_colname = "ROW_ID", 
-## 				   col_id_colname = "COL_ID", 
-## 				   cell_val_colname = "CELL_VAL",
+## 				   row_id_colname = "rowIdColumn", 
+## 				   col_id_colname = "colIdColumn", 
+## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = nrow, 
 ## 				   ncol = colCount, 
 ## 				   dimnames = list(c(),c())))
@@ -360,9 +359,9 @@ cbind.FLVector <- function(object,...)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn",
 				   nrow = nrow, 
 				   ncol = 1, 
 				   dimnames = list(c(),c())))
@@ -444,9 +443,9 @@ cbind.FLVector <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@variables$rowId,",
-							              a.",object@variables$colId,"+",colCount,",
-							              a.",object@variables$value," 
+							              a.",getVariables(object)$rowIdColumn,",
+							              a.",getVariables(object)$colIdColumn,"+",colCount,",
+							              a.",getVariables(object)$valueColumn," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -573,9 +572,9 @@ cbind.FLVector <- function(object,...)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn",
 				   nrow = nrow, 
 				   ncol = colCount, 
 				   dimnames = list(c(),c())))
@@ -655,9 +654,9 @@ cbind.matrix <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@variables$rowId,",
-							              a.",object@variables$colId,"+",colCount,",
-							              a.",object@variables$value," 
+							              a.",getVariables(object)$rowIdColumn,",
+							              a.",getVariables(object)$colIdColumn,"+",colCount,",
+							              a.",getVariables(object)$valueColumn," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -784,9 +783,9 @@ cbind.matrix <- function(object,...)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn",
 				   nrow = nrow, 
 				   ncol = colCount, 
 				   dimnames = list(c(),c())))
@@ -882,9 +881,9 @@ cbind.numeric <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@variables$rowId,",
-							              a.",object@variables$colId,"+",colCount,",
-							              a.",object@variables$value," 
+							              a.",getVariables(object)$rowIdColumn,",
+							              a.",getVariables(object)$colIdColumn,"+",colCount,",
+							              a.",getVariables(object)$valueColumn," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -1011,9 +1010,9 @@ cbind.numeric <- function(object,...)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn",
 				   nrow = nrow, 
 				   ncol = colCount, 
 				   dimnames = list(c(),c())))
@@ -1093,9 +1092,9 @@ cbind.data.frame <- function(object,...)
 
 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
 					            " SELECT ",max_matrix_id_value,",
-							              a.",object@variables$rowId,",
-							              a.",object@variables$colId,"+",colCount,",
-							              a.",object@variables$value," 
+							              a.",getVariables(object)$rowIdColumn,",
+							              a.",getVariables(object)$colIdColumn,"+",colCount,",
+							              a.",getVariables(object)$valueColumn," 
 							    FROM   ",remoteTable(object)," a 
 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
@@ -1223,9 +1222,9 @@ cbind.data.frame <- function(object,...)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL",
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn",
 				   nrow = nrow, 
 				   ncol = colCount, 
 				   dimnames = list(c(),c())))

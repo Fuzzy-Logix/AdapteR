@@ -4,9 +4,10 @@
 #' Check if the object is an FLMatrix object
 is.FLMatrix <- function(object)
 {
-	if ( class(object) == "FLMatrix")
-			return (TRUE)
-	else 	return (FALSE)
+    if (class(object) == "FLMatrix" |
+        class(object) == "FLMatrixBind")
+        return (TRUE)
+	else return (FALSE)
 }
 
 #' Check if the object is an FLVector object

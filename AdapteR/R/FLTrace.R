@@ -40,14 +40,14 @@ tr.FLMatrix<-function(object){
 					getRemoteTableName(result_db_name,result_vector_table),
 					" SELECT ",max_vector_id_value,
 					         ",1, 
-					         FLMatrixTrace(",object@variables$rowId,
-					         			   ",",object@variables$colId,
-					              		   ",",object@variables$value,")",
+					         FLMatrixTrace(",getVariables(object)$rowId,
+					         			   ",",getVariables(object)$colId,
+					              		   ",",getVariables(object)$value,")",
 				    " FROM ",remoteTable(object)," a",
-				    " GROUP BY ",object@variables$matrixId,
+				    " GROUP BY ",getVariables(object)$matrixId,
 				    constructWhere(c(constraintsSQL(object),
-				    	paste0(object@variables$rowId," <= ",min(nrow(object),ncol(object))),
-				    	paste0(object@variables$colId, " <= ", min(nrow(object),ncol(object))))))
+				    	paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
+				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))
 	
 	sqlSendUpdate(connection,sqlstr)
 	
