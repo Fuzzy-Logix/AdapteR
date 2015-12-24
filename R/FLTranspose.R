@@ -27,15 +27,15 @@ t<-function(x, ...){
 t.FLMatrix<-function(object){
 	return(FLMatrix( 
             connection = getConnection(object), 
-            database = object@db_name, 
-            matrix_table = object@table_name, 
+            database = object@select@db_name, 
+            matrix_table = object@select@table_name, 
             matrix_id_value = "",
             matrix_id_colname = getVariables(object)$matrixId, 
             row_id_colname = getVariables(object)$colIdColumn, 
             col_id_colname = getVariables(object)$rowIdColumn, 
             cell_val_colname = getVariables(object)$valueColumn, 
             dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
-            whereconditions=object@whereconditions)
+            whereconditions=object@select@whereconditions)
             )
 }
 
