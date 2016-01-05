@@ -44,7 +44,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 	sqlstr<-paste0(" INSERT INTO ",
 					getRemoteTableName(result_db_name, result_matrix_table),
 				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
-						AS (SELECT a.",getVariables(object)$matrixId,", 
+						AS (SELECT 1, 
 								   a.",getVariables(object)$rowId,", 
 								   a.",getVariables(object)$colId,", 
 								   a.",getVariables(object)$value,",",
@@ -68,8 +68,8 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx)
             matrix_table = result_matrix_table, 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "ROW_ID", 
-            col_id_colname = "COL_ID", 
-            cell_val_colname = "CELL_VAL")
+            row_id_colname = "rowIdColumn", 
+            col_id_colname = "colIdColumn", 
+            cell_val_colname = "valueColumn")
            )
 }

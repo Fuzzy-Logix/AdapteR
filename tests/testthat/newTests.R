@@ -170,12 +170,19 @@ test_that("check FLDims",
 ## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for Matrix M_Subtraction",
 {
-  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID",
-                 "ROW_ID","COL_ID","CELL_VAL")
-  M2R <- as.matrix(M2)
-
-  expect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
+  expect_eval_equal(initF=function(n) {
+      a <- initF.FLMatrix(n=5,isSquare=TRUE)
+      b <- FLMatrix(connection,
+                    "FL_DEMO", "tblmatrixMulti",
+                    5, "MATRIX_ID",
+                    "ROW_ID","COL_ID","CELL_VAL")
+      list(R=list(a$R,
+                  as.matrix(b)),
+           FL=list(a$FL,
+                   b))
+  },function(x) do.call("-",x),
+  function(x) do.call("-",x)
+  )
 })
 
 
@@ -208,10 +215,19 @@ test_that("check result for M_Subtraction",
 ## Testing M_IntegerDivision. Only 2 FLMatrices
 test_that("check result for M_IntegerDivision",
 {
-  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
-  M2R <- as.matrix(M2)
-  expect_equal(M1$FL%/%M2,M1$R%/%M2R,check.attributes=FALSE)
+  expect_eval_equal(initF=function(n) {
+      a <- initF.FLMatrix(n=5,isSquare=TRUE)
+      b <- FLMatrix(connection,
+                    "FL_DEMO", "tblmatrixMulti",
+                    5, "MATRIX_ID",
+                    "ROW_ID","COL_ID","CELL_VAL")
+      list(R=list(a$R,
+                  as.matrix(b)),
+           FL=list(a$FL,
+                   b))
+  },function(x) do.call("%/%",x),
+  function(x) do.call("%/%",x)
+  )
 })
 
 ## Testing M_IntegerDivision
@@ -245,10 +261,19 @@ test_that("check result for M_IntegerDivision",
 ## Testing M_CrossProduct only two FLMatrices
 test_that("check result for M_CrossProduct",
 {
-  M1 <- initF.FLMatrix(n=5) # 5*4 matrix
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",3,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL") # 4*5 matrix
-  M2R <- as.matrix(M2)
-  expect_equal(M1$FL %*% M2,M1$R%*%M2R,check.attributes=FALSE)
+  expect_eval_equal(initF=function(n) {
+      a <- initF.FLMatrix(n=5)
+      b <- FLMatrix(connection,
+                    "FL_DEMO", "tblmatrixMulti",
+                    3, "MATRIX_ID",
+                    "ROW_ID","COL_ID","CELL_VAL")
+      list(R=list(a$R,
+                  as.matrix(b)),
+           FL=list(a$FL,
+                   b))
+  },function(x) do.call("%*%",x),
+  function(x) do.call("%*%",x)
+  )
 })
 
 ## Testing M_CrossProduct
@@ -308,7 +333,7 @@ test_that("check FLCastFunctions",
 ### Phani-- needs a hermitian positive definite matrix as input
 test_that("check FLCholskeyDecomp",
 {
-  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID")
+  m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   expect_equal(chol(m4),
                Matrix::chol(as.matrix(m4)))
 })
@@ -419,7 +444,7 @@ test_that("check FLMatrixNorm working",
 ### eigen values. So input taken from DbLytix manual.
 test_that("check Jordan Decomposition",
 {
-  M <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id")
+  M <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
     FLJordan(M)
 })
 

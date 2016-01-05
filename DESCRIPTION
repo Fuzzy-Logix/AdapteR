@@ -19,14 +19,14 @@ License: GPL-2
 LazyData: true
 Collate:
     'AllClasses.R'
-    'FLDims.R'
-    'FLIs.R'
-    'FLPrint.R'
     'utilities.R'
     'FLMatrix.R'
     'FLTable.R'
     'FLVector.R'
     'FLSparseMatrix.R'
+    'FLPrint.R'
+    'FLIs.R'
+    'FLDims.R'
     'FLCastFunctions.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'

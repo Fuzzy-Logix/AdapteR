@@ -43,12 +43,12 @@ diag.FLMatrix<-function(object)
 	flag3Check(connection)
 
 	table <- FLTable(connection,
-		             object@db_name,
-		             object@table_name,
+		             object@select@db_name,
+		             object@select@table_name,
 		             getVariables(object)$rowId,
-		             whereconditions=c(object@whereconditions,
-		             	paste0(getRemoteTableName(object@db_name,object@table_name),".",getVariables(object)$rowId,
-		             		"=",getRemoteTableName(object@db_name,object@table_name),".",getVariables(object)$colId)))
+		             whereconditions=c(object@select@whereconditions,
+		             	paste0(getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$rowId,
+		             		"=",getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$colId)))
 
 	return(table[,getVariables(object)$value])
 }
@@ -127,9 +127,9 @@ diag.FLVector <- function(object)
 				 	        matrix_table = result_matrix_table, 
 				 	        matrix_id_value = MID,
 					        matrix_id_colname = "MATRIX_ID", 
-					        row_id_colname = "ROW_ID", 
-					        col_id_colname = "COL_ID", 
-					        cell_val_colname = "CELL_VAL"
+					        row_id_colname = "rowIdColumn", 
+					        col_id_colname = "colIdColumn", 
+					        cell_val_colname = "valueColumn"
 					        ))
 			}
 			else return(FLMatrix( 
