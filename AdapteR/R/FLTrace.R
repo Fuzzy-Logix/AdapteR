@@ -36,29 +36,14 @@ tr.FLMatrix<-function(object){
 	
 	flag3Check(connection)
 
-	sqlstr<-paste0( " INSERT INTO ",
-					getRemoteTableName(result_db_name,result_vector_table),
-					" SELECT ",max_vector_id_value,
-					         ",1, 
-					         FLMatrixTrace(",getVariables(object)$rowId,
-					         			   ",",getVariables(object)$colId,
-					              		   ",",getVariables(object)$value,")",
-				    " FROM ",remoteTable(object)," a",
-				    " GROUP BY ",getVariables(object)$matrixId,
+	sqlstr<-paste0( " SELECT 
+					  FLMatrixTrace(",getVariables(object)$rowId,
+			         			   ",",getVariables(object)$colId,
+			              		   ",",getVariables(object)$value,")",
+				    " FROM ",remoteTable(object),
 				    constructWhere(c(constraintsSQL(object),
 				    	paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
 				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))
 	
-	sqlSendUpdate(connection,sqlstr)
-	
-	max_vector_id_value <<- max_vector_id_value + 1
-
-	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_INDEX",
-		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
-		             )
-
-	return(table[,"VECTOR_VALUE"])
+	return(sqlQuery(connection,sqlstr)[1,1])
 }

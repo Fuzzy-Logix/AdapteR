@@ -184,9 +184,9 @@ lu.FLMatrix<-function(object)
 			       matrix_table = result_matrix_table, 
 				   matrix_id_value = MID1,
 				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "ROW_ID", 
-				   col_id_colname = "COL_ID", 
-				   cell_val_colname = "CELL_VAL")
+				   row_id_colname = "rowIdColumn", 
+				   col_id_colname = "colIdColumn", 
+				   cell_val_colname = "valueColumn")
 
 	# calculating x FLVector
 	VID2 <- max_vector_id_value
@@ -195,8 +195,8 @@ lu.FLMatrix<-function(object)
 	sqlstrX <-paste0("INSERT INTO ",
 						getRemoteTableName(result_db_name,result_vector_table),
 						" SELECT ",VID2,
-								",ROW_NUMBER() OVER(ORDER BY ",LUMatrix@variables$colId,",",LUMatrix@variables$rowId,")
-	                       		, ",LUMatrix@variables$value,"
+								",ROW_NUMBER() OVER(ORDER BY ",getVariables(LUMatrix)$colId,",",getVariables(LUMatrix)$rowId,")
+	                       		, ",getVariables(LUMatrix)$value,"
 						  FROM ",remoteTable(LUMatrix),
 						 constructWhere(constraintsSQL(LUMatrix)))
 	
