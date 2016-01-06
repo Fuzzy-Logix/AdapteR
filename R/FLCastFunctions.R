@@ -299,7 +299,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
   dn <- dimnames(object)
   for(index in 1:2){
         if(!is.null(dn[[index]])){
-            if(all(dn[[index]]==as.character(1:(dim(object)[[index]]))))
+            if(all(as.character(dn[[index]])==as.character(1:(dim(object)[[index]]))))
                 dn[index] <- list(NULL)
         }
       ##gk: fix this, currently dimnames needed

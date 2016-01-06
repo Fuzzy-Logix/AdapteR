@@ -275,7 +275,7 @@ NULL
 	}
 	else if(is.FLVector(pObj2))
 	{
-		connection <- pObj2@odbc_connection
+		connection <- getConnection(pObj2)
 		flag3Check(connection)
 
 		if(nrow(pObj1)==1 && nrow(pObj2)==1)

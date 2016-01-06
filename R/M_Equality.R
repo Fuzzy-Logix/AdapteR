@@ -17,7 +17,7 @@ identical.FLMatrix <- function(object1, object2)
                                          paste0("a.",object1@variables$rowIdColumn,"= b.",object2@variables$rowIdColumn),
                                          paste0("a.",object1@variables$colIdColumn,"= b.",object2@variables$colIdColumn),
                                          paste0("a.",object1@variables$valueColumn,"<> b.",object2@variables$valueColumn))))
-		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
+		retobj<-sqlQuery(getConnection(object1),sqlstr)
 		if(nrow(retobj) == 0)
 		{
 			return(TRUE)
@@ -58,7 +58,7 @@ identical.FLMatrix <- function(object1, object2)
                                          paste0("a.",object1@variables$rowIdColumn,"= b.",object2@variables$rowIdColumn),
                                          paste0("a.",object1@variables$colIdColumn,"= b.",object2@variables$colIdColumn),
                                          paste0("a.",object1@variables$valueColumn,"<> b.",object2@variables$valueColumn))))
-		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
+		retobj<-sqlQuery(getConnection(object1),sqlstr)
 
 		if(nrow(retobj) == 0)
 		{
@@ -132,7 +132,7 @@ identical.FLMatrix <- function(object1, object2)
 		}
 
 
-		retobj<-sqlQuery(object1@odbc_connection,sqlstr)
+		retobj<-sqlQuery(getConnection(object1),sqlstr)
 
 		if(nrow(retobj) == 0)
 		{
