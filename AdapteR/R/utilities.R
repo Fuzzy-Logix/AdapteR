@@ -18,8 +18,11 @@ sqlError <- function(e){
 ################################################################################
 ######  provide methods for JDBC with same signature as ODBC methods
 ################################################################################
-if(!exists("sqlQuery")) sqlQuery <- function(channel,query) UseMethod("sqlQuery")
+
 if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
+
+sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
+sqlQuery.default <- RODBC::sqlQuery
 
 options(debugSQL=TRUE)
 FLdebugSQL <<- TRUE
@@ -39,8 +42,8 @@ sqlSendUpdate.JDBCConnection <- function(channel,query) {
 sqlSendUpdate.RODBC <- function(connection,query) {
     odbcSetAutoCommit(connection, autoCommit = FALSE)
     sapply(query, function(q){
-        if(FLdebugSQL) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
-        err<-sqlQuery(connection,q,errors=FALSE)
+        if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+        err<-RODBC::sqlQuery(connection,q,errors=FALSE)
         errmsg<- odbcGetErrMsg(connection)
         if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
         {
@@ -56,7 +59,6 @@ sqlSendUpdate.RODBC <- function(connection,query) {
     odbcSetAutoCommit(connection, autoCommit = TRUE)
     cat("DONE...")
 }
-
 
 sqlQuery.JDBCConnection <- function(channel,query, ...) {
     if(length(query)==1){
@@ -77,6 +79,24 @@ sqlQuery.JDBCConnection <- function(channel,query, ...) {
     })
 }
 
+sqlQuery.RODBC <- function(connection,query, ...) {
+    if(length(query)==1){
+        if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
+        tryCatch({
+            resd <- RODBC::sqlQuery(connection, query, ...)
+            return(resd)
+        },
+        error=function(e) cat(paste0(sqlError(e))))
+    }
+    lapply(query, function(q){
+        if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
+        tryCatch({
+            resd <- RODBC::sqlQuery(connection, q, ...)
+            return(resd)
+        },
+        error=function(e) cat(paste0(sqlError(e))))
+    })
+}
 
 list_to_where_clause <- function (x) {
 	     where_clause <- paste(names(x),x,sep="=\'",collapse="\' AND ");

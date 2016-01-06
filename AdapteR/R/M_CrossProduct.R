@@ -232,9 +232,9 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 	{
 
 		if(length(pObj1) == nrow(pObj2))
-		pObj1 <- as.FLMatrix(pObj1,pObj2@odbc_connection,rows=1,cols=length(pObj1))
+		pObj1 <- as.FLMatrix(pObj1,getConnection(pObj2),rows=1,cols=length(pObj1))
 		else if(nrow(pObj2)==1)
-		pObj1 <- as.FLMatrix(pObj1,pObj2@odbc_connection)
+		pObj1 <- as.FLMatrix(pObj1,getConnection(pObj2))
 		else
 		stop(" non-conformable dimensions ")
 
@@ -261,7 +261,7 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 	{
 		if(length(pObj2) != length(pObj1)) stop(" non-conformable dimensions ")
 		flmatobj1 <- as.FLMatrix(pObj1,getConnection(pObj1),rows=1,cols=length(pObj1))
-		flmatobj2 <- as.FLMatrix(pObj2,pObj2@odbc_connection)
+		flmatobj2 <- as.FLMatrix(pObj2,getConnection(pObj2))
 		return(flmatobj1 %*% flmatobj2)		
 	}
 	else cat("ERROR::Operation Currently Not Supported")
