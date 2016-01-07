@@ -1,4 +1,6 @@
 # Contains the support functions
+NULL
+setOldClass("RODBC")
 
 getRemoteTableName <- function(databaseName,
                                tableName) {
@@ -200,9 +202,7 @@ FLodbcClose <- function(connection)
 	flag1 <<- 0
 	flag2 <<- 0
 	flag3 <<- 0
-	max_matrix_id_value <<- 1
-	max_Sparsematrix_id_value <<- 1
-	max_vector_id_value <<- 1
+	
 	tempDecompTableVector <<- c()
 }
 
@@ -233,11 +233,6 @@ FLStartSession <- function(connection,
     sqlSendUpdate(connection, sendqueries)
 
 
-    max_matrix_id_value <<- 0
-    ##max_matrix_id_value <<- max_matrix_id_value + 1
-
-    max_vector_id_value <<- 0
-    ##max_vector_id_value <- max_vector_id_value + 1
     result_vector_table <<- gen_table_name("tblVectorResult",persistent)
     tempDecompTableVector <<- c()
 
@@ -283,6 +278,90 @@ FLStartSession <- function(connection,
     sqlSendUpdate(connection, sendqueries)
  	cat("DONE..\n")
 }
+
+setGeneric("getMaxValue", function(vdatabase,
+								  vtable,
+								  vcolName,
+								  vconnection,...) {
+    standardGeneric("getMaxValue")
+})
+
+setMethod("getMaxValue",
+          signature(vdatabase="character",
+          			vtable = "character",
+          			vcolName="character",
+          			vconnection="RODBC"),
+          function(vdatabase,vtable,vcolName,vconnection,...)
+          {
+          	sqlstr <- paste0(" SELECT MAX(",vcolName,
+          					 " )+1 FROM ",vdatabase,".",vtable)
+
+          	t <- sqlQuery(vconnection,sqlstr)[1,1]
+          	if(is.na(t)) return(0)
+          	else return(t)
+          }
+        )
+setMethod("getMaxValue",
+          signature(vdatabase="character",
+          			vtable = "character",
+          			vcolName="character",
+          			vconnection="JDBCConnection"),
+          function(vdatabase,vtable,vcolName,vconnection,...)
+          {
+          	sqlstr <- paste0(" SELECT MAX(",vcolName,
+          					 " )+1 FROM ",vdatabase,".",vtable)
+
+          	t <- sqlQuery(vconnection,sqlstr)[1,1]
+          	if(is.na(t)) return(0)
+          	else return(t)
+          }
+        )
+
+
+setGeneric("getMaxMatrixId", function(vconnection,...) {
+    standardGeneric("getMaxMatrixId")
+})
+
+setMethod("getMaxMatrixId",
+          signature(vconnection="RODBC"),
+          function(vconnection,...) 
+          getMaxValue(vdatabase=result_db_name,
+          			  vtable=result_matrix_table,
+          			  vcolName="MATRIX_ID",
+          			  vconnection=vconnection)
+          )
+setMethod("getMaxMatrixId",
+          signature(vconnection="JDBCConnection"),
+          function(vconnection,...) 
+          getMaxValue(vdatabase=result_db_name,
+          			  vtable=result_matrix_table,
+          			  vcolName="MATRIX_ID",
+          			  vconnection=vconnection)
+          )
+
+
+setGeneric("getMaxVectorId", function(vconnection,...) {
+    standardGeneric("getMaxVectorId")
+})
+
+setMethod("getMaxVectorId",
+          signature(vconnection="RODBC"),
+          function(vconnection,...) 
+          getMaxValue(vdatabase=result_db_name,
+          			  vtable=result_vector_table,
+          			  vcolName="VECTOR_ID",
+          			  vconnection=vconnection)
+          )
+setMethod("getMaxVectorId",
+          signature(vconnection="JDBCConnection"),
+          function(vconnection,...) 
+          getMaxValue(vdatabase=result_db_name,
+          			  vtable=result_vector_table,
+          			  vcolName="VECTOR_ID",
+          			  vconnection=vconnection)
+          )
+
+
 
 flag1Check <- function(connection)
 {

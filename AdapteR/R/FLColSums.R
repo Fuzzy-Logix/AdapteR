@@ -32,25 +32,14 @@ colSums.FLMatrix<-function(object)
 	connection<-getConnection(object)
 	flag3Check(connection)
 
-	sqlstr<-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_vector_table),
-					" SELECT ",max_vector_id_value,
+	sqlstr<-paste0(" SELECT ",getMaxVectorId(connection),
 					         ",a.",getVariables(object)$colId,
 					         ",SUM(a.",getVariables(object)$value,") 
 					FROM ",remoteTable(object)," a ",
 					constructWhere(constraintsSQL(object,"a")),
 					" GROUP BY a.",getVariables(object)$colId)
 
-	sqlSendUpdate(connection,sqlstr)
-	
-	max_vector_id_value <<- max_vector_id_value + 1
-	
-	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_INDEX",
-		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
-		             )
-
-	return(table[,"VECTOR_VALUE"])
+	return(store(object=sqlstr,
+              returnType="VECTOR",
+              connection=connection))
 }

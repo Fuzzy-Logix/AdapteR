@@ -103,17 +103,16 @@ NULL
 	{
 		checkSameDims(flmatobj1,flmatobj2)
 		flag1Check(getConnection(flmatobj1))
+		MID <- getMaxMatrixId(getConnection(flmatobj1))
         ## gk: todo:refactor
-		sqlstr <-paste0(" INSERT INTO ",
-				 		getRemoteTableName(result_db_name,result_matrix_table),
-						" SELECT DISTINCT ",max_matrix_id_value,",
+		sqlstr <-paste0(" SELECT DISTINCT ",MID,",
 								 a.",getVariables(flmatobj1)$rowIdColumn,",
 								 a.",getVariables(flmatobj1)$colIdColumn,",
 								 a.",getVariables(flmatobj1)$valueColumn,
 						" FROM ",remoteTable(flmatobj1)," a ",
 						constructWhere(constraintsSQL(flmatobj1,"a")),
 			            " except ",
-			            "SELECT ",max_matrix_id_value,",
+			            "SELECT ",MID,",
 			            		a.",getVariables(flmatobj1)$rowIdColumn,",
 			            		a.",getVariables(flmatobj1)$colIdColumn,",
 			            		a.",getVariables(flmatobj1)$valueColumn,
@@ -124,14 +123,14 @@ NULL
 					 		  	paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
 					 		  	paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))),
 			            " UNION ALL ",
-			            "SELECT DISTINCT ",max_matrix_id_value,",
+			            "SELECT DISTINCT ",MID,",
 			            		b.",getVariables(flmatobj2)$rowIdColumn,",
 			            		b.",getVariables(flmatobj2)$colIdColumn,",
 			            		b.",getVariables(flmatobj2)$valueColumn,"*(-1) 
 			             FROM ",remoteTable(flmatobj2)," b ",
 			            constructWhere(constraintsSQL(flmatobj2,"b")),
 			            " except ",
-			            "SELECT ",max_matrix_id_value,",
+			            "SELECT ",MID,",
 			            		b.",getVariables(flmatobj2)$rowIdColumn,",
 			            		b.",getVariables(flmatobj2)$colIdColumn,",
 			            		b.",getVariables(flmatobj2)$valueColumn,"*(-1) 
@@ -142,7 +141,7 @@ NULL
 					 		  	paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
 					 		  	paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))),
 			            " UNION ALL ",
-			            " SELECT ",max_matrix_id_value,",
+			            " SELECT ",MID,",
 			            		a.",getVariables(flmatobj1)$rowIdColumn,",
 			            		a.",getVariables(flmatobj1)$colIdColumn,",
 			            		a.",getVariables(flmatobj1)$valueColumn,"-b.",
@@ -153,20 +152,10 @@ NULL
 					 		  	constraintsSQL(flmatobj2,"b"),
 					 		  	paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
 					 		  	paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))))
-
-		sqlSendUpdate(getConnection(flmatobj1),sqlstr)
-		MID <- max_matrix_id_value	
-		max_matrix_id_value <<- max_matrix_id_value + 1
-		return(FLMatrix( 
-		       connection = getConnection(flmatobj1), 
-		       database = result_db_name, 
-		       matrix_table = result_matrix_table, 
-			   matrix_id_value = MID,
-			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "rowIdColumn", 
-			   col_id_colname = "colIdColumn", 
-			   cell_val_colname = "valueColumn",
-			   ))
+		
+		return(store(object=sqlstr,
+              returnType="MATRIX",
+              connection=getConnection(flmatobj1)))
 	}
 	else if(is.vector(flmatobj2))
 		{
@@ -284,28 +273,18 @@ NULL
 			max_length <- ncol(pObj2)
 			else max_length <- ncol(pObj1)
 
-			sqlstr <- paste0("INSERT INTO ",
-							getRemoteTableName(result_db_name,result_vector_table),
-							" SELECT ",max_vector_id_value,
+			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
 									",",1:max_length,
 									",a.",pObj1@dimnames[[2]],
 									"-b.",pObj2@dimnames[[2]],
 							" FROM ",remoteTable(pObj1)," a,",
 							   remoteTable(pObj2)," b ",
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
-								constraintsSQL(pObj2,localName="b"))),collapse=";")
+								constraintsSQL(pObj2,localName="b"))),collapse=" UNION ALL ")
 
-			retobj<- sqlSendUpdate(connection,sqlstr)
-			max_vector_id_value <<- max_vector_id_value + 1
-
-			table <- FLTable(connection,
-				             result_db_name,
-				             result_vector_table,
-				             "VECTOR_INDEX",
-				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-				             )
-
-			return(table[,"VECTOR_VALUE"])
+			return(store(object=sqlstr,
+              returnType="VECTOR",
+              connection=connection))
 		}
 
 		if(ncol(pObj1)==1 && ncol(pObj2)==1)
@@ -317,9 +296,7 @@ NULL
             ## gk: we can defer this for now, we need modulo.
             ### Phani-- modulo approach I used in earlier version,
             ### But here primary key can be non-numeric
-			sqlstr <- paste0("INSERT INTO ",
-							getRemoteTableName(result_db_name,result_vector_table),
-							" SELECT ",max_vector_id_value,
+			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
 									",a.",pObj1@variables$obs_id_colname,
 									",a.",pObj1@dimnames[[2]],
 									"-b.",pObj2@dimnames[[2]],
@@ -330,17 +307,9 @@ NULL
 							" a.",pObj1@variables$obs_id_colname,"=b.",
 							pObj2@variables$obs_id_colname))))
 
-			retobj<- sqlSendUpdate(connection,sqlstr)
-			max_vector_id_value <<- max_vector_id_value + 1
-
-			table <- FLTable(connection,
-				             result_db_name,
-				             result_vector_table,
-				             "VECTOR_INDEX",
-				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-				             )
-
-			return(table[,"VECTOR_VALUE"])
+			return(store(object=sqlstr,
+              returnType="VECTOR",
+              connection=connection))
 		}
 
 		if(ncol(pObj1)==1 && nrow(pObj2)==1)
@@ -349,9 +318,7 @@ NULL
 			max_length <- ncol(pObj2)
 			else max_length <- nrow(pObj1)
 
-			sqlstr <- paste0("INSERT INTO ",
-							getRemoteTableName(result_db_name,result_vector_table),
-							" SELECT ",max_vector_id_value,
+			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
 									",",1:max_length,
 									",a.",pObj1@dimnames[[2]],
 									"-b.",pObj2@dimnames[[2]],
@@ -359,19 +326,11 @@ NULL
 							   remoteTable(pObj2)," b ",
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
 								constraintsSQL(pObj2,localName="b"))),
-							" AND  a.",pObj1@variables$obs_id_colname," IN('",pObj1@dimnames[[1]],"')",collapse=";")
+							" AND  a.",pObj1@variables$obs_id_colname," IN('",pObj1@dimnames[[1]],"')",collapse=" UNION ALL ")
 
-			retobj<- sqlSendUpdate(connection,sqlstr)
-			max_vector_id_value <<- max_vector_id_value + 1
-
-			table <- FLTable(connection,
-				             result_db_name,
-				             result_vector_table,
-				             "VECTOR_INDEX",
-				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-				             )
-
-			return(table[,"VECTOR_VALUE"])
+			return(store(object=sqlstr,
+              returnType="VECTOR",
+              connection=connection))
 		}
 
 		if(nrow(pObj1)==1 && ncol(pObj2)==1)
@@ -380,9 +339,7 @@ NULL
 			max_length <- nrow(pObj2)
 			else max_length <- ncol(pObj1)
 
-			sqlstr <- paste0("INSERT INTO ",
-							getRemoteTableName(result_db_name,result_vector_table),
-							" SELECT ",max_vector_id_value,
+			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
 									",",1:max_length,
 									",a.",pObj1@dimnames[[2]],
 									"-b.",pObj2@dimnames[[2]],
@@ -390,19 +347,11 @@ NULL
 							   remoteTable(pObj2)," b ",
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
 								constraintsSQL(pObj2,localName="b"))),
-							" AND  b.",pObj2@variables$obs_id_colname," IN('",pObj2@dimnames[[1]],"')",collapse=";")
+							" AND  b.",pObj2@variables$obs_id_colname," IN('",pObj2@dimnames[[1]],"')",collapse=" UNION ALL ")
 
-			retobj<- sqlSendUpdate(connection,sqlstr)
-			max_vector_id_value <<- max_vector_id_value + 1
-
-			table <- FLTable(connection,
-				             result_db_name,
-				             result_vector_table,
-				             "VECTOR_INDEX",
-				             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-				             )
-
-			return(table[,"VECTOR_VALUE"])
+			return(store(object=sqlstr,
+              returnType="VECTOR",
+              connection=connection))
 		}
 		
 	}

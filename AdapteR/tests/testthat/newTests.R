@@ -5,6 +5,8 @@ require(Matrix)
 require(reshape2)
 require(psych)
 require(MASS)
+library(RJDBC)
+library(RODBC)
 
 if (exists("connection")) {
     dbDisconnect(connection)
@@ -19,7 +21,7 @@ FLStartSession(connection)
 
 ignoreDimNames <- TRUE
 
-options(FLdebugSQL=FALSE)
+options(debugSQL=FALSE)
 
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
@@ -252,10 +254,6 @@ test_that("check result for M_IntegerDivision",
     expect_equal(M1$FL%/%P1$FL,M1$R%/%P1$R,check.attributes=FALSE)
     expect_equal(V1%/%M2,V1R%/%M2R,check.attributes=FALSE)
     expect_equal(P1$FL%/%M2,P1$R%/%M2R,check.attributes=FALSE)
-
-    expect_equal(P1$FL%/%P1$FL%/%V1%/%V2%/%M2%/%P1$FL%/%M1$FL%/%V2,
-      P1$R%/%P1$R%/%V1R%/%V2R%/%M2R%/%P1$R%/%M1$R%/%V2R,
-      check.attributes=FALSE)
 })
 
 ## Testing M_CrossProduct only two FLMatrices
@@ -499,8 +497,6 @@ test_that("check determinant result",{
 test_that("check FLQRDecomposition",
 {
   M <- initF.FLMatrix(n=5)
-  print(qr(M$FL))
-  print(qr(M$R))
     expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
 })
 

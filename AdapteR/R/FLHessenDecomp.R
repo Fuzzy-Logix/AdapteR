@@ -77,7 +77,5 @@ FLHessen.FLMatrix<-function(object)
 
 		result<-list(P = PMatrix,
 					 H = HMatrix)
-
-		#sqlSendUpdate(connection,paste0(" DROP TABLE ",tempResultTable))
 		result
 }

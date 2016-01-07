@@ -37,13 +37,9 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 	connection<-getConnection(object)
 	flag1Check(connection)
 
-	  MID <- max_matrix_id_value
+	MID <- getMaxMatrixId(connection)
 
-	
-
-	sqlstr<-paste0(" INSERT INTO ",
-					getRemoteTableName(result_db_name, result_matrix_table),
-				   " WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
+	sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
 						AS (SELECT 1, 
 								   a.",getVariables(object)$rowId,", 
 								   a.",getVariables(object)$colId,", 
@@ -58,18 +54,8 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 					FROM TABLE (FLMatrixInvExclUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val, z.ExclIdx) 
 						HASH BY z.Matrix_ID 
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
-	
-	sqlSendUpdate(connection,sqlstr)
-	max_matrix_id_value <<- max_matrix_id_value + 1
 
-	return(FLMatrix(
-            connection = connection, 
-            database = result_db_name, 
-            matrix_table = result_matrix_table, 
-            matrix_id_value = MID,
-            matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "rowIdColumn", 
-            col_id_colname = "colIdColumn", 
-            cell_val_colname = "valueColumn")
-           )
+	return(store(object=sqlstr,
+              returnType="MATRIX",
+              connection=connection))
 }

@@ -59,10 +59,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
     sqlSendUpdate(connection,sqlstr0)
 
- #    MID1 <- max_matrix_id_value
- #    max_matrix_id_value <<- max_matrix_id_value + 1
-	# MID2 <- max_matrix_id_value
-
 	UMatrix <- FLMatrix( 
             connection = connection, 
             database = result_db_name, 
@@ -96,40 +92,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 		             )
 
 	SVector <- table[,"OutSVal"]
-	# sqlstrU<-paste0("INSERT INTO ",
-	# 				getRemoteTableName(result_db_name,result_matrix_table),
-	# 				" SELECT ",MID1,
-	# 				         ",OutputRowNum
-	# 				          ,OutputColNum
-	# 				          ,OutUVal
-	# 				  FROM ",getRemoteTableName(result_db_name,tempResultTable),
-	# 				 " WHERE OutUVal IS NOT NULL;")
-
-	# sqlstrV<-paste0("INSERT INTO ",
-	# 					getRemoteTableName(result_db_name,result_matrix_table),
-	# 					" SELECT ",MID2,
-	# 					         ",OutputRowNum
-	# 					          ,OutputColNum
-	# 					          ,OutVVal
-	# 					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
-	# 					 " WHERE OutVVal IS NOT NULL;")
-
-
-	# sqlstrS<-paste0("INSERT INTO ",
-	# 					getRemoteTableName(result_db_name,result_vector_table),
-	# 					" SELECT ",max_vector_id_value,
-	# 					         ",OutputRowNum
-	# 					          ,OutSVal
-	# 					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
-	# 					 " WHERE OutputColNum=OutputRowNum;")
-    
- #    sqlstr <- paste0(sqlstrU,sqlstrV,sqlstrS)
-	
-	# sqlSendUpdate(connection,sqlstr)
-
-	# max_matrix_id_value <<- max_matrix_id_value + 1
-
-	# max_vector_id_value <<- max_vector_id_value + 1
 
 	
 
@@ -161,7 +123,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 					 v = VMatrix[1:ncol(object),1:min(nv,ncol(object))])
 	}
 
-	#sqlSendUpdate(connection,paste0(" DROP TABLE ",getRemoteTableName(result_db_name,tempResultTable)))
 	result
 }
 

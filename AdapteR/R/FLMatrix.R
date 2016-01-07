@@ -5,7 +5,6 @@ NULL
 setOldClass("RODBC")
 
 
-
 ## A table query models a select or a table result of a sql statement
 #' @slot odbc_connection ODBC connectivity for R
 setClass("FLTableQuery",
@@ -50,12 +49,28 @@ setClass("FLTableFunctionQuery",
 ##' @param object 
 ##' @return A FLMatrix based on a stored table of the executed 
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
-store <- function(object){
+
+setGeneric("store", function(object,returnType,connection,...) {
+    standardGeneric("store")
+})
+
+setMethod("store",
+          signature(object = "FLMatrix",returnType="missing",connection="missing"),
+          function(object) store.FLMatrix(object))
+setMethod("store",
+          signature(object = "character",returnType="character",connection="RODBC"),
+          function(object,returnType,connection) store.character(object,returnType,connection))
+setMethod("store",
+          signature(object = "character",returnType="character",connection="JDBCConnection"),
+          function(object,returnType,connection) store.character(object,returnType,connection))
+
+store.FLMatrix <- function(object)
+{
     if("FLMatrix" %in% class(object))
         if("FLSelectFrom" %in% class(object@select))
             return(object)
     if(is.FLMatrix(object)){
-        MID <- max_matrix_id_value
+        MID <- getMaxMatrixId(getConnection(object))
         object <- updateVariable(object,"MATRIX_ID", MID) ## "max(MATRIX_ID)+1"
         object <- orderVariables(object,
                                  c("MATRIX_ID",
@@ -64,11 +79,11 @@ store <- function(object){
                                    "valueColumn"))
         vSqlStr <- paste0(" INSERT INTO ",
                           getRemoteTableName(result_db_name,
-                                             result_matrix_table),
+                                            result_matrix_table),
                           "\n",
                           constructSelect(object),
                           "\n")
-		max_matrix_id_value <<- max_matrix_id_value + 1
+
         sqlSendUpdate(getConnection(object),
                       vSqlStr)
 		return(FLMatrix(
@@ -84,8 +99,80 @@ store <- function(object){
     }
 }
 
+store.character <- function(object,returnType,connection)
+{
+  if(toupper(returnType)=="MATRIX")
+  {
+    vSqlStr <- paste0(" INSERT INTO ",
+                      getRemoteTableName(result_db_name,
+                                        result_matrix_table),
+                      "\n",
+                      object,
+                      "\n")
 
+    MID <- getMaxMatrixId(connection)
 
+    sqlSendUpdate(connection,
+                  vSqlStr)
+
+    return(FLMatrix(
+            connection = connection,
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = MID,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "rowIdColumn", 
+            col_id_colname = "colIdColumn", 
+            cell_val_colname = "valueColumn",
+            ))
+  }
+
+  if(toupper(returnType)=="VECTOR")
+  {
+    vSqlStr <- paste0(" INSERT INTO ",
+                      getRemoteTableName(result_db_name,
+                                        result_vector_table),
+                      "\n",
+                      object,
+                      "\n")
+
+    VID <- getMaxVectorId(connection)
+    
+    sqlSendUpdate(connection,
+                  vSqlStr)
+
+    table <- FLTable(connection,
+                 result_db_name,
+                 result_vector_table,
+                 "VECTOR_INDEX",
+                 whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
+                 )
+
+    return(table[,"VECTOR_VALUE"])
+  }
+}
+
+store.FLVector <- function(object)
+{
+  vSqlStr <- paste0(" INSERT INTO ",
+                    getRemoteTableName(result_db_name,
+                                      result_vector_table),
+                    "\n",
+                    constructSelect(object),
+                    "\n")
+  sqlSendUpdate(getConnection(object),
+                  vSqlStr)
+  VID <- getMaxVectorId(getConnection(object))
+
+  table <- FLTable(getConnection(object),
+                   result_db_name,
+                   result_vector_table,
+                   "VECTOR_INDEX",
+                   whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
+                   )
+
+  return(table[,"VECTOR_VALUE"])
+}
 #' An S4 class to represent FLTable
 #'
 #' @slot odbc_connection ODBC connectivity for R
@@ -221,7 +308,8 @@ setMethod(
 #' @param object An FLMatrix object
 #' @param whereconditions constraints to be added
 #' @param dimnames new dimension names
-#' @param conditionDims vector of 2 LOGICAL values, if first is TRUE, a inCondition for the rownames is appended, if 2 for the columns respectively.
+#' @param conditionDims vector of 2 LOGICAL values, if first is TRUE, 
+#' a inCondition for the rownames is appended, if 2 for the columns respectively.
 restrictFLMatrix <-
     function(object,
              whereconditions = object@select@whereconditions,
@@ -512,11 +600,15 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         # outputSelectMatrix apples function given by func_name to view given by viewname
                                         # and returns columns specified by outcolnames list. IncludeMID tells if max_matrix_id_value
                                         # should be one of the columns returned.
-setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames,viewName,localName,whereClause) {
+setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames,
+                                          viewName,localName,whereClause,
+                                          vconnection) {
     standardGeneric("outputSelectMatrix")
 })
+
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
-                                          viewName="character",localName="character",whereClause="character"),
+                                          viewName="character",localName="character",whereClause="character",
+                                          vconnection="missing"),
           function(func_name,includeMID,outColNames,viewName,localName,whereClause)
           {
               return(paste0(" SELECT ",paste0(localName,".",outColNames,collapse=","),paste0(" 
@@ -527,10 +619,24 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="miss
           })
 
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
-                                          viewName="character",localName="character",whereClause="character"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause)
+                                          viewName="character",localName="character",whereClause="character",
+                                          vconnection="RODBC"),
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
           {
-              return(paste0(" SELECT ",ifelse(includeMID,max_matrix_id_value,max_vector_id_value),
+              return(paste0(" SELECT ",ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
+                            paste0(",",localName,".",outColNames,collapse=""),paste0(" 
+          FROM TABLE (",func_name,
+          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
+          HASH BY z.Matrix_ID 
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause)))
+          })
+
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
+                                          viewName="character",localName="character",whereClause="character",
+                                          vconnection="JDBCConnection"),
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
+          {
+              return(paste0(" SELECT ",ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
                             paste0(",",localName,".",outColNames,collapse=""),paste0(" 
           FROM TABLE (",func_name,
           "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
@@ -539,7 +645,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           })
 
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="character"),
+                                          viewName="character",localName="character",whereClause="character",
+                                          vconnection="missing"),
           function(func_name,includeMID,outColNames,viewName,localName,whereClause)
           {
               return(outputSelectMatrix(func_name,
@@ -547,28 +654,54 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="miss
                                         localName=localName,whereClause=whereClause))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="character"),
+                                          viewName="character",localName="character",whereClause="character",
+                                          vconnection="RODBC"),
           function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause)
+                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+                   viewName,localName,whereClause,vconnection)
           {
               return(outputSelectMatrix(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal")
-                                       ,viewName,localName,whereClause))
+                                       ,viewName,localName,whereClause,vconnection))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
+                                          viewName="character",localName="character",whereClause="character",
+                                          vconnection="JDBCConnection"),
+          function(func_name,includeMID,
+                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+                   viewName,localName,whereClause,vconnection)
+          {
+              return(outputSelectMatrix(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal")
+                                       ,viewName,localName,whereClause,vconnection))
+          })
+
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
+                                          viewName="character",localName="character",whereClause="missing",
+                                          vconnection="RODBC"),
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";",vconnection)
+          {
+              return(outputSelectMatrix(func_name,includeMID,
+                                        outColNames,viewName,localName,whereClause=";",vconnection))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
-                                          viewName="character",localName="character",whereClause="missing"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";")
+                                          viewName="character",localName="character",whereClause="missing",
+                                          vconnection="JDBCConnection"),
+          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";",vconnection)
           {
-              return(outputSelectMatrix(func_name,includeMID,outColNames,viewName,localName,whereClause=";"))
+              return(outputSelectMatrix(func_name,includeMID,
+                                        outColNames,viewName,localName,whereClause=";",vconnection))
           })
+
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
-                                          viewName="character",localName="character",whereClause="missing"),
+                                          viewName="character",localName="character",whereClause="missing",
+                                          vconnection="missing"),
           function(func_name,includeMID,outColNames,viewName,localName,whereClause=";")
           {
               return(outputSelectMatrix(func_name,outColNames=outColNames,viewName=viewName,
                                         localName=localName,whereClause=";"))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="missing"),
+                                          viewName="character",localName="character",whereClause="missing",
+                                          vconnection="missing"),
           function(func_name,includeMID,
                    outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
                    viewName,localName,whereClause=";")
@@ -578,12 +711,26 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="miss
                                         localName=localName,whereClause=";"))
           })
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="missing"),
+                                          viewName="character",localName="character",whereClause="missing",
+                                          vconnection="RODBC"),
           function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";")
+                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+                  viewName,localName,whereClause=";",vconnection)
           {
               return(outputSelectMatrix(func_name,includeMID,
-                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName,localName,whereClause=";"))
+                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+                                        viewName,localName,whereClause=";",vconnection))
+          })
+setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
+                                          viewName="character",localName="character",whereClause="missing",
+                                          vconnection="JDBCConnection"),
+          function(func_name,includeMID,
+                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+                  viewName,localName,whereClause=";",vconnection)
+          {
+              return(outputSelectMatrix(func_name,includeMID,
+                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
+                                        viewName,localName,whereClause=";",vconnection))
           })
 
 

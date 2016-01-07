@@ -101,28 +101,25 @@ lu.FLMatrix<-function(object)
     sqlSendUpdate(connection,sqlstr0)
 
 	# calculating LU matrix
-	MID1 <- max_matrix_id_value
-    max_matrix_id_value <<- max_matrix_id_value + 1
+	MID1 <- getMaxMatrixId(connection)
 
-	sqlstrLU1 <-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-					" SELECT ",MID1,
+	sqlstrLU <-paste0(" SELECT ",MID1,
 					         ",OutputRowNum
 					          ,OutputColNum
 					          ,CAST(OutputValL AS NUMBER) 
-					  FROM ",remoteTable(result_db_name,tempResultTable),
-					 " WHERE OutputRowNum > OutputColNum 
-				   AND OutputValL IS NOT NULL;")
-
-	sqlstrLU2 <-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-					" SELECT ",MID1,
+					  	FROM ",remoteTable(result_db_name,tempResultTable),
+					 	" WHERE OutputRowNum > OutputColNum 
+				   		AND OutputValL IS NOT NULL ",
+				   		" UNION ALL ",
+				   		" SELECT ",MID1,
 					         ",OutputRowNum
 					          ,OutputColNum
 					          ,CAST(OutputValU AS NUMBER) 
-					  FROM ",remoteTable(result_db_name,tempResultTable),
-					 " WHERE OutputRowNum <= OutputColNum 
-				   AND OutputValU IS NOT NULL;")
+					  	FROM ",remoteTable(result_db_name,tempResultTable),
+					 	" WHERE OutputRowNum <= OutputColNum 
+				   		AND OutputValU IS NOT NULL;")
+
+	LUMatrix <- store(sqlstrLU,returnType="MATRIX",connection=connection)
 
 	# calculating Permutation FLMatrix
     data_perm <- FLMatrix( 
@@ -163,8 +160,6 @@ lu.FLMatrix<-function(object)
 		   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputValU IS NOT NULL "))
 
 	# calculating perm FLVector
-	VID1 <- max_vector_id_value
-	max_vector_id_value <<- max_vector_id_value + 1
 	table <- FLTable(connection,
 		             result_db_name,
 		             tempResultTable,
@@ -174,43 +169,18 @@ lu.FLMatrix<-function(object)
 
 	perm <- table[,"OutputRowNum"]
 
-	sqlstr <- paste(sqlstrLU1,sqlstrLU2)
-	
-	sqlSendUpdate(connection,sqlstr)
-
-	LUMatrix  <- FLMatrix( 
-			       connection = connection, 
-			       database = result_db_name, 
-			       matrix_table = result_matrix_table, 
-				   matrix_id_value = MID1,
-				   matrix_id_colname = "MATRIX_ID", 
-				   row_id_colname = "rowIdColumn", 
-				   col_id_colname = "colIdColumn", 
-				   cell_val_colname = "valueColumn")
-
 	# calculating x FLVector
-	VID2 <- max_vector_id_value
-	max_vector_id_value <<- max_vector_id_value + 1
-
-	sqlstrX <-paste0("INSERT INTO ",
-						getRemoteTableName(result_db_name,result_vector_table),
-						" SELECT ",VID2,
-								",ROW_NUMBER() OVER(ORDER BY ",getVariables(LUMatrix)$colId,",",getVariables(LUMatrix)$rowId,")
-	                       		, ",getVariables(LUMatrix)$value,"
-						  FROM ",remoteTable(LUMatrix),
-						 constructWhere(constraintsSQL(LUMatrix)))
+	VID2 <- getMaxVectorId(connection)
 	
-	sqlSendUpdate(connection,sqlstrX)
-	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_INDEX",
-		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID2)
-		             )
+	sqlstrX <-paste0("SELECT ",VID2,
+							",ROW_NUMBER() OVER(ORDER BY ",getVariables(LUMatrix)$colId,",",getVariables(LUMatrix)$rowId,")
+	                   		, ",getVariables(LUMatrix)$value,"
+					  FROM ",remoteTable(LUMatrix),
+					 constructWhere(constraintsSQL(LUMatrix)))
 
-	x <- table[,"VECTOR_VALUE"]
+	x <- store(sqlstrX,returnType="VECTOR",connection=connection)
 
-	# calculating Dim FLVector
+	# calculating Dim vector
 	Dim<- dim(data_perm)
 
 	a<-new("FLLU",

@@ -124,9 +124,7 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 		flag1Check(getConnection(flmatobj1))
 
         ##gk: refactor to not store!
-		vSqlStr<-paste0(" INSERT INTO ",
-                        getRemoteTableName(result_db_name,result_matrix_table),
-                        " SELECT ",max_matrix_id_value," AS MATRIX_ID ,
+		sqlstr <-paste0(" SELECT ",getMaxMatrixId(getConnection(flmatobj1))," AS MATRIX_ID ,
 								 a.rowIdColumn AS ROW_ID ,
 								 b.colIdColumn AS COL_ID , 
 								 FLSUMPROD(a.valueColumn,b.valueColumn) AS CELL_VAL 
@@ -134,21 +132,10 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
                                       (",constructSelect(flmatobj2),") AS b ",
                         constructWhere("a.colIdColumn = b.rowIdColumn"),
                         " GROUP BY ROW_ID,COL_ID")
-						
-		sqlSendUpdate(getConnection(flmatobj1), vSqlStr)
 
-		MID <- max_matrix_id_value	
-		max_matrix_id_value <<- max_matrix_id_value + 1
-		return(FLMatrix( 
-		       connection = getConnection(flmatobj1), 
-		       database = result_db_name, 
-		       matrix_table = result_matrix_table, 
-			   matrix_id_value = MID,
-			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "rowIdColumn", 
-			   col_id_colname = "colIdColumn", 
-			   cell_val_colname = "valueColumn",
-			   ))
+		return(store(object=sqlstr,
+              returnType="MATRIX",
+              connection=getConnection(flmatobj1)))
 	}
 	else if(is.vector(flmatobj2))
 		{
