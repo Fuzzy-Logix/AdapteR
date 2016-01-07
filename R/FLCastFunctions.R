@@ -165,6 +165,7 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
             mdeep <- base::rbind(mdeep,
                            c(i=nrow(object),j=ncol(object),
                              x=0))
+        MID <- getMaxMatrixId(connection)
         sqlstatements <-
             base::apply(mdeep,1,
                         function(r)
@@ -173,13 +174,14 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                                        result_db_name,
                                        result_matrix_table),
                                    " (matrix_id, rowIdColumn, colIdColumn, valueColumn) VALUES (",
-                                   paste0(c(max_matrix_id_value,r), collapse=", "),
+                                   paste0(c(MID,r), collapse=", "),
                                    ");"))
+
         ##flag1Check(connection)
         retobj<-sqlSendUpdate(connection,
                               paste(sqlstatements,
                                     collapse="\n"))
-        max_matrix_id_value <<- max_matrix_id_value + 1
+        #max_matrix_id_value <<- max_matrix_id_value + 1
         if(length(dimnames(object))==0) { dimnames(object) <- list(c(),c()) }
         if(length(rownames(object))==0) { rownames(object) <- c() }
         if(length(colnames(object))==0) { colnames(object) <- c() }
@@ -194,12 +196,13 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                    connection = connection,
                    database = result_db_name,
                    matrix_table = result_matrix_table,
-                   matrix_id_value = max_matrix_id_value-1,
+                   matrix_id_value = MID,
                    matrix_id_colname = "MATRIX_ID",
                    row_id_colname = "rowIdColumn",
                    col_id_colname = "colIdColumn",
                    cell_val_colname = "valueColumn",
                    dimnames = mydims))
+
     }
 }
 
@@ -423,23 +426,23 @@ as.FLVector.vector <- function(object,connection)
   if(!is.numeric(object))
   stop("only numeric entries allowed in vector")
   flag3Check(connection)
-
+  VID <- getMaxVectorId(connection)
   sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
            getRemoteTableName(result_db_name,result_vector_table),
-           " SELECT ",max_vector_id_value,",",x,",",object[x],";"
+           " SELECT ",VID,",",x,",",object[x],";"
                    ))
   
   retobj<-sqlSendUpdate(connection,
                               paste(sqlstr,
                                     collapse="\n"))
 
-  max_vector_id_value <<- max_vector_id_value + 1
+  #max_vector_id_value <<- max_vector_id_value + 1
 
   table <- FLTable(connection,
                  result_db_name,
                  result_vector_table,
                  "VECTOR_INDEX",
-                 whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
+                 whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
                  )
 
   return(table[,"VECTOR_VALUE"])
@@ -448,26 +451,14 @@ as.FLVector.vector <- function(object,connection)
 as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
-  sqlstr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(result_db_name,result_vector_table),
-                   " SELECT ",max_vector_id_value,
+  sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
                    ", ROW_NUMBER() OVER (ORDER BY a.",getVariables(object)$colIdColumn,
                    ",a.",getVariables(object)$rowIdColumn,") AS ROW_NUM
                    ,a.",getVariables(object)$valueColumn,
                    " FROM ",remoteTable(object)," a ",
                    constructWhere(constraintsSQL(object,localName="a")))
 
-  sqlSendUpdate(connection,sqlstr)
-  max_vector_id_value <<- max_vector_id_value + 1
-
-  table <- FLTable(connection,
-                 result_db_name,
-                 result_vector_table,
-                 "VECTOR_INDEX",
-                 whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
-                 )
-
-  return(table[,"VECTOR_VALUE"])
+  return(store(sqlstr,returnType="VECTOR",connection=connection))
 }
 
 	

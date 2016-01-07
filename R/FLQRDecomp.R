@@ -58,71 +58,25 @@ qr.FLMatrix<-function(object)
                    )
 
     sqlSendUpdate(connection,sqlstr0)
-
-    #calculating QRMatrix
-    # MID1 <- max_matrix_id_value
-    # max_matrix_id_value <<- max_matrix_id_value + 1
-
-    # QR1 <- FLMatrix( 
-		  #      connection = connection, 
-		  #      database = result_db_name, 
-		  #      matrix_table = tempResultTable, 
-			 #   matrix_id_value = "",
-			 #   matrix_id_colname = "", 
-			 #   row_id_colname = "OutputRowNum", 
-			 #   col_id_colname = "OutputColNum", 
-			 #   cell_val_colname = "OutputValQ",
-			 #   whereconditions="OutputRowNum > OutputColNum")
-
-    # QR2 <- FLMatrix( 
-		  #      connection = connection, 
-		  #      database = result_db_name, 
-		  #      matrix_table = tempResultTable, 
-			 #   matrix_id_value = "",
-			 #   matrix_id_colname = "", 
-			 #   row_id_colname = "OutputRowNum", 
-			 #   col_id_colname = "OutputColNum", 
-			 #   cell_val_colname = "OutputValR",
-			 #   whereconditions="OutputRowNum <= OutputColNum")
-
-    # QRMatrix <- new("FLUnionTables",
-    # 				parts=list(QR1=QR1,QR2=QR2),
-    # 				by="rows")
 	
 	#calculating QRMatrix
-    MID1 <- max_matrix_id_value
-    max_matrix_id_value <<- max_matrix_id_value + 1
+    MID1 <- getMaxMatrixId(connection)
 
-    sqlstrQR1 <-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-					" SELECT ",MID1,
+    sqlstrQR <-paste0(" SELECT ",MID1,
 					         ",OutputRowNum
 					          ,OutputColNum
 					          ,OutputValQ 
 					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
-					 " WHERE OutputRowNum > OutputColNum;")
-
-    sqlstrQR2 <-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-					" SELECT ",MID1,
+					 " WHERE OutputRowNum > OutputColNum ",
+					 " UNION ALL ",
+					 " SELECT ",MID1,
 					         ",OutputRowNum
 					          ,OutputColNum
 					          ,OutputValR 
 					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
 					 " WHERE OutputRowNum <= OutputColNum;")
 
-    sqlstr <- paste(sqlstrQR1,sqlstrQR2)
-	sqlSendUpdate(connection,sqlstr)
-
-	QRMatrix <- FLMatrix( 
-		       connection = connection, 
-		       database = result_db_name, 
-		       matrix_table = result_matrix_table, 
-			   matrix_id_value = MID1,
-			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "rowIdColumn", 
-			   col_id_colname = "colIdColumn", 
-			   cell_val_colname = "valueColumn")
+    QRMatrix <- store(sqlstrQR,returnType="MATRIX",connection=connection)
 
     #calculating qraux
 	table <- FLTable(connection,

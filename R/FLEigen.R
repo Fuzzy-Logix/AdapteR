@@ -60,25 +60,16 @@ FLEigenValues.FLMatrix<-function(object)
 	connection<-getConnection(object)
 	flag3Check(connection)
 
-	sqlstr0<-paste0("INSERT INTO ",
-					 getRemoteTableName(result_db_name,result_vector_table),
-					 viewSelectMatrix(object,"a",withName="z"),
+	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLEigenValueUdt",viewName="z",
                    	localName="a",includeMID=FALSE,outColNames=list("OutputRowNum","OutputVal"),
-                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;")
+                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;",
+                   	vconnection=connection)
                    )
 	
-	retobj<- sqlSendUpdate(connection,sqlstr0)
-	max_vector_id_value <<- max_vector_id_value + 1
-
-	table <- FLTable(connection,
-		             result_db_name,
-		             result_vector_table,
-		             "VECTOR_INDEX",
-		             whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",max_vector_id_value-1)
-		             )
-
-	return(table[,"VECTOR_VALUE"])
+	return(store(object=sqlstr,
+              returnType="VECTOR",
+              connection=connection))
 }
 
 FLEigenVectors<-function(x,...)
@@ -91,24 +82,12 @@ FLEigenVectors.FLMatrix<-function(object)
 	connection<-getConnection(object)
 	flag1Check(connection)
 
-	sqlstr0<-paste0("INSERT INTO ",
-					getRemoteTableName(result_db_name,result_matrix_table),
-                    viewSelectMatrix(object,"a",withName="z"),
-                    outputSelectMatrix("FLEigenVectorUdt",viewName="z",localName="a",includeMID=TRUE)
+	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
+                    outputSelectMatrix("FLEigenVectorUdt",viewName="z",localName="a",includeMID=TRUE,
+                    	vconnection=connection)
                    )
 
-	retobj <- sqlSendUpdate(connection,sqlstr0)
-
-	max_matrix_id_value <<- max_matrix_id_value + 1
-
-	return(FLMatrix( 
-		       connection = connection, 
-		       database = result_db_name, 
-		       matrix_table = result_matrix_table, 
-			   matrix_id_value = max_matrix_id_value-1,
-			   matrix_id_colname = "MATRIX_ID", 
-			   row_id_colname = "rowIdColumn", 
-			   col_id_colname = "colIdColumn", 
-			   cell_val_colname = "valueColumn",
-			   ))
+	return(store(object=sqlstr,
+              returnType="MATRIX",
+              connection=connection))
 }

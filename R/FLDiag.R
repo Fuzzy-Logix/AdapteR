@@ -62,7 +62,7 @@ diag.FLVector <- function(object)
 	{
 		flag1Check(connection)
 		value <- as.vector(object)
-		MID <- max_matrix_id_value
+		MID <- getMaxMatrixId(connection)
 
         sqlstr <- paste(sapply(1:value,FUN=function(i)
         				paste0(" INSERT INTO ",
@@ -74,7 +74,6 @@ diag.FLVector <- function(object)
 
         sqlSendUpdate(connection,sqlstr)
 	 	 
-	 	max_matrix_id_value <<- max_matrix_id_value + 1
 
 		return(FLMatrix( 
 		 	        connection = connection, 
@@ -104,7 +103,7 @@ diag.FLVector <- function(object)
 
 		else
 		{
-			MID <- max_matrix_id_value
+			MID <- getMaxMatrixId(connection)
 			if(length(object@dimnames[[1]])==1)
 			{
 		        sqlstr <- paste(sapply(1:length(object),FUN=function(i)
@@ -118,8 +117,6 @@ diag.FLVector <- function(object)
 		        				constructWhere(constraintsSQL(object)))),collapse=";")
 
 		        sqlSendUpdate(connection,sqlstr)
-
-			 	max_matrix_id_value <<- max_matrix_id_value + 1
 
 				return(FLMatrix( 
 				 	        connection = connection, 

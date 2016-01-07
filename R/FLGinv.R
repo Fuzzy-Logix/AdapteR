@@ -36,26 +36,12 @@ ginv.FLMatrix<-function(object)
 	connection<-getConnection(object)
 	flag1Check(connection)
 
-	MID <- max_matrix_id_value
-
-	sqlstr<-paste0(" INSERT INTO ",
-                   getRemoteTableName(result_db_name,result_matrix_table),
-                   viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLMatrixPseudoInvUdt",viewName="z",localName="a",includeMID=TRUE)
+	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+                   outputSelectMatrix("FLMatrixPseudoInvUdt",viewName="z",
+                        localName="a",includeMID=TRUE,vconnection=connection)
                    )
-	
-	sqlSendUpdate(connection,sqlstr)
 
-	max_matrix_id_value <<- max_matrix_id_value + 1
-
-	return(FLMatrix(
-            connection = connection, 
-            database = result_db_name, 
-            matrix_table = result_matrix_table, 
-            matrix_id_value = MID,
-            matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "rowIdColumn", 
-            col_id_colname = "colIdColumn", 
-            cell_val_colname = "valueColumn")
-           )
+      return(store(object=sqlstr,
+              returnType="MATRIX",
+              connection=connection))
 }
