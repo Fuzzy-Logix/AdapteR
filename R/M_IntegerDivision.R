@@ -89,6 +89,7 @@ NULL
 
 `%/%.FLMatrix` <- function(flmatobj1, flmatobj2)
 {
+	connection <- getConnection(flmatobj1)
 	# nrow1 <- nrow(flmatobj1)
 	# ncol1 <- ncol(flmatobj1)
 	
@@ -112,9 +113,21 @@ NULL
 			 		  		paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn),
 			 		  		paste0("b.",getVariables(flmatobj2)$valueColumn,"!=0"))))
 
-		return(store(object=sqlstr,
-              returnType="MATRIX",
-              connection=getConnection(flmatobj1)))
+		tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+		flm <- new("FLMatrix",
+		            select= tblfunqueryobj,
+		            dimnames=dimnames(flmatobj1))
+
+		return(store(object=flm))
 		
 		# t<-sqlQuery(getConnection(flmatobj1),sqlstr)
 		
@@ -248,51 +261,58 @@ NULL
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
 								constraintsSQL(pObj2,localName="b"))),collapse=" UNION ALL ")
 
-			return(store(object=sqlstr,
-              returnType="VECTOR",
-              connection=connection))
+			tblfunqueryobj <- new("FLTableFunctionQuery",
+                    odbc_connection = connection,
+                    variables = list(
+		                obs_id_colname = "VECTOR_INDEX",
+		                cell_val_colname = "VECTOR_VALUE"),
+                    whereconditions="",
+                    order = "",
+                    SQLquery=sqlstr)
 
-			# sqlSendUpdate(connection,sqlstr)
-			# max_vector_id_value <<- max_vector_id_value + 1
+			flv <- new("FLVector",
+						select = tblfunqueryobj,
+						dimnames = list(1:max_length,
+										c("VECTOR_ID",
+										  "VECTOR_INDEX",
+										  "VECTOR_VALUE")),
+						isDeep = FALSE)
 
-			# table <- FLTable(connection,
-			# 	             result_db_name,
-			# 	             result_vector_table,
-			# 	             "VECTOR_INDEX",
-			# 	             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-			# 	             )
+			return(store(object=flv))
 
-			# return(table[,"VECTOR_VALUE"])
 		}
 		if(ncol(pObj1)==1 && ncol(pObj2)==1)
 		{
 
 			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
-									",a.",pObj1@variables$obs_id_colname,
+									",a.",getVariables(pObj1)$obs_id_colname,
 									",CAST(a.",pObj1@dimnames[[2]],
 									"/b.",pObj2@dimnames[[2]]," AS INT) 
 							 FROM ",remoteTable(pObj1)," a,",
 							   remoteTable(pObj2)," b ",
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
 							constraintsSQL(pObj2,localName="b"),paste0(
-							" a.",pObj1@variables$obs_id_colname,"=b.",
-							pObj2@variables$obs_id_colname))))
+							" a.",getVariables(pObj1)$obs_id_colname,"=b.",
+							getVariables(pObj2)$obs_id_colname))))
 
-			return(store(object=sqlstr,
-              returnType="VECTOR",
-              connection=connection))
+			tblfunqueryobj <- new("FLTableFunctionQuery",
+                    odbc_connection = connection,
+                    variables = list(
+		                obs_id_colname = "VECTOR_INDEX",
+		                cell_val_colname = "VECTOR_VALUE"),
+                    whereconditions="",
+                    order = "",
+                    SQLquery=sqlstr)
 
-			# retobj<- sqlSendUpdate(connection,sqlstr)
-			# max_vector_id_value <<- max_vector_id_value + 1
+			flv <- new("FLVector",
+						select = tblfunqueryobj,
+						dimnames = list(1:length(pObj1),
+										c("VECTOR_ID",
+										  "VECTOR_INDEX",
+										  "VECTOR_VALUE")),
+						isDeep = FALSE)
 
-			# table <- FLTable(connection,
-			# 	             result_db_name,
-			# 	             result_vector_table,
-			# 	             "VECTOR_INDEX",
-			# 	             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-			# 	             )
-
-			# return(table[,"VECTOR_VALUE"])
+			return(store(object=flv))
 		}
 
 		if(ncol(pObj1)==1 && nrow(pObj2)==1)
@@ -309,23 +329,28 @@ NULL
 							   remoteTable(pObj2)," b ",
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
 								constraintsSQL(pObj2,localName="b"))),
-							" AND  a.",pObj1@variables$obs_id_colname," IN('",pObj1@dimnames[[1]],"')",collapse=" UNION ALL ")
+							" AND  a.",getVariables(pObj1)$obs_id_colname," IN('",pObj1@dimnames[[1]],"')",collapse=" UNION ALL ")
 
-			return(store(object=sqlstr,
-              returnType="VECTOR",
-              connection=connection))
+			tblfunqueryobj <- new("FLTableFunctionQuery",
+                    odbc_connection = connection,
+                    variables = list(
+		                obs_id_colname = "VECTOR_INDEX",
+		                cell_val_colname = "VECTOR_VALUE"),
+                    whereconditions="",
+                    order = "",
+                    SQLquery=sqlstr)
 
-			# retobj<- sqlSendUpdate(connection,sqlstr)
-			# max_vector_id_value <<- max_vector_id_value + 1
+			flv <- new("FLVector",
+						select = tblfunqueryobj,
+						dimnames = list(1:max_length,
+										c("VECTOR_ID",
+										  "VECTOR_INDEX",
+										  "VECTOR_VALUE")),
+						isDeep = FALSE)
 
-			# table <- FLTable(connection,
-			# 	             result_db_name,
-			# 	             result_vector_table,
-			# 	             "VECTOR_INDEX",
-			# 	             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-			# 	             )
+			return(store(object=flv))
 
-			# return(table[,"VECTOR_VALUE"])
+
 		}
 
 		if(nrow(pObj1)==1 && ncol(pObj2)==1)
@@ -342,23 +367,27 @@ NULL
 							   remoteTable(pObj2)," b ",
 							constructWhere(c(constraintsSQL(pObj1,localName="a"),
 								constraintsSQL(pObj2,localName="b"))),
-							" AND  b.",pObj2@variables$obs_id_colname," IN('",pObj2@dimnames[[1]],"')",collapse=" UNION ALL ")
+							" AND  b.",getVariables(pObj2)$obs_id_colname," IN('",pObj2@dimnames[[1]],"')",collapse=" UNION ALL ")
 
-			return(store(object=sqlstr,
-              returnType="VECTOR",
-              connection=connection))
+			tblfunqueryobj <- new("FLTableFunctionQuery",
+                    odbc_connection = connection,
+                    variables = list(
+		                obs_id_colname = "VECTOR_INDEX",
+		                cell_val_colname = "VECTOR_VALUE"),
+                    whereconditions="",
+                    order = "",
+                    SQLquery=sqlstr)
 
-			# retobj<- sqlSendUpdate(connection,sqlstr)
-			# max_vector_id_value <<- max_vector_id_value + 1
+			flv <- new("FLVector",
+						select = tblfunqueryobj,
+						dimnames = list(1:max_length,
+										c("VECTOR_ID",
+										  "VECTOR_INDEX",
+										  "VECTOR_VALUE")),
+						isDeep = FALSE)
 
-			# table <- FLTable(connection,
-			# 	             result_db_name,
-			# 	             result_vector_table,
-			# 	             "VECTOR_INDEX",
-			# 	             whereconditions=paste0(result_db_name,".",result_vector_table,".","VECTOR_ID = ",max_vector_id_value-1)
-			# 	             )
+			return(store(object=flv))
 
-			# return(table[,"VECTOR_VALUE"])
 		}
 			
 	}

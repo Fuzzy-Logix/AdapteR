@@ -55,7 +55,20 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 						HASH BY z.Matrix_ID 
 						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 
-	return(store(object=sqlstr,
-              returnType="MATRIX",
-              connection=connection))
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+  	flm <- new("FLMatrix",
+            select= tblfunqueryobj,
+            dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
+            			  dimnames(object)[[2]][(-1*ExclIdx)]))
+
+  	return(store(object=flm))
 }

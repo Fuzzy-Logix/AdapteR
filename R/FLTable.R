@@ -55,16 +55,22 @@ FLTable <- function(connection,
                           " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
-		new("FLTable",
-            odbc_connection = connection,
-            db_name = database, 
-            table_name = table,
-            dimnames = list(rows,cols),
-            variables = list(
+
+        select <- new(
+        "FLSelectFrom",
+        odbc_connection = connection, 
+        db_name = database, 
+        table_name = table, 
+        variables = list(
                 obs_id_colname = obs_id_colname,
                 var_id_colname = var_id_colnames,
                 cell_val_colname = cell_val_colname),
-            whereconditions=whereconditions,
+        whereconditions=whereconditions,
+        order = "")
+
+		new("FLTable",
+            select = select,
+            dimnames = list(rows,cols),
             isDeep = TRUE)
 	}
 	else
@@ -85,16 +91,22 @@ FLTable <- function(connection,
             var_id_colnames <- cols
         if(length(setdiff(var_id_colnames,cols)))
             stop(paste0("columns do not exist: "))
+
+        select <- new(
+        "FLSelectFrom",
+        odbc_connection = connection, 
+        db_name = database, 
+        table_name = table, 
+        variables = list(
+                obs_id_colname = obs_id_colname,
+                #var_id_colname = var_id_colnames,
+                cell_val_colname = cell_val_colname),
+        whereconditions=whereconditions,
+        order = "")
+
 		T <- new("FLTable", 
-                 odbc_connection = connection,
-                 db_name = database, 
-                 table_name = table,
+                 select = select,
                  dimnames = list(rows,var_id_colnames),
-                 whereconditions = whereconditions,
-                 variables = list(
-                    obs_id_colname = obs_id_colname,
-                    #var_id_colname = var_id_colnames,
-                    cell_val_colname = cell_val_colname),
                  isDeep = FALSE)
 	}
 }

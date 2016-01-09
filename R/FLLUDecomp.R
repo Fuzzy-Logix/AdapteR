@@ -103,23 +103,37 @@ lu.FLMatrix<-function(object)
 	# calculating LU matrix
 	MID1 <- getMaxMatrixId(connection)
 
-	sqlstrLU <-paste0(" SELECT ",MID1,
-					         ",OutputRowNum
+	sqlstrLU <-paste0(" SELECT ",MID1," AS OutputMatrixID
+					          ,OutputRowNum
 					          ,OutputColNum
-					          ,CAST(OutputValL AS NUMBER) 
+					          ,CAST(OutputValL AS NUMBER) AS OutputVal 
 					  	FROM ",remoteTable(result_db_name,tempResultTable),
 					 	" WHERE OutputRowNum > OutputColNum 
 				   		AND OutputValL IS NOT NULL ",
 				   		" UNION ALL ",
-				   		" SELECT ",MID1,
-					         ",OutputRowNum
+				   		" SELECT ",MID1," AS OutputMatrixID
+					          ,OutputRowNum
 					          ,OutputColNum
-					          ,CAST(OutputValU AS NUMBER) 
+					          ,CAST(OutputValU AS NUMBER) AS OutputVal 
 					  	FROM ",remoteTable(result_db_name,tempResultTable),
 					 	" WHERE OutputRowNum <= OutputColNum 
 				   		AND OutputValU IS NOT NULL;")
 
-	LUMatrix <- store(sqlstrLU,returnType="MATRIX",connection=connection)
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstrLU)
+
+	flm <- new("FLMatrix",
+	            select= tblfunqueryobj,
+	            dimnames=dimnames(object))
+
+  	LUMatrix <- store(object=flm)
 
 	# calculating Permutation FLMatrix
     data_perm <- FLMatrix( 
@@ -178,7 +192,24 @@ lu.FLMatrix<-function(object)
 					  FROM ",remoteTable(LUMatrix),
 					 constructWhere(constraintsSQL(LUMatrix)))
 
-	x <- store(sqlstrX,returnType="VECTOR",connection=connection)
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables = list(
+			                obs_id_colname = "VECTOR_INDEX",
+			                cell_val_colname = "VECTOR_VALUE"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstrX)
+
+	flv <- new("FLVector",
+				select = tblfunqueryobj,
+				dimnames = list(1:length(LUMatrix),
+								c("VECTOR_ID",
+								  "VECTOR_INDEX",
+								  "VECTOR_VALUE")),
+				isDeep = FALSE)
+
+	x <- store(object=flv)
 
 	# calculating Dim vector
 	Dim<- dim(data_perm)

@@ -45,20 +45,20 @@ as.data.frame.FLTable <- function(x, ...){
     names(D) <- toupper(names(D))
     if(x@isDeep) {
         D <- sqlQuery(getConnection(x),sqlstr)
-        D <- dcast(D, paste0(toupper(x@variables$obs_id_colname),
+        D <- dcast(D, paste0(toupper(getVariables(x)$obs_id_colname),
                              " ~ ",
-                             toupper(x@variables$var_id_colname)),
-                   value.var = toupper(x@variables$cell_val_colname))
+                             toupper(getVariables(x)$var_id_colname)),
+                   value.var = toupper(getVariables(x)$cell_val_colname))
     } 
     ## gk:  this is broken
-    i <- charmatch(rownames(x),D[[toupper(x@variables$obs_id_colname)]],nomatch=0)
+    i <- charmatch(rownames(x),D[[toupper(getVariables(x)$obs_id_colname)]],nomatch=0)
                                         # print(i)
     D <- D[i,]
     # print(D[1:20,])
     # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
-    if(any(D[[toupper(x@variables$obs_id_colname)]]!=1:nrow(D)))
-        rownames(D) <- D[[toupper(x@variables$obs_id_colname)]]
-    D[[toupper(x@variables$obs_id_colname)]] <- NULL
+    if(any(D[[toupper(getVariables(x)$obs_id_colname)]]!=1:nrow(D)))
+        rownames(D) <- D[[toupper(getVariables(x)$obs_id_colname)]]
+    D[[toupper(getVariables(x)$obs_id_colname)]] <- NULL
     return(D)
 }
 
@@ -302,6 +302,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
   dn <- dimnames(object)
   for(index in 1:2){
         if(!is.null(dn[[index]])){
+          dn[[index]] <- as.character(dn[[index]])
             if(all(as.character(dn[[index]])==as.character(1:(dim(object)[[index]]))))
                 dn[index] <- list(NULL)
         }

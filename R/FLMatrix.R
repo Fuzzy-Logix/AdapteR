@@ -43,6 +43,37 @@ setClass("FLTableFunctionQuery",
              SQLquery = "character"
          ))
 
+#' An S4 class to represent FLTable
+#'
+#' @slot odbc_connection ODBC connectivity for R
+#' @slot db_name character
+#' @slot table_name character
+#' @slot obs_id_colname character
+#' @slot var_id_colnames character 
+#' @slot cell_val_colname character
+#' @slot isDeep logical
+#' @method names FLTable
+#' @param object retrieves the column names of FLTable object
+setClass(
+    "FLTable",
+    slots = list(
+        select = "FLTableQuery",
+        dimnames = "list",
+        isDeep = "logical"
+    )
+)
+
+#' An S4 class to represent FLVector
+#'
+setClass(
+    "FLVector",
+    slots = list(
+      select = "FLTableQuery",
+      dimnames        = "list",
+      isDeep= "logical"
+    ))
+
+
 ##' stores a matrix in a table.
 ##' TODO:  define when data is stored (automatic caching, user requests...)
 ##'
@@ -57,6 +88,9 @@ setGeneric("store", function(object,returnType,connection,...) {
 setMethod("store",
           signature(object = "FLMatrix",returnType="missing",connection="missing"),
           function(object) store.FLMatrix(object))
+setMethod("store",
+          signature(object = "FLVector",returnType="missing",connection="missing"),
+          function(object) store.FLVector(object))
 setMethod("store",
           signature(object = "character",returnType="character",connection="RODBC"),
           function(object,returnType,connection) store.character(object,returnType,connection))
@@ -99,18 +133,39 @@ store.FLMatrix <- function(object)
     }
 }
 
+store.FLVector <- function(object)
+{
+  VID <- getMaxVectorId(getConnection(object))
+  vSqlStr <- paste0(" INSERT INTO ",
+                    getRemoteTableName(result_db_name,
+                                      result_vector_table),
+                    "\n",
+                    constructSelect(object),
+                    "\n")
+  sqlSendUpdate(getConnection(object),
+                  vSqlStr)
+
+  table <- FLTable(getConnection(object),
+                   result_db_name,
+                   result_vector_table,
+                   "VECTOR_INDEX",
+                   whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
+                  )
+
+  return(table[,"VECTOR_VALUE"])
+}
+
 store.character <- function(object,returnType,connection)
 {
   if(toupper(returnType)=="MATRIX")
   {
+    MID <- getMaxMatrixId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
                       getRemoteTableName(result_db_name,
                                         result_matrix_table),
                       "\n",
                       object,
                       "\n")
-
-    MID <- getMaxMatrixId(connection)
 
     sqlSendUpdate(connection,
                   vSqlStr)
@@ -129,14 +184,14 @@ store.character <- function(object,returnType,connection)
 
   if(toupper(returnType)=="VECTOR")
   {
+    
+    VID <- getMaxVectorId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
                       getRemoteTableName(result_db_name,
                                         result_vector_table),
                       "\n",
                       object,
                       "\n")
-
-    VID <- getMaxVectorId(connection)
     
     sqlSendUpdate(connection,
                   vSqlStr)
@@ -152,58 +207,6 @@ store.character <- function(object,returnType,connection)
   }
 }
 
-store.FLVector <- function(object)
-{
-  vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(result_db_name,
-                                      result_vector_table),
-                    "\n",
-                    constructSelect(object),
-                    "\n")
-  sqlSendUpdate(getConnection(object),
-                  vSqlStr)
-  VID <- getMaxVectorId(getConnection(object))
-
-  table <- FLTable(getConnection(object),
-                   result_db_name,
-                   result_vector_table,
-                   "VECTOR_INDEX",
-                   whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
-                   )
-
-  return(table[,"VECTOR_VALUE"])
-}
-#' An S4 class to represent FLTable
-#'
-#' @slot odbc_connection ODBC connectivity for R
-#' @slot db_name character
-#' @slot table_name character
-#' @slot obs_id_colname character
-#' @slot var_id_colnames character 
-#' @slot cell_val_colname character
-#' @slot isDeep logical
-#' @method names FLTable
-#' @param object retrieves the column names of FLTable object
-setClass(
-    "FLTable",
-    contains="FLSelectFrom",
-    slots = list(
-        dimnames        = "list",
-        isDeep = "logical"
-    )
-)
-
-#' An S4 class to represent FLVector
-#'
-setClass(
-    "FLVector",
-    contains="FLSelectFrom",
-    slots = list(
-    	dimnames        = "list",
-      isDeep= "logical"
-    ))
-
-
 setGeneric("getVariables", function(object) {
     standardGeneric("getVariables")
 })
@@ -212,6 +215,12 @@ setMethod("getVariables",
           function(object) object@variables)
 setMethod("getVariables",
           signature(object = "FLMatrix"),
+          function(object) getVariables(object@select))
+setMethod("getVariables",
+          signature(object = "FLTable"),
+          function(object) getVariables(object@select))
+setMethod("getVariables",
+          signature(object = "FLVector"),
           function(object) getVariables(object@select))
 
 ## gk: localName maybe needs adding
@@ -231,6 +240,8 @@ setMethod("constructSelect",
 setMethod("constructSelect",
           signature(object = "FLTable",localName="missing"),
           function(object) {
+            if(class(object@select)=="FLTableFunctionQuery") 
+            return(constructSelect(object@select))
               if(!object@isDeep) {
                   return(paste0("SELECT ",
                                 paste0(getVariables(object)$obs_id_colname,","),
@@ -253,6 +264,8 @@ setMethod("constructSelect",
 
 setMethod("constructSelect", signature(object = "FLVector",localName="missing"),
           function(object) {
+            if(class(object@select)=="FLTableFunctionQuery") 
+            return(constructSelect(object@select))
               if(!object@isDeep) {
                   return(paste0("SELECT ",
                                 paste0(getVariables(object)$obs_id_colname,","),
@@ -301,6 +314,10 @@ setMethod(
             ordering,
             "\n"))
     })
+
+setMethod("constructSelect",
+          signature(object = "FLTableFunctionQuery"),
+          function(object) return(object@SQLquery))
 
 #' Appends where clauses for subsetting etc.
 #'
@@ -471,9 +488,11 @@ setGeneric("getConnection", function(object) {
 setMethod("getConnection", signature(object = "FLMatrix"),
           function(object) object@select@odbc_connection)
 setMethod("getConnection", signature(object = "FLTable"),
-          function(object) object@odbc_connection)
+          function(object) object@select@odbc_connection)
 setMethod("getConnection", signature(object = "FLTableQuery"),
-          function(object) object@odbc_connection)
+          function(object) object@select@odbc_connection)
+setMethod("getConnection", signature(object = "FLVector"),
+          function(object) object@select@odbc_connection)
 
 
 setGeneric("constraintsSQL", function(object, localName) {
@@ -482,33 +501,24 @@ setGeneric("constraintsSQL", function(object, localName) {
 setMethod("constraintsSQL", signature(object = "FLMatrix",localName="character"),
           function(object,localName="") {
               return(constraintsSQL(object@select,localName))
-              ##constraints <- object@whereconditions
-              ## return(localizeConstraints(constraints,
-              ##                            remoteTable(object),
-              ##                            localName))
           })
 setMethod("constraintsSQL", signature(object = "FLMatrix",localName="missing"),
           function(object) constraintsSQL(object,""))
 
 setMethod("constraintsSQL", signature(object = "FLTable",localName="character"),
           function(object,localName="") {
-              conditions <- c(object@whereconditions)
-              return(localizeConstraints(conditions,
-                                         remoteTable(object),
-                                         localName))
+              return(constraintsSQL(object@select,localName))
           })
 setMethod("constraintsSQL", signature(object = "FLTable",localName="missing"),
           function(object) constraintsSQL(object,""))
 
 setMethod("constraintsSQL", signature(object = "FLVector",localName="character"),
           function(object,localName="") {
-              conditions <- c(object@whereconditions)
-              ## equalityConstraint(tableColName =  paste0(remoteTable(object),".",object@obs_id_colname),
-              ##                    constantValue = object@vector_id_value))
-              return(localizeConstraints(conditions,
-                                         remoteTable(object),
-                                         localName))
+              return(constraintsSQL(object@select,localName))
           })
+setMethod("constraintsSQL", signature(object = "FLVector",localName="missing"),
+          function(object) constraintsSQL(object,""))
+
 setMethod("constraintsSQL", signature(object = "FLSelectFrom",localName="missing"),
           function(object) constraintsSQL(object,""))
 
@@ -519,8 +529,7 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom",localName="charact
                                          remoteTable(object),
                                          localName))
           })
-setMethod("constraintsSQL", signature(object = "FLMatrix",localName="missing"),
-          function(object) constraintsSQL(object,""))
+
 
 constructWhere <- function(conditions) {
     if(!is.character(conditions))
@@ -542,13 +551,17 @@ setMethod("remoteTable", signature(object = "FLMatrix", table="missing"),
               remoteTable(object@select))
 setMethod("remoteTable", signature(object = "FLTable", table="missing"),
           function(object)
-              getRemoteTableName(object@db_name,object@table_name))
+              remoteTable(object@select))
+setMethod("remoteTable", signature(object = "FLVector", table="missing"),
+          function(object)
+              remoteTable(object@select))
 setMethod("remoteTable", signature(object = "character", table="character"),
           function(object,table)
               getRemoteTableName(object,table))
 setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
           function(object)
-              getRemoteTableName(object@db_name,object@table_name))
+              getRemoteTableName(object@db_name,
+                                            object@table_name))
 
 
 ##setMethod("show","FLSparseMatrix",print.FLSparseMatrix)
@@ -624,6 +637,7 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
           function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
           {
               return(paste0(" SELECT ",ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
+                            " AS OutputMatrixID ",
                             paste0(",",localName,".",outColNames,collapse=""),paste0(" 
           FROM TABLE (",func_name,
           "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
