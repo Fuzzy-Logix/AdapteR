@@ -67,9 +67,24 @@ FLEigenValues.FLMatrix<-function(object)
                    	vconnection=connection)
                    )
 	
-	return(store(object=sqlstr,
-              returnType="VECTOR",
-              connection=connection))
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables = list(
+			                obs_id_colname = "VECTOR_INDEX",
+			                cell_val_colname = "VECTOR_VALUE"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+	flv <- new("FLVector",
+				select = tblfunqueryobj,
+				dimnames = list(1:nrow(object),
+								c("VECTOR_ID",
+								  "VECTOR_INDEX",
+								  "VECTOR_VALUE")),
+				isDeep = FALSE)
+
+	return(store(object=flv))
 }
 
 FLEigenVectors<-function(x,...)
@@ -87,7 +102,19 @@ FLEigenVectors.FLMatrix<-function(object)
                     	vconnection=connection)
                    )
 
-	return(store(object=sqlstr,
-              returnType="MATRIX",
-              connection=connection))
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+  	flm <- new("FLMatrix",
+            select= tblfunqueryobj,
+            dimnames=dimnames(object))
+
+  	return(store(object=flm))
 }

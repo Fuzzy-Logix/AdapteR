@@ -76,7 +76,21 @@ qr.FLMatrix<-function(object)
 					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
 					 " WHERE OutputRowNum <= OutputColNum;")
 
-    QRMatrix <- store(sqlstrQR,returnType="MATRIX",connection=connection)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstrQR)
+
+  	flm <- new("FLMatrix",
+            select= tblfunqueryobj,
+            dimnames=dimnames(object))
+
+  	QRMatrix <- store(object=flm)
 
     #calculating qraux
 	table <- FLTable(connection,

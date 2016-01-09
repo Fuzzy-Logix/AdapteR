@@ -59,7 +59,7 @@ sqlSendUpdate.RODBC <- function(connection,query) {
         odbcClearError(connection)
 	})
     odbcSetAutoCommit(connection, autoCommit = TRUE)
-    cat("DONE...")
+    cat("DONE...\n")
 }
 
 sqlQuery.JDBCConnection <- function(channel,query, ...) {
@@ -279,14 +279,14 @@ FLStartSession <- function(connection,
  	cat("DONE..\n")
 }
 
-setGeneric("getMaxValue", function(vdatabase,
+setGeneric("getMaxId", function(vdatabase,
 								  vtable,
 								  vcolName,
 								  vconnection,...) {
-    standardGeneric("getMaxValue")
+    standardGeneric("getMaxId")
 })
 
-setMethod("getMaxValue",
+setMethod("getMaxId",
           signature(vdatabase="character",
           			vtable = "character",
           			vcolName="character",
@@ -301,7 +301,7 @@ setMethod("getMaxValue",
           	else return(t)
           }
         )
-setMethod("getMaxValue",
+setMethod("getMaxId",
           signature(vdatabase="character",
           			vtable = "character",
           			vcolName="character",
@@ -325,7 +325,7 @@ setGeneric("getMaxMatrixId", function(vconnection,...) {
 setMethod("getMaxMatrixId",
           signature(vconnection="RODBC"),
           function(vconnection,...) 
-          getMaxValue(vdatabase=result_db_name,
+          getMaxId(vdatabase=result_db_name,
           			  vtable=result_matrix_table,
           			  vcolName="MATRIX_ID",
           			  vconnection=vconnection)
@@ -333,7 +333,7 @@ setMethod("getMaxMatrixId",
 setMethod("getMaxMatrixId",
           signature(vconnection="JDBCConnection"),
           function(vconnection,...) 
-          getMaxValue(vdatabase=result_db_name,
+          getMaxId(vdatabase=result_db_name,
           			  vtable=result_matrix_table,
           			  vcolName="MATRIX_ID",
           			  vconnection=vconnection)
@@ -347,7 +347,7 @@ setGeneric("getMaxVectorId", function(vconnection,...) {
 setMethod("getMaxVectorId",
           signature(vconnection="RODBC"),
           function(vconnection,...) 
-          getMaxValue(vdatabase=result_db_name,
+          getMaxId(vdatabase=result_db_name,
           			  vtable=result_vector_table,
           			  vcolName="VECTOR_ID",
           			  vconnection=vconnection)
@@ -355,7 +355,7 @@ setMethod("getMaxVectorId",
 setMethod("getMaxVectorId",
           signature(vconnection="JDBCConnection"),
           function(vconnection,...) 
-          getMaxValue(vdatabase=result_db_name,
+          getMaxId(vdatabase=result_db_name,
           			  vtable=result_vector_table,
           			  vcolName="VECTOR_ID",
           			  vconnection=vconnection)

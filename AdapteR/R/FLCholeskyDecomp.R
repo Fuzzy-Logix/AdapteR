@@ -44,13 +44,19 @@ chol.FLMatrix<-function(object)
 							localName="a",includeMID=TRUE,vconnection=connection)
                    )
 
-	flm <- store(object=sqlstr,
-              returnType="MATRIX",
-              connection=connection)
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputColNum",
+                            colIdColumn="OutputRowNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
 
-	t <- flm@select@variables["rowIdColumn"]
-	flm@select@variables["rowIdColumn"] <- flm@select@variables["colIdColumn"]
-	flm@select@variables["colIdColumn"] <- t
+	flm <- new("FLMatrix",
+	            select= tblfunqueryobj,
+	            dimnames=dimnames(object))
 
-	return(flm)
+	return(t(store(object=flm)))
 }

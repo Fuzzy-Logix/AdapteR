@@ -123,12 +123,12 @@ NULL
         if (!missing(rows)) {
             if(!setequal(object@dimnames[[1]],
                          newrownames))
-                object@whereconditions <- c(object@whereconditions,
-                                            inCondition(paste0(object@db_name,".",
-                                                               object@table_name,".",
+                object@select@whereconditions <- c(object@select@whereconditions,
+                                            inCondition(paste0(object@select@db_name,".",
+                                                               object@select@table_name,".",
                                                                getVariables(object)$obs_id_colname),
                                                         newrownames))
-            object@dimnames = list(newrownames,
+            object@dimnames <- list(newrownames,
                                    object@dimnames[[2]])
         }
     } else if(missing(rows)) { ## !missing(cols)
@@ -138,35 +138,37 @@ NULL
         object@dimnames <- list(newrownames,
                                 newcolnames)
         if(object@isDeep){
-            object@whereconditions <-
-                c(object@whereconditions,
-                  inCondition(paste0(object@db_name,".",
-                                     object@table_name,".",
+            object@select@whereconditions <-
+                c(object@select@whereconditions,
+                  inCondition(paste0(object@select@select@db_name,".",
+                                     object@select@table_name,".",
                                      getVariables(object)$var_id_colname),
                               object@dimnames[[2]]))
         } 
     } else {  ## !missing(cols) and !missing(rows)
         ##browser()
         if(!setequal(object@dimnames[[1]], newrownames))
-            object@whereconditions <-
-            c(object@whereconditions,
-              inCondition(paste0(object@db_name,".",
-                                 object@table_name,".",
+            object@select@whereconditions <-
+            c(object@select@whereconditions,
+              inCondition(paste0(object@select@db_name,".",
+                                 object@select@table_name,".",
                                  getVariables(object)$obs_id_colname),
                           newrownames))
         if(object@isDeep & !setequal(object@dimnames[[2]], newcolnames)){
-            object@whereconditions <-
-                c(object@whereconditions,
-                  inCondition(paste0(object@db_name,".",
-                                     object@table_name,".",
+            object@select@whereconditions <-
+                c(object@select@whereconditions,
+                  inCondition(paste0(object@select@db_name,".",
+                                     object@select@table_name,".",
                                      getVariables(object)$var_id_colname),
                               newcolnames))
         }
         object@dimnames = list(newrownames, newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
-        return(new("FLVector",object,dimnames=object@dimnames,
-            isDeep=object@isDeep))
+        return(new("FLVector",
+                    select=object@select,
+                    dimnames=object@dimnames,
+                    isDeep=object@isDeep))
     else return(object)
 }
 
@@ -195,10 +197,10 @@ NULL
 {
     newrownames <- sort(object@dimnames[[1]])[pSet]
     if(!setequal(object@dimnames[[1]], newrownames))
-        object@whereconditions <-
-        c(object@whereconditions,
-          inCondition(paste0(object@db_name,".",
-                             object@table_name,".",
+        object@select@whereconditions <-
+        c(object@select@whereconditions,
+          inCondition(paste0(object@select@db_name,".",
+                             object@select@table_name,".",
                              getVariables(object)$obs_id_colname),
                       newrownames))
     object@dimnames[[1]] <- newrownames

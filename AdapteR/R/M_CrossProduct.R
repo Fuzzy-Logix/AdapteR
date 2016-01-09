@@ -112,6 +112,7 @@ NULL
 
 crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 {
+	connection <- getConnection(flmatobj1)
 	ncol1 <- ncol(flmatobj1)
 	
 	if(is.FLMatrix(flmatobj2))
@@ -133,9 +134,23 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
                         constructWhere("a.colIdColumn = b.rowIdColumn"),
                         " GROUP BY ROW_ID,COL_ID")
 
-		return(store(object=sqlstr,
-              returnType="MATRIX",
-              connection=getConnection(flmatobj1)))
+		tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+	    flm <- new("FLMatrix",
+	            select= tblfunqueryobj,
+	            dimnames=list(dimnames(flmatobj1)[[1]],
+	            			  dimnames(flmatobj1)[[2]])
+	            	)
+
+	    return(store(object=flm))
 	}
 	else if(is.vector(flmatobj2))
 		{

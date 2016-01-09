@@ -40,7 +40,7 @@ det.FLMatrix<-function(object)
                    outputSelectMatrix("FLMatrixDetUdt", 
                    	viewName="z", 
                    	localName="a",
-                   	outColNames=list("OutputDetVal") )
+                   	outColNames=list("OutputDetVal"))
                    )
 	sqlQuery(connection,sqlstr)[[1]]
 }

@@ -29,7 +29,7 @@ cor.FLMatrix <- function(x,y=x)
     ##browser()
     if(is.FLMatrix(y))
     {
-        sqlstr <- paste0("SELECT",
+        sqlstr <- paste0(" SELECT ",
                          " a.",getVariables(x)$colIdColumn," AS A, ",
                          " b.",getVariables(y)$colIdColumn," AS B, ",
                          "FLCorrel(a.",getVariables(x)$valueColumn,

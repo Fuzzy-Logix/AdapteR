@@ -91,14 +91,14 @@ diag.FLVector <- function(object)
 		if(object@isDeep)
 		return(FLMatrix( 
 		 	        connection = connection, 
-		 	        database = object@db_name, 
-		 	        matrix_table = object@table_name, 
+		 	        database = object@select@db_name, 
+		 	        matrix_table = object@select@table_name, 
 		 	        matrix_id_value = "",
 			        matrix_id_colname = "", 
 			        row_id_colname = getVariables(object)$obs_id_colname, 
 			        col_id_colname = getVariables(object)$obs_id_colname, 
 			        cell_val_colname = getVariables(object)$cell_val_colname,
-			        whereconditions = object@whereconditions
+			        whereconditions = object@select@whereconditions
 			        ))
 
 		else
@@ -113,7 +113,7 @@ diag.FLVector <- function(object)
 		        						   i,",",
 		        						   i,",",
 		        						   object@dimnames[[2]][i],
-		        				" FROM ",getRemoteTableName(object@db_name,object@table_name),
+		        				" FROM ",getRemoteTableName(object@select@db_name,object@select@table_name),
 		        				constructWhere(constraintsSQL(object)))),collapse=";")
 
 		        sqlSendUpdate(connection,sqlstr)
@@ -131,14 +131,14 @@ diag.FLVector <- function(object)
 			}
 			else return(FLMatrix( 
 				 	        connection = connection, 
-				 	        database = object@db_name, 
-				 	        matrix_table = object@table_name, 
+				 	        database = object@select@db_name, 
+				 	        matrix_table = object@select@table_name, 
 				 	        matrix_id_value = "",
 					        matrix_id_colname = "", 
 					        row_id_colname = getVariables(object)$obs_id_colname, 
 					        col_id_colname = getVariables(object)$obs_id_colname, 
 					        cell_val_colname = object@dimnames[[2]],
-					        whereconditions = object@whereconditions
+					        whereconditions = object@select@whereconditions
 					        ))
 		}
 	}

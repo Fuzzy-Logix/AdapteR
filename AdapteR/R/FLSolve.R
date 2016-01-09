@@ -43,9 +43,21 @@ solve.FLMatrix <- function(object)
                                     includeMID=TRUE,vconnection=connection)
                 )
 
-  return(store(object=sqlstr,
-              returnType="MATRIX",
-              connection=connection))
+  tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+  flm <- new("FLMatrix",
+            select= tblfunqueryobj,
+            dimnames=dimnames(object))
+
+  return(store(object=flm))
 
 }
 
