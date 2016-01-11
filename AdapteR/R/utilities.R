@@ -188,6 +188,13 @@ gen_unique_table_name <- function(TableName){
 	paste(TableName,"Unique",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
 }
 
+genRandVarName <- function(){
+  vrnum <- rnorm(1)
+  vrnum <- round(vrnum*vrnum*1000)
+  vtime <- round(as.numeric(Sys.time()))
+  return(paste0(sample(letters[1:26],1),vrnum,sample(letters[1:26],1),vtime))
+}
+
 FLodbcClose <- function(connection)
 {
 	sqlstr <- c(paste0("DROP TABLE ",result_matrix_table,";"),
@@ -271,10 +278,10 @@ FLStartSession <- function(connection,
                result_vector_table,
                tableoptions,
                "
-			 		 ( VECTOR_ID INT, 
-			 		   VECTOR_INDEX INT, 
-				 	   VECTOR_VALUE FLOAT )
-			 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
+			 		 ( vectorIdColumn INT, 
+			 		   vectorIndexColumn INT, 
+				 	   vectorValueColumn FLOAT )
+			 		   PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);" ))
     sqlSendUpdate(connection, sendqueries)
  	cat("DONE..\n")
 }
@@ -349,7 +356,7 @@ setMethod("getMaxVectorId",
           function(vconnection,...) 
           getMaxId(vdatabase=result_db_name,
           			  vtable=result_vector_table,
-          			  vcolName="VECTOR_ID",
+          			  vcolName="vectorIdColumn",
           			  vconnection=vconnection)
           )
 setMethod("getMaxVectorId",
@@ -357,7 +364,7 @@ setMethod("getMaxVectorId",
           function(vconnection,...) 
           getMaxId(vdatabase=result_db_name,
           			  vtable=result_vector_table,
-          			  vcolName="VECTOR_ID",
+          			  vcolName="vectorIdColumn",
           			  vconnection=vconnection)
           )
 
