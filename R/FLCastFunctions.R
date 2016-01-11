@@ -45,20 +45,28 @@ as.data.frame.FLTable <- function(x, ...){
     names(D) <- toupper(names(D))
     if(x@isDeep) {
         D <- sqlQuery(getConnection(x),sqlstr)
-        D <- dcast(D, paste0(toupper(getVariables(x)$obs_id_colname),
+        D <- dcast(D, paste0(toupper("vectorIdColumn"),
                              " ~ ",
-                             toupper(getVariables(x)$var_id_colname)),
-                   value.var = toupper(getVariables(x)$cell_val_colname))
+                             toupper("vectorIndexColumn")),
+                   value.var = toupper("vectorValueColumn"))
     } 
-    ## gk:  this is broken
-    i <- charmatch(rownames(x),D[[toupper(getVariables(x)$obs_id_colname)]],nomatch=0)
+     i <- charmatch(rownames(x),D[[toupper("vectorIndexColumn")]],nomatch=0)
                                         # print(i)
     D <- D[i,]
     # print(D[1:20,])
     # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
-    if(any(D[[toupper(getVariables(x)$obs_id_colname)]]!=1:nrow(D)))
-        rownames(D) <- D[[toupper(getVariables(x)$obs_id_colname)]]
-    D[[toupper(getVariables(x)$obs_id_colname)]] <- NULL
+    if(any(D[[toupper("vectorIndexColumn")]]!=1:nrow(D)))
+        rownames(D) <- D[[toupper("vectorIndexColumn")]]
+    D[[toupper("vectorIndexColumn")]] <- NULL
+    ## gk:  this is broken
+    # i <- charmatch(rownames(x),D[[toupper(getVariables(x)$obs_id_colname)]],nomatch=0)
+    #                                     # print(i)
+    # D <- D[i,]
+    # # print(D[1:20,])
+    # # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
+    # if(any(D[[toupper(getVariables(x)$obs_id_colname)]]!=1:nrow(D)))
+    #     rownames(D) <- D[[toupper(getVariables(x)$obs_id_colname)]]
+    # D[[toupper(getVariables(x)$obs_id_colname)]] <- NULL
     return(D)
 }
 
@@ -442,11 +450,11 @@ as.FLVector.vector <- function(object,connection)
   table <- FLTable(connection,
                  result_db_name,
                  result_vector_table,
-                 "VECTOR_INDEX",
-                 whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
+                 "vectorIndexColumn",
+                 whereconditions=paste0(result_db_name,".",result_vector_table,".vectorIdColumn = ",VID)
                  )
 
-  return(table[,"VECTOR_VALUE"])
+  return(table[,"vectorValueColumn"])
 }
 
 as.FLVector.FLMatrix <- function(object,connection=getConnection(object))

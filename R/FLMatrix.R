@@ -115,7 +115,7 @@ store.FLMatrix <- function(object)
                           getRemoteTableName(result_db_name,
                                             result_matrix_table),
                           "\n",
-                          constructSelect(object),
+                          gsub("'%insertIDhere%'",MID,constructSelect(object)),
                           "\n")
 
         sqlSendUpdate(getConnection(object),
@@ -140,7 +140,7 @@ store.FLVector <- function(object)
                     getRemoteTableName(result_db_name,
                                       result_vector_table),
                     "\n",
-                    constructSelect(object),
+                   gsub("'%insertIDhere%'",VID,constructSelect(object)),
                     "\n")
   sqlSendUpdate(getConnection(object),
                   vSqlStr)
@@ -148,11 +148,11 @@ store.FLVector <- function(object)
   table <- FLTable(getConnection(object),
                    result_db_name,
                    result_vector_table,
-                   "VECTOR_INDEX",
-                   whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
+                   "vectorIndexColumn",
+                   whereconditions=paste0(result_db_name,".",result_vector_table,".vectorIdColumn = ",VID)
                   )
 
-  return(table[,"VECTOR_VALUE"])
+  return(table[,"vectorValueColumn"])
 }
 
 store.character <- function(object,returnType,connection)
@@ -164,7 +164,7 @@ store.character <- function(object,returnType,connection)
                       getRemoteTableName(result_db_name,
                                         result_matrix_table),
                       "\n",
-                      object,
+                      gsub("'%insertIDhere%'",MID,object),
                       "\n")
 
     sqlSendUpdate(connection,
@@ -190,7 +190,7 @@ store.character <- function(object,returnType,connection)
                       getRemoteTableName(result_db_name,
                                         result_vector_table),
                       "\n",
-                      object,
+                      gsub("'%insertIDhere%'",MID,object),
                       "\n")
     
     sqlSendUpdate(connection,
@@ -267,24 +267,35 @@ setMethod("constructSelect", signature(object = "FLVector",localName="missing"),
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
               if(!object@isDeep) {
+                newColnames <- renameDuplicates(colnames(object))
                   return(paste0("SELECT ",
-                                paste0(getVariables(object)$obs_id_colname,","),
-                                paste(colnames(object),collapse=", "),
+                                paste0(getVariables(object)$obs_id_colname," AS vectorIndexColumn,"),
+                                paste(colnames(object)," AS ",newColnames,collapse=", "),
                                 " FROM ",remoteTable(object),
                                 constructWhere(c(constraintsSQL(object))),
-                                " ORDER BY ",getVariables(object)$obs_id_colname,
+                                #" ORDER BY ",getVariables(object)$obs_id_colname,
                                 "\n"))
               } else {
                   return(paste0("SELECT ",
-                                paste(c(getVariables(object)$obs_id_colname,
-                                        getVariables(object)$var_id_colname,
-                                        getVariables(object)$cell_val_colname),
-                                      collapse=", "),
+                                getVariables(object)$obs_id_colname," AS vectorIdColumn,",
+                                getVariables(object)$var_id_colname," AS vectorIndexColumn,",
+                                getVariables(object)$cell_val_colname," AS vectorValueColumn",
                                 " FROM ",remoteTable(object),
                                 constructWhere(c(constraintsSQL(object))),
                                 "\n"))
               }
           })
+
+renameDuplicates <- function(vec)
+{
+  for(x in vec)
+    {
+    id <- which(vec %in% x)
+    if(length(id)>1)
+      vec[id] <- paste0(vec[id],1:length(id))
+  }
+  return(vec)
+  }
 
 setMethod(
     "constructSelect",
@@ -607,7 +618,7 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
               )
               return(paste0(" WITH ",withName,
                             " (Matrix_ID, Row_ID, Col_ID, Cell_Val) 
-              AS (",constructSelect(object,localName="a")," ) "))
+              AS (",constructSelect(object,localName=localName)," ) "))
           })
 
                                         # outputSelectMatrix apples function given by func_name to view given by viewname
@@ -626,9 +637,10 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="miss
           {
               return(paste0(" SELECT ",paste0(localName,".",outColNames,collapse=","),paste0(" 
           FROM TABLE (",func_name,
-          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
-          HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause)))
+          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
+          # HASH BY z.Matrix_ID 
+          # LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID"
+          ") AS ",localName," ",whereClause)))
           })
 
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
@@ -636,13 +648,14 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
                                           vconnection="RODBC"),
           function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
           {
-              return(paste0(" SELECT ",ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
+              return(paste0(" SELECT '%insertIDhere%' ",#ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
                             " AS OutputMatrixID ",
                             paste0(",",localName,".",outColNames,collapse=""),paste0(" 
           FROM TABLE (",func_name,
-          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
-          HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause)))
+          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
+          # HASH BY z.Matrix_ID 
+          # LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+          ") AS ",localName," ",whereClause)))
           })
 
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
@@ -650,12 +663,13 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
                                           vconnection="JDBCConnection"),
           function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
           {
-              return(paste0(" SELECT ",ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
+              return(paste0(" SELECT '%insertIDhere%' ",#ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
                             paste0(",",localName,".",outColNames,collapse=""),paste0(" 
           FROM TABLE (",func_name,
-          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val) 
-          HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS ",localName," ",whereClause)))
+          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
+          # HASH BY z.Matrix_ID 
+          # LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+          ") AS ",localName," ",whereClause)))
           })
 
 setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",

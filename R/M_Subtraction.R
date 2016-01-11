@@ -104,62 +104,55 @@ NULL
 	{
 		checkSameDims(flmatobj1,flmatobj2)
 		flag1Check(getConnection(flmatobj1))
-		MID <- getMaxMatrixId(getConnection(flmatobj1))
+		#MID <- getMaxMatrixId(getConnection(flmatobj1))
+		var1 <- genRandVarName()
+		var2 <- genRandVarName()
         ## gk: todo:refactor
-		sqlstr <-paste0(" SELECT DISTINCT ",MID,",
-								 a.",getVariables(flmatobj1)$rowIdColumn,",
-								 a.",getVariables(flmatobj1)$colIdColumn,",
-								 a.",getVariables(flmatobj1)$valueColumn,
-						" FROM ",remoteTable(flmatobj1)," a ",
-						constructWhere(constraintsSQL(flmatobj1,"a")),
+		sqlstr <-paste0(" SELECT DISTINCT '%insertIDhere%' AS MATRIX_ID,
+								",var1,".rowIdColumn AS rowIdColumn,
+								",var1,".colIdColumn AS colIdColumn,
+								",var1,".valueColumn AS valueColumn  
+						 FROM ( ",constructSelect(flmatobj1),") AS ",var1,
 			            " except ",
-			            "SELECT ",MID,",
-			            		a.",getVariables(flmatobj1)$rowIdColumn,",
-			            		a.",getVariables(flmatobj1)$colIdColumn,",
-			            		a.",getVariables(flmatobj1)$valueColumn,
-			            " FROM ",remoteTable(flmatobj1)," a, ",
-			            		 remoteTable(flmatobj2)," b ",
-			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
-					 		  	constraintsSQL(flmatobj2,"b"),
-					 		  	paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
-					 		  	paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))),
+			            "SELECT '%insertIDhere%' AS MATRIX_ID,
+			            		",var1,".rowIdColumn AS rowIdColumn,
+			            		",var1,".colIdColumn AS colIdColumn,
+			            		",var1,".valueColumn AS valueColumn 
+			              FROM  ( ",constructSelect(flmatobj1),") AS ",var1,
+			                  ",( ",constructSelect(flmatobj2),") AS ",var2,
+			            constructWhere(c(paste0(var1,".rowIdColumn = ",var2,".rowIdColumn"),
+					 		  	paste0(var1,".colIdColumn = ",var2,".colIdColumn"))),
 			            " UNION ALL ",
-			            "SELECT DISTINCT ",MID,",
-			            		b.",getVariables(flmatobj2)$rowIdColumn,",
-			            		b.",getVariables(flmatobj2)$colIdColumn,",
-			            		b.",getVariables(flmatobj2)$valueColumn,"*(-1) 
-			             FROM ",remoteTable(flmatobj2)," b ",
-			            constructWhere(constraintsSQL(flmatobj2,"b")),
+			            " SELECT DISTINCT '%insertIDhere%' AS MATRIX_ID,
+								",var2,".rowIdColumn AS rowIdColumn,
+								",var2,".colIdColumn AS colIdColumn,
+								",var2,".valueColumn*(-1) AS valueColumn 
+						 FROM  ( ",constructSelect(flmatobj2),") AS ",var2,
 			            " except ",
-			            "SELECT ",MID,",
-			            		b.",getVariables(flmatobj2)$rowIdColumn,",
-			            		b.",getVariables(flmatobj2)$colIdColumn,",
-			            		b.",getVariables(flmatobj2)$valueColumn,"*(-1) 
-			             FROM ",remoteTable(flmatobj1)," a, ",
-			            		 remoteTable(flmatobj2)," b ",
-			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
-					 		  	constraintsSQL(flmatobj2,"b"),
-					 		  	paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
-					 		  	paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))),
+			            "SELECT '%insertIDhere%' AS MATRIX_ID,
+			            		",var2,".rowIdColumn AS rowIdColumn,",
+			            		var2,".colIdColumn AS colIdColumn,",
+			            		var2,".valueColumn*(-1) AS valueColumn 
+			             FROM ( ",constructSelect(flmatobj1),") AS ",var1,
+			                ",( ",constructSelect(flmatobj2),") AS ",var2,
+			            constructWhere(c(paste0(var1,".rowIdColumn = ",var2,".rowIdColumn"),
+					 		  	paste0(var1,".colIdColumn = ",var2,".colIdColumn"))),
 			            " UNION ALL ",
-			            " SELECT ",MID,",
-			            		a.",getVariables(flmatobj1)$rowIdColumn,",
-			            		a.",getVariables(flmatobj1)$colIdColumn,",
-			            		a.",getVariables(flmatobj1)$valueColumn,"-b.",
-			            		getVariables(flmatobj2)$valueColumn,
-			            " FROM ",remoteTable(flmatobj1)," a, ",
-			            		 remoteTable(flmatobj2)," b ",
-			            constructWhere(c(constraintsSQL(flmatobj1,"a"),
-					 		  	constraintsSQL(flmatobj2,"b"),
-					 		  	paste0("a.",getVariables(flmatobj1)$rowIdColumn,"=b.",getVariables(flmatobj2)$rowIdColumn),
-					 		  	paste0("a.",getVariables(flmatobj1)$colIdColumn,"=b.",getVariables(flmatobj2)$colIdColumn))))
+			            " SELECT '%insertIDhere%' AS MATRIX_ID,
+			            		",var1,".rowIdColumn AS rowIdColumn,",
+			            		var1,".colIdColumn AS colIdColumn,",
+			            		var1,".valueColumn - ",var2,".valueColumn AS valueColumn 
+			              FROM  ( ",constructSelect(flmatobj1),") AS ",var1,
+			                  ",( ",constructSelect(flmatobj2),") AS ",var2,
+			            constructWhere(c(paste0(var1,".rowIdColumn = ",var2,".rowIdColumn"),
+					 		  	paste0(var1,".colIdColumn = ",var2,".colIdColumn"))))
 		
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         odbc_connection = connection,
                         variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
+                            rowIdColumn="rowIdColumn",
+                            colIdColumn="colIdColumn",
+                            valueColumn="valueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
@@ -168,7 +161,7 @@ NULL
 	            select= tblfunqueryobj,
 	            dimnames=dimnames(flmatobj1))
 
-	    return(store(object=flm))
+	    return(flm)
 	}
 	else if(is.vector(flmatobj2))
 		{
@@ -279,27 +272,30 @@ NULL
 	{
 		connection <- getConnection(pObj2)
 		flag3Check(connection)
+		a <- genRandVarName()
+		b <- genRandVarName()
 
 		if(nrow(pObj1)==1 && nrow(pObj2)==1)
 		{
 			if(ncol(pObj2)>ncol(pObj1))
 			max_length <- ncol(pObj2)
 			else max_length <- ncol(pObj1)
+			newColnames1 <- renameDuplicates(colnames(pObj1))
+			newColnames2 <- renameDuplicates(colnames(pObj2))
 
-			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
-									",",1:max_length,
-									",a.",pObj1@dimnames[[2]],
-									"-b.",pObj2@dimnames[[2]],
-							" FROM ",remoteTable(pObj1)," a,",
-							   remoteTable(pObj2)," b ",
-							constructWhere(c(constraintsSQL(pObj1,localName="a"),
-								constraintsSQL(pObj2,localName="b"))),collapse=" UNION ALL ")
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn",
+									",",1:max_length, " AS vectorIndexColumn",
+									",",a,".",newColnames1,
+									"-",b,".",newColnames2," AS vectorValueColumn",
+							" FROM (",constructSelect(pObj1),") AS ",a,", 
+							    (",constructSelect(pObj2),") AS ",b,
+						    collapse=" UNION ALL ")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     odbc_connection = connection,
                     variables = list(
-		                obs_id_colname = "VECTOR_INDEX",
-		                cell_val_colname = "VECTOR_VALUE"),
+		                obs_id_colname = "vectorIndexColumn",
+		                cell_val_colname = "vectorValueColumn"),
                     whereconditions="",
                     order = "",
                     SQLquery=sqlstr)
@@ -307,12 +303,11 @@ NULL
 			flv <- new("FLVector",
 						select = tblfunqueryobj,
 						dimnames = list(1:max_length,
-										c("VECTOR_ID",
-										  "VECTOR_INDEX",
-										  "VECTOR_VALUE")),
+										"vectorValueColumn"),
 						isDeep = FALSE)
 
-			return(store(object=flv))
+			return(flv)
+			#return(store(object=flv))
 		}
 
 		if(ncol(pObj1)==1 && ncol(pObj2)==1)
@@ -324,22 +319,20 @@ NULL
             ## gk: we can defer this for now, we need modulo.
             ### Phani-- modulo approach I used in earlier version,
             ### But here primary key can be non-numeric
-			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
-									",a.",getVariables(pObj1)$obs_id_colname,
-									",a.",pObj1@dimnames[[2]],
-									"-b.",pObj2@dimnames[[2]],
-							" FROM ",remoteTable(pObj1)," a,",
-							   remoteTable(pObj2)," b ",
-							constructWhere(c(constraintsSQL(pObj1,localName="a"),
-							constraintsSQL(pObj2,localName="b"),paste0(
-							" a.",getVariables(pObj1)$obs_id_colname,"=b.",
-							getVariables(pObj2)$obs_id_colname))))
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn",
+									",",a,".vectorIndexColumn,
+									",a,".",pObj1@dimnames[[2]],
+									"-",b,".",pObj2@dimnames[[2]]," AS vectorValueColumn",
+							" FROM (",constructSelect(pObj1),") AS ",a,", 
+							    (",constructSelect(pObj2),") AS ",b,
+							constructWhere(c(paste0(a,".vectorIndexColumn = ",
+											b,".vectorIndexColumn"))))
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     odbc_connection = connection,
                     variables = list(
-		                obs_id_colname = "VECTOR_INDEX",
-		                cell_val_colname = "VECTOR_VALUE"),
+		                obs_id_colname = "vectorIndexColumn",
+		                cell_val_colname = "vectorValueColumn"),
                     whereconditions="",
                     order = "",
                     SQLquery=sqlstr)
@@ -347,12 +340,11 @@ NULL
 			flv <- new("FLVector",
 						select = tblfunqueryobj,
 						dimnames = list(1:length(pObj1),
-										c("VECTOR_ID",
-										  "VECTOR_INDEX",
-										  "VECTOR_VALUE")),
+										"vectorValueColumn"),
 						isDeep = FALSE)
 
-			return(store(object=flv))
+			return(flv)
+			# return(store(object=flv))
 		}
 
 		if(ncol(pObj1)==1 && nrow(pObj2)==1)
@@ -360,35 +352,36 @@ NULL
 			if(ncol(pObj2)>nrow(pObj1))
 			max_length <- ncol(pObj2)
 			else max_length <- nrow(pObj1)
+			newColnames1 <- renameDuplicates(colnames(pObj1))
+			newColnames2 <- renameDuplicates(colnames(pObj2))
 
-			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
-									",",1:max_length,
-									",a.",pObj1@dimnames[[2]],
-									"-b.",pObj2@dimnames[[2]],
-							" FROM ",remoteTable(pObj1)," a,",
-							   remoteTable(pObj2)," b ",
-							constructWhere(c(constraintsSQL(pObj1,localName="a"),
-								constraintsSQL(pObj2,localName="b"))),
-							" AND  a.",getVariables(pObj1)$obs_id_colname," IN('",pObj1@dimnames[[1]],"')",collapse=" UNION ALL ")
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn",
+									",",1:max_length, " AS vectorIndexColumn",
+									",",a,".",newColnames1,
+									"-",b,".",newColnames2," AS vectorValueColumn 
+							 FROM (",constructSelect(pObj1),") AS ",a,", 
+							    (",constructSelect(pObj2),") AS ",b,
+							" WHERE ",a,".vectorIndexColumn IN('",pObj1@dimnames[[1]],"')",
+						    collapse=" UNION ALL ")
 
+			
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     odbc_connection = connection,
                     variables = list(
-		                obs_id_colname = "VECTOR_INDEX",
-		                cell_val_colname = "VECTOR_VALUE"),
+		                obs_id_colname = "vectorIndexColumn",
+		                cell_val_colname = "vectorValueColumn"),
                     whereconditions="",
                     order = "",
                     SQLquery=sqlstr)
 
 			flv <- new("FLVector",
 						select = tblfunqueryobj,
-						dimnames = list(1:max_length,
-										c("VECTOR_ID",
-										  "VECTOR_INDEX",
-										  "VECTOR_VALUE")),
+						dimnames = list(1:length(pObj1),
+										"vectorValueColumn"),
 						isDeep = FALSE)
 
-			return(store(object=flv))
+			return(flv)
+			# return(store(object=flv))
 		}
 
 		if(nrow(pObj1)==1 && ncol(pObj2)==1)
@@ -396,35 +389,36 @@ NULL
 			if(nrow(pObj2)>ncol(pObj1))
 			max_length <- nrow(pObj2)
 			else max_length <- ncol(pObj1)
+			newColnames1 <- renameDuplicates(colnames(pObj1))
+			newColnames2 <- renameDuplicates(colnames(pObj2))
 
-			sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
-									",",1:max_length,
-									",a.",pObj1@dimnames[[2]],
-									"-b.",pObj2@dimnames[[2]],
-							" FROM ",remoteTable(pObj1)," a,",
-							   remoteTable(pObj2)," b ",
-							constructWhere(c(constraintsSQL(pObj1,localName="a"),
-								constraintsSQL(pObj2,localName="b"))),
-							" AND  b.",getVariables(pObj2)$obs_id_colname," IN('",pObj2@dimnames[[1]],"')",collapse=" UNION ALL ")
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn",
+									",",1:max_length, " AS vectorIndexColumn",
+									",",a,".",newColnames1,
+									"-",b,".",newColnames2," AS vectorValueColumn 
+							 FROM (",constructSelect(pObj1),") AS ",a,", 
+							    (",constructSelect(pObj2),") AS ",b,
+							" WHERE ",b,".vectorIndexColumn IN('",pObj2@dimnames[[1]],"')",
+						    collapse=" UNION ALL ")
 
+			
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     odbc_connection = connection,
                     variables = list(
-		                obs_id_colname = "VECTOR_INDEX",
-		                cell_val_colname = "VECTOR_VALUE"),
+		                obs_id_colname = "vectorIndexColumn",
+		                cell_val_colname = "vectorValueColumn"),
                     whereconditions="",
                     order = "",
                     SQLquery=sqlstr)
 
 			flv <- new("FLVector",
 						select = tblfunqueryobj,
-						dimnames = list(1:max_length,
-										c("VECTOR_ID",
-										  "VECTOR_INDEX",
-										  "VECTOR_VALUE")),
+						dimnames = list(1:length(pObj1),
+										  "vectorValueColumn"),
 						isDeep = FALSE)
 
-			return(store(object=flv))
+			return(flv)
+			# return(store(object=flv))
 		}
 		
 	}
