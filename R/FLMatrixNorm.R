@@ -51,6 +51,6 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 					HASH BY z.Matrix_ID 
 					LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"
                    )
-	
+	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 	return(sqlQuery(connection,sqlstr)$"OutputNorm"[1])
 }

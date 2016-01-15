@@ -45,12 +45,12 @@ diag.FLMatrix<-function(object)
 	table <- FLTable(connection,
 		             object@select@db_name,
 		             object@select@table_name,
-		             getVariables(object)$rowId,
+		             getVariables(object)$rowIdColumn,
 		             whereconditions=c(object@select@whereconditions,
-		             	paste0(getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$rowId,
-		             		"=",getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$colId)))
+		             	paste0(getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$rowIdColumn,
+		             		"=",getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$colIdColumn)))
 
-	return(table[,getVariables(object)$value])
+	return(table[,getVariables(object)$valueColumn])
 }
 
 diag.FLVector <- function(object)

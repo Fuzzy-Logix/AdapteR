@@ -135,7 +135,13 @@ store.FLMatrix <- function(object)
 
 store.FLVector <- function(object)
 {
-  VID <- getMaxVectorId(getConnection(object))
+  connection <- getConnection(object)
+  VID <- getMaxVectorId(connection)
+  if(length(colnames(object))>1 && object@isDeep==FALSE)
+  {
+    object <- as.vector(object)
+    return(as.FLVector(object,connection))
+  }
   vSqlStr <- paste0(" INSERT INTO ",
                     getRemoteTableName(result_db_name,
                                       result_vector_table),
@@ -268,21 +274,40 @@ setMethod("constructSelect", signature(object = "FLVector",localName="missing"),
             return(constructSelect(object@select))
               if(!object@isDeep) {
                 newColnames <- renameDuplicates(colnames(object))
-                  return(paste0("SELECT ",
-                                paste0(getVariables(object)$obs_id_colname," AS vectorIndexColumn,"),
-                                paste(colnames(object)," AS ",newColnames,collapse=", "),
-                                " FROM ",remoteTable(object),
-                                constructWhere(c(constraintsSQL(object))),
-                                #" ORDER BY ",getVariables(object)$obs_id_colname,
-                                "\n"))
+                variables <- getVariables(object)
+                if(is.null(names(variables)))
+                    names(variables) <- variables
+                else
+                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
+
+                ifelse(is.null(variables$obs_id_colname),vobsIDCol <- variables["vectorIndexColumn"],
+                   vobsIDCol <- variables["obs_id_colname"])
+                variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],colnames(object)))
+                names(variables) <- c("vectorIdColumn",
+                                      "vectorIndexColumn",
+                                      if(length(colnames(object))>1) newColnames else "vectorValueColumn")
+
+                return(paste0(
+                            "SELECT\n",
+                            paste0("     ",
+                                   variables," AS ",
+                                   names(variables),
+                                   collapse = ",\n"),
+                            "\nFROM ",remoteTable(object),
+                            constructWhere(c(constraintsSQL(object))),
+                            "\n"))
               } else {
-                  return(paste0("SELECT ",
-                                getVariables(object)$obs_id_colname," AS vectorIdColumn,",
-                                getVariables(object)$var_id_colname," AS vectorIndexColumn,",
-                                getVariables(object)$cell_val_colname," AS vectorValueColumn",
-                                " FROM ",remoteTable(object),
-                                constructWhere(c(constraintsSQL(object))),
-                                "\n"))
+                  variables <- getVariables(object)
+                  names(variables) <- c("vectorIdColumn","vectorIndexColumn","vectorValueColumn")
+                  return(paste0(
+                            "SELECT\n",
+                            paste0("     ",
+                                   variables," AS ",
+                                   names(variables),
+                                   collapse = ",\n"),
+                            "\nFROM ",remoteTable(object),
+                            constructWhere(c(constraintsSQL(object))),
+                            "\n"))
               }
           })
 
@@ -638,8 +663,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="miss
               return(paste0(" SELECT ",paste0(localName,".",outColNames,collapse=","),paste0(" 
           FROM TABLE (",func_name,
           "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
-          # HASH BY z.Matrix_ID 
-          # LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID"
+          " HASH BY z.Matrix_ID 
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
           ") AS ",localName," ",whereClause)))
           })
 
@@ -653,8 +678,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
                             paste0(",",localName,".",outColNames,collapse=""),paste0(" 
           FROM TABLE (",func_name,
           "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
-          # HASH BY z.Matrix_ID 
-          # LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+          " HASH BY z.Matrix_ID 
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
           ") AS ",localName," ",whereClause)))
           })
 
@@ -667,8 +692,8 @@ setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logi
                             paste0(",",localName,".",outColNames,collapse=""),paste0(" 
           FROM TABLE (",func_name,
           "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
-          # HASH BY z.Matrix_ID 
-          # LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+          " HASH BY z.Matrix_ID 
+          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
           ") AS ",localName," ",whereClause)))
           })
 

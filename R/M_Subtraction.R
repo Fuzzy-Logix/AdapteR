@@ -47,11 +47,6 @@ NULL
 		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
 		flmatobj2-flmatobj1
 	}
-	# else if(is.FLSparseMatrix(flmatobj1))
-	# {
-	# 	flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
-	# 	flmatobj2-flmatobj1
-	# }
 	else if(is.FLVector(flmatobj1))
 	{
 		flmatobj2 <- as.FLMatrix(x,getConnection(flmatobj1))
@@ -320,7 +315,7 @@ NULL
             ### Phani-- modulo approach I used in earlier version,
             ### But here primary key can be non-numeric
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn",
-									",",a,".vectorIndexColumn,
+									",",a,".vectorIndexColumn AS vectorIndexColumn,
 									",a,".",pObj1@dimnames[[2]],
 									"-",b,".",pObj2@dimnames[[2]]," AS vectorValueColumn",
 							" FROM (",constructSelect(pObj1),") AS ",a,", 
