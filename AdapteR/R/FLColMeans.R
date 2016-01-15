@@ -54,11 +54,8 @@ colMeans.FLMatrix<-function(object)
 
 	flv <- new("FLVector",
 				select = tblfunqueryobj,
-				dimnames = list(1:nrow(object),
-								c("vectorIdColumn",
-								  "vectorIndexColumn",
-								  "vectorValueColumn")),
+				dimnames = list(1:ncol(object),
+								"vectorValueColumn"),
 				isDeep = FALSE)
 	return(flv)
-	#return(store(object=flv))
 }

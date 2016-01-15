@@ -34,6 +34,6 @@ rankMatrix.FLMatrix<-function(object)
 				   outputSelectMatrix("FLMatrixRankUdt",
 				   					outColNames=list("OutputMtxRank"),viewName="z",localName="a")
 					)
-	
+	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
 }

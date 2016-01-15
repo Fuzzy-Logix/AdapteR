@@ -41,6 +41,7 @@ as.data.frame <- function(x, ...)
 }
 as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
+    sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     D <- sqlQuery(getConnection(x),sqlstr)
     names(D) <- toupper(names(D))
     if(x@isDeep) {
@@ -58,6 +59,7 @@ as.data.frame.FLTable <- function(x, ...){
     if(any(D[[toupper("vectorIndexColumn")]]!=1:nrow(D)))
         rownames(D) <- D[[toupper("vectorIndexColumn")]]
     D[[toupper("vectorIndexColumn")]] <- NULL
+    D[[toupper("vectorIdColumn")]] <- NULL
     ## gk:  this is broken
     # i <- charmatch(rownames(x),D[[toupper(getVariables(x)$obs_id_colname)]],nomatch=0)
     #                                     # print(i)
@@ -301,7 +303,8 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
               as.FLMatrix.FLVector(object,connection=getConnection(object),sparse=TRUE,rows,cols,...))
 
 as.sparseMatrix.FLMatrix <- function(object) {
-  valuedf <- sqlQuery(getConnection(object), constructSelect(object))
+  sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object))
+  valuedf <- sqlQuery(getConnection(object), sqlstr)
   i <- match(valuedf$rowIdColumn,rownames(object))
   j <- match(valuedf$colIdColumn,colnames(object))
   if(any(is.na(i)) | any(is.na(j)))
@@ -438,7 +441,9 @@ as.FLVector.vector <- function(object,connection)
   VID <- getMaxVectorId(connection)
   sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
            getRemoteTableName(result_db_name,result_vector_table),
-           " SELECT ",VID,",",x,",",object[x],";"
+           " SELECT ",VID," AS vectorIdColumn,",
+                     x," AS vectorIndexColumn,",
+                     object[x]," AS vectorValueColumn;"
                    ))
   
   retobj<-sqlSendUpdate(connection,
@@ -460,14 +465,29 @@ as.FLVector.vector <- function(object,connection)
 as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
-  sqlstr <- paste0(" SELECT ",getMaxVectorId(connection),
-                   ", ROW_NUMBER() OVER (ORDER BY a.",getVariables(object)$colIdColumn,
-                   ",a.",getVariables(object)$rowIdColumn,") AS ROW_NUM
-                   ,a.",getVariables(object)$valueColumn,
-                   " FROM ",remoteTable(object)," a ",
-                   constructWhere(constraintsSQL(object,localName="a")))
+  a <- genRandVarName()
 
-  return(store(sqlstr,returnType="VECTOR",connection=connection))
+  sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,
+                    ROW_NUMBER() OVER (ORDER BY ",a,".colIdColumn,",
+                    a,".rowIdColumn) AS vectorIndexColumn,",
+                    a,".valueColumn AS vectorValueColumn 
+                    FROM (",constructSelect(object),") AS ",a)
+
+  tblfunqueryobj <- new("FLTableFunctionQuery",
+                        odbc_connection = connection,
+                        variables = list(
+                      obs_id_colname = "vectorIndexColumn",
+                      cell_val_colname = "vectorValueColumn"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+  flv <- new("FLVector",
+        select = tblfunqueryobj,
+        dimnames = list(1:length(object),
+                "vectorValueColumn"),
+        isDeep = FALSE)
+  return(flv)
 }
 
 	

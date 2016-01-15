@@ -123,34 +123,35 @@ crossProdFLMatrix <- function(flmatobj1, flmatobj2)
 		stop("non-conformable dimensions")
 
 		flag1Check(getConnection(flmatobj1))
+		a <- genRandVarName()
+		b <- genRandVarName()
 
         ##gk: refactor to not store!
-		sqlstr <-paste0(" SELECT ",getMaxMatrixId(getConnection(flmatobj1))," AS MATRIX_ID ,
-								 a.rowIdColumn AS ROW_ID ,
-								 b.colIdColumn AS COL_ID , 
-								 FLSUMPROD(a.valueColumn,b.valueColumn) AS CELL_VAL 
-								 FROM (",constructSelect(flmatobj1),") AS a,
-                                      (",constructSelect(flmatobj2),") AS b ",
-                        constructWhere("a.colIdColumn = b.rowIdColumn"),
-                        " GROUP BY ROW_ID,COL_ID")
+        sqlstr <-paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+								 a,".rowIdColumn AS rowIdColumn,",
+								 b,".colIdColumn AS colIdColumn,
+								 SUM(",a,".valueColumn * ",b,".valueColumn) AS valueColumn  
+								 FROM (",constructSelect(flmatobj1),") AS ",a,
+                                    ",(",constructSelect(flmatobj2),") AS ",b,
+                        constructWhere(paste0(a,".colIdColumn = ",b,".rowIdColumn")),
+                        " GROUP BY 1,2,3")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         odbc_connection = connection,
                         variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
+                            rowIdColumn="rowIdColumn",
+                            colIdColumn="colIdColumn",
+                            valueColumn="valueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
 
-	    flm <- new("FLMatrix",
-	            select= tblfunqueryobj,
-	            dimnames=list(dimnames(flmatobj1)[[1]],
-	            			  dimnames(flmatobj1)[[2]])
-	            	)
+		flm <- new("FLMatrix",
+		            select= tblfunqueryobj,
+		            dimnames=list(dimnames(flmatobj1)[[1]],
+		            			dimnames(flmatobj2)[[2]]))
 
-	    return(store(object=flm))
+		return(flm)
 	}
 	else if(is.vector(flmatobj2))
 		{

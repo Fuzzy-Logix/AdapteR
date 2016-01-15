@@ -32,19 +32,21 @@ rowMeans.FLMatrix<-function(object)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)
+	var <- genRandVarName()
 
-	sqlstr<-paste0(" SELECT ",getMaxVectorId(connection),
-					         ",a.",getVariables(object)$rowIdColumn,
-					         ",AVG(a.",getVariables(object)$valueColumn,")  
-					FROM ",remoteTable(object)," a ",
-					constructWhere(constraintsSQL(object,"a")),
-					" GROUP BY a.",getVariables(object)$rowIdColumn)
+	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
+			        ",",var,".rowIdColumn AS vectorIndexColumn",
+			        ", AVG(",var,".valueColumn) AS vectorValueColumn 
+					FROM ",
+					"( ",constructSelect(object),
+					" ) AS ",var,
+					" GROUP BY ",var,".rowIdColumn")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         odbc_connection = connection,
                         variables = list(
-			                obs_id_colname = "VECTOR_INDEX",
-			                cell_val_colname = "VECTOR_VALUE"),
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
@@ -52,11 +54,8 @@ rowMeans.FLMatrix<-function(object)
 	flv <- new("FLVector",
 				select = tblfunqueryobj,
 				dimnames = list(1:nrow(object),
-								c("VECTOR_ID",
-								  "VECTOR_INDEX",
-								  "VECTOR_VALUE")),
+								"vectorValueColumn"),
 				isDeep = FALSE)
-
-	return(store(object=flv))
+	return(flv)
 
 }

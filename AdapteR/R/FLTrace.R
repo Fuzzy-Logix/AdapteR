@@ -44,6 +44,7 @@ tr.FLMatrix<-function(object){
 				    constructWhere(c(constraintsSQL(object),
 				    	paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
 				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))
-	
+
+	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 	return(sqlQuery(connection,sqlstr)[1,1])
 }
