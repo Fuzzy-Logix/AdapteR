@@ -46,5 +46,8 @@ tr.FLMatrix<-function(object){
 				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))
 
 	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+	sqlstr <- ensureQuerySize(pResult=sqlstr,
+            pInput=list(object),
+            pOperator="tr")
 	return(sqlQuery(connection,sqlstr)[1,1])
 }

@@ -392,6 +392,25 @@ test_that("check result for M_CrossProduct",
 })
 
 ## Testing M_Addition
+## gk: todo: refactor SQL statements for performance.  This is bad performance.
+test_that("check result for Matrix M_Addition",
+{
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- initF.FLMatrix(n,isSquare)
+      b <- FLMatrix(connection,
+                    "FL_DEMO", "tblmatrixMulti",
+                    5, "MATRIX_ID",
+                    "ROW_ID","COL_ID","CELL_VAL")
+      list(R=list(a$R,
+                  as.matrix(b)),
+           FL=list(a$FL,
+                   b))
+  },function(x) (do.call("+",x)),
+  function(x) do.call("+",x),n=5,isSquare=TRUE
+  )
+})
+
+## Testing M_Addition
 test_that("check result for M_Addition",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
@@ -406,21 +425,6 @@ test_that("check result for M_Addition",
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
 
-  expect_eval_equal(initF=function(n) {
-      a <- initF.FLMatrix(n=5,isSquare=TRUE)
-      b <- FLMatrix(connection,
-                    "FL_DEMO", "tblmatrixMulti",
-                    5, "MATRIX_ID",
-                    "ROW_ID","COL_ID","CELL_VAL")
-      list(R=list(a$R,
-                  as.matrix(b)),
-           FL=list(a$FL,
-                   b))
-  },function(x) do.call("+",x),
-  function(x) do.call("+",x)
-  )
-  
-  ## gk: try refactoring in eval_equal function(x) do.call("+",x) == a+b
   expect_equal(M1$FL+M2,
                M1$R+M2R,
                check.attributes=FALSE)

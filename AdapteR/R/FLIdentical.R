@@ -56,6 +56,10 @@ identical.FLMatrix <- function(pObj1, pObj2)
                                          paste0(a,".colIdColumn = ",b,".colIdColumn"),
                                          paste0(a,".valueColumn <> ",b,".valueColumn"))))
 
+		sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(pObj1,pObj2),
+	            pOperator="identical")
+
 		retobj <- sqlQuery(connection,sqlstr)
 
 		if(nrow(retobj) == 0)
@@ -90,6 +94,10 @@ identical.FLVector <- function(pObj1, pObj2)
 						 	",(",constructSelect(pObj2),") AS ",b,
                         constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"),
                                          paste0(a,".",newColnames1," <> ",b,".",newColnames2))))
+
+		sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(pObj1,pObj2),
+	            pOperator="identical")
 
 		retobj <- sqlQuery(connection,sqlstr)
 
@@ -197,6 +205,12 @@ NULL
 	    flm <- new("FLMatrix",
 	            select= tblfunqueryobj,
 	            dimnames=dimnames(pObj1))
+
+	    flm <- ensureQuerySize(pResult=flm,
+		            pInput=list(object),
+		            pOperator="ginv",
+		            pStoreResult=TRUE)
+
 	    return(matrix(as.logical(as.matrix(flm)),nrow(pObj1),ncol(pObj1)))
 	}
 	if(is.matrix(pObj2)||class(pObj2)=="dgCMatrix"
@@ -224,6 +238,10 @@ NULL
 
 `==.FLVector` <- function(pObj1, pObj2)
 {
+	if(checkMaxQuerySize(pObj1))
+	pObj1 <- store(pObj1)
+	if(checkMaxQuerySize(pObj2))
+	pObj2 <- store(pObj2)
 	connection <- getConnection(pObj1)
 	if(is.FLVector(pObj2))
 	{
@@ -297,6 +315,10 @@ NULL
 				select = tblfunqueryobj,
 				dimnames = dimnames,
 				isDeep = FALSE)
+
+		flv <- ensureQuerySize(pResult=flv,
+	            pInput=list(object),
+	            pOperator="colMeans")
 
 		return(as.logical(as.vector(flv)))
 	}

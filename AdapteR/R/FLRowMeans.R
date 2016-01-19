@@ -56,6 +56,9 @@ rowMeans.FLMatrix<-function(object)
 				dimnames = list(1:nrow(object),
 								"vectorValueColumn"),
 				isDeep = FALSE)
-	return(flv)
+
+	return(ensureQuerySize(pResult=flv,
+	            pInput=list(object),
+	            pOperator="rowMeans"))
 
 }

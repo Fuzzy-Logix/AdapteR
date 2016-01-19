@@ -29,16 +29,16 @@ solve <- function (x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' resultFLMatrix <- solve(flmatrix)
 #' @export
-solve.FLMatrix <- function(object)
+solve.FLMatrix <- function(pObj1)
 {
     ## checkSquare(object,"solve")
 	## checkSingularity(object)
 
-	connection <- getConnection(object)
+	connection <- getConnection(pObj1)
 
 	flag1Check(connection)
 
-  sqlstr<-paste0(viewSelectMatrix(object, "a", withName="z"),
+  sqlstr<-paste0(viewSelectMatrix(pObj1, "a", withName="z"),
                  outputSelectMatrix("FLMatrixInvUdt", viewName="z", localName="a",
                                     includeMID=TRUE,vconnection=connection)
                 )
@@ -55,9 +55,12 @@ solve.FLMatrix <- function(object)
 
   flm <- new("FLMatrix",
             select= tblfunqueryobj,
-            dimnames=dimnames(object))
+            dimnames=dimnames(pObj1))
 
-  return(store(object=flm))
+  return(ensureQuerySize(pResult=flm,
+            pInput=list(pObj1),
+            pOperator="solve",
+            pStoreResult=TRUE))
 
 }
 

@@ -41,7 +41,7 @@ FLHessen.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblHessenResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
@@ -49,7 +49,11 @@ FLHessen.FLMatrix<-function(object)
                     	whereClause=") WITH DATA;")
                    )
 
-    sqlSendUpdate(connection,sqlstr0)
+    sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(object),
+	            pOperator="FLHessen")
+
+    sqlSendUpdate(connection,sqlstr)
 
 	PMatrix <- FLMatrix(
 				       connection = connection, 

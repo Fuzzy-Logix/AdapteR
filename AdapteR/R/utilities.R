@@ -1,6 +1,6 @@
 # Contains the support functions
 NULL
-setOldClass("RODBC")
+# setOldClass("RODBC")
 
 getRemoteTableName <- function(databaseName,
                                tableName) {
@@ -27,7 +27,7 @@ sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
 sqlQuery.default <- RODBC::sqlQuery
 
 options(debugSQL=TRUE)
-FLdebugSQL <<- TRUE
+# FLdebugSQL <<- TRUE
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
         ##browser()
@@ -368,8 +368,39 @@ setMethod("getMaxVectorId",
           			  vconnection=vconnection)
           )
 
+setGeneric("checkMaxQuerySize", function(pObj1) {
+    standardGeneric("checkMaxQuerySize")
+})
 
+setMethod("checkMaxQuerySize",
+          signature(pObj1="character"),
+          function(pObj1)
+          {
+            return(object.size(pObj1)>999000) # 1Kb tolerance
+          }
+        )
+setMethod("checkMaxQuerySize",
+          signature(pObj1="FLMatrix"),
+          function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
+setMethod("checkMaxQuerySize",
+          signature(pObj1="FLVector"),
+          function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
 
+ensureQuerySize <- function(pResult,pInput,pOperator,pStoreResult=FALSE)
+{
+  if(checkMaxQuerySize(pResult))
+      {
+        vQuerySizes <- sapply(pInput,FUN=function(x) object.size(constructSelect(x)))
+        vbulkyInput <- which.max(vQuerySizes)
+        pInput[[vbulkyInput]] <- store(pInput[[vbulkyInput]])
+        return(do.call(pOperator,pInput))
+      }
+  else
+      {
+        if(pStoreResult) return(store(pResult))
+        else return(pResult)
+      }
+}
 flag1Check <- function(connection)
 {
     return(TRUE)

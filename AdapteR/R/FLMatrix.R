@@ -355,6 +355,14 @@ setMethod("constructSelect",
           signature(object = "FLTableFunctionQuery"),
           function(object) return(object@SQLquery))
 
+setMethod("constructSelect",
+          signature(object = "numeric"),
+          function(object) return(object))
+
+setMethod("constructSelect",
+          signature(object = "character"),
+          function(object) return(object))
+
 #' Appends where clauses for subsetting etc.
 #'
 #' @export

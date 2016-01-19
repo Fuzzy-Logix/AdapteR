@@ -49,7 +49,7 @@ qr.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLQRDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
@@ -57,7 +57,11 @@ qr.FLMatrix<-function(object)
                     	whereClause=") WITH DATA;")
                    )
 
-    sqlSendUpdate(connection,sqlstr0)
+    sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(object),
+	            pOperator="qr")
+
+    sqlSendUpdate(connection,sqlstr)
 	
 	#calculating QRMatrix
     MID1 <- getMaxMatrixId(connection)

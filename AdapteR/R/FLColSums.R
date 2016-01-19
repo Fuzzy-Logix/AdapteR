@@ -55,5 +55,8 @@ colSums.FLMatrix<-function(object)
 				dimnames = list(1:ncol(object),
 								"vectorValueColumn"),
 				isDeep = FALSE)
-	return(flv)
+	
+	return(ensureQuerySize(pResult=flv,
+	            pInput=list(object),
+	            pOperator="colSums"))
 }
