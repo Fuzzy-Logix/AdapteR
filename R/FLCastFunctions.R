@@ -18,9 +18,9 @@ as.vector.FLMatrix <- function(object,mode="any")
 as.vector.FLVector <- function(object,mode="any")
 {
     if(ncol(object)==1)
-        x <- as.data.frame.FLTable(object)[[1]]
+        x <- as.data.frame.FLVector(object)[[1]]
     if(nrow(object)==1)
-        x <- as.vector(as.data.frame.FLTable(object)[1,])
+        x <- as.vector(as.data.frame.FLVector(object)[1,])
         if(!any(is.na(as.numeric(x))))
         x <- as.numeric(x)
     if(!any(names(x)!=1:length(x)))
@@ -40,6 +40,29 @@ as.data.frame <- function(x, ...)
 	UseMethod("as.data.frame",x)
 }
 as.data.frame.FLTable <- function(x, ...){
+    sqlstr <- constructSelect(x)
+    D <- sqlQuery(getConnection(x),sqlstr)
+    names(D) <- toupper(names(D))
+    if(x@isDeep) {
+        D <- sqlQuery(getConnection(x),sqlstr)
+        D <- dcast(D, paste0(toupper(getVariables(x)$obs_id_colname),
+                             " ~ ",
+                             toupper(getVariables(x)$var_id_colname)),
+                   value.var = toupper(getVariables(x)$cell_val_colname))
+    } 
+    ## gk:  this is broken
+    i <- charmatch(rownames(x),D[[toupper(getVariables(x)$obs_id_colname)]],nomatch=0)
+                                        # print(i)
+    D <- D[i,]
+    # print(D[1:20,])
+    # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
+    if(any(D[[toupper(getVariables(x)$obs_id_colname)]]!=1:nrow(D)))
+        rownames(D) <- D[[toupper(getVariables(x)$obs_id_colname)]]
+    D[[toupper(getVariables(x)$obs_id_colname)]] <- NULL
+    return(D)
+}
+
+as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     D <- sqlQuery(getConnection(x),sqlstr)

@@ -49,7 +49,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
     tempResultTable <- gen_unique_table_name("tblSVDResult")
     tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
@@ -57,7 +57,11 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
                     	whereClause=") WITH DATA;")
                    )
 
-    sqlSendUpdate(connection,sqlstr0)
+    sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(object,nu,nv),
+	            pOperator="svd")
+
+    sqlSendUpdate(connection,sqlstr)
 
 	UMatrix <- FLMatrix( 
             connection = connection, 

@@ -70,5 +70,8 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx)
             dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
             			  dimnames(object)[[2]][(-1*ExclIdx)]))
 
-  	return(store(object=flm))
+  	return(ensureQuerySize(pResult=flm,
+            pInput=list(object,ExclIdx),
+            pOperator="FLSolveExcl",
+            pStoreResult=TRUE))
 }

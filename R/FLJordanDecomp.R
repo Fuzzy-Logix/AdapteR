@@ -43,7 +43,7 @@ FLJordan.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblJordonDecompResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLJordanDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
@@ -51,7 +51,11 @@ FLJordan.FLMatrix<-function(object)
                     	whereClause=") WITH DATA;")
                    )
 
-    sqlSendUpdate(connection,sqlstr0)
+    sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(object),
+	            pOperator="FLJordan")
+
+    sqlSendUpdate(connection,sqlstr)
 
     PMatrix <- FLMatrix(
 				       connection = connection, 

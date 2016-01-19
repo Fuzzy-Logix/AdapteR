@@ -90,7 +90,7 @@ lu.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblLUDecompResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr0 <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
     				 viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLLUDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
@@ -98,7 +98,11 @@ lu.FLMatrix<-function(object)
                     	whereClause=") WITH DATA;")
                    )
 
-    sqlSendUpdate(connection,sqlstr0)
+    sqlstr <- ensureQuerySize(pResult=sqlstr,
+	            pInput=list(object),
+	            pOperator="lu")
+
+    sqlSendUpdate(connection,sqlstr)
 
 	# calculating LU matrix
 	MID1 <- getMaxMatrixId(connection)
@@ -186,17 +190,17 @@ lu.FLMatrix<-function(object)
 	# calculating x FLVector
 	VID2 <- getMaxVectorId(connection)
 	
-	sqlstrX <-paste0("SELECT ",VID2,
-							",ROW_NUMBER() OVER(ORDER BY ",getVariables(LUMatrix)$colId,",",getVariables(LUMatrix)$rowId,")
-	                   		, ",getVariables(LUMatrix)$value,"
+	sqlstrX <-paste0("SELECT ",VID2," AS vectorIdColumn",
+							",ROW_NUMBER() OVER(ORDER BY ",getVariables(LUMatrix)$colId,",",getVariables(LUMatrix)$rowId,") AS vectorIndexColumn
+	                   		, ",getVariables(LUMatrix)$value," AS vectorValueColumn 
 					  FROM ",remoteTable(LUMatrix),
 					 constructWhere(constraintsSQL(LUMatrix)))
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         odbc_connection = connection,
                         variables = list(
-			                obs_id_colname = "VECTOR_INDEX",
-			                cell_val_colname = "VECTOR_VALUE"),
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstrX)
@@ -204,9 +208,7 @@ lu.FLMatrix<-function(object)
 	flv <- new("FLVector",
 				select = tblfunqueryobj,
 				dimnames = list(1:length(LUMatrix),
-								c("VECTOR_ID",
-								  "VECTOR_INDEX",
-								  "VECTOR_VALUE")),
+								"vectorValueColumn"),
 				isDeep = FALSE)
 
 	x <- store(object=flv)

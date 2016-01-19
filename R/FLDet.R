@@ -43,5 +43,9 @@ det.FLMatrix<-function(object)
                    	outColNames=list("OutputDetVal"))
                    )
   sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-	sqlQuery(connection,sqlstr)[[1]]
+  sqlstr <- (ensureQuerySize(pResult=sqlstr,
+            pInput=list(object),
+            pOperator="det"))
+
+	return(sqlQuery(connection,sqlstr)[[1]])
 }

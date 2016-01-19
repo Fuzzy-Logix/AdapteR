@@ -53,5 +53,8 @@ FLMatrixRREF.FLMatrix<-function(object)
             select= tblfunqueryobj,
             dimnames=dimnames(object))
 
-  	return(store(object=flm))
+  	return(ensureQuerySize(pResult=flm,
+            pInput=list(object),
+            pOperator="FLMatrixRREF",
+            pStoreResult=TRUE))
 }

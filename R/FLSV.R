@@ -43,8 +43,8 @@ FLSV.FLMatrix<-function(object)
 	 tblfunqueryobj <- new("FLTableFunctionQuery",
                         odbc_connection = connection,
                         variables = list(
-                      obs_id_colname = "VECTOR_INDEX",
-                      cell_val_colname = "VECTOR_VALUE"),
+                      obs_id_colname = "vectorIndexColumn",
+                      cell_val_colname = "vectorValueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
@@ -52,10 +52,11 @@ FLSV.FLMatrix<-function(object)
   flv <- new("FLVector",
         select = tblfunqueryobj,
         dimnames = list(1:nrow(object),
-                c("VECTOR_ID",
-                  "VECTOR_INDEX",
-                  "VECTOR_VALUE")),
+                        "vectorValueColumn"),
         isDeep = FALSE)
 
-  return(store(object=flv))
+  return(ensureQuerySize(pResult=flv,
+              pInput=list(object),
+              pOperator="FLSV",
+              pStoreResult=TRUE))
 }

@@ -35,5 +35,10 @@ rankMatrix.FLMatrix<-function(object)
 				   					outColNames=list("OutputMtxRank"),viewName="z",localName="a")
 					)
 	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+
+	sqlstr <- (ensureQuerySize(pResult=sqlstr,
+            pInput=list(object),
+            pOperator="rankMatrix"))
+
 	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
 }

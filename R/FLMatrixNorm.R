@@ -52,5 +52,10 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 					LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"
                    )
 	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+
+	sqlstr <- ensureQuerySize(pResult=sqlstr,
+		            pInput=list(object,NormMethod),
+		            pOperator="FLMatrixNorm")
+
 	return(sqlQuery(connection,sqlstr)$"OutputNorm"[1])
 }

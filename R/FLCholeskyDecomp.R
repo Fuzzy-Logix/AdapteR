@@ -58,5 +58,10 @@ chol.FLMatrix<-function(object)
 	            select= tblfunqueryobj,
 	            dimnames=dimnames(object))
 
-	return(t(store(object=flm)))
+	vResult <- (ensureQuerySize(pResult=flm,
+            pInput=list(object),
+            pOperator="chol",
+            pStoreResult=TRUE))
+
+	return(t(vResult))
 }
