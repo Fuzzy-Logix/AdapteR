@@ -193,17 +193,25 @@ NULL
 #' resultFLVector <- flvectorDeep[1:2]
 #' @export
 
-`[.FLVector` <- function(object,pSet=1:length(object@dimnames[[1]]))
+`[.FLVector` <- function(object,pSet=1:length(object))
 {
-    newrownames <- sort(object@dimnames[[1]])[pSet]
-    if(!setequal(object@dimnames[[1]], newrownames))
-        object@select@whereconditions <-
-        c(object@select@whereconditions,
-          inCondition(paste0(object@select@db_name,".",
-                             object@select@table_name,".",
-                             getVariables(object)$obs_id_colname),
-                      newrownames))
-    object@dimnames[[1]] <- newrownames
+    if(any(pSet>length(object))) stop("index out of bounds")
+    if(ncol(object)==1)
+    {
+        newrownames <- object@dimnames[[1]][pSet]
+        if(!setequal(object@dimnames[[1]], newrownames))
+            object@select@whereconditions <-
+            c(object@select@whereconditions,
+              inCondition(paste0(object@select@db_name,".",
+                                 object@select@table_name,".vectorIndexColumn"),
+                          newrownames))
+        object@dimnames[[1]] <- newrownames
+    }
+    else if(nrow(object)==1)
+    {
+        newcolnames <- object@dimnames[[2]][pSet]
+        object@dimnames[[2]] <- newcolnames
+    }
     return(object)
 }
                                         #     pObj[pSet,]

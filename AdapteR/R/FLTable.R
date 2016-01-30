@@ -119,3 +119,37 @@ rownames.FLTable <- function(object) object@dimnames[[1]]
 
 
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
+
+setGeneric("wideToDeep", function(object) {
+    standardGeneric("wideToDeep")
+})
+setMethod("wideToDeep",
+          signature(object = "FLTable"),
+          function(object)
+          {
+            if(object@isDeep) return(list(table=object))
+            connection <- getConnection(object)
+            deeptablename <- gen_deep_table_name(object@select@table_name)
+            if(class(object@select)=="FLTableFunctionQuery")
+            object <- store(object)
+
+            sqlstr<-paste0("CALL FLWideToDeep('",object@select@table_name,"','",
+                getVariables(object)[["obs_id_colname"]],"','",
+                result_db_name,".",deeptablename,
+                "','obs_id_colname','var_id_colname','cell_val_colname',NULL,NULL,NULL",
+                object@select@whereconditions,",AnalysisID);")
+                
+            dataprepID <- as.vector(retobj<-sqlQuery(getConnection(object),sqlstr)[1,1])
+
+            table <- FLTable(connection,
+                           result_db_name,
+                           deeptablename,
+                           "obs_id_colname",
+                           "var_id_colname",
+                           "cell_val_colname"
+                          )
+            return(list(table=table,
+                        AnalysisID=dataprepID))
+
+          }
+        )
