@@ -25,6 +25,8 @@ t<-function(x, ...){
 #' resultFLMatrix <- t(flmatrix)
 #' @export
 t.FLMatrix<-function(object){
+    if(class(object@select)=="FLTableFunctionQuery")
+    object <- store(object)
 	return(FLMatrix( 
             connection = getConnection(object), 
             database = object@select@db_name, 
