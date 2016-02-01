@@ -280,14 +280,16 @@ cor.FLVector <- function(x,y=x)
 	if(is.FLVector(y))
 	{
 		if(length(x)!=length(y)) stop(" incompatible dimensions ")
-		if(nrow(y)==1) y <- as.FLMatrix(y,connection,
-							sparse=TRUE,rows=length(y),cols=1)
-		if(nrow(x)==1) x <- as.FLMatrix(x,connection,
-							sparse=TRUE,rows=length(x),cols=1)
-		if(is.FLMatrix(x) || is.FLMatrix(y))
-		return(cor(x,y))
-		else
-		{
+		if(nrow(y)==1) y <- as.FLVector(as.vector(y),connection)
+		if(nrow(x)==1) x <- as.FLVector(as.vector(x),connection)
+		#y <- as.FLMatrix(y,connection,
+							#sparse=TRUE,rows=length(y),cols=1)
+		# if(nrow(x)==1) x <- as.FLMatrix(x,connection,
+		# 					sparse=TRUE,rows=length(x),cols=1)
+		# if(is.FLMatrix(x) || is.FLMatrix(y))
+		# return(cor(x,y))
+		# else
+		# {
 			a <- genRandVarName()
 			b <- genRandVarName()
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
@@ -299,32 +301,33 @@ cor.FLVector <- function(x,y=x)
 				                  ",( ",constructSelect(y),") AS ",b,
 		            			constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"))))
 
-				tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
-                        variables=list(
-                            rowIdColumn="rowIdColumn",
-                            colIdColumn="colIdColumn",
-                            valueColumn="valueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+				# tblfunqueryobj <- new("FLTableFunctionQuery",
+    #                     odbc_connection = connection,
+    #                     variables=list(
+    #                         rowIdColumn="rowIdColumn",
+    #                         colIdColumn="colIdColumn",
+    #                         valueColumn="valueColumn"),
+    #                     whereconditions="",
+    #                     order = "",
+    #                     SQLquery=sqlstr)
 
-				##Phani-- names mapping needs to be implemented.
+				# ##Phani-- names mapping needs to be implemented.
+				# # flm <- new("FLMatrix",
+				# #             select= tblfunqueryobj,
+				# #             dimnames = list(
+    # #                           colnames(x),
+    # #                           colnames(y)))
 				# flm <- new("FLMatrix",
 				#             select= tblfunqueryobj,
 				#             dimnames = list(
-    #                           colnames(x),
-    #                           colnames(y)))
-				flm <- new("FLMatrix",
-				            select= tblfunqueryobj,
-				            dimnames = list(
-                              "1",
-                              "1"))
+    #                           "1",
+    #                           "1"))
 
-				return(ensureQuerySize(pResult=flm,
-								pInput=list(x,y),
-								pOperator="cor"))
-			}
+				# return(ensureQuerySize(pResult=flm,
+				# 				pInput=list(x,y),
+				# 				pOperator="cor"))
+			return(sqlQuery(connection,sqlstr)[["valueColumn"]])
+			# }
 		# nrowy <- sqlQuery(getConnection(y),
 		# 				  paste0("SELECT COUNT(a.",y@col_name,") 
 		# 				  		  FROM ",remoteTable(y)," a"))[1,1]

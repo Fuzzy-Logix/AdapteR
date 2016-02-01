@@ -370,19 +370,76 @@ as.sparseMatrix.FLMatrix <- function(object) {
 
 as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=TRUE,rows=length(object),cols=1)
 {
-  ### Phani-- not an in-database approach...
-  Rvector <- as.vector(object)
-  if (class(Rvector)=="data.frame")
+  if(rows==length(object) && cols==1)
   {
-    if(any(is.na(as.numeric(Rvector))))
+    if(class(object@select)=="FLTableFunctionQuery" || ncol(object)>1) object <- store(object)
+    select <- new(
+        "FLSelectFrom",
+        odbc_connection = connection, 
+        db_name = object@select@db_name, 
+        table_name = object@select@table_name, 
+        variables=list(
+            rowIdColumn=getVariables(object)[["obs_id_colname"]],
+            colIdColumn="1",
+            valueColumn=object@dimnames[[2]]),
+        whereconditions=object@select@whereconditions,
+        order = "")
+    flm <- new("FLMatrix",
+              select=select,
+              dimnames=list(object@dimnames[[1]],
+                            "1"))
+    return(flm)
+  }
+  MID <- getMaxMatrixId(connection)
+  k <- 1
+  sqlstr <- ""
+  colnames <- renameDuplicates(colnames(object))
+  batchStore <- function(sqlstr)
+  {
+    sqlstr <- sqlstr[sqlstr!=""]
+    sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
+    vSqlStr <- paste0(" INSERT INTO ",
+                    getRemoteTableName(result_db_name,
+                                      result_matrix_table),
+                    "\n",
+                   gsub("'%insertIDhere%'",MID,sqlstr),
+                    "\n")
+    sqlSendUpdate(connection,
+                  vSqlStr)
+  }
+  for (i in 1:cols)
+  for (j in 1:rows)
+  {
+    a <- genRandVarName()
+    if(ncol(object)>1)
     {
-      stop("only numeric entries allowed in FLMatrix")
+      if(k>ncol(object)) k <- 1 
+      sqlstr0 <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+                              j," AS rowIdColumn,",
+                              i," AS colIdColumn,",a,".",
+                              colnames[k]," AS valueColumn 
+                       FROM(",constructSelect(object),") AS ",a)
     }
     else
-    return(as.FLMatrix.vector(as.numeric(Rvector),connection,sparse=TRUE,rows=rows,cols=cols))
+    {
+      if(k>nrow(object)) k <- 1 
+      sqlstr0 <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+                              j," AS rowIdColumn,",
+                              i," AS colIdColumn,",a,".",
+                              "vectorValueColumn AS valueColumn 
+                       FROM(",constructSelect(object),") AS ",a,"  
+                       WHERE ",a,".vectorIndexColumn in ",rownames(object)[k])
+    }
+    sqlstr <- c(sqlstr,sqlstr0)
+    if(checkMaxQuerySize(sqlstr) && (!(i==cols && j==rows)))
+    {
+      batchStore(sqlstr)
+      sqlstr <- ""
+    }
+    k <- k+1
   }
-  else
-  return(as.FLMatrix.vector(Rvector,connection,sparse=TRUE,rows=rows,cols=cols))
+  batchStore(sqlstr)
+  sqlstr <- ""
 
   # sqlstr <- paste0("INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
   #                 " SELECT ",max_matrix_id_value,
@@ -391,7 +448,16 @@ as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=
   #                            ,a.",object@dimnames[[2]],
   #                 " FROM ",object@db_name,".",object@table_name," AS a",
   #                 constructWhere(constraintsSQL(object)))
-
+  return(FLMatrix(
+            connection = connection,
+            database = result_db_name, 
+            matrix_table = result_matrix_table, 
+            matrix_id_value = MID,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "rowIdColumn", 
+            col_id_colname = "colIdColumn", 
+            cell_val_colname = "valueColumn",
+            ))
 }
 
 as.FLMatrix.vector <- function(object,connection,sparse=TRUE,rows=length(object),cols=1)
@@ -490,29 +556,51 @@ as.FLVector.vector <- function(object,connection)
 as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
-  a <- genRandVarName()
+  VID <- getMaxVectorId(connection)
+  k <- 1
+  sqlstr <- ""
+  batchStore <- function(sqlstr)
+  {
+    sqlstr <- sqlstr[sqlstr!=""]
+    sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
+    vSqlStr <- paste0(" INSERT INTO ",
+                    getRemoteTableName(result_db_name,
+                                      result_vector_table),
+                    "\n",
+                   gsub("'%insertIDhere%'",VID,sqlstr),
+                    "\n")
+    sqlSendUpdate(connection,
+                  vSqlStr)
+  }
+  colnames <- colnames(object)
+  for(i in colnames)
+  {
+    a <- genRandVarName()
+    sqlstr0 <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+                              k:(k+length(rownames(object))-1)," AS vectorIndexColumn,",
+                              a,".valueColumn AS vectorValueColumn 
+                       FROM(",constructSelect(object),") AS ",a,
+                       " WHERE ",a,".rowIdColumn in ",rownames(object),
+                       " AND ",a,".colIdColumn in ",i)
+    sqlstr <- c(sqlstr,sqlstr0)
+    if(checkMaxQuerySize(sqlstr) && i!=colnames[length(colnames)])
+    {
+      batchStore(sqlstr)
+      sqlstr <- ""
+    }
+    k <- k+length(rownames(object))
+  }
 
-  sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,
-                    ROW_NUMBER() OVER (ORDER BY ",a,".colIdColumn,",
-                    a,".rowIdColumn) AS vectorIndexColumn,",
-                    a,".valueColumn AS vectorValueColumn 
-                    FROM (",constructSelect(object),") AS ",a)
+    batchStore(sqlstr)
+    sqlstr <- ""
+    table <- FLTable(getConnection(object),
+                   result_db_name,
+                   result_vector_table,
+                   "vectorIndexColumn",
+                   whereconditions=paste0(result_db_name,".",result_vector_table,".vectorIdColumn = ",VID)
+                  )
 
-  tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
-                        variables = list(
-                      obs_id_colname = "vectorIndexColumn",
-                      cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-
-  flv <- new("FLVector",
-        select = tblfunqueryobj,
-        dimnames = list(1:length(object),
-                "vectorValueColumn"),
-        isDeep = FALSE)
-  return(flv)
+    return(table[,"vectorValueColumn"])
 }
 
 	

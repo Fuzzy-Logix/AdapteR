@@ -1048,3 +1048,40 @@ test_that("check FLVector subtraction",
   flvR <- as.vector(flv)
   expect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)
 })
+
+## Testing FLCorrel
+test_that("check FLCorrel result",
+{
+  fltDeep <- FLTable(connection,"FL_DEMO","tblAbaloneDeep",
+                "ObsID","VarID","Num_Val",
+                whereconditions="FL_DEMO.tblAbaloneDeep.ObsID < 21")
+  RtDeep <- as.data.frame(fltDeep)
+  fltWide <- FLTable(connection,"FL_DEMO","tblAbaloneWide",
+                "ObsID",whereconditions="FL_DEMO.tblAbaloneWide.ObsID < 21")
+  RtWide <- as.data.frame(fltWide)
+  vRow <- initF.FLVector(20,TRUE)
+  flvRow <- vRow$FL
+  RvRow <- vRow$R
+  RvCol <- rnorm(20)
+  flvCol <- as.FLVector(RvCol,connection)
+  m <- initF.FLMatrix(20)
+  flm <- m$FL
+  Rm <- m$R
+  expect_equal(cor(flm,flm),cor(Rm,Rm),check.attributes=FALSE)
+  expect_equal(cor(flvRow,flvRow),cor(RvRow,RvRow),check.attributes=FALSE)
+  expect_equal(cor(flvCol,flvCol),cor(RvCol,RvCol),check.attributes=FALSE)
+  expect_equal(cor(fltDeep,fltDeep),cor(RtDeep,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flm,flvRow),cor(Rm,RvRow),check.attributes=FALSE)
+  expect_equal(cor(flm,flvCol),cor(Rm,RvCol),check.attributes=FALSE)
+  expect_equal(cor(flvCol,flvRow),cor(RvCol,RvRow),check.attributes=FALSE)
+  expect_equal(cor(flm,fltDeep),cor(Rm,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flvRow,fltDeep),cor(RvRow,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flvCol,fltDeep),cor(RvCol,RtDeep),check.attributes=FALSE)
+  ## ALL cases with wideTables not working as "wideToDeep is NotWorking"
+  expect_equal(cor(fltDeep,fltWide),cor(RtDeep,RtWide),check.attributes=FALSE)
+  expect_equal(cor(fltWide,fltWide),cor(RtWide,RtWide),check.attributes=FALSE)
+  expect_equal(cor(fltWide,fltDeep),cor(RtWide,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flm,fltWide),cor(Rm,RtWide),check.attributes=FALSE)
+  expect_equal(cor(flvRow,fltWide),cor(RvRow,RtWide),check.attributes=FALSE)
+  expect_equal(cor(flvCol,fltWide),cor(RvCol,RtWide),check.attributes=FALSE)
+  })
