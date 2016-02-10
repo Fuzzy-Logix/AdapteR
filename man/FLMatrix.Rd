@@ -4,7 +4,7 @@
 \alias{FLMatrix}
 \title{Constructor function for FLMatrix.}
 \usage{
-FLMatrix(connection, database = result_db_name, matrix_table,
+FLMatrix(connection, database = getOption("ResultDatabaseFL"), matrix_table,
   matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
   cell_val_colname = "valueColumn", nrow = 0, ncol = 0, dimnames = NULL,

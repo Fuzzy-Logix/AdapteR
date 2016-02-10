@@ -89,7 +89,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 
 ## 	else if (length(objectVec) > 1)
 ## 	{
-## 	    sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+## 	    sqlstr0<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 		            " SELECT ",max_matrix_id_value,",
 ## 				              a.",getVariables(object)$rowIdColumn,",
 ## 				              a.",getVariables(object)$colIdColumn,",
@@ -107,7 +107,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 			{
 ## 				object <- objectVec[[i]]
 
-## 				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+## 				sqlstr0<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 					            " SELECT ",max_matrix_id_value,",
 ## 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 ## 							              a.",getVariables(object)$colIdColumn,",
@@ -126,7 +126,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 
 ## 				if(object@isDeep)
 ## 				{
-## 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+## 					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 						            " SELECT ",max_matrix_id_value,",
 ## 								             ",rowCount+1,",
 ## 								             a.",object@var_id_name,",
@@ -141,7 +141,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 		            {
 ## 		            	for(k in 1:(ncol%/%length(object)))
 ## 		            	{
-## 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+## 		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 								            " SELECT ",max_matrix_id_value,",
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -156,7 +156,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 		        }
 ## 		        else if(!object@isDeep)
 ## 		        {
-## 					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+## 					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 						            " SELECT ",max_matrix_id_value,",
 ## 								             ",rowCount+1,",
 ## 								             a.",object@obs_id_colname,",
@@ -170,7 +170,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 		            {
 ## 		            	for(k in 1:(ncol%/%length(object)))
 ## 		            	{
-## 		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+## 		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 								            " SELECT ",max_matrix_id_value,",
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -196,7 +196,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 		            if(j > length(object))
 ## 		            j <- 1
 
-## 		            sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+## 		            sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 ## 								    " SELECT ",max_matrix_id_value,",
 ## 										     ",rowCount+1,","
 ## 										      ,k,","
@@ -217,7 +217,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				for (j in (rowCount+1):(rowCount+nrow(object)))
 ## 				{
 				 	
-## 			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+## 			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 ## 			 	 		                       " SELECT ",max_matrix_id_value,",",
 ## 			 	 		                                  j,",",
 ## 			 	 		                                  i,",",
@@ -234,8 +234,8 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 
 ## 		return(FLMatrix( 
 ## 			       connection = connection, 
-## 			       database = result_db_name, 
-## 			       matrix_table = result_matrix_table, 
+## 			       database = getOption("ResultDatabaseFL"), 
+## 			       matrix_table = getOption("ResultMatrixTableFL"), 
 ## 				   matrix_id_value = max_matrix_id_value-1,
 ## 				   matrix_id_colname = "MATRIX_ID", 
 ## 				   row_id_colname = "rowIdColumn", 
@@ -293,7 +293,7 @@ rbind.FLVector <- function(object,...)
 	{
 		if(object@isDeep)
 		{
-			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+			sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
 						             a.",object@var_id_name,",
@@ -308,7 +308,7 @@ rbind.FLVector <- function(object,...)
             {
             	for(k in 1:(ncol%/%length(object)))
             	{
-            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -323,7 +323,7 @@ rbind.FLVector <- function(object,...)
         }
         else if(!object@isDeep)
         {
-			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+			sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
 						             a.",object@obs_id_colname,",
@@ -337,7 +337,7 @@ rbind.FLVector <- function(object,...)
             {
             	for(k in 1:(ncol%/%length(object)))
             	{
-            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -354,8 +354,8 @@ rbind.FLVector <- function(object,...)
 
 		return(FLMatrix( 
 			       connection = connection, 
-			       database = result_db_name, 
-			       matrix_table = result_matrix_table, 
+			       database = getOption("ResultDatabaseFL"), 
+			       matrix_table = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 
@@ -370,7 +370,7 @@ rbind.FLVector <- function(object,...)
 	{
 	    if(object@isDeep)
 		{
-			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+			sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
 						             a.",object@var_id_name,",
@@ -385,7 +385,7 @@ rbind.FLVector <- function(object,...)
             {
             	for(k in 1:(ncol%/%length(object)))
             	{
-            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -400,7 +400,7 @@ rbind.FLVector <- function(object,...)
         }
         else if(!object@isDeep)
         {
-			sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+			sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 				            " SELECT ",max_matrix_id_value,",
 						             ",rowCount+1,",
 						             a.",object@obs_id_colname,",
@@ -414,7 +414,7 @@ rbind.FLVector <- function(object,...)
             {
             	for(k in 1:(ncol%/%length(object)))
             	{
-            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -439,7 +439,7 @@ rbind.FLVector <- function(object,...)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
-				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				sqlstr0<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 					            " SELECT ",max_matrix_id_value,",
 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 							              a.",getVariables(object)$colIdColumn,",
@@ -458,7 +458,7 @@ rbind.FLVector <- function(object,...)
 
 				if(object@isDeep)
 				{
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@var_id_name,",
@@ -473,7 +473,7 @@ rbind.FLVector <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -488,7 +488,7 @@ rbind.FLVector <- function(object,...)
 		        }
 		        else if(!object@isDeep)
 		        {
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@obs_id_colname,",
@@ -502,7 +502,7 @@ rbind.FLVector <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -528,7 +528,7 @@ rbind.FLVector <- function(object,...)
 		            if(j > length(object))
 		            j <- 1
 
-		            sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								    " SELECT ",max_matrix_id_value,",
 										     ",rowCount+1,","
 										      ,k,","
@@ -549,7 +549,7 @@ rbind.FLVector <- function(object,...)
 				for (j in (rowCount+1):(rowCount+nrow(object)))
 				{
 				 	
-			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -566,8 +566,8 @@ rbind.FLVector <- function(object,...)
 
 		return(FLMatrix( 
 			       connection = connection, 
-			       database = result_db_name, 
-			       matrix_table = result_matrix_table, 
+			       database = getOption("ResultDatabaseFL"), 
+			       matrix_table = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 
@@ -629,7 +629,7 @@ rbind.matrix <- function(object,...)
 		for (j in (rowCount+1):(rowCount+nrow(object)))
 		{
 		 	
-	 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+	 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 	 	 		                       " SELECT ",max_matrix_id_value,",",
 	 	 		                                  j,",",
 	 	 		                                  i,",",
@@ -645,7 +645,7 @@ rbind.matrix <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				sqlstr0<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 					            " SELECT ",max_matrix_id_value,",
 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 							              a.",getVariables(object)$colIdColumn,",
@@ -664,7 +664,7 @@ rbind.matrix <- function(object,...)
 
 				if(object@isDeep)
 				{
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@var_id_name,",
@@ -679,7 +679,7 @@ rbind.matrix <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -694,7 +694,7 @@ rbind.matrix <- function(object,...)
 		        }
 		        else if(!object@isDeep)
 		        {
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@obs_id_colname,",
@@ -708,7 +708,7 @@ rbind.matrix <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -734,7 +734,7 @@ rbind.matrix <- function(object,...)
 		            if(j > length(object))
 		            j <- 1
 
-		            sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								    " SELECT ",max_matrix_id_value,",
 										     ",rowCount+1,","
 										      ,k,","
@@ -755,7 +755,7 @@ rbind.matrix <- function(object,...)
 				for (j in (rowCount+1):(rowCount+nrow(object)))
 				{
 				 	
-			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -772,8 +772,8 @@ rbind.matrix <- function(object,...)
 
 		return(FLMatrix( 
 			       connection = connection, 
-			       database = result_db_name, 
-			       matrix_table = result_matrix_table, 
+			       database = getOption("ResultDatabaseFL"), 
+			       matrix_table = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 
@@ -849,7 +849,7 @@ rbind.numeric <- function(object,...)
             if(j > length(object))
             j <- 1
 
-            sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+            sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						    " SELECT ",max_matrix_id_value,",
 								     ",rowCount+1,","
 								      ,k,","
@@ -871,7 +871,7 @@ rbind.numeric <- function(object,...)
 				{
 					stop(" number of columns of matrix arguments must match ")
 				}
-				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				sqlstr0<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 					            " SELECT ",max_matrix_id_value,",
 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 							              a.",getVariables(object)$colIdColumn,",
@@ -890,7 +890,7 @@ rbind.numeric <- function(object,...)
 
 				if(object@isDeep)
 				{
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@var_id_name,",
@@ -905,7 +905,7 @@ rbind.numeric <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -920,7 +920,7 @@ rbind.numeric <- function(object,...)
 		        }
 		        else if(!object@isDeep)
 		        {
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@obs_id_colname,",
@@ -934,7 +934,7 @@ rbind.numeric <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -960,7 +960,7 @@ rbind.numeric <- function(object,...)
 		            if(j > length(object))
 		            j <- 1
 
-		            sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								    " SELECT ",max_matrix_id_value,",
 										     ",rowCount+1,","
 										      ,k,","
@@ -981,7 +981,7 @@ rbind.numeric <- function(object,...)
 				for (j in (rowCount+1):(rowCount+nrow(object)))
 				{
 				 	
-			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -998,8 +998,8 @@ rbind.numeric <- function(object,...)
 
 		return(FLMatrix( 
 			       connection = connection, 
-			       database = result_db_name, 
-			       matrix_table = result_matrix_table, 
+			       database = getOption("ResultDatabaseFL"), 
+			       matrix_table = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 
@@ -1061,7 +1061,7 @@ rbind.data.frame <- function(object,...)
 		for (j in (rowCount+1):(rowCount+nrow(object)))
 		{
 		 	
-	 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+	 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 	 	 		                       " SELECT ",max_matrix_id_value,",",
 	 	 		                                  j,",",
 	 	 		                                  i,",",
@@ -1077,7 +1077,7 @@ rbind.data.frame <- function(object,...)
 			{
 				object <- objectVec[[i]]
 
-				sqlstr0<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table,
+				sqlstr0<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 					            " SELECT ",max_matrix_id_value,",
 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 							              a.",getVariables(object)$colIdColumn,",
@@ -1096,7 +1096,7 @@ rbind.data.frame <- function(object,...)
 
 				if(object@isDeep)
 				{
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@var_id_name,",
@@ -1111,7 +1111,7 @@ rbind.data.frame <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
@@ -1126,7 +1126,7 @@ rbind.data.frame <- function(object,...)
 		        }
 		        else if(!object@isDeep)
 		        {
-					sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+					sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 						            " SELECT ",max_matrix_id_value,",
 								             ",rowCount+1,",
 								             a.",object@obs_id_colname,",
@@ -1140,7 +1140,7 @@ rbind.data.frame <- function(object,...)
 		            {
 		            	for(k in 1:(ncol%/%length(object)))
 		            	{
-		            		sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            		sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								            " SELECT ",max_matrix_id_value,",
 										             ",rowCount+1,",
 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
@@ -1166,7 +1166,7 @@ rbind.data.frame <- function(object,...)
 		            if(j > length(object))
 		            j <- 1
 
-		            sqlstr0<-paste0(" INSERT INTO ",result_db_name,".",result_matrix_table,
+		            sqlstr0<-paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
 								    " SELECT ",max_matrix_id_value,",
 										     ",rowCount+1,","
 										      ,k,","
@@ -1187,7 +1187,7 @@ rbind.data.frame <- function(object,...)
 				for (j in (rowCount+1):(rowCount+nrow(object)))
 				{
 				 	
-			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",result_matrix_table,
+			 	 	sqlSendUpdate(connection,paste0(" INSERT INTO ",getOption("ResultMatrixTableFL"),
 			 	 		                       " SELECT ",max_matrix_id_value,",",
 			 	 		                                  j,",",
 			 	 		                                  i,",",
@@ -1204,8 +1204,8 @@ rbind.data.frame <- function(object,...)
 
 		return(FLMatrix( 
 			       connection = connection, 
-			       database = result_db_name, 
-			       matrix_table = result_matrix_table, 
+			       database = getOption("ResultDatabaseFL"), 
+			       matrix_table = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 

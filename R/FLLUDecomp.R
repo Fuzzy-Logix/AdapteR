@@ -90,8 +90,8 @@ lu.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblLUDecompResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
-    				 viewSelectMatrix(object, "a","z"),
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+                     viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLLUDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutputValL","OutputValU","OutputPermut"),
@@ -110,16 +110,16 @@ lu.FLMatrix<-function(object)
 	sqlstrLU <-paste0(" SELECT ",MID1," AS OutputMatrixID
 					          ,OutputRowNum
 					          ,OutputColNum
-					          ,CAST(OutputValL AS NUMBER) AS OutputVal 
-					  	FROM ",remoteTable(result_db_name,tempResultTable),
+					          ,CAST(OutputValL AS NUMBER) 
+					  	FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
 					 	" WHERE OutputRowNum > OutputColNum 
 				   		AND OutputValL IS NOT NULL ",
 				   		" UNION ALL ",
 				   		" SELECT ",MID1," AS OutputMatrixID
 					          ,OutputRowNum
 					          ,OutputColNum
-					          ,CAST(OutputValU AS NUMBER) AS OutputVal 
-					  	FROM ",remoteTable(result_db_name,tempResultTable),
+					          ,CAST(OutputValU AS NUMBER) 
+					  	FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
 					 	" WHERE OutputRowNum <= OutputColNum 
 				   		AND OutputValU IS NOT NULL;")
 
@@ -142,47 +142,47 @@ lu.FLMatrix<-function(object)
 	# calculating Permutation FLMatrix
     data_perm <- FLMatrix( 
 			       connection = connection, 
-			       database = result_db_name, 
+			       database = getOption("ResultDatabaseFL"), 
 			       matrix_table = tempResultTable, 
 				   matrix_id_value = "",
 				   matrix_id_colname = "", 
 				   row_id_colname = "OutputRowNum", 
 				   col_id_colname = "OutputColNum", 
 				   cell_val_colname = "OutputPermut",
-				   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputPermut IS NOT NULL "))
+				   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputPermut IS NOT NULL "))
 
 
 	# calculating l FLmatrix
     l<-FLMatrix( 
 	       connection = connection, 
-	       database = result_db_name, 
+	       database = getOption("ResultDatabaseFL"), 
 	       matrix_table = tempResultTable, 
 		   matrix_id_value = "",
 		   matrix_id_colname = "", 
 		   row_id_colname = "OutputRowNum", 
 		   col_id_colname = "OutputColNum", 
 		   cell_val_colname = "OutputValL",
-		   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputValL IS NOT NULL "))
+		   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputValL IS NOT NULL "))
 
 
 	# calculating U FLmatrix
     u<-FLMatrix( 
 	       connection = connection, 
-	       database = result_db_name, 
+	       database = getOption("ResultDatabaseFL"), 
 	       matrix_table = tempResultTable, 
 		   matrix_id_value = "",
 		   matrix_id_colname = "", 
 		   row_id_colname = "OutputRowNum", 
 		   col_id_colname = "OutputColNum", 
 		   cell_val_colname = "OutputValU",
-		   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputValU IS NOT NULL "))
+		   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputValU IS NOT NULL "))
 
 	# calculating perm FLVector
 	table <- FLTable(connection,
-		             result_db_name,
+		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputColNum",
-		             whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputPermut = 1 ")
+		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputPermut = 1 ")
 		             )
 
 	perm <- table[,"OutputRowNum"]
@@ -226,7 +226,7 @@ lu.FLMatrix<-function(object)
 	)
 	class(a)<-"FLLU"
 
-	#sqlSendUpdate(connection,paste0(" DROP TABLE ",getRemoteTableName(result_db_name,tempResultTable)))
+	#sqlSendUpdate(connection,paste0(" DROP TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)))
 	return(a)
 }
 

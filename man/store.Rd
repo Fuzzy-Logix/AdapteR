@@ -5,7 +5,7 @@
 \title{stores a matrix in a table.
 TODO:  define when data is stored (automatic caching, user requests...)}
 \usage{
-store(object)
+store(object, returnType, connection, ...)
 }
 \arguments{
 \item{object}{}

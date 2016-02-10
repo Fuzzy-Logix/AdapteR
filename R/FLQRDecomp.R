@@ -49,8 +49,8 @@ qr.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
-    				 viewSelectMatrix(object, "a","z"),
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+                     viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLQRDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutputValQ","OutputValR"),
@@ -70,14 +70,14 @@ qr.FLMatrix<-function(object)
 					         ",OutputRowNum
 					          ,OutputColNum
 					          ,OutputValQ 
-					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
+					  FROM ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),
 					 " WHERE OutputRowNum > OutputColNum ",
 					 " UNION ALL ",
 					 " SELECT ",MID1,
 					         ",OutputRowNum
 					          ,OutputColNum
 					          ,OutputValR 
-					  FROM ",getRemoteTableName(result_db_name,tempResultTable),
+					  FROM ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),
 					 " WHERE OutputRowNum <= OutputColNum;")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -98,11 +98,11 @@ qr.FLMatrix<-function(object)
 
     #calculating qraux
 	table <- FLTable(connection,
-		             result_db_name,
+		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputRowNum",
-		             whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputRowNum = ",
-		             	getRemoteTableName(result_db_name,tempResultTable),".OutputColNum ")
+		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
+		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum ")
 		             )
 
 	qraux <- table[,"OutputValQ"]
@@ -117,7 +117,7 @@ qr.FLMatrix<-function(object)
 					   qraux = qraux,
 					   pivot= 1:ncol(object))
 
-	#sqlSendUpdate(connection,paste0(" DROP TABLE ",getRemoteTableName(result_db_name,tempResultTable)))
+	#sqlSendUpdate(connection,paste0(" DROP TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)))
 	return(resultList)
 }
 

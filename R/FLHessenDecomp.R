@@ -41,8 +41,8 @@ FLHessen.FLMatrix<-function(object)
 	tempResultTable <- gen_unique_table_name("tblHessenResult")
 	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
-    				 viewSelectMatrix(object, "a","z"),
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+                     viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutputPVal","OutputHVal"),
@@ -57,26 +57,26 @@ FLHessen.FLMatrix<-function(object)
 
 	PMatrix <- FLMatrix(
 				       connection = connection, 
-				       database = result_db_name, 
+				       database = getOption("ResultDatabaseFL"), 
 				       matrix_table = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
 					   row_id_colname = "OutputRowNum", 
 					   col_id_colname = "OutputColNum", 
 					   cell_val_colname = "OutputPVal",
-					   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputPVal IS NOT NULL ")
+					   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputPVal IS NOT NULL ")
 					   )
 
 	HMatrix <- FLMatrix(
 				       connection = connection, 
-				       database = result_db_name, 
+				       database = getOption("ResultDatabaseFL"), 
 				       matrix_table = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
 					   row_id_colname = "OutputRowNum", 
 					   col_id_colname = "OutputColNum", 
 					   cell_val_colname = "OutputHVal",
-					   whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputHVal IS NOT NULL ")
+					   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputHVal IS NOT NULL ")
 		             )
 
 		result<-list(P = PMatrix,
