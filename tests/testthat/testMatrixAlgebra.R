@@ -24,6 +24,7 @@
 ## if you want to unload the package after making changes:
 detach("package:AdapteR", unload = TRUE)
 
+library(RJDBC) 
 ## rebuild documentation and load as source package
 setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR")
 devtools::document()
@@ -39,7 +40,6 @@ devtools::load_all(".")
 ## library(RODBC) 
 ## connection <- odbcConnect(“Gandalf”)
 
-library(RJDBC) 
 
  ## add jdbc driver and security jars to classpath
 .jaddClassPath("/Users/gregor/fuzzylogix/terajdbc4.jar")
@@ -69,6 +69,10 @@ options(debugSQL=TRUE)
 ## for now, some parts need it
 FLStartSession(connection, persistent="test")
 
+
+require(testthat)
+
+
 ## A remote deep matrix is easily referenced by specifying 
 eqnRtn <- FLMatrix(
     connection,
@@ -80,51 +84,83 @@ eqnRtn <- FLMatrix(
     col_id_colname    = "TickerSymbol",
     cell_val_colname  = "EquityReturn")
 
-## Subsetting is easy
-a <- eqnRtn[2001:2010,"MSFT"]
-b <- eqnRtn[2001:2010,"ORCL"]
-a2 <- eqnRtn[2011:2020,"MSFT"]
-b2 <- eqnRtn[2011:2020,"ORCL"]
+test_that("Named matrix rows and columns",{
 
-cat(constructSelect(a,"a"))
+    ## Subsetting is easy
+    a <- eqnRtn[2001:2010,"MSFT"]
+    b <- eqnRtn[2001:2010,"ORCL"]
+    a2 <- eqnRtn[2011:2020,"MSFT"]
+    b2 <- eqnRtn[2011:2020,"ORCL"]
+    
+    cat(constructSelect(a,"a"))
 
-## print the Matrix
-a
 
 ##############################
-## bind for matrices with character dimnames
-## note: no data movement.
-ab <- cbind(a,b)
+    ## bind for matrices with character dimnames
+    ## note: no data movement.
+    ab <- cbind(a,b)
+    
+    cat(constructSelect(ab))
 
-cat(constructSelect(ab))
+    ab
 
-ab
+    ## note: currently only works for unique row and col ids (dimnames)
+    dimnames(ab)
 
-## note: currently only works for unique row and col ids (dimnames)
-dimnames(ab)
 
-# fable0906 alala
+    expect_equal(
+        dim(ab),
+        c(nrow(a), ncol(a)+ncol(b)))
 
-require(testthat)
+    ## cbind of 2 rbinds:
+    a2b2 <- cbind(a2,b2)
+    AB <- rbind(ab, a2b2)
+    dimnames(AB)
+    cat(constructSelect(AB))
 
-expect_equal(
-    dim(ab),
-    c(nrow(a), ncol(a)+ncol(b)))
+    expect_equal(dim(AB),
+                 c(nrow(a) + nrow(a2),
+                   ncol(a) + ncol(b)))
+    
+    AB
+    ##ABs <- store(AB)
+})
 
-## cbind of 2 rbinds:
-a2b2 <- cbind(a2,b2)
-AB <- rbind(ab, a2b2)
-dimnames(AB)
+test_that("Named matrix rows and columns",{
+    
+    cat(constructSelect(a,"a"))
 
-cat(constructSelect(AB))
 
-expect_equal(dim(AB),
-             c(nrow(a) + nrow(a2),
-               ncol(a) + ncol(b)))
+##############################
+    ## bind for matrices with character dimnames
+    ## note: no data movement.
+    ab <- cbind(a,b)
+    
+    cat(constructSelect(ab))
 
-AB
+    ab
 
-ABs <- store(AB)
+    ## note: currently only works for unique row and col ids (dimnames)
+    dimnames(ab)
+
+
+    expect_equal(
+        dim(ab),
+        c(nrow(a), ncol(a)+ncol(b)))
+
+    ## cbind of 2 rbinds:
+    a2b2 <- cbind(a2,b2)
+    AB <- rbind(ab, a2b2)
+    dimnames(AB)
+    cat(constructSelect(AB))
+
+    expect_equal(dim(AB),
+                 c(nrow(a) + nrow(a2),
+                   ncol(a) + ncol(b)))
+    
+    AB
+    ##ABs <- store(AB)
+})
 
 
 ## dimnames mapping
@@ -136,15 +172,20 @@ ABs <- store(AB)
 # test_that("Casting base R matrix <---> in-database Matrices",{
     ## Creating simple base R matrix
 
+
 matrix1 <- matrix(1:25,5)
-    matrix2 <- matrix(1:25,5)
-        rownames(matrix1) <- c("a","b","c","d","e")
-        colnames(matrix1) <- c("p","q","r","s","t")
-        rownames(matrix2) <- c("A","B","C","D","E")
-        colnames(matrix2) <- c("P","Q","R","S","T")
+matrix2 <- matrix(1:25,5)
+rownames(matrix1) <- c("a","b","c","d","e")
+colnames(matrix1) <- c("p","q","r","s","t")
+rownames(matrix2) <- c("A","B","C","D","E")
+colnames(matrix2) <- c("P","Q","R","S","T")
 
 ##  FLMatrices from R matrices
-    m1 <- as.FLMatrix(matrix1, connection)
+m1 <- as.FLMatrix(matrix1, connection)
+
+m1
+
+
     m2 <- as.FLMatrix(matrix2, connection)
     expect_equal(dim(m1),c(5,5))
     expect_equal(dim(m2),c(5,5))

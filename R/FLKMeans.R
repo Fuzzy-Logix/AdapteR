@@ -6,7 +6,7 @@ NULL
 #'
 #' @slot no_of_centers A numeric vector containing the number of clusters, say k
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot odbc_connection ODBC connectivity for R
+#' @slot connection ODBC connectivity for R
 #' @slot table FLTable object given as input on which analysis is performed
 #' @slot resultsfetched A logical vector describing what components are fetched
 #' @slot results A list of all fetched components
@@ -33,7 +33,7 @@ setClass(
 		no_of_centers="numeric",
 		AnalysisID="character",
 		wideToDeepAnalysisId="character",
-		odbc_connection="RODBC",
+		connection="RODBC",
 		table="FLTable",
 		resultsfetched="vector",
 		results ="list",
@@ -106,7 +106,7 @@ kmeans.FLTable<-function(table,
 	classList <- list(table = "FLTable")
 	validate_args(argList, typeList, classList)
 
-	database<-table@db_name
+	database<-table@database
 
 	class_spec <- list_to_class_spec(class_spec)
 	
@@ -126,7 +126,7 @@ kmeans.FLTable<-function(table,
 					  		 AnalysisID);")
 		print(sqlstr)
 		
-		ret <- sqlQuery(table@odbc_connection,sqlstr)
+		ret <- sqlQuery(table@connection,sqlstr)
 		print(ret)
 		wideToDeepAnalysisId <- as.character(ret[1,1])
 	}
@@ -159,7 +159,7 @@ kmeans.FLTable<-function(table,
 			 					   AnalysisID )")
 	
 	print(sqlstr)
-	retobj <- sqlQuery(table@odbc_connection,sqlstr)
+	retobj <- sqlQuery(table@connection,sqlstr)
 
 	print(retobj)
 	AnalysisID <- as.character(retobj[1,1])
@@ -168,7 +168,7 @@ kmeans.FLTable<-function(table,
 		no_of_centers=centers,
 		AnalysisID=AnalysisID,
 		wideToDeepAnalysisId=wideToDeepAnalysisId,
-		odbc_connection=table@odbc_connection,
+		connection=table@connection,
 		table=table,
 		resultsfetched=c(cluster=FALSE,
 						centers=FALSE,
@@ -299,7 +299,7 @@ centers.FLKMeans<-function(object)
 	{
 		connection=getConnection(object)
 		AnalysisID=object@AnalysisID
-		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," 
+		sqlstr<-paste0("INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL"))," 
 						SELECT ",max_matrix_id_value,
 						       ",CAST(SUBSTRING(clusterid FROM POSITION('-' IN clusterid )+1 ) AS INTEGER)
 						        ,VarID
@@ -320,9 +320,9 @@ centers.FLKMeans<-function(object)
 		max_matrix_id_value <<- max_matrix_id_value + 1
 
 		centersmatrix <- new("FLMatrix", 
-			       odbc_connection = connection, 
-			       db_name = getOption("ResultDatabaseFL"), 
-			       matrix_table = getOption("ResultMatrixTableFL"), 
+			       connection = connection, 
+			       database = getOption("ResultDatabaseFL"), 
+			       table_name = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 

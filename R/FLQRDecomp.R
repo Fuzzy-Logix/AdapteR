@@ -81,7 +81,7 @@ qr.FLMatrix<-function(object)
 					 " WHERE OutputRowNum <= OutputColNum;")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",

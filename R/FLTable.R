@@ -43,11 +43,13 @@ FLTable <- function(connection,
 	## }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-        cols <- sort(sqlQuery(connection,
-                         paste0("SELECT DISTINCT(",
-                                var_id_colnames,") as VarID
-						  FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID)
+        ##browser()
+        ##R <- sqlQuery(connection,paste0("HELP table ",remoteTable(database,table)))
+		##cols <- R[["Column Name"]]
+        R <- sqlQuery(connection,paste0("select top 1 * from ",remoteTable(database,table)))
+        cols <- names(R)
+        ##R <- sqlQuery(connection,paste0("HELP table ",remoteTable(database,table)))
+		##cols <- R[["Column Name"]]
         rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
@@ -58,8 +60,8 @@ FLTable <- function(connection,
 
         select <- new(
         "FLSelectFrom",
-        odbc_connection = connection, 
-        db_name = database, 
+        connection = connection, 
+        database = database, 
         table_name = table, 
         variables = list(
                 obs_id_colname = obs_id_colname,
@@ -75,11 +77,11 @@ FLTable <- function(connection,
 	}
 	else
 	{
-		cols <- sqlQuery(connection,
-                         paste0("SELECT columnname 
-						  FROM dbc.columns
-						  WHERE tablename='",table,"' 
-						  AND databasename='",database,"';"))$ColumnName
+        ##browser()
+        ##R <- sqlQuery(connection,paste0("HELP table ",remoteTable(database,table)))
+		##cols <- R[["Column Name"]]
+        R <- sqlQuery(connection,paste0("select top 1 * from ",remoteTable(database,table)))
+        cols <- names(R)
         rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
@@ -94,8 +96,8 @@ FLTable <- function(connection,
 
         select <- new(
         "FLSelectFrom",
-        odbc_connection = connection, 
-        db_name = database, 
+        connection = connection, 
+        database = database, 
         table_name = table, 
         variables = list(
                 obs_id_colname = obs_id_colname,

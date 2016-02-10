@@ -44,7 +44,7 @@ solve.FLMatrix <- function(pObj1)
                 )
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",

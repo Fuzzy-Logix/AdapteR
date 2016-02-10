@@ -29,8 +29,8 @@ t.FLMatrix<-function(object){
     object <- store(object)
 	return(FLMatrix( 
             connection = getConnection(object), 
-            database = object@select@db_name, 
-            matrix_table = object@select@table_name, 
+            database = object@select@database, 
+            table_name = object@select@table_name, 
             matrix_id_value = "",
             matrix_id_colname = getVariables(object)$matrixId, 
             row_id_colname = getVariables(object)$colIdColumn, 

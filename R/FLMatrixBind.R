@@ -1,7 +1,7 @@
 
 #' An S4 class to represent FLMatrix
 #'
-#' @slot odbc_connection ODBC connectivity for R
+#' @slot connection ODBC connectivity for R
 #' @slot by character either rows or cols
 setClass("FLMatrixBind",
          slots = list(parts = "list",
@@ -107,21 +107,20 @@ setMethod("getVariables",
 
 
 setMethod("constructSelect",
-          signature(object = "FLMatrixBind",
-                    localName = "missing"),
-          function(object,localName="")
-              constructSelect(object,""))
+          signature(object = "FLMatrixBind"),
+          function(object)
+              constructSelect(object))
               
 setMethod("constructSelect",
-          signature(object = "FLMatrixBind",
-                    localName = "character"),
-          function(object,localName) {
+          signature(object = "FLMatrixBind"),
+          function(object) {
               paste0(unlist(
                   llply(1:length(object@parts),
-                        function(n)
-                            constructSelect(object@parts[[n]],
-                                            paste0(localName,letters[n])
-                                            ))),
+                        function(n){
+                            flm <- object@parts[[n]]
+                            names(flm@paste0(localName,letters[n]))
+                            constructSelect(flm)   
+                        })),
                   collapse=" UNION ALL ")
           })
 

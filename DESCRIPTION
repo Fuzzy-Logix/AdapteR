@@ -21,6 +21,7 @@ Collate:
     'FLDims.R'
     'FLIs.R'
     'FLPrint.R'
+    'FLStore.R'
     'utilities.R'
     'FLMatrix.R'
     'FLTable.R'
@@ -64,4 +65,9 @@ Collate:
     'FLTrace.R'
     'FLTranspose.R'
     'FLTriDiag.R'
+    'M_Addition.R'
+    'M_Division.R'
+    'M_IntegerDivision.R'
+    'M_Multiplication.R'
+    'M_Remainder.R'
 RoxygenNote: 5.0.1

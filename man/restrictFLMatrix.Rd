@@ -14,7 +14,7 @@ restrictFLMatrix(object, whereconditions = object@select@whereconditions,
 
 \item{dimnames}{new dimension names}
 
-\item{conditionDims}{vector of 2 LOGICAL values, if first is TRUE, 
+\item{conditionDims}{vector of 2 LOGICAL values, if first is TRUE,
 a inCondition for the rownames is appended, if 2 for the columns respectively.}
 }
 \description{

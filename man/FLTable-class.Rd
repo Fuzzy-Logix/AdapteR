@@ -13,9 +13,9 @@ An S4 class to represent FLTable
 \section{Slots}{
 
 \describe{
-\item{\code{odbc_connection}}{ODBC connectivity for R}
+\item{\code{connection}}{ODBC connectivity for R}
 
-\item{\code{db_name}}{character}
+\item{\code{database}}{character}
 
 \item{\code{table_name}}{character}
 

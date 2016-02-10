@@ -16,8 +16,6 @@ A Matrix can be either based off a query from a deep table (customizable by any 
 \describe{
 \item{\code{dimnames}}{list of 2 elements with row, column names of FLMatrix object}
 
-\item{\code{dimnames}}{list of 2 elements with row, column names of FLMatrix object}
-
-\item{\code{dimmap}}{list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R}
+\item{\code{dim}}{list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R}
 }}
 

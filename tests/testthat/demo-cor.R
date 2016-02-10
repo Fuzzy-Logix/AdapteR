@@ -2,13 +2,10 @@
 ## Starting a session
 ##
 ## loading AdapteR
-setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR")
-devtools::load_all(".")
+require(AdapteR)
 
 ## Unit tests for all functions
 require(testthat)
-## devtools::test()
-devtools::document()
 
 
 ## ODBJ and JDBC is supported
@@ -28,16 +25,17 @@ connection <- tdConnect("10.200.4.116",
 ## need to add class path twice (recurring problem in MAC as of:
 ## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
 ## note: wait for some time before rerunning?
-ls()
 
 
 options(debugSQL=TRUE)
+
 FLStartSession(connection)
 
 
 ## a in-memory matrix in R 
 (m <- rMatrix <- matrix(1:25,5))
 
+# (as.matrix(flm))
 #####################################################################
 ## R has very nice vector and matrix syntax
 
@@ -94,6 +92,9 @@ m <-
          cell_val_colname  = "EquityReturn")
 
 
+dbGetQuery(connection,
+           "select top 10 * from FL_DEMO.finEquityReturns")
+
 ## you can run above functions on m=Equity Returns Example again!
 
 ## this is a rather large matrix
@@ -110,6 +111,7 @@ eqnRtn[dec2006, "MSFT"]
 
 
 E <- eqnRtn[dec2006, randomstocks]
+
 E
 
 
@@ -143,23 +145,22 @@ randomstocks <- c('AAPL','HPQ','IBM','MSFT','ORCL')
 rEqnRtn <- as.matrix(eqnRtn[,randomstocks])
 rEqnRtn <- na.omit(rEqnRtn)
 
-rCorr <- cor(
-    rEqnRtn[,c('AAPL','MSFT')],
-    rEqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
+rCorr <- cor(rEqnRtn[,c('AAPL','MSFT')],
+             rEqnRtn[,randomstocks])
 round(rCorr,2)
 
 
 
 
-flCorr <- cor(
-    eqnRtn[,c('AAPL','MSFT')],
-    eqnRtn[,randomstocks])
+flCorr <- cor(eqnRtn[,c('AAPL','MSFT')],
+              eqnRtn[,randomstocks])
 round(flCorr,2)
 
 
 options(debugSQL = TRUE)
 M <- cor(eqnRtn[,randomstocks])
 M
+
 ## And of course you can now use the full power of
 ## tens of thousands of R packages, e.g.
 ##
@@ -196,8 +197,8 @@ print(object.size(subEqnRtn@dimnames),units = "Kb")
 ## rEqnRtn <- as.matrix(subEqnRtn)
 
 ## compare memory consumption:
-## print(object.size(rEqnRtn),units = "Kb")
-
+print(object.size(rEqnRtn),units = "Kb")
+dim(rEqnRtn)
 
 ##
 ## SQL construction
@@ -222,8 +223,7 @@ constructWhere(constraintsSQL(E,"a"))
 ## Shiny Demo
 ##
 ## metadata can be quickly combined on the client
-##
-metaInfo <- read.csv("companylist.csv")
+metaInfo <- read.csv("/Users/gregor/Downloads/companylist.csv")
 table(metaInfo$industry)
 table(metaInfo$Sector)
 
@@ -323,17 +323,10 @@ dim(ms)
 
 expect_equal(as.matrix(ms), solve(m.r))
 
+m %*% solve(m)
+
 ## gk: todo: do not fetch names
-m %*% ms
-
-
-
-## lm(y ~ x + x2 + x3, data=D)
-## lm("y ~ x + x2 + x3", data=D)
-
-## formula <- "y ~ x + x2 + x3"
-## formula <- prepare(data=D,DV=y)
-## lm(formula, data=D)
+round(as.matrix(m %*% ms))
 
 ## many functions provide important
 ## functions on matrices
@@ -343,3 +336,14 @@ m %*% ms
 
 ## matrix multiplication
 m[2:5,4:5] %*% m[4:5,2:5]
+
+
+
+
+## Roadmap:
+## lm(y ~ x + x2 + x3, data=D)
+## lm("y ~ x + x2 + x3", data=D)
+
+## formula <- "y ~ x + x2 + x3"
+## formula <- prepare(data=D,DV=y)
+## lm(formula, data=D)

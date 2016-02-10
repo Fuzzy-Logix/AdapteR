@@ -31,7 +31,7 @@ An S4 class to represent FLKMeans
 
 \item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
 
-\item{\code{odbc_connection}}{ODBC connectivity for R}
+\item{\code{connection}}{ODBC connectivity for R}
 
 \item{\code{table}}{FLTable object given as input on which analysis is performed}
 

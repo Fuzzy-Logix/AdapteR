@@ -10,7 +10,7 @@ An S4 class to represent FLMatrix
 \section{Slots}{
 
 \describe{
-\item{\code{odbc_connection}}{ODBC connectivity for R}
+\item{\code{connection}}{ODBC connectivity for R}
 
 \item{\code{by}}{character either rows or cols}
 }}

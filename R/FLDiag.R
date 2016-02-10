@@ -43,12 +43,12 @@ diag.FLMatrix<-function(object)
 	flag3Check(connection)
 
 	table <- FLTable(connection,
-		             object@select@db_name,
+		             object@select@database,
 		             object@select@table_name,
 		             getVariables(object)$rowIdColumn,
 		             whereconditions=c(object@select@whereconditions,
-		             	paste0(getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$rowIdColumn,
-		             		"=",getRemoteTableName(object@select@db_name,object@select@table_name),".",getVariables(object)$colIdColumn)))
+		             	paste0(getRemoteTableName(object@select@database,object@select@table_name),".",getVariables(object)$rowIdColumn,
+		             		"=",getRemoteTableName(object@select@database,object@select@table_name),".",getVariables(object)$colIdColumn)))
 
 	return(table[,getVariables(object)$valueColumn])
 }
@@ -78,7 +78,7 @@ diag.FLVector <- function(object)
 		return(FLMatrix( 
 		 	        connection = connection, 
 		 	        database = getOption("ResultDatabaseFL"), 
-		 	        matrix_table = getOption("ResultMatrixTableFL"), 
+		 	        table_name = getOption("ResultMatrixTableFL"), 
 		 	        matrix_id_value = MID,
 			        matrix_id_colname = "MATRIX_ID", 
 			        row_id_colname = "rowIdColumn", 
@@ -91,8 +91,8 @@ diag.FLVector <- function(object)
 		if(object@isDeep)
 		return(FLMatrix( 
 		 	        connection = connection, 
-		 	        database = object@select@db_name, 
-		 	        matrix_table = object@select@table_name, 
+		 	        database = object@select@database, 
+		 	        table_name = object@select@table_name, 
 		 	        matrix_id_value = "",
 			        matrix_id_colname = "", 
 			        row_id_colname = getVariables(object)$obs_id_colname, 
@@ -113,7 +113,7 @@ diag.FLVector <- function(object)
 		        						   i,",",
 		        						   i,",",
 		        						   object@dimnames[[2]][i],
-		        				" FROM ",getRemoteTableName(object@select@db_name,object@select@table_name),
+		        				" FROM ",getRemoteTableName(object@select@database,object@select@table_name),
 		        				constructWhere(constraintsSQL(object)))),collapse=";")
 
 		        sqlSendUpdate(connection,sqlstr)
@@ -121,7 +121,7 @@ diag.FLVector <- function(object)
 				return(FLMatrix( 
 				 	        connection = connection, 
 				 	        database = getOption("ResultDatabaseFL"), 
-				 	        matrix_table = getOption("ResultMatrixTableFL"), 
+				 	        table_name = getOption("ResultMatrixTableFL"), 
 				 	        matrix_id_value = MID,
 					        matrix_id_colname = "MATRIX_ID", 
 					        row_id_colname = "rowIdColumn", 
@@ -131,8 +131,8 @@ diag.FLVector <- function(object)
 			}
 			else return(FLMatrix( 
 				 	        connection = connection, 
-				 	        database = object@select@db_name, 
-				 	        matrix_table = object@select@table_name, 
+				 	        database = object@select@database, 
+				 	        table_name = object@select@table_name, 
 				 	        matrix_id_value = "",
 					        matrix_id_colname = "", 
 					        row_id_colname = getVariables(object)$obs_id_colname, 

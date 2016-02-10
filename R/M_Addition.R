@@ -74,7 +74,7 @@ NULL
 		{
 			flag1Check(getConnection(flmatobj1))
 			sqlSendUpdate(getConnection(flmatobj1),
-					 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+					 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 					 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 					 				 a.",getVariables(flmatobj1)$rowIdColumn," AS ROW_ID ,
 					 				 a.",getVariables(flmatobj1)$colIdColumn," AS COL_ID ,
@@ -90,7 +90,7 @@ NULL
 			FLMatrix( 
 				 connection = getConnection(flmatobj1), 
 				 database = getOption("ResultDatabaseFL"), 
-				 matrix_table = getOption("ResultMatrixTableFL"), 
+				 table_name = getOption("ResultMatrixTableFL"), 
 				 matrix_id_value = max_matrix_id_value - 1, 
 				 matrix_id_colname = "MATRIX_ID", 
 				 row_id_colname = "rowIdColumn", 
@@ -135,7 +135,7 @@ NULL
 		if(!flmatobj2@isDeep)
 		{
 			sqlSendUpdate(getConnection(flmatobj1),
-					 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+					 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
 							  			 a.",getVariables(flmatobj1)$rowIdColumn,",
@@ -157,7 +157,7 @@ NULL
 		else
 		{
 			sqlSendUpdate(getConnection(flmatobj1),
-					 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+					 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
 							  			 a.",getVariables(flmatobj1)$rowIdColumn,",
@@ -181,7 +181,7 @@ NULL
 		FLMatrix( 
 			 connection = getConnection(flmatobj1), 
 			 database = getOption("ResultDatabaseFL"), 
-			 matrix_table = getOption("ResultMatrixTableFL"), 
+			 table_name = getOption("ResultMatrixTableFL"), 
 			 matrix_id_value = max_matrix_id_value - 1, 
 			 matrix_id_colname = "MATRIX_ID", 
 			 row_id_colname = "rowIdColumn", 
@@ -293,9 +293,9 @@ NULL
 				
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
-					 odbc_connection = getConnection(flmatobj1), 
+					 connection = getConnection(flmatobj1), 
 					 database = getOption("ResultDatabaseFL"), 
-					 matrix_table = getOption("ResultSparseMatrixTableFL"), 
+					 table_name = getOption("ResultSparseMatrixTableFL"), 
 					 matrix_id_value = max_Sparsematrix_id_value - 1, 
 					 matrix_id_colname = "MATRIX_ID", 
 					 row_id_colname = "rowIdColumn", 
@@ -309,7 +309,7 @@ NULL
 			{
 				flag1Check(getConnection(flmatobj2))
 				sqlSendUpdate(getConnection(flmatobj2),
-						 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+						 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 								" SELECT DISTINCT ",max_matrix_id_value,",
 										 b.",getVariables(flmatobj2)$rowIdColumn,",
 										 b.",getVariables(flmatobj2)$colIdColumn,",
@@ -342,7 +342,7 @@ NULL
 				FLMatrix( 
 					 connection = getConnection(flmatobj2), 
 					 database = getOption("ResultDatabaseFL"), 
-					 matrix_table = getOption("ResultMatrixTableFL"), 
+					 table_name = getOption("ResultMatrixTableFL"), 
 					 matrix_id_value = max_matrix_id_value - 1, 
 					 matrix_id_colname = "MATRIX_ID", 
 					 row_id_colname = "rowIdColumn", 
@@ -373,7 +373,7 @@ NULL
 	else if(is.FLVector(flmatobj2))
 		{
 			flmatobj2 <- as.FLMatrix(flmatobj2,getConnection(flmatobj1),nr=nrow(flmatobj1),nc=ncol(flmatobj1))
-			sqlstr <- paste0(" UPDATE ",flmatobj2@db_name,".",flmatobj2@matrix_table,
+			sqlstr <- paste0(" UPDATE ",flmatobj2@database,".",flmatobj2@table_name,
 							 " FROM ( SELECT DISTINCT ",flmatobj2@matrix_id_value," AS mid,
 							 				 a.",getVariables(flmatobj1)$rowIdColumn," AS rid,
 							 				 a.",getVariables(flmatobj1)$colIdColumn," AS cid,

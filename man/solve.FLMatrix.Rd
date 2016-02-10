@@ -4,7 +4,7 @@
 \alias{solve.FLMatrix}
 \title{Inverse of a Matrix.}
 \usage{
-\method{solve}{FLMatrix}(object)
+\method{solve}{FLMatrix}(pObj1)
 }
 \arguments{
 \item{object}{is of class FLMatrix}

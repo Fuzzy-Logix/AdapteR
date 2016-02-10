@@ -76,7 +76,7 @@ NULL
 		{
 			flag1Check(getConnection(flmatobj1))
 			sqlSendUpdate(getConnection(flmatobj1),
-					 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+					 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 					 		" SELECT ",max_matrix_id_value," AS MATRIX_ID ,
 					 				 a.",getVariables(flmatobj1)$rowIdColumn," AS ROW_ID ,
 					 				 a.",getVariables(flmatobj1)$colIdColumn," AS COL_ID ,
@@ -93,7 +93,7 @@ NULL
 			FLMatrix( 
 				connection = getConnection(flmatobj1), 
 				database = getOption("ResultDatabaseFL"), 
-				matrix_table = getOption("ResultMatrixTableFL"), 
+				table_name = getOption("ResultMatrixTableFL"), 
 				matrix_id_value = max_matrix_id_value - 1, 
 				matrix_id_colname = "MATRIX_ID", 
 				row_id_colname = "rowIdColumn", 
@@ -129,7 +129,7 @@ NULL
 		if(!flmatobj2@isDeep)
 		{
 			sqlSendUpdate(getConnection(flmatobj1),
-					 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+					 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
 							  			 a.",getVariables(flmatobj1)$rowIdColumn,",
@@ -137,21 +137,21 @@ NULL
 							  			 a.",getVariables(flmatobj1)$valueColumn,", 
 							  			 ROW_NUMBER() OVER (ORDER BY a.",getVariables(flmatobj1)$colIdColumn,",
 							  			 							 a.",getVariables(flmatobj1)$rowIdColumn,") AS ROW_NUM  
-			        			  FROM ",flmatobj1@matrix_table," a 
+			        			  FROM ",flmatobj1@table_name," a 
 			        			  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 					         SELECT ",max_matrix_id_value,",
 					         		Z.ROW_ID,
 					         		Z.COL_ID,
 					         		Z.CELL_VAL*b.",
 					         		flmatobj2@col_name,
-					         " FROM ",flmatobj2@db_name,".",flmatobj2@table_name," b,
+					         " FROM ",flmatobj2@database,".",flmatobj2@table_name," b,
 					         		  Z 
 					          WHERE Z.ROW_NUM MOD ",length(flmatobj2)," = b.",flmatobj2@obs_id_colname," MOD ",length(flmatobj2)))
 		}
 		else
 		{
 			sqlSendUpdate(getConnection(flmatobj1),
-					 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+					 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 							" WITH Z(MATRIX_ID,ROW_ID,COL_ID,CELL_VAL,ROW_NUM) 
 							  AS (SELECT a.",flmatobj1@matrix_id_colname,",
 							  			 a.",getVariables(flmatobj1)$rowIdColumn,",
@@ -159,14 +159,14 @@ NULL
 							  			 a.",getVariables(flmatobj1)$valueColumn,", 
 							  			 ROW_NUMBER() OVER (ORDER BY a.",getVariables(flmatobj1)$colIdColumn,",
 							  			 							 a.",getVariables(flmatobj1)$rowIdColumn,") AS ROW_NUM  
-			        			 FROM ",flmatobj1@matrix_table," a 
+			        			 FROM ",flmatobj1@table_name," a 
 			        			 WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value,") 
 					         SELECT ",max_matrix_id_value,",
 					         		 Z.ROW_ID,
 					         		 Z.COL_ID,
 					         		 Z.CELL_VAL*b.",
 					         		 flmatobj2@col_name,
-					         " FROM ",flmatobj2@db_name,".",flmatobj2@table_name," b,
+					         " FROM ",flmatobj2@database,".",flmatobj2@table_name," b,
 					         		  Z 
 					          WHERE Z.ROW_NUM MOD ",length(flmatobj2)," = b.",flmatobj2@var_id_name," MOD ",length(flmatobj2),
 	          				" AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value))
@@ -175,7 +175,7 @@ NULL
 		FLMatrix( 
 			connection = getConnection(flmatobj1), 
 			database = getOption("ResultDatabaseFL"), 
-			matrix_table = getOption("ResultMatrixTableFL"), 
+			table_name = getOption("ResultMatrixTableFL"), 
 			matrix_id_value = max_matrix_id_value - 1, 
 			matrix_id_colname = "MATRIX_ID", 
 			row_id_colname = "rowIdColumn", 
@@ -232,17 +232,17 @@ NULL
 			            				a.",getVariables(flmatobj1)$rowIdColumn,",
 			            				a.",getVariables(flmatobj1)$colIdColumn,",
 			            				a.",getVariables(flmatobj1)$valueColumn,"*b.",getVariables(flmatobj2)$valueColumn,
-			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-			            				 flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+			            		" FROM ",flmatobj1@database,".",flmatobj1@table_name," a, ",
+			            				 flmatobj2@database,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 			            		  AND a.",getVariables(flmatobj1)$rowIdColumn," = b.",getVariables(flmatobj2)$rowIdColumn," 
 			            		  AND a.",getVariables(flmatobj1)$colIdColumn," =b.",getVariables(flmatobj2)$colIdColumn))
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
-					odbc_connection = getConnection(flmatobj1), 
+					connection = getConnection(flmatobj1), 
 					database = getOption("ResultDatabaseFL"), 
-					matrix_table = getOption("ResultSparseMatrixTableFL"), 
+					table_name = getOption("ResultSparseMatrixTableFL"), 
 					matrix_id_value = max_Sparsematrix_id_value - 1, 
 					matrix_id_colname = "MATRIX_ID", 
 					row_id_colname = "rowIdColumn", 
@@ -256,20 +256,20 @@ NULL
 			{
 				flag1Check(getConnection(flmatobj2))
 				sqlSendUpdate(getConnection(flmatobj2),
-						 paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),
+						 paste0(" INSERT INTO ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),
 								" SELECT DISTINCT ",max_matrix_id_value,",
 										 b.",getVariables(flmatobj2)$rowIdColumn,",
 										 b.",getVariables(flmatobj2)$colIdColumn," ,
 										 0 ",
-								" FROM ",flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+								" FROM ",flmatobj2@database,".",flmatobj2@table_name," b 
 								  WHERE b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value,
 					            " except ",
 					            "SELECT ",max_matrix_id_value,",
 					            		b.",getVariables(flmatobj2)$rowIdColumn,",
 					            		b.",getVariables(flmatobj2)$colIdColumn," ,
 					            		0 
-					             FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-					             		flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+					             FROM ",flmatobj1@database,".",flmatobj1@table_name," a, ",
+					             		flmatobj2@database,".",flmatobj2@table_name," b 
 					             WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 					             AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 					             AND b.",getVariables(flmatobj2)$rowIdColumn," = a.",getVariables(flmatobj1)$rowIdColumn," 
@@ -279,8 +279,8 @@ NULL
 										a.",getVariables(flmatobj1)$rowIdColumn,",
 										a.",getVariables(flmatobj1)$colIdColumn,",
 										a.",getVariables(flmatobj1)$valueColumn,"*b.",getVariables(flmatobj2)$valueColumn,
-								"FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-										flmatobj2@db_name,".",flmatobj2@matrix_table," b 
+								"FROM ",flmatobj1@database,".",flmatobj1@table_name," a, ",
+										flmatobj2@database,".",flmatobj2@table_name," b 
 								WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 								AND b.",flmatobj2@matrix_id_colname,"=",flmatobj2@matrix_id_value," 
 								AND a.",getVariables(flmatobj1)$rowIdColumn," = b.",getVariables(flmatobj2)$rowIdColumn," 
@@ -289,7 +289,7 @@ NULL
 				FLMatrix( 
 					connection = getConnection(flmatobj2), 
 					database = getOption("ResultDatabaseFL"), 
-					matrix_table = getOption("ResultMatrixTableFL"), 
+					table_name = getOption("ResultMatrixTableFL"), 
 					matrix_id_value = max_matrix_id_value - 1, 
 					matrix_id_colname = "MATRIX_ID", 
 					row_id_colname = "rowIdColumn", 
@@ -328,8 +328,8 @@ NULL
 			            				a.",getVariables(flmatobj1)$rowIdColumn,",
 			            				a.",getVariables(flmatobj1)$colIdColumn,",
 			            				a.",getVariables(flmatobj1)$valueColumn,"*b.",flmatobj2@col_name,
-			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-			            				 flmatobj2@db_name,".",flmatobj2@table_name," b 
+			            		" FROM ",flmatobj1@database,".",flmatobj1@table_name," a, ",
+			            				 flmatobj2@database,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND b.",flmatobj2@obs_id_colname,"=",flmatobj2@vector_id_value," 
 			            		  AND (((a.",getVariables(flmatobj1)$colIdColumn,"-1)*",nrow(flmatobj1),")+",
@@ -344,8 +344,8 @@ NULL
 			            				 a.",getVariables(flmatobj1)$rowIdColumn,",
 			            				 a.",getVariables(flmatobj1)$colIdColumn,",
 			            				 a.",getVariables(flmatobj1)$valueColumn,"*b.",flmatobj2@col_name,
-			            		" FROM ",flmatobj1@db_name,".",flmatobj1@matrix_table," a, ",
-			            				 flmatobj2@db_name,".",flmatobj2@table_name," b 
+			            		" FROM ",flmatobj1@database,".",flmatobj1@table_name," a, ",
+			            				 flmatobj2@database,".",flmatobj2@table_name," b 
 			            		  WHERE a.",flmatobj1@matrix_id_colname,"=",flmatobj1@matrix_id_value," 
 			            		  AND (((a.",getVariables(flmatobj1)$colIdColumn,"-1)*",nrow(flmatobj1),")+",
 			            					 getVariables(flmatobj1)$rowIdColumn,") MOD ",length(flmatobj2)," = b.",
@@ -353,9 +353,9 @@ NULL
 				}
 				max_Sparsematrix_id_value <<- max_Sparsematrix_id_value + 1
 				new("FLSparseMatrix", 
-					odbc_connection = getConnection(flmatobj1), 
+					connection = getConnection(flmatobj1), 
 					database = getOption("ResultDatabaseFL"), 
-					matrix_table = getOption("ResultSparseMatrixTableFL"), 
+					table_name = getOption("ResultSparseMatrixTableFL"), 
 					matrix_id_value = max_Sparsematrix_id_value - 1, 
 					matrix_id_colname = "MATRIX_ID", 
 					row_id_colname = "rowIdColumn", 
@@ -411,8 +411,8 @@ NULL
 					         " SELECT ",max_vector_id_value,",
 					         		  a.",pObj1@var_id_name,", 
 					         		  CAST(a.",pObj1@col_name,"*b.",pObj2@col_name," AS NUMBER) ",
-					         " FROM ",pObj1@db_name,".",pObj1@table_name," a,",
-					         		  pObj2@db_name,".",pObj2@table_name," b",
+					         " FROM ",pObj1@database,".",pObj1@table_name," a,",
+					         		  pObj2@database,".",pObj2@table_name," b",
 					         " WHERE a.",pObj1@obs_id_colname,"=",pObj1@vector_id_value," 
 					           AND b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
 					         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@var_id_name," MOD ",vMinSize)
@@ -428,8 +428,8 @@ NULL
 						         " SELECT ",max_vector_id_value,",
 						         		 a.",pObj1@var_id_name,", 
 						         		 CAST(a.",pObj1@col_name,"*b.",pObj2@col_name," AS NUMBER) ",
-						         " FROM ",pObj1@db_name,".",pObj1@table_name," a,",
-						         		  pObj2@db_name,".",pObj2@table_name," b",
+						         " FROM ",pObj1@database,".",pObj1@table_name," a,",
+						         		  pObj2@database,".",pObj2@table_name," b",
 						         " WHERE a.",pObj1@obs_id_colname,"=",pObj1@vector_id_value,
 						         " AND a.",pObj1@var_id_name," MOD ",vMinSize," = b.",pObj2@obs_id_colname," MOD ",vMinSize)
 
@@ -441,8 +441,8 @@ NULL
 						         " SELECT ",max_vector_id_value,",
 						         		 a.",pObj1@obs_id_colname,", 
 						         		 CAST(a.",pObj1@col_name,"*b.",pObj2@col_name," AS NUMBER) ",
-						         " FROM ",pObj1@db_name,".",pObj1@table_name," a,",
-						         		  pObj2@db_name,".",pObj2@table_name," b",
+						         " FROM ",pObj1@database,".",pObj1@table_name," a,",
+						         		  pObj2@database,".",pObj2@table_name," b",
 						         " WHERE b.",pObj2@obs_id_colname,"=",pObj2@vector_id_value,
 						         " AND b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
@@ -456,8 +456,8 @@ NULL
 					         " SELECT ",max_vector_id_value,",
 					         		a.",pObj1@obs_id_colname,", 
 					         		CAST(a.",pObj1@col_name,"*b.",pObj2@col_name," AS NUMBER) ",
-					         " FROM ",pObj1@db_name,".",pObj1@table_name," a,",
-					         		  pObj2@db_name,".",pObj2@table_name," b",
+					         " FROM ",pObj1@database,".",pObj1@table_name," a,",
+					         		  pObj2@database,".",pObj2@table_name," b",
 					         " WHERE b.",pObj2@var_id_name," MOD ",vMinSize," = a.",pObj1@obs_id_colname," MOD ",vMinSize)
 
 			    sqlSendUpdate(getConnection(pObj1),vSqlStr)

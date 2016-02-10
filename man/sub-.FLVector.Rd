@@ -4,7 +4,7 @@
 \alias{[.FLVector}
 \title{Extract part of FLVector object.}
 \usage{
-\method{[}{FLVector}(object, pSet = 1:length(object@dimnames[[1]]))
+\method{[}{FLVector}(object, pSet = 1:length(object))
 }
 \arguments{
 \item{pSet}{is a vector representing the indices of elements to extract}

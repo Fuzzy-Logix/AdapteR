@@ -4,8 +4,8 @@
 \alias{FLMatrix}
 \title{Constructor function for FLMatrix.}
 \usage{
-FLMatrix(connection, database = getOption("ResultDatabaseFL"), matrix_table,
-  matrix_id_value = "", matrix_id_colname = "",
+FLMatrix(connection, database = getOption("ResultDatabaseFL"), table_name,
+  map_table = NULL, matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
   cell_val_colname = "valueColumn", dim = NULL, dimnames = NULL,
   conditionDims = c(FALSE, FALSE), whereconditions = c(""))
@@ -15,17 +15,17 @@ FLMatrix(connection, database = getOption("ResultDatabaseFL"), matrix_table,
 
 \item{database}{name of the database}
 
-\item{matrix_table}{name of the matrix table}
+\item{table_name}{name of the matrix table}
 
 \item{matrix_id_value}{identifier for the input matrix}
 
-\item{matrix_id_colname}{matrix id value in \code{matrix_table}}
+\item{matrix_id_colname}{matrix id value in \code{table_name}}
 
-\item{row_id_colname}{column name in \code{matrix_table} where row numbers are stored}
+\item{row_id_colname}{column name in \code{table_name} where row numbers are stored}
 
-\item{col_id_colname}{column name in \code{matrix_table} where column numbers are stored}
+\item{col_id_colname}{column name in \code{table_name} where column numbers are stored}
 
-\item{cell_val_colname}{column name in \code{matrix_table} where matrix elements are stored}
+\item{cell_val_colname}{column name in \code{table_name} where matrix elements are stored}
 }
 \value{
 \code{FLMatrix} returns an object of class FLMatrix mapped

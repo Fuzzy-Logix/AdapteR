@@ -132,7 +132,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -394,7 +394,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			}
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                    odbc_connection = connection,
+	                    connection = connection,
 	                    variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
