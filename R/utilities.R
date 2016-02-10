@@ -348,6 +348,22 @@ setMethod("getMaxMatrixId",
           )
 
 
+
+getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
+                        vtable=getOption("ResultVectorTableFL"),
+                        vcolName="VECTOR_ID",
+                        vconnection=vconnection){
+    R <- dbGetQuery(connection,
+                    paste0("SELECT max(",
+                           vcolName,")",
+                           " FROM ",
+                           getRemoteTableName(vdatabase,
+                                              vtable)))
+    if(is.na(R)) return(0)
+    else return(R)
+
+}
+
 setGeneric("getMaxVectorId", function(vconnection,...) {
     standardGeneric("getMaxVectorId")
 })

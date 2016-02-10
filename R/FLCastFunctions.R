@@ -201,46 +201,60 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                            c(i=nrow(object),j=ncol(object),
                              x=0))
         MID <- getMaxMatrixId(connection)
+        remoteTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+                                          getOption("ResultMatrixTableFL"))
+        analysisID <- paste0("AdapteR",remoteTable,MID)
         sqlstatements <-
             base::apply(mdeep,1,
                         function(r)
                             paste0(" INSERT INTO ",
-                                   getRemoteTableName(
-                                       getOption("ResultDatabaseFL"),
-                                       getOption("ResultMatrixTableFL")),
+                                   remoteTable,
                                    " (matrix_id, rowIdColumn, colIdColumn, valueColumn) VALUES (",
                                    paste0(c(MID,r), collapse=", "),
                                    ");"))
-
         ##flag1Check(connection)
         retobj<-sqlSendUpdate(connection,
                               paste(sqlstatements,
                                     collapse="\n"))
-        #max_matrix_id_value <<- max_matrix_id_value + 1
-        if(length(dimnames(object))==0) { dimnames(object) <- list(c(),c()) }
-        if(length(rownames(object))==0) { rownames(object) <- c() }
-        if(length(colnames(object))==0) { colnames(object) <- c() }
-        mydims <- list(rownames(object),
-                       colnames(object))
-        #browser()
-        if(is.null(mydims[[1]]))
-            mydims[[1]] <- 1:nrow(object)
-        if(is.null(mydims[[2]]))
-            mydims[[2]] <- 1:ncol(object)
+        mydimnames <- dimnames(object)
+        mydims <- dim(object)
+        print(mydimnames)
+        if(is.character(mydimnames[[1]])){
+            storeVarnameMapping <- function(names,n){
+                sqlstatements <- paste0(" INSERT INTO ",
+                                        "fzzlRegrDataPrepMap",
+                                        "(ANALYSISID, FROM_TABLE, TO_TABLE, ",
+                                        "ORDINAL_POSITION, VARID, VAR_TYPE, COLUMN_NAME, ",
+                                        "CATVALUE, Exclude_var, Exclude_Reason, Final_VarID",
+                                        ")",
+                                        "'",analysisID,"', NULL, NULL, ",
+                                        1:mydims[[1]], ", ", 1:mydims[[1]], ", ",
+                                        "NULL, ",
+                                        mydimnames[[1]],
+                                        "NULL, 0, NULL, ",
+                                        1:mydims[[1]],
+                                        ");")
+            ##flag1Check(connection)
+            retobj<-sqlSendUpdate(connection,
+                                  paste(sqlstatements,
+                                        collapse="\n"))
+        
+            
+        }
         return(FLMatrix(
-                   connection = connection,
-                   database = getOption("ResultDatabaseFL"),
-                   matrix_table = getOption("ResultMatrixTableFL"),
-                   matrix_id_value = MID,
-                   matrix_id_colname = "MATRIX_ID",
-                   row_id_colname = "rowIdColumn",
-                   col_id_colname = "colIdColumn",
-                   cell_val_colname = "valueColumn",
-                   dimnames = mydims))
-
+            connection = connection,
+            database = getOption("ResultDatabaseFL"),
+            matrix_table = getOption("ResultMatrixTableFL"),
+            matrix_id_value = MID,
+            matrix_id_colname = "MATRIX_ID",
+            row_id_colname = "rowIdColumn",
+            col_id_colname = "colIdColumn",
+            cell_val_colname = "valueColumn",
+            dims = mydims,
+            dimnames = mydimnames))
+        }
     }
 }
-
 
 setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE,...) {
     standardGeneric("as.FLMatrix")
