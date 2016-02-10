@@ -45,7 +45,7 @@ chol.FLMatrix<-function(object)
                    )
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables=list(
                             rowIdColumn="OutputColNum",
                             colIdColumn="OutputRowNum",

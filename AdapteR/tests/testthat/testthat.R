@@ -14,7 +14,7 @@ require(Matrix)
 
 FLStartSession(connection, persistent="test")
 
-ignoreDimNames <- TRUE
+ignoreDimNames <- FALSE
 
 options(debugSQL=FALSE)
 
@@ -75,8 +75,8 @@ test_that("Casting R matrix Packages <---> in-database Matrices",{
         rownames(matrix2) <- c("A","B","C","D","E")
         colnames(matrix2) <- c("P","Q","R","S","T")
     }
-    m1 <- as.FLMatrix(matrix1, connection) # Identity matrix of dimension 5x5
-    m2 <- as.FLMatrix(matrix2, connection) # Identity matrix of dimension 5x5
+    m1 <- as.FLMatrix(matrix1, connection) 
+    m2 <- as.FLMatrix(matrix2, connection) 
     expect_equal(dim(m1),c(5,5))
     expect_equal(dim(m2),c(5,5))
     ##

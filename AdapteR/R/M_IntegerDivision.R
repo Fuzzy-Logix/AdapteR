@@ -114,7 +114,7 @@ NULL
 			 		  		paste0("b.",getVariables(flmatobj2)$valueColumn,"!=0"))))
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",
@@ -138,7 +138,7 @@ NULL
 		# return(FLMatrix( 
 		#        connection = getConnection(flmatobj1), 
 		#        database = getOption("ResultDatabaseFL"), 
-		#        matrix_table = getOption("ResultMatrixTableFL"), 
+		#        table_name = getOption("ResultMatrixTableFL"), 
 		# 	   matrix_id_value = MID,
 		# 	   matrix_id_colname = "MATRIX_ID", 
 		# 	   row_id_colname = "rowIdColumn", 
@@ -262,7 +262,7 @@ NULL
 								constraintsSQL(pObj2,localName="b"))),collapse=" UNION ALL ")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    odbc_connection = connection,
+                    connection = connection,
                     variables = list(
 		                obs_id_colname = "VECTOR_INDEX",
 		                cell_val_colname = "VECTOR_VALUE"),
@@ -329,7 +329,7 @@ NULL
 							" AND  a.",getVariables(pObj1)$obs_id_colname," IN('",pObj1@dimnames[[1]],"')",collapse=" UNION ALL ")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    odbc_connection = connection,
+                    connection = connection,
                     variables = list(
 		                obs_id_colname = "VECTOR_INDEX",
 		                cell_val_colname = "VECTOR_VALUE"),

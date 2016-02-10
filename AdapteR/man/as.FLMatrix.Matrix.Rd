@@ -12,8 +12,6 @@ needs to be casted to FLMatrix}
 
 \item{connection}{ODBC connection object}
 
-\item{sparse}{}
-
 \item{nr}{number of rows in resulting FLMatrix}
 
 \item{nc}{number of columns in resulting FLMatrix.

@@ -43,7 +43,7 @@ rowMeans.FLMatrix<-function(object)
 					" GROUP BY ",var,".rowIdColumn")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

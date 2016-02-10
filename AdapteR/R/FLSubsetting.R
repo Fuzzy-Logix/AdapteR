@@ -40,24 +40,10 @@ NULL
     ##                                           constraintsSQL(object)),
     ##                                       " ORDER BY ",object@matrix_id_colname,",",getVariables(object)$colIdColumn,",",getVariables(object)$rowIdColumn))[[1]][rows])
 	## }
-    if(is.numeric(rows))
-    ##     newrownames <- match(object@dimnames[[1]][rows],object@dimnames[[1]])
-    ## else
-        newrownames <- object@dimnames[[1]][rows] ## gk: reverted to my version
-    else
-        newrownames <- rows
-    if(any(is.na(newrownames)))
-        stop("subscript_out_of_bounds")
-
-    ##browser()
-    if(is.numeric(cols))
-    ##     newcolnames <- match(object@dimnames[[2]][cols],object@dimnames[[2]])
-    ## else
-        newcolnames <- object@dimnames[[2]][cols] ## gk: reverted to my version
-    else
-        newcolnames <- cols
-    if(any(is.na(newcolnames)))
-        stop("subscript_out_of_bounds")
+    
+    
+    newrownames <- rows
+    newcolnames <- cols
 
     if(missing(cols)) 
     {
@@ -124,7 +110,7 @@ NULL
             if(!setequal(object@dimnames[[1]],
                          newrownames))
                 object@select@whereconditions <- c(object@select@whereconditions,
-                                            inCondition(paste0(object@select@db_name,".",
+                                            inCondition(paste0(object@select@database,".",
                                                                object@select@table_name,".",
                                                                getVariables(object)$obs_id_colname),
                                                         newrownames))
@@ -140,7 +126,7 @@ NULL
         if(object@isDeep){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
-                  inCondition(paste0(object@select@select@db_name,".",
+                  inCondition(paste0(object@select@select@database,".",
                                      object@select@table_name,".",
                                      getVariables(object)$var_id_colname),
                               object@dimnames[[2]]))
@@ -150,14 +136,14 @@ NULL
         if(!setequal(object@dimnames[[1]], newrownames))
             object@select@whereconditions <-
             c(object@select@whereconditions,
-              inCondition(paste0(object@select@db_name,".",
+              inCondition(paste0(object@select@database,".",
                                  object@select@table_name,".",
                                  getVariables(object)$obs_id_colname),
                           newrownames))
         if(object@isDeep & !setequal(object@dimnames[[2]], newcolnames)){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
-                  inCondition(paste0(object@select@db_name,".",
+                  inCondition(paste0(object@select@database,".",
                                      object@select@table_name,".",
                                      getVariables(object)$var_id_colname),
                               newcolnames))
@@ -212,6 +198,17 @@ NULL
         newcolnames <- object@dimnames[[2]][pSet]
         object@dimnames[[2]] <- newcolnames
     }
+## =======
+##     newrownames <- sort(object@dimnames[[1]])[pSet]
+##     if(!setequal(object@dimnames[[1]], newrownames))
+##         object@select@whereconditions <-
+##         c(object@select@whereconditions,
+##           inCondition(paste0(object@select@database,".",
+##                              object@select@table_name,".",
+##                              getVariables(object)$obs_id_colname),
+##                       newrownames))
+##     object@dimnames[[1]] <- newrownames
+## >>>>>>> Stashed changes
     return(object)
 }
                                         #     pObj[pSet,]

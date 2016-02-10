@@ -193,7 +193,7 @@ NULL
                                          paste0(a,".colIdColumn = ",b,".colIdColumn"))))
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -303,7 +303,7 @@ NULL
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        odbc_connection = connection,
+                        connection = connection,
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

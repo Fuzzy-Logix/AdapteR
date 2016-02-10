@@ -66,7 +66,7 @@ FLVector <- function(table,
     if(is.null(V))
         stop("column not in wide table or invalid inputs for deep table")
     
-    ## length(V) <- sqlQuery(table@odbc_connection,
+    ## length(V) <- sqlQuery(table@connection,
     ##                    paste0("SELECT count(",table@obs_id_colname,")
 	## 					 		 FROM ",
     ##                           remoteTable(V),
