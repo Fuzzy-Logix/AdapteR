@@ -16,9 +16,10 @@ setClass("FLTableQuery",
          ))
 
 
-## A select from models a select from a table
-#' @slot db_name character
-#' @slot table_name character
+##' A selectFrom models a select from a table
+##' 
+##' @slot db_name character
+##' @slot table_name character
 setClass("FLSelectFrom",
          contains="FLTableQuery",
          slots=list(
@@ -26,53 +27,30 @@ setClass("FLSelectFrom",
              table_name = "character"
          ))
 
-#' An S4 class to represent FLMatrix
-#'
-#' @slot dimnames list dimension names of FLMatrix object
-setClass(
-    "FLMatrix",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list"
-    )
-)
-
+##' A TableFunctionQuery models a select from an arbitrary query
+##' 
+##' @slot SQLquery character
 setClass("FLTableFunctionQuery",
          contains="FLTableQuery",
          slots=list(
              SQLquery = "character"
          ))
 
-#' An S4 class to represent FLTable
-#'
-#' @slot odbc_connection ODBC connectivity for R
-#' @slot db_name character
-#' @slot table_name character
-#' @slot obs_id_colname character
-#' @slot var_id_colnames character 
-#' @slot cell_val_colname character
-#' @slot isDeep logical
-#' @method names FLTable
-#' @param object retrieves the column names of FLTable object
+##' An S4 class to represent FLMatrix.
+##' A Matrix can be either based off a query from a deep table (customizable by any where-condition)
+##' -- or based off an arbitrary SQL statement returning a deep table.
+##'
+##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
+##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
+##' @slot dimmap list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R
 setClass(
-    "FLTable",
+    "FLMatrix",
     slots = list(
         select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical"
+        dimmap = "list",
+        dimnames = "list"
     )
 )
-
-#' An S4 class to represent FLVector
-#'
-setClass(
-    "FLVector",
-    slots = list(
-      select = "FLTableQuery",
-      dimnames        = "list",
-      isDeep= "logical"
-    ))
-
 
 ##' stores a matrix in a table.
 ##' TODO:  define when data is stored (automatic caching, user requests...)
@@ -89,8 +67,8 @@ setMethod("store",
           signature(object = "FLMatrix",returnType="missing",connection="missing"),
           function(object) store.FLMatrix(object))
 setMethod("store",
-          signature(object = "FLVector",returnType="missing",connection="missing"),
-          function(object) store.FLVector(object))
+          signature(object = "FLMatrixBind",returnType="missing",connection="missing"),
+          function(object) store.FLMatrix(object))
 setMethod("store",
           signature(object = "character",returnType="character",connection="RODBC"),
           function(object,returnType,connection) store.character(object,returnType,connection))
@@ -112,8 +90,8 @@ store.FLMatrix <- function(object)
                                    "colIdColumn",
                                    "valueColumn"))
         vSqlStr <- paste0(" INSERT INTO ",
-                          getRemoteTableName(result_db_name,
-                                            result_matrix_table),
+                          getRemoteTableName(getOption("ResultDatabaseFL"),
+                                            getOption("ResultMatrixTableFL")),
                           "\n",
                           gsub("'%insertIDhere%'",MID,constructSelect(object)),
                           "\n")
@@ -122,8 +100,8 @@ store.FLMatrix <- function(object)
                       vSqlStr)
 		return(FLMatrix(
             connection = getConnection(object),
-            database = result_db_name, 
-            matrix_table = result_matrix_table, 
+            database = getOption("ResultDatabaseFL"), 
+            matrix_table = getOption("ResultMatrixTableFL"), 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "rowIdColumn", 
@@ -204,8 +182,8 @@ store.character <- function(object,returnType,connection)
   {
     MID <- getMaxMatrixId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
-                      getRemoteTableName(result_db_name,
-                                        result_matrix_table),
+                      getRemoteTableName(getOption("ResultDatabaseFL"),
+                                        getOption("ResultMatrixTableFL")),
                       "\n",
                       gsub("'%insertIDhere%'",MID,object),
                       "\n")
@@ -215,8 +193,8 @@ store.character <- function(object,returnType,connection)
 
     return(FLMatrix(
             connection = connection,
-            database = result_db_name, 
-            matrix_table = result_matrix_table, 
+            database = getOption("ResultDatabaseFL"), 
+            matrix_table = getOption("ResultMatrixTableFL"), 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "rowIdColumn", 
@@ -230,8 +208,8 @@ store.character <- function(object,returnType,connection)
     
     VID <- getMaxVectorId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
-                      getRemoteTableName(result_db_name,
-                                        result_vector_table),
+                      getRemoteTableName(getOption("ResultDatabaseFL"),
+                                        getOption("ResultVectorTableFL")),
                       "\n",
                       gsub("'%insertIDhere%'",MID,object),
                       "\n")
@@ -240,15 +218,69 @@ store.character <- function(object,returnType,connection)
                   vSqlStr)
 
     table <- FLTable(connection,
-                 result_db_name,
-                 result_vector_table,
+                 getOption("ResultDatabaseFL"),
+                 getOption("ResultVectorTableFL"),
                  "VECTOR_INDEX",
-                 whereconditions=paste0(result_db_name,".",result_vector_table,".VECTOR_ID = ",VID)
+                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".VECTOR_ID = ",VID)
                  )
 
     return(table[,"VECTOR_VALUE"])
   }
 }
+
+
+store.FLVector <- function(object)
+{
+  vSqlStr <- paste0(" INSERT INTO ",
+                    getRemoteTableName(getOption("ResultDatabaseFL"),
+                                      getOption("ResultVectorTableFL")),
+                    "\n",
+                    constructSelect(object),
+                    "\n")
+  sqlSendUpdate(getConnection(object),
+                  vSqlStr)
+  VID <- getMaxVectorId(getConnection(object))
+
+  table <- FLTable(getConnection(object),
+                   getOption("ResultDatabaseFL"),
+                   getOption("ResultVectorTableFL"),
+                   "VECTOR_INDEX",
+                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".VECTOR_ID = ",VID)
+                   )
+
+  return(table[,"VECTOR_VALUE"])
+}
+#' An S4 class to represent FLTable
+#'
+#' @slot odbc_connection ODBC connectivity for R
+#' @slot db_name character
+#' @slot table_name character
+#' @slot obs_id_colname character
+#' @slot var_id_colnames character 
+#' @slot cell_val_colname character
+#' @slot isDeep logical
+#' @method names FLTable
+#' @param object retrieves the column names of FLTable object
+setClass(
+    "FLTable",
+    contains="FLSelectFrom",
+    slots = list(
+        dimnames        = "list",
+        isDeep = "logical"
+    )
+)
+
+#' An S4 class to represent FLVector
+#'
+setClass(
+    "FLVector",
+    contains="FLSelectFrom",
+    slots = list(
+    	dimnames        = "list",
+      isDeep= "logical"
+    ))
+
+
 
 setGeneric("getVariables", function(object) {
     standardGeneric("getVariables")
@@ -494,7 +526,7 @@ restrictFLMatrix <-
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
 #' @export
 FLMatrix <- function(connection, 
-					 database=result_db_name, 
+					 database=getOption("ResultDatabaseFL"), 
 					 matrix_table, 
 					 matrix_id_value = "",
 					 matrix_id_colname = "", 

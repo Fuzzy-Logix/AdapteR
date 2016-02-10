@@ -48,9 +48,9 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
     tempResultTable <- gen_unique_table_name("tblSVDResult")
     tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
-
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(result_db_name,tempResultTable)," AS(",
-    				 viewSelectMatrix(object, "a","z"),
+        
+    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+                     viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutUVal","OutSVal","OutVVal"),
@@ -65,34 +65,34 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
 	UMatrix <- FLMatrix( 
             connection = connection, 
-            database = result_db_name, 
+            database = getOption("ResultDatabaseFL"), 
             matrix_table = tempResultTable, 
             matrix_id_value = "",
             matrix_id_colname = "", 
             row_id_colname = "OutputRowNum", 
             col_id_colname = "OutputColNum", 
             cell_val_colname = "OutUVal",
-            whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutUVal IS NOT NULL ")
+            whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutUVal IS NOT NULL ")
             )
 
 	VMatrix <- FLMatrix( 
             connection = connection, 
-            database = result_db_name, 
+            database = getOption("ResultDatabaseFL"), 
             matrix_table = tempResultTable, 
             matrix_id_value = "",
             matrix_id_colname = "", 
             row_id_colname = "OutputRowNum", 
             col_id_colname = "OutputColNum", 
             cell_val_colname = "OutVVal",
-            whereconditions= paste0(getRemoteTableName(result_db_name,tempResultTable),".OutVVal IS NOT NULL ")
+            whereconditions= paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutVVal IS NOT NULL ")
             )
 
 	table <- FLTable(connection,
-		             result_db_name,
+		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputRowNum",
-		             whereconditions=paste0(getRemoteTableName(result_db_name,tempResultTable),".OutputRowNum = ",
-		             	getRemoteTableName(result_db_name,tempResultTable),".OutputColNum ")
+		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
+		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum ")
 		             )
 
 	SVector <- table[,"OutSVal"]

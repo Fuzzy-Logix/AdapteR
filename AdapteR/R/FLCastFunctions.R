@@ -206,8 +206,8 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                         function(r)
                             paste0(" INSERT INTO ",
                                    getRemoteTableName(
-                                       result_db_name,
-                                       result_matrix_table),
+                                       getOption("ResultDatabaseFL"),
+                                       getOption("ResultMatrixTableFL")),
                                    " (matrix_id, rowIdColumn, colIdColumn, valueColumn) VALUES (",
                                    paste0(c(MID,r), collapse=", "),
                                    ");"))
@@ -229,8 +229,8 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
             mydims[[2]] <- 1:ncol(object)
         return(FLMatrix(
                    connection = connection,
-                   database = result_db_name,
-                   matrix_table = result_matrix_table,
+                   database = getOption("ResultDatabaseFL"),
+                   matrix_table = getOption("ResultMatrixTableFL"),
                    matrix_id_value = MID,
                    matrix_id_colname = "MATRIX_ID",
                    row_id_colname = "rowIdColumn",
@@ -441,7 +441,7 @@ as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=
   batchStore(sqlstr)
   sqlstr <- ""
 
-  # sqlstr <- paste0("INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
+  # sqlstr <- paste0("INSERT INTO ",getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultMatrixTableFL")),
   #                 " SELECT ",max_matrix_id_value,
   #                           ",floor(a.",object@obs_id_colname,"+0.1 MOD ",rows,")
   #                            ,a.",object@obs_id_colname,"-floor(a.",object@obs_id_colname,"+0.1 MOD ",rows,")
@@ -531,7 +531,7 @@ as.FLVector.vector <- function(object,connection)
   flag3Check(connection)
   VID <- getMaxVectorId(connection)
   sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
-           getRemoteTableName(result_db_name,result_vector_table),
+           getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultVectorTableFL")),
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
                      object[x]," AS vectorValueColumn;"
@@ -544,10 +544,10 @@ as.FLVector.vector <- function(object,connection)
   #max_vector_id_value <<- max_vector_id_value + 1
 
   table <- FLTable(connection,
-                 result_db_name,
-                 result_vector_table,
-                 "vectorIndexColumn",
-                 whereconditions=paste0(result_db_name,".",result_vector_table,".vectorIdColumn = ",VID)
+                 getOption("ResultDatabaseFL"),
+                 getOption("ResultVectorTableFL"),
+                 "VECTOR_INDEX",
+                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".VECTOR_ID = ",VID)
                  )
 
   return(table[,"vectorValueColumn"])

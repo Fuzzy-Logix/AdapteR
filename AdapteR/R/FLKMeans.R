@@ -248,7 +248,7 @@ cluster.FLKMeans<-function(object)
 
 		connection = getConnection(object)
 		AnalysisID = object@AnalysisID
-		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table,"  
+		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"  
 						SELECT ",max_vector_id_value,",
 						         ObsID,
 						         CAST(SUBSTRING(clusterid FROM POSITION('-' IN clusterid )+1 ) AS INTEGER) 
@@ -262,8 +262,8 @@ cluster.FLKMeans<-function(object)
 		max_vector_id_value <<- max_vector_id_value + 1
 	
 		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
+			             getOption("ResultDatabaseFL"),
+			             getOption("ResultVectorTableFL"),
 			             "VECTOR_ID",
 			             "VECTOR_INDEX",
 			             "VECTOR_VALUE")
@@ -299,7 +299,7 @@ centers.FLKMeans<-function(object)
 	{
 		connection=getConnection(object)
 		AnalysisID=object@AnalysisID
-		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_matrix_table," 
+		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," 
 						SELECT ",max_matrix_id_value,
 						       ",CAST(SUBSTRING(clusterid FROM POSITION('-' IN clusterid )+1 ) AS INTEGER)
 						        ,VarID
@@ -321,8 +321,8 @@ centers.FLKMeans<-function(object)
 
 		centersmatrix <- new("FLMatrix", 
 			       odbc_connection = connection, 
-			       db_name = result_db_name, 
-			       matrix_table = result_matrix_table, 
+			       db_name = getOption("ResultDatabaseFL"), 
+			       matrix_table = getOption("ResultMatrixTableFL"), 
 				   matrix_id_value = max_matrix_id_value-1,
 				   matrix_id_colname = "MATRIX_ID", 
 				   row_id_colname = "rowIdColumn", 
@@ -352,7 +352,7 @@ tot.withinss.FLKMeans<-function(object){
 	}
 	else
 	{
-		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table," 
+		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 						SELECT ",max_vector_id_value,
 							   ",1,
 							   CAST(sum(power((",object@deeptablename,".Num_Val - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER)  
@@ -367,8 +367,8 @@ tot.withinss.FLKMeans<-function(object){
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
+			             getOption("ResultDatabaseFL"),
+			             getOption("ResultVectorTableFL"),
 			             "VECTOR_ID",
 			             "VECTOR_INDEX",
 			             "VECTOR_VALUE")
@@ -399,7 +399,7 @@ withinss.FLKMeans<-function(object){
 	}
 	else
 	{
-		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table," 
+		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 						SELECT ",max_vector_id_value,
 								",fzzlKMeansClusterID.ClusterID
 								 ,CAST(sum(power((",object@deeptablename,".Num_Val - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER)  
@@ -415,8 +415,8 @@ withinss.FLKMeans<-function(object){
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
+			             getOption("ResultDatabaseFL"),
+			             getOption("ResultVectorTableFL"),
 			             "VECTOR_ID",
 			             "VECTOR_INDEX",
 			             "VECTOR_VALUE")
@@ -448,7 +448,7 @@ betweenss.FLKMeans<-function(object){
 	}
 	else
 	{
-		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table," 
+		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 						SELECT ",max_vector_id_value,
 							   ",1,
 						 		CAST(sum(power((a.valavg - fzzlKMeansDendrogram.Centroid),2)) AS NUMBER) 
@@ -468,8 +468,8 @@ betweenss.FLKMeans<-function(object){
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
+			             getOption("ResultDatabaseFL"),
+			             getOption("ResultVectorTableFL"),
 			             "VECTOR_ID",
 			             "VECTOR_INDEX",
 			             "VECTOR_VALUE")
@@ -500,7 +500,7 @@ totss.FLKMeans<-function(object){
 	}
 	else
 	{
-		sqlstr<-paste0("INSERT INTO ",result_db_name,".",result_vector_table," 
+		sqlstr<-paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 						SELECT ",max_vector_id_value,
 							   ",1,
 							    CAST(sum(power((",object@deeptablename,".Num_Val - a.valavg),2)) AS NUMBER) 
@@ -513,8 +513,8 @@ totss.FLKMeans<-function(object){
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
+			             getOption("ResultDatabaseFL"),
+			             getOption("ResultVectorTableFL"),
 			             "VECTOR_ID",
 			             "VECTOR_INDEX",
 			             "VECTOR_VALUE")
@@ -554,7 +554,7 @@ size.FLKMeans<-function(object)
 	}
 	else
 	{
-		sqlstr <- paste0("INSERT INTO ",result_db_name,".",result_vector_table," 
+		sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 						  SELECT ",max_vector_id_value,
 						         ",CAST(SUBSTRING(clusterid FROM POSITION('-' IN clusterid )+1 ) AS INTEGER)  
 								  ,COUNT(ObsID) 
@@ -567,8 +567,8 @@ size.FLKMeans<-function(object)
 		max_vector_id_value <<- max_vector_id_value + 1
 		
 		table <- FLTable(connection,
-			             result_db_name,
-			             result_vector_table,
+			             getOption("ResultDatabaseFL"),
+			             getOption("ResultVectorTableFL"),
 			             "VECTOR_ID",
 			             "VECTOR_INDEX",
 			             "VECTOR_VALUE")

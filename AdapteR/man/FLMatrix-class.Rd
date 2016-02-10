@@ -3,13 +3,21 @@
 \docType{class}
 \name{FLMatrix-class}
 \alias{FLMatrix-class}
-\title{An S4 class to represent FLMatrix}
+\title{An S4 class to represent FLMatrix.
+A Matrix can be either based off a query from a deep table (customizable by any where-condition)
+-- or based off an arbitrary SQL statement returning a deep table.}
 \description{
-An S4 class to represent FLMatrix
+An S4 class to represent FLMatrix.
+A Matrix can be either based off a query from a deep table (customizable by any where-condition)
+-- or based off an arbitrary SQL statement returning a deep table.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{dimnames}}{list dimension names of FLMatrix object}
+\item{\code{dimnames}}{list of 2 elements with row, column names of FLMatrix object}
+
+\item{\code{dimnames}}{list of 2 elements with row, column names of FLMatrix object}
+
+\item{\code{dimmap}}{list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R}
 }}
 

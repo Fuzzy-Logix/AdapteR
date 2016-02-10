@@ -66,7 +66,7 @@ diag.FLVector <- function(object)
 
         sqlstr <- paste(sapply(1:value,FUN=function(i)
         				paste0(" INSERT INTO ",
-        				getRemoteTableName(result_db_name,result_matrix_table),
+        				getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultMatrixTableFL")),
         				" SELECT ",MID,",",
         						   i,",",
         						   i,",",
@@ -77,8 +77,8 @@ diag.FLVector <- function(object)
 
 		return(FLMatrix( 
 		 	        connection = connection, 
-		 	        database = result_db_name, 
-		 	        matrix_table = result_matrix_table, 
+		 	        database = getOption("ResultDatabaseFL"), 
+		 	        matrix_table = getOption("ResultMatrixTableFL"), 
 		 	        matrix_id_value = MID,
 			        matrix_id_colname = "MATRIX_ID", 
 			        row_id_colname = "rowIdColumn", 
@@ -108,7 +108,7 @@ diag.FLVector <- function(object)
 			{
 		        sqlstr <- paste(sapply(1:length(object),FUN=function(i)
 		        				paste0(" INSERT INTO ",
-		        				getRemoteTableName(result_db_name,result_matrix_table),
+		        				getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultMatrixTableFL")),
 		        				" SELECT ",MID,",",
 		        						   i,",",
 		        						   i,",",
@@ -120,8 +120,8 @@ diag.FLVector <- function(object)
 
 				return(FLMatrix( 
 				 	        connection = connection, 
-				 	        database = result_db_name, 
-				 	        matrix_table = result_matrix_table, 
+				 	        database = getOption("ResultDatabaseFL"), 
+				 	        matrix_table = getOption("ResultMatrixTableFL"), 
 				 	        matrix_id_value = MID,
 					        matrix_id_colname = "MATRIX_ID", 
 					        row_id_colname = "rowIdColumn", 

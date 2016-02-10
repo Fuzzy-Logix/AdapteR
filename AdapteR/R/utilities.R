@@ -5,7 +5,7 @@ NULL
 getRemoteTableName <- function(databaseName,
                                tableName) {
 ## gk: todo: use options(...) and start  session if required
-##    if(is.null(result_matrix_table))
+##    if(is.null(getOption("ResultMatrixTableFL")))
 ##        FLStartSession()
        
     return(paste0(databaseName,".",tableName))
@@ -24,10 +24,12 @@ sqlError <- function(e){
 if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
 
 sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
-sqlQuery.default <- RODBC::sqlQuery
+## gk: this made packaging fail here, as I cannot install RODBC, and
+##then it is unknown. Can we do a package check? We need to discuss
+##this.
+## sqlQuery.default <- RODBC::sqlQuery
 
 options(debugSQL=TRUE)
-# FLdebugSQL <<- TRUE
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
         ##browser()
@@ -197,9 +199,9 @@ genRandVarName <- function(){
 
 FLodbcClose <- function(connection)
 {
-	sqlstr <- c(paste0("DROP TABLE ",result_matrix_table,";"),
-                        paste0("DROP TABLE ",result_Sparsematrix_table,";"),
-                        paste0("DROP TABLE ",result_vector_table,";"))
+	sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
+                        paste0("DROP TABLE ",getOption("ResultSparseMatrixTableFL"),";"),
+                        paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"))
 
 	if(length(tempDecompTableVector)>0)
 	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
@@ -229,24 +231,23 @@ FLStartSession <- function(connection,
 				     CHECKSUM = DEFAULT,
 				     DEFAULT MERGEBLOCKRATIO")
 {
-    result_db_name <<- db_name
+    options(ResultDatabaseFL=db_name)
 ##    browser()
-	result_db_name <<- db_name
-	result_matrix_table <<- gen_table_name("tblMatrixMultiResult",persistent)
-	result_Sparsematrix_table <<- gen_table_name("tblMatrixMultiSparseResult",persistent)
+    options(ResultVectorTableFL=gen_table_name("tblVectorResult",persistent))
+    options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult",persistent))
+    options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
     sendqueries <- c(
-        paste0("DATABASE ",result_db_name,";"),
+        paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
         paste0("SET ROLE ALL;"))
     sqlSendUpdate(connection, sendqueries)
 
 
-    result_vector_table <<- gen_table_name("tblVectorResult",persistent)
     tempDecompTableVector <<- c()
 
     if(drop){
-    	sqlstr <- c(paste0("DROP TABLE ",result_matrix_table,";"),
-                        paste0("DROP TABLE ",result_Sparsematrix_table,";"),
-                        paste0("DROP TABLE ",result_vector_table,";"))
+    	sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
+                        paste0("DROP TABLE ",getOption("ResultSparseMatrixTableFL"),";"),
+                        paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"))
 
     	if(length(tempDecompTableVector)>0)
     	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
@@ -256,7 +257,7 @@ FLStartSession <- function(connection,
     
     sendqueries <- c(
         paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               result_matrix_table,
+               getOption("ResultMatrixTableFL"),
                tableoptions,
 				"     (
 				      MATRIX_ID INTEGER,
@@ -265,7 +266,7 @@ FLStartSession <- function(connection,
 					  valueColumn FLOAT)
 	    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
         paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               result_Sparsematrix_table,
+               getOption("ResultSparseMatrixTableFL"),
                tableoptions,
                "
 				     (
@@ -275,7 +276,7 @@ FLStartSession <- function(connection,
 					  valueColumn FLOAT)
 	    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
         paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               result_vector_table,
+               getOption("ResultVectorTableFL"),
                tableoptions,
                "
 			 		 ( vectorIdColumn INT, 
@@ -332,16 +333,16 @@ setGeneric("getMaxMatrixId", function(vconnection,...) {
 setMethod("getMaxMatrixId",
           signature(vconnection="RODBC"),
           function(vconnection,...) 
-          getMaxId(vdatabase=result_db_name,
-          			  vtable=result_matrix_table,
+          getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+          			  vtable=getOption("ResultMatrixTableFL"),
           			  vcolName="MATRIX_ID",
           			  vconnection=vconnection)
           )
 setMethod("getMaxMatrixId",
           signature(vconnection="JDBCConnection"),
           function(vconnection,...) 
-          getMaxId(vdatabase=result_db_name,
-          			  vtable=result_matrix_table,
+          getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+          			  vtable=getOption("ResultMatrixTableFL"),
           			  vcolName="MATRIX_ID",
           			  vconnection=vconnection)
           )
@@ -354,17 +355,17 @@ setGeneric("getMaxVectorId", function(vconnection,...) {
 setMethod("getMaxVectorId",
           signature(vconnection="RODBC"),
           function(vconnection,...) 
-          getMaxId(vdatabase=result_db_name,
-          			  vtable=result_vector_table,
-          			  vcolName="vectorIdColumn",
+          getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+          			  vtable=getOption("ResultVectorTableFL"),
+          			  vcolName="VECTOR_ID",
           			  vconnection=vconnection)
           )
 setMethod("getMaxVectorId",
           signature(vconnection="JDBCConnection"),
           function(vconnection,...) 
-          getMaxId(vdatabase=result_db_name,
-          			  vtable=result_vector_table,
-          			  vcolName="vectorIdColumn",
+          getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+          			  vtable=getOption("ResultVectorTableFL"),
+          			  vcolName="VECTOR_ID",
           			  vconnection=vconnection)
           )
 
@@ -406,10 +407,10 @@ flag1Check <- function(connection)
     return(TRUE)
 	if(flag1==0)
 	{
-		sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+		sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
 		temp <- sqlQuery(connection,
-			 			paste0(" CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
+			 			paste0(" CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),", FALLBACK ,
 							     NO BEFORE JOURNAL,
 							     NO AFTER JOURNAL,
 							     CHECKSUM = DEFAULT,
@@ -424,10 +425,10 @@ flag1Check <- function(connection)
 	 	if(temp!="No Data" || length(temp)!=1) 
 	 	{
 	 		sqlQuery(connection, 
-	 				 paste0("DROP TABLE ",result_db_name,".",result_matrix_table))
+	 				 paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")))
 
 	 		sqlQuery(connection,
-					 paste0("CREATE TABLE ",result_db_name,".",result_matrix_table,", FALLBACK ,
+					 paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL"),", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
 						     CHECKSUM = DEFAULT,
@@ -448,10 +449,10 @@ flag2Check <- function(connection)
     return(TRUE)
 	if(flag2==0)
  	{
- 		sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+ 		sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
  		temp <- sqlQuery(connection,
-						 paste0(" CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
+						 paste0(" CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
 							     NO BEFORE JOURNAL,
 							     NO AFTER JOURNAL,
 							     CHECKSUM = DEFAULT,
@@ -466,10 +467,10 @@ flag2Check <- function(connection)
  		if(temp!="No Data" || length(temp)!=1) 
  		{
  			sqlQuery(connection, 
- 					 paste0("DROP TABLE ",result_db_name,".",result_Sparsematrix_table))
+ 					 paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL")))
 
  			sqlQuery(connection,
-					 paste0("CREATE TABLE ",result_db_name,".",result_Sparsematrix_table,", FALLBACK ,
+					 paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
 						     CHECKSUM = DEFAULT,
@@ -490,10 +491,10 @@ flag3Check <- function(connection)
     return(TRUE)
 	if(flag3==0)
 	{
-		sqlQuery(connection,paste0(" DATABASE ",result_db_name,"; SET ROLE ALL;"))
+		sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
 	 	temp <- sqlQuery(connection,
-	 					 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
+	 					 paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 	 					 		 ( VECTOR_ID INT, 
 	 					 		   VECTOR_INDEX INT, 
 	 					 		   VECTOR_VALUE VARCHAR(20) )
@@ -501,10 +502,10 @@ flag3Check <- function(connection)
 	 	if(temp != TRUE || length(temp)!=1) 
 	 	{
 	 		sqlQuery(connection,
-	 				 paste0("DROP TABLE ",result_db_name,".",result_vector_table))
+	 				 paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")))
 
 	 		sqlQuery(connection,
-	 		 		 paste0("CREATE TABLE ",result_db_name,".",result_vector_table," 
+	 		 		 paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")," 
 	 		 		 		( VECTOR_ID INT,
 	 		 		 		  VECTOR_INDEX INT,
 	 		 		 		  VECTOR_VALUE VARCHAR(20) )
