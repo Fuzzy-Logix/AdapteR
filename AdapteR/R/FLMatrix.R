@@ -67,9 +67,6 @@ setMethod("store",
           signature(object = "FLMatrix",returnType="missing",connection="missing"),
           function(object) store.FLMatrix(object))
 setMethod("store",
-          signature(object = "FLMatrixBind",returnType="missing",connection="missing"),
-          function(object) store.FLMatrix(object))
-setMethod("store",
           signature(object = "character",returnType="character",connection="RODBC"),
           function(object,returnType,connection) store.character(object,returnType,connection))
 setMethod("store",
@@ -533,9 +530,8 @@ FLMatrix <- function(connection,
 					 row_id_colname = "rowIdColumn", 
 					 col_id_colname = "colIdColumn", 
 					 cell_val_colname = "valueColumn", 
-                     nrow=0,
-                     ncol=0,
-					 dimnames = NULL,
+                     dim=NULL,
+                     dimnames = NULL,
                      conditionDims=c(FALSE,FALSE),
                      whereconditions=c("")){
     ##browser()
@@ -564,7 +560,8 @@ FLMatrix <- function(connection,
                 paste0("SELECT unique(",
                        row_id_colname,") as rownames\n",
                        "FROM  ",getRemoteTableName(database,matrix_table),
-                       constructWhere(constraintsSQL(select))))$rownames)
+                       constructWhere(constraintsSQL(select)),
+                       "\nORDER 1"))$rownames)
         ## gk: max is broken, eg. ?
         ## FLMatrix(connection,"FL_TRAIN","tblmatrixMulti",3)
         ## if(is.numeric(rownames) && length(rownames)!=max(rownames))
@@ -575,22 +572,18 @@ FLMatrix <- function(connection,
                 connection, 
                 paste0("SELECT unique(",col_id_colname,") as colnames\n",
                        "FROM\n ",getRemoteTableName(database,matrix_table),
-                       constructWhere(constraintsSQL(select))))$colnames)
+                       constructWhere(constraintsSQL(select)),
+                       "\nORDER 1"))$colnames)
         ## if(is.numeric(colnames) && length(colnames)!=max(colnames))
         ##     colnames <- base::union(1:max(colnames),colnames)
-        
+        browser()
         dimnames <- list(rownames,colnames)
     }
     
-    ##browser()
-    ## if(length(dimnames)!=0 && ((length(dimnames[[1]])!=0 && length(dimnames[[1]])!=nrow) ||
-    ##                            (length(dimnames[[2]])!=0 && length(dimnames[[2]])!=nrow)))
-    ## {
-    ##     stop(" ERROR in dimnames: length of dimnames not equal to array extent ")
-    ## }
     RESULT <- new(
         "FLMatrix",
         select = select,
+        dim = dim,
         dimnames = dimnames)
 
     

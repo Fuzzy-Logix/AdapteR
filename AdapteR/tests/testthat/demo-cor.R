@@ -31,7 +31,7 @@ connection <- tdConnect("10.200.4.116",
 ls()
 
 
-options(debugSQL=FALSE)
+options(debugSQL=TRUE)
 FLStartSession(connection)
 
 

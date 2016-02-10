@@ -7,7 +7,7 @@
 FLMatrix(connection, database = getOption("ResultDatabaseFL"), matrix_table,
   matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
-  cell_val_colname = "valueColumn", nrow = 0, ncol = 0, dimnames = NULL,
+  cell_val_colname = "valueColumn", dim = NULL, dimnames = NULL,
   conditionDims = c(FALSE, FALSE), whereconditions = c(""))
 }
 \arguments{
