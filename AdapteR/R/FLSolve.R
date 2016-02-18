@@ -38,8 +38,8 @@ solve.FLMatrix <- function(pObj1)
 
 	flag1Check(connection)
 
-  sqlstr<-paste0(viewSelectMatrix(pObj1, "a", withName="z"),
-                 outputSelectMatrix("FLMatrixInvUdt", viewName="z", localName="a",
+  sqlstr<-paste0(viewSelectMatrix(pObj1, "mtrx", withName="z"),
+                 outputSelectMatrix("FLMatrixInvUdt", viewName="z", localName="mtrx",
                                     includeMID=TRUE,vconnection=connection)
                 )
 

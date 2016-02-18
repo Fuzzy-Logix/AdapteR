@@ -67,7 +67,7 @@ cor.FLMatrix <- function(x,y=x)
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 								a,".colIdColumn AS rowIdColumn,",
 								b,".colIdColumn AS colIdColumn,",
-							 x@select@db_name,".FLCorrel(",a,".valueColumn,",
+							 x@select@database,".FLCorrel(",a,".valueColumn,",
 							 					  b,".valueColumn) AS valueColumn 
 						FROM ( ",constructSelect(x),") AS ",a,
 		                  ",( ",constructSelect(y),") AS ",b,
@@ -75,7 +75,7 @@ cor.FLMatrix <- function(x,y=x)
             			" GROUP BY ",a,".colIdColumn,",b,".colIdColumn")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                odbc_connection = connection,
+                connection = connection,
                 variables=list(
                     rowIdColumn="rowIdColumn",
                     colIdColumn="colIdColumn",
@@ -85,10 +85,11 @@ cor.FLMatrix <- function(x,y=x)
                 SQLquery=sqlstr)
 
 		flm <- new("FLMatrix",
-		            select= tblfunqueryobj,
+                           select= tblfunqueryobj,
+                           dim=c(ncol(x),ncol(y)),
 		            dimnames = list(
-                      colnames(x),
-                      colnames(y)))
+                                colnames(x),
+                                colnames(y)))
 		return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y),
 							pOperator="cor"))

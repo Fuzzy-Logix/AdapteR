@@ -49,6 +49,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		a <- genRandVarName()
 		b <- genRandVarName()
 		dimnames <- dimnames(pObj1)
+                dims <- dim(pObj1)
 
 		if(pOperator %in% c("%%","/","*"))
 		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
@@ -86,7 +87,9 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	                        constructWhere(paste0(a,".colIdColumn = ",b,".rowIdColumn")),
 	                        " GROUP BY 1,2,3")
 			dimnames <- list(dimnames(pObj1)[[1]],
-			            	dimnames(pObj2)[[2]])
+                                         dimnames(pObj2)[[2]])
+                        dims <- c(dim(pObj1)[[1]],
+                                  dim(pObj2)[[2]])
 		}
 
 		if(pOperator %in% c("+","-"))
@@ -140,10 +143,10 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
-
 		flm <- new("FLMatrix",
-		            select= tblfunqueryobj,
-		            dimnames=dimnames)
+                           select= tblfunqueryobj,
+                           dim=dims,
+                           dimnames=dimnames)
 
 		return(ensureQuerySize(pResult=flm,
 						pInput=list(pObj1,pObj2),

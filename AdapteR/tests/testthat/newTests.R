@@ -19,8 +19,6 @@ if(!exists("connection")){
 
 FLStartSession(connection)
 
-ignoreDimNames <- TRUE
-
 options(debugSQL=FALSE)
 
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
@@ -80,7 +78,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
                           WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
   flm <- FLMatrix(connection,
               database          = "FL_DEMO",
-              matrix_table      = "test_matrixtable_AdapteR",
+              table_name = "test_matrixtable_AdapteR",
               matrix_id_value   = 1,
               matrix_id_colname = "Matrix_ID",
               row_id_colname    = "Row_ID",
