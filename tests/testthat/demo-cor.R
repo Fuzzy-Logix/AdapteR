@@ -1,35 +1,8 @@
-##################################################################
-## Starting a session
-##
-## loading AdapteR
-require(AdapteR)
 
-## Unit tests for all functions
-require(testthat)
+## This script is for demoing the AdapteR Matrix capabilities
+## startup and setup:
+source("./setup-jdbc.R")
 
-
-## ODBJ and JDBC is supported
-## here we use jdbc
-library(RJDBC) 
-## the jdbc driver from teradata developer network
-## add jdbc driver and security jars to classpath
-.jaddClassPath("/Users/gregor/fuzzylogix/terajdbc4.jar")
-.jaddClassPath("/Users/gregor/fuzzylogix/tdgssconfig.jar")
-library(teradataR)
-
-connection <- tdConnect("10.200.4.116",
-                        "gkappler",
-                        yourPassword,
-                        database="FL_DEMO",
-                        dType="jdbc")
-## need to add class path twice (recurring problem in MAC as of:
-## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
-## note: wait for some time before rerunning?
-
-
-options(debugSQL=TRUE)
-
-FLStartSession(connection)
 
 
 ## a in-memory matrix in R 
@@ -41,7 +14,7 @@ FLStartSession(connection)
 
 ## Subsetting
 ## a row
-(m1 <- m[1,])
+(m[1,])
 
 ## Subsetting
 ## a column
@@ -64,19 +37,14 @@ m[2:5,4:5]
                               connection))
 
 
-## you can run above functions on m=flMatrix again!
-
-
-
-
-
-
-
+## you can run above functions on m=flMatrix again with identical results!
 
 
 #############################################################
 ## For in-database analytix the matrix is in the warehouse
 ## to begin with.
+dbGetQuery(connection,
+           "select top 10 * from FL_DEMO.finEquityReturns")
 ## 
 ## A remote matrix is easily created by specifying
 ##
@@ -84,7 +52,7 @@ m <-
  eqnRtn <- FLMatrix(
          connection,
          database          = "FL_DEMO",
-         matrix_table      = "finEquityReturns",
+         table_name  = "finEquityReturns",
          matrix_id_value   = "",
          matrix_id_colname = "",
          row_id_colname    = "TxnDate",
@@ -92,34 +60,32 @@ m <-
          cell_val_colname  = "EquityReturn")
 
 
-dbGetQuery(connection,
-           "select top 10 * from FL_DEMO.finEquityReturns")
-
-## you can run above functions on m=Equity Returns Example again!
-
 ## this is a rather large matrix
 dim(eqnRtn)
+
+
+## you can run above functions on m=Equity Returns Example again!
 
 ## with ticker columns and date rows
 (randomstocks <- sample(colnames(eqnRtn), 20))
 
 head(dates <- rownames(eqnRtn))
 
-## Inspecting Data is compressed in R with matrix syntax:
+## Inspecting subsets of data in R with matrix subsetting syntax:
 dec2006 <- grep("2006-12",dates)
 eqnRtn[dec2006, "MSFT"]
 
-
+## NO SQL is sent during the definition of subsetting
 E <- eqnRtn[dec2006, randomstocks]
-
-E
+## Data is fetched on demand only, e.g. when printing
+print(E)
 
 
 
 
 ###########################################################
 ## Correlation Matrix
-## The SQL-through R way to a la Manual:
+## The SQL-through R way to compute a correlation matrix with DB Lytix:
 dbGetQuery(connection, "
 SELECT a.TickerSymbol           AS Ticker1,
         b.TickerSymbol           AS Ticker2,
@@ -140,30 +106,27 @@ ORDER BY 1, 2;")
 ## The AdapteR way to compute a correlation matrix
 ## from a matrix with correlated random variables in columns:
 ## (transparently creating a SQL query a la Manual):
-randomstocks <- c('AAPL','HPQ','IBM','MSFT','ORCL')
-
-rEqnRtn <- as.matrix(eqnRtn[,randomstocks])
-rEqnRtn <- na.omit(rEqnRtn)
-
-rCorr <- cor(rEqnRtn[,c('AAPL','MSFT')],
-             rEqnRtn[,randomstocks])
-round(rCorr,2)
-
-
-
-
 flCorr <- cor(eqnRtn[,c('AAPL','MSFT')],
-              eqnRtn[,randomstocks])
-round(flCorr,2)
+              eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 
 
-options(debugSQL = TRUE)
-M <- cor(eqnRtn[,randomstocks])
-M
 
-## And of course you can now use the full power of
-## tens of thousands of R packages, e.g.
-##
+round(as.matrix(flCorr),2)
+
+{
+    rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
+    rEqnRtn <- na.omit(rEqnRtn)
+
+    rCorr <- cor(rEqnRtn[,c('AAPL','MSFT')],
+                 rEqnRtn)
+    round(rCorr,2)
+}
+
+
+
+## And of course you can now use  
+## thousands of R packages to operate on DB Lytix results, e.g. 
+M <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 require(gplots)
 heatmap.2(as.matrix(M),
           symm=TRUE, 
@@ -173,62 +136,14 @@ heatmap.2(as.matrix(M),
           cexCol = 1,
           cexRow = 1)
 
-## From this we will see an interactive "shiny" demo
-
-
 ###########################################################
+## Shiny Correlation Plot Demo
 ##
-## -- but first a look under the hood:
-##
-## memory consumption
-##
-Nstocks <- 100
-subEqnRtn <- eqnRtn[, sample(colnames(eqnRtn),Nstocks)]
-dim(eqnRtn)
-dim(subEqnRtn)
-
-## only dimension names are in local memory:
-print(object.size(eqnRtn),units = "Kb")
-print(object.size(eqnRtn@dimnames),units = "Kb")
-print(object.size(subEqnRtn),units = "Kb")
-print(object.size(subEqnRtn@dimnames),units = "Kb")
-
-## Download a subset of the remote Table into R Memory
-## rEqnRtn <- as.matrix(subEqnRtn)
-
-## compare memory consumption:
-print(object.size(rEqnRtn),units = "Kb")
-dim(rEqnRtn)
-
-##
-## SQL construction
-## with this option each R command that uses DBLytix will log
-## the SQL sent to Teradata.
-## Such a dump can in many cases be used as a pure-sql script!
-options(debugSQL=TRUE)
-
-## Try some commands above 
-
-## BTW:
-E <- subEqnRtn
-## where clauses are dynamically constructed
-constructWhere(constraintsSQL(E))
-## dynamic where clauses support local names
-## so that SQL can be constructed flexibly
-constructWhere(constraintsSQL(E,"a"))
-
-
-###########################################################
-## Finally the
-## Shiny Demo
-##
-## metadata can be quickly combined on the client
+## metadata can be easily combined on the client
 metaInfo <- read.csv("/Users/gregor/Downloads/companylist.csv")
 table(metaInfo$industry)
 table(metaInfo$Sector)
 
-## BTW: there is more demo after shiny: matrix inversion and multiplication
-randomstocks <- c('AAPL','HPQ','IBM','MSFT','ORCL')
 require(R.utils)
 require(shiny)
 shinyApp(
@@ -270,13 +185,60 @@ shinyApp(
                           col=redgreen(100),
                           cexCol = 1,
                           cexRow = 1)
-                ## hmap(flCorr,
-                ##      method="OLO", distfun = dist_cor,
-                ##      col=greenred(100), labRow=FALSE)
-            }, timeout = 10)
+            }, timeout = 0)
         }, height=1200)
     }
 )
+
+
+
+##
+## SQL construction
+## with this option each R command that uses DBLytix will log
+## the SQL sent to Teradata.
+## Such a dump can in many cases be used as a pure-sql script!
+options(debugSQL=TRUE)
+## Try some commands above 
+
+###########################################################
+##
+## A look under the hood:
+##
+## memory consumption
+##
+Nstocks <- 100
+subEqnRtn <- eqnRtn[, sample(colnames(eqnRtn),Nstocks)]
+rEqnRtn <- as.matrix(subEqnRtn)
+dim(eqnRtn)
+dim(subEqnRtn)
+
+## only dimension names are in local memory:
+cat(paste0("Total client memory size for remote equity return table\n"))
+print(object.size(eqnRtn),units = "Kb")
+cat(paste0("dimnames client memory size for remote equity return table\n"))
+print(object.size(eqnRtn@dimnames),units = "Kb")
+cat(paste0("total client memory size for subset of remote equity return table\n"))
+print(object.size(subEqnRtn),units = "Kb")
+cat(paste0("dimnames client memory size for subset of remote equity return table\n"))
+print(object.size(subEqnRtn@dimnames),units = "Kb")
+
+## Download a subset of the remote Table into R Memory
+## rEqnRtn <- as.matrix(subEqnRtn)
+
+## compare memory consumption:
+cat(paste0("dimnames client memory size for r matrix with subset of equity return table\n"))
+print(object.size(rEqnRtn),units = "Kb")
+
+
+
+
+## BTW:
+E <- subEqnRtn
+## where clauses are dynamically constructed
+cat(constructWhere(constraintsSQL(E)))
+## dynamic where clauses support local names
+## so that SQL can be constructed flexibly
+
 
 
 ###########################################################
@@ -304,38 +266,23 @@ ORDER BY 1,2,3;")
 
 m <- FLMatrix(connection,
               database          = "FL_DEMO",
-              matrix_table      = "tblMatrixMulti",
+              table_name= "tblMatrixMulti",
               matrix_id_colname = "Matrix_ID",
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
-dim(m)
 
-constructSelect(m)
-
-m.r <- as.matrix(m)
-
+## compute the inverse
 ms <- solve(m)
-dim(ms)
-#ms
-#m.r
 
+## check is R and DB Lytix results match up:
+m.r <- as.matrix(m) ## download and convert to R matrix
 expect_equal(as.matrix(ms), solve(m.r))
 
-m %*% solve(m)
-
-## gk: todo: do not fetch names
+## Matrix multiplication witrh inverse results in identity
 round(as.matrix(m %*% ms))
 
-## many functions provide important
-## functions on matrices
-
-## multiplication
-2*m[2:5,4:5]
-
-## matrix multiplication
-m[2:5,4:5] %*% m[4:5,2:5]
 
 
 

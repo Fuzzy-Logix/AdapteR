@@ -171,8 +171,9 @@ storeVarnameMapping <- function(connection,
                                 tablename,
                                 matrixId,
                                 dimId,
-                                names){
-    Ndim <- length(names)
+                                mynames){
+    Ndim <- length(mynames)
+    names(mynames) <- 1:Ndim
     sqlstatements <- paste0(
         " INSERT INTO ",
         getOption("MatrixNameMapTableFL"),
@@ -183,12 +184,13 @@ storeVarnameMapping <- function(connection,
         "'",tablename,"', ",
         "'",matrixId,"', ",
         dimId,", ",
-        "'",names,"', ",
-        1:Ndim,
+        "'",mynames,"', ",
+        names(mynames),
         ");")
     retobj<-sqlSendUpdate(connection,
                           paste(sqlstatements,
                                 collapse="\n"))
+    return(mynames)
 }
 
 
@@ -244,13 +246,13 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                                     collapse="\n"))
         mydimnames <- dimnames(object)
         mydims <- dim(object)
-        print(mydimnames)
-
+        ##print(mydimnames)
+        
         mapTable <- NULL
         for(i in 1:length(mydimnames))
             if(is.character(mydimnames[[i]])){
                 mapTable <- getOption("MatrixNameMapTableFL")
-                storeVarnameMapping(
+                mydimnames[[i]] <- storeVarnameMapping(
                     connection,
                     mapTable,
                     MID,
@@ -358,58 +360,14 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
               as.FLMatrix.FLVector(object,connection=getConnection(object),sparse=TRUE,rows,cols,...))
 
 
-getConditionValues <- function(selection,names){
-    FLNameMatch(selection,names)
-    ## if(is.null(selection))
-    ##     return(c())
-    ## if(is.numeric(selection) & !is.null(names))
-    ##     newrownames <- names[selection]
-    ## else if(FLNamesMappedP(object)){
-    ##     if(is.character(selection) & is.character(names))
-    ##         newrownames <- match(selection,names)
-    ##     if(is.character(selection) & is.character(names))
-    ##         newrownames <- match(selection,names)
-        
-    ## }
-    ## else newrownames <- selection
-    ## return(newrownames)
-}
-FLName <- function(i,thenames){
-    if(is.null(i))
-        return(thenames)
-    if(is.null(thenames))
-        return(i)
-    if(is.numeric(i)){
-        ##browser()
-        RR <- thenames[i]
-        if(is.null(names(RR)))
-            names(RR) <- i
-        return(RR)
-    }
-    names(i) <- match(i,thenames)
-    return(i)
-}
-FLNameMatch <- function(i,thenames,FLindex=TRUE){
-    if(is.null(thenames))
-        return(i)
-    if(is.character(thenames) & is.numeric(i)){
-        if(is.null(names(thenames)))
-            return(i)
-        if(FLindex)
-            return(names(thenames)[i])
-        else
-            return(match(i,names(thenames)))
-    }
-    return(match(i,thenames))
-}
 as.sparseMatrix.FLMatrix <- function(object) {
     ##browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     valuedf <- sqlQuery(getConnection(object), sqlstr)
     i <- valuedf$rowIdColumn
     j <- valuedf$colIdColumn
-    i <- FLNameMatch(i,rownames(object),FLindex=FALSE)
-    j <- FLNameMatch(j,colnames(object),FLindex=FALSE)
+    i <- FLIndexOf(i,rownames(object))
+    j <- FLIndexOf(j,colnames(object))
 
   dn <- dimnames(object)
  ##  for(index in 1:2){
@@ -422,7 +380,8 @@ as.sparseMatrix.FLMatrix <- function(object) {
  ##      if(is.null(dn[[index]]))
  ##          dn[[index]] <- 1:dim(object)[[index]]
  ##  }
- ## ##browser()
+    if(any(is.na(c(i,j))))
+        browser()
   values <- valuedf$valueColumn
   if(is.null(values))
       m <- sparseMatrix(i = i,

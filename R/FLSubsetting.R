@@ -13,7 +13,7 @@ NULL
 #'
 #' \code{[]} acts on FLMatrix objects and extracts parts of them.
 #'
-#' 
+#'
 #' @param object is a FLMatrix object
 #' @param rows is a vector input corresponding to rows to be extracted
 #' @param cols is a vector input corresponding to columns to be extracted
@@ -40,12 +40,12 @@ NULL
     ##                                           constraintsSQL(object)),
     ##                                       " ORDER BY ",object@matrix_id_colname,",",getVariables(object)$colIdColumn,",",getVariables(object)$rowIdColumn))[[1]][rows])
 	## }
-    
-    
+
+
     newrownames <- rows
     newcolnames <- cols
 
-    if(missing(cols)) 
+    if(missing(cols))
     {
         if (missing(rows)) return(object)
         else return(restrictFLMatrix(
@@ -78,7 +78,7 @@ NULL
 #'
 #' \code{[]} acts on FLMatrix objects and extracts parts of them.
 #'
-#' 
+#'
 #' @param object is a FLMatrix object
 #' @param rows is a vector input corresponding to rows to be extracted
 #' @param cols is a vector input corresponding to columns to be extracted
@@ -104,7 +104,7 @@ NULL
         newcolnames <- cols
 
     ##browser()
-    if(missing(cols)) 
+    if(missing(cols))
     {
         if (!missing(rows)) {
             if(!setequal(object@dimnames[[1]],
@@ -130,7 +130,7 @@ NULL
                                      object@select@table_name,".",
                                      getVariables(object)$var_id_colname),
                               object@dimnames[[2]]))
-        } 
+        }
     } else {  ## !missing(cols) and !missing(rows)
         ##browser()
         if(!setequal(object@dimnames[[1]], newrownames))
@@ -163,7 +163,7 @@ NULL
 #'
 #' \code{[]} acts on FLVector objects and extracts parts of them.
 #'
-#' 
+#'
 #' @param pObj is a FLVector object
 #' @param pSet is a vector representing the indices of elements to extract
 #' @return \code{[]} returns FLVector object after extraction
@@ -221,7 +221,7 @@ NULL
                                         #             vTemp<-paste(vTemp,collapse=" ")
                                         # 		}
 
-                                        # 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj), 
+                                        # 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj),
                                         #                          " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
 
                                         # 		vRetObj<-sqlQuery(getConnection(pObj),sqlstr)
@@ -242,8 +242,8 @@ NULL
                                         #             vTemp<-paste(vTemp,collapse=" ")
                                         # 		}
 
-                                        # 		sqlstr <- paste0("SELECT * 
-                                        # 						 FROM ",remoteTable(pObj), 
+                                        # 		sqlstr <- paste0("SELECT *
+                                        # 						 FROM ",remoteTable(pObj),
                                         #                          " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
 
                                         # 		vRetObj<-sqlQuery(getConnection(pObj),sqlstr)

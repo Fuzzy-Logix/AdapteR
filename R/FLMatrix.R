@@ -287,6 +287,59 @@ setMethod("constructSelect",
 
 FLNamesMappedP <- function(m) return(0<length(m@mapSelect@table_name))
 
+
+
+getConditionValues <- function(selection,names) FLNameMatch(selection,names)
+
+FLName <- function(i,thenames){
+    ##browser()
+    if(is.null(i))
+        return(thenames)
+    if(is.null(thenames)){
+        names(i) <- i
+        return(i)
+    }
+    if(is.numeric(i)){
+        RR <- thenames[i]
+        if(is.null(names(RR)) & !is.null(names(thenames)))
+            names(RR) <- names(thenames)[i]
+        return(RR)
+    }
+    i <- thenames[match(i,thenames)]
+    return(i)
+}
+
+FLNameMatch <- function(i,thenames){
+    ##browser()
+    if(is.null(thenames)){
+        return(i)
+    }
+    if(is.numeric(i)){
+        if(is.null(names(thenames))){
+            return(thenames[i])
+        } else {
+            return(names(thenames)[i])
+        } 
+    }
+    if(!is.null(names(thenames)))
+        return(names(thenames)[match(i,thenames)])
+    else
+        return(i)
+}
+
+FLIndexOf <- function(i,thenames){
+    if(is.null(thenames))
+        return(i)
+    if(!is.null(names(thenames))) ##FLindex?
+        return(match(i,names(thenames)))
+    else {
+        if(is.numeric(i))
+            return(i)
+        else
+            return(match(i,thenames))
+    }
+}
+
 #' Appends where clauses for subsetting etc.
 #'
 #' @export
@@ -339,11 +392,11 @@ restrictFLMatrix <-
 FLamendDimnames <- function(flm,map_table) {
     ##browser()
 
-    checkNames <- function(colnames){
+    checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
         if(length(colnames)==0) colnames <- NULL
-        if(!is.null(colnames) & is.null(names(colnames)))
+        if(addIndex & !is.null(colnames) & is.null(names(colnames)))
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
@@ -582,11 +635,11 @@ setGeneric("constraintsSQL", function(object) {
 })
 setMethod("constraintsSQL", signature(object = "FLMatrix"),
           function(object) {
-              return(constraintsSQL(object@select,localName))
+              return(constraintsSQL(object@select))
           })
 setMethod("constraintsSQL", signature(object = "FLTable"),
           function(object) {
-              return(constraintsSQL(object@select,localName))
+              return(constraintsSQL(object@select))
           })
 setMethod("constraintsSQL", signature(object = "FLVector"),
           function(object) {
@@ -636,13 +689,14 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         localName="character",
                                         withName="character"),
           function(object,localName, withName="z") {
+              names(object@select@table_name)[[1]] <- localName
               object <- orderVariables(
                   updateVariable(object,"Matrix_ID",-1),
                   c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn")
               )
               return(paste0(" WITH ",withName,
                             " (Matrix_ID, Row_ID, Col_ID, Cell_Val)
-              AS (",constructSelect(object,localName=localName)," ) "))
+              AS (",constructSelect(object)," ) "))
           })
 
 ## outputSelectMatrix apples function given by func_name to view given by viewname
