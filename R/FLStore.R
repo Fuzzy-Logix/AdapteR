@@ -20,14 +20,14 @@ store.FLMatrix <- function(object)
 
         sqlSendUpdate(getConnection(object),
                       vSqlStr)
-		return(FLMatrix(
+    return(FLMatrix(
             connection = getConnection(object),
-            database = getOption("ResultDatabaseFL"),
-            table_name = getOption("ResultMatrixTableFL"),
+            database = getOption("ResultDatabaseFL"), 
+            table_name = getOption("ResultMatrixTableFL"), 
             matrix_id_value = MID,
-            matrix_id_colname = "MATRIX_ID",
-            row_id_colname = "rowIdColumn",
-            col_id_colname = "colIdColumn",
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "rowIdColumn", 
+            col_id_colname = "colIdColumn", 
             cell_val_colname = "valueColumn",
             ))
     }
@@ -43,8 +43,8 @@ store.FLVector <- function(object)
     return(as.FLVector(object,connection))
   }
   vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(result_database,
-                                      result_vector_table),
+                    getRemoteTableName(getOption("ResultDatabaseFL"),
+                                      getOption("ResultVectorTableFL")),
                     "\n",
                    gsub("'%insertIDhere%'",VID,constructSelect(object)),
                     "\n")
@@ -52,14 +52,44 @@ store.FLVector <- function(object)
                   vSqlStr)
 
   table <- FLTable(getConnection(object),
-                   result_database,
-                   result_vector_table,
+                   getOption("ResultDatabaseFL"),
+                   getOption("ResultVectorTableFL"),
                    "vectorIndexColumn",
-                   whereconditions=paste0(result_database,".",result_vector_table,".vectorIdColumn = ",VID)
+                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
                   )
 
   return(table[,"vectorValueColumn"])
 }
+
+store.FLTable <- function(object)
+{
+  connection <- getConnection(object)
+  table_name <- gen_unique_table_name("store")
+  vSqlStr <- paste0(" CREATE TABLE ",
+                    getOption("ResultDatabaseFL"),".",table_name,
+                    " AS(",constructSelect(object),
+                    ") WITH DATA;")
+
+  sqlSendUpdate(connection,
+                  vSqlStr)
+
+  if(object@isDeep)
+  table <- FLTable(connection,
+                   getOption("ResultDatabaseFL"),
+                   table_name,
+                   "obs_id_colname",
+                   "var_id_colname",
+                   "cell_val_colname"
+                  )
+  else
+  table <- FLTable(connection,
+                   getOption("ResultDatabaseFL"),
+                   table_name,
+                   "obs_id_colname"
+                  )
+  return(table)
+}
+
 
 store.character <- function(object,returnType,connection)
 {
@@ -78,19 +108,19 @@ store.character <- function(object,returnType,connection)
 
     return(FLMatrix(
             connection = connection,
-            database = getOption("ResultDatabaseFL"),
-            table_name = getOption("ResultMatrixTableFL"),
+            database = getOption("ResultDatabaseFL"), 
+            table_name = getOption("ResultMatrixTableFL"), 
             matrix_id_value = MID,
-            matrix_id_colname = "MATRIX_ID",
-            row_id_colname = "rowIdColumn",
-            col_id_colname = "colIdColumn",
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "rowIdColumn", 
+            col_id_colname = "colIdColumn", 
             cell_val_colname = "valueColumn",
             ))
   }
 
   if(toupper(returnType)=="VECTOR")
   {
-
+    
     VID <- getMaxVectorId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
                       getRemoteTableName(getOption("ResultDatabaseFL"),
@@ -98,7 +128,7 @@ store.character <- function(object,returnType,connection)
                       "\n",
                       gsub("'%insertIDhere%'",MID,object),
                       "\n")
-
+    
     sqlSendUpdate(connection,
                   vSqlStr)
 
@@ -111,27 +141,4 @@ store.character <- function(object,returnType,connection)
 
     return(table[,"VECTOR_VALUE"])
   }
-}
-
-
-store.FLVector <- function(object)
-{
-  vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(getOption("ResultDatabaseFL"),
-                                      getOption("ResultVectorTableFL")),
-                    "\n",
-                    constructSelect(object),
-                    "\n")
-  sqlSendUpdate(getConnection(object),
-                  vSqlStr)
-  VID <- getMaxVectorId(getConnection(object))
-
-  table <- FLTable(getConnection(object),
-                   getOption("ResultDatabaseFL"),
-                   getOption("ResultVectorTableFL"),
-                   "VECTOR_INDEX",
-                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".VECTOR_ID = ",VID)
-                   )
-
-  return(table[,"VECTOR_VALUE"])
 }

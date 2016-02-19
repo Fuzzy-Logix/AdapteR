@@ -62,6 +62,7 @@ chol.FLMatrix<-function(object)
             pInput=list(object),
             pOperator="chol",
             pStoreResult=TRUE))
+	vResult <- store(vResult)
 
 	return(t(vResult))
 }

@@ -149,7 +149,7 @@ lu.FLMatrix<-function(object)
 				   row_id_colname = "OutputRowNum", 
 				   col_id_colname = "OutputColNum", 
 				   cell_val_colname = "OutputPermut",
-				   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputPermut IS NOT NULL "))
+				   whereconditions=paste0("mtrx.OutputPermut IS NOT NULL "))
 
 
 	# calculating l FLmatrix
@@ -162,7 +162,7 @@ lu.FLMatrix<-function(object)
 		   row_id_colname = "OutputRowNum", 
 		   col_id_colname = "OutputColNum", 
 		   cell_val_colname = "OutputValL",
-		   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputValL IS NOT NULL "))
+		   whereconditions=paste0("mtrx.OutputValL IS NOT NULL "))
 
 
 	# calculating U FLmatrix
@@ -175,7 +175,7 @@ lu.FLMatrix<-function(object)
 		   row_id_colname = "OutputRowNum", 
 		   col_id_colname = "OutputColNum", 
 		   cell_val_colname = "OutputValU",
-		   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputValU IS NOT NULL "))
+		   whereconditions=paste0("mtrx.OutputValU IS NOT NULL "))
 
 	# calculating perm FLVector
 	table <- FLTable(connection,

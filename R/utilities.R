@@ -27,7 +27,7 @@ sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
 ## gk: this made packaging fail here, as I cannot install RODBC, and
 ##then it is unknown. Can we do a package check? We need to discuss
 ##this.
-## sqlQuery.default <- RODBC::sqlQuery
+sqlQuery.default <- RODBC::sqlQuery
 
 options(debugSQL=TRUE)
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
@@ -363,9 +363,9 @@ setMethod("getMaxMatrixId",
 
 getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
                         vtable=getOption("ResultVectorTableFL"),
-                        vcolName="VECTOR_ID",
+                        vcolName="vectorIdColumn",
                         vconnection=vconnection){
-    R <- dbGetQuery(connection,
+    R <- sqlQuery(connection,
                     paste0("SELECT max(",
                            vcolName,")",
                            " FROM ",
@@ -385,16 +385,16 @@ setMethod("getMaxVectorId",
           function(vconnection,...)
               getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
                           vtable=getOption("ResultVectorTableFL"),
-                          vcolName="VECTOR_ID",
-                          vconnection=vconnection)
+                          vcolName="vectorIdColumn",
+                          vconnection=vconnection)+1
           )
 setMethod("getMaxVectorId",
           signature(vconnection="JDBCConnection"),
           function(vconnection,...)
               getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
                           vtable=getOption("ResultVectorTableFL"),
-                          vcolName="VECTOR_ID",
-                          vconnection=vconnection)
+                          vcolName="vectorIdColumn",
+                          vconnection=vconnection)+1
           )
 
 ensureQuerySize <- function(pResult,pInput,pOperator,pStoreResult=FALSE)
