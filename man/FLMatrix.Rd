@@ -5,10 +5,11 @@
 \title{Constructor function for FLMatrix.}
 \usage{
 FLMatrix(connection, database = getOption("ResultDatabaseFL"), table_name,
-  map_table = NULL, matrix_id_value = "", matrix_id_colname = "",
+  matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
-  cell_val_colname = "valueColumn", dim = NULL, dimnames = NULL,
-  conditionDims = c(FALSE, FALSE), whereconditions = c(""))
+  cell_val_colname = "valueColumn", dim = 0, dimnames = NULL,
+  conditionDims = c(FALSE, FALSE), whereconditions = c(""),
+  map_table = NULL)
 }
 \arguments{
 \item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}

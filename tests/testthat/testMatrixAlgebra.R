@@ -77,7 +77,7 @@ require(testthat)
 eqnRtn <- FLMatrix(
     connection,
     database          = "FL_DEMO",
-    matrix_table      = "finEquityReturns",
+    table_name = "finEquityReturns",
     matrix_id_value   = "",
     matrix_id_colname = "",
     row_id_colname    = "TxnDate",
@@ -86,13 +86,12 @@ eqnRtn <- FLMatrix(
 
 test_that("Named matrix rows and columns",{
 
-    ## Subsetting is easy
     a <- eqnRtn[2001:2010,"MSFT"]
     b <- eqnRtn[2001:2010,"ORCL"]
     a2 <- eqnRtn[2011:2020,"MSFT"]
     b2 <- eqnRtn[2011:2020,"ORCL"]
     
-    cat(constructSelect(a,"a"))
+    cat(constructSelect(a))
 
 
 ##############################

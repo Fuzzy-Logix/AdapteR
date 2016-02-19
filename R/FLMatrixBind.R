@@ -100,27 +100,35 @@ FLMatrixBind <- function(parts,by){
         by=by)
 }
 
+setMethod("suffixAlias",
+          signature(object = "FLMatrixBind",suffix="character"),
+          function(object,suffix){
+              object@parts <- llply(1:length(object@parts),
+                                    function(n)
+                                        suffixAlias(object@parts[[n]],letters[n]))
+              return(object)
+          })
+
+
 ## gk,partha,phani: discuss if variable names could differ
 setMethod("getVariables",
           signature(object = "FLMatrixBind"),
           function(object) object@parts[[1]]@variables)
 
-
 setMethod("constructSelect",
           signature(object = "FLMatrixBind"),
-          function(object)
-              constructSelect(object))
-              
-setMethod("constructSelect",
-          signature(object = "FLMatrixBind"),
-          function(object) {
+          function(object,joinNames=TRUE) {
+              constructNselect <- function(n){
+                  ##browser()
+                  flm <- object@parts[[n]]
+                  suffix <- letters[n]
+                  constructSelect(
+                      suffixAlias(flm,suffix),
+                      joinNames=joinNames)
+              }
               paste0(unlist(
                   llply(1:length(object@parts),
-                        function(n){
-                            flm <- object@parts[[n]]
-                            names(flm@paste0(localName,letters[n]))
-                            constructSelect(flm)   
-                        })),
+                        constructNselect)),
                   collapse=" UNION ALL ")
           })
 
