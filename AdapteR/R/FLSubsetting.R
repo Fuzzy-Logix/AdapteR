@@ -191,11 +191,11 @@ NULL
     if(ncol(object)==1)
     {
         newrownames <- object@dimnames[[1]][pSet]
+        names(object@select@table_name) <- NULL
         if(!setequal(object@dimnames[[1]], newrownames))
             object@select@whereconditions <-
             c(object@select@whereconditions,
-              inCondition(paste0(object@select@db_name,".",
-                                 object@select@table_name,".vectorIndexColumn"),
+              inCondition(paste0(remoteTable(object@select),".vectorIndexColumn"),
                           newrownames))
         object@dimnames[[1]] <- newrownames
     }

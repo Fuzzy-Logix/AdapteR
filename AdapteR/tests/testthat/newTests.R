@@ -211,6 +211,22 @@ test_that("check result for M_Subtraction",
                P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
                check.attributes=FALSE)
 })
+## Warnmeldungen:
+## 1: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+## 2: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+## 3: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+## 4: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+## 5: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+## 6: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+## 7: In op(pObj1, pObj2) : Länge des längeren Objektes
+##  	 ist kein Vielfaches der Länge des kürzeren Objektes
+
 
 ## Testing M_IntegerDivision. Only 2 FLMatrices
 test_that("check result for M_IntegerDivision",
@@ -458,6 +474,8 @@ test_that("check result for M_Remainder",
     expect_equal((P1$FL%%M2),P1$R%%M2R,check.attributes=FALSE)
 })
 
+## not running!
+##   unable to find an inherited method for function ‘checkMaxQuerySize’ for signature ‘"numeric"’
 ## Testing Equality
 test_that("check result for M_Equality",
 {
@@ -471,18 +489,18 @@ test_that("check result for M_Equality",
   V2 <- as.FLVector(sample(1:100,10),connection)
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
-
-    expect_equal(M1$FL==M2,(M1$R==M2R),check.attributes=FALSE)
-    expect_equal(M1$FL==M1$FL,M1$R==M1$R,check.attributes=FALSE)
-    expect_equal(M2==M3,M2R==M3R,check.attributes=FALSE)
-    expect_equal(V1==V1R,V1R==V1R,check.attributes=FALSE)
-    expect_equal(P1$FL==P1$FL,P1$R==P1$R,check.attributes=FALSE)
-    expect_equal(V1==P1$FL,V1R==P1$R,check.attributes=FALSE)
-    expect_equal(P1$FL==P1$R,P1$R==P1$R,check.attributes=FALSE)
-    #expect_equal(M1$FL==V2,M1$R==V2R,check.attributes=FALSE)
-    #expect_equal(M1$FL==P1$FL,M1$R==P1$R,check.attributes=FALSE)
-    expect_equal(V1==V1,V1R==V1R,check.attributes=FALSE)
-    #expect_equal(P1$FL==M2,P1$R==M2R,check.attributes=FALSE)
+  ##
+  expect_equal(M1$FL==M2,(M1$R==M2R),check.attributes=FALSE)
+  expect_equal(M1$FL==M1$FL,M1$R==M1$R,check.attributes=FALSE)
+  expect_equal(M2==M3,M2R==M3R,check.attributes=FALSE)
+  expect_equal(V1==V1R,V1R==V1R,check.attributes=FALSE)
+  expect_equal(P1$FL==P1$FL,P1$R==P1$R,check.attributes=FALSE)
+  expect_equal(V1==P1$FL,V1R==P1$R,check.attributes=FALSE)
+  expect_equal(P1$FL==P1$R,P1$R==P1$R,check.attributes=FALSE)
+  ##expect_equal(M1$FL==V2,M1$R==V2R,check.attributes=FALSE)
+  ##expect_equal(M1$FL==P1$FL,M1$R==P1$R,check.attributes=FALSE)
+  expect_equal(V1==V1,V1R==V1R,check.attributes=FALSE)
+  ##expect_equal(P1$FL==M2,P1$R==M2R,check.attributes=FALSE)
 })
 
 ## Testing FLIdentical
@@ -498,19 +516,20 @@ test_that("check result for identical",
   V2 <- as.FLVector(sample(1:100,10),connection)
   V2R <- as.vector(V2)
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
-
-    expect_equal(identical(M1$FL,M2),identical(M1$R,M2R),check.attributes=FALSE)
-    expect_equal(identical(M1$FL,M1$FL),identical(M1$R,M1$R),check.attributes=FALSE)
-    expect_equal(identical(M2,M3),identical(M2R,M3R),check.attributes=FALSE)
-    expect_equal(identical(V1,V1R),identical(V1R,V1R),check.attributes=FALSE)
-    expect_equal(identical(P1$FL,P1$FL),identical(P1$R,P1$R),check.attributes=FALSE)
-    expect_equal(identical(V1,P1$FL),identical(V1R,P1$R),check.attributes=FALSE)
-    expect_equal(identical(P1$FL,P1$R),identical(P1$R,P1$R),check.attributes=FALSE)
-    expect_equal(identical(M1$FL,V2),identical(M1$R,V2R),check.attributes=FALSE)
-    expect_equal(identical(M1$FL,P1$FL),identical(M1$R,P1$R),check.attributes=FALSE)
-    expect_equal(identical(V1,V1),identical(V1R,V1R),check.attributes=FALSE)
-    expect_equal(identical(P1$FL,M2),identical(P1$R,M2R),check.attributes=FALSE)
+  ##
+  expect_equal(identical(M1$FL,M2),identical(M1$R,M2R),check.attributes=FALSE)
+  expect_equal(identical(M1$FL,M1$FL),identical(M1$R,M1$R),check.attributes=FALSE)
+  expect_equal(identical(M2,M3),identical(M2R,M3R),check.attributes=FALSE)
+  expect_equal(identical(V1,V1R),identical(V1R,V1R),check.attributes=FALSE)
+  expect_equal(identical(P1$FL,P1$FL),identical(P1$R,P1$R),check.attributes=FALSE)
+  expect_equal(identical(V1,P1$FL),identical(V1R,P1$R),check.attributes=FALSE)
+  expect_equal(identical(P1$FL,P1$R),identical(P1$R,P1$R),check.attributes=FALSE)
+  expect_equal(identical(M1$FL,V2),identical(M1$R,V2R),check.attributes=FALSE)
+  expect_equal(identical(M1$FL,P1$FL),identical(M1$R,P1$R),check.attributes=FALSE)
+  expect_equal(identical(V1,V1),identical(V1R,V1R),check.attributes=FALSE)
+  expect_equal(identical(P1$FL,M2),identical(P1$R,M2R),check.attributes=FALSE)
 })
+
 #################################################################
 ########### no equivqlent R functions to test against ###########
 ################### but functions work ##########################
@@ -580,54 +599,6 @@ test_that("check FLTriDiag",
     FLTriDiag(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
-#################################################################################
-################### Functions work but output slightly differs ##################
-###################### from corresponding R functions ###########################
-
-## gk: discuss with Raman for JIRA DBlytix
-## Testing FLEigen
-## Phani -- results differ in Teradata and R
-test_that("check FLEigen",
-{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::eigen,
-                      function(m)
-                          llply(base::eigen(m),
-                                as.numeric),
-                      n=5,
-                      isSquare=TRUE)
-})
-
-## Testing FLSVDecomp
-## Phani -- results differ in Teradata and R
-test_that("check Singular Value Decomposition",
-{
-    expect_eval_equal(initF.FLMatrix,AdapteR::svd,base::svd,n=5)
-})
-
-## Testing FLDet
-### Phani-- for some matrices R output = -(DBLytix output)
-test_that("check determinant result",{
-    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
-})
-
-## Testing FLQRDecomposition
-### Phani-- could not calculate pivot properly,
-### also, output qr matrix differs from R
-test_that("check FLQRDecomposition",
-{
-  M <- initF.FLMatrix(n=5)
-    expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
-})
-
-####################################################################################################
-####################################################################################################
-#***************************************************************************************************
-#***************************************************************************************************
-#################################################################################
-############################# Non Working Tests #################################
-#################################################################################
-
 
 
 ## Testing FLTranspose
@@ -666,6 +637,58 @@ test_that("check colSums",
     expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })
 
+
+#################################################################################
+################### Functions work but output slightly differs ##################
+###################### from corresponding R functions ###########################
+
+## gk: discuss with Raman for JIRA DBlytix
+## Testing FLEigen
+## Phani -- results differ in Teradata and R
+test_that("check FLEigen",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::eigen,
+                      function(m)
+                          llply(base::eigen(m),
+                                as.numeric),
+                      n=5,
+                      isSquare=TRUE)
+})
+
+## Testing FLSVDecomp
+## Phani -- results differ in Teradata and R
+test_that("check Singular Value Decomposition",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::svd,base::svd,n=5)
+})
+
+## Testing FLDet
+### Phani-- for some matrices R output = -(DBLytix output)
+test_that("check determinant result",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
+})
+
+## Testing FLQRDecomposition
+### Phani-- could not calculate pivot properly,
+### also, output qr matrix differs from R
+## todo gk: how can we compute: pivot part of r result
+test_that("check FLQRDecomposition",
+{
+  M <- initF.FLMatrix(n=5)
+    expect_eval_equal(initF.FLMatrix,AdapteR::qr,base::qr,n=5)
+})
+
+####################################################################################################
+####################################################################################################
+#***************************************************************************************************
+#***************************************************************************************************
+#################################################################################
+############################# Non Working Tests #################################
+#################################################################################
+
+
+
 ## Testing rbind
 test_that("check rbind result",
 {
@@ -682,7 +705,7 @@ test_that("check rbind result",
     },function(x) do.call("rbind",x),
     function(x) do.call("rbind",x),n=6
   )
-
+  ##
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
         a <- initF.FLMatrix(n,isSquare)
         b <- initF.FLMatrix(n,isSquare)
@@ -821,9 +844,9 @@ test_that("check dimnames on binds result",
 ## Testing FLSubsetting
 test_that("check matrix subsetting",
 {
-  ## Testing result
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
 
+    ## Testing result
+    expect_eval_equal(initF=function(n,isSquare=FALSE) {
         a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
         list(R=a,FL=as.FLMatrix(a,connection))         
     },function(x) do.call("[",list(x,c("b","a"),2)),
@@ -853,7 +876,6 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
         a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
@@ -864,7 +886,6 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
         a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
@@ -876,17 +897,21 @@ test_that("check matrix subsetting",
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
 
-        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
-                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
-                    dimnames=list(c("a","b","c"),1:3))
-        list(R=as.matrix(a),
-             FL=a)
+      a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
+                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+      ## todo phani:
+      ## get inspired by storeVarnameMapping in as.FLMatrix.Matrix
+      ## override assignment of names
+      dimnames(a) <- list(c("a","b","c"),1:3)
+      rownames(a) <- c("a","b","c")
+      colnames(a) <- 1:3
+      list(R=as.matrix(a),
+           FL=a)
     },function(x) "["(x,c("b","c"),),
     function(x)"["(x,c("b","c"),),n=4
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
         a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
@@ -935,7 +960,6 @@ test_that("check vector subsetting",
   expect_eval_equal(initF.FLVector,
                     function(x) do.call("[",list(x,5:3)),
                     function(x) do.call("[",list(x,5:3)),n=5)
-
   expect_eval_equal(initF.FLVector,
                     function(x) do.call("[",list(x)),
                     function(x) do.call("[",list(x)),n=5)  

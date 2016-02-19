@@ -62,7 +62,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 			                  ",( ",constructSelect(pObj2),") AS ",b,
 	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
 					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"),
-			 		  			paste0(b,".valueColumn!=0"))))
+			 		  			paste0(b,".valueColumn<>0"))))
 
 		if(pOperator %in% c("%/%"))
 		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
@@ -74,7 +74,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 			                  ",( ",constructSelect(pObj2),") AS ",b,
 	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
 					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"),
-			 		  			paste0(b,".valueColumn!=0"))))
+			 		  			paste0(b,".valueColumn<>0"))))
 
 		if(pOperator %in% c("%*%"))
 		{
