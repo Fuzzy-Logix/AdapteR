@@ -26,19 +26,18 @@ t<-function(x, ...){
 #' @export
 t.FLMatrix<-function(object){
     if(class(object@select)=="FLTableFunctionQuery")
-    object <- store(object)
-	return(FLMatrix( 
-            connection = getConnection(object), 
-            database = object@select@database, 
-            table_name = object@select@table_name, 
-            matrix_id_value = "",
-            matrix_id_colname = getVariables(object)$matrixId, 
-            row_id_colname = getVariables(object)$colIdColumn, 
-            col_id_colname = getVariables(object)$rowIdColumn, 
-            cell_val_colname = getVariables(object)$valueColumn, 
-            dimnames = list(object@dimnames[[2]],object@dimnames[[1]]),
-            whereconditions=object@select@whereconditions)
-            )
+        object <- store(object)
+    swapRowCol <- function(select){
+        newrc <- select@variables$rowIdColumn
+        select@variables$rowIdColumn <- select@variables$colIdColumn
+        select@variables$colIdColumn <- newrc
+        return(select)
+    }
+    object@select <- swapRowCol(object@select)
+    object@mapSelect <- swapRowCol(object@select)
+    object@dim <- rev(object@dim)
+    object@dimnames <- rev(object@dimnames)
+    return(object)
 }
 
 t.FLMatrixBind<-function(object){
