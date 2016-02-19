@@ -59,7 +59,6 @@ setClass(
 ##' @param object
 ##' @return A FLMatrix based on a stored table of the executed
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
-
 setGeneric("store", function(object,returnType,connection,...) {
     standardGeneric("store")
 })
@@ -131,6 +130,37 @@ setMethod("getVariables",
 setMethod("getVariables",
           signature(object = "FLVector"),
           function(object) getVariables(object@select))
+
+
+
+setGeneric("suffixAlias", function(object,suffix,...) {
+    standardGeneric("suffixAlias")
+})
+
+setMethod("suffixAlias",
+          signature(object = "FLMatrix",suffix="character"),
+          function(object,suffix){
+              object@select <- suffixAlias(object@select,suffix)
+              object@mapSelect <- suffixAlias(object@mapSelect,suffix)
+              return(object)
+          })
+setMethod("suffixAlias",
+          signature(object = "FLSelectFrom",suffix="character"),
+          function(object,suffix){
+              for(talias in names(object@table_name)){
+                  object@variables <- llply(
+                      object@variables,
+                      function(v) gsub(paste0("^",talias,"\\."),
+                                       paste0(talias,suffix,"."),
+                                       v))
+                  object@whereconditions <- gsub(paste0("^",talias,"\\."),
+                                       paste0(talias,suffix,"."),
+                                       object@whereconditions)
+              }
+              if(!is.null(names(object@table_name)))
+                  names(object@table_name) <- paste0(names(object@table_name),suffix)
+              return(object)
+          })
 
 setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")
@@ -391,6 +421,7 @@ restrictFLMatrix <-
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
 FLamendDimnames <- function(flm,map_table) {
     ##browser()
+    ##browser()
 
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
@@ -443,7 +474,8 @@ FLamendDimnames <- function(flm,map_table) {
     if(length(colnames)==0)
         colnames <- sort(sqlQuery(connection, selectUnique("colIdColumn"))$V)
 
-    flm@dim <- c(length(rownames),length(colnames))
+    if(all(flm@dim==0))
+        flm@dim <- c(length(rownames),length(colnames))
     
     dimnames <- flm@dimnames <- list(checkNames(rownames),
                                      checkNames(colnames))
@@ -521,17 +553,16 @@ FLamendDimnames <- function(flm,map_table) {
 FLMatrix <- function(connection,
                      database=getOption("ResultDatabaseFL"),
                      table_name,
-                     map_table=NULL,
                      matrix_id_value = "",
                      matrix_id_colname = "",
                      row_id_colname = "rowIdColumn",
                      col_id_colname = "colIdColumn",
                      cell_val_colname = "valueColumn",
-                     dim=NULL,
+                     dim=0,
                      dimnames = NULL,
                      conditionDims=c(FALSE,FALSE),
-                     whereconditions=c("")){
-    ##browser()
+                     whereconditions=c(""),
+                     map_table=NULL){
     mConstraint <-
         equalityConstraint(
             paste0("mtrx.",matrix_id_colname),
@@ -597,20 +628,21 @@ equalityConstraint <- function(tableColName,constantValue){
         paste0(tableColName, "=",constantValue)
 }
 
-##' Function to replace full table name with an alias.
-##'
-##' @param constraints 
-##' @param oldName 
-##' @param alias 
-##' @return the constraints with aliases
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
-localizeConstraints <- function(constraints, oldName, alias=""){
-    ##browser()
-    if(alias!="")
-        gsub(oldName, alias, constraints)
-    else
-        gsub(paste0(oldName,"."), alias, constraints)
-}
+## ##' Function to replace full table name with an alias.
+## ##' todo: alias
+## ##'
+## ##' @param constraints 
+## ##' @param oldName 
+## ##' @param alias 
+## ##' @return the constraints with aliases
+## ##' @author  Gregor Kappler <g.kappler@@gmx.net>
+## localizeConstraints <- function(constraints, oldName, alias=""){
+##     ##browser()
+##     if(alias!="")
+##         gsub(oldName, alias, constraints)
+##     else
+##         gsub(paste0(oldName,"."), alias, constraints)
+## }
 
 
 
@@ -669,11 +701,17 @@ setMethod("remoteTable", signature(object = "character", table="character"),
               getRemoteTableName(object,table))
 setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
           function(object){
-              return(paste0(sapply(object@table_name,
-                                   getRemoteTableName,
-                                   database=object@database),
-                            " AS ", names(object@table_name),
-                            collapse=",\n    "))
+              if(is.null(names(object@table_name)))
+                  return(paste0(sapply(object@table_name,
+                                       getRemoteTableName,
+                                       database=object@database),
+                                collapse=",\n    "))
+              else
+                  return(paste0(sapply(object@table_name,
+                                       getRemoteTableName,
+                                       database=object@database),
+                                " AS ", names(object@table_name),
+                                collapse=",\n    "))
           })
 
 
@@ -689,7 +727,8 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         localName="character",
                                         withName="character"),
           function(object,localName, withName="z") {
-              names(object@select@table_name)[[1]] <- localName
+              ##' todo: alias
+              ##names(object@select@table_name)[[1]] <- localName
               object <- orderVariables(
                   updateVariable(object,"Matrix_ID",-1),
                   c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn")

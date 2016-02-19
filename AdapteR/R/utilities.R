@@ -127,7 +127,7 @@ list_to_class_spec <- function (x) {
     } else {
         classSpec <- ""
     }
-                                        #classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
+    ##classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
     classSpec
 }
 

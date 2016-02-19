@@ -216,7 +216,6 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
     }
     else
     {
-        ##browser()
         mwide <- Matrix(object, sparse=TRUE)
         if(class(mwide)=="dsCMatrix")
         mwide <- as(mwide,"dgTMatrix")

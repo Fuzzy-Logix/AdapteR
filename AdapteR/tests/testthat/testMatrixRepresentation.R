@@ -1,6 +1,7 @@
 ## This script is for documentation. 
 ## startup and setup:
 source("./setup-jdbc.R")
+source("./FLtestLib.R")
 
 ## there are different ways to index matrices in R
 ## no dimnames, just proper 1:N numeric indices:
@@ -26,107 +27,14 @@ rownames(matrixNumChar) <- c(9,6,5,2,1)
 colnames(matrixNumChar) <- c("p","q","r","s","t")
 
 
-require(testthat)
-##' tests if a R matrix is correctly stored and
-##' represented when casting the R matrix into FLMatrix
-##' and correctly recieved back, when cast to a vector.
-##' checking dimnames, checking for subsetting.
-##' For an optical check, both matrices are printed.
-##' 
-##' @param a an R Matrix
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
-test_equal_RMatrix_FLMatrix<- function(a){
-    # browser()
-    debugOld <- getOption("debugSQL")
-    options(debugSQL=FALSE)
-    b <- as.FLMatrix(a,connection)
-    a <- Matrix(a)
-    options(debugSQL=debugOld)
-    expect_equal_Matrix(a,b,
-                        "cast Matrix equal")
-
-    test_Matrix_Subsetting(a,b,"as.FLMatrix")
-}
-
-
-test_equal_FLMatrix_RMatrix<- function(b){
-    # browser()
-    debugOld <- getOption("debugSQL")
-    options(debugSQL=FALSE)
-    a <- as.matrix(b)
-    options(debugSQL=debugOld)
-    expect_equal_Matrix(a,b,
-                        "cast Matrix equal")
-
-    test_Matrix_Subsetting(a,b,"as.FLMatrix")
-}
-
-test_Matrix_Subsetting <- function(a,b, desc=""){
-    if(nrow(a)<3) return()
-    nr <- nrow(a) -2 ##%/% 2
-    nc <- ncol(a) -2 ## %/% 2
-    rowi <- sample(1:nrow(a),nr)
-    coli <- sample(1:ncol(a),nc)
-    asel <- a[rowi,coli,drop=FALSE]
-    bsel <- b[rowi,coli,drop=FALSE]
-    expect_equal_Matrix(asel,bsel,
-                        paste0(
-                            "subset by index of ",
-                            desc))
-    ## recursively test!
-    test_Matrix_Subsetting(asel,bsel,
-                        paste0(
-                            "indexed subset of ",
-                            desc))
-    
-    if(!is.null(rownames(a)))
-        rowi <- sample(rownames(a),nr)
-    if(!is.null(colnames(a)))
-        coli <- sample(colnames(a),nc)
-    asel <- a[rowi,coli,drop=FALSE]
-    bsel <- b[rowi,coli,drop=FALSE]
-    expect_equal_Matrix(asel,bsel,
-                        paste0(
-                            "subset by names of ",
-                            desc))
-    ## recursively test!
-    test_Matrix_Subsetting(asel,bsel,
-                        paste0(
-                            "named subset of ",
-                            desc))
-}
-expect_equal_Matrix <- function(a,b,desc="",debug=TRUE){
-    if(debug==TRUE){
-        cat("\n-------------- ",desc,"\nR Matrix Object:\n")
-        print(a)
-        cat("\nFL Matrix Object:\n")
-        print(b)
-    }
-    stripNames <- function(x) {
-        if(is.null(x)) return(NULL)
-        if(is.numeric(x) & all(x==as.numeric(names(x))))
-            x <- NULL
-        else 
-            names(x) <- NULL
-        if(is.list(x)) x <- llply(x,stripNames)
-        ##if(is.null(unlist(x))) x <- NULL
-        x
-    }
-    test_that(desc,{
-        expect_equal(dimnames(a),stripNames(dimnames(b)))
-        expect_equal(rownames(a),stripNames(rownames(b)))
-        expect_equal(colnames(a),stripNames(colnames(b)))
-        expect_equal(as.vector(a),as.vector(b))
-    })
-}
-
-
 
 source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
 source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSubsetting.R")
 
 options(debugSQL=FALSE)
+
 test_equal_RMatrix_FLMatrix(matrixCharChar)
+
 test_equal_RMatrix_FLMatrix(matrixNumChar)
 
 ## Note: subsetting an unnamed R Matrix will

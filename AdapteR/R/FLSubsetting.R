@@ -48,7 +48,9 @@ NULL
     if(missing(cols))
     {
         if (missing(rows)) return(object)
-        else return(restrictFLMatrix(
+        if(length(unique(rows))!=length(rows))
+            stop("Duplicate use of indices not supported so far")
+        return(restrictFLMatrix(
                  object = object,
                  whereconditions = object@select@whereconditions,
                  dimnames = list(newrownames,
@@ -57,6 +59,8 @@ NULL
     }
     else { ## !missing(cols)
         if(missing(rows)) {
+            if(length(unique(cols))!=length(cols))
+                stop("Duplicate use of indices not supported so far")
             return(restrictFLMatrix(
                 object = object,
                 whereconditions = object@select@whereconditions,
@@ -64,6 +68,8 @@ NULL
                                 newcolnames),
                 conditionDims=c(FALSE,TRUE)))
         } else {  ## !missing(cols) and !missing(rows)
+            if(length(unique(rows))!=length(rows) | length(unique(cols))!=length(cols))
+                stop("Duplicate use of indices not supported so far")
             return(restrictFLMatrix(
                 object = object,
                 whereconditions = object@select@whereconditions,

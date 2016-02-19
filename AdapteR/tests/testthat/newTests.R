@@ -19,104 +19,9 @@ if(!exists("connection")){
 
 FLStartSession(connection)
 
+source("FLtestLib.R")
+
 options(debugSQL=FALSE)
-
-expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
-{
-  I <- initF(...)
-    expect_equal(FLcomputationF(I$FL),
-                 RcomputationF(I$R),
-                 check.attributes=FALSE)
-}
-
-expect_flequal <- function(a,b,...){
-    if(is.list(a))
-        for(i in 1:length(a))
-            expect_flequal(a[[i]],b[[i]],...)
-
-    expect_equal(a,b,...)
-}
-
-## Increase n for increasing length of FLVector.
-## If isRowVec=TRUE, rowVector(one observation of all columns) is returned.
-initF.FLVector <- function(n,isRowVec=FALSE)
-{
-  sqlSendUpdate(connection,
-                      c(paste0("DROP TABLE FL_DEMO.test_vectortable_AdapteR;"),
-                        paste0("CREATE TABLE FL_DEMO.test_vectortable_AdapteR 
-                          AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
-                            CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                          FROM FL_DEMO.fzzlserial a 
-                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
-
-  table <- FLTable(connection,
-                 "FL_DEMO",
-                 "test_vectortable_AdapteR",
-                 "VECTOR_INDEX",
-                 whereconditions=paste0("FL_DEMO.test_vectortable_AdapteR.VECTOR_ID = 1")
-                 )
-
-  if(isRowVec)
-  flv <- table[1,base::sample(c("VECTOR_VALUE","VECTOR_INDEX"),n,replace=TRUE)]
-  else
-  flv <- table[1:n,"VECTOR_VALUE"]
-
-  Rvector <- as.vector(flv)
-  return(list(FL=flv,R=Rvector))
-}
-
-## Increase the value of n to increase the dimensions of FLMatrix returned.
-## Returns n*n or n*(n-1) based on isSquare.
-initF.FLMatrix <- function(n,isSquare=FALSE)
-{
-  sqlSendUpdate(connection,
-                      c(paste0("DROP TABLE FL_DEMO.test_matrixtable_AdapteR;"),
-                        paste0("CREATE TABLE FL_DEMO.test_matrixtable_AdapteR 
-                          AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
-                            b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
-                          FROM FL_DEMO.fzzlserial a,FL_DEMO.fzzlserial b
-                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
-  flm <- FLMatrix(connection,
-              database          = "FL_DEMO",
-              table_name = "test_matrixtable_AdapteR",
-              matrix_id_value   = 1,
-              matrix_id_colname = "Matrix_ID",
-              row_id_colname    = "Row_ID",
-              col_id_colname    = "Col_ID",
-              cell_val_colname  = "Cell_Val")
-  Rmatrix <- as.matrix(flm)
-  return(list(FL=flm,R=Rmatrix))
-}
-
-initF.FLTable <- function(rows,cols)
-{
-  WideTable <- FLTable(connection, 
-                      "FL_DEMO", 
-                      "fzzlserial",
-                      "serialval",
-                      whereconditions=paste0("FL_DEMO.fzzlserial.serialval<100"))
-  return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
-}
-
-setMethod("expect_equal",signature("FLMatrix","matrix"),
-          function(object,expected,...) expect_equal(as.matrix(object),expected,...))
-setMethod("expect_equal",signature("FLMatrix","FLMatrix"),
-          function(object,expected,...) expect_equal(as.matrix(object),as.matrix(expected),...))
-setMethod("expect_equal",signature("dgCMatrix","FLMatrix"),
-          function(object,expected,...) expect_equal(object,as.matrix(expected),...))
-
-setMethod("expect_equal",signature("FLVector","vector"),
-          function(object,expected,...) expect_equal(as.vector(object),expected,...))
-setMethod("expect_equal",signature("FLVector","FLVector"),
-          function(object,expected,...) expect_equal(as.vector(object),as.vector(expected),...))
-setMethod("expect_equal",signature("matrix","matrix"),
-          function(object,expected,...) testthat::expect_equal(as.vector(object),as.vector(expected),...))
-
-setMethod("expect_equal",signature("list","list"),
-          function(object,expected,...)
-              llply(names(object),
-                    function(i)
-                        expect_equal(object[[i]],expected[[i]],...)))
 
 
 ###############################################################
@@ -151,7 +56,7 @@ test_that("check FLGinv",
 })
 
 ## Testing FLDims
-test_that("check FLDims",
+test_that("check FLDims if all elements of a row are zero",
 {
   m <- Matrix(c(0,1,0,2),2,sparse=T)
   m <- as(m,"dgCMatrix")
@@ -260,6 +165,7 @@ test_that("check the result of the diag of matrix",
                       n=1,isRowVec=TRUE)
 })
 
+
 ## Testing M_Subtraction
 ## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for Matrix M_Subtraction",
@@ -284,8 +190,8 @@ test_that("check result for Matrix M_Subtraction",
 ## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for M_Subtraction",
 {
-  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+    M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M2 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10),connection)
   V1R <- as.vector(V1)
@@ -805,7 +711,6 @@ test_that("check cbind result",
     },function(x) do.call("cbind",x),
     function(x) do.call("cbind",x),n=5
   )
-
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
         a <- initF.FLMatrix(n,isSquare)
         b <- initF.FLMatrix(n,isSquare)
