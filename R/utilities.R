@@ -25,9 +25,9 @@ if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod(
 
 sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
 ## gk: this made packaging fail here, as I cannot install RODBC, and
-##then it is unknown. Can we do a package check? We need to discuss
-##this.
-sqlQuery.default <- RODBC::sqlQuery
+## then it is unknown. Can we do a package check? We need to discuss
+## this.
+## sqlQuery.default <- RODBC::sqlQuery
 
 options(debugSQL=TRUE)
 sqlSendUpdate.JDBCConnection <- function(channel,query) {

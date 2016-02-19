@@ -113,12 +113,11 @@ setMethod("store",
 
 drop.FLTable <- function(object)
 {
-  vSqlStr <- paste0(" DROP TABLE ",
-                    object@select@db_name,".",object@select@table_name)
-
-  sqlSendUpdate(getConnection(object),
+    names(object@table_name) <- NULL
+    vSqlStr <- paste0(" DROP TABLE ",remoteTable(object))
+    sqlSendUpdate(getConnection(object),
                   vSqlStr)
-  return(paste0(object@select@table_name," DROPPED"))
+    return(paste0(object@select@table_name," DROPPED"))
 }
 
 
@@ -485,8 +484,7 @@ FLamendDimnames <- function(flm,map_table) {
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
-    connection <- flm@select@connection
-    dimnames <- flm@dimnames
+    connection <- flm@select
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
         ## if there is currently no dimnames set,

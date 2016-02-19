@@ -65,9 +65,4 @@ Collate:
     'FLTrace.R'
     'FLTranspose.R'
     'FLTriDiag.R'
-    'M_Addition.R'
-    'M_Division.R'
-    'M_IntegerDivision.R'
-    'M_Multiplication.R'
-    'M_Remainder.R'
 RoxygenNote: 5.0.1

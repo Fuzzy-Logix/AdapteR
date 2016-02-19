@@ -137,14 +137,14 @@ setMethod("wideToDeep",
 
             sqlstr<-paste0("CALL FLWideToDeep('",object@select@table_name,"','",
                 getVariables(object)[["obs_id_colname"]],"','",
-                result_db_name,".",deeptablename,
+                getRemoteTableName(tableName=deeptablename),
                 "','obs_id_colname','var_id_colname','cell_val_colname',NULL,NULL,NULL",
                 object@select@whereconditions,",AnalysisID);")
                 
             dataprepID <- as.vector(retobj<-sqlQuery(getConnection(object),sqlstr)[1,1])
 
             table <- FLTable(connection,
-                           result_db_name,
+                           getOption("ResultDatabaseFL"),
                            deeptablename,
                            "obs_id_colname",
                            "var_id_colname",

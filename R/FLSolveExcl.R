@@ -30,22 +30,24 @@ FLSolveExcl <- function (x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLMatrix <- solveExcl(flmatrix,3)
 #' @export
-
 FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 {
 
-	connection<-getConnection(object)
-	flag1Check(connection)
+    connection<-getConnection(object)
+    flag1Check(connection)
 
-	MID <- getMaxMatrixId(connection)
+    MID <- getMaxMatrixId(connection)
 
-	sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
+    
+    
+    sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
 						AS (SELECT 1, 
-								   a.",getVariables(object)$rowId,", 
-								   a.",getVariables(object)$colId,", 
-								   a.",getVariables(object)$value,",",
+								   ",
+                   getVariables(object)$rowId,", 
+								   ",getVariables(object)$colId,", 
+								   ",getVariables(object)$value,",",
 								   ExclIdx, 
-							" FROM  ",remoteTable(object)," a ",
+							" FROM  ",remoteTable(object),
 							constructWhere(c(constraintsSQL(object))),") 
 					SELECT ",MID,
 					       ",a.OutputRowNum,

@@ -32,11 +32,11 @@ solve <- function (x, ...){
 solve.FLMatrix <- function(pObj1)
 {
     ## checkSquare(object,"solve")
-	## checkSingularity(object)
+    ## checkSingularity(object)
 
-	connection <- getConnection(pObj1)
+    connection <- getConnection(pObj1)
 
-	flag1Check(connection)
+    flag1Check(connection)
 
   sqlstr<-paste0(viewSelectMatrix(pObj1, "mtrx", withName="z"),
                  outputSelectMatrix("FLMatrixInvUdt", viewName="z", localName="mtrx",
