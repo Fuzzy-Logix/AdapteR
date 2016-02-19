@@ -44,11 +44,11 @@ diag.FLMatrix<-function(object)
 
 	table <- FLTable(connection,
 		             object@select@database,
-		             object@select@table_name,
+		             paste0(object@select@table_name," AS mtrx "),
 		             getVariables(object)$rowIdColumn,
 		             whereconditions=c(object@select@whereconditions,
-		             	paste0(getRemoteTableName(object@select@database,object@select@table_name),".",getVariables(object)$rowIdColumn,
-		             		"=",getRemoteTableName(object@select@database,object@select@table_name),".",getVariables(object)$colIdColumn)))
+		             	paste0(getVariables(object)$rowIdColumn,
+		             		"=",getVariables(object)$colIdColumn)))
 
 	return(table[,getVariables(object)$valueColumn])
 }
@@ -103,9 +103,10 @@ diag.FLVector <- function(object)
 
 		else
 		{
-			MID <- getMaxMatrixId(connection)
+			
 			if(length(object@dimnames[[1]])==1)
 			{
+				MID <- getMaxMatrixId(connection)
 		        sqlstr <- paste(sapply(1:length(object),FUN=function(i)
 		        				paste0(" INSERT INTO ",
 		        				getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultMatrixTableFL")),
