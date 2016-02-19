@@ -179,7 +179,6 @@ setMethod("constructSelect",
                                      object@mapSelect@table_name)
               select@whereconditions <- c(select@whereconditions,
                                           object@mapSelect@whereconditions)
-              
               return(constructSelect(select))
           })
 
@@ -680,6 +679,15 @@ setMethod("constraintsSQL", signature(object = "FLVector"),
 setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
           function(object) {
               constraints <- object@whereconditions
+              tablenames <- object@table_name
+              if(!is.null(names(tablenames)))
+                  for(ti in 1:length(tablenames)){
+                      tname <- tablenames[ti]
+                      talias <- names(tablenames)[ti]
+                      constraints <- gsub(paste0("[^ ]*",tname,"\\."),
+                                          paste0(" ",talias,"."),
+                                          constraints)
+                  }
               return(constraints)
           })
 
