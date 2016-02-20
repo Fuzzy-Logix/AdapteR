@@ -654,14 +654,14 @@ FLMatrix <- function(connection,
     return(RESULT)
 }
 
-
+## Phani-- removed \n as it was creating problem in FLCorrel test cases
 constructWhere <- function(conditions) {
     if(!is.character(conditions))
         stop("Provide constraints as character vector")
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)>0)
-        paste0("\nWHERE",paste0("   (",conditions,")",
-                                collapse=" AND\n"))
+        paste0(" WHERE",paste0("   (",conditions,")",
+                                collapse=" AND "))
     else
         ""
 }
@@ -967,6 +967,21 @@ setGeneric("checkSameDims", function(object1,object2) {
     standardGeneric("checkSameDims")
 })
 setMethod("checkSameDims", signature(object1="FLMatrix",object2="FLMatrix"),
+          function(object1,object2) {
+              if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
+                  return(stop("ERROR: Invalid matrix dimensions for Operation"))
+          })
+setMethod("checkSameDims", signature(object1="FLMatrix",object2="matrix"),
+          function(object1,object2) {
+              if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
+                  return(stop("ERROR: Invalid matrix dimensions for Operation"))
+          })
+setMethod("checkSameDims", signature(object1="FLMatrix",object2="Matrix"),
+          function(object1,object2) {
+              if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
+                  return(stop("ERROR: Invalid matrix dimensions for Operation"))
+          })
+setMethod("checkSameDims", signature(object1="FLMatrix",object2="dgCMatrix"),
           function(object1,object2) {
               if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
                   return(stop("ERROR: Invalid matrix dimensions for Operation"))

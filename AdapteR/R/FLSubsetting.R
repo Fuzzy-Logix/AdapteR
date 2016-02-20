@@ -195,7 +195,7 @@ NULL
         if(!setequal(object@dimnames[[1]], newrownames))
             object@select@whereconditions <-
             c(object@select@whereconditions,
-              inCondition(paste0(remoteTable(object@select),".vectorIndexColumn"),
+              inCondition(paste0(remoteTable(object@select),".",getVariables(object)$obs_id_colname),
                           newrownames))
         object@dimnames[[1]] <- newrownames
     }
@@ -204,17 +204,7 @@ NULL
         newcolnames <- object@dimnames[[2]][pSet]
         object@dimnames[[2]] <- newcolnames
     }
-## =======
-##     newrownames <- sort(object@dimnames[[1]])[pSet]
-##     if(!setequal(object@dimnames[[1]], newrownames))
-##         object@select@whereconditions <-
-##         c(object@select@whereconditions,
-##           inCondition(paste0(object@select@database,".",
-##                              object@select@table_name,".",
-##                              getVariables(object)$obs_id_colname),
-##                       newrownames))
-##     object@dimnames[[1]] <- newrownames
-## >>>>>>> Stashed changes
+
     return(object)
 }
                                         #     pObj[pSet,]
