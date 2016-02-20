@@ -98,7 +98,7 @@ test_that("check FLCastFunctions",
     expect_equal(as.FLMatrix(V1),as.matrix(V1R),check.attributes=FALSE)
     expect_equal(as.FLMatrix(P1$R,connection),as.matrix(P1$R),check.attributes=FALSE)
     expect_equal(as.FLVector(M1$R,connection),as.vector(M1$R),check.attributes=FALSE)
-    expect_equal(as.FLVector(M1$FL),as.matrix(M1$R),check.attributes=FALSE)
+    expect_equal(as.FLVector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
 })
 
 ## Testing FLCholskeyDecomp
@@ -474,8 +474,6 @@ test_that("check result for M_Remainder",
     expect_equal((P1$FL%%M2),P1$R%%M2R,check.attributes=FALSE)
 })
 
-## not running!
-##   unable to find an inherited method for function ‘checkMaxQuerySize’ for signature ‘"numeric"’
 ## Testing Equality
 test_that("check result for M_Equality",
 {
@@ -528,6 +526,54 @@ test_that("check result for identical",
   expect_equal(identical(M1$FL,P1$FL),identical(M1$R,P1$R),check.attributes=FALSE)
   expect_equal(identical(V1,V1),identical(V1R,V1R),check.attributes=FALSE)
   expect_equal(identical(P1$FL,M2),identical(P1$R,M2R),check.attributes=FALSE)
+})
+
+
+## testing M_Subtraction with different length vectors
+test_that("check FLVector subtraction",
+{
+  flt <- FLTable(connection,"FL_DEMO","finequityreturns","txndate")
+  flv1 <- flt[1:8,"equityreturn"]
+  flv <- flt[1:10,"equityreturn"]
+  flv1R <- as.vector(flv1)
+  flvR <- as.vector(flv)
+  expect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)
+})
+
+## Testing FLTranspose
+## gk:  that is broken since rbind
+test_that("check transpose",{
+    expect_eval_equal(initF.FLMatrix,AdapteR::t,base::t,n=5)
+})
+
+## Testing FLRowMeans
+test_that("check rowMeans",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowMeans,
+                      base::rowMeans,
+                      n=5)
+})
+
+## Testing FLRowSums
+test_that("check rowSums",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowSums,
+                      base::rowSums,
+                      n=5)
+})
+
+## Testing FLColMeans
+test_that("check colMeans",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
+})
+
+## Testing FLColSums
+test_that("check colSums",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })
 
 #################################################################
@@ -649,9 +695,7 @@ test_that("check FLEigen",
 {
     expect_eval_equal(initF.FLMatrix,
                       AdapteR::eigen,
-                      function(m)
-                          llply(base::eigen(m),
-                                as.numeric),
+                      base::eigen,
                       n=5,
                       isSquare=TRUE)
 })
@@ -686,8 +730,6 @@ test_that("check FLQRDecomposition",
 #################################################################################
 ############################# Non Working Tests #################################
 #################################################################################
-
-
 
 ## Testing rbind
 test_that("check rbind result",
@@ -963,17 +1005,6 @@ test_that("check vector subsetting",
   expect_eval_equal(initF.FLVector,
                     function(x) do.call("[",list(x)),
                     function(x) do.call("[",list(x)),n=5)  
-})
-
-## testing M_Subtraction with different length vectors
-test_that("check FLVector subtraction",
-{
-  flt <- FLTable(connection,"FL_DEMO","finequityreturns","txndate")
-  flv1 <- flt[1:8,"equityreturn"]
-  flv <- flt[1:10,"equityreturn"]
-  flv1R <- as.vector(flv1)
-  flvR <- as.vector(flv)
-  expect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)
 })
 
 ## Testing FLCorrel
