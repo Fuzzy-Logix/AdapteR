@@ -524,3 +524,49 @@ flag3Check <- function(connection)
         flag3 <<- 1
     }
 }
+
+"dimnames<-" <- function(pObject,pDimnames)
+{
+    UseMethod("dimnames<-", pObject)
+}
+
+`dimnames<-.default` <- function(pObject,pDimnames)
+{
+  op <- .Primitive("dimnames<-")
+  op(pObject,pDimnames)
+}
+
+`dimnames<-.FLMatrix` <- function(pObject,pDimnames)
+{
+  connection <- getConnection(pObject)
+  mydimnames <- pDimnames
+  mydims <- dim(pObject)
+  if(mydims[[1]]!=length(pDimnames[[1]]) || mydims[[2]]!=length(pDimnames[[2]]))
+  stop(" dimnames not compatible with matrix dimensions")
+
+  remoteTable <- getRemoteTableName(
+            getOption("ResultDatabaseFL"),
+            getOption("ResultMatrixTableFL"))
+
+  t<-sqlSendUpdate(connection,paste0(" DELETE FROM ",remoteTable,
+                              " mtrx ",constructWhere(pObject@select@whereconditions)))
+  
+  mapTable <- pObject@mapSelect@table_name
+  MID <- getVariables(object)$MATRIX_ID
+  for(i in 1:length(mydimnames))
+      #if(is.character(mydimnames[[i]]))
+      {
+          mapTable <- getOption("MatrixNameMapTableFL")
+          mydimnames[[i]] <- storeVarnameMapping(
+              connection,
+              mapTable,
+              MID,
+              i,
+              mydimnames[[i]])
+      }
+  pObject@dimnames <- mydimnames
+  print(names(mydimnames[[2]]))
+
+  RESULT <- FLamendDimnames(pObject,mapTable)
+  return(RESULT)
+}

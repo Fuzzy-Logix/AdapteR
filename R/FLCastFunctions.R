@@ -652,7 +652,6 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
     }
     k <- k+length(rownames(object))
   }
-    print(sqlstr)
     batchStore(sqlstr)
     sqlstr <- ""
     table <- FLTable(getConnection(object),
