@@ -484,7 +484,8 @@ FLamendDimnames <- function(flm,map_table) {
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
-    connection <- flm@select
+    connection <- getConnection(flm)
+    dimnames <- flm@dimnames
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
         ## if there is currently no dimnames set,

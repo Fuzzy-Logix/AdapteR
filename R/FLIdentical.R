@@ -208,7 +208,7 @@ NULL
 
 	    flm <- ensureQuerySize(pResult=flm,
 		            pInput=list(object),
-		            pOperator="ginv",
+		            pOperator="==",
 		            pStoreResult=TRUE)
 
 	    return(matrix(as.logical(as.matrix(flm)),nrow(pObj1),ncol(pObj1)))
@@ -238,13 +238,14 @@ NULL
 
 `==.FLVector` <- function(pObj1, pObj2)
 {
-	if(checkMaxQuerySize(pObj1))
-	pObj1 <- store(pObj1)
-	if(checkMaxQuerySize(pObj2))
-	pObj2 <- store(pObj2)
+	
 	connection <- getConnection(pObj1)
 	if(is.FLVector(pObj2))
 	{
+		if(checkMaxQuerySize(pObj1))
+		pObj1 <- store(pObj1)
+		if(checkMaxQuerySize(pObj2))
+		pObj2 <- store(pObj2)
 		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
 		a <- genRandVarName()
 		b <- genRandVarName()
@@ -318,7 +319,7 @@ NULL
 
 		flv <- ensureQuerySize(pResult=flv,
 	            pInput=list(object),
-	            pOperator="colMeans")
+	            pOperator="==")
 
 		return(as.logical(as.vector(flv)))
 	}
