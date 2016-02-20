@@ -567,12 +567,12 @@ FLamendDimnames <- function(flm,map_table) {
                   equalityConstraint(
                       paste0(flm@select@variables$colIdColumn),
                       "cnmap.NUM_ID"),
-                  equalityConstraint("cmap.DIM_ID","2"))
+                  equalityConstraint("cnmap.DIM_ID","2"))
         }
         flm@mapSelect <- new(
             "FLSelectFrom",
             connection = connection,
-            database = database,
+            database = flm@select@database,
             table_name = tablenames,
             variables=variables,
             whereconditions=mConstraint,
@@ -626,6 +626,28 @@ FLMatrix <- function(connection,
         rowIdColumn=paste0("mtrx.",row_id_colname),
         colIdColumn=paste0("mtrx.",col_id_colname),
         valueColumn=paste0("mtrx.",cell_val_colname))
+
+      if(length(dimnames)>0 && length(map_table)==0)
+      {
+        remoteTable <- getRemoteTableName(
+                getOption("ResultDatabaseFL"),
+                getOption("MatrixNameMapTableFL"))
+
+        t<-sqlSendUpdate(connection,paste0(" DELETE FROM ",remoteTable," WHERE MATRIX_ID=",matrix_id_value))
+        
+        map_table <- getOption("MatrixNameMapTableFL")
+        for(i in 1:length(dimnames))
+            #if(is.character(mydimnames[[i]]))
+            {
+                map_table <- getOption("MatrixNameMapTableFL")
+                dimnames[[i]] <- storeVarnameMapping(
+                    connection,
+                    map_table,
+                    matrix_id_value,
+                    i,
+                    dimnames[[i]])
+            }
+        }
 
     select <- new(
         "FLSelectFrom",
