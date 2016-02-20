@@ -587,6 +587,153 @@ test_that("check vector subsetting",
                     function(x) do.call("[",list(x)),
                     function(x) do.call("[",list(x)),n=5)  
 })
+
+## Testing FLMatrix Subsetting
+test_that("check matrix subsetting",
+{
+
+    ## Testing result
+    expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))         
+    },function(x) do.call("[",list(x,c("b","a"),2:1)),
+    function(x) do.call("[",list(x,c("b","a"),2:1)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))  
+    },function(x) do.call("[",list(x)),
+    function(x) do.call("[",list(x)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))  
+    },function(x) "["(x,c("b","c"),),
+    function(x)"["(x,c("b","c"),),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))  
+    },function(x) "["(x,,2:3),
+    function(x) "["(x,,2:3),n=4
+  )
+   expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))         
+    },function(x) dimnames("["(list(x,c("b","a"),2:1))),
+    function(x) dimnames("["(list(x,c("b","a"),2:1))),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))  
+    },function(x) dimnames("["(list(x))),
+    function(x) dimnames("["(list(x))),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))  
+    },function(x) dimnames("["(x,c("b","c"),)),
+    function(x) dimnames("["(x,c("b","c"),)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a,connection))  
+    },function(x) dimnames("["(x,,2:3)),
+    function(x) dimnames("["(x,,2:3)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",2,
+                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+        list(R=as.matrix(a),
+             FL=a)
+    },function(x) do.call("[",list(x,c("b","a"),2:1)),
+    function(x) do.call("[",list(x,c("b","a"),2:1)),n=6
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",2,
+                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+        list(R=as.matrix(a),
+             FL=a)
+    },function(x) do.call("[",list(x)),
+    function(x) do.call("[",list(x)),n=6
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+      a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",2,
+                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+      ## todo phani:
+      ## get inspired by storeVarnameMapping in as.FLMatrix.Matrix
+      ## override assignment of names
+      # dimnames(a) <- list(c("a","b","c"),1:3)
+      # rownames(a) <- c("a","b","c")
+      # colnames(a) <- 1:3
+      list(R=as.matrix(a),
+           FL=a)
+    },function(x) "["(x,c("b","c"),),
+    function(x)"["(x,c("b","c"),),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",2,
+                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+        list(R=as.matrix(a),
+             FL=a)
+    },function(x) "["(x,,2:3),
+    function(x) "["(x,,2:3),n=4
+  )
+})
+
+## Testing FLCorrel
+test_that("check FLCorrel result",
+{
+  fltDeep <- FLTable(connection,"FL_DEMO","tblAbaloneDeep",
+                "ObsID","VarID","Num_Val",
+                whereconditions="FL_DEMO.tblAbaloneDeep.ObsID < 21")
+  RtDeep <- as.data.frame(fltDeep)
+  fltWide <- FLTable(connection,"FL_DEMO","tblAbaloneWide",
+                "ObsID",whereconditions="FL_DEMO.tblAbaloneWide.ObsID < 21")
+  RtWide <- as.data.frame(fltWide)
+  vRow <- initF.FLVector(20,TRUE)
+  flvRow <- vRow$FL
+  RvRow <- vRow$R
+  RvCol <- rnorm(20)
+  flvCol <- as.FLVector(RvCol,connection)
+  m <- initF.FLMatrix(20)
+  flm <- m$FL
+  Rm <- m$R
+  expect_equal(cor(flm,flm),cor(Rm,Rm),check.attributes=FALSE)
+  expect_equal(cor(flvRow,flvRow),cor(RvRow,RvRow),check.attributes=FALSE)
+  expect_equal(cor(flvCol,flvCol),cor(RvCol,RvCol),check.attributes=FALSE)
+  expect_equal(cor(fltDeep,fltDeep),cor(RtDeep,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flm,flvRow),cor(Rm,RvRow),check.attributes=FALSE)
+  expect_equal(cor(flm,flvCol),cor(Rm,RvCol),check.attributes=FALSE)
+  expect_equal(cor(flvCol,flvRow),cor(RvCol,RvRow),check.attributes=FALSE)
+  expect_equal(cor(flm,fltDeep),cor(Rm,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flvRow,fltDeep),cor(RvRow,RtDeep),check.attributes=FALSE)
+  expect_equal(cor(flvCol,fltDeep),cor(RvCol,RtDeep),check.attributes=FALSE)
+  cor(fltDeep,fltWide)
+  cor(fltWide,fltWide)
+  cor(fltWide,fltDeep)
+  cor(flm,fltWide)
+  cor(flvRow,fltWide)
+  cor(flvCol,fltWide)
+  })
 #################################################################
 ########### no equivqlent R functions to test against ###########
 ################### but functions work ##########################
@@ -694,41 +841,6 @@ test_that("check colSums",
     expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
 })
 
-## Testing FLCorrel
-test_that("check FLCorrel result",
-{
-  fltDeep <- FLTable(connection,"FL_DEMO","tblAbaloneDeep",
-                "ObsID","VarID","Num_Val",
-                whereconditions="FL_DEMO.tblAbaloneDeep.ObsID < 21")
-  RtDeep <- as.data.frame(fltDeep)
-  fltWide <- FLTable(connection,"FL_DEMO","tblAbaloneWide",
-                "ObsID",whereconditions="FL_DEMO.tblAbaloneWide.ObsID < 21")
-  RtWide <- as.data.frame(fltWide)
-  vRow <- initF.FLVector(20,TRUE)
-  flvRow <- vRow$FL
-  RvRow <- vRow$R
-  RvCol <- rnorm(20)
-  flvCol <- as.FLVector(RvCol,connection)
-  m <- initF.FLMatrix(20)
-  flm <- m$FL
-  Rm <- m$R
-  expect_equal(cor(flm,flm),cor(Rm,Rm),check.attributes=FALSE)
-  expect_equal(cor(flvRow,flvRow),cor(RvRow,RvRow),check.attributes=FALSE)
-  expect_equal(cor(flvCol,flvCol),cor(RvCol,RvCol),check.attributes=FALSE)
-  expect_equal(cor(fltDeep,fltDeep),cor(RtDeep,RtDeep),check.attributes=FALSE)
-  expect_equal(cor(flm,flvRow),cor(Rm,RvRow),check.attributes=FALSE)
-  expect_equal(cor(flm,flvCol),cor(Rm,RvCol),check.attributes=FALSE)
-  expect_equal(cor(flvCol,flvRow),cor(RvCol,RvRow),check.attributes=FALSE)
-  expect_equal(cor(flm,fltDeep),cor(Rm,RtDeep),check.attributes=FALSE)
-  expect_equal(cor(flvRow,fltDeep),cor(RvRow,RtDeep),check.attributes=FALSE)
-  expect_equal(cor(flvCol,fltDeep),cor(RvCol,RtDeep),check.attributes=FALSE)
-  cor(fltDeep,fltWide)
-  cor(fltWide,fltWide)
-  cor(fltWide,fltDeep)
-  cor(flm,fltWide)
-  cor(flvRow,fltWide)
-  cor(flvCol,fltWide)
-  })
 #################################################################################
 ################### Functions work but output slightly differs ##################
 ###################### from corresponding R functions ###########################
@@ -926,117 +1038,5 @@ test_that("check dimnames on binds result",
   expect_equal(dimnames(rbind(cbind(rbind(M1$FL,M2),M3),M4)),
                dimnames(rbind(cbind(rbind(M1$R,as.matrix(M2)),as.matrix(M3)),as.matrix(M4))),
                check.attributes=FALSE)
-})
-
-## Testing FLSubsetting
-test_that("check matrix subsetting",
-{
-
-    ## Testing result
-    expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))         
-    },function(x) do.call("[",list(x,c("b","a"),2)),
-    function(x) do.call("[",list(x,c("b","a"),2)),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
-        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))  
-    },function(x) do.call("[",list(x)),
-    function(x) do.call("[",list(x)),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))  
-    },function(x) "["(x,c("b","c"),),
-    function(x)"["(x,c("b","c"),),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))  
-    },function(x) "["(x,,2:3),
-    function(x) "["(x,,2:3),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
-                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
-                    dimnames=list(c("a","b","c"),1:3))
-        list(R=as.matrix(a),
-             FL=a)
-    },function(x) do.call("[",list(x,c("b","a"),2)),
-    function(x) do.call("[",list(x,c("b","a"),2)),n=6
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
-                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
-                    dimnames=list(c("a","b","c"),1:3))
-        list(R=as.matrix(a),
-             FL=a)
-    },function(x) do.call("[",list(x)),
-    function(x) do.call("[",list(x)),n=6
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
-      a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
-                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
-      ## todo phani:
-      ## get inspired by storeVarnameMapping in as.FLMatrix.Matrix
-      ## override assignment of names
-      dimnames(a) <- list(c("a","b","c"),1:3)
-      rownames(a) <- c("a","b","c")
-      colnames(a) <- 1:3
-      list(R=as.matrix(a),
-           FL=a)
-    },function(x) "["(x,c("b","c"),),
-    function(x)"["(x,c("b","c"),),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",1,
-                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
-                    dimnames=list(c("a","b","c"),1:3))
-        list(R=as.matrix(a),
-             FL=a)
-    },function(x) "["(x,,2:3),
-    function(x) "["(x,,2:3),n=4
-  )
-
-  #Testing dimnames of result
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
-        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))         
-    },function(x) dimnames("["(list(x,c("b","a"),2))),
-    function(x) dimnames("["(list(x,c("b","a"),2))),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
-        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))  
-    },function(x) dimnames("["(list(x))),
-    function(x) dimnames("["(list(x))),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))  
-    },function(x) dimnames("["(x,c("b","c"),)),
-    function(x) dimnames("["(x,c("b","c"),)),n=4
-  )
-
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
-      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a,connection))  
-    },function(x) dimnames("["(x,,2:3)),
-    function(x) dimnames("["(x,,2:3)),n=4
-  )
 })
 
