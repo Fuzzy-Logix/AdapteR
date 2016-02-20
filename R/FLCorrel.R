@@ -31,36 +31,6 @@ cor.FLMatrix <- function(x,y=x)
     if(is.FLMatrix(y))
     {
     	if(nrow(x)!=nrow(y)) stop("incompatible dimensions")
-        # sqlstr <- paste0(" SELECT ",
-        #                  " a.",getVariables(x)$colIdColumn," AS A, ",
-        #                  " b.",getVariables(y)$colIdColumn," AS B, ",
-        #                  "FLCorrel(a.",getVariables(x)$valueColumn,
-        #                  ",b.",getVariables(y)$valueColumn,") AS C ",
-        #                  "FROM ",remoteTable(x)," a, ",
-        #                  remoteTable(y)," b ",
-        #                  constructWhere(c(
-        #                      constraintsSQL(x, "a"),
-        #                      constraintsSQL(y, "b"),
-        #                      paste0("a.", getVariables(x)$rowIdColumn,
-        #                             " = b.",getVariables(y)$rowIdColumn))),
-        #                  " GROUP BY a.",getVariables(x)$colIdColumn,
-        #                  ", b.", getVariables(y)$colIdColumn,
-        #                  " ORDER BY 1,2 ")
-        # ##browser()
-        # vec <- sqlQuery(getConnection(x),sqlstr)
-        # i <- match(vec[[1]],colnames(x))
-        # j <- match(vec[[2]],colnames(y))
-        # if(any(is.na(i)) | any(is.na(j)))
-        #     stop("matrix rowname mapping needs to be implemented")
-        # m <- sparseMatrix(i = i,
-        #                   j = j,
-        #                   x = vec[[3]],
-        #                   dims = c(ncol(x),
-        #                            ncol(y)),
-        #                   dimnames = list(
-        #                       colnames(x),
-        #                       colnames(y)))
-        # return(m)
 
         a <- genRandVarName()
 		b <- genRandVarName()
@@ -162,30 +132,11 @@ cor.FLMatrix <- function(x,y=x)
 			            dimnames = list(
                           colnames(x),
                           "1"))
-			##Phani-- mapping of names needs to be implemented.
-			# flm <- new("FLMatrix",
-			#             select= tblfunqueryobj,
-			#             dimnames = list(
-   #                        colnames(x),
-   #                        colnames(y)))
 
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y),
 							pOperator="cor"))
 		}
-			# sqlstr <- paste0("SELECT a.",x@variables$colIdColumn,", ",
-			# 						 x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
-			# 						 					  b.",y@col_name,") AS C 
-			# 				  FROM ",remoteTable(x)," a, 
-			# 				  	   ",remoteTable(y)," b 
-			# 				  WHERE a.",x@variables$rowIdColumn," = b.",y@obs_id_colname," 
-			# 				  AND a.",x@matrix_id_colname,"=",x@matrix_id_value," 
-			# 				  GROUP BY a.",x@variables$colIdColumn," 
-			# 				  ORDER BY 1")
-			# vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
-			# correlmat <- matrix(vec,ncol(x),byrow=T)
-			# correlflmat<-as.FLMatrix(correlmat,getConnection(x));
-			# return(correlflmat)
 	}
 	if(is.FLTable(y))
 	{
@@ -284,14 +235,7 @@ cor.FLVector <- function(x,y=x)
 		if(length(x)!=length(y)) stop(" incompatible dimensions ")
 		if(nrow(y)==1) y <- as.FLVector(as.vector(y),connection)
 		if(nrow(x)==1) x <- as.FLVector(as.vector(x),connection)
-		#y <- as.FLMatrix(y,connection,
-							#sparse=TRUE,rows=length(y),cols=1)
-		# if(nrow(x)==1) x <- as.FLMatrix(x,connection,
-		# 					sparse=TRUE,rows=length(x),cols=1)
-		# if(is.FLMatrix(x) || is.FLMatrix(y))
-		# return(cor(x,y))
-		# else
-		# {
+
 			a <- genRandVarName()
 			b <- genRandVarName()
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
@@ -303,47 +247,8 @@ cor.FLVector <- function(x,y=x)
 				                  ",( ",constructSelect(y),") AS ",b,
 		            			constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"))))
 
-				# tblfunqueryobj <- new("FLTableFunctionQuery",
-    #                     odbc_connection = connection,
-    #                     variables=list(
-    #                         rowIdColumn="rowIdColumn",
-    #                         colIdColumn="colIdColumn",
-    #                         valueColumn="valueColumn"),
-    #                     whereconditions="",
-    #                     order = "",
-    #                     SQLquery=sqlstr)
 
-				# ##Phani-- names mapping needs to be implemented.
-				# # flm <- new("FLMatrix",
-				# #             select= tblfunqueryobj,
-				# #             dimnames = list(
-    # #                           colnames(x),
-    # #                           colnames(y)))
-				# flm <- new("FLMatrix",
-				#             select= tblfunqueryobj,
-				#             dimnames = list(
-    #                           "1",
-    #                           "1"))
-
-				# return(ensureQuerySize(pResult=flm,
-				# 				pInput=list(x,y),
-				# 				pOperator="cor"))
 			return(sqlQuery(connection,sqlstr)[["valueColumn"]])
-			# }
-		# nrowy <- sqlQuery(getConnection(y),
-		# 				  paste0("SELECT COUNT(a.",y@col_name,") 
-		# 				  		  FROM ",remoteTable(y)," a"))[1,1]
-		# if(nrowx == nrowy)
-		# {
-		# 	sqlstr<-paste("SELECT ",x@db_name,".FLCorrel(a.",x@col_name,",
-		# 													   b.",y@col_name,") 
-		# 				   FROM ",remoteTable(x)," AS a,",
-		# 				   		  remoteTable(x)," AS b 
-		# 				   WHERE a.",x@obs_id_colname,"=b.",y@obs_id_colname, sep="")
-		# 	retobj<-sqlQuery(getConnection(x),sqlstr)
-		# 	return(retobj[1,1])
-		# }
-		# else stop(" invalid dimensions ")
 	}
 	if(is.FLMatrix(y))
 	{
@@ -426,20 +331,6 @@ cor.FLTable <- function(x,y=x)
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y),
 							pOperator="cor"))
-			# sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
-			# 						 b.",y@var_id_name," AS B ,",
-			# 						 x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
-			# 						 					  b.",y@variables$valueColumn,") AS C 
-			# 				  FROM ",remoteTable(x)," a,
-			# 				  	   ",remoteTable(y)," b 
-			# 				  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
-			# 				  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
-			# 				  ORDER BY 1,2 ")
-		
-			# vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
-			# correlmat <- matrix(vec,ncolx,byrow=T)
-			# #correlflmat<-as.FLMatrix(correlmat,getConnection(x));
-			# return(correlmat)
 		}
 		if(!y@isDeep && !x@isDeep)
 		{
@@ -447,101 +338,31 @@ cor.FLTable <- function(x,y=x)
 			deepy <- wideToDeep(y)
 			x <- deepx[["table"]]
 			y <- deepy[["table"]]
-			# deeptablenamex <- gen_deep_table_name(x@select@table_name)
-			# deeptablenamey <- gen_deep_table_name(y@select@table_name)
-			
-			# if(class(x@select)=="FLTableFunctionQuery")
-			# x <- store(x)
-			# if(class(y@select)=="FLTableFunctionQuery")
-			# y <- store(y)
-			
-			# sqlstr<-paste0("CALL FLWideToDeep('",x@select@table_name,"','",getVariables(x)[["obs_id_colname"]],"','",deeptablenamex,
-			# 				"','obs_id_colname','var_id_colname','cell_val_colname',NULL,NULL,'",x@select@whereconditions,"',AnalysisID);")
-			# dataprepIDx <- as.vector(retobj<-sqlQuery(getConnection(x),sqlstr)[1,1])
-
-			# sqlstr<-paste0("CALL FLWideToDeep('",y@select@table_name,"','",getVariables(y)[["obs_id_colname"]],"','",deeptablenamey,
-			# 				"','obs_id_colname','var_id_colname','cell_val_colname',NULL,NULL,'",y@select@whereconditions,"',AnalysisID);")
-			# dataprepIDy <- as.vector(retobj<-sqlQuery(getConnection(y),sqlstr)[1,1])
-
-			# x <- new("FLTable", 
-			# 		  odbc_connection = getConnection(x),
-			# 		  db_name = x@db_name, 
-			# 		  table_name = deeptablenamex,
-			# 		  primary_key = "ObsID",
-			# 		  var_id_name = "VarID",
-			# 		  cell_val_colname="Num_Val",
-			# 		  isDeep = TRUE)
-			# y <- new("FLTable", 
-			# 		  odbc_connection = getConnection(y),
-			# 		  db_name = y@db_name, 
-			# 		  table_name = deeptablenamey,
-			# 		  primary_key = "ObsID",
-			# 		  var_id_name = "VarID",
-			# 		  cell_val_colname="Num_Val",
-			# 		  isDeep = TRUE)
-			
-			# sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
-			# 						 b.",y@var_id_name," AS B ,
-			# 						   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
-			# 						   						  b.",y@variables$valueColumn,") AS C 
-			# 				  FROM ",remoteTable(x)," a, 
-			# 				  	   ",remoteTable(y)," b 
-			# 				  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
-			# 				  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
-			# 				  ORDER BY 1,2 ")
-			# vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
-
-			# ncolx <- sqlQuery(getConnection(x),
-			# 				  paste0(" SELECT COUNT(COLUMN_NAME) 
-			# 				  		   FROM fzzlRegrDataPrepMap 
-			# 				  		   WHERE AnalysisID = '",dataprepIDx,"' 
-			# 	                	   AND Final_VarID IS NOT NULL"))[1,1]
 			
 			flm <- cor(x,y)
-			varnamesx <- sqlQuery(connection,
-								  paste0(" SELECT COLUMN_NAME, Final_VarID 
-								  		   FROM fzzlRegrDataPrepMap 
-								  		   WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
-				                		   AND Final_VarID IS NOT NULL 
-				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
-			rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
-			varnamesy <- sqlQuery(getConnection(y),
-								  paste0(" 	SELECT COLUMN_NAME ,Final_VarID 
-								  			FROM fzzlRegrDataPrepMap 
-								  			WHERE AnalysisID = '",deepy[["AnalysisID"]],"' 
-				                			AND Final_VarID IS NOT NULL 
-				                			ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
-			colnames <- varnamesy[charmatch(colnames(flm),varnamesy[["Final_VarID"]]),"COLUMN_NAME"]
-			# correlmat <- matrix(vec,ncolx,byrow=T,dimnames=list(varnamesx,varnamesy))
-			##Phani-- names mapping needs to be implemented for this to work
-			flm@dimnames <- list(rownames,colnames)
+			# varnamesx <- sqlQuery(connection,
+			# 					  paste0(" SELECT COLUMN_NAME, Final_VarID 
+			# 					  		   FROM fzzlRegrDataPrepMap 
+			# 					  		   WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
+			# 	                		   AND Final_VarID IS NOT NULL 
+			# 	                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
+			# rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
+			# varnamesy <- sqlQuery(getConnection(y),
+			# 					  paste0(" 	SELECT COLUMN_NAME ,Final_VarID 
+			# 					  			FROM fzzlRegrDataPrepMap 
+			# 					  			WHERE AnalysisID = '",deepy[["AnalysisID"]],"' 
+			# 	                			AND Final_VarID IS NOT NULL 
+			# 	                			ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
+			# colnames <- varnamesy[charmatch(colnames(flm),varnamesy[["Final_VarID"]]),"COLUMN_NAME"]
+			# # correlmat <- matrix(vec,ncolx,byrow=T,dimnames=list(varnamesx,varnamesy))
+			# ##Phani-- names mapping needs to be implemented for this to work
+			# flm@dimnames <- list(rownames,colnames)
 			return(flm)
 		}
 		if(y@isDeep && !x@isDeep)
 		{
 			deepx <- wideToDeep(x)
 			x <- deepx[["table"]]
-			# deeptablenamex <- gen_deep_table_name(x@table_name)
-			# sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
-			# 				"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
-			# dataprepIDx <- as.vector(retobj<-sqlQuery(getConnection(x),sqlstr)[1,1])
-			# x <- new("FLTable", 
-			# 		  odbc_connection = getConnection(x),
-			# 		  db_name = x@db_name, 
-			# 		  table_name = deeptablenamex,
-			# 		  primary_key = "ObsID",
-			# 		  var_id_name = "VarID",
-			# 		  cell_val_colname="Num_Val",
-			# 		  isDeep = TRUE)
-			# sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
-			# 						 b.",y@var_id_name," AS B ,
-			# 						   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@variables$valueColumn,") AS C 
-			# 				  FROM ",remoteTable(x)," a,
-			# 				  	   ",remoteTable(y)," b 
-			# 				  WHERE  a.",x@obs_id_colname," = b.",y@obs_id_colname," 
-			# 				  GROUP BY a.",x@var_id_name,", b.",y@var_id_name," 
-			# 				  ORDER BY 1,2 ")
-			# vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
 			flm <- cor(x,y)
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME, Final_VarID 
@@ -595,46 +416,11 @@ cor.FLTable <- function(x,y=x)
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y),
 							pOperator="cor"))
-			# sqlstr <- paste0("SELECT a.",x@var_id_name," AS A ,
-			# 						 b.",y@variables$colIdColumn," AS B ,
-			# 						   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@variables$valueColumn,") AS C 
-			# 				  FROM ",remoteTable(x)," a,
-			# 				  	   ",remoteTable(y)," b 
-			# 				  WHERE a.",x@obs_id_colname," = b.",y@variables$rowIdColumn," 
-			# 				  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
-			# 				  GROUP BY a.",x@var_id_name,", b.",y@variables$colIdColumn," 
-			# 				  ORDER BY 1,2 ")
-		
-			# vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
-			# correlmat <- matrix(vec,ncol(x),byrow=T)
-			# return(correlmat)
 		}
 		if(!x@isDeep)
 		{
 			deepx <- wideToDeep(x)
 			x <- deepx[["table"]]
-			# deeptablenamex <- gen_deep_table_name(x@table_name)
-			# sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
-			# 				"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
-			# dataprepIDx <- as.vector(retobj<-sqlQuery(getConnection(x),sqlstr)[1,1])
-			# x <- new("FLTable", 
-			# 	      odbc_connection = getConnection(x),
-			# 	      db_name = x@db_name, 
-			# 		  table_name = deeptablenamex,
-			# 		  primary_key = "ObsID",
-			# 		  var_id_name = "VarID",
-			# 		  cell_val_colname="Num_Val",
-			# 		  isDeep = TRUE)
-			# sqlstr <- paste0("SELECT a.",x@var_id_name," AS A,
-			# 						 b.",y@variables$colIdColumn," AS B,
-			# 						   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@variables$valueColumn,") AS C 
-			# 				  FROM ",remoteTable(x)," a,
-			# 				  	   ",remoteTable(y)," b 
-			# 				  WHERE a.",x@obs_id_colname," = b.",y@variables$rowIdColumn," 
-			# 				  AND b.",y@matrix_id_colname,"=",y@matrix_id_value," 
-			# 				  GROUP BY a.",x@var_id_name,", b.",y@variables$colIdColumn," 
-			# 				  ORDER BY 1,2 ")
-			# vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
 			flm <- cor(x,y)
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME, Final_VarID 
@@ -702,11 +488,7 @@ cor.FLTable <- function(x,y=x)
                     order = "",
                     SQLquery=sqlstr)
 
-			# flm <- new("FLMatrix",
-			#             select= tblfunqueryobj,
-			#             dimnames = list(
-   #                        colnames(x),
-   #                        colnames(y)))
+			
 			flm <- new("FLMatrix",
                        select= tblfunqueryobj,
                        dim=c(ncol(x),1),
@@ -721,56 +503,6 @@ cor.FLTable <- function(x,y=x)
 							pInput=list(x,y),
 							pOperator="cor"))
 		}
-
-	# 	if(nrowx == nrow(y))
-	# 	{
-	# 		if(x@isDeep)
-	# 		{
-	# 			sqlstr <- paste0("SELECT a.",x@var_id_name,", 
-	# 									   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",
-	# 									   						  b.",y@col_name,") AS C 
-	# 							  FROM ",remoteTable(x)," a, 
-	# 							  	   ",remoteTable(y)," b 
-	# 							  WHERE a.",x@obs_id_colname," = b.",y@obs_id_colname," 
-	# 							  GROUP BY a.",x@var_id_name," 
-	# 							  ORDER BY 1")
-	# 			vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
-	# 			correlmat <- matrix(vec,ncol(x),byrow=T)
-	# 			return(correlmat)
-	# 		}
-	# 		if(!x@isDeep)
-	# 		{
-	# 			deeptablenamex <- gen_deep_table_name(x@table_name)
-	# 			sqlstr<-paste0("CALL FLWideToDeep('",x@table_name,"','",x@obs_id_colname,"','",deeptablenamex,
-	# 							"','ObsID','VarID','Num_Val',NULL,NULL,NULL,AnalysisID);")
-	# 			dataprepIDx <- as.vector(retobj<-sqlQuery(getConnection(x),sqlstr)[1,1])
-	# 			x <- new("FLTable", 
-	# 					  odbc_connection = getConnection(x),
-	# 					  db_name = x@db_name, 
-	# 					  table_name = deeptablenamex,
-	# 					  primary_key = "ObsID",
-	# 					  var_id_name = "VarID",
-	# 					  cell_val_colname="Num_Val",
-	# 					  isDeep = TRUE)
-	# 			sqlstr <- paste0("SELECT a.",x@var_id_name,", 
-	# 									   ",x@db_name,".FLCorrel(a.",x@variables$valueColumn,",b.",y@col_name,") AS C 
-	# 							  FROM ",remoteTable(x)," a, 
-	# 							  	   ",remoteTable(y)," b 
-	# 							  WHERE a.",x@obs_id_colname," = b.",y@obs_id_colname," 
-	# 							  GROUP BY a.",x@var_id_name," 
-	# 							  ORDER BY 1")
-	# 			vec <- sqlQuery(getConnection(x),sqlstr)[,"C"]
-	# 			varnamesx <- sqlQuery(getConnection(x),
-	# 								  paste0("  SELECT COLUMN_NAME 
-	# 								  			FROM fzzlRegrDataPrepMap 
-	# 								  			WHERE AnalysisID = '",dataprepIDx,"' 
-	# 					                		AND Final_VarID IS NOT NULL 
-	# 					                		ORDER BY Final_VarID"))[,1]
-	# 			correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
-	# 			return(correlmat)
-	# 		}
-	# 	}
-	# 	else stop(" incompatible dimensions ")
 	}
 	if(is.matrix(y))
 	{
