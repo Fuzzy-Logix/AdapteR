@@ -21,6 +21,7 @@ Collate:
     'FLDims.R'
     'FLIs.R'
     'FLPrint.R'
+    'FLconstructSQL.R'
     'FLStore.R'
     'utilities.R'
     'FLMatrix.R'

@@ -373,22 +373,13 @@ as.sparseMatrix.FLMatrix <- function(object) {
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
       error=function(e){stop("error fetching data into R session!
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+    object@select@variables
     i <- valuedf$rowIdColumn
     j <- valuedf$colIdColumn
     i <- FLIndexOf(i,rownames(object))
     j <- FLIndexOf(j,colnames(object))
 
   dn <- dimnames(object)
- ##  for(index in 1:2){
- ##        if(!is.null(dn[[index]])){
- ##          dn[[index]] <- as.character(dn[[index]])
- ##            if(all(as.character(dn[[index]])==as.character(1:(dim(object)[[index]]))))
- ##                dn[index] <- list(NULL)
- ##        }
- ##      ##gk: fix this, currently dimnames needed
- ##      if(is.null(dn[[index]]))
- ##          dn[[index]] <- 1:dim(object)[[index]]
- ##  }
     if(any(is.na(c(i,j))))
         browser()
   values <- valuedf$valueColumn

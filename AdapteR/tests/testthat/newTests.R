@@ -19,6 +19,7 @@ if(!exists("connection")){
 
 FLStartSession(connection)
 
+setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/tests/testthat")
 source("FLtestLib.R")
 
 options(debugSQL=FALSE)
@@ -55,6 +56,7 @@ test_that("check FLGinv",
                       n=5)
 })
 
+## not running! todo phani: store one zero in the empty row (column)
 ## Testing FLDims
 test_that("check FLDims if all elements of a row are zero",
 {
@@ -89,6 +91,7 @@ test_that("check FLCastFunctions",
   P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   T1 <- initF.FLTable(rows=5,cols=5)
     expect_equal(as.vector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
+## Phani: not running!
     expect_equal(as.vector(P1$FL),as.vector(P1$R),check.attributes=FALSE)
     expect_equal(as.data.frame(M1$FL),as.data.frame(M1$R),check.attributes=FALSE)
     testthat::expect_equal(as.matrix(P1$FL),as.matrix(P1$R),check.attributes=FALSE)
@@ -102,7 +105,7 @@ test_that("check FLCastFunctions",
 })
 
 ## Testing FLCholskeyDecomp
-### Phani-- needs a hermitian positive definite matrix as input
+## needs a hermitian positive definite matrix as input
 test_that("check FLCholskeyDecomp",
 {
   m4 <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
@@ -672,7 +675,6 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-
       a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",2,
                     "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
@@ -781,7 +783,7 @@ test_that("check FLMatrixNorm working",
 })
 
 ##Testing FLJordon
-### Phani-- works only with matrices with non-complex
+### works only with matrices with non-complex
 ### eigen values. So input taken from DbLytix manual.
 test_that("check Jordan Decomposition",
 {
@@ -847,7 +849,7 @@ test_that("check colSums",
 
 ## gk: discuss with Raman for JIRA DBlytix
 ## Testing FLEigen
-## Phani -- results differ in Teradata and R
+## results differ in Teradata and R
 test_that("check FLEigen",
 {
     expect_eval_equal(initF.FLMatrix,
@@ -858,21 +860,20 @@ test_that("check FLEigen",
 })
 
 ## Testing FLSVDecomp
-## Phani -- results differ in Teradata and R
+## results differ in Teradata and R
 test_that("check Singular Value Decomposition",
 {
     expect_eval_equal(initF.FLMatrix,AdapteR::svd,base::svd,n=5)
 })
 
 ## Testing FLDet
-### Phani-- for some matrices R output = -(DBLytix output)
+### for some matrices R output = -(DBLytix output)
 test_that("check determinant result",{
     expect_eval_equal(initF.FLMatrix,AdapteR::det,base::det,n=5,isSquare=TRUE)
 })
 
 ## Testing FLQRDecomposition
-### Phani-- could not calculate pivot properly,
-### also, output qr matrix differs from R
+## output qr matrix differs from R
 ## todo gk: how can we compute: pivot part of r result
 test_that("check FLQRDecomposition",
 {

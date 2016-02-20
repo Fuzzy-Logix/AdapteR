@@ -1,3 +1,4 @@
+#' @include FLconstructSQL.R
 
 #' An S4 class to represent FLMatrix
 #'

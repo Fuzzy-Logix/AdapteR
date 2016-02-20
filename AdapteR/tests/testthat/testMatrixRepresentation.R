@@ -26,6 +26,8 @@ matrixNumChar <- matrix(1:25,5)
 rownames(matrixNumChar) <- c(9,6,5,2,1)
 colnames(matrixNumChar) <- c("p","q","r","s","t")
 
+fl <- as.FLMatrix(matrixCharChar,connection)
+A <- solve(fl)
 
 
 source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
