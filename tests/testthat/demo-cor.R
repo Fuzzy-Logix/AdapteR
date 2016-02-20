@@ -271,10 +271,34 @@ m <- FLMatrix(connection,
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
-              cell_val_colname  = "Cell_Val")
+              cell_val_colname  = "Cell_Val",
+              dimnames=list(c("a","b","c","d","e"),
+                            c("p","q","r","s","t"))
+)
+
+m
+
+source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
+source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSubsetting.R")
+source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLconstructSQL.R")
+source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSolve.R")
+
+ms <- solve(m)
+
+ms
+
+as.matrix(m)
+solve(as.matrix(m))
+
+
+cat(constructSelect(m@mapSelect))
 
 ## compute the inverse
 ms <- solve(m)
+rm <- as.matrix(m)
+rownames(rm) <- c("a","b","c","d","e")
+colnames(rm) <- c("p","q","r","s","t")
+
 
 ## check is R and DB Lytix results match up:
 m.r <- as.matrix(m) ## download and convert to R matrix

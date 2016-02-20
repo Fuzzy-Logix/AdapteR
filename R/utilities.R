@@ -397,21 +397,29 @@ setMethod("getMaxVectorId",
                           vconnection=vconnection)+1
           )
 
-ensureQuerySize <- function(pResult,pInput,pOperator,pStoreResult=FALSE)
+ensureQuerySize <- function(pResult,
+                            pInput,
+                            pOperator,
+                            pStoreResult=FALSE,
+                            ...)
 {
+    ##browser()
     if(checkMaxQuerySize(pResult))
     {
-        vQuerySizes <- sapply(pInput,FUN=function(x) object.size(constructSelect(x)))
+        vQuerySizes <- sapply(pInput,
+                              FUN=function(x)
+                                  object.size(constructSelect(x,...)))
         vbulkyInput <- which.max(vQuerySizes)
         pInput[[vbulkyInput]] <- store(pInput[[vbulkyInput]])
         return(do.call(pOperator,pInput))
     }
     else
     {
-        if(pStoreResult) return(store(pResult))
+        if(pStoreResult) return(store(pResult,...))
         else return(pResult)
     }
 }
+
 flag1Check <- function(connection)
 {
     return(TRUE)

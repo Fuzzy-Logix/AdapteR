@@ -2,6 +2,7 @@
 #' @include FLStore.R
 #' @include FLTable.R
 #' @include FLVector.R
+#' @include FLconstructSQL.R
 NULL
 setOldClass("RODBC")
 
@@ -96,19 +97,19 @@ setGeneric("store", function(object,returnType,connection,...) {
 
 setMethod("store",
           signature(object = "FLMatrix",returnType="missing",connection="missing"),
-          function(object) store.FLMatrix(object))
+          function(object,...) store.FLMatrix(object))
 setMethod("store",
           signature(object = "FLVector",returnType="missing",connection="missing"),
-          function(object) store.FLVector(object))
+          function(object,...) store.FLVector(object))
 setMethod("store",
           signature(object = "FLTable",returnType="missing",connection="missing"),
-          function(object) store.FLTable(object))
+          function(object,...) store.FLTable(object))
 setMethod("store",
           signature(object = "character",returnType="character",connection="RODBC"),
-          function(object,returnType,connection) store.character(object,returnType,connection))
+          function(object,returnType,connection,...) store.character(object,returnType,connection))
 setMethod("store",
           signature(object = "character",returnType="character",connection="JDBCConnection"),
-          function(object,returnType,connection) store.character(object,returnType,connection))
+          function(object,returnType,connection,...) store.character(object,returnType,connection))
 
 
 drop.FLTable <- function(object)
@@ -178,146 +179,6 @@ setMethod("suffixAlias",
               return(object)
           })
 
-setGeneric("constructSelect", function(object,...) {
-    standardGeneric("constructSelect")
-})
-
-setMethod("constructSelect",
-          signature(object = "FLMatrix"),
-          function(object,joinNames=TRUE){
-              ##browser()
-              if(!FLNamesMappedP(object) | !joinNames)
-                  return(constructSelect(object@select))
-              select <- object@select
-              select@variables <- c(select@variables,
-                                    object@mapSelect@variables)
-              select@table_name <- c(select@table_name,
-                                     object@mapSelect@table_name)
-              select@whereconditions <- c(select@whereconditions,
-                                          object@mapSelect@whereconditions)
-              return(constructSelect(select))
-          })
-
-setMethod("constructSelect",
-          signature(object = "FLTableQuery"),
-          function(object) {
-              if(is.null(object@database)) return(NULL)
-              if(length(object@database)==0) return(NULL)
-              return(paste0("SELECT ",
-                            paste(colnames(object),collapse=", "),
-                            " FROM ",remoteTable(object),
-                            constructWhere(c(constraintsSQL(object))),
-                            paste(object@order,collapse=", "),
-                            "\n"))
-          })
-
-
-setMethod("constructSelect",
-          signature(object = "FLTable"),
-          function(object) {
-            if(class(object@select)=="FLTableFunctionQuery") 
-            return(constructSelect(object@select))
-              if(!object@isDeep) 
-              {
-                variables <- getVariables(object)
-                if(is.null(names(variables)))
-                    names(variables) <- variables
-                else
-                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
-                ifelse(is.null(variables$obs_id_colname),vobsIDCol <- variables["vectorIndexColumn"],
-                   vobsIDCol <- variables["obs_id_colname"])
-                colnames <- colnames(object)
-                #colnames <- colnames[colnames!=vobsIDCol]
-                newColnames <- renameDuplicates(colnames)
-                variables <- as.list(c(vobsIDCol[[1]],colnames))
-                names(variables) <- c("obs_id_colname",
-                                      newColnames)
-
-                return(paste0(
-                            "SELECT\n",
-                            paste0("     ",
-                                   variables," AS ",
-                                   names(variables),
-                                   collapse = ",\n"),
-                            "\nFROM ",remoteTable(object),
-                            constructWhere(c(constraintsSQL(object))),
-                            "\n"))
-              }
-              else 
-              {
-                variables <- getVariables(object)
-                if(is.null(names(variables)))
-                  names(variables) <- variables
-                else
-                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
-                variables <- as.list(c(variables[["obs_id_colname"]],variables[["var_id_colname"]],variables[["cell_val_colname"]]))
-                names(variables) <- c("obs_id_colname","var_id_colname","cell_val_colname")
-                return(paste0(
-                          "SELECT\n",
-                          paste0("     ",
-                                 variables," AS ",
-                                 names(variables),
-                                 collapse = ",\n"),
-                          "\nFROM ",remoteTable(object),
-                          constructWhere(c(constraintsSQL(object))),
-                          "\n"))
-              }
-          })
-
-setMethod("constructSelect", signature(object = "FLVector"),
-          function(object) {
-            if(class(object@select)=="FLTableFunctionQuery") 
-            return(constructSelect(object@select))
-              if(!object@isDeep) {
-                newColnames <- renameDuplicates(colnames(object))
-                variables <- getVariables(object)
-                if(is.null(names(variables)))
-                    names(variables) <- variables
-                else
-                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
-                ifelse(is.null(variables$obs_id_colname),vobsIDCol <- variables["vectorIndexColumn"],
-                   vobsIDCol <- variables["obs_id_colname"])
-                variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],colnames(object)))
-                names(variables) <- c("vectorIdColumn",
-                                      "vectorIndexColumn",
-                                      if(length(colnames(object))>1) newColnames else "vectorValueColumn")
-
-                return(paste0(
-                            "SELECT\n",
-                            paste0("     ",
-                                   variables," AS ",
-                                   names(variables),
-                                   collapse = ",\n"),
-                            "\nFROM ",remoteTable(object),
-                            constructWhere(c(constraintsSQL(object))),
-                            "\n"))
-              } else {
-                  variables <- getVariables(object)
-                  if(is.null(names(variables)))
-                    names(variables) <- variables
-                  else
-                      names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
-                  if(nrow(object)==1)
-                  vobsIDCol <- variables["var_id_colname"]
-                  else vobsIDCol <- variables["obs_id_colname"]
-                  variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],variables[["cell_val_colname"]]))
-                  names(variables) <- c("vectorIdColumn","vectorIndexColumn","vectorValueColumn")
-                  return(paste0(
-                            "SELECT\n",
-                            paste0("     ",
-                                   variables," AS ",
-                                   names(variables),
-                                   collapse = ",\n"),
-                            "\nFROM ",remoteTable(object),
-                            constructWhere(c(constraintsSQL(object))),
-                            "\n"))
-              }
-          })
-
 renameDuplicates <- function(vec)
 {
     for(x in vec)
@@ -329,48 +190,7 @@ renameDuplicates <- function(vec)
     return(vec)
 }
 
-setMethod(
-    "constructSelect",
-    signature(object = "FLSelectFrom"),
-    function(object) {
-        if(is.null(object@database)) return(NULL)
-        if(length(object@database)==0) return(NULL)
-        variables <- getVariables(object)
-        order <- setdiff(object@order,c(NA,""))
-        if(length(order)==0)
-            ordering <- ""
-        else
-            ## ordering <- paste0(" ORDER BY ",paste0(object@obs_id_colname,collapse = ", "))
-            ordering <- paste0("\nORDER BY ",
-                               paste0(order,
-                                      collapse = ", "))
-        return(paste0(
-            "SELECT\n",
-            paste0("     ",
-                   variables, " ",
-                   names(variables),
-                   collapse = ",\n"),
-            "\nFROM ",remoteTable(object),
-            constructWhere(c(constraintsSQL(object))),
-            ordering,
-            "\n"))
-    })
-
-setMethod("constructSelect",
-          signature(object = "FLTableFunctionQuery"),
-          function(object) return(object@SQLquery))
-
-setMethod("constructSelect",
-          signature(object = "numeric"),
-          function(object) return(object))
-
-setMethod("constructSelect",
-          signature(object = "character"),
-          function(object) return(object))
-
 FLNamesMappedP <- function(m) return(0<length(m@mapSelect@table_name))
-
-
 
 getConditionValues <- function(selection,names) FLNameMatch(selection,names)
 
@@ -382,7 +202,7 @@ FLName <- function(i,thenames){
         names(i) <- i
         return(i)
     }
-    if(is.numeric(i)){
+    if(is.numeric(i) & is.null(names(i))){
         RR <- thenames[i]
         if(is.null(names(RR)) & !is.null(names(thenames)))
             names(RR) <- names(thenames)[i]
@@ -474,8 +294,6 @@ restrictFLMatrix <-
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
 FLamendDimnames <- function(flm,map_table) {
     ##browser()
-    ##browser()
-
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -626,7 +444,7 @@ FLMatrix <- function(connection,
         rowIdColumn=paste0("mtrx.",row_id_colname),
         colIdColumn=paste0("mtrx.",col_id_colname),
         valueColumn=paste0("mtrx.",cell_val_colname))
-
+    
       if(length(dimnames)>0 && length(map_table)==0)
       {
         remoteTable <- getRemoteTableName(
@@ -649,6 +467,7 @@ FLMatrix <- function(connection,
             }
         }
 
+    ##browser()
     select <- new(
         "FLSelectFrom",
         connection = connection,
@@ -674,18 +493,6 @@ FLMatrix <- function(connection,
         select@variables$matrixId <- matrix_id_colname
     }
     return(RESULT)
-}
-
-## Phani-- removed \n as it was creating problem in FLCorrel test cases
-constructWhere <- function(conditions) {
-    if(!is.character(conditions))
-        stop("Provide constraints as character vector")
-    conditions <- setdiff(conditions,c(NA,""))
-    if(length(conditions)>0)
-        paste0(" WHERE",paste0("   (",conditions,")",
-                                collapse=" AND "))
-    else
-        ""
 }
 
 
@@ -735,7 +542,6 @@ setMethod("getConnection", signature(object = "FLTableQuery"),
           function(object) object@select@connection)
 setMethod("getConnection", signature(object = "FLVector"),
           function(object) object@select@connection)
-
 
 setGeneric("constraintsSQL", function(object) {
     standardGeneric("constraintsSQL")
@@ -799,190 +605,6 @@ setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
           })
 
 
-setGeneric("viewSelectMatrix", function(object,localName, withName) {
-    standardGeneric("viewSelectMatrix")
-})
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",
-                                        localName="character",
-                                        withName="missing"),
-          function(object,localName, withName="z")
-          {viewSelectMatrix(object,localName,withName="z")})
-setMethod("viewSelectMatrix", signature(object = "FLMatrix",
-                                        localName="character",
-                                        withName="character"),
-          function(object,localName, withName="z") {
-              ##' todo: alias
-              ##names(object@select@table_name)[[1]] <- localName
-              object <- orderVariables(
-                  updateVariable(object,"Matrix_ID",-1),
-                  c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn")
-              )
-              return(paste0(" WITH ",withName,
-                            " (Matrix_ID, Row_ID, Col_ID, Cell_Val)
-              AS (",constructSelect(object)," ) "))
-          })
-
-## outputSelectMatrix apples function given by func_name to view given by viewname
-## and returns columns specified by outcolnames list. IncludeMID tells if max_matrix_id_value
-## should be one of the columns returned.
-setGeneric("outputSelectMatrix", function(func_name,includeMID,outColNames,
-                                          viewName,localName,whereClause,
-                                          vconnection) {
-    standardGeneric("outputSelectMatrix")
-})
-
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
-                                          viewName="character",localName="character",whereClause="character",
-                                          vconnection="missing"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause)
-          {
-              return(paste0(" SELECT ",paste0(localName,".",outColNames,collapse=","),paste0(" 
-          FROM TABLE (",func_name,
-          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
-          " HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
-          ") AS ",localName," ",whereClause)))
-          })
-
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
-                                          viewName="character",localName="character",whereClause="character",
-                                          vconnection="RODBC"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
-          {
-              return(paste0(" SELECT '%insertIDhere%' ",#ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
-                            " AS OutputMatrixID ",
-                            paste0(",",localName,".",outColNames,collapse=""),paste0(" 
-          FROM TABLE (",func_name,
-          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
-          " HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
-          ") AS ",localName," ",whereClause)))
-          })
-
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
-                                          viewName="character",localName="character",whereClause="character",
-                                          vconnection="JDBCConnection"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause,vconnection)
-          {
-              return(paste0(" SELECT '%insertIDhere%' ",#ifelse(includeMID,getMaxMatrixId(vconnection),getMaxVectorId(vconnection)),
-                            paste0(",",localName,".",outColNames,collapse=""),paste0(" 
-          FROM TABLE (",func_name,
-          "(",viewName,".Matrix_ID, ",viewName,".Row_ID, ",viewName,".Col_ID, ",viewName,".Cell_Val)",
-          " HASH BY z.Matrix_ID 
-          LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
-          ") AS ",localName," ",whereClause)))
-          })
-
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="character",
-                                          vconnection="missing"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause)
-          {
-              return(outputSelectMatrix(func_name,
-                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName=viewName,
-                                        localName=localName,whereClause=whereClause))
-          })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="character",
-                                          vconnection="RODBC"),
-          function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                   viewName,localName,whereClause,vconnection)
-          {
-              return(outputSelectMatrix(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal")
-                                       ,viewName,localName,whereClause,vconnection))
-          })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="character",
-                                          vconnection="JDBCConnection"),
-          function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                   viewName,localName,whereClause,vconnection)
-          {
-              return(outputSelectMatrix(func_name,includeMID,outColNames=list("OutputRowNum","OutputColNum","OutputVal")
-                                       ,viewName,localName,whereClause,vconnection))
-          })
-
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
-                                          viewName="character",localName="character",whereClause="missing",
-                                          vconnection="RODBC"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";",vconnection)
-          {
-              return(outputSelectMatrix(func_name,includeMID,
-                                        outColNames,viewName,localName,whereClause=";",vconnection))
-          })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="list",
-                                          viewName="character",localName="character",whereClause="missing",
-                                          vconnection="JDBCConnection"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";",vconnection)
-          {
-              return(outputSelectMatrix(func_name,includeMID,
-                                        outColNames,viewName,localName,whereClause=";",vconnection))
-          })
-
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="list",
-                                          viewName="character",localName="character",whereClause="missing",
-                                          vconnection="missing"),
-          function(func_name,includeMID,outColNames,viewName,localName,whereClause=";")
-          {
-              return(outputSelectMatrix(func_name,outColNames=outColNames,viewName=viewName,
-                                        localName=localName,whereClause=";"))
-          })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="missing",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="missing",
-                                          vconnection="missing"),
-          function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                   viewName,localName,whereClause=";")
-          {
-              return(outputSelectMatrix(func_name,
-                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),viewName=viewName,
-                                        localName=localName,whereClause=";"))
-          })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="missing",
-                                          vconnection="RODBC"),
-          function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                  viewName,localName,whereClause=";",vconnection)
-          {
-              return(outputSelectMatrix(func_name,includeMID,
-                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                                        viewName,localName,whereClause=";",vconnection))
-          })
-setMethod("outputSelectMatrix", signature(func_name="character",includeMID="logical",outColNames="missing",
-                                          viewName="character",localName="character",whereClause="missing",
-                                          vconnection="JDBCConnection"),
-          function(func_name,includeMID,
-                   outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                  viewName,localName,whereClause=";",vconnection)
-          {
-              return(outputSelectMatrix(func_name,includeMID,
-                                        outColNames=list("OutputRowNum","OutputColNum","OutputVal"),
-                                        viewName,localName,whereClause=";",vconnection))
-          })
-
-                                        # checkSingularity throws error if FLMatrix object is singular
-                                        # setGeneric("checkSingularity", function(object) {
-                                        #     standardGeneric("checkSingularity")
-                                        # })
-                                        # setMethod("checkSingularity", signature(object="FLMatrix"),
-                                        #           function(object) {
-                                        #           rank <- rankMatrix(object)
-                                        #           if(rank < base::min(nrow(object),ncol(object)))
-                                        #           stop("input matrix is exactly singular")
-                                        #           })
-
-                                        # # checkHermitianPositiveDefinite throws error if FLMatrix object is not HermitianPositiveDefinite
-                                        # setGeneric("checkHermitianPositiveDefinite", function(object) {
-                                        #     standardGeneric("checkHermitianPositiveDefinite")
-                                        # })
-                                        # setMethod("checkHermitianPositiveDefinite", signature(object="FLMatrix"),
-                                        #           function(object) {
-                                        #           ### Phani-- check if matrix = its conjugated transpose (hermitian)
-                                        #           ### Phani-- check if eigenvalues of matrix are all +ve.
-                                        #           return(TRUE)
-                                        #           })
 
                                         #checkSameDims throws error if FLMatrix objects have different dimensions
 setGeneric("checkSameDims", function(object1,object2) {
@@ -1031,4 +653,5 @@ setMethod("checkMaxQuerySize",
 setMethod("checkMaxQuerySize",
           signature(pObj1="FLVector"),
           function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
+
 

@@ -39,8 +39,10 @@ solve.FLMatrix <- function(pObj1)
     flag1Check(connection)
 
   sqlstr<-paste0(viewSelectMatrix(pObj1, "mtrx", withName="z"),
-                 outputSelectMatrix("FLMatrixInvUdt", viewName="z", localName="mtrx",
-                                    includeMID=TRUE,vconnection=connection)
+                 outputSelectMatrix("FLMatrixInvUdt",
+                                    viewName="z",
+                                    localName="mtrx",
+                                    includeMID=TRUE)
                 )
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -54,13 +56,11 @@ solve.FLMatrix <- function(pObj1)
                         SQLquery=sqlstr)
 
   flm <- new("FLMatrix",
-            select= tblfunqueryobj,
-            dimnames=dimnames(pObj1))
+             select= tblfunqueryobj,
+             dim=rev(dim(pObj1)),
+             dimnames=rev(dimnames(pObj1)))
 
-  return(ensureQuerySize(pResult=flm,
-            pInput=list(pObj1),
-            pOperator="solve",
-            pStoreResult=TRUE))
+  return(flm)
 
 }
 

@@ -1,5 +1,6 @@
 store.FLMatrix <- function(object)
 {
+    ##browser()
     if("FLMatrix" %in% class(object))
         if("FLSelectFrom" %in% class(object@select))
             return(object)
@@ -15,7 +16,8 @@ store.FLMatrix <- function(object)
                           getRemoteTableName(getOption("ResultDatabaseFL"),
                                             getOption("ResultMatrixTableFL")),
                           "\n",
-                          gsub("'%insertIDhere%'",MID,constructSelect(object)),
+                          gsub("'%insertIDhere%'",MID,
+                               constructSelect(object,joinNames=FALSE)),
                           "\n")
 
         sqlSendUpdate(getConnection(object),
