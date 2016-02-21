@@ -27,8 +27,11 @@ All combinations of operands are possible just like in R and the result is an in
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 ResultFLmatrix <- flmatrix * Rvector
+}
+\author{
+phani srikar <phanisrikar93ume@gmail.com>
 }
 

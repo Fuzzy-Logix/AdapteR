@@ -20,10 +20,18 @@ which replicates the equivalent R extraction.
 \description{
 \code{[]} acts on FLMatrix objects and extracts parts of them.
 }
+\section{Constraints}{
+
+Applying UDT functions on subsetted matrices with discontinuous row and col ids' 
+may result in error
+}
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLmatrix <- flmatrix[1,]
+}
+\author{
+Gregor Kappler <g.kappler@gmx.net>
 }
 

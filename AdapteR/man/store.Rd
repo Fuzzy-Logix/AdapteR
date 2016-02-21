@@ -2,20 +2,22 @@
 % Please edit documentation in R/FLMatrix.R
 \name{store}
 \alias{store}
-\title{stores a matrix in a table.
-TODO:  define when data is stored (automatic caching, user requests...)}
+\title{stores an object in database}
 \usage{
 store(object, returnType, connection, ...)
 }
 \arguments{
-\item{object}{the object to store}
+\item{object}{the object to store. Can be FLMatrix, FLVector, FLTable, character}
+
+\item{returnType}{return type of the stored data. Applicable only when object is a character representing a SQL Query}
+
+\item{connection}{ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query}
 }
 \value{
-A FLMatrix based on a stored table of the executed
+in-database object after storing
 }
 \description{
-stores a matrix in a table.
-TODO:  define when data is stored (automatic caching, user requests...)
+stores an object in database
 }
 \author{
 Gregor Kappler <g.kappler@gmx.net>

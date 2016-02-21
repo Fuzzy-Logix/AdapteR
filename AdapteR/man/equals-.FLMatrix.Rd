@@ -7,10 +7,10 @@
 \method{==}{FLMatrix}(pObj1, pObj2)
 }
 \arguments{
-\item{x}{can be an in-database object like FLMatrix,FLVector or
+\item{pObj1}{can be an in-database object like FLMatrix,FLVector or
 a normal R object like matrix,sparseMatrix,vector}
 
-\item{y}{can be an in-database object like FLMatrix,FLVector or
+\item{pObj2}{can be an in-database object like FLMatrix,FLVector or
 a normal R object like matrix,sparseMatrix,vector}
 }
 \value{
@@ -29,13 +29,19 @@ FLVector - RVector.
 Currently only \code{dgCMatrix},\code{dgeMatrix},\code{dsCMatrix},
 \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
 are supported. Comparision of FLMatrix with FLVector is not currently Supported.
+In case of FLVector and Rvector comparision use FLVector==RVector in place of 
+RVector==FLVector
 }
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
-Rvector <- 1:5
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flvector <- as.FLVector(1:5,connection)
 Result <- flmatrix == flmatrix
-Result <- Rvector == as.FLVector(Rvector,connection)
+Result <- flvector==flvector
+Result <- flvector==1:5
+}
+\author{
+Phani Srikar <phanisrikar93ume@gmail.com>
 }
 

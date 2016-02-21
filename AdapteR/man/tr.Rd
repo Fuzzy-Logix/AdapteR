@@ -10,14 +10,14 @@ tr(x, ...)
 \item{x}{an object of class FLMatrix}
 }
 \value{
-\code{tr} returns FLVector object of size 1 which replicates the equivalent R output.
+\code{tr} returns R Vector object of size 1 which replicates the equivalent R output.
 }
 \description{
 \code{tr} computes the trace of FLMatrix objects.
 }
 \details{
 \code{tr} computes the trace of input FLMatrix object, stores the result
-in-database and returns FLVector object
+in-database and returns R vector object
 }
 \section{Constraints}{
 
@@ -27,7 +27,10 @@ of (1000 x 1000).
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- tr(flmatrix)
+}
+\author{
+Phani Srikar <phanisrikar93ume@gmail.com>
 }
 

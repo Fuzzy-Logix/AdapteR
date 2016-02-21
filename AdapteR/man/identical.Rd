@@ -4,7 +4,7 @@
 \alias{identical}
 \title{Equality of in-database objects.}
 \usage{
-identical(pObj1, pObj2)
+identical(x, y)
 }
 \arguments{
 \item{x}{can be an in-database object like FLMatrix,FLVector or
@@ -33,9 +33,12 @@ are supported.
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 Result <- identical(flmatrix,flmatrix)
 Result <- identical(Rvector,as.FLVector(Rvector,connection))
+}
+\author{
+Phani Srikar <phanisrikar93ume@gmail.com>
 }
 

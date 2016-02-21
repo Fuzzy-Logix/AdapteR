@@ -25,10 +25,13 @@ x is a FLVector, either of length at least 2. This returns a square matrix with 
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- diag(flmatrix)
-DeepTable <- FLTable(connection, "FL_TRAIN", "tblVectorDeep","vector_id","vector_key","vector_value")
-flvectorDeep <- FLVector(DeepTable,"vector_value",1)
+DeepTable <- FLTable(connection, "FL_DEMO", "tblUSArrests","ObsID")
+flvectorDeep <- DeepTable[1:5,1]
 resultFLMatrix <- diag(flvectorDeep)
+}
+\author{
+Phani Srikar <phanisrikar93ume@gmail.com>
 }
 

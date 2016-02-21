@@ -7,10 +7,12 @@
 as.FLVector(object, connection, ...)
 }
 \arguments{
-\item{connection}{ODBC connection object}
-
-\item{obj}{matrix, vector, data frame, sparseMatrix, FLMatrix which
+\item{object}{matrix, vector, data frame, sparseMatrix, FLMatrix which
 needs to be casted to FLVector}
+
+\item{connection}{ODBC/JDBC connection object}
+
+\item{...}{additional arguments like size}
 
 \item{size}{number of elements in resulting FLVector.
 size input is not applicable only in case of FLMatrix}
@@ -20,5 +22,8 @@ FLVector object after casting.
 }
 \description{
 Converts input \code{obj} to FLVector object
+}
+\author{
+Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 }
 
