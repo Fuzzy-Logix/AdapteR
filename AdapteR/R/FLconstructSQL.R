@@ -6,12 +6,13 @@
 NULL
 setOldClass("RODBC")
 
+
+##' constructs a sql statement returning the
+##' deep table representation of the object.
 ##' 
-##' .. content for \details{} ..
-##' @title 
-##' @param object 
-##' @param ... 
-##' @return 
+##' @param object the object to query
+##' @param ... arguments passed on to SQL generation. see joinNames
+##' @return a character SQL representation
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")

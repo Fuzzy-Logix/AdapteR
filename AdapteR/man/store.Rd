@@ -7,6 +7,9 @@ TODO:  define when data is stored (automatic caching, user requests...)}
 \usage{
 store(object, returnType, connection, ...)
 }
+\arguments{
+\item{object}{the object to store}
+}
 \value{
 A FLMatrix based on a stored table of the executed
 }

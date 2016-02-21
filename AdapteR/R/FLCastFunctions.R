@@ -1,6 +1,5 @@
 #' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
@@ -9,6 +8,12 @@ NULL
 
 #' Converts FLMatrix object to vector in R
 as.vector.FLMatrix <- function(object,mode="any")
+{
+	temp_m <- as.matrix(object)
+	return(as.vector(temp_m))
+}
+
+as.vector.FLMatrixBind <- function(object,mode="any")
 {
 	temp_m <- as.matrix(object)
 	return(as.vector(temp_m))
@@ -28,12 +33,6 @@ as.vector.FLVector <- function(object,mode="any")
     return(x)
 }
 
-#' Converts FLSparseMatrix object to vector in R
-as.vector.FLSparseMatrix <- function(object,mode="any")
-{
-	Rmatrix <- as.matrix(object)
-	return(as.vector(Rmatrix))
-}
 
 as.data.frame <- function(x, ...)
 {
@@ -152,13 +151,6 @@ as.matrix.FLMatrix <- function(object,sparse=FALSE) {
 }
 as.matrix.FLMatrixBind <- as.matrix.FLMatrix
 
-## setGeneric("as.matrix", function(object){
-##     standardGeneric("as.matrix")
-## })
-## #' Converts FLSparseMatrix object to a matrix in R
-## setMethod("as.matrix", signature(object="FLMatrix"),
-##           as.matrix.FLMatrix)
-
 
 #' Converts FLVector object to a matrix in R
 as.matrix.FLVector <- function(obj)
@@ -208,15 +200,16 @@ storeVarnameMapping <- function(connection,
 #' Converts input \code{m} to FLMatrix object
 #' In addition, one can specify number of rows and columns
 #' of resulting flmatrix object
-#' @param object matrix,vector,data frame,sparseMatrix,FLVector or FLSparseMatrix which
-#' needs to be casted to FLMatrix
-#' @param connection ODBC connection object
-#' @param nr number of rows in resulting FLMatrix
-#' @param nc number of columns in resulting FLMatrix.
-#' nr and nc inputs are applicable only in case of vector,FLVector
+##' @param object matrix, vector, data frame, sparseMatrix, FLVector which
+##' needs to be casted to FLMatrix
+##' @param connection ODBC connection object
+##' @param sparse 
+##' @param ... 
+##' @param nr number of rows in resulting FLMatrix
+##' @param nc number of columns in resulting FLMatrix.
+##' nr and nc inputs are applicable only in case of vector,FLVector
 #' @return FLMatrix object after casting.
-#' @param sparse
-as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
+as.FLMatrix.Matrix <- function(object,connection,...) {
     ##browser()
     if((is.matrix(object) && !is.numeric(object)) || (is.data.frame(object) && !is.numeric(as.matrix(object))))
     {
@@ -389,7 +382,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
       error=function(e){stop("error fetching data into R session!
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
-    object@select@variables
+    ##object@select@variables
     i <- valuedf$rowIdColumn
     j <- valuedf$colIdColumn
     i <- FLIndexOf(i,rownames(object))
@@ -534,13 +527,12 @@ as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 #' casting to FLVector
 #'
 #' Converts input \code{obj} to FLVector object
-#' @param obj matrix,vector,data frame,sparseMatrix,FLMatrix or FLSparseMatrix which
+#' @param obj matrix, vector, data frame, sparseMatrix, FLMatrix which
 #' needs to be casted to FLVector
 #' @param connection ODBC connection object
 #' @param size number of elements in resulting FLVector.
-#' size input is not applicable only in case of FLMatrix,FLSparseMatrix
+#' size input is not applicable only in case of FLMatrix
 #' @return FLVector object after casting.
-
 setGeneric("as.FLVector", function(object,connection,...) {
     standardGeneric("as.FLVector")
 })

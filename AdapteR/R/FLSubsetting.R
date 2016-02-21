@@ -1,7 +1,6 @@
 
 #' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLTable.R
 #' @include FLIs.R

@@ -87,7 +87,7 @@ setClass(
 ##' stores a matrix in a table.
 ##' TODO:  define when data is stored (automatic caching, user requests...)
 ##'
-##' @param object
+##' @param object the object to store
 ##' @return A FLMatrix based on a stored table of the executed
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("store", function(object,returnType,connection,...) {
