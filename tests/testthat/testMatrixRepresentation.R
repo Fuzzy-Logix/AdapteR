@@ -17,7 +17,7 @@ matrixNullChar <- matrix(1:25,5)
 colnames(matrixNullChar) <- rev(c("a","b","c","d","e"))
 
 ## character rownames and colnames
-matrixCharChar <- matrix(1:25,5)
+matrixCharChar <- matrix(rnorm(25),5)
 rownames(matrixCharChar) <- c("a","b","c","d","e")
 colnames(matrixCharChar) <- c("p","q","r","s","t")
 
