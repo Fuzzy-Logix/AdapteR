@@ -9,7 +9,7 @@ FLTable(connection, database, table, obs_id_colname,
   whereconditions = character(0))
 }
 \arguments{
-\item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}
+\item{connection}{ODBC/JDBC connection object}
 
 \item{database}{name of the database}
 
@@ -18,6 +18,8 @@ FLTable(connection, database, table, obs_id_colname,
 \item{obs_id_colname}{column name set as primary key}
 
 \item{cell_val_colname}{column name where cell values are stored if \code{FLTable} is deep}
+
+\item{whereconditions}{whereconditions if any to reference the table}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTable} is deep}
 }
@@ -35,7 +37,11 @@ This object is commonly used as input for data mining functions.
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
+deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
+}
+\author{
+Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 }
 

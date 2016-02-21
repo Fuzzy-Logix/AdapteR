@@ -2,12 +2,12 @@
 % Please edit documentation in R/FLSubsetting.R
 \name{[.FLTable}
 \alias{[.FLTable}
-\title{Extract part of FLMatrix object.}
+\title{Extract part of FLTable object.}
 \usage{
 \method{[}{FLTable}(object, rows = 1, cols = 1, drop = TRUE)
 }
 \arguments{
-\item{object}{is a FLMatrix object}
+\item{object}{is a FLTable object}
 
 \item{rows}{is a vector input corresponding to rows to be extracted}
 
@@ -23,7 +23,10 @@ which replicates the equivalent R extraction.
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
-resultFLmatrix <- flmatrix[1,]
+fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
+resultFLtable <- fltable[1:10,4:6]
+}
+\author{
+Gregor Kappler <g.kappler@gmx.net>
 }
 

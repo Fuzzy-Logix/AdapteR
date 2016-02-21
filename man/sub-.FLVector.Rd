@@ -7,9 +7,9 @@
 \method{[}{FLVector}(object, pSet = 1:length(object))
 }
 \arguments{
-\item{pSet}{is a vector representing the indices of elements to extract}
+\item{object}{is a FLVector object}
 
-\item{pObj}{is a FLVector object}
+\item{pSet}{is a vector representing the indices of elements to extract}
 }
 \value{
 \code{[]} returns FLVector object after extraction
@@ -21,11 +21,11 @@ which replicates the equivalent R extraction.
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-flvectorWide <- FLVector(WideTable,"vector_value")
-resultFLVector <- flvectorWide[1:2]
-DeepTable <- FLTable(connection, "FL_TRAIN", "tblVectorDeep","vector_id","vector_key","vector_value")
-flvectorDeep <- FLVector(DeepTable,"vector_value",1)
-resultFLVector <- flvectorDeep[1:2]
+WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
+flvector <- FLVector[,"Diameter"]
+resultFLVector <- flvector[10:1]
+}
+\author{
+phani srikar <phanisrikar93ume@gmail.com>
 }
 

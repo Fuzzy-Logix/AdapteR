@@ -12,7 +12,7 @@ FLMatrix(connection, database = getOption("ResultDatabaseFL"), table_name,
   map_table = NULL)
 }
 \arguments{
-\item{connection}{ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}}
+\item{connection}{ODBC/JDBC connection handle to the database.}
 
 \item{database}{name of the database}
 
@@ -27,6 +27,16 @@ FLMatrix(connection, database = getOption("ResultDatabaseFL"), table_name,
 \item{col_id_colname}{column name in \code{table_name} where column numbers are stored}
 
 \item{cell_val_colname}{column name in \code{table_name} where matrix elements are stored}
+
+\item{dim}{vector representing the dimensions of the matrix}
+
+\item{dimnames}{list of dimension names to assign to the matrix}
+
+\item{conditionDims}{logical vector of length two representing if there are any conditions on dimensions}
+
+\item{whereconditions}{where conditions if any to reference the in-database matrix}
+
+\item{map_table}{in-database table name which stores the dimnames of the matrix. Not required if dimnames are already specified using \code{dimnames}}
 }
 \value{
 \code{FLMatrix} returns an object of class FLMatrix mapped
@@ -42,6 +52,10 @@ This object is used as input for matrix operation functions.
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+flmatrix
+}
+\author{
+Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 }
 
