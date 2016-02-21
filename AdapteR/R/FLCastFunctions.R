@@ -228,12 +228,27 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
         if(class(mwide)=="dsCMatrix")
         mwide <- as(mwide,"dgTMatrix")
         mdeep <- Matrix::summary(mwide)
+        ## check for empty rows or columns
+        ## and add 0 at diagonal
+        fillEmptyDims <- function(mdeep,dims)
+        {
+          i<-setdiff(1:dims[1],mdeep$i)
+          j<-setdiff(1:dims[2],mdeep$j)
+          ir<-c(rep(i[1],length(j)),i)
+          jr<-c(j,rep(j[1],length(i)))
+          if(length(ir)==0 && length(jr)==0) return(mdeep)
+          if(is.na(ir)) ir <- rep(dims[1],length(jr))
+          if(is.na(jr)) jr <- rep(dims[2],length(ir))
+          sr <- Matrix::summary(Matrix::sparseMatrix(i=ir,j=jr,x=0))
+          return(base::rbind(mdeep,sr))
+        }
+        mdeep <- fillEmptyDims(mdeep,dims=dim(object))
         ## insert one 0 at nrow,ncol for
         ## "storing" matrix dimensions
-        if(object[nrow(object),ncol(object)]==0)
-            mdeep <- base::rbind(mdeep,
-                           c(i=nrow(object),j=ncol(object),
-                             x=0))
+        # if(object[nrow(object),ncol(object)]==0)
+        #     mdeep <- base::rbind(mdeep,
+        #                    c(i=nrow(object),j=ncol(object),
+        #                      x=0))
         MID <- getMaxMatrixId(connection)
         remoteTable <- getRemoteTableName(
             getOption("ResultDatabaseFL"),
@@ -266,6 +281,7 @@ as.FLMatrix.Matrix <- function(object,connection,sparse=TRUE,...) {
                     i,
                     mydimnames[[i]])
             }
+
         return(FLMatrix(
             connection = connection,
             database = getOption("ResultDatabaseFL"),

@@ -60,7 +60,10 @@ solve.FLMatrix <- function(pObj1)
              dim=rev(dim(pObj1)),
              dimnames=rev(dimnames(pObj1)))
 
-  return(flm)
+   return(ensureQuerySize(pResult=flm,
+            pInput=list(object),
+            pOperator="ginv",
+            pStoreResult=TRUE))
 
 }
 

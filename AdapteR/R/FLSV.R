@@ -36,7 +36,9 @@ FLSV.FLMatrix<-function(object)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLSVUdt",includeMID=FALSE,
-                   	outColNames=list("OutputID","OutputSV"),
+                   	outColNames=list(vectorIdColumn="'%insertIDhere%'",
+                                     vectorIndexColumn="OutputID",
+                                     vectorValueColumn="OutputSV"),
                     viewName="z",localName="a",vconnection=connection)
                    )
 

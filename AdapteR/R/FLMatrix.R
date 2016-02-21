@@ -2,7 +2,6 @@
 #' @include FLStore.R
 #' @include FLTable.R
 #' @include FLVector.R
-#' @include FLconstructSQL.R
 NULL
 setOldClass("RODBC")
 
@@ -445,7 +444,7 @@ FLMatrix <- function(connection,
         colIdColumn=paste0("mtrx.",col_id_colname),
         valueColumn=paste0("mtrx.",cell_val_colname))
     
-      if(length(dimnames)>0 && length(map_table)==0)
+      if((length(dimnames[[1]])>0 || length(dimnames[[2]])>0 )&& length(map_table)==0)
       {
         remoteTable <- getRemoteTableName(
                 getOption("ResultDatabaseFL"),
@@ -458,6 +457,7 @@ FLMatrix <- function(connection,
             #if(is.character(mydimnames[[i]]))
             {
                 map_table <- getOption("MatrixNameMapTableFL")
+                if(!is.null(dimnames[[i]]))
                 dimnames[[i]] <- storeVarnameMapping(
                     connection,
                     map_table,

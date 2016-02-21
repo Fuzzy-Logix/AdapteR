@@ -1,6 +1,6 @@
-                                        # Contains the support functions
+# Contains the support functions
 NULL
-                                        # setOldClass("RODBC")
+setOldClass("RODBC")
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName) {
