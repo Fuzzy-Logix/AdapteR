@@ -6,9 +6,6 @@
 #' @include FLDims.R
 NULL
 
-chol <- function (x, ...){
-  UseMethod("chol", x)
-}
 #' Cholesky Decomposition.
 #'
 #' \code{chol} computes the Cholesky factorization of FLMatrix object.\cr
@@ -16,16 +13,20 @@ chol <- function (x, ...){
 #' into the product of a lower triangular matrix and its conjugate transpose.
 #'
 #' The wrapper overloads chol and implicitly calls FLCholeskyDecompUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be a Hermitian, positive definite square matrix (n x n)
 #' with maximum dimension limitations of (1000 x 1000)
 #' @return \code{chol} returns FLMatrix which is the upper triangular factor of the Cholesky decomposition
 #' @examples
 #' connection<-odbcConnect("Gandalf")
-#' flmatrix<-FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix<-FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- chol(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+chol <- function (x, ...){
+  UseMethod("chol", x)
+}
 
 # chol.default <- base::chol
 

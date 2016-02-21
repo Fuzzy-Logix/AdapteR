@@ -6,25 +6,24 @@
 #' @include FLDims.R
 NULL
 
-FLMatrixRREF <- function (x, ...){
-	UseMethod("FLMatrixRREF", x)
-}
-
 #' Reduced Row Echelon form of a Matrix.
 #'
 #' \code{FLMatrixRREF} gives the Reduced Row Echelon form of FLMatrix objects.
 #'
-#' The wrapper overloads FLMatrixRREF and implicitly calls FLMatrixRREFUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be a square FLMatrix with maximum dimension limitations of (1000 x 1000).
 #' @return \code{FLMatrixRREF} returns a FLMatrix object which is the Reduced Row Echelon form of input FLMatrix.
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- FLMatrixRREF(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+FLMatrixRREF <- function (x, ...){
+	UseMethod("FLMatrixRREF", x)
+}
 
 FLMatrixRREF.FLMatrix<-function(object)
 {

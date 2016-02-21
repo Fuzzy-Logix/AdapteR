@@ -6,26 +6,25 @@
 #' @include FLDims.R
 NULL
 
+#' column means of a FLMatrix.
+#'
+#' \code{colMeans} computes the column-wise average of FLMatrix objects.
+#'
+#' @param x is of class FLMatrix.
+#' @return \code{colMeans} returns a FLVector object representing the column-wise Means.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultFLVector <- colMeans(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
+#' @export
 colMeans <- function (x, ...){
   UseMethod("colMeans", x)
 }
 
 
 colMeans.default <- base::colMeans
-
-#' column means of a FLMatrix.
-#'
-#' \code{colMeans} computes the column-wise average of FLMatrix objects.
-#'
-#' The wrapper overloads colMeans and extends it to FLMatrix objects.
-#' @param object is of class FLMatrix.
-#' @return \code{colMeans} returns a FLVector object representing the column-wise Means.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultFLVector <- colMeans(flmatrix)
-#' @export
 
 colMeans.FLMatrix<-function(object)
 {

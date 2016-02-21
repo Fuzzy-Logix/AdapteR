@@ -4,26 +4,20 @@
 NULL
 
 
-#' Constructor function for FLVector, representing a vector in database, either a deep or a wide matrix.
-#' gk: how can we support row vectors?
-#'
-#' \code{FLVector} constructs an object of class \code{FLVector}.
-#'
-#' \code{FLVector} object is an in-database equivalent to a vector.
-#' This object is used as input for matrix and arithmetic operation functions.
-#' @param table FLTable object as returned by \code{\link[AdapteR]{FLTable}}
-#'   where the vector is stored
-#' @param colname name of the column in \code{table} where vector elements are stored
-#' @param vector_id_value unique identifier for the vector if stored in deep table
+#' Constructor function for FLVector, representing a vector in database
+#' 
+#' Please use subsetting of FLTable to create FLVector object
 #' @return \code{FLVector} returns an object of class FLVector mapped to an in-database vector.
 #' @seealso \code{\link{FLTable}}
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-#' flvectorWide <- FLVector(WideTable,"vector_value")
-#' DeepTable <- FLTable(connection, "FL_TRAIN", "tblVectorDeep","vector_id","vector_key","vector_value")
-#' flvectorDeep <- FLVector(DeepTable,"vector_value",1)
+#' WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
+#' flvectorColumn <- FLTable[,"Diameter"]
+#' flvectorRow <- FLTable[3,]
+#' flvectorRow
+#' flvectorColumn
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 FLVector <- function(table,
                      val_col_name = character(),

@@ -3,28 +3,26 @@
 #' @include FLVector.R
 NULL
 
-rankMatrix<-function(x, ...){
-	UseMethod("rankMatrix", x)
-}
-
-rankMatrix.default <- Matrix::rankMatrix
-
 #' Matrix Rank.
 #'
 #' \code{rankMatrix} computes the rank of FLMatrix objects.
 #'
-#' \code{rankMatrix} computes the rank of input FLMatrix object, stores the result
-#' in-database and returns FLVector object
-#' @param object is of class FLMatrix
-#' @return \code{rankMatrix} returns FLVector object of size 1 which replicates the equivalent R output.
+#' @param x is of class FLMatrix
+#' @return \code{rankMatrix} returns R vector object of size 1 which replicates the equivalent R output.
 #' @section Constraints:
 #' Input can have maximum dimension limitations of (1000 x 1000).
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- rankMatrix(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+rankMatrix<-function(x, ...){
+	UseMethod("rankMatrix", x)
+}
+
+rankMatrix.default <- Matrix::rankMatrix
 
 rankMatrix.FLMatrix<-function(object)
 {

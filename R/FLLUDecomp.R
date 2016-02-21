@@ -29,22 +29,6 @@ setClass(
 
 
 
-# #' An S4 class to represent L,U and P factors as a list of matrices
-# #' @slot luobject object of class FLLU
-# setClass(
-# 	"expandFLLU",
-# 	slots=list(
-# 		luobject="FLLU"
-# 	)
-# )
-
-
-lu<-function(x, ...){
-	UseMethod("lu",x)
-}
-
-lu.default <- Matrix::lu
-
 #' LU Decomposition.
 #'
 #' The LU decomposition involves factorizing a matrix as the product of a lower
@@ -52,14 +36,13 @@ lu.default <- Matrix::lu
 #' If permutation matrix is not used in the decomposition, the output of permutation matrix is an identity matrix.
 #'
 #' \code{lu} replicates the equivalent lu() generic function.\cr
-#' The wrapper overloads lu and implicitly calls FLLUDecompUdt.\cr\cr
 #' \code{expand} decomposes the compact form to a list of matrix factors.\cr
 #' The expand method returns L,U and P factors as a list of FLMatrices.\cr
 #'
 #' The decomposition is of the form A = P L U where typically all matrices are of size (n x n),
 #' and the matrix P is a permutation matrix, L is lower triangular and U is upper triangular.
 #' @method lu FLMatrix
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations
 #' of (1000 x 1000).
@@ -72,13 +55,21 @@ lu.default <- Matrix::lu
 #' \item{data_perm}{FLMatrix representing the permutation matrix}
 #' @examples
 #' connection<-odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' FLLUobject <- lu(flmatrix)
-#' expand(FLLUobject)
-#' expand(lu(flmatrix))$L
-#' expand(lu(flmatrix))$U
-#' expand(lu(flmatrix))$P
+#' listresult <- expand(FLLUobject)
+#' listresult$L
+#' listresult$U
+#' listresult$P
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+
+
+lu<-function(x, ...){
+	UseMethod("lu",x)
+}
+
+lu.default <- Matrix::lu
 
 lu.FLMatrix<-function(object)
 {

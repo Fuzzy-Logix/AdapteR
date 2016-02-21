@@ -6,15 +6,10 @@
 #' @include FLDims.R
 NULL
 
-FLSV <- function (x, ...){
-  UseMethod("FLSV", x)
-}
-
 #' Singular Values of a FLMatrix.
 #'
 #' \code{FLSV} computes the singular values for FLMatrix objects.
 #'
-#' The wrapper overloads FLSV and implicitly calls FLSVUdt.
 #' @param object is of class FLMatrix
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
@@ -23,9 +18,13 @@ FLSV <- function (x, ...){
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- FLSV(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+FLSV <- function (x, ...){
+  UseMethod("FLSV", x)
+}
 
 FLSV.FLMatrix<-function(object)
 {

@@ -8,20 +8,6 @@
 #' @include FLPrint.R
 NULL
 
-#' Arithmetic operations on in-database objects.
-#'
-#' \code{-} does the subtraction of in-database objects.
-#'
-#' All the operators work the same way with in-database objects as they do with R data types.
-#' The result is an in-database object.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
-#' Rvector <- 1:5
-#' ResultFLmatrix <- flmatrix - Rvector
-#' @export
-
 "FLMatrixArithmetic" <- function(pObj1,pObj2,pOperator)
 {
     UseMethod("FLMatrixArithmetic", pObj1)
@@ -502,9 +488,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "+" <- function(pObj1,pObj2)
@@ -555,9 +542,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "-" <- function(pObj1,pObj2)
@@ -608,9 +596,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "%*%" <- function(pObj1,pObj2)
@@ -664,9 +653,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %% Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "%%" <- function(pObj1,pObj2)
@@ -717,9 +707,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix * Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "*" <- function(pObj1,pObj2)
@@ -772,9 +763,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix / Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "/" <- function(pObj1,pObj2)
@@ -827,9 +819,10 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %/% Rvector
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "%/%" <- function(pObj1,pObj2)

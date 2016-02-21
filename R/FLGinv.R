@@ -6,18 +6,11 @@
 #' @include FLDims.R
 NULL
 
-ginv <- function (x, ...){
-	UseMethod("ginv", x)
-}
-
-ginv.default <- MASS::ginv
-
 #' Generalized Inverse of a Matrix.
 #'
 #' \code{ginv} computes the pseudo-inverse for FLMatrix objects.
 #'
-#' The wrapper overloads ginv and implicitly calls FLMatrixPseudoInvUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations of (500 x 500).
 #' @return \code{ginv} returns a FLMatrix object which is the pseudo-inverse 
@@ -25,9 +18,15 @@ ginv.default <- MASS::ginv
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- ginv(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+ginv <- function (x, ...){
+	UseMethod("ginv", x)
+}
+
+ginv.default <- MASS::ginv
 
 ginv.FLMatrix<-function(object)
 {

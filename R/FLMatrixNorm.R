@@ -6,22 +6,16 @@
 #' @include FLDims.R
 NULL
 
-FLMatrixNorm <- function (x, ...){
-	UseMethod("FLMatrixNorm", x)
-}
-
 #' Norm of a Matrix.
 #'
 #' \code{FLMatrixNorm} gives the value of Norm for FLMatrix objects.
 #'
-#' The wrapper overloads FLMatrixNorm and implicitly calls FLMatrixNormUdt.
-#' 
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @param NormMethod is an integer from 1-4 representing the type of norm that
 #' should be computed.
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations of (700 x 700).
-#' @return \code{FLMatrixNorm} returns a FLVector object which is the Norm of input
+#' @return \code{FLMatrixNorm} returns a R vector object which is the Norm of input
 #' FLMatrix object calculated using method specified by NormMethod input.
 #' There are 4 types of norms of a matrix:
 #' \item{1-Norm}{Maximum of the sum of the absolute values for the columns}
@@ -31,9 +25,13 @@ FLMatrixNorm <- function (x, ...){
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- FLMatrixNorm(flmatrix,4)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+FLMatrixNorm <- function (x, ...){
+	UseMethod("FLMatrixNorm", x)
+}
 
 FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 {

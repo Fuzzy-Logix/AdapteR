@@ -6,32 +6,32 @@
 #' @include FLDims.R
 NULL
 
+#' Spectral Decomposition of a Matrix.
+#'
+#' \code{eigen} Computes eigenvalues and eigenvectors of FLMatrices.
+#'
+#' @param x is of class FLMatrix
+#' @section Constraints:
+#' Input can only be a square matrix (n x n) with maximum dimension limitations
+#' of (1000 x 1000).
+#' Complex Eigen values and vectors are not Supported.
+#' @return \code{eigen} returns a list of FLMatrix object containing the eigen vectors and
+#' a FLVector object containing eigen values which replicates the equivalent R output.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultList <- eigen(flmatrix)
+#' resultList$values
+#' resultList$vectors
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
+#' @export
 eigen<-function(x, ...)
 {
 	UseMethod("eigen", x)
 }
 
 eigen.default<-base::eigen
-
-#' Spectral Decomposition of a Matrix.
-#'
-#' \code{eigen} Computes eigenvalues and eigenvectors of FLMatrices.
-#'
-#' The wrapper overloads eigen and implicitly calls FLEigenValueUdt and FLEigenVectorUdt.
-#' @param object is of class FLMatrix
-#' @section Constraints:
-#' Input can only be a square matrix (n x n) with maximum dimension limitations
-#' of (1000 x 1000).
-#' @return \code{eigen} returns a list of FLMatrix object containing the eigen vectors and
-#' a FLVector object containing eigen values which replicates the equivalent R output.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultList <- eigen(flmatrix)
-#' resultList$valueColumns
-#' resultList$vectors
-#' @export
 
 eigen.FLMatrix<-function(object)
 {

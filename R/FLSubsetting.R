@@ -1,4 +1,3 @@
-
 #' @include utilities.R
 #' @include FLMatrix.R
 #' @include FLVector.R
@@ -18,11 +17,15 @@ NULL
 #' @param cols is a vector input corresponding to columns to be extracted
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
+#' @section Constraints:
+#' Applying UDT functions on subsetted matrices with discontinuous row and col ids' 
+#' may result in error
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
+##' @author  Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
 {
@@ -79,12 +82,12 @@ NULL
     }
 }
 
-#' Extract part of FLMatrix object.
+#' Extract part of FLTable object.
 #'
 #' \code{[]} acts on FLMatrix objects and extracts parts of them.
 #'
 #'
-#' @param object is a FLMatrix object
+#' @param object is a FLTable object
 #' @param rows is a vector input corresponding to rows to be extracted
 #' @param cols is a vector input corresponding to columns to be extracted
 #' @return \code{[]} returns FLMatrix object after extraction
@@ -92,8 +95,9 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
-#' resultFLmatrix <- flmatrix[1,]
+#' fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' resultFLtable <- fltable[1:10,4:6]
+##' @author  Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
@@ -169,19 +173,17 @@ NULL
 #' \code{[]} acts on FLVector objects and extracts parts of them.
 #'
 #'
-#' @param pObj is a FLVector object
+#' @param object is a FLVector object
 #' @param pSet is a vector representing the indices of elements to extract
 #' @return \code{[]} returns FLVector object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' WideTable <- FLTable(connection, "FL_TRAIN", "tblVectorWide","vector_key")
-#' flvectorWide <- FLVector(WideTable,"vector_value")
-#' resultFLVector <- flvectorWide[1:2]
-#' DeepTable <- FLTable(connection, "FL_TRAIN", "tblVectorDeep","vector_id","vector_key","vector_value")
-#' flvectorDeep <- FLVector(DeepTable,"vector_value",1)
-#' resultFLVector <- flvectorDeep[1:2]
+#' WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
+#' flvector <- FLVector[,"Diameter"]
+#' resultFLVector <- flvector[10:1]
+##' @author phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 `[.FLVector` <- function(object,pSet=1:length(object))
@@ -206,47 +208,3 @@ NULL
 
     return(object)
 }
-                                        #     pObj[pSet,]
-                                        # 	if(pObj@isDeep)
-                                        # 	{
-                                        # 		vTemp <- character(0)
-                                        # 		if(length(pSet)>1)
-                                        # 		{
-                                        #             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
-                                        #             vTemp<-paste(vTemp,collapse=" ")
-                                        # 		}
-
-                                        # 		sqlstr <- paste0("SELECT * FROM ",remoteTable(pObj),
-                                        #                          " WHERE ",pObj@obs_id_colname,"=",pObj@vector_id_value," AND ",pObj@var_id_name," IN(",pSet[1],vTemp,")")
-
-                                        # 		vRetObj<-sqlQuery(getConnection(pObj),sqlstr)
-                                        # 		vResultVec <- c()
-
-                                        # 		for(vIter in pSet)
-                                        #             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@var_id_name]==vIter),pObj@col_name])
-
-                                        # 		return(as.FLVector(vResultVec,getConnection(pObj)))
-                                        # 	}
-
-                                        # 	if(!pObj@isDeep)
-                                        # 	{
-                                        # 		vTemp <- character(0)
-                                        # 		if(length(pSet)>1)
-                                        # 		{
-                                        #             vTemp <- rep(paste0(",",pSet[2:length(pSet)]),length.out=length(pSet)-1)
-                                        #             vTemp<-paste(vTemp,collapse=" ")
-                                        # 		}
-
-                                        # 		sqlstr <- paste0("SELECT *
-                                        # 						 FROM ",remoteTable(pObj),
-                                        #                          " WHERE ",pObj@obs_id_colname," IN(",pSet[1],vTemp,")")
-
-                                        # 		vRetObj<-sqlQuery(getConnection(pObj),sqlstr)
-                                        # 		vResultVec <- c()
-
-                                        # 		for(vIter in pSet)
-                                        #             vResultVec <- append(vResultVec,vRetObj[(vRetObj[,pObj@obs_id_colname]==vIter),pObj@col_name])
-
-                                        # 		return(as.FLVector(vResultVec,getConnection(pObj)))
-                                        # 	}
-                                        # }

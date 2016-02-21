@@ -1,28 +1,32 @@
 #' @include FLVector.R
 #' @include FLMatrix.R
+#' @include FLTable.R
+#' @include utilities.R
 NULL
+
+#' Correlation.
+#'
+#' \code{cor} computes correlation of in-database Objects
+#'
+#' @param x FLMatrix, FLVector or FLTable object or any R object
+#' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @section Constraints:
+#' The number of non-null pairs must be greater than or equal to 2.
+#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' @return \code{cor} returns FLMatrix object representing correlation of x and y.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' deeptable <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' widetable <- FLTable(connection,"FL_DEMO","tblAbaloneWide","ObsID")
+#' cor(deeptable,deeptable)
+#' cor(widetable,widetable)
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
+#' @export
 cor <- function (x,y, ...) {
 	UseMethod("cor", x)
 }
 cor.default<-stats::cor
-#' Correlation.
-#'
-#' \code{cor} computes correlation of FLVectors: x and y.
-#'
-#' The wrapper overloads cor and implicitly calls FLCorrel.
-#' @method cor FLVector
-#' @param x A numeric vector,matrix or data frame
-#' @param y A vector,matrix or data frame with compatible dimensions to x
-#' @section Constraints:
-#' The number of non-null pairs must be greater than or equal to 2.
-#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
-#' @return \code{cor} returns correlation of x and y.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' table <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
-#' cor(table,table)
-#' @export
 
 cor.FLMatrix <- function(x,y=x)
 {
