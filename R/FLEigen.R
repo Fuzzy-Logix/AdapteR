@@ -62,7 +62,11 @@ FLEigenValues.FLMatrix<-function(object)
 
 	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLEigenValueUdt",viewName="z",
-                   	localName="a",includeMID=FALSE,outColNames=list("OutputRowNum","OutputVal"),
+                   	                  localName="a",
+                                      includeMID=FALSE,
+                                      outColNames=list(vectorIdColumn="'%insertIDhere%'",
+                                                      vectorIndexColumn="OutputRowNum",
+                                                      vectorValueColumn="OutputVal"),
                    	whereClause="WHERE a.OutputRowNum = a.OutputColNum;",
                    	vconnection=connection)
                    )

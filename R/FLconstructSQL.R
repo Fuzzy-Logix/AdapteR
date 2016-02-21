@@ -1,4 +1,10 @@
-
+#' @include utilities.R
+#' @include FLStore.R
+#' @include FLTable.R
+#' @include FLVector.R
+#' @include FLMatrix.R
+NULL
+setOldClass("RODBC")
 
 ##' 
 ##' .. content for \details{} ..
@@ -256,7 +262,7 @@ setMethod("outputSelectMatrix", signature(func_name="character",
           {
               return(paste0(" SELECT ",
                             ifelse(!includeMID,"",
-                                   "'%insertIDhere%' AS OutputMatrixID, "),
+                                   "'%insertIDhere%' AS Matrix_ID, "),
                             constructVariables(outColNames),
                             "\nFROM TABLE (",func_name,
                             "(",viewName,".Matrix_ID, ",
