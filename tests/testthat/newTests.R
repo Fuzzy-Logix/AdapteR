@@ -919,7 +919,7 @@ test_that("check rbind result",
 ## Testing cbind
 test_that("check cbind result",
 {
-  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+    expect_eval_equal(initF=function(n,isSquare=FALSE) {
         a <- initF.FLMatrix(n,isSquare)
         b <- FLMatrix(connection,
                       "FL_DEMO", "tblmatrixMulti",
@@ -958,6 +958,7 @@ test_that("check binds result",
                rbind(cbind(rbind(M1$R,as.matrix(M2)),as.matrix(M3)),as.matrix(M4)),
                check.attributes=FALSE)
 })
+
 
 ## Testing functions on result of binds
 test_that("check functions on binds result",

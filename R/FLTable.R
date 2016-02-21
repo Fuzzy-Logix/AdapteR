@@ -118,8 +118,9 @@ FLTable <- function(connection,
 	}
 }
 
-#' @describeIn names 
-#' Gives the column names of FLTable object
+##' Gives the column names of FLTable object
+##'
+##' @param object 
 names.FLTable <- function(object) object@dimnames[[2]]
 colnames.FLTable <- function(object) object@dimnames[[2]]
 rownames.FLTable <- function(object) object@dimnames[[1]]

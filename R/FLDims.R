@@ -24,10 +24,6 @@ nrow.FLMatrixBind<-function(object)
 ##     return(length(object@dimnames[[1]]))
 ## }
 
-# nrow.FLSparseMatrix<-function(object)
-# {
-# 	return(length(object@dimnames[[1]]))
-# }
 
 nrow.FLTable<-function(object)	return(length(object@dimnames[[1]]))
 nrow.FLVector<-function(object)	return(length(object@dimnames[[1]]))
@@ -39,10 +35,6 @@ NROW.integer<-base::NROW
 NROW.default<-base::NROW
 
 NROW.FLMatrix<-function(object){
-	nrow(object)
-}
-
-NROW.FLSparseMatrix<-function(object){
 	nrow(object)
 }
 
@@ -72,9 +64,6 @@ ncol.FLMatrixBind<-function(object)
 	else
         return(ncol(object@parts[[1]]))
 }
-# ncol.FLSparseMatrix<-function(object){
-# 	return(length(object@dimnames[[2]]))
-# }
 
 ncol.FLTable<-function(object) 	return(length(object@dimnames[[2]]))
 ncol.FLVector<-function(object) return(length(object@dimnames[[2]]))
@@ -89,9 +78,6 @@ NCOL.FLMatrix<-function(object){
 	ncol(object)
 }
 
-# NCOL.FLSparseMatrix<-function(object){
-# 	ncol(object)
-# }
 
 NCOL.FLTable<-function(object){
 	ncol(object)
@@ -110,10 +96,6 @@ dim.FLMatrixBind <- function(object)
 	 return(c(nrow(object),ncol(object)))
 }
 
-# dim.FLSparseMatrix <- function(object)
-# {
-# 	 return(c(nrow(object),ncol(object)))
-# }
 
 dim.FLTable <- function(object)
 {

@@ -9,11 +9,11 @@ as.FLVector(object, connection, ...)
 \arguments{
 \item{connection}{ODBC connection object}
 
-\item{obj}{matrix,vector,data frame,sparseMatrix,FLMatrix or FLSparseMatrix which
+\item{obj}{matrix, vector, data frame, sparseMatrix, FLMatrix which
 needs to be casted to FLVector}
 
 \item{size}{number of elements in resulting FLVector.
-size input is not applicable only in case of FLMatrix,FLSparseMatrix}
+size input is not applicable only in case of FLMatrix}
 }
 \value{
 FLVector object after casting.

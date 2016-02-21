@@ -1,6 +1,5 @@
 #' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
@@ -44,7 +43,6 @@ rbind <- function (x, ...){
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export
-
 rbind.FLMatrix<-function(object,...){
     objectList<-list(object,...)
     if(all(sapply(objectList,is.FLMatrix))){

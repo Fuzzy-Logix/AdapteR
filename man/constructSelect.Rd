@@ -2,16 +2,22 @@
 % Please edit documentation in R/FLconstructSQL.R
 \name{constructSelect}
 \alias{constructSelect}
+\title{constructs a sql statement returning the
+deep table representation of the object.}
 \usage{
 constructSelect(object, ...)
 }
 \arguments{
-\item{object}{}
+\item{object}{the object to query}
 
-\item{...}{}
+\item{...}{arguments passed on to SQL generation. see joinNames}
+}
+\value{
+a character SQL representation
 }
 \description{
-.. content for \details{} ..
+constructs a sql statement returning the
+deep table representation of the object.
 }
 \author{
 Gregor Kappler <g.kappler@gmx.net>

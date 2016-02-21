@@ -26,12 +26,9 @@ matrixNumChar <- matrix(1:25,5)
 rownames(matrixNumChar) <- c(9,6,5,2,1)
 colnames(matrixNumChar) <- c("p","q","r","s","t")
 
-fl <- as.FLMatrix(matrixCharChar,connection)
-A <- solve(fl)
 
-
-source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
-source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSubsetting.R")
+##source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
+##source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSubsetting.R")
 
 options(debugSQL=FALSE)
 
@@ -55,7 +52,7 @@ test_equal_RMatrix_FLMatrix(matrixNullChar)
 ## to begin with.
 ## Create a remote matrix object
 ##
-m <- FLMatrix(connection,
+eqnRtn <- FLMatrix(connection,
               database          = "FL_DEMO",
               table_name  = "finEquityReturns",
               matrix_id_value   = "",
@@ -65,9 +62,87 @@ m <- FLMatrix(connection,
               cell_val_colname  = "EquityReturn")
 
 
-test_equal_FLMatrix_RMatrix(m[sample(rownames(m),10),
-                              sample(colnames(m),10)])
+test_equal_FLMatrix_RMatrix(eqnRtn[sample(rownames(eqnRtn),10),
+                                   sample(colnames(eqnRtn),10)])
 
+test_that("Named matrix rows and columns",{
+
+    a <- eqnRtn[2001:2010,"MSFT"]
+    b <- eqnRtn[2001:2010,"ORCL"]
+    a2 <- eqnRtn[2011:2020,"MSFT"]
+    b2 <- eqnRtn[2011:2020,"ORCL"]
+    
+    cat(constructSelect(a))
+
+
+##############################
+    ## bind for matrices with character dimnames
+    ## note: no data movement.
+    ab <- cbind(a,b)
+    
+    cat(constructSelect(ab))
+
+    as.matrix(ab)
+
+    ## note: currently only works for unique row and col ids (dimnames)
+    dimnames(ab)
+
+    test_equal_FLMatrix_RMatrix(ab)
+    ab[1,1]
+    
+    expect_equal(
+        dim(ab),
+        c(nrow(a), ncol(a)+ncol(b)))
+
+    ## cbind of 2 rbinds:
+    a2b2 <- cbind(a2,b2)
+    AB <- rbind(ab, a2b2)
+    dimnames(AB)
+    cat(constructSelect(AB))
+
+    expect_equal(dim(AB),
+                 c(nrow(a) + nrow(a2),
+                   ncol(a) + ncol(b)))
+    
+    AB
+    ##ABs <- store(AB)
+})
+
+test_that("Named matrix rows and columns",{
+    
+    cat(constructSelect(a,"a"))
+
+
+##############################
+    ## bind for matrices with character dimnames
+    ## note: no data movement.
+    ab <- cbind(a,b)
+    
+    cat(constructSelect(ab))
+
+    ab
+
+    ## note: currently only works for unique row and col ids (dimnames)
+    dimnames(ab)
+
+
+    expect_equal(
+        dim(ab),
+        c(nrow(a), ncol(a)+ncol(b)))
+
+    ## cbind of 2 rbinds:
+    a2b2 <- cbind(a2,b2)
+    AB <- rbind(ab, a2b2)
+    dimnames(AB)
+    cat(constructSelect(AB))
+
+    expect_equal(dim(AB),
+                 c(nrow(a) + nrow(a2),
+                   ncol(a) + ncol(b)))
+    
+    AB
+    ##ABs <- store(AB)
+})
 
 
 

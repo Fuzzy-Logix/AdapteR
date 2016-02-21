@@ -8,12 +8,6 @@ print.FLMatrix <- function(object)
 }
 
 
-# Prints FLSparseMatrix object
-print.FLSparseMatrix <- function(object)
-{
-    print(as.matrix(object,sparse=TRUE))
-}
-
 
 
 ## gk:  refactor like above!
@@ -48,12 +42,5 @@ print.FLVector <- function(object)
 print.FLVector <- function(object)
 {
     print(as.vector(object))
-}
-
-
-# Prints FLSparseMatrix object
-print.FLSparseMatrix <- function(object)
-{
-    print.FLMatrix(object)
 }
 

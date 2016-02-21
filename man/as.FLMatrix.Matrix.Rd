@@ -4,13 +4,17 @@
 \alias{as.FLMatrix.Matrix}
 \title{Casting to FLMatrix}
 \usage{
-as.FLMatrix.Matrix(object, connection, sparse = TRUE, ...)
+as.FLMatrix.Matrix(object, connection, ...)
 }
 \arguments{
-\item{object}{matrix,vector,data frame,sparseMatrix,FLVector or FLSparseMatrix which
+\item{object}{matrix, vector, data frame, sparseMatrix, FLVector which
 needs to be casted to FLMatrix}
 
 \item{connection}{ODBC connection object}
+
+\item{...}{}
+
+\item{sparse}{}
 
 \item{nr}{number of rows in resulting FLMatrix}
 

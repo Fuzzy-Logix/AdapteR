@@ -1,7 +1,6 @@
 #' @include FLDims.R
 #' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLSparseMatrix.R
 #' @include FLVector.R
 #' @include FLPrint.R
 #' @include FLIs.R
@@ -26,13 +25,6 @@ length.FLMatrixBind <- function(obj)
 	return(dim(obj)[1]*dim(obj)[2])
 }
 
-#' computes the length of FLSparseMatrix object.
-#' @param obj is a FLSparseMatrix object.
-#' @return \code{length} returns a R Vector giving the length of input object.
-length.FLSparseMatrix <- function(obj)
-{
-	return(dim(obj)[1]*dim(obj)[2])
-}
 
 #' computes the length of FLVector object.
 #' @param obj is a FLVector object.
