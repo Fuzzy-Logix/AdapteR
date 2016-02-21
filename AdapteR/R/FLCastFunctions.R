@@ -33,7 +33,11 @@ as.vector.FLVector <- function(object,mode="any")
     return(x)
 }
 
-
+#' Converts in-database objects to a data frame in R
+#' 
+#' Caution: data is fetched into R session
+#' @param x can be FLTable, FLVector or FLMatrix
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 as.data.frame <- function(x, ...)
 {
 	UseMethod("as.data.frame",x)
@@ -74,16 +78,20 @@ as.data.frame.FLVector <- function(x, ...){
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
    
     names(D) <- toupper(names(D))
+
+     i <- charmatch(rownames(x),D[[toupper("vectorIndexColumn")]],nomatch=0)
+     if(x@isDeep) {
+        if(length(rownames(x))==1)
+        i <- charmatch(colnames(x),D[[toupper("vectorIndexColumn")]],nomatch=0)
+    }
+    D <- D[i,]
     if(x@isDeep) {
-        D <- sqlQuery(getConnection(x),sqlstr)
-        D <- dcast(D, paste0(toupper("vectorIdColumn"),
+        if(length(rownames(x))==1)
+         D <- dcast(D, paste0(toupper("vectorIdColumn"),
                              " ~ ",
                              toupper("vectorIndexColumn")),
                    value.var = toupper("vectorValueColumn"))
-    } 
-     i <- charmatch(rownames(x),D[[toupper("vectorIndexColumn")]],nomatch=0)
-                                        # print(i)
-    D <- D[i,]
+    }
     # print(D[1:20,])
     # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
     if(any(D[[toupper("vectorIndexColumn")]]!=1:nrow(D)))
@@ -108,7 +116,11 @@ as.data.frame.FLMatrix <- function(x,...)
   return(as.data.frame(temp_m))
 }
 ##############################################################################################################
-#' Converts \code{x} to matrix in R
+#' Converts in-database objects to a matrix in R
+#' 
+#' Caution: data is fetched into R session
+#' @param x can be FLTable, FLVector or FLMatrix
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 as.matrix <- function(x, ...)
 {
 	UseMethod("as.matrix",x)
@@ -195,20 +207,7 @@ storeVarnameMapping <- function(connection,
 
 
 ###############################################################################################################
-#' Casting to FLMatrix
-#'
-#' Converts input \code{m} to FLMatrix object
-#' In addition, one can specify number of rows and columns
-#' of resulting flmatrix object
-##' @param object matrix, vector, data frame, sparseMatrix, FLVector which
-##' needs to be casted to FLMatrix
-##' @param connection ODBC connection object
-##' @param sparse 
-##' @param ... 
-##' @param nr number of rows in resulting FLMatrix
-##' @param nc number of columns in resulting FLMatrix.
-##' nr and nc inputs are applicable only in case of vector,FLVector
-#' @return FLMatrix object after casting.
+
 as.FLMatrix.Matrix <- function(object,connection,...) {
     ##browser()
     if((is.matrix(object) && !is.numeric(object)) || (is.data.frame(object) && !is.numeric(as.matrix(object))))
@@ -289,6 +288,20 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
             dimnames = mydimnames))
     }
 }
+
+#' Casting to FLMatrix
+#'
+#' Converts input to a FLMatrix object
+##' @param object matrix, vector, data frame, sparseMatrix, FLVector which
+##' needs to be casted to FLMatrix and inserted in-database
+##' @param connection ODBC/JDBC connection object
+##' @param sparse logical if sparse representation to be used
+##' @param ... 
+##' @param nr number of rows in resulting FLMatrix
+##' @param nc number of columns in resulting FLMatrix.
+##' nr and nc inputs are applicable only in case of vector,FLVector
+#' @return FLMatrix object after casting.
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 
 setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE,...) {
     standardGeneric("as.FLMatrix")
@@ -527,12 +540,14 @@ as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 #' casting to FLVector
 #'
 #' Converts input \code{obj} to FLVector object
-#' @param obj matrix, vector, data frame, sparseMatrix, FLMatrix which
+#' @param object matrix, vector, data frame, sparseMatrix, FLMatrix which
 #' needs to be casted to FLVector
-#' @param connection ODBC connection object
+#' @param connection ODBC/JDBC connection object
+#' @param ... additional arguments like size
 #' @param size number of elements in resulting FLVector.
 #' size input is not applicable only in case of FLMatrix
 #' @return FLVector object after casting.
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 setGeneric("as.FLVector", function(object,connection,...) {
     standardGeneric("as.FLVector")
 })

@@ -55,7 +55,6 @@ setClass(
 
 #' An S4 class to represent FLTable
 #'
-#' @slot odbc_connection ODBC connectivity for R
 #' @slot db_name character
 #' @slot table_name character
 #' @slot obs_id_colname character
@@ -84,11 +83,12 @@ setClass(
     ))
 
 
-##' stores a matrix in a table.
-##' TODO:  define when data is stored (automatic caching, user requests...)
+##' stores an object in database
 ##'
-##' @param object the object to store
-##' @return A FLMatrix based on a stored table of the executed
+##' @param object the object to store. Can be FLMatrix, FLVector, FLTable, character
+##' @param returnType return type of the stored data. Applicable only when object is a character representing a SQL Query
+##' @param connection ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query
+##' @return in-database object after storing
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("store", function(object,returnType,connection,...) {
     standardGeneric("store")
@@ -110,7 +110,11 @@ setMethod("store",
           signature(object = "character",returnType="character",connection="JDBCConnection"),
           function(object,returnType,connection,...) store.character(object,returnType,connection))
 
-
+##' drop a table
+##' 
+##' @param object FLTable object 
+##' @return message if the table is dropped
+##' @author Phani Srikar <phani.srikar@fuzzyl.com>
 drop.FLTable <- function(object)
 {
     names(object@table_name) <- NULL
@@ -405,7 +409,7 @@ FLamendDimnames <- function(flm,map_table) {
 #'
 #' \code{FLMatrix} object is an in-database equivalent to matrix object.
 #' This object is used as input for matrix operation functions.
-#' @param connection ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}
+#' @param connection ODBC/JDBC connection handle to the database.
 #' @param database name of the database
 #' @param table_name name of the matrix table
 #' @param matrix_id_value identifier for the input matrix
@@ -413,13 +417,20 @@ FLamendDimnames <- function(flm,map_table) {
 #' @param row_id_colname column name in \code{table_name} where row numbers are stored
 #' @param col_id_colname column name in \code{table_name} where column numbers are stored
 #' @param cell_val_colname column name in \code{table_name} where matrix elements are stored
+#' @param dim vector representing the dimensions of the matrix
+#' @param dimnames list of dimension names to assign to the matrix
+#' @param conditionDims logical vector of length two representing if there are any conditions on dimensions
+#' @param whereconditions where conditions if any to reference the in-database matrix
+#' @param map_table in-database table name which stores the dimnames of the matrix. Not required if dimnames are already specified using \code{dimnames}
 #' @return \code{FLMatrix} returns an object of class FLMatrix mapped
 #' to an in-database matrix.
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix
 #' @export
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 FLMatrix <- function(connection,
                      database=getOption("ResultDatabaseFL"),
                      table_name,
@@ -510,23 +521,6 @@ equalityConstraint <- function(tableColName,constantValue){
         paste0(tableColName, "=",constantValue)
 }
 
-## ##' Function to replace full table name with an alias.
-## ##' todo: alias
-## ##'
-## ##' @param constraints 
-## ##' @param oldName 
-## ##' @param alias 
-## ##' @return the constraints with aliases
-## ##' @author  Gregor Kappler <g.kappler@@gmx.net>
-## localizeConstraints <- function(constraints, oldName, alias=""){
-##     ##browser()
-##     if(alias!="")
-##         gsub(oldName, alias, constraints)
-##     else
-##         gsub(paste0(oldName,"."), alias, constraints)
-## }
-
-
 
 
 ## gk: todo:  I doubt that we need different connections for different options...
@@ -573,7 +567,12 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
               return(constraints)
           })
 
-
+#' reference in-database object
+#' 
+#' @param object in-database object
+#' @param table table name. Applicable only if object is the database name.
+#' @return character vector giving reference to in-database object
+##' @author Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("remoteTable", function(object, table) {
     standardGeneric("remoteTable")
 })
@@ -604,9 +603,14 @@ setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
                                 collapse=",\n    "))
           })
 
+#' Compare Matrix Dimensions
+#'
+#' Takes two matrices in-database or R, and returns true if they have same dimensions
+#' @param object1 FLMatrix or R Matrix
+#' @param object2 FLMatrix or R Matrix
+#' @return logical
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 
-
-                                        #checkSameDims throws error if FLMatrix objects have different dimensions
 setGeneric("checkSameDims", function(object1,object2) {
     standardGeneric("checkSameDims")
 })

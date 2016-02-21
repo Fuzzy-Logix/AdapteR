@@ -6,26 +6,25 @@
 #' @include FLDims.R
 NULL
 
+#' row sums of a FLMatrix.
+#'
+#' \code{rowSums} computes the row-wise sums of FLMatrix objects.
+#'
+#' @param x is of class FLMatrix.
+#' @return \code{rowSums} returns a FLVector object representing the row-wise sums.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultFLVector <- rowSums(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
+#' @export
 rowSums <- function (x, ...){
   UseMethod("rowSums", x)
 }
 
 
 rowSums.default <- base::rowSums
-
-#' row sums of a FLMatrix.
-#'
-#' \code{rowSums} computes the row-wise sums of FLMatrix objects.
-#'
-#' The wrapper overloads rowSums and extends it to FLMatrix objects.
-#' @param object is of class FLMatrix.
-#' @return \code{rowSums} returns a FLVector object representing the row-wise sums.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultFLVector <- rowSums(flmatrix)
-#' @export
 
 rowSums.FLMatrix<-function(object)
 {

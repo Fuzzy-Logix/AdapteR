@@ -6,25 +6,24 @@
 #' @include FLDims.R
 NULL
 
+#' column sums of a FLMatrix.
+#'
+#' \code{colSums} computes the column-wise sums of FLMatrix objects.
+#'
+#' @param x is of class FLMatrix.
+#' @return \code{colSums} returns a FLVector object representing the col-wise sums.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultFLVector <- colSums(flmatrix)
+#' @author Phani Srikar <phanisrikar93ume@gmail.com>
+#' @export
 colSums <- function (x, ...){
   UseMethod("colSums", x)
 }
 
 colSums.default <- base::colSums
-
-#' column sums of a FLMatrix.
-#'
-#' \code{colSums} computes the column-wise sums of FLMatrix objects.
-#'
-#' The wrapper overloads colSums and extends it to FLMatrix objects.
-#' @param object is of class FLMatrix.
-#' @return \code{colSums} returns a FLVector object representing the col-wise sums.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultFLVector <- colSums(flmatrix)
-#' @export
 
 colSums.FLMatrix<-function(object)
 {

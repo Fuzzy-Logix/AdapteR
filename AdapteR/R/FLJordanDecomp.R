@@ -6,32 +6,30 @@
 #' @include FLDims.R
 NULL
 
-
-FLJordan<-function(x, ...){
-	UseMethod("FLJordan",x)
-}
-
 #' Jordan Decomposition of a Matrix.
 #'
-#' \code{jordan} computes the Jordan decomposition for FLMatrix objects.
+#' \code{FLJordan} computes the Jordan decomposition for FLMatrix objects.
 #'
-#' The wrapper overloads jordan and implicitly calls FLJordanDecompUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be square matrix with maximum dimension limitations of (700 x 700).
-#' @return \code{jordan} returns a list of two components:
+#' @return \code{FLJordan} returns a list of two components:
 #'       \item{J}{FLVector representing J vector obtained from Jordan decomposition}
 #'       \item{P}{FLMatrix representing P matrix obtained from Jordan decomposition}
 #'       \item{PInv}{FLMatrix representing PInv matrix obtained from Jordan decomposition}
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultList <- jordan(flmatrix)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultList <- FLJordan(flmatrix)
 #' resultList$J
 #' resultList$P
 #' resultList$PInv
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+FLJordan<-function(x, ...){
+	UseMethod("FLJordan",x)
+}
 
 FLJordan.FLMatrix<-function(object)
 {

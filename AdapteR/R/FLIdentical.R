@@ -27,15 +27,16 @@ NULL
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' Result <- identical(flmatrix,flmatrix)
 #' Result <- identical(Rvector,as.FLVector(Rvector,connection))
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 
-identical <- function(pObj1,pObj2)
+identical <- function(x,y)
 {
-	UseMethod("identical", pObj1)
+	UseMethod("identical", x)
 }
 
 identical.default <- base::identical
@@ -153,22 +154,26 @@ NULL
 #' The equality of in-database objects mimics the normal addition of R data types.
 #' One can check equality of FLMatrices, FLMatrix - R matrices, FLVectors and
 #' FLVector - RVector.
-#' @param x can be an in-database object like FLMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{==} returns a logical TRUE or FALSE.
 #' @section Constraints:
 #' Currently only \code{dgCMatrix},\code{dgeMatrix},\code{dsCMatrix},
 #' \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
 #' are supported. Comparision of FLMatrix with FLVector is not currently Supported.
+#' In case of FLVector and Rvector comparision use FLVector==RVector in place of 
+#' RVector==FLVector
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 1)
-#' Rvector <- 1:5
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flvector <- as.FLVector(1:5,connection)
 #' Result <- flmatrix == flmatrix
-#' Result <- Rvector == as.FLVector(Rvector,connection)
+#' Result <- flvector==flvector
+#' Result <- flvector==1:5
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 `==.FLMatrix` <- function(pObj1, pObj2)
@@ -238,10 +243,9 @@ NULL
 
 `==.FLVector` <- function(pObj1, pObj2)
 {
-	
-	connection <- getConnection(pObj1)
 	if(is.FLVector(pObj2))
 	{
+		connection <- getConnection(pObj2)
 		if(checkMaxQuerySize(pObj1))
 		pObj1 <- store(pObj1)
 		if(checkMaxQuerySize(pObj2))
@@ -325,12 +329,14 @@ NULL
 	}
 	if(is.vector(pObj2))
 	{
+		connection <- getConnection(pObj1)
 		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
 		pObj2 <- as.FLVector(pObj2,connection)
 		return("=="(pObj1,pObj2))
 	}
 	if(is.matrix(pObj2))
 	{
+		connection <- getConnection(pObj1)
 		pObj2 <- as.FLMatrix(pObj2,connection)
 		return(pObj2==pObj1)
 	}

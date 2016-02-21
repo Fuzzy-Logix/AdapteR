@@ -26,8 +26,9 @@ solve <- function (x, ...){
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 2)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solve(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 solve.FLMatrix <- function(pObj1)
 {

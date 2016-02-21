@@ -6,17 +6,11 @@
 #' @include FLDims.R
 NULL
 
-
-FLHessen<-function(x, ...){
-	UseMethod("FLHessen",x)
-}
-
 #' Hessenberg Decomposition of a Matrix.
 #'
 #' \code{FLHessen} computes the Hessenberg decomposition for FLMatrix objects.
 #'
-#' The wrapper overloads hessen and implicitly calls FLHessenbergDecompUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be square matrix with maximum dimension limitations of (700 x 700).
 #' @return \code{FLHessen} returns a list of two components:
@@ -25,11 +19,15 @@ FLHessen<-function(x, ...){
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+FLHessen<-function(x, ...){
+	UseMethod("FLHessen",x)
+}
 
 FLHessen.FLMatrix<-function(object)
 {

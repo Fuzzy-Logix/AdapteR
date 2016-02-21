@@ -6,17 +6,12 @@
 #' @include FLDims.R
 NULL
 
-FLSolveExcl <- function (x, ...){
-	UseMethod("FLSolveExcl", x)
-}
-
 #' Inverse of a Matrix excluding a dimension.
 #'
-#' \code{solveExcl} computes the inverse for FLMatrix objects by excluding 
+#' \code{FLSolveExcl} computes the inverse for FLMatrix objects by excluding 
 #' the specified row and column from the matrix.
 #'
-#' The wrapper overloads solveExcl and implicitly calls FLMatrixInvExclUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @param ExclIdx is a positive integer specifying row or column id to be excluded.
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
@@ -26,9 +21,15 @@ FLSolveExcl <- function (x, ...){
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solveExcl(flmatrix,3)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+
+FLSolveExcl <- function (x,ExclIdx,...){
+	UseMethod("FLSolveExcl", x)
+}
+
 FLSolveExcl.FLMatrix<-function(object,ExclIdx)
 {
 

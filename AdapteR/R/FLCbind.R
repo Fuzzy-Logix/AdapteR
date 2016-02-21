@@ -18,11 +18,7 @@ NULL
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultFLMatrix <- cbind(flmatrix,1:5,flmatrix)
+##' @author Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 cbind <- function (x, ...){
   UseMethod("cbind", x)
@@ -43,11 +39,7 @@ cbind.default <- function(object,...){
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
-#' resultFLMatrix <- cbind(flmatrix,1:5,flmatrix)
+##' @author Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 cbind.FLMatrix<-function(object,...)
 {

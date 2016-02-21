@@ -1,8 +1,8 @@
 Package: AdapteR
 Title: This package wraps around Fuzzy Logix's DBLytix functions
 Version: 2.0
-Authors@R: "Phani Srikar <phani.srikar@fuzzyl.com> [aut, cre], Gregor Kappler
-    <Gregor.Kappler@fuzzyl.com> [aut]"
+Authors@R: "Phani Srikar <phanisrikar93ume@gmail.com> [aut, cre], Gregor Kappler
+    <g.kappler@@gmx.net> [aut]"
 Description: The DB Lytix(TM) suite of functions offers scalable and robust high
     performance analytical methods that are embedded seamlessly into database
     systems. Package RLytix makes it possible to use this functionality from R
@@ -14,7 +14,10 @@ Imports:
     MASS (>= 7.3-10),
     Matrix (>= 1.1-5),
     base,
-    stats
+    stats,
+	psych,
+	reshape2,
+	cluster
 License: GPL-2
 LazyData: true
 Collate:

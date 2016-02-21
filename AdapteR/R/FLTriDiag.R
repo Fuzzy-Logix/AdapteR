@@ -6,16 +6,11 @@
 #' @include FLDims.R
 NULL
 
-FLTriDiag <- function (x, ...){
-	UseMethod("FLTriDiag", x)
-}
-
 #' TriDiagonal or Upper Hessenberg matrix of a FLMatrix.
 #'
 #' \code{FLTriDiag} computes the TriDiagonal or Upper Hessenberg matrix of FLMatrix object.
 #'
-#' The wrapper overloads FLTriDiag and implicitly calls FLTriDiagUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (700 x 700).
@@ -23,9 +18,14 @@ FLTriDiag <- function (x, ...){
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- FLTriDiag(flmatrix)
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+FLTriDiag <- function (x, ...){
+	UseMethod("FLTriDiag", x)
+}
+
 
 FLTriDiag.FLMatrix<-function(object)
 {

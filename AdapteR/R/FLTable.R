@@ -10,19 +10,22 @@ NULL
 #'
 #' \code{FLTable} refers to an in-database table. This is equivalent to data.frame object. 
 #' This object is commonly used as input for data mining functions.
-#' @param connection ODBC connection handle as returned by \code{\link[RODBC]{odbcConnect}}
+#' @param connection ODBC/JDBC connection object
 #' @param database name of the database
 #' @param table name of the table
 #' @param obs_id_colname column name set as primary key
 #' @param var_id_colname column name where variable id's are stored if \code{FLTable} is deep
 #' @param cell_val_colname column name where cell values are stored if \code{FLTable} is deep
+#' @param whereconditions whereconditions if any to reference the table
 #' @return \code{FLTable} returns an object of class FLTable mapped to a table
 #' in Teradata.
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
+#' deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
+##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 FLTable <- function(connection,
 				    database, 
@@ -127,6 +130,29 @@ rownames.FLTable <- function(object) object@dimnames[[1]]
 
 
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
+
+#' Convert Wide Table to Deep Table in database.
+#'
+#' @param object FLTable object
+#' @param excludeCols character vector specifying columns to be excluded from conversion
+#' @param classSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
+#' @param whereconditions character vector giving where conditions if any to reference the wide table
+#' @param outDeepTableName name to be given to the output deep table
+#' @param outDeepTableDatabase name of database to store the output deep table
+#' @param outObsIDCol name to give to the primary key column name of the output deep table
+#' @param outVarIDCol name to give to the varibales name column of the output deep table
+#' @param outValueCol name to give to the value column of the output deep table
+#' @return \code{wideToDeep} returns a list containing components 
+#' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' widetable  <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' resultList <- wideToDeep(widetable)
+#' deeptable <- resultList$table
+#' analysisID <- resultList$AnalysisID
+##' @author phani srikar <phanisrikar93ume@gmail.com>
+#' @export
 
 setGeneric("wideToDeep", function(object,excludeCols,classSpec,whereconditions,
                                   outDeepTableName,outDeepTableDatabase,
@@ -271,6 +297,24 @@ setMethod("wideToDeep",
                     outValueCol=""))
 
 
+#' Convert Deep Table to Wide Table
+#' @param object FLTable object to convert to wide table
+#' @param whereconditions character vector specifying whereconditions if any to reference the input deep table
+#' @param mapTable name of the in-database table containing mapping information to be used in conversion if any
+#' @param mapName unique identifier for the mapping information in mapping table if any
+#' @param outWideTableDatabase name of database where output wide table is to be stored
+#' @param outWideTableName name to give to the output wide table
+#' @return \code{deepToWide} returns a list containing components 
+#' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' deeptable  <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' resultList <- deepToWide(deeptable)
+#' widetable <- resultList$table
+#' analysisID <- resultList$AnalysisID
+##' @author  phani srikar <phanisrikar93ume@gmail.com>
+#' @export
 setGeneric("deepToWide", function(object,whereconditions,
                                   mapTable,mapName,outWideTableDatabase,outWideTableName) {
     standardGeneric("deepToWide")

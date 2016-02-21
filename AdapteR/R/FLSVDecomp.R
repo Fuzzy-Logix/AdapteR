@@ -6,18 +6,11 @@
 #' @include FLDims.R
 NULL
 
-svd<-function(x, ...){
-	UseMethod("svd",x)
-}
-
-svd.default<-base::svd
-
 #' Singular Value Decomposition of a Matrix.
 #'
 #' \code{svd} computes the singular value decomposition for FLMatrix objects.
 #'
-#' The wrapper overloads svd and implicitly calls FLSVDUdt.
-#' @param object is of class FLMatrix
+#' @param x is of class FLMatrix
 #' @param nu number of left singular vectors to be computed.This must between 0 and nrow(object).
 #' @param nv number of right singular vectors to be computed.This must between 0 and ncol(object).
 #' @section Constraints:
@@ -29,12 +22,19 @@ svd.default<-base::svd
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 3)
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- svd(flmatrix)
 #' resultList$d
 #' resultList$u
 #' resultList$v
+##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
+svd<-function(x, ...){
+	UseMethod("svd",x)
+}
+
+svd.default<-base::svd
+
 svd.FLMatrix<-function(object,nu=c(),nv=c())
 {
 	connection<-getConnection(object)
