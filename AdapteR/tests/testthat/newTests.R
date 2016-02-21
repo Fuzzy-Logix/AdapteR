@@ -56,7 +56,6 @@ test_that("check FLGinv",
                       n=5)
 })
 
-## not running! todo phani: store one zero in the empty row (column)
 ## Testing FLDims
 test_that("check FLDims if all elements of a row are zero",
 {
@@ -91,7 +90,6 @@ test_that("check FLCastFunctions",
   P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   T1 <- initF.FLTable(rows=5,cols=5)
     expect_equal(as.vector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
-## Phani: not running!
     expect_equal(as.vector(P1$FL),as.vector(P1$R),check.attributes=FALSE)
     expect_equal(as.data.frame(M1$FL),as.data.frame(M1$R),check.attributes=FALSE)
     testthat::expect_equal(as.matrix(P1$FL),as.matrix(P1$R),check.attributes=FALSE)
