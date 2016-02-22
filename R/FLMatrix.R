@@ -91,10 +91,10 @@ setClass(
 ##' @param returnType return type of the stored data. Applicable only when object is a character representing a SQL Query
 ##' @param connection ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query
 ##' @return in-database object after storing
+#' @export
 setGeneric("store", function(object,returnType,connection,...) {
     standardGeneric("store")
 })
-
 setMethod("store",
           signature(object = "FLMatrix",returnType="missing",connection="missing"),
           function(object,...) store.FLMatrix(object))
@@ -115,6 +115,7 @@ setMethod("store",
 ##' 
 ##' @param object FLTable object 
 ##' @return message if the table is dropped
+#' @export
 drop.FLTable <- function(object)
 {
     names(object@table_name) <- NULL
@@ -254,6 +255,7 @@ FLIndexOf <- function(i,thenames){
 #' @param dimnames new dimension names
 #' @param conditionDims vector of 2 LOGICAL values, if first is TRUE,
 #' a inCondition for the rownames is appended, if 2 for the columns respectively.
+#' @export
 restrictFLMatrix <-
     function(object,
              whereconditions = object@select@whereconditions,
@@ -293,7 +295,9 @@ restrictFLMatrix <-
 ##' Dimnames 1:n are set to NULL in order to adhere to R conventions.
 ##'
 ##' @param flm FLMatrix 
+##' @param map_table name of the mapping table if already exists
 ##' @return the FLMatrix object, with slot dimnames re set 
+#' @export
 FLamendDimnames <- function(flm,map_table) {
     ##browser()
     checkNames <- function(colnames, addIndex=FALSE){
@@ -372,11 +376,6 @@ FLamendDimnames <- function(flm,map_table) {
                   equalityConstraint("rnmap.DIM_ID","1"))
         }
 
-        ## names(select@variables) <- gsub("IdColumn","NumIdColumn",
-        ##                                 names(select@variables))
-        ## names(select@variables) <- gsub("NameColumn","IdColumn",
-        ##                                 names(select@variables))
-
         ## column name maps
         if(!is.null(dimnames[[2]])){
             tablenames <- c(tablenames,cnmap=map_table)
@@ -424,8 +423,7 @@ FLamendDimnames <- function(flm,map_table) {
 #' @return \code{FLMatrix} returns an object of class FLMatrix mapped
 #' to an in-database matrix.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti",
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
@@ -521,9 +519,6 @@ equalityConstraint <- function(tableColName,constantValue){
 }
 
 
-
-## gk: todo:  I doubt that we need different connections for different options...
-## we need to discuss moving the connection from an object slot to an option
 setGeneric("getConnection", function(object) {
     standardGeneric("getConnection")
 })
@@ -607,7 +602,7 @@ setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
 #' @param object1 FLMatrix or R Matrix
 #' @param object2 FLMatrix or R Matrix
 #' @return logical
-
+#' @export
 setGeneric("checkSameDims", function(object1,object2) {
     standardGeneric("checkSameDims")
 })
@@ -632,12 +627,13 @@ setMethod("checkSameDims", signature(object1="FLMatrix",object2="dgCMatrix"),
                   return(stop("ERROR: Invalid matrix dimensions for Operation"))
           })
 
+#' @export
 print.FLMatrix <- function(object)
 {
-    ##gk: todo: implement caching
     print(as.matrix(object,sparse=TRUE))
 }
 
+#' @export
 setMethod("show","FLMatrix",print.FLMatrix)
 
 setGeneric("checkMaxQuerySize", function(pObj1) {

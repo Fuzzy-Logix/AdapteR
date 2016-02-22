@@ -8,18 +8,20 @@
 #' @include FLPrint.R
 NULL
 
+#' @export
 "FLMatrixArithmetic" <- function(pObj1,pObj2,pOperator)
 {
     UseMethod("FLMatrixArithmetic", pObj1)
 }
 
-
+#' @export
 FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 {
 	op <- .Primitive(pOperator)
 	op(pObj1,pObj2)
 }
 
+#' @export
 FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 {
 	connection <- getConnection(pObj1)
@@ -183,6 +185,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	else stop("Operation Currently Not Supported")
 }
 
+#' @export
 FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 {
 	connection <- getConnection(pObj1)
@@ -270,14 +273,6 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			{
 				max_length <- max(length(rownames(pObj1)),length(rownames(pObj2)))
 				if(pOperator %in% c("%/%"))
-				# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-				# 						a,".vectorIndexColumn AS vectorIndexColumn,
-				# 						CAST(",a,".vectorValueColumn",
-				# 						"/",b,".vectorValueColumn AS INT) AS vectorValueColumn 
-				# 				 FROM (",constructSelect(pObj1),") AS ",a,", 
-				# 				    (",constructSelect(pObj2),") AS ",b,
-				# 				 constructWhere(c(paste0(a,".vectorIndexColumn = ",
-				# 								b,".vectorIndexColumn"))))
 				
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 									1:max_length, " AS vectorIndexColumn",
@@ -290,15 +285,6 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 							    collapse=" UNION ALL ")
 
 				else if(pOperator %in% c("+","-","%%","/","*"))
-				# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-				# 						a,".vectorIndexColumn AS vectorIndexColumn,
-				# 						",a,".vectorValueColumn",
-				# 						ifelse(pOperator=="%%"," MOD ",pOperator),
-				# 						b,".vectorValueColumn AS vectorValueColumn 
-				# 				 FROM (",constructSelect(pObj1),") AS ",a,", 
-				# 				    (",constructSelect(pObj2),") AS ",b,
-				# 				 constructWhere(c(paste0(a,".vectorIndexColumn = ",
-				# 								b,".vectorIndexColumn"))))
 				
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 										1:max_length, " AS vectorIndexColumn",
@@ -406,6 +392,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 	else cat("ERROR::Operation Currently Not Supported")
 }
 
+#' @export
 FLMatrixArithmetic.matrix <- function(pObj1,pObj2,pOperator)
 {
 	if(pOperator %in% c("+","-","%/%","%%","/","*"))
@@ -419,6 +406,7 @@ FLMatrixArithmetic.matrix <- function(pObj1,pObj2,pOperator)
 	}
 }
 
+#' @export
 FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 {	
 	if(missing(pObj2))
@@ -457,6 +445,7 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 	return(FLMatrixArithmetic.default(pObj1,pObj2,pOperator))
 }
 
+#' @export
 FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 {
 	if(is.FLMatrix(pObj2)||is.FLVector(pObj2))
@@ -467,9 +456,13 @@ FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 	else
 	return(FLMatrixArithmetic.default(pObj1,pObj2,pOperator))
 }
+#' @export
 FLMatrixArithmetic.dgCMatrix <- FLMatrixArithmetic.sparseMatrix
+#' @export
 FLMatrixArithmetic.dgeMatrix <- FLMatrixArithmetic.sparseMatrix
+#' @export
 FLMatrixArithmetic.dgTMatrix <- FLMatrixArithmetic.sparseMatrix
+#' @export
 FLMatrixArithmetic.dsCMatrix <- FLMatrixArithmetic.sparseMatrix
 
 NULL
@@ -479,16 +472,16 @@ NULL
 #'
 #' The addition of in-database objects mimics the normal addition of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{+} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
 #' @export
@@ -498,30 +491,39 @@ NULL
     UseMethod("+", pObj1)
 }
 
+#' @export
 `+.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"+"))
 
+#' @export
 `+.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.numeric` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.FLMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.dgCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
+#' @export
 `+.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"+"))
 
@@ -532,16 +534,16 @@ NULL
 #'
 #' The subtraction of in-database objects mimics the normal subtraction of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{-} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
 #' @export
@@ -551,30 +553,39 @@ NULL
     UseMethod("-", pObj1)
 }
 
+#' @export
 `-.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"-"))
 
+#' @export
 `-.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.numeric` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.FLMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.dgCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
+#' @export
 `-.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"-"))
 
@@ -585,16 +596,16 @@ NULL
 #'
 #' The Cross-Product of in-database objects mimics the \code{\%*\%} of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{\%*\%} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
 #' @export
@@ -604,31 +615,41 @@ NULL
     UseMethod("%*%", pObj1)
 }
 
+#' @export
 `%*%.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"%*%"))
 
+#' @export
 `%*%.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
+#' @export
 `%*%.numeric` <- function(pObj1,pObj2)	
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
+#' @export
 crossProdFLMatrix <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
+#' @export
 `%*%.FLMatrixBind` <- crossProdFLMatrix
-    
+ 
+#' @export
 `%*%.FLMatrix` <- crossProdFLMatrix
 
+#' @export
 `%*%.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
+#' @export
 `%*%.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
+#' @export
 `%*%.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
+#' @export
 `%*%.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%*%"))
 
@@ -639,18 +660,18 @@ NULL
 #'
 #' The remainder of in-database objects mimics the normal remainder of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{\%\%} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %% Rvector
 #' @export
@@ -660,30 +681,39 @@ NULL
     UseMethod("%%", pObj1)
 }
 
+#' @export
 `%%.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.numeric` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.FLMatrix` <- function(pObj1, pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.dgCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
+#' @export
 `%%.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
@@ -694,16 +724,16 @@ NULL
 #'
 #' The Element-wise Multiplication of in-database objects mimics the normal Element-wise Multiplication of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{*} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix * Rvector
 #' @export
@@ -713,30 +743,39 @@ NULL
     UseMethod("*", pObj1)
 }
 
+#' @export
 `*.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"*"))
 
+#' @export
 `*.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.numeric` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.FLMatrix` <- function(pObj1, pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.dgCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
+#' @export
 `*.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
@@ -747,18 +786,18 @@ NULL
 #'
 #' The Element-wise Division of in-database objects mimics the \code{/} of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{/} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix / Rvector
 #' @export
@@ -768,30 +807,39 @@ NULL
     UseMethod("/", pObj1)
 }
 
+#' @export
 `/.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"/"))
 
+#' @export
 `/.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.numeric` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.FLMatrix` <- function(pObj1, pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.dgCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
+#' @export
 `/.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
@@ -802,18 +850,18 @@ NULL
 #'
 #' The Element-wise Integer Division of in-database objects mimics the \code{\%/\%} of R data types.
 #' All combinations of operands are possible just like in R and the result is an in-database object.
-#' @param x can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{\%/\%} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %/% Rvector
 #' @export
@@ -823,30 +871,39 @@ NULL
     UseMethod("%/%", pObj1)
 }
 
+#' @export
 `%/%.default` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic.default(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.matrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.numeric` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.FLMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.FLVector` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.dgCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.dgeMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.dgTMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+#' @export
 `%/%.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 

@@ -10,7 +10,8 @@ NULL
 #'
 #' \code{FLJordan} computes the Jordan decomposition for FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be square matrix with maximum dimension limitations of (700 x 700).
 #' @return \code{FLJordan} returns a list of two components:
@@ -18,19 +19,20 @@ NULL
 #'       \item{P}{FLMatrix representing P matrix obtained from Jordan decomposition}
 #'       \item{PInv}{FLMatrix representing PInv matrix obtained from Jordan decomposition}
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLJordan(flmatrix)
 #' resultList$J
 #' resultList$P
 #' resultList$PInv
 #' @export
-FLJordan<-function(x, ...){
-	UseMethod("FLJordan",x)
+FLJordan<-function(object, ...){
+	UseMethod("FLJordan",object)
 }
 
-FLJordan.FLMatrix<-function(object)
+#' @export
+FLJordan.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag1Check(connection)

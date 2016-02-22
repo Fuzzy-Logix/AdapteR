@@ -4,14 +4,13 @@
 \alias{svd}
 \title{Singular Value Decomposition of a Matrix.}
 \usage{
-svd(x, ...)
+svd(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
 
-\item{nu}{number of left singular vectors to be computed.This must between 0 and nrow(object).}
-
-\item{nv}{number of right singular vectors to be computed.This must between 0 and ncol(object).}
+\item{...}{has nu number of left singular vectors to be computed.This must between 0 and nrow(object).
+nv number of right singular vectors to be computed.This must between 0 and ncol(object).}
 }
 \value{
 \code{svd} returns a list of three components:
@@ -27,9 +26,9 @@ svd(x, ...)
 Input can only be with maximum dimension limitations of (550 x 550).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- svd(flmatrix)
 resultList$d
 resultList$u

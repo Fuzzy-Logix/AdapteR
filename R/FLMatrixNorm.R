@@ -10,7 +10,7 @@ NULL
 #'
 #' \code{FLMatrixNorm} gives the value of Norm for FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
 #' @param NormMethod is an integer from 1-4 representing the type of norm that
 #' should be computed.
 #' @section Constraints:
@@ -23,15 +23,16 @@ NULL
 #' \item{Frobenius Norm}{Square root of the trace of (t(A)A)}
 #' \item{Infinity Norm}{Square root of the maximum of the magnitudes of the Eigenvalues of (t(A)A)}
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- FLMatrixNorm(flmatrix,4)
 #' @export
-FLMatrixNorm <- function (x, ...){
-	UseMethod("FLMatrixNorm", x)
+FLMatrixNorm <- function (object,NormMethod){
+	UseMethod("FLMatrixNorm", object)
 }
 
+#' @export
 FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 {
 

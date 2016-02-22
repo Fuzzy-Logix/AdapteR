@@ -35,8 +35,7 @@ in Teradata.
 This object is commonly used as input for data mining functions.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
+connection <- RODBC::odbcConnect("Gandalf")
 widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
 deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)

@@ -4,14 +4,9 @@ setOldClass("RODBC")
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName) {
-    ## gk: todo: use options(...) and start  session if required
-    ##    if(is.null(getOption("ResultMatrixTableFL")))
-    ##        FLStartSession()
 
     return(paste0(databaseName,".",tableName))
 }
-
-
 
 sqlError <- function(e){
     print(e)
@@ -20,15 +15,21 @@ sqlError <- function(e){
 ################################################################################
 ######  provide methods for JDBC with same signature as ODBC methods
 ################################################################################
-
-if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
+#' Send a query to database
+#' 
+#' No result is returned
+#' @param channel JDBC connection object
+#' @param query SQLQuery to be sent
+#' @export
+sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
 #' 
 #' Result is returned as data.frame
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
-sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
+#' @export
+sqlQuery <- function(connection,query,...) UseMethod("sqlQuery",connection)
 ## gk: this made packaging fail here, as I cannot install RODBC, and
 ## then it is unknown. Can we do a package check? We need to discuss
 ## this.
@@ -41,12 +42,13 @@ options(debugSQL=TRUE)
 #' No result is returned
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
+#' @export
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
         ##browser()
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
         tryCatch({
-            R <- dbSendUpdate(connection,q)
+            R <- RJDBC::dbSendUpdate(connection,q)
             ##dbCommit(connection)
             return(R)
         },
@@ -59,32 +61,34 @@ sqlSendUpdate.JDBCConnection <- function(channel,query) {
 #' No result is returned
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
+#' @export
 sqlSendUpdate.RODBC <- function(connection,query) {
-    odbcSetAutoCommit(connection, autoCommit = FALSE)
+    RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
     sapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
         err<-RODBC::sqlQuery(connection,q,errors=FALSE)
-        errmsg<- odbcGetErrMsg(connection)
+        errmsg<- RODBC::odbcGetErrMsg(connection)
         if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
         {
-            odbcEndTran(connection, commit = TRUE)
+            RODBC::odbcEndTran(connection, commit = TRUE)
         }
         else
         {
-            odbcEndTran(connection, commit = FALSE)
+            RODBC::odbcEndTran(connection, commit = FALSE)
             print(errmsg)
         }
-        odbcClearError(connection)
+        RODBC::odbcClearError(connection)
     })
-    odbcSetAutoCommit(connection, autoCommit = TRUE)
-    cat("DONE...\n")
+    RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
+    #cat("DONE...\n")
 }
 
-sqlQuery.JDBCConnection <- function(channel,query, ...) {
+#' @export
+sqlQuery.JDBCConnection <- function(connection,query, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
         tryCatch({
-            resd <- dbGetQuery(connection, query, ...)
+            resd <- DBI::dbGetQuery(connection, query, ...)
             return(resd)
         },
         error=function(e) cat(paste0(sqlError(e))))
@@ -92,13 +96,14 @@ sqlQuery.JDBCConnection <- function(channel,query, ...) {
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
         tryCatch({
-            resd <- dbGetQuery(connection, q, ...)
+            resd <- DBI::dbGetQuery(connection, q, ...)
             return(resd)
         },
         error=function(e) cat(paste0(sqlError(e))))
     })
 }
 
+#' @export
 sqlQuery.RODBC <- function(connection,query, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
@@ -126,7 +131,6 @@ list_to_where_clause <- function (x) {
     } else {
         where_clause <- "1=1"
     }
-                                        #where_clause <- ifelse(nchar(where_clause) > 1, where_clause, "1=1");
     where_clause
 }
 
@@ -135,6 +139,7 @@ list_to_where_clause <- function (x) {
                                         #  * @param  {list} x e.g. list(Varx="a",Vary="b")
                                         #  * @return {string}   "Varx(x), Vary(y)"
                                         #  */
+
 list_to_class_spec <- function (x) {
     classSpec <- paste(names(x),x,sep="(",collapse="), ")
     classSpec <- paste(classSpec,")",sep="")
@@ -143,7 +148,6 @@ list_to_class_spec <- function (x) {
     } else {
         classSpec <- ""
     }
-    ##classSpec <- ifelse(nchar(classSpec) > 1, classSpec, "");
     classSpec
 }
 
@@ -152,6 +156,7 @@ list_to_class_spec <- function (x) {
                                         #  * @param  {list} x e.g. list(Varx="a",Vary="b")
                                         #  * @return {string}   "Varx(x), Vary(y)"
                                         #  */
+
 list_to_exclude_clause <- function (x) {
     excludeClause <- paste(x, collapse=", ")
     excludeClause
@@ -217,6 +222,7 @@ genRandVarName <- function(){
 #'
 #' Strongly recommended to run before quitting current R session
 #' @param connection ODBC/JDBC connection object
+#' @export
 FLodbcClose <- function(connection)
 {
     sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
@@ -227,7 +233,7 @@ FLodbcClose <- function(connection)
 	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
 
     sqlSendUpdate(connection,sqlstr)
-    odbcClose(connection)
+    RODBC::odbcClose(connection)
     flag1 <<- 0
     flag2 <<- 0
     flag3 <<- 0
@@ -244,21 +250,20 @@ gen_table_name <- function(prefix,suffix){
 #' Starts Session and Creates temp Tables for result storage
 #'
 #' Strongly recommended to run before beginning a new R session
-#' use options to specify the following:- ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, MatrixNameMapTableFL, ResultSparseMatrixTableFL
+#' use options to specify the following:- 
+#' ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, 
+#' MatrixNameMapTableFL, ResultSparseMatrixTableFL
 #' @param connection ODBC/JDBC connection object
 #' @param database name of current database
 #' @param persistent NULL if result tables are to be created as volatile tables
 #' @param drop logical to specify to drop result tables if already existing
 #' @param tableoptions options used to create result tables
+#' @export
 FLStartSession <- function(connection,
                            database="FL_DEMO",
                            persistent="test",
                            drop=TRUE,
-                           tableoptions=", FALLBACK ,
-				     NO BEFORE JOURNAL,
-				     NO AFTER JOURNAL,
-				     CHECKSUM = DEFAULT,
-				     DEFAULT MERGEBLOCKRATIO")
+                           tableoptions=paste0(", FALLBACK ,NO BEFORE JOURNAL,NO AFTER JOURNAL,CHECKSUM = DEFAULT,DEFAULT MERGEBLOCKRATIO "))
 {
     options(ResultDatabaseFL=database)
     ##    browser()
@@ -574,50 +579,4 @@ flag3Check <- function(connection)
         }
         flag3 <<- 1
     }
-}
-
-"dimnames<-" <- function(pObject,pDimnames)
-{
-    UseMethod("dimnames<-", pObject)
-}
-
-`dimnames<-.default` <- function(pObject,pDimnames)
-{
-  op <- .Primitive("dimnames<-")
-  op(pObject,pDimnames)
-}
-
-`dimnames<-.FLMatrix` <- function(pObject,pDimnames)
-{
-  connection <- getConnection(pObject)
-  mydimnames <- pDimnames
-  mydims <- dim(pObject)
-  if(mydims[[1]]!=length(pDimnames[[1]]) || mydims[[2]]!=length(pDimnames[[2]]))
-  stop(" dimnames not compatible with matrix dimensions")
-
-  remoteTable <- getRemoteTableName(
-            getOption("ResultDatabaseFL"),
-            getOption("ResultMatrixTableFL"))
-
-  t<-sqlSendUpdate(connection,paste0(" DELETE FROM ",remoteTable,
-                              " mtrx ",constructWhere(pObject@select@whereconditions)))
-  
-  mapTable <- pObject@mapSelect@table_name
-  MID <- as.numeric(getVariables(object)$MATRIX_ID)
-  for(i in 1:length(mydimnames))
-      #if(is.character(mydimnames[[i]]))
-      {
-          mapTable <- getOption("MatrixNameMapTableFL")
-          mydimnames[[i]] <- storeVarnameMapping(
-              connection,
-              mapTable,
-              MID,
-              i,
-              mydimnames[[i]])
-      }
-  pObject@dimnames <- mydimnames
-  print(names(mydimnames[[2]]))
-
-  RESULT <- FLamendDimnames(pObject,mapTable)
-  return(RESULT)
 }

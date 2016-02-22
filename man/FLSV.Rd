@@ -4,10 +4,12 @@
 \alias{FLSV}
 \title{Singular Values of a FLMatrix.}
 \usage{
-FLSV(x, ...)
+FLSV(object, ...)
 }
 \arguments{
 \item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{FLSV} returns a FLVector object representing the singular values.
@@ -21,9 +23,9 @@ Input can only be a square matrix (n x n) with maximum dimension limitations
 of (700 x 700).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- FLSV(flmatrix)
 }
 

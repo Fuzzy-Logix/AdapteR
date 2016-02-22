@@ -10,22 +10,24 @@ NULL
 #'
 #' \code{rowSums} computes the row-wise sums of FLMatrix objects.
 #'
-#' @param x is of class FLMatrix.
+#' @param object is of class FLMatrix.
+#' @param ... any additional arguments
 #' @return \code{rowSums} returns a FLVector object representing the row-wise sums.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#" tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- rowSums(flmatrix)
 #' @export
-rowSums <- function (x, ...){
-  UseMethod("rowSums", x)
+rowSums <- function (object, ...){
+  UseMethod("rowSums", object)
 }
 
-
+#' @export
 rowSums.default <- base::rowSums
 
-rowSums.FLMatrix<-function(object)
+#' @export
+rowSums.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)

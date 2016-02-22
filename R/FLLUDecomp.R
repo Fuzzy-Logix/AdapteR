@@ -6,8 +6,6 @@
 #' @include FLDims.R
 NULL
 
-library(Matrix)
-
 #' An S4 class to represent LU Decomposition
 #' @slot x object of class FLVector
 #' @slot perm object of class FLVector
@@ -15,6 +13,7 @@ library(Matrix)
 #' @slot lower object of class FLMatrix
 #' @slot upper object of class FLMatrix
 #' @slot data_perm object of class FLMatrix
+#' @export
 setClass(
 	"FLLU",
 	slots=list(
@@ -42,7 +41,8 @@ setClass(
 #' The decomposition is of the form A = P L U where typically all matrices are of size (n x n),
 #' and the matrix P is a permutation matrix, L is lower triangular and U is upper triangular.
 #' @method lu FLMatrix
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations
 #' of (1000 x 1000).
@@ -54,23 +54,41 @@ setClass(
 #' \item{upper}{FLMatrix representing the upper triangular matrix}
 #' \item{data_perm}{FLMatrix representing the permutation matrix}
 #' @examples
-#' connection<-odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection<- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' FLLUobject <- lu(flmatrix)
 #' listresult <- expand(FLLUobject)
 #' listresult$L
 #' listresult$U
 #' listresult$P
 #' @export
+setGeneric("lu", function(object,...) {
+    standardGeneric("lu")
+})
 
+setMethod("lu", signature(object = "matrix"),
+          function(object,...)
+             Matrix::lu(object,...))
+setMethod("lu", signature(object = "dgeMatrix"),
+          function(object,...)
+             Matrix::lu(object,...))
+setMethod("lu", signature(object = "dgCMatrix"),
+          function(object,...)
+             Matrix::lu(object,...))
+setMethod("lu", signature(object = "FLMatrix"),
+          function(object,...)
+             lu.FLMatrix(object,...))
+# #' @export
+# lu<-function(object, ...){
+# 	UseMethod("lu",object)
+# }
 
-lu<-function(x, ...){
-	UseMethod("lu",x)
-}
-
+#' @export
 lu.default <- Matrix::lu
 
-lu.FLMatrix<-function(object)
+#' @export
+lu.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)
@@ -219,6 +237,7 @@ lu.FLMatrix<-function(object)
 	return(a)
 }
 
+#' @export
 print.FLLU<-function(object){
 	note1<-length(object@x)
 	note2<-length(object@perm)
@@ -232,22 +251,26 @@ print.FLLU<-function(object){
 	print(object@Dim)
 }
 
+#' @export
 setMethod("show","FLLU",print.FLLU)
 
-expand<-function(x, ...){
-	UseMethod("expand",x)
+#' @export
+expand<-function(object, ...){
+	UseMethod("expand",object)
 }
 
+#' @export
 expand.default <- Matrix::expand
 
-expand.FLLU <- function(object)
+#' @export
+expand.FLLU <- function(object,...)
 {
 	return(list(L=object@lower,
 				U=object@upper,
 				P=object@data_perm))
 }
 
-
+#' @export
 `$.FLLU`<-function(object,property){
 	if(property=="L"){
 		object@lower

@@ -10,14 +10,15 @@ NULL
 #'
 #' @param x FLMatrix, FLVector or FLTable object or any R object
 #' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @param ... any additional arguments
 #' @section Constraints:
 #' The number of non-null pairs must be greater than or equal to 2.
 #' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' deeptable <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' deeptable <- FLTable(connection, "FL_DEMO", 
+#' "tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable(connection,"FL_DEMO","tblAbaloneWide","ObsID")
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
@@ -25,9 +26,12 @@ NULL
 cor <- function (x,y, ...) {
 	UseMethod("cor", x)
 }
+
+#' @export
 cor.default<-stats::cor
 
-cor.FLMatrix <- function(x,y=x)
+#' @export
+cor.FLMatrix <- function(x,y=x,...)
 {
 	connection <- getConnection(x)
     ##browser()
@@ -149,7 +153,8 @@ cor.FLMatrix <- function(x,y=x)
 	}
 }
 
-cor.numeric <- function(x,y=x)
+#' @export
+cor.numeric <- function(x,y=x,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -176,7 +181,8 @@ cor.numeric <- function(x,y=x)
 	return(cor.default(x,y))
 }
 
-cor.matrix <- function(x,y=x)
+#' @export
+cor.matrix <- function(x,y=x,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -202,7 +208,8 @@ cor.matrix <- function(x,y=x)
 	return(cor.default(x,y))
 }
 
-cor.data.frame <- function(x,y=x)
+#' @export
+cor.data.frame <- function(x,y=x,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -229,7 +236,8 @@ cor.data.frame <- function(x,y=x)
 	return(cor.default(x,y))
 }
 
-cor.FLVector <- function(x,y=x)
+#' @export
+cor.FLVector <- function(x,y=x,...)
 {	
 	connection <- getConnection(x)
 
@@ -293,7 +301,8 @@ cor.FLVector <- function(x,y=x)
 	}
 }
 
-cor.FLTable <- function(x,y=x)
+#' @export
+cor.FLTable <- function(x,y=x,...)
 {
 	connection <- getConnection(x)
 	if(is.FLTable(y))

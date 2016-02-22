@@ -4,7 +4,7 @@
 \alias{rbind.FLMatrix}
 \title{Combine objects by rows.}
 \usage{
-\method{rbind}{FLMatrix}(object, ...)
+\method{rbind}{FLMatrix}(x, ...)
 }
 \arguments{
 \item{x...}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}

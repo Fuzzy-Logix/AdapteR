@@ -13,7 +13,8 @@ library(Matrix)
 #' The QR decomposition involves factorizing a matrix into QMatrix and RMatrix.
 #'
 #' \code{qr} replicates the equivalent qr() generic function.\cr
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations of (700 x 700).
 #' @return \code{qr} returns a list of five components:
@@ -24,19 +25,21 @@ library(Matrix)
 #' \item{QMatrix}{the resulting Q Matrix stored in-database as FLMatrix}
 #' \item{RMatrix}{the resulting R Matrix stored in-database as FLMatrix}
 #' @examples
-#' connection<-odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection<-RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- qr(flmatrix)
 #' resultList$qr
 #' resultList$qraux
 #' resultList$rank
 #' resultList$pivot
 #' @export
-qr<-function(x, ...){
-	UseMethod("qr",x)
+qr<-function(object, ...){
+	UseMethod("qr",object)
 }
 
-qr.FLMatrix<-function(object)
+#' @export
+qr.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag1Check(connection)
@@ -113,7 +116,6 @@ qr.FLMatrix<-function(object)
 					   qraux = qraux,
 					   pivot= 1:ncol(object))
 
-	#sqlSendUpdate(connection,paste0(" DROP TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)))
 	return(resultList)
 }
 

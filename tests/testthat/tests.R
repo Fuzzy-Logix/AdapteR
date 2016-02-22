@@ -74,10 +74,10 @@ test_that("check FLDims if all elements of a row are zero",
   M <- as.FLMatrix(m,connection)
   T1 <- initF.FLTable(rows=5,cols=5)
   T1R <- as.data.frame(T1)
-  expect_equal(AdapteR::dim.FLMatrix(M),
+  expect_equal(AdapteR::dim(M),
                base::dim(m),
                check.attributes=FALSE)
-  expect_equal(AdapteR::dim.FLTable(T1),
+  expect_equal(AdapteR::dim(T1),
                base::dim(T1R),
                check.attributes=FALSE)
 })
@@ -122,6 +122,7 @@ test_that("check FLCholskeyDecomp",
 })
 
 # Testing FLLUDecomp
+#fail
 test_that("check LU Decomposition",
 {
   m <- initF.FLMatrix(n=5)
@@ -552,7 +553,6 @@ test_that("check FLVector subtraction",
 })
 
 ## Testing FLTranspose
-## gk:  that is broken since rbind
 test_that("check transpose",{
     expect_eval_equal(initF.FLMatrix,AdapteR::t,base::t,n=5)
 })
@@ -686,12 +686,7 @@ test_that("check matrix subsetting",
       a <- FLMatrix(connection,"FL_DEMO","tblmatrixMulti",2,
                     "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
-      ## todo phani:
-      ## get inspired by storeVarnameMapping in as.FLMatrix.Matrix
-      ## override assignment of names
-      # dimnames(a) <- list(c("a","b","c"),1:3)
-      # rownames(a) <- c("a","b","c")
-      # colnames(a) <- 1:3
+      
       list(R=as.matrix(a),
            FL=a)
     },function(x) "["(x,c("b","c"),),

@@ -9,6 +9,9 @@ as.matrix(x, ...)
 \arguments{
 \item{x}{can be FLTable, FLVector or FLMatrix}
 }
+\value{
+R matrix object
+}
 \description{
 Caution: data is fetched into R session
 }

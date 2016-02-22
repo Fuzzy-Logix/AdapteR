@@ -5,6 +5,24 @@
 #' @include FLPrint.R
 NULL
 
+#' Inverse of a Matrix.
+#'
+#' \code{solve} computes the inverse for FLMatrix objects.
+#'
+#' The wrapper overloads solve and implicitly calls FLMatrixInvUdt.
+#' @param x is of class FLMatrix
+#' @param ... any additional arguments
+#' @section Constraints:
+#' Input can only be a square matrix (n x n) with maximum dimension limitations
+#' of (1000 x 1000).
+#' @return \code{solve} returns a FLMatrix object which is the inverse of input FLMatrix object
+#' and replicates the equivalent R output.
+#' @examples
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultFLMatrix <- solve(flmatrix)
+#' @export
 solve <- function (x, ...){
 	UseMethod("solve", x)
 }
@@ -12,33 +30,18 @@ solve <- function (x, ...){
 # do not define solve.default in this package as it is already defined in base::solve.default.
 # It might lead to stack overflow.
 
-#' Inverse of a Matrix.
-#'
-#' \code{solve} computes the inverse for FLMatrix objects.
-#'
-#' The wrapper overloads solve and implicitly calls FLMatrixInvUdt.
-#' @param object is of class FLMatrix
-#' @section Constraints:
-#' Input can only be a square matrix (n x n) with maximum dimension limitations
-#' of (1000 x 1000).
-#' @return \code{solve} returns a FLMatrix object which is the inverse of input FLMatrix object
-#' and replicates the equivalent R output.
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
-#' resultFLMatrix <- solve(flmatrix)
+
 #' @export
-solve.FLMatrix <- function(pObj1)
+solve.FLMatrix <- function(x,...)
 {
     ## checkSquare(object,"solve")
     ## checkSingularity(object)
 
-    connection <- getConnection(pObj1)
+    connection <- getConnection(x)
 
     flag1Check(connection)
 
-  sqlstr<-paste0(viewSelectMatrix(pObj1, "mtrx", withName="z"),
+  sqlstr<-paste0(viewSelectMatrix(x, "mtrx", withName="z"),
                  outputSelectMatrix("FLMatrixInvUdt",
                                     viewName="z",
                                     localName="mtrx",
@@ -57,12 +60,12 @@ solve.FLMatrix <- function(pObj1)
 
   flm <- new("FLMatrix",
              select= tblfunqueryobj,
-             dim=rev(dim(pObj1)),
-             dimnames=rev(dimnames(pObj1)))
+             dim=rev(dim(x)),
+             dimnames=rev(dimnames(x)))
 
    return(ensureQuerySize(pResult=flm,
-            pInput=list(object),
-            pOperator="ginv",
+            pInput=list(x),
+            pOperator="solve",
             pStoreResult=TRUE))
 
 }

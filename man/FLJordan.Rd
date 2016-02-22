@@ -4,10 +4,12 @@
 \alias{FLJordan}
 \title{Jordan Decomposition of a Matrix.}
 \usage{
-FLJordan(x, ...)
+FLJordan(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{FLJordan} returns a list of two components:
@@ -23,9 +25,9 @@ FLJordan(x, ...)
 Input can only be square matrix with maximum dimension limitations of (700 x 700).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- FLJordan(flmatrix)
 resultList$J
 resultList$P

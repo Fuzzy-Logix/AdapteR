@@ -8,6 +8,8 @@ FLamendDimnames(flm, map_table)
 }
 \arguments{
 \item{flm}{FLMatrix}
+
+\item{map_table}{name of the mapping table if already exists}
 }
 \value{
 the FLMatrix object, with slot dimnames re set

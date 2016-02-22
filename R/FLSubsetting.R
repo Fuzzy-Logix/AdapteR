@@ -15,32 +15,22 @@ NULL
 #' @param object is a FLMatrix object
 #' @param rows is a vector input corresponding to rows to be extracted
 #' @param cols is a vector input corresponding to columns to be extracted
+#' @param drop logical if dimnames to be dropped
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
 #' @section Constraints:
 #' Applying UDT functions on subsetted matrices with discontinuous row and col ids' 
 #' may result in error
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
 {
     ##browser()
 	connection<-getConnection(object)
-	## if(nargs()==2 && missing(rows)) { return(object[,]) }
-	## if(nargs()==2)
-	## {
-    ##     stop("FLVector, drop?")
-	## 	if(rows>nrow(object)*ncol(object)) { stop("subscript_out_of_bounds") }
-	## 	return(sqlQuery(connection,paste0(" SELECT ",getVariables(object)$valueColumn,
-    ##                                       " FROM ",remoteTable(object),
-    ##                                       constructWhere(
-    ##                                           constraintsSQL(object)),
-    ##                                       " ORDER BY ",object@matrix_id_colname,",",getVariables(object)$colIdColumn,",",getVariables(object)$rowIdColumn))[[1]][rows])
-	## }
 
 
     newrownames <- rows
@@ -89,11 +79,11 @@ NULL
 #' @param object is a FLTable object
 #' @param rows is a vector input corresponding to rows to be extracted
 #' @param cols is a vector input corresponding to columns to be extracted
+#' @param drop logical if dimnames to be dropped
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
 #' resultFLtable <- fltable[1:10,4:6]
 #' @export
@@ -176,8 +166,7 @@ NULL
 #' @return \code{[]} returns FLVector object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]

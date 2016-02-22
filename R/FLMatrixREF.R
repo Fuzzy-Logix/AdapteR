@@ -10,22 +10,23 @@ NULL
 #'
 #' \code{FLMatrixREF} gives the Row Echelon form of FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square FLMatrix with maximum dimension limitations of (1000 x 1000).
 #' @return \code{FLMatrixREF} returns a FLMatrix object which is the Row Echelon form of input FLMatrix.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- FLMatrixREF(flmatrix)
 #' @export
-FLMatrixREF <- function (x, ...){
-	UseMethod("FLMatrixREF", x)
+FLMatrixREF <- function (object, ...){
+	UseMethod("FLMatrixREF", object)
 }
 
-
-FLMatrixREF.FLMatrix<-function(object)
+#' @export
+FLMatrixREF.FLMatrix<-function(object,...)
 {
 
 	connection<-getConnection(object)

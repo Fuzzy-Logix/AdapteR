@@ -4,10 +4,12 @@
 \alias{qr}
 \title{QR Decomposition.}
 \usage{
-qr(x, ...)
+qr(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{qr} returns a list of five components:
@@ -29,8 +31,9 @@ The QR decomposition involves factorizing a matrix into QMatrix and RMatrix.
 Input can only be with maximum dimension limitations of (700 x 700).
 }
 \examples{
-connection<-odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection<-RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- qr(flmatrix)
 resultList$qr
 resultList$qraux

@@ -20,8 +20,7 @@ NULL
 #' @return \code{FLTable} returns an object of class FLTable mapped to a table
 #' in Teradata.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
 #' deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
@@ -35,23 +34,8 @@ FLTable <- function(connection,
                     whereconditions=character(0))
 {
 
-    ##browser()
-    ## validate_args( 	list(database = database, table = table),
-    ## 				list(database = "character", table = "character")
-    ## )
-	## if(xor(length(var_id_colnames) , length(cell_val_colname)))
-	## {
-	## 	stop("Unable to identify whether table is deep or wide")
-	## }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-        ##browser()
-        ##R <- sqlQuery(connection,paste0("HELP table ",remoteTable(database,table)))
-		##cols <- R[["Column Name"]]
-        # R <- sqlQuery(connection,paste0("select top 1 * from ",remoteTable(database,table)))
-        # cols <- names(R)
-        ##R <- sqlQuery(connection,paste0("HELP table ",remoteTable(database,table)))
-		##cols <- R[["Column Name"]]
         cols <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 var_id_colnames,") as VarID
@@ -84,9 +68,7 @@ FLTable <- function(connection,
 	}
 	else
 	{
-        ##browser()
-        ##R <- sqlQuery(connection,paste0("HELP table ",remoteTable(database,table)))
-		##cols <- R[["Column Name"]]
+        
         R <- sqlQuery(connection,paste0("select top 1 * from ",remoteTable(database,table)))
         cols <- names(R)
         rows <- sort(sqlQuery(connection,
@@ -123,11 +105,14 @@ FLTable <- function(connection,
 ##' Gives the column names of FLTable object
 ##'
 ##' @param object 
+#' @export
 names.FLTable <- function(object) object@dimnames[[2]]
+#' @export
 colnames.FLTable <- function(object) object@dimnames[[2]]
+#' @export
 rownames.FLTable <- function(object) object@dimnames[[1]]
 
-
+#' @export
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 
 #' Convert Wide Table to Deep Table in database.
@@ -144,8 +129,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' widetable  <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
@@ -212,8 +196,6 @@ setMethod("wideToDeep",
             else
             classSpec <- paste0("'",list_to_class_spec(classSpec),"'")
             whereconditions <- c(whereconditions,object@select@whereconditions)
-            #whereconditions <- whereconditions[whereconditions!="" && whereconditions!="NULL"]
-            #print(whereconditions)
             whereClause <- constructWhere(whereconditions)
             if(whereClause=="") whereClause <- "NULL"
             else
@@ -305,8 +287,7 @@ setMethod("wideToDeep",
 #' @return \code{deepToWide} returns a list containing components 
 #' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' deeptable  <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table

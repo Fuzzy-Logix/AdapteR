@@ -14,11 +14,10 @@ FLVector(table, val_col_name = character(), val_row_name = character(),
 Please use subsetting of FLTable to create FLVector object
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
+connection <- RODBC::odbcConnect("Gandalf")
 WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
-flvectorColumn <- FLTable[,"Diameter"]
-flvectorRow <- FLTable[3,]
+flvectorColumn <- WideTable[,"Diameter"]
+flvectorRow <- WideTable[3,]
 flvectorRow
 flvectorColumn
 }

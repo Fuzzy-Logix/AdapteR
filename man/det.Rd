@@ -4,10 +4,12 @@
 \alias{det}
 \title{Determinant of a Matrix.}
 \usage{
-det(x, ...)
+det(object, ...)
 }
 \arguments{
-\item{x}{is a FLMatrix object}
+\item{object}{is a FLMatrix object}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{det} returns determinant as a R vector
@@ -22,9 +24,9 @@ Input can only be a square matrix (n x n) with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLvector <- det(flmatrix)
 }
 

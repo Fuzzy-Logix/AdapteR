@@ -10,22 +10,24 @@ NULL
 #'
 #' \code{colMeans} computes the column-wise average of FLMatrix objects.
 #'
-#' @param x is of class FLMatrix.
+#' @param object is of class FLMatrix.
+#' @param ... any additional arguments.
 #' @return \code{colMeans} returns a FLVector object representing the column-wise Means.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- colMeans(flmatrix)
 #' @export
-colMeans <- function (x, ...){
-  UseMethod("colMeans", x)
+colMeans <- function (object, ...){
+  UseMethod("colMeans", object)
 }
 
-
+#' @export
 colMeans.default <- base::colMeans
 
-colMeans.FLMatrix<-function(object)
+#' @export
+colMeans.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)

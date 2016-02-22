@@ -15,9 +15,9 @@ NULL
 #' The equality of in-database objects mimics the normal addition of R data types.
 #' One can check equality of FLMatrices, FLMatrix - R matrices, FLVectors and
 #' FLVector - RVector.
-#' @param x can be an in-database object like FLMatrix,FLVector or
+#' @param pObj1 can be an in-database object like FLMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @param y can be an in-database object like FLMatrix,FLVector or
+#' @param pObj2 can be an in-database object like FLMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
 #' @return \code{identical} returns a logical TRUE or FALSE.
 #' @section Constraints:
@@ -25,21 +25,23 @@ NULL
 #' \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
 #' are supported.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' Result <- identical(flmatrix,flmatrix)
 #' Result <- identical(Rvector,as.FLVector(Rvector,connection))
 #' @export
 
-identical <- function(x,y)
+identical <- function(pObj1,pObj2)
 {
-	UseMethod("identical", x)
+	UseMethod("identical", pObj1)
 }
 
+#' @export
 identical.default <- base::identical
 
+#' @export
 identical.FLMatrix <- function(pObj1, pObj2)
 {
 	connection <- getConnection(pObj1)
@@ -79,6 +81,7 @@ identical.FLMatrix <- function(pObj1, pObj2)
 	return(FALSE)
 }
 
+#' @export
 identical.FLVector <- function(pObj1, pObj2)
 {
 	connection <- getConnection(pObj1)
@@ -116,6 +119,7 @@ identical.FLVector <- function(pObj1, pObj2)
 	return(FALSE)
 }
 
+#' @export
 identical.matrix <- function(pObj1,pObj2)
 {
 	if(is.FLMatrix(pObj2))
@@ -128,11 +132,16 @@ identical.matrix <- function(pObj1,pObj2)
 	return(base::identical(pObj1,pObj2))
 }
 
+#' @export
 identical.dgCMatrix <- identical.matrix
+#' @export
 identical.dgeMatrix <- identical.matrix
+#' @export
 identical.dgTMatrix <- identical.matrix
+#' @export
 identical.dsCMatrix <- identical.matrix
 
+#' @export
 identical.numeric <- function(pObj1,pObj2)
 {
 	if(is.FLVector(pObj2))
@@ -157,7 +166,7 @@ NULL
 #' a normal R object like matrix,sparseMatrix,vector
 #' @param pObj2 can be an in-database object like FLMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
-#' @return \code{==} returns a logical TRUE or FALSE.
+#' @return \code{==} returns a logical TRUE or FALSE matrix similar to R output
 #' @section Constraints:
 #' Currently only \code{dgCMatrix},\code{dgeMatrix},\code{dsCMatrix},
 #' \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
@@ -165,15 +174,28 @@ NULL
 #' In case of FLVector and Rvector comparision use FLVector==RVector in place of 
 #' RVector==FLVector
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' flvector <- as.FLVector(1:5,connection)
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector
 #' Result <- flvector==1:5
 #' @export
 
+"==" <- function(pObj1,pObj2)
+{
+	UseMethod("==", pObj1)
+}
+
+#' @export
+`==.default` <- function(pObj1,pObj2)
+{
+	op <- .Primitive("==")
+	op(pObj1,pObj2)
+}
+
+#' @export
 `==.FLMatrix` <- function(pObj1, pObj2)
 {
 	connection <- getConnection(pObj1)
@@ -210,7 +232,7 @@ NULL
 	            dimnames=dimnames(pObj1))
 
 	    flm <- ensureQuerySize(pResult=flm,
-		            pInput=list(object),
+		            pInput=list(pObj1,pObj2),
 		            pOperator="==",
 		            pStoreResult=TRUE)
 
@@ -239,6 +261,7 @@ NULL
 	return(stop("incomparable inputs"))
 }
 
+#' @export
 `==.FLVector` <- function(pObj1, pObj2)
 {
 	if(is.FLVector(pObj2))
@@ -320,7 +343,7 @@ NULL
 				isDeep = FALSE)
 
 		flv <- ensureQuerySize(pResult=flv,
-	            pInput=list(object),
+	            pInput=list(pObj1,pObj2),
 	            pOperator="==")
 
 		return(as.logical(as.vector(flv)))
@@ -344,6 +367,7 @@ NULL
 	return(stop("incomparable inputs"))
 }
 
+#' @export
 `==.matrix` <- function(pObj1,pObj2)
 {
 	if(is.FLMatrix(pObj2))
@@ -356,11 +380,16 @@ NULL
 	return(base::"=="(pObj1,pObj2))
 }
 
+#' @export
 `==.dgCMatrix` <- `==.matrix`
+#' @export
 `==.dgeMatrix` <- `==.matrix`
+#' @export
 `==.dgTMatrix` <- `==.matrix`
+#' @export
 `==.dsCMatrix` <- `==.matrix`
 
+#' @export
 `==.numeric` <- function(pObj1,pObj2)
 {
 	if(is.FLVector(pObj2))

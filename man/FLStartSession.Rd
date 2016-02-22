@@ -6,7 +6,7 @@
 \usage{
 FLStartSession(connection, database = "FL_DEMO", persistent = "test",
   drop = TRUE,
-  tableoptions = ", FALLBACK ,\\n\\t\\t\\t\\t     NO BEFORE JOURNAL,\\n\\t\\t\\t\\t     NO AFTER JOURNAL,\\n\\t\\t\\t\\t     CHECKSUM = DEFAULT,\\n\\t\\t\\t\\t     DEFAULT MERGEBLOCKRATIO")
+  tableoptions = paste0(", FALLBACK ,NO BEFORE JOURNAL,NO AFTER JOURNAL,CHECKSUM = DEFAULT,DEFAULT MERGEBLOCKRATIO "))
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection object}
@@ -21,6 +21,8 @@ FLStartSession(connection, database = "FL_DEMO", persistent = "test",
 }
 \description{
 Strongly recommended to run before beginning a new R session
-use options to specify the following:- ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, MatrixNameMapTableFL, ResultSparseMatrixTableFL
+use options to specify the following:- 
+ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, 
+MatrixNameMapTableFL, ResultSparseMatrixTableFL
 }
 

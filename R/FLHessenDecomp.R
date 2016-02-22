@@ -10,25 +10,27 @@ NULL
 #'
 #' \code{FLHessen} computes the Hessenberg decomposition for FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be square matrix with maximum dimension limitations of (700 x 700).
 #' @return \code{FLHessen} returns a list of two components:
 #'       \item{P}{FLMatrix representing P matrix obtained from Hessenberg decomposition}
 #'       \item{H}{FLMatrix representing H matrix obtained from Hessenberg decomposition}
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
 #' @export
-FLHessen<-function(x, ...){
-	UseMethod("FLHessen",x)
+FLHessen<-function(object, ...){
+	UseMethod("FLHessen",object)
 }
 
-FLHessen.FLMatrix<-function(object)
+#' @export
+FLHessen.FLMatrix<-function(object,...)
 {
 	#checkSquare(object,"FLHessen")
 	connection<-getConnection(object)

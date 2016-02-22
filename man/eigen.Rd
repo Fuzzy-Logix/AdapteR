@@ -4,10 +4,12 @@
 \alias{eigen}
 \title{Spectral Decomposition of a Matrix.}
 \usage{
-eigen(x, ...)
+eigen(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{eigen} returns a list of FLMatrix object containing the eigen vectors and
@@ -23,9 +25,9 @@ of (1000 x 1000).
 Complex Eigen values and vectors are not Supported.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- eigen(flmatrix)
 resultList$values
 resultList$vectors

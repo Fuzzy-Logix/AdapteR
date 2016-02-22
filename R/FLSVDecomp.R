@@ -10,9 +10,9 @@ NULL
 #'
 #' \code{svd} computes the singular value decomposition for FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
-#' @param nu number of left singular vectors to be computed.This must between 0 and nrow(object).
-#' @param nv number of right singular vectors to be computed.This must between 0 and ncol(object).
+#' @param object is of class FLMatrix
+#' @param ... has nu number of left singular vectors to be computed.This must between 0 and nrow(object).
+#' nv number of right singular vectors to be computed.This must between 0 and ncol(object).
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations of (550 x 550).
 #' @return \code{svd} returns a list of three components:
@@ -20,20 +20,22 @@ NULL
 #'       \item{u}{a FLMatrix whose columns contain the left singular vectors of x, present if nu > 0. Dimension c(n, nu).}
 #'       \item{v}{a FLMatrix whose columns contain the right singular vectors of x, present if nv > 0. Dimension c(p, nv).}
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- svd(flmatrix)
 #' resultList$d
 #' resultList$u
 #' resultList$v
 #' @export
-svd<-function(x, ...){
-	UseMethod("svd",x)
+svd<-function(object, ...){
+	UseMethod("svd",object)
 }
 
+#' @export
 svd.default<-base::svd
 
+#' @export
 svd.FLMatrix<-function(object,nu=c(),nv=c())
 {
 	connection<-getConnection(object)

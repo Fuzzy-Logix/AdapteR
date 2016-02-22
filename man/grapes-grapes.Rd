@@ -7,10 +7,10 @@
 pObj1 \%\% pObj2
 }
 \arguments{
-\item{x}{can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+\item{pObj1}{can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 a normal R object like matrix,sparseMatrix,vector}
 
-\item{y}{can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+\item{pObj2}{can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 a normal R object like matrix,sparseMatrix,vector}
 }
 \value{
@@ -29,9 +29,9 @@ All combinations of operands are possible just like in R and the result is an in
 in-database objects
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 ResultFLmatrix <- flmatrix \%\% Rvector
 }

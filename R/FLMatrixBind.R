@@ -22,9 +22,7 @@ orderVariables <- function(P,varNames){
     if("select" %in% slotNames(P))
         P@select <- orderVariables(P@select,varNames)
     if("variables" %in% slotNames(P)){
-        ##print(P@variables[[varName]])
         P@variables <- P@variables[varNames]
-        ##print(P@variables[[varName]])
     }
     if("parts" %in% slotNames(P))
         P@parts <- llply(P@parts, orderVariables,
@@ -32,19 +30,15 @@ orderVariables <- function(P,varNames){
     P
 }
 updateVariable <- function(P,varName,value){
-    ##print(str(P))
-    ##browser()
     if("select" %in% slotNames(P))
         P@select <- updateVariable(P@select,varName,value)
     if("variables" %in% slotNames(P)){
-        ##print(P@variables[[varName]])
         if(!is.null(P@variables[[varName]]))
-            value <- gsub("'\\.'",".", ## gk: improve with better concatenation wout '.'
+            value <- gsub("'\\.'",".",
                           paste0(as.character(value),".",
                                  as.character(P@variables[[varName]])))
         P@variables[[varName]] <- value
         cat(paste0("setting var ",varName,"=",value,"\n"))
-        ##print(P@variables[[varName]])
     }
     if("parts" %in% slotNames(P))
         P@parts <- llply(P@parts, updateVariable,

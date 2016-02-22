@@ -12,20 +12,22 @@ NULL
 #'
 #' \code{rbind} takes a sequence of vector, FLVector, matrix, FLMatrix or data frames arguments,
 #' combines them by rows and makes a FLMatrix.
-#' @param x... can be a sequence of vector, FLVector, matrix, FLMatrix or data frames
+#' @param x can be a sequence of vector, FLVector, matrix, FLMatrix or data frames
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of columns.
 #' @return \code{rbind} returns a FLMatrix object which is the row-wise combination of input arguments.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export
 rbind <- function (x, ...){
   UseMethod("rbind", x)
 }
 
+#' @export
 rbind.default <- base::rbind
 
 #' Combine objects by rows.
@@ -44,9 +46,9 @@ rbind.default <- base::rbind
 #' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export
-rbind.FLMatrix<-function(object,...) FLbind(list(object,...),1)
+rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)
 
-
+#' @export
 rbind.FLMatrixBind <- rbind.FLMatrix
 ## {
 ## 	objectVec<-list(object,...)

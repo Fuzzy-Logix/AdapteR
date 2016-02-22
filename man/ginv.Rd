@@ -4,10 +4,12 @@
 \alias{ginv}
 \title{Generalized Inverse of a Matrix.}
 \usage{
-ginv(x, ...)
+ginv(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{ginv} returns a FLMatrix object which is the pseudo-inverse 
@@ -21,9 +23,9 @@ of input FLMatrix object and replicates the equivalent R output.
 Input can only be with maximum dimension limitations of (500 x 500).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- ginv(flmatrix)
 }
 

@@ -4,10 +4,12 @@
 \alias{FLHessen}
 \title{Hessenberg Decomposition of a Matrix.}
 \usage{
-FLHessen(x, ...)
+FLHessen(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{FLHessen} returns a list of two components:
@@ -22,9 +24,9 @@ FLHessen(x, ...)
 Input can only be square matrix with maximum dimension limitations of (700 x 700).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- FLHessen(flmatrix)
 resultList$P
 resultList$H

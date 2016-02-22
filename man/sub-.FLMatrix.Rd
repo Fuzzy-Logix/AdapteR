@@ -12,6 +12,8 @@
 \item{rows}{is a vector input corresponding to rows to be extracted}
 
 \item{cols}{is a vector input corresponding to columns to be extracted}
+
+\item{drop}{logical if dimnames to be dropped}
 }
 \value{
 \code{[]} returns FLMatrix object after extraction
@@ -26,9 +28,9 @@ Applying UDT functions on subsetted matrices with discontinuous row and col ids'
 may result in error
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLmatrix <- flmatrix[1,]
 }
 

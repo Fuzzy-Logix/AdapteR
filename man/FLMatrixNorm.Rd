@@ -4,10 +4,10 @@
 \alias{FLMatrixNorm}
 \title{Norm of a Matrix.}
 \usage{
-FLMatrixNorm(x, ...)
+FLMatrixNorm(object, NormMethod)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
 
 \item{NormMethod}{is an integer from 1-4 representing the type of norm that
 should be computed.}
@@ -29,9 +29,9 @@ There are 4 types of norms of a matrix:
 Input can only be with maximum dimension limitations of (700 x 700).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- FLMatrixNorm(flmatrix,4)
 }
 

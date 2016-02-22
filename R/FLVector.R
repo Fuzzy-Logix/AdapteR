@@ -10,11 +10,10 @@ NULL
 #' @return \code{FLVector} returns an object of class FLVector mapped to an in-database vector.
 #' @seealso \code{\link{FLTable}}
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
-#' flvectorColumn <- FLTable[,"Diameter"]
-#' flvectorRow <- FLTable[3,]
+#' flvectorColumn <- WideTable[,"Diameter"]
+#' flvectorRow <- WideTable[3,]
 #' flvectorRow
 #' flvectorColumn
 #' @export
@@ -59,14 +58,10 @@ FLVector <- function(table,
     if(is.null(V))
         stop("column not in wide table or invalid inputs for deep table")
     
-    ## length(V) <- sqlQuery(table@connection,
-    ##                    paste0("SELECT count(",table@obs_id_colname,")
-	## 					 		 FROM ",
-    ##                           remoteTable(V),
-    ##                           constructWhere(c(constraintsSQL(V)))))[1,1]
     return(V)
 }
 
+#' @export
 setMethod("show","FLVector",function(object) print(as.vector(object)))
 
 

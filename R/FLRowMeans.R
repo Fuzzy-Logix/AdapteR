@@ -10,22 +10,24 @@ NULL
 #'
 #' \code{rowMeans} computes the row-wise average of FLMatrix objects.
 #'
-#' @param x is of class FLMatrix.
+#' @param object is of class FLMatrix.
+#' @param ... any additional arguments
 #' @return \code{rowMeans} returns a FLVector object representing the row-wise Means.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- rowMeans(flmatrix)
 #' @export
-rowMeans <- function (x, ...){
-  UseMethod("rowMeans", x)
+rowMeans <- function (object, ...){
+  UseMethod("rowMeans", object)
 }
 
+#' @export
 rowMeans.default <- base::rowMeans
 
-
-rowMeans.FLMatrix<-function(object)
+#' @export
+rowMeans.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)
