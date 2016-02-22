@@ -1,15 +1,46 @@
+## This script is for demoing some of the AdapteR Matrix capabilities
+## ending in a web-gui interactive stock returns correlation demo
+##
+##
+## make sure your working dir is where you unpacked
+## the zip dir
 
-## This script is for demoing the AdapteR Matrix capabilities
-## startup and setup:
+require(AdapteR)
+
+require(RODBC)
+connection <- odbcConnect("Gandalf")
+##
+## OR
+##
+## startup and setup with jdbc:
+##
+require(RJDBC)
+user     <- "database user"
+passwd   <- "database password" 
+host     <- "10.200.4.116" ## Gandalf
+database <- "Fl_demo"
 source("./setup-jdbc.R")
 
+
+
+##
+## SQL construction
+## with this option each R command that uses DBLytix will log
+## the SQL sent to Teradata.
+## Such a dump can in many cases be used as a pure-sql script!
+options(debugSQL=TRUE)
+
+FLStartSession(connection)
+
 #############################################################
-## For in-database analytix the matrix is in the warehouse
+## For in-database analytics the matrix is in the warehouse
 ## to begin with.
 dbGetQuery(connection,
            "select top 10 * from FL_DEMO.finEquityReturns")
+
 ## 
 ## A remote matrix is easily created by specifying
+## table, row id, column id and value columns
 ##
 eqnRtn <- FLMatrix(connection,
                    database          = "FL_DEMO",
@@ -20,19 +51,19 @@ eqnRtn <- FLMatrix(connection,
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
 
-## this is a rather large matrix
+## this is a medium large matrix
 dim(eqnRtn)
 
 
-## you can run above functions on m=Equity Returns Example again!
-
-## with ticker columns and date rows
+## with ticker columns
 (randomstocks <- sample(colnames(eqnRtn), 20))
 
-head(dates <- rownames(eqnRtn))
+## date rows
+(dec2006 <- grep("2006-12",rownames(eqnRtn)))
 
-## Inspecting subsets of data in R with matrix subsetting syntax:
-dec2006 <- grep("2006-12",dates)
+## Inspecting subsets of data in R
+## is easy with matrix subsetting syntax:
+
 eqnRtn[dec2006, "MSFT"]
 
 
@@ -48,6 +79,7 @@ print(E)
 ###########################################################
 ## Correlation Matrix
 ## The SQL-through R way to compute a correlation matrix with DB Lytix:
+##
 dbGetQuery(connection, "
 SELECT a.TickerSymbol           AS Ticker1,
         b.TickerSymbol           AS Ticker2,
@@ -64,10 +96,10 @@ GROUP BY a.TickerSymbol,
 ORDER BY 1, 2;")
 
 
-#################################################################
 ## The AdapteR way to compute a correlation matrix
 ## from a matrix with correlated random variables in columns:
 ## (transparently creating a SQL query a la Manual):
+##
 flCorr <- cor(eqnRtn[,c('AAPL','MSFT')],
               eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 
@@ -84,6 +116,7 @@ round(as.matrix(flCorr),2)
 }
 
 
+#################################################################
 ## And of course you can now use  
 ## thousands of R packages to operate on DB Lytix results, e.g. 
 require(gplots)
@@ -158,16 +191,6 @@ shinyApp(
         }, height=1200)
     }
 )
-
-
-
-##
-## SQL construction
-## with this option each R command that uses DBLytix will log
-## the SQL sent to Teradata.
-## Such a dump can in many cases be used as a pure-sql script!
-options(debugSQL=TRUE)
-## Try some commands above 
 
 ###########################################################
 ##
@@ -245,40 +268,17 @@ m <- FLMatrix(connection,
                             c("p","q","r","s","t"))
 )
 
-m
-
-ms <- solve(m)
-
-ms
-
-as.matrix(m)
-solve(as.matrix(m))
-
-
-cat(constructSelect(m@mapSelect))
-
 ## compute the inverse
 ms <- solve(m)
-rm <- as.matrix(m)
-rownames(rm) <- c("a","b","c","d","e")
-colnames(rm) <- c("p","q","r","s","t")
-
 
 ## check is R and DB Lytix results match up:
+rm <- as.matrix(m)
 m.r <- as.matrix(m) ## download and convert to R matrix
 expect_equal(as.matrix(ms), solve(m.r))
 
-## Matrix multiplication witrh inverse results in identity
+## Matrix multiplication with inverse results in identity
 round(as.matrix(m %*% ms))
 
 
 
 
-
-## Roadmap:
-## lm(y ~ x + x2 + x3, data=D)
-## lm("y ~ x + x2 + x3", data=D)
-
-## formula <- "y ~ x + x2 + x3"
-## formula <- prepare(data=D,DV=y)
-## lm(formula, data=D)

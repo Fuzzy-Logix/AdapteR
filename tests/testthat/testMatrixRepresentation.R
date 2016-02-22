@@ -2,17 +2,27 @@
 ##
 ## R has very nice vector and matrix syntax.
 ## AdapteR mimics the parsimonious syntax.
+##
+## Make sure your working dir is where you unpacked
+## the zip dir.
 
-## startup and setup:
 require(AdapteR)
 
-user <- "database user"
-passwd <- "database password" 
-host <- "10.200.4.116" ## Gandalf
+require(RODBC)
+connection <- odbcConnect("Gandalf")
+##
+## OR
+##
+## startup and setup with jdbc:
+##
+require(RJDBC)
+user     <- "database user"
+passwd   <- "database password" 
+host     <- "10.200.4.116" ## Gandalf
 database <- "Fl_demo"
-## make sure your working dir is where you unpacked
-## the zip dir
 source("./setup-jdbc.R")
+
+
 source("./FLtestLib.R")
 
 
