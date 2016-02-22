@@ -6,8 +6,13 @@ NULL
 setOldClass("RODBC")
 
 
-## A table query models a select or a table result of a sql statement
-#' @slot connection ODBC connectivity for R
+#' A table query models a select or a table result of a sql statement.
+#' 
+#' 
+#' @slot connection ANY ODBC/JDBC connectivity for R
+#' @slot variables list Named list of variables for the table query: values are rownames, names (keys) are result column names.
+#' @slot whereconditions character vector of strings restricting the select query (if any)
+#' @slot order character ordering statements (if any)
 setClass("FLTableQuery",
          slots=list(
              connection = "ANY",
@@ -17,10 +22,10 @@ setClass("FLTableQuery",
          ))
 
 
-##' A selectFrom models a select from a table
+##' A selectFrom models a select from a table.
 ##'
-##' @slot database character
-##' @slot table_name character
+##' @slot database character the database of the table
+##' @slot table_name character the name oth the table to select from
 setClass("FLSelectFrom",
          contains="FLTableQuery",
          slots=list(
@@ -30,7 +35,7 @@ setClass("FLSelectFrom",
 
 ##' A TableFunctionQuery models a select from an arbitrary query
 ##'
-##' @slot SQLquery character
+##' @slot SQLquery character The free SQL query returning a table.
 setClass("FLTableFunctionQuery",
          contains="FLTableQuery",
          slots=list(
@@ -53,14 +58,11 @@ setClass(
     )
 )
 
-#' An S4 class to represent FLTable
+#' An S4 class to represent FLTable, an in-database data.frame.
 #'
-#' @slot db_name character
-#' @slot table_name character
-#' @slot obs_id_colname character
-#' @slot var_id_colnames character 
-#' @slot cell_val_colname character
-#' @slot isDeep logical
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
 #' @method names FLTable
 #' @param object retrieves the column names of FLTable object
 setClass(
@@ -89,7 +91,6 @@ setClass(
 ##' @param returnType return type of the stored data. Applicable only when object is a character representing a SQL Query
 ##' @param connection ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query
 ##' @return in-database object after storing
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("store", function(object,returnType,connection,...) {
     standardGeneric("store")
 })
@@ -114,7 +115,6 @@ setMethod("store",
 ##' 
 ##' @param object FLTable object 
 ##' @return message if the table is dropped
-##' @author Phani Srikar <phani.srikar@fuzzyl.com>
 drop.FLTable <- function(object)
 {
     names(object@table_name) <- NULL
@@ -294,7 +294,6 @@ restrictFLMatrix <-
 ##'
 ##' @param flm FLMatrix 
 ##' @return the FLMatrix object, with slot dimnames re set 
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 FLamendDimnames <- function(flm,map_table) {
     ##browser()
     checkNames <- function(colnames, addIndex=FALSE){
@@ -427,10 +426,10 @@ FLamendDimnames <- function(flm,map_table) {
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti",
+#'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 FLMatrix <- function(connection,
                      database=getOption("ResultDatabaseFL"),
                      table_name,
@@ -572,7 +571,6 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
 #' @param object in-database object
 #' @param table table name. Applicable only if object is the database name.
 #' @return character vector giving reference to in-database object
-##' @author Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("remoteTable", function(object, table) {
     standardGeneric("remoteTable")
 })
@@ -609,7 +607,6 @@ setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
 #' @param object1 FLMatrix or R Matrix
 #' @param object2 FLMatrix or R Matrix
 #' @return logical
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 
 setGeneric("checkSameDims", function(object1,object2) {
     standardGeneric("checkSameDims")

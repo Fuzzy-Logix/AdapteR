@@ -31,7 +31,6 @@ library(Matrix)
 #' resultList$qraux
 #' resultList$rank
 #' resultList$pivot
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 qr<-function(x, ...){
 	UseMethod("qr",x)

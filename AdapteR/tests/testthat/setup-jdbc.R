@@ -1,16 +1,39 @@
+## you will need variables host,user,passwd,database defined prior to running this code.
+##
+## equivalent to
+## connection <- odbcConnect(ODBCsource)
+cat(paste0("Connecting to ",user,"@",host,"/",database," ... "))
+library(RJDBC) 
 
-require(RJDBC)
-## if you want to clear the workspace
-rm(list=ls())
+Connect <- function(){
+    ## add jdbc driver and security jars to classpath
+    .jaddClassPath("/Users/gregor/fuzzylogix/terajdbc4.jar")
+    .jaddClassPath("/Users/gregor/fuzzylogix/tdgssconfig.jar")
+    library(teradataR)
+    Sys.sleep(1)
+    tdConnect(host,user,passwd,database,"jdbc")
+}
 
-## if you want to unload the package after making changes:
-detach("package:AdapteR", unload = TRUE)
+if (exists("connection")) {
+    ## reconnect to database (e.g. after VPN disconnects)
+    cat(paste0("disconnecting old connection ..."))
+    dbDisconnect(connection)
+    rm(connection)
+}
 
-## rebuild documentation and load as source package
-setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR")
-devtools::document()
-devtools::load_all(".")
-## devtools::test()
+##
+## following connection code takes care of this bug:
+## need to add class path twice (recurring problem in MAC as of:
+## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
+tryCatch({
+    connection <<- myConnect()
+},error=function(e)e,
+finally = {
+    Sys.sleep(3)
+    connection <<- myConnect()
+})
 
-require(test_that)
-FLStartSession(connection)
+cat("done!\n")
+
+#connection <- myConnect()
+ls()

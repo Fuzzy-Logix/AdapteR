@@ -10,14 +10,13 @@ Description: The DB Lytix(TM) suite of functions offers scalable and robust high
 Depends:
     R (>= 3.2.0),
     plyr,
-Imports:
     MASS (>= 7.3-10),
     Matrix (>= 1.1-5),
     base,
     stats,
-	psych,
-	reshape2,
-	cluster
+    psych,
+    reshape2,
+    cluster
 License: GPL-2
 LazyData: true
 Collate:

@@ -23,7 +23,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solveExcl(flmatrix,3)
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 FLSolveExcl <- function (x,ExclIdx,...){

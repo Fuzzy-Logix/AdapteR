@@ -31,7 +31,6 @@ NULL
 #' Rvector <- 1:5
 #' Result <- identical(flmatrix,flmatrix)
 #' Result <- identical(Rvector,as.FLVector(Rvector,connection))
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 identical <- function(x,y)
@@ -173,7 +172,6 @@ NULL
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector
 #' Result <- flvector==1:5
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 `==.FLMatrix` <- function(pObj1, pObj2)

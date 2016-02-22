@@ -23,7 +23,4 @@ combines them by columns and makes a FLMatrix.
 
 Input matrices, FLMatrices and data frames should have same number of rows.
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

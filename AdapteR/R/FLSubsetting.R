@@ -25,7 +25,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
 {
@@ -97,7 +96,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
 #' resultFLtable <- fltable[1:10,4:6]
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
@@ -183,7 +181,6 @@ NULL
 #' WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]
-##' @author phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 `[.FLVector` <- function(object,pSet=1:length(object))

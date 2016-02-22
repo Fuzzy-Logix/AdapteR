@@ -41,7 +41,4 @@ Result <- flmatrix == flmatrix
 Result <- flvector==flvector
 Result <- flvector==1:5
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

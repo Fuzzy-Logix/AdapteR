@@ -26,7 +26,4 @@ connection <- odbcConnect("Gandalf")
 fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
 resultFLtable <- fltable[1:10,4:6]
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

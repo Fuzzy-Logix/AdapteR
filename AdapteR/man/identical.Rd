@@ -38,7 +38,4 @@ Rvector <- 1:5
 Result <- identical(flmatrix,flmatrix)
 Result <- identical(Rvector,as.FLVector(Rvector,connection))
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

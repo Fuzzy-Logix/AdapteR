@@ -12,7 +12,4 @@ getMaxVectorId(vconnection, ...)
 \description{
 used to know ID of next entry in table
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

@@ -61,7 +61,6 @@ setClass(
 #' listresult$L
 #' listresult$U
 #' listresult$P
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 

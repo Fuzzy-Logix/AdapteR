@@ -31,7 +31,4 @@ flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW
 Rvector <- 1:5
 ResultFLmatrix <- flmatrix + Rvector
 }
-\author{
-phani srikar <phanisrikar93ume@gmail.com>
-}
 

@@ -27,7 +27,6 @@ NULL
 #' resultList$d
 #' resultList$u
 #' resultList$v
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 svd<-function(x, ...){
 	UseMethod("svd",x)

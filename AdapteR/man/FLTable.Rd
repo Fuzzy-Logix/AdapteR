@@ -41,7 +41,4 @@ widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
 deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
-}
 

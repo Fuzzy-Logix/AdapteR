@@ -20,7 +20,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- ginv(flmatrix)
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 ginv <- function (x, ...){
 	UseMethod("ginv", x)

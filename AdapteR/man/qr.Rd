@@ -37,7 +37,4 @@ resultList$qraux
 resultList$rank
 resultList$pivot
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

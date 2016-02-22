@@ -15,7 +15,4 @@ message if the table is dropped
 \description{
 drop a table
 }
-\author{
-Phani Srikar <phani.srikar@fuzzyl.com>
-}
 

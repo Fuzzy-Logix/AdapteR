@@ -31,7 +31,4 @@ connection <- odbcConnect("Gandalf")
 flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLmatrix <- flmatrix[1,]
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

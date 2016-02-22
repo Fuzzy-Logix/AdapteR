@@ -3,15 +3,15 @@
 \docType{class}
 \name{FLSelectFrom-class}
 \alias{FLSelectFrom-class}
-\title{A selectFrom models a select from a table}
+\title{A selectFrom models a select from a table.}
 \description{
-A selectFrom models a select from a table
+A selectFrom models a select from a table.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{database}}{character}
+\item{\code{database}}{character the database of the table}
 
-\item{\code{table_name}}{character}
+\item{\code{table_name}}{character the name oth the table to select from}
 }}
 

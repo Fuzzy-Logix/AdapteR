@@ -20,7 +20,4 @@ getMaxValue(vdatabase = getOption("ResultDatabaseFL"),
 \description{
 used to know ID of last entry in table
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

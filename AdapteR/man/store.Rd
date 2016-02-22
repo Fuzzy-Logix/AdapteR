@@ -19,7 +19,4 @@ in-database object after storing
 \description{
 stores an object in database
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

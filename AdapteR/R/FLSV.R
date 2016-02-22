@@ -20,7 +20,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- FLSV(flmatrix)
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 FLSV <- function (x, ...){
   UseMethod("FLSV", x)
