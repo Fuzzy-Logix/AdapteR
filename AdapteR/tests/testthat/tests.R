@@ -1,22 +1,36 @@
-require(plyr)
+## The test suite for your review.
+## Tests have been abstracted such that function evaluation results
+## from a) the R base package (eval on client)
+## b) the AdapteR package (eval in-database)
+## are compared on the same arguments.
+##
+## Next, benchmarking will be incorporated in these functions.
+
 library(AdapteR)
+require(plyr)
 library(testthat)
-require(Matrix)
 require(reshape2)
 require(psych)
 require(MASS)
-library(RJDBC)
-library(RODBC)
 
-if(!exists("connection")){
-    ##connection <- odbcConnect("Gandalf")
-    connection <- tdConnect(host,user,passwd,database,"jdbc")
-}
+library(RODBC)
+connection <- odbcConnect("Gandalf")
+##
+## OR
+##
+## startup and setup with jdbc:
+##
+require(RJDBC)
+user     <- "database user"
+passwd   <- "database password" 
+host     <- "10.200.4.116" ## Gandalf
+database <- "Fl_demo"
+source("./setup-jdbc.R")
+
+
+source("./FLtestLib.R")
 
 FLStartSession(connection)
-
-setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/tests/testthat")
-source("FLtestLib.R")
 
 options(debugSQL=FALSE)
 
