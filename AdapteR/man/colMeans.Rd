@@ -4,10 +4,12 @@
 \alias{colMeans}
 \title{column means of a FLMatrix.}
 \usage{
-colMeans(x, ...)
+colMeans(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix.}
+\item{object}{is of class FLMatrix.}
+
+\item{...}{any additional arguments.}
 }
 \value{
 \code{colMeans} returns a FLVector object representing the column-wise Means.
@@ -16,9 +18,9 @@ colMeans(x, ...)
 \code{colMeans} computes the column-wise average of FLMatrix objects.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- colMeans(flmatrix)
 }
 

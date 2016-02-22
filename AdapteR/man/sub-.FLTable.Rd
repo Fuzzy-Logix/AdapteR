@@ -12,6 +12,8 @@
 \item{rows}{is a vector input corresponding to rows to be extracted}
 
 \item{cols}{is a vector input corresponding to columns to be extracted}
+
+\item{drop}{logical if dimnames to be dropped}
 }
 \value{
 \code{[]} returns FLMatrix object after extraction
@@ -21,8 +23,7 @@ which replicates the equivalent R extraction.
 \code{[]} acts on FLMatrix objects and extracts parts of them.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
+connection <- RODBC::odbcConnect("Gandalf")
 fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
 resultFLtable <- fltable[1:10,4:6]
 }

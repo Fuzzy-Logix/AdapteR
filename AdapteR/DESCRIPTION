@@ -1,14 +1,15 @@
 Package: AdapteR
 Title: This package wraps around Fuzzy Logix's DBLytix functions
 Version: 2.0
-Authors@R: "Phani Srikar <phanisrikar93ume@gmail.com> [aut, cre], Gregor Kappler
-    <g.kappler@@gmx.net> [aut]"
+Authors@R: c(
+    person("Phani", "Srikar", email = "phanisrikar93ume@gmail", role = c("aut","cre")),
+    person("Gregor", "Kappler", email = "g.kappler@@gmx.net", role = c("aut")))
 Description: The DB Lytix(TM) suite of functions offers scalable and robust high
     performance analytical methods that are embedded seamlessly into database
     systems. Package RLytix makes it possible to use this functionality from R
     by providing wrapper functions around the SQL interface of DB Lytix(TM).
 Depends:
-    R (>= 3.2.0),
+    R (>= 3.1.0),
     plyr,
     MASS (>= 7.3-10),
     Matrix (>= 1.1-5),
@@ -16,7 +17,9 @@ Depends:
     stats,
     psych,
     reshape2,
-    cluster
+    cluster,
+	methods,
+	DBI
 License: GPL-2
 LazyData: true
 Collate:

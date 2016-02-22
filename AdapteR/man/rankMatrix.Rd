@@ -4,10 +4,12 @@
 \alias{rankMatrix}
 \title{Matrix Rank.}
 \usage{
-rankMatrix(x, ...)
+rankMatrix(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{rankMatrix} returns R vector object of size 1 which replicates the equivalent R output.
@@ -20,9 +22,9 @@ rankMatrix(x, ...)
 Input can have maximum dimension limitations of (1000 x 1000).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- rankMatrix(flmatrix)
 }
 

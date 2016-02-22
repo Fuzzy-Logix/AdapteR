@@ -10,7 +10,8 @@ NULL
 #'
 #' \code{eigen} Computes eigenvalues and eigenvectors of FLMatrices.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (1000 x 1000).
@@ -18,21 +19,22 @@ NULL
 #' @return \code{eigen} returns a list of FLMatrix object containing the eigen vectors and
 #' a FLVector object containing eigen values which replicates the equivalent R output.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- eigen(flmatrix)
 #' resultList$values
 #' resultList$vectors
 #' @export
-eigen<-function(x, ...)
+eigen<-function(object, ...)
 {
-	UseMethod("eigen", x)
+	UseMethod("eigen", object)
 }
 
+#' @export
 eigen.default<-base::eigen
-
-eigen.FLMatrix<-function(object)
+#' @export
+eigen.FLMatrix<-function(object,...)
 {
 	# if(nrow(object) != ncol(object)) 
 	# { 
@@ -46,14 +48,14 @@ eigen.FLMatrix<-function(object)
     retobj
 }
 
-
-FLEigenValues<-function(x,...)
+#' @export
+FLEigenValues<-function(object,...)
 {
-	UseMethod("FLEigenValues", x)
+	UseMethod("FLEigenValues", object)
 }
 
-
-FLEigenValues.FLMatrix<-function(object)
+#' @export
+FLEigenValues.FLMatrix<-function(object,...)
 {
 	
 	connection<-getConnection(object)
@@ -91,12 +93,14 @@ FLEigenValues.FLMatrix<-function(object)
 	            pStoreResult=TRUE))
 }
 
-FLEigenVectors<-function(x,...)
+#' @export
+FLEigenVectors<-function(object,...)
 {
-	UseMethod("FLEigenVectors", x)
+	UseMethod("FLEigenVectors", object)
 }
 
-FLEigenVectors.FLMatrix<-function(object)
+#' @export
+FLEigenVectors.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag1Check(connection)

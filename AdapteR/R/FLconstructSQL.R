@@ -227,8 +227,6 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         localName="character",
                                         withName="character"),
           function(object,localName, withName="z") {
-              ##' todo: alias
-              ##names(object@select@table_name)[[1]] <- localName
               object <- orderVariables(
                   updateVariable(object,"Matrix_ID",-1),
                   c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn")

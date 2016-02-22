@@ -10,6 +10,8 @@ cor(x, y, ...)
 \item{x}{FLMatrix, FLVector or FLTable object or any R object}
 
 \item{y}{FLMatrix, FLVector or FLTable object or any R object}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{cor} returns FLMatrix object representing correlation of x and y.
@@ -23,9 +25,9 @@ The number of non-null pairs must be greater than or equal to 2.
 If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-deeptable <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+connection <- RODBC::odbcConnect("Gandalf")
+deeptable <- FLTable(connection, "FL_DEMO", 
+"tblUSArrests", "ObsID","VarID","Num_Val")
 widetable <- FLTable(connection,"FL_DEMO","tblAbaloneWide","ObsID")
 cor(deeptable,deeptable)
 cor(widetable,widetable)

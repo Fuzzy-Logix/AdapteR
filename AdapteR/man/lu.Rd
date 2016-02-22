@@ -4,10 +4,12 @@
 \alias{lu}
 \title{LU Decomposition.}
 \usage{
-\method{lu}{FLMatrix}(x, ...)
+lu(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \item{x}{the FLVector form of "L" (unit lower triangular) and "U" (upper triangular) factors of the original matrix}
@@ -36,8 +38,9 @@ Input can only be with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-connection<-odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection<- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 FLLUobject <- lu(flmatrix)
 listresult <- expand(FLLUobject)
 listresult$L

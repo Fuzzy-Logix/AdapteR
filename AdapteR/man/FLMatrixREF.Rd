@@ -4,10 +4,12 @@
 \alias{FLMatrixREF}
 \title{Row Echelon form of a Matrix.}
 \usage{
-FLMatrixREF(x, ...)
+FLMatrixREF(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{FLMatrixREF} returns a FLMatrix object which is the Row Echelon form of input FLMatrix.
@@ -20,9 +22,9 @@ FLMatrixREF(x, ...)
 Input can only be a square FLMatrix with maximum dimension limitations of (1000 x 1000).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- FLMatrixREF(flmatrix)
 }
 

@@ -4,21 +4,21 @@
 \alias{chol}
 \title{Cholesky Decomposition.}
 \usage{
-chol(x, ...)
+chol(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
-\code{chol} returns FLMatrix which is the upper triangular factor of the Cholesky decomposition
+\code{chol} returns FLMatrix which is the 
+upper triangular factor of the Cholesky decomposition
 }
 \description{
 \code{chol} computes the Cholesky factorization of FLMatrix object.\cr
 The Cholesky decomposition is a decomposition of a positive definite matrix 
 into the product of a lower triangular matrix and its conjugate transpose.
-}
-\details{
-The wrapper overloads chol and implicitly calls FLCholeskyDecompUdt.
 }
 \section{Constraints}{
 
@@ -26,8 +26,9 @@ Input can only be a Hermitian, positive definite square matrix (n x n)
 with maximum dimension limitations of (1000 x 1000)
 }
 \examples{
-connection<-odbcConnect("Gandalf")
-flmatrix<-FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection<-RODBC::odbcConnect("Gandalf")
+flmatrix<-FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- chol(flmatrix)
 }
 

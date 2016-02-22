@@ -12,30 +12,29 @@ NULL
 #' The Cholesky decomposition is a decomposition of a positive definite matrix 
 #' into the product of a lower triangular matrix and its conjugate transpose.
 #'
-#' The wrapper overloads chol and implicitly calls FLCholeskyDecompUdt.
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a Hermitian, positive definite square matrix (n x n)
 #' with maximum dimension limitations of (1000 x 1000)
-#' @return \code{chol} returns FLMatrix which is the upper triangular factor of the Cholesky decomposition
+#' @return \code{chol} returns FLMatrix which is the 
+#' upper triangular factor of the Cholesky decomposition
 #' @examples
-#' connection<-odbcConnect("Gandalf")
-#' flmatrix<-FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection<-RODBC::odbcConnect("Gandalf")
+#' flmatrix<-FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- chol(flmatrix)
 #' @export
-chol <- function (x, ...){
-  UseMethod("chol", x)
+chol <- function (object, ...){
+  UseMethod("chol", object)
 }
 
 # chol.default <- base::chol
-
-chol.FLMatrix<-function(object)
+#' @export
+chol.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag1Check(connection)
-	
-	# checkSquare(object,"chol")
-	# checkHermitianPositiveDefinite(object)
 
 	sqlstr<-paste0(
 					viewSelectMatrix(object,"a",withName="z"),

@@ -23,9 +23,9 @@ x is a scalar (length-one FLVector) and the only argument, it returns a square i
 x is a FLVector, either of length at least 2. This returns a square matrix with the given diagonal entries.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- diag(flmatrix)
 DeepTable <- FLTable(connection, "FL_DEMO", "tblUSArrests","ObsID")
 flvectorDeep <- DeepTable[1:5,1]

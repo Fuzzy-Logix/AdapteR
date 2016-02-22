@@ -7,7 +7,9 @@
 rbind(x, ...)
 }
 \arguments{
-\item{x...}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}
+\item{x}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{rbind} returns a FLMatrix object which is the row-wise combination of input arguments.
@@ -24,9 +26,9 @@ combines them by rows and makes a FLMatrix.
 Input matrices, FLMatrices and data frames should have same number of columns.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 }
 

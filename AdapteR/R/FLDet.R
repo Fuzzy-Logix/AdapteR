@@ -11,26 +11,28 @@ NULL
 #'
 #' \code{det} computes the determinant of FLMatrix objects.
 #'
-#' @param x is a FLMatrix object
+#' @param object is a FLMatrix object
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (1000 x 1000).
 #' @return \code{det} returns determinant as a R vector
 #' which replicates the equivalent R vector output.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLvector <- det(flmatrix)
 #' @export
-det <- function (x, ...){
-  UseMethod("det", x)
+det <- function (object, ...){
+  UseMethod("det", object)
 }
 
+#' @export
 det.default <- base::det
 
-
-det.FLMatrix<-function(object)
+#' @export
+det.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 	flag3Check(connection)

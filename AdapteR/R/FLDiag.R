@@ -18,9 +18,9 @@ NULL
 #' @return If x is a FLMatrix then diag(x) returns the diagonal of x as FLVector object.
 #'   If x is FLVector, the value is a diagonal square FLMatrix with diagonal elements as given in FLVector.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- diag(flmatrix)
 #' DeepTable <- FLTable(connection, "FL_DEMO", "tblUSArrests","ObsID")
 #' flvectorDeep <- DeepTable[1:5,1]
@@ -32,10 +32,11 @@ diag<-function(x, ...)
 	UseMethod("diag", x)
 }
 
-
+#' @export
 diag.default <- base::diag
 
-diag.FLMatrix<-function(object)
+#' @export
+diag.FLMatrix<-function(object,...)
 {
 	
 	connection<-getConnection(object)
@@ -52,7 +53,8 @@ diag.FLMatrix<-function(object)
 	return(table[,getVariables(object)$valueColumn])
 }
 
-diag.FLVector <- function(object)
+#' @export
+diag.FLVector <- function(object,...)
 {
 	connection <- getConnection(object)
 	flag1Check(connection)

@@ -23,6 +23,7 @@ cbind <- function (x, ...){
   UseMethod("cbind", x)
 }
 
+#' @export
 cbind.default <- base::cbind
 
 
@@ -36,7 +37,9 @@ cbind.default <- base::cbind
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.
+#' @export
 cbind.FLMatrix<-function(object,...) FLbind(list(object,...),2)
 
+#' @export
 cbind.FLMatrixBind <- cbind.FLMatrix
 

@@ -13,15 +13,16 @@ NULL
 #'
 #' @param x is of class FLMatrix
 #' @param ExclIdx is a positive integer specifying row or column id to be excluded.
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (1000 x 1000).
 #' @return \code{solveExcl} returns a FLMatrix object which is the inverse of input FLMatrix object
 #' after excluding given dimension.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solveExcl(flmatrix,3)
 #' @export
 
@@ -29,7 +30,8 @@ FLSolveExcl <- function (x,ExclIdx,...){
 	UseMethod("FLSolveExcl", x)
 }
 
-FLSolveExcl.FLMatrix<-function(object,ExclIdx)
+#' @export
+FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 {
 
     connection<-getConnection(object)

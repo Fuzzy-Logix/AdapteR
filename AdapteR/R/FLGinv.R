@@ -10,24 +10,27 @@ NULL
 #'
 #' \code{ginv} computes the pseudo-inverse for FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be with maximum dimension limitations of (500 x 500).
 #' @return \code{ginv} returns a FLMatrix object which is the pseudo-inverse 
 #' of input FLMatrix object and replicates the equivalent R output.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- ginv(flmatrix)
 #' @export
-ginv <- function (x, ...){
-	UseMethod("ginv", x)
+ginv <- function (object, ...){
+	UseMethod("ginv", object)
 }
 
+#' @export
 ginv.default <- MASS::ginv
 
-ginv.FLMatrix<-function(object)
+#' @export
+ginv.FLMatrix<-function(object,...)
 {
 
 	connection<-getConnection(object)

@@ -7,23 +7,26 @@ NULL
 #'
 #' \code{rankMatrix} computes the rank of FLMatrix objects.
 #'
-#' @param x is of class FLMatrix
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @return \code{rankMatrix} returns R vector object of size 1 which replicates the equivalent R output.
 #' @section Constraints:
 #' Input can have maximum dimension limitations of (1000 x 1000).
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- rankMatrix(flmatrix)
 #' @export
-rankMatrix<-function(x, ...){
-	UseMethod("rankMatrix", x)
+rankMatrix<-function(object, ...){
+	UseMethod("rankMatrix", object)
 }
 
+#' @export
 rankMatrix.default <- Matrix::rankMatrix
 
-rankMatrix.FLMatrix<-function(object)
+#' @export
+rankMatrix.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
 

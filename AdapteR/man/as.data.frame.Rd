@@ -8,6 +8,11 @@ as.data.frame(x, ...)
 }
 \arguments{
 \item{x}{can be FLTable, FLVector or FLMatrix}
+
+\item{...}{any additional arguments}
+}
+\value{
+R data.frame object
 }
 \description{
 Caution: data is fetched into R session

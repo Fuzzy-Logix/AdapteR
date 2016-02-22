@@ -4,10 +4,12 @@
 \alias{tr}
 \title{Matrix Trace.}
 \usage{
-tr(x, ...)
+tr(object, ...)
 }
 \arguments{
-\item{x}{an object of class FLMatrix}
+\item{object}{an object of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{tr} returns R Vector object of size 1 which replicates the equivalent R output.
@@ -25,9 +27,9 @@ Input can only be with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- tr(flmatrix)
 }
 

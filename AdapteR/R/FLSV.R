@@ -11,21 +11,23 @@ NULL
 #' \code{FLSV} computes the singular values for FLMatrix objects.
 #'
 #' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
 #' of (700 x 700).
 #' @return \code{FLSV} returns a FLVector object representing the singular values.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- RODBC::odbcConnect("Gandalf")
+#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- FLSV(flmatrix)
 #' @export
-FLSV <- function (x, ...){
-  UseMethod("FLSV", x)
+FLSV <- function (object, ...){
+  UseMethod("FLSV", object)
 }
 
-FLSV.FLMatrix<-function(object)
+#' @export
+FLSV.FLMatrix<-function(object,...)
 {
 	#checkSquare(object)
 	connection<-getConnection(object)

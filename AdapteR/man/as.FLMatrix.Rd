@@ -14,11 +14,8 @@ needs to be casted to FLMatrix and inserted in-database}
 
 \item{sparse}{logical if sparse representation to be used}
 
-\item{...}{}
-
-\item{nr}{number of rows in resulting FLMatrix}
-
-\item{nc}{number of columns in resulting FLMatrix.
+\item{...}{additional arguments like nr number of rows in resulting FLMatrix
+nc number of columns in resulting FLMatrix.
 nr and nc inputs are applicable only in case of vector,FLVector}
 }
 \value{

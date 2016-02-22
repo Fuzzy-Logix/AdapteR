@@ -1,3 +1,4 @@
+#' @export
 store.FLMatrix <- function(object)
 {
     ##browser()
@@ -35,6 +36,7 @@ store.FLMatrix <- function(object)
     }
 }
 
+#' @export
 store.FLVector <- function(object)
 {
   connection <- getConnection(object)
@@ -63,6 +65,7 @@ store.FLVector <- function(object)
   return(table[,"vectorValueColumn"])
 }
 
+#' @export
 store.FLTable <- function(object)
 {
   connection <- getConnection(object)
@@ -92,7 +95,7 @@ store.FLTable <- function(object)
   return(table)
 }
 
-
+#' @export
 store.character <- function(object,returnType,connection)
 {
   if(toupper(returnType)=="MATRIX")

@@ -4,10 +4,10 @@
 \alias{colSums}
 \title{column sums of a FLMatrix.}
 \usage{
-colSums(x, ...)
+colSums(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix.}
+\item{object}{is of class FLMatrix.}
 }
 \value{
 \code{colSums} returns a FLVector object representing the col-wise sums.
@@ -16,9 +16,9 @@ colSums(x, ...)
 \code{colSums} computes the column-wise sums of FLMatrix objects.
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- colSums(flmatrix)
 }
 

@@ -4,10 +4,12 @@
 \alias{FLTriDiag}
 \title{TriDiagonal or Upper Hessenberg matrix of a FLMatrix.}
 \usage{
-FLTriDiag(x, ...)
+FLTriDiag(object, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
+\item{object}{is of class FLMatrix}
+
+\item{...}{any additional arguments}
 }
 \value{
 \code{FLTriDiag} returns a FLMatrix object representing the upper Hessenberg or TriDiagonal matrix.
@@ -21,9 +23,9 @@ Input can only be a square matrix (n x n) with maximum dimension limitations
 of (700 x 700).
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+connection <- RODBC::odbcConnect("Gandalf")
+flmatrix <- FLMatrix(connection, "FL_DEMO", 
+"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- FLTriDiag(flmatrix)
 }
 

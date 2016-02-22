@@ -7,12 +7,14 @@
 NULL
 
 #' Converts FLMatrix object to vector in R
+#' @export
 as.vector.FLMatrix <- function(object,mode="any")
 {
 	temp_m <- as.matrix(object)
 	return(as.vector(temp_m))
 }
 
+#' @export
 as.vector.FLMatrixBind <- function(object,mode="any")
 {
 	temp_m <- as.matrix(object)
@@ -20,6 +22,7 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 }
 
 #' Converts FLVector object to vector in R
+#' @export
 as.vector.FLVector <- function(object,mode="any")
 {
     if(ncol(object)==1)
@@ -37,10 +40,15 @@ as.vector.FLVector <- function(object,mode="any")
 #' 
 #' Caution: data is fetched into R session
 #' @param x can be FLTable, FLVector or FLMatrix
+#' @param ... any additional arguments
+#' @return R data.frame object
+#' @export
 as.data.frame <- function(x, ...)
 {
 	UseMethod("as.data.frame",x)
 }
+
+#' @export
 as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
@@ -48,26 +56,23 @@ as.data.frame.FLTable <- function(x, ...){
       error=function(e){stop("error fetching data into R session.To view result in database,
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
     names(D) <- toupper(names(D))
-    D <- arrange(D,OBS_ID_COLNAME)
+    D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
     if(x@isDeep) {
-        # D <- sqlQuery(getConnection(x),sqlstr)
-        D <- dcast(D, paste0(toupper("obs_id_colname"),
+        D <- reshape2::dcast(D, paste0(toupper("obs_id_colname"),
                              " ~ ",
                              toupper("var_id_colname")),
                    value.var = toupper("cell_val_colname"))
     } 
-    ## gk:  this is broken
     i <- charmatch(rownames(x),D[[toupper("obs_id_colname")]],nomatch=0)
                                         # print(i)
     D <- D[i,]
-    # print(D[1:20,])
-    # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
     if(any(D[[toupper("obs_id_colname")]]!=1:nrow(D)))
         rownames(D) <- D[[toupper("obs_id_colname")]]
     D[[toupper("obs_id_colname")]] <- NULL
     return(D)
 }
 
+#' @export
 as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
@@ -86,29 +91,19 @@ as.data.frame.FLVector <- function(x, ...){
     D <- D[i,]
     if(x@isDeep) {
         if(length(rownames(x))==1)
-         D <- dcast(D, paste0(toupper("vectorIdColumn"),
+         D <- reshape2::dcast(D, paste0(toupper("vectorIdColumn"),
                              " ~ ",
                              toupper("vectorIndexColumn")),
                    value.var = toupper("vectorValueColumn"))
     }
-    # print(D[1:20,])
-    # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
     if(any(D[[toupper("vectorIndexColumn")]]!=1:nrow(D)))
         rownames(D) <- renameDuplicates(D[[toupper("vectorIndexColumn")]])
     D[[toupper("vectorIndexColumn")]] <- NULL
     D[[toupper("vectorIdColumn")]] <- NULL
-    ## gk:  this is broken
-    # i <- charmatch(rownames(x),D[[toupper(getVariables(x)$obs_id_colname)]],nomatch=0)
-    #                                     # print(i)
-    # D <- D[i,]
-    # # print(D[1:20,])
-    # # print(any(D[[toupper(x@obs_id_colname)]]!=1:nrow(D)))
-    # if(any(D[[toupper(getVariables(x)$obs_id_colname)]]!=1:nrow(D)))
-    #     rownames(D) <- D[[toupper(getVariables(x)$obs_id_colname)]]
-    # D[[toupper(getVariables(x)$obs_id_colname)]] <- NULL
     return(D)
 }
 
+#' @export
 as.data.frame.FLMatrix <- function(x,...)
 {
   temp_m <- as.matrix(x)
@@ -119,17 +114,23 @@ as.data.frame.FLMatrix <- function(x,...)
 #' 
 #' Caution: data is fetched into R session
 #' @param x can be FLTable, FLVector or FLMatrix
+#' @return R matrix object
+#' @export
 as.matrix <- function(x, ...)
 {
 	UseMethod("as.matrix",x)
 }
 
+#' @export
 as.matrix.data.frame <- base::as.matrix.data.frame
+#' @export
 as.matrix.integer <- base::as.matrix.default
+#' @export
 as.matrix.numeric <- base::as.matrix.default
 
 
-## #' Converts input FLMatrix object to matrix in R
+#' Converts input FLMatrix object to matrix in R
+#' @export
 as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
     if(sparse)
         return(object)
@@ -145,6 +146,7 @@ as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
 }
 
 ## #' Converts input FLMatrix object to matrix in R
+#' @export
 as.matrix.FLMatrix <- function(object,sparse=FALSE) {
     m <- as.sparseMatrix.FLMatrix(object)
     if(sparse)
@@ -159,23 +161,25 @@ as.matrix.FLMatrix <- function(object,sparse=FALSE) {
                 ncol(m),
                 dimnames=dn)
 }
+
+#' @export
 as.matrix.FLMatrixBind <- as.matrix.FLMatrix
 
 
 #' Converts FLVector object to a matrix in R
+#' @export
 as.matrix.FLVector <- function(obj)
 {
 	Rvector <- as.vector(obj)
 	return(as.matrix(Rvector))
 }
 
+#' @export
 as.matrix.FLTable <- function(x,...)
 {
   temp_df <- as.data.frame(x)
   return(as.matrix(temp_df))
 }
-
-
 
 storeVarnameMapping <- function(connection,
                                 tablename,
@@ -206,6 +210,7 @@ storeVarnameMapping <- function(connection,
 
 ###############################################################################################################
 
+#' @export
 as.FLMatrix.Matrix <- function(object,connection,...) {
     ##browser()
     if((is.matrix(object) && !is.numeric(object)) || (is.data.frame(object) && !is.numeric(as.matrix(object))))
@@ -214,7 +219,7 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
     }
     else
     {
-        mwide <- Matrix(object, sparse=TRUE)
+        mwide <- Matrix::Matrix(object, sparse=TRUE)
         if(class(mwide)=="dsCMatrix")
         mwide <- as(mwide,"dgTMatrix")
         mdeep <- Matrix::summary(mwide)
@@ -294,11 +299,11 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
 ##' needs to be casted to FLMatrix and inserted in-database
 ##' @param connection ODBC/JDBC connection object
 ##' @param sparse logical if sparse representation to be used
-##' @param ... 
-##' @param nr number of rows in resulting FLMatrix
-##' @param nc number of columns in resulting FLMatrix.
+##' @param ... additional arguments like nr number of rows in resulting FLMatrix
+##' nc number of columns in resulting FLMatrix.
 ##' nr and nc inputs are applicable only in case of vector,FLVector
 #' @return FLMatrix object after casting.
+#' @export
 
 setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE,...) {
     standardGeneric("as.FLMatrix")
@@ -386,13 +391,13 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
               as.FLMatrix.FLVector(object,connection=getConnection(object),sparse=TRUE,rows,cols,...))
 
 
+#' @export
 as.sparseMatrix.FLMatrix <- function(object) {
     ##browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
       error=function(e){stop("error fetching data into R session!
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
-    ##object@select@variables
     i <- valuedf$rowIdColumn
     j <- valuedf$colIdColumn
     i <- FLIndexOf(i,rownames(object))
@@ -403,18 +408,18 @@ as.sparseMatrix.FLMatrix <- function(object) {
         browser()
   values <- valuedf$valueColumn
   if(is.null(values))
-      m <- sparseMatrix(i = i,
+      m <- Matrix::sparseMatrix(i = i,
                         j = j,
                         x = i,
                         dims = dim(object),
                         dimnames = dn)
   else if(is.null(dn[[1]]) & is.null(dn[[2]]))
-      m <- sparseMatrix(i = i,
+      m <- Matrix::sparseMatrix(i = i,
                         j = j,
                         x = values,
                         dims = dim(object))
   else
-      m <- sparseMatrix(i = i,
+      m <- Matrix::sparseMatrix(i = i,
                         j = j,
                         x = values,
                         dims = dim(object),
@@ -422,6 +427,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
   return(m)
 }
 
+#' @export
 as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=TRUE,rows=length(object),cols=1)
 {
   if(rows==length(object) && cols==1)
@@ -498,14 +504,6 @@ as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=
   }
   batchStore(sqlstr)
   sqlstr <- ""
-
-  # sqlstr <- paste0("INSERT INTO ",getRemoteTableName(result_db_name,result_matrix_table),
-  #                 " SELECT ",max_matrix_id_value,
-  #                           ",floor(a.",object@obs_id_colname,"+0.1 MOD ",rows,")
-  #                            ,a.",object@obs_id_colname,"-floor(a.",object@obs_id_colname,"+0.1 MOD ",rows,")
-  #                            ,a.",object@dimnames[[2]],
-  #                 " FROM ",object@db_name,".",object@table_name," AS a",
-  #                 constructWhere(constraintsSQL(object)))
   
    return(FLMatrix(
             connection = connection,
@@ -520,12 +518,14 @@ as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=
             ))
 }
 
+#' @export
 as.FLMatrix.vector <- function(object,connection,sparse=TRUE,rows=length(object),cols=1)
 {
   temp_m <- Matrix::Matrix(object,rows,cols,sparse=TRUE)
   return(as.FLMatrix(temp_m,connection))
 }
 
+#' @export
 as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 {
   temp_m <- Matrix::Matrix(as.matrix(object),sparse=TRUE)
@@ -544,6 +544,7 @@ as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 #' @param size number of elements in resulting FLVector.
 #' size input is not applicable only in case of FLMatrix
 #' @return FLVector object after casting.
+#' @export
 setGeneric("as.FLVector", function(object,connection,...) {
     standardGeneric("as.FLVector")
 })
@@ -584,6 +585,7 @@ setMethod("as.FLVector", signature(object = "FLMatrix",
           function(object,connection=getConnection(object))
               as.FLVector.FLMatrix(object,connection=getConnection(object)))
 
+#' @export
 as.FLVector.vector <- function(object,connection)
 {
   if(!is.numeric(object))
@@ -613,6 +615,7 @@ as.FLVector.vector <- function(object,connection)
   return(table[,"vectorValueColumn"])
 }
 
+#' @export
 as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
