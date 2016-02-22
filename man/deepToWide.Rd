@@ -35,7 +35,4 @@ resultList <- deepToWide(deeptable)
 widetable <- resultList$table
 analysisID <- resultList$AnalysisID
 }
-\author{
-phani srikar <phanisrikar93ume@gmail.com>
-}
 

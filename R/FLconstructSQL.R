@@ -13,7 +13,6 @@ setOldClass("RODBC")
 ##' @param object the object to query
 ##' @param ... arguments passed on to SQL generation. see joinNames
 ##' @return a character SQL representation
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")
 })

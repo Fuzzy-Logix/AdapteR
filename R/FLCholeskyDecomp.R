@@ -22,7 +22,6 @@ NULL
 #' connection<-odbcConnect("Gandalf")
 #' flmatrix<-FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- chol(flmatrix)
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 chol <- function (x, ...){
   UseMethod("chol", x)

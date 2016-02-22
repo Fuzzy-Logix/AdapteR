@@ -27,7 +27,4 @@ FLMatrix object after casting.
 \description{
 Converts input to a FLMatrix object
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
-}
 

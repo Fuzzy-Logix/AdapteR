@@ -19,7 +19,4 @@ returns a remote matrix object defining the deep table sql for the *bound result
 Bind a matrix/array by an index. Currently limited to matrices
 with character dimnames
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

@@ -23,7 +23,6 @@ NULL
 #' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 FLHessen<-function(x, ...){
 	UseMethod("FLHessen",x)

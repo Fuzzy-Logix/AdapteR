@@ -52,10 +52,8 @@ This object is used as input for matrix operation functions.
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti",
+                     5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 flmatrix
-}
-\author{
-Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 }
 

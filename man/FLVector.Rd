@@ -22,9 +22,6 @@ flvectorRow <- FLTable[3,]
 flvectorRow
 flvectorColumn
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
-}
 \seealso{
 \code{\link{FLTable}}
 }

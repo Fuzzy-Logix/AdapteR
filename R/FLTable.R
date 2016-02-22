@@ -25,7 +25,6 @@ NULL
 #' widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
 #' deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 FLTable <- function(connection,
 				    database, 
@@ -151,7 +150,6 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
-##' @author phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 setGeneric("wideToDeep", function(object,excludeCols,classSpec,whereconditions,
@@ -313,7 +311,6 @@ setMethod("wideToDeep",
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 setGeneric("deepToWide", function(object,whereconditions,
                                   mapTable,mapName,outWideTableDatabase,outWideTableName) {

@@ -24,7 +24,6 @@ NULL
 #' resultList <- eigen(flmatrix)
 #' resultList$values
 #' resultList$vectors
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 eigen<-function(x, ...)
 {

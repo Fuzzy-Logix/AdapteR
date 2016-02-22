@@ -17,7 +17,6 @@ NULL
 #' flvectorRow <- FLTable[3,]
 #' flvectorRow
 #' flvectorColumn
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 FLVector <- function(table,
                      val_col_name = character(),

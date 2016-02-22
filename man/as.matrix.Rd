@@ -12,7 +12,4 @@ as.matrix(x, ...)
 \description{
 Caution: data is fetched into R session
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
-}
 

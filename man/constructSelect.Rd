@@ -19,7 +19,4 @@ a character SQL representation
 constructs a sql statement returning the
 deep table representation of the object.
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

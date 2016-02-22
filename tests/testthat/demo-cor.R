@@ -3,43 +3,6 @@
 ## startup and setup:
 source("./setup-jdbc.R")
 
-
-
-## a in-memory matrix in R 
-(m <- rMatrix <- matrix(1:25,5))
-
-# (as.matrix(flm))
-#####################################################################
-## R has very nice vector and matrix syntax
-
-## Subsetting
-## a row
-(m[1,])
-
-## Subsetting
-## a column
-m[,1]
-
-## Subsetting
-## a part of a matrix
-m[2:5,4:5]
-
-
-
-
-
-##################################################################
-## converting the R matrix into an in-DB object
-## (data is transfered through network)
-## (and refetched for printing)
-##
-(m <- flMatrix <- as.FLMatrix(rMatrix,
-                              connection))
-
-
-## you can run above functions on m=flMatrix again with identical results!
-
-
 #############################################################
 ## For in-database analytix the matrix is in the warehouse
 ## to begin with.
@@ -48,17 +11,14 @@ dbGetQuery(connection,
 ## 
 ## A remote matrix is easily created by specifying
 ##
-m <- 
- eqnRtn <- FLMatrix(
-         connection,
-         database          = "FL_DEMO",
-         table_name  = "finEquityReturns",
-         matrix_id_value   = "",
-         matrix_id_colname = "",
-         row_id_colname    = "TxnDate",
-         col_id_colname    = "TickerSymbol",
-         cell_val_colname  = "EquityReturn")
-
+eqnRtn <- FLMatrix(connection,
+                   database          = "FL_DEMO",
+                   table_name  = "finEquityReturns",
+                   matrix_id_value   = "",
+                   matrix_id_colname = "",
+                   row_id_colname    = "TxnDate",
+                   col_id_colname    = "TickerSymbol",
+                   cell_val_colname  = "EquityReturn")
 
 ## this is a rather large matrix
 dim(eqnRtn)
@@ -75,8 +35,10 @@ head(dates <- rownames(eqnRtn))
 dec2006 <- grep("2006-12",dates)
 eqnRtn[dec2006, "MSFT"]
 
+
 ## NO SQL is sent during the definition of subsetting
 E <- eqnRtn[dec2006, randomstocks]
+
 ## Data is fetched on demand only, e.g. when printing
 print(E)
 
@@ -109,10 +71,9 @@ ORDER BY 1, 2;")
 flCorr <- cor(eqnRtn[,c('AAPL','MSFT')],
               eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 
-
-
 round(as.matrix(flCorr),2)
 
+## the result is in the same format as the R results
 {
     rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
     rEqnRtn <- na.omit(rEqnRtn)
@@ -123,11 +84,12 @@ round(as.matrix(flCorr),2)
 }
 
 
-
 ## And of course you can now use  
 ## thousands of R packages to operate on DB Lytix results, e.g. 
-M <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 require(gplots)
+## install.packages("gplots")
+
+M <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 heatmap.2(as.matrix(M),
           symm=TRUE, 
           distfun=function(c) as.dist(1 - c),
@@ -136,11 +98,17 @@ heatmap.2(as.matrix(M),
           cexCol = 1,
           cexRow = 1)
 
+
 ###########################################################
 ## Shiny Correlation Plot Demo
 ##
 ## metadata can be easily combined on the client
+## download metadata from
+## https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv
 metaInfo <- read.csv("/Users/gregor/Downloads/companylist.csv")
+
+## metadata contains sectors and industries
+## that will be selectable in the shiny web ui
 table(metaInfo$industry)
 table(metaInfo$Sector)
 
@@ -153,18 +121,19 @@ shinyApp(
                    selectInput("sectors", "Sectors:", 
                                choices = levels(metaInfo$Sector),
                                selected = "Energy",
-                               multiple = TRUE),
+                               multiple = TRUE)),
+            column(3,
                    selectInput("industries", "Industries:", 
                                choices = levels(metaInfo$industry),
                                selected = "Commercial Banks",
-                               multiple = TRUE),
+                               multiple = TRUE)),
+            column(6,
                    selectInput("stocks", "Stocks:", 
                                choices = colnames(eqnRtn),
                                selected = randomstocks,
-                               multiple = TRUE)),
-            column(9,
-                   plotOutput("correlations"))
-    )),
+                               multiple = TRUE))),
+        fluidRow(plotOutput("correlations"))
+    ),
     server = function(input, output) {
         output$correlations <- renderPlot({
             stocks <- intersect(
@@ -177,7 +146,7 @@ shinyApp(
             ##browser()
             withTimeout({
                 flCorr <- as.matrix(cor(eqnRtn[,stocks]))
-                rownames(flCorr) <- metaInfo$Name[match(rownames(flCorr),
+                colnames(flCorr) <- metaInfo$Name[match(rownames(flCorr),
                                                         metaInfo$Symbol)]
                 heatmap.2(flCorr, symm=TRUE, 
                           distfun=function(c) as.dist(1 - c),
@@ -185,7 +154,7 @@ shinyApp(
                           col=redgreen(100),
                           cexCol = 1,
                           cexRow = 1)
-            }, timeout = 0)
+            }, timeout = 40)
         }, height=1200)
     }
 )
@@ -277,11 +246,6 @@ m <- FLMatrix(connection,
 )
 
 m
-
-source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
-source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSubsetting.R")
-source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLconstructSQL.R")
-source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSolve.R")
 
 ms <- solve(m)
 

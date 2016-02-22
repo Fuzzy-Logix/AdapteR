@@ -29,7 +29,4 @@ resultList <- FLHessen(flmatrix)
 resultList$P
 resultList$H
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

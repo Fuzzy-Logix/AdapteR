@@ -31,7 +31,4 @@ DeepTable <- FLTable(connection, "FL_DEMO", "tblUSArrests","ObsID")
 flvectorDeep <- DeepTable[1:5,1]
 resultFLMatrix <- diag(flvectorDeep)
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

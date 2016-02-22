@@ -1,7 +1,53 @@
 ## This script is for documentation. 
+##
+## R has very nice vector and matrix syntax.
+## AdapteR mimics the parsimonious syntax.
+
 ## startup and setup:
+require(AdapteR)
+
+user <- "database user"
+passwd <- "database password" 
+host <- "10.200.4.116" ## Gandalf
+database <- "Fl_demo"
+## make sure your working dir is where you unpacked
+## the zip dir
 source("./setup-jdbc.R")
 source("./FLtestLib.R")
+
+
+## a in-memory matrix in R 
+(m <- rMatrix <- matrix(1:25,5))
+
+
+## Subsetting a row
+m[1,]
+
+## Subsetting a column
+m[,1]
+
+## Subsetting a part of a matrix
+m[2:5,4:5]
+
+##################################################################
+## converting the R matrix into an in-DB object
+## (data is transfered through network)
+## (and refetched for printing)
+##
+(m <- flMatrix <- as.FLMatrix(rMatrix,
+                              connection))
+
+
+## you can run above functions on m=flMatrix again with identical results!
+## Subsetting a row
+m[1,]
+
+## Subsetting a column
+m[,1]
+
+## Subsetting a part of a matrix
+m[2:5,4:5]
+
 
 ## there are different ways to index matrices in R
 ## no dimnames, just proper 1:N numeric indices:
@@ -27,13 +73,48 @@ rownames(matrixNumChar) <- c(9,6,5,2,1)
 colnames(matrixNumChar) <- c("p","q","r","s","t")
 
 
-##source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLMatrix.R")
-##source("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/R/FLSubsetting.R")
 
+## inspect names representation in AdapteR
+{ ## 
+    flm <- as.FLMatrix(matrixCharChar,connection)
+    flm
+    
+    rownames(matrixCharChar)
+    ## the rownames have an index that is the mapped
+    ## numeric index in-database.
+    ## These indices are a character vector
+    ## (an R restriction).
+    rownames(flm)
+    names(rownames(flm))
+
+    ## Names are selected
+    matrixCharChar[4:5,4:5]
+    flm[4:5,4:5]
+
+    matrixNullChar
+    flm <- as.FLMatrix(matrixNullChar,connection)
+    flm
+    ## R looses the indexes if no names are set.
+    ## (Note that rows start at 1)
+    matrixNullChar[3:5,3:5]
+    ## FLMatrix keeps the index because otherwise
+    ## it would loose reference.
+    flm[3:5,3:5]
+
+    ## A technical note on joining the names of rows and columns in SQL:
+    ## constructSelect by default does join the rownames
+    cat(constructSelect(flm))
+    ## constructSelect by default does join the rownames
+    cat(constructSelect(flm,joinNames=FALSE))
+}
+
+
+
+#############################################################
+## Hierachical test suite of selects of selects...
+## of above mentioned matrix names combinations:
 options(debugSQL=FALSE)
-
 test_equal_RMatrix_FLMatrix(matrixCharChar)
-
 test_equal_RMatrix_FLMatrix(matrixNumChar)
 
 ## Note: subsetting an unnamed R Matrix will
@@ -47,8 +128,7 @@ test_equal_RMatrix_FLMatrix(matrixNullChar)
 
 
 
-#############################################################
-## For in-database analytix the matrix is in the warehouse
+## For in-database analytics the matrix is in the warehouse
 ## to begin with.
 ## Create a remote matrix object
 ##
@@ -61,147 +141,41 @@ eqnRtn <- FLMatrix(connection,
               col_id_colname    = "TickerSymbol",
               cell_val_colname  = "EquityReturn")
 
-
+## Hierachical tests of a name-providing matrix
 test_equal_FLMatrix_RMatrix(eqnRtn[sample(rownames(eqnRtn),10),
                                    sample(colnames(eqnRtn),10)])
 
-test_that("Named matrix rows and columns",{
 
+test_that("Binding named (not indexed) matrix rows and columns",{
+    ##
     a <- eqnRtn[2001:2010,"MSFT"]
     b <- eqnRtn[2001:2010,"ORCL"]
     a2 <- eqnRtn[2011:2020,"MSFT"]
     b2 <- eqnRtn[2011:2020,"ORCL"]
-    
-    cat(constructSelect(a))
-
-
-##############################
-    ## bind for matrices with character dimnames
+    ##
+    ##
+    ra <- as.matrix(a)
+    rb <- as.matrix(b)
+    ra2 <- as.matrix(a2)
+    rb2 <- as.matrix(b2)
+    ##
+    ## 
     ## note: no data movement.
     ab <- cbind(a,b)
-    
-    cat(constructSelect(ab))
-
-    as.matrix(ab)
-
-    ## note: currently only works for unique row and col ids (dimnames)
-    dimnames(ab)
-
-    test_equal_FLMatrix_RMatrix(ab)
-    ab[1,1]
-    
-    expect_equal(
-        dim(ab),
-        c(nrow(a), ncol(a)+ncol(b)))
-
-    ## cbind of 2 rbinds:
+    expect_equal_Matrix(ab,cbind(ra,rb))
+    ##
+    ##cat(constructSelect(ab))
+    ##
     a2b2 <- cbind(a2,b2)
+    expect_equal_Matrix(a2b2,cbind(ra2,rb2))
+    ##
+    ## rbind of 2 cbinds:
     AB <- rbind(ab, a2b2)
-    dimnames(AB)
-    cat(constructSelect(AB))
-
-    expect_equal(dim(AB),
-                 c(nrow(a) + nrow(a2),
-                   ncol(a) + ncol(b)))
-    
+    expect_equal_Matrix(AB,rbind(cbind(ra,rb),cbind(ra2,rb2)))
     AB
-    ##ABs <- store(AB)
-})
-
-test_that("Named matrix rows and columns",{
-    
-    cat(constructSelect(a,"a"))
-
-
-##############################
-    ## bind for matrices with character dimnames
-    ## note: no data movement.
-    ab <- cbind(a,b)
-    
-    cat(constructSelect(ab))
-
-    ab
-
-    ## note: currently only works for unique row and col ids (dimnames)
-    dimnames(ab)
-
-
-    expect_equal(
-        dim(ab),
-        c(nrow(a), ncol(a)+ncol(b)))
-
-    ## cbind of 2 rbinds:
-    a2b2 <- cbind(a2,b2)
-    AB <- rbind(ab, a2b2)
-    dimnames(AB)
-    cat(constructSelect(AB))
-
-    expect_equal(dim(AB),
-                 c(nrow(a) + nrow(a2),
-                   ncol(a) + ncol(b)))
-    
-    AB
-    ##ABs <- store(AB)
 })
 
 
 
 
-if(FALSE){ ## debugging code cruft
 
-
-
-    rownames(fl[4:5,4:5])
-    ## play
-    flm <- as.FLMatrix(matrixCharChar,connection)
-    flm
-    dbGetQuery(connection,constructSelect(flm))
-    rownames(matrixCharNull)
-    matrixNullChar[4:5,4:5]
-    flm[4:5,4:5]
-
-
-    matrixNullChar[3:5,3:5][1,]
-
-
-    ## play
-    flm <- as.FLMatrix(matrixNullNull,connection)
-    cat(constructSelect(flm))
-    flm[1:3,2:4]
-
-
-    ## play
-    flm <- as.FLMatrix(matrixCharNull,connection)
-    flm
-    options(debugSQL=TRUE)
-    flm[c("a","c"),]
-    flm[2:4,][1,4:5]
-    flm2 <- FLMatrix(connection,
-                 flm@select@database,
-                 flm@select@table_name,
-                 flm@mapSelect@table_name,
-                 5,"MATRIX_ID"
-                 )
-
-    flm2[,2]
-    rownames(matrixCharNull)
-}
-
-FLjoin <- function(sfs, ## named list of SelectFroms
-                   byconditions, 
-                   variables=unlist(llply(names(sfs),function(sfn){
-                       names(sf@variables) <- paste0(sfn,"_",names(sf@variables))
-                       return(sf@variables)
-                   }))){
-    wcs <- unlist(llply(names(sfs),function(sfn){
-                       return(constructSelect())
-                   }))
-    select <- new("FLSelectFrom",
-                  connection = sfs[[1]]@connection,
-                  variables=variables,
-                  whereconditions=c(),
-                  order = "character",
-                  database = "character",
-                  table_name = "character"
-                  )
-}

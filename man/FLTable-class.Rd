@@ -3,26 +3,20 @@
 \docType{class}
 \name{FLTable-class}
 \alias{FLTable-class}
-\title{An S4 class to represent FLTable}
+\title{An S4 class to represent FLTable, an in-database data.frame.}
 \arguments{
 \item{object}{retrieves the column names of FLTable object}
 }
 \description{
-An S4 class to represent FLTable
+An S4 class to represent FLTable, an in-database data.frame.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{db_name}}{character}
+\item{\code{select}}{FLTableQuery the select statement for the table.}
 
-\item{\code{table_name}}{character}
+\item{\code{dimnames}}{the observation id and column names}
 
-\item{\code{obs_id_colname}}{character}
-
-\item{\code{var_id_colnames}}{character}
-
-\item{\code{cell_val_colname}}{character}
-
-\item{\code{isDeep}}{logical}
+\item{\code{isDeep}}{logical (currently ignored)}
 }}
 

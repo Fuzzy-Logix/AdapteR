@@ -12,7 +12,4 @@ FLodbcClose(connection)
 \description{
 Strongly recommended to run before quitting current R session
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>, Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

@@ -58,7 +58,6 @@ updateVariable <- function(P,varName,value){
 ##' @param parts 
 ##' @param by the numeric index by which binding takes place
 ##' @return returns a remote matrix object defining the deep table sql for the *bound result.
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 FLMatrixBind <- function(parts,by){
     dims <- ldply(parts, function(p) dim(p))
     ##print(dims) ## todo: adjust
@@ -154,3 +153,10 @@ print.FLMatrixBind <- function(object)
 
 setMethod("show","FLMatrixBind",print.FLMatrixBind)
 
+FLbind <- function(objectList,by){
+    if(all(sapply(objectList,function(x) is.FLMatrix(x) &
+                                         !any(sapply(dimnames(x),is.null))))){
+        return(FLMatrixBind(parts=objectList,by=by))
+    }
+    stop("Binding currently only supported for FLMatrix objects with dimnames.")
+}

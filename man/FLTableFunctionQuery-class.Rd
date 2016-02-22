@@ -10,6 +10,6 @@ A TableFunctionQuery models a select from an arbitrary query
 \section{Slots}{
 
 \describe{
-\item{\code{SQLquery}}{character}
+\item{\code{SQLquery}}{character The free SQL query returning a table.}
 }}
 

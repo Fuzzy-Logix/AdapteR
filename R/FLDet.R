@@ -22,7 +22,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLvector <- det(flmatrix)
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 #' @export
 det <- function (x, ...){
   UseMethod("det", x)

@@ -19,7 +19,6 @@ NULL
 #' connection <- odbcConnect("Gandalf")
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- t(flmatrix)
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 t<-function(x, ...){
 	UseMethod("t", x)

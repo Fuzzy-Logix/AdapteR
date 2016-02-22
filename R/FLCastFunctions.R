@@ -37,7 +37,6 @@ as.vector.FLVector <- function(object,mode="any")
 #' 
 #' Caution: data is fetched into R session
 #' @param x can be FLTable, FLVector or FLMatrix
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 as.data.frame <- function(x, ...)
 {
 	UseMethod("as.data.frame",x)
@@ -120,7 +119,6 @@ as.data.frame.FLMatrix <- function(x,...)
 #' 
 #' Caution: data is fetched into R session
 #' @param x can be FLTable, FLVector or FLMatrix
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 as.matrix <- function(x, ...)
 {
 	UseMethod("as.matrix",x)
@@ -301,7 +299,6 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
 ##' @param nc number of columns in resulting FLMatrix.
 ##' nr and nc inputs are applicable only in case of vector,FLVector
 #' @return FLMatrix object after casting.
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 
 setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE,...) {
     standardGeneric("as.FLMatrix")
@@ -547,7 +544,6 @@ as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 #' @param size number of elements in resulting FLVector.
 #' size input is not applicable only in case of FLMatrix
 #' @return FLVector object after casting.
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 setGeneric("as.FLVector", function(object,connection,...) {
     standardGeneric("as.FLVector")
 })

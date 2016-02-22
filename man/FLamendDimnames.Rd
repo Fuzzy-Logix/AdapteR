@@ -16,7 +16,4 @@ the FLMatrix object, with slot dimnames re set
 If no mapping exists uses the unique row and column names.
 Dimnames 1:n are set to NULL in order to adhere to R conventions.
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

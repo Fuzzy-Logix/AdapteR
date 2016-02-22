@@ -14,7 +14,4 @@ sqlQuery(connection, query)
 \description{
 Result is returned as data.frame
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>, Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

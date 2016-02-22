@@ -491,7 +491,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "+" <- function(pObj1,pObj2)
@@ -545,7 +544,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "-" <- function(pObj1,pObj2)
@@ -599,7 +597,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "%*%" <- function(pObj1,pObj2)
@@ -656,7 +653,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %% Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "%%" <- function(pObj1,pObj2)
@@ -710,7 +706,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix * Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "*" <- function(pObj1,pObj2)
@@ -766,7 +761,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix / Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "/" <- function(pObj1,pObj2)
@@ -822,7 +816,6 @@ NULL
 #' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %/% Rvector
-##' @author  phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 
 "%/%" <- function(pObj1,pObj2)

@@ -14,7 +14,4 @@
 \description{
 No result is returned
 }
-\author{
-Gregor Kappler <g.kappler@gmx.net>
-}
 

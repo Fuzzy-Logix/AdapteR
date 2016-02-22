@@ -21,7 +21,6 @@ NULL
 #' widetable <- FLTable(connection,"FL_DEMO","tblAbaloneWide","ObsID")
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
-##' @author  Gregor Kappler <g.kappler@@gmx.net>, phani srikar <phanisrikar93ume@gmail.com>
 #' @export
 cor <- function (x,y, ...) {
 	UseMethod("cor", x)

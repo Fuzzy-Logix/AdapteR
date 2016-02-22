@@ -31,7 +31,4 @@ resultList$J
 resultList$P
 resultList$PInv
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 

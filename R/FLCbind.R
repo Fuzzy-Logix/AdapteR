@@ -18,16 +18,13 @@ NULL
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.
-##' @author Gregor Kappler <g.kappler@@gmx.net>
 #' @export
 cbind <- function (x, ...){
   UseMethod("cbind", x)
 }
 
+cbind.default <- base::cbind
 
-cbind.default <- function(object,...){
-    cbind(as.FLMatrix(object,object@connection),...)
-}
 
 #' Combine objects by columns.
 #'
@@ -39,15 +36,7 @@ cbind.default <- function(object,...){
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.
-##' @author Gregor Kappler <g.kappler@@gmx.net>
-#' @export
-cbind.FLMatrix<-function(object,...)
-{
-    objectList<-list(object,...)
-    if(all(sapply(objectList,is.FLMatrix))){
-        return(FLMatrixBind(parts=objectList,by=2))
-    }
-    stop()
-}
+cbind.FLMatrix<-function(object,...) FLbind(list(object,...),2)
+
 cbind.FLMatrixBind <- cbind.FLMatrix
 

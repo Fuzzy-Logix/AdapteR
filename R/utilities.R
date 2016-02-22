@@ -28,7 +28,6 @@ if(!exists("sqlSendUpdate")) sqlSendUpdate <- function(channel,query) UseMethod(
 #' Result is returned as data.frame
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
-##' @author Gregor Kappler <g.kappler@@gmx.net>, Phani Srikar <phanisrikar93ume@gmail.com>
 sqlQuery <- function(connection,query) UseMethod("sqlQuery",connection)
 ## gk: this made packaging fail here, as I cannot install RODBC, and
 ## then it is unknown. Can we do a package check? We need to discuss
@@ -42,7 +41,6 @@ options(debugSQL=TRUE)
 #' No result is returned
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
-##' @author Gregor Kappler <g.kappler@@gmx.net>
 sqlSendUpdate.JDBCConnection <- function(channel,query) {
     sapply(query, function(q){
         ##browser()
@@ -61,7 +59,6 @@ sqlSendUpdate.JDBCConnection <- function(channel,query) {
 #' No result is returned
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
-##' @author Phani Srikar <phanisrikar93ume@gmail.com>
 sqlSendUpdate.RODBC <- function(connection,query) {
     odbcSetAutoCommit(connection, autoCommit = FALSE)
     sapply(query, function(q){
@@ -220,7 +217,6 @@ genRandVarName <- function(){
 #'
 #' Strongly recommended to run before quitting current R session
 #' @param connection ODBC/JDBC connection object
-##' @author Gregor Kappler <g.kappler@@gmx.net>, Phani Srikar <phanisrikar93ume@gmail.com>
 FLodbcClose <- function(connection)
 {
     sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
@@ -254,7 +250,6 @@ gen_table_name <- function(prefix,suffix){
 #' @param persistent NULL if result tables are to be created as volatile tables
 #' @param drop logical to specify to drop result tables if already existing
 #' @param tableoptions options used to create result tables
-##' @author Gregor Kappler <g.kappler@@gmx.net>, Phani Srikar <phanisrikar93ume@gmail.com>
 FLStartSession <- function(connection,
                            database="FL_DEMO",
                            persistent="test",
@@ -375,7 +370,6 @@ setMethod("getMaxId",
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-#' @author Phani Srikar <phanisrikar93ume@gmail.com>
 setGeneric("getMaxMatrixId", function(vconnection,...) {
     standardGeneric("getMaxMatrixId")
 })
@@ -405,7 +399,6 @@ setMethod("getMaxMatrixId",
 #' @param vtable name of the table
 #' @param vdatabase name of the database of table
 #' @param vcolName name of the primary index column in table
-##' @author  Gregor Kappler <g.kappler@@gmx.net>
 
 getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
                         vtable=getOption("ResultVectorTableFL"),
@@ -426,7 +419,6 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-#' @author Phani Srikar <phanisrikar93ume@gmail.com>
 setGeneric("getMaxVectorId", function(vconnection,...) {
     standardGeneric("getMaxVectorId")
 })

@@ -14,7 +14,4 @@
 \description{
 No result is returned
 }
-\author{
-Phani Srikar <phanisrikar93ume@gmail.com>
-}
 
