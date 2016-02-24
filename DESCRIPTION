@@ -18,8 +18,8 @@ Depends:
     psych,
     reshape2,
     cluster,
-	methods,
-	DBI
+    methods,
+    DBI
 License: GPL-2
 LazyData: true
 Collate:
