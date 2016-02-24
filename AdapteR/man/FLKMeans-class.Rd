@@ -27,7 +27,7 @@ An S4 class to represent FLKMeans
 \section{Slots}{
 
 \describe{
-\item{\code{no_of_centers}}{A numeric vector containing the number of clusters, say k}
+\item{\code{centers}}{A numeric vector containing the number of clusters, say k}
 
 \item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
 

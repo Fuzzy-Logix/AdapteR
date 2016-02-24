@@ -4,17 +4,18 @@
 \alias{kmeans.FLTable}
 \title{K-Means Clustering.}
 \usage{
-\method{kmeans}{FLTable}(table, centers, max.iter = 10, nstart = 1,
-  exclude = as.character(c()), class_spec = list(), where_clause = "")
+\method{kmeans}{FLTable}(x, centers, iter.max = 10, nstart = 1,
+  excludeCols = as.character(c()), classSpec = list(),
+  whereconditions = "")
 }
 \arguments{
-\item{table}{an object of class FLTable}
-
 \item{centers}{the number of clusters}
 
-\item{max.iter}{the maximum number of iterations allowed}
+\item{iter.max}{the maximum number of iterations allowed}
 
 \item{nstart}{the initial number of random sets}
+
+\item{table}{an object of class FLTable}
 
 \item{exclude}{the comma separated character string of columns to be excluded}
 

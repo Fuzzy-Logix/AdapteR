@@ -4,12 +4,12 @@
 \alias{sqlSendUpdate.JDBCConnection}
 \title{Send a query to database}
 \usage{
-\method{sqlSendUpdate}{JDBCConnection}(channel, query)
+\method{sqlSendUpdate}{JDBCConnection}(connection, query)
 }
 \arguments{
-\item{channel}{JDBC connection object}
-
 \item{query}{SQLQuery to be sent}
+
+\item{channel}{JDBC connection object}
 }
 \description{
 No result is returned

@@ -21,7 +21,7 @@ sqlError <- function(e){
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate <- function(channel,query) UseMethod("sqlSendUpdate")
+sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
 #' 
@@ -43,7 +43,7 @@ options(debugSQL=TRUE)
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.JDBCConnection <- function(channel,query) {
+sqlSendUpdate.JDBCConnection <- function(connection,query) {
     sapply(query, function(q){
         ##browser()
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))

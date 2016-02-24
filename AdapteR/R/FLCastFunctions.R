@@ -676,3 +676,87 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 
     return(table[,"vectorValueColumn"])
 }
+
+#####################################################################################################################
+#' casting to FLTable
+#'
+#' Converts input \code{obj} to FLVector object
+#' @param object data frame which
+#' needs to be casted to FLTable
+#' @param connection ODBC/JDBC connection object
+#' @param ... additional arguments like size
+#' @return FLTable object after casting.
+#' @export
+setGeneric("as.FLTable", function(object,connection,...) {
+    standardGeneric("as.FLTable")
+})
+setMethod("as.FLTable", signature(object = "data.frame",
+                        connection="ANY"),
+          function(object,connection,...)
+              as.FLTable.data.frame(object,connection,...))
+
+#' @export
+as.FLTable.data.frame <- function(object,connection,tableName)
+{
+  if(missing(tableName))
+  tableName <- genRandVarName()
+  if(is.null(rownames(object)) || length(rownames(object))==0)
+  stop("please provide primary key of the table as rownames")
+  if(class(connection)=="RODBC")
+  {
+    tryCatch(RODBC::sqlSave(connection,object,tableName),
+      error=function(e){stop(e)})
+  }
+  else if(class(connection)=="JDBCConnection")
+  {
+    vcols <- ncol(object)+1
+    #t<-RJDBC::dbSendUpdate(connection,paste0("drop table ",getOption("ResultDatabaseFL"),".",tableName,";"))
+    # vcolnames <- apply(object,2,class)
+    vcolnames <- c()
+    for(i in 1:ncol(object))
+    vcolnames <- c(vcolnames,class(object[[i]]))
+    names(vcolnames) <- colnames(object)
+    object[,vcolnames=="factor"] <- as.character(object[,vcolnames=="factor"])
+    vcolnames[vcolnames=="factor"] <- "character"
+    vcolnames <- c(rownames=class(rownames(object)),vcolnames)
+    names(vcolnames) <- gsub(".","",names(vcolnames),fixed=TRUE)
+    vcolnamesCopy <- vcolnames
+    vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
+    vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "
+    vcolnamesCopy[vcolnamesCopy=="integer"] <- " INT "
+    if(!all(vcolnamesCopy %in% c(" VARCHAR(255) "," INT "," FLOAT "))==TRUE)
+    stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
+    vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
+    t<-RJDBC::dbSendUpdate(connection,paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");"))
+    if(!is.null(t)) stop(paste0("colnames unconvenional or ",t))
+    .jcall(connection@jc,"V","setAutoCommit",FALSE)
+    sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
+    ps = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
+    myinsert <- function(namedvector,x){
+                  vsetvector <- c()
+                  vsetvector[" VARCHAR(255) "] <- "setString"
+                  vsetvector[" FLOAT "] <- "setFloat"
+                  vsetvector[" INT "] <- "setInt"
+                  for(i in 1:length(namedvector))
+                  {
+                    .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
+                      if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
+                      else if(namedvector[i]==" FLOAT ") .jfloat(x[i])
+                      else as.integer(x[i]))
+                  }
+                  .jcall(ps,"V","addBatch")
+                }
+    # apply(object,1,function(x) myinsert(vcolnamesCopy,x))
+    object <- cbind(rownames=rownames(object),object)
+    for( i in 1:nrow(object)) myinsert(vcolnamesCopy,object[i,])
+    .jcall(ps,"[I","executeBatch")
+    RJDBC::dbCommit(connection)
+    .jcall(connection@jc,"V","setAutoCommit",TRUE)
+  }
+
+  return(FLTable(connection,
+                  getOption("ResultDatabaseFL"),
+                  tableName,
+                  "rownames"
+                  ))
+}
