@@ -38,7 +38,8 @@ setClass(
 		table="FLTable",
 		results ="list",
 		deeptable="FLTable",
-		nstart="numeric"
+		nstart="numeric",
+		mapTable="character"
 	)
 )
 #' @export
@@ -70,8 +71,7 @@ kmeans.default <- stats::kmeans
 #' None
 #' @return \code{kmeans} performs k-means clustering and replicates equivalent R output.
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
+#' connection <- RODBC::odbcConnect("Gandalf")
 #' widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
 #' kmeansobject <- kmeans(widetable,3,20,2,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' print(kmeansobject)
@@ -111,6 +111,7 @@ kmeans.FLTable<-function(x,
 
     connection <- getConnection(x)
     wideToDeepAnalysisId <- ""
+    mapTable <- ""
 	
 	if(!x@isDeep){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
@@ -120,6 +121,18 @@ kmeans.FLTable<-function(x,
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
 		whereconditions <- ""
+		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+					gen_wide_table_name("map"))
+
+		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( 
+			    	     SELECT a.Final_VarID AS VarID,
+			    	     	    a.COLUMN_NAME AS ColumnName,
+			    	     	    a.FROM_TABLE AS MapName 
+			    	     FROM fzzlRegrDataPrepMap a 
+			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
+			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
+		
+		sqlSendUpdate(connection,sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
@@ -185,7 +198,8 @@ kmeans.FLTable<-function(x,
 		table=x,
 		results=list(),
 		deeptable=deepx,
-		nstart = nstart
+		nstart = nstart,
+		mapTable=mapTable
 	)
 }
 
@@ -591,28 +605,13 @@ plot.FLKMeans <- function(object)
 	obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 	var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 	cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-	#widetable <- gen_wide_table_name(paste0(object@table@table_name,"new"))
+	widetable <- gen_wide_table_name("new")
 	#widetable <- "tempuniquewide12345678"
-	widetable <- genRandVarName()
 	if(!object@table@isDeep)
 	{
-		#maptable <- gen_wide_table_name(paste0(object@table@table_name,"map"))
-		#maptable <- "tempmapuniquewide12345678"
-		maptable <- genRandVarName()
-		connection <- getConnection(object@table)
-
-		sqlstr <- paste0(" CREATE TABLE ",maptable," AS ( 
-			    	     SELECT a.Final_VarID AS VarID,
-			    	     	    a.COLUMN_NAME AS ColumnName,
-			    	     	    a.FROM_TABLE AS MapName 
-			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",object@wideToDeepAnalysisId,"' 
-			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
-		
-		sqlSendUpdate(connection,sqlstr)
 		widex <- deepToWide(object@deeptable,
 							whereconditions="",
-							mapTable= maptable,
+							mapTable= object@mapTable,
 							mapName = paste0(object@table@select@database,".",object@table@select@table_name),
 							outWideTableDatabase=getOption("ResultDatabaseFL"),
                     		outWideTableName=widetable)
