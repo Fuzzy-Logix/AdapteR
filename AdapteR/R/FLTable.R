@@ -165,8 +165,8 @@ setMethod("wideToDeep",
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             if(outDeepTableName == "")
-            deeptablename <- gen_deep_table_name(object@select@table_name)
-            #deeptablename <- genRandVarName()
+            #deeptablename <- gen_deep_table_name(object@select@table_name)
+            deeptablename <- genRandVarName()
             else deeptablename <- outDeepTableName
             if(outDeepTableDatabase == "")
             outDeepTableDatabase <- getOption("ResultDatabaseFL")

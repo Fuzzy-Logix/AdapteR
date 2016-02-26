@@ -37,8 +37,7 @@ The wrapper overloads kmeans and implicitly calls FLKMeans.
 None
 }
 \examples{
-library(RODBC)
-connection <- odbcConnect("Gandalf")
+connection <- RODBC::odbcConnect("Gandalf")
 widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
 kmeansobject <- kmeans(widetable,3,20,2,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 print(kmeansobject)
