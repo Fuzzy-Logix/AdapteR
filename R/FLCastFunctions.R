@@ -224,7 +224,7 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
         mwide <- as(mwide,"dgTMatrix")
         mdeep <- Matrix::summary(mwide)
         ## check for empty rows or columns
-        ## and add 0 at diagonal
+        ## and add a 0
         fillEmptyDims <- function(mdeep,dims)
         {
           i<-setdiff(1:dims[1],mdeep$i)
@@ -248,8 +248,11 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
         remoteTable <- getRemoteTableName(
             getOption("ResultDatabaseFL"),
             getOption("ResultMatrixTableFL"))
-        analysisID <- paste0("AdapteR",remoteTable,MID)
-        sqlstatements <-
+
+        #analysisID <- paste0("AdapteR",remoteTable,MID)
+        if(class(connection)=="RODBC")
+        {
+          sqlstatements <-
             base::apply(mdeep,1,
                         function(r)
                             paste0(" INSERT INTO ",
@@ -261,6 +264,14 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
         retobj<-sqlSendUpdate(connection,
                               paste(sqlstatements,
                                     collapse="\n"))
+        }
+        else if(class(connection)=="JDBCConnection")
+        {
+          mdeep <- base::cbind(MATRIX_ID=as.integer(MID),mdeep)
+          mdeep <- as.data.frame(mdeep)
+          colnames(mdeep) <- c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
+          t <- as.FLTable.data.frame(mdeep,connection,getOption("ResultMatrixTableFL"),1,drop=FALSE)
+        }
         mydimnames <- dimnames(object)
         mydims <- dim(object)
         ##print(mydimnames)
@@ -592,18 +603,26 @@ as.FLVector.vector <- function(object,connection)
   stop("only numeric entries allowed in vector")
   flag3Check(connection)
   VID <- getMaxVectorId(connection)
-  sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
+
+  if(class(connection)=="RODBC")
+  {
+    sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
            getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultVectorTableFL")),
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
                      object[x]," AS vectorValueColumn;"
                    ))
-
-  retobj<-sqlSendUpdate(connection,
+    retobj<-sqlSendUpdate(connection,
                               paste(sqlstr,
                                     collapse="\n"))
-
-  #max_vector_id_value <<- max_vector_id_value + 1
+  }
+  else if(class(connection)=="JDBCConnection")
+  {
+    vdataframe <- data.frame(vectorIdColumn=as.integer(VID),
+                            vectorIndexColumn=as.integer(1:length(object)),
+                            vectorValueColumn=as.numeric(object))
+    t <- as.FLTable.data.frame(vdataframe,connection,getOption("ResultVectorTableFL"),1,drop=FALSE)
+  }
 
   table <- FLTable(connection,
                  getOption("ResultDatabaseFL"),
@@ -696,29 +715,42 @@ setMethod("as.FLTable", signature(object = "data.frame",
               as.FLTable.data.frame(object,connection,...))
 
 #' @export
-as.FLTable.data.frame <- function(object,connection,tableName)
+as.FLTable.data.frame <- function(object,connection,tableName,uniqueIdColumn=0,drop=TRUE)
 {
   if(missing(tableName))
   tableName <- genRandVarName()
-  if(is.null(rownames(object)) || length(rownames(object))==0)
-  stop("please provide primary key of the table as rownames")
+  if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
+  stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
+  if(uniqueIdColumn==0)
+  {
+    object <- base::cbind(rownames=rownames(object),object)
+    obsIdColname <- "rownames"
+  }
+  else if(is.numeric(uniqueIdColumn))
+  {
+    uniqueIdColumn <- as.integer(uniqueIdColumn)
+    if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
+    stop("uniqueIdColumn is out of bounds")
+    else
+    obsIdColname <- colnames(object)[uniqueIdColumn]
+  }
   if(class(connection)=="RODBC")
   {
-    tryCatch(RODBC::sqlSave(connection,object,tableName),
+    tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE,safer=drop),
       error=function(e){stop(e)})
   }
   else if(class(connection)=="JDBCConnection")
   {
-    vcols <- ncol(object)+1
-    #t<-RJDBC::dbSendUpdate(connection,paste0("drop table ",getOption("ResultDatabaseFL"),".",tableName,";"))
-    # vcolnames <- apply(object,2,class)
+    vcols <- ncol(object)
+    #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()
-    for(i in 1:ncol(object))
+    for(i in 1:vcols)
     vcolnames <- c(vcolnames,class(object[[i]]))
     names(vcolnames) <- colnames(object)
-    object[,vcolnames=="factor"] <- as.character(object[,vcolnames=="factor"])
+    # Changing any factors to characters
+    object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
-    vcolnames <- c(rownames=class(rownames(object)),vcolnames)
+    # Removing "." if any from colnames
     names(vcolnames) <- gsub(".","",names(vcolnames),fixed=TRUE)
     vcolnamesCopy <- vcolnames
     vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
@@ -726,9 +758,16 @@ as.FLTable.data.frame <- function(object,connection,tableName)
     vcolnamesCopy[vcolnamesCopy=="integer"] <- " INT "
     if(!all(vcolnamesCopy %in% c(" VARCHAR(255) "," INT "," FLOAT "))==TRUE)
     stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
-    vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
-    t<-RJDBC::dbSendUpdate(connection,paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");"))
-    if(!is.null(t)) stop(paste0("colnames unconvenional or ",t))
+
+    if(drop)
+    {
+      if(RJDBC::dbExistsTable(connection,tableName))
+      t<-sqlSendUpdate(connection,paste0("drop table ",getOption("ResultDatabaseFL"),".",tableName,";"))
+      vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
+      t<-RJDBC::dbSendUpdate(connection,paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");"))
+      if(!is.null(t)) stop(paste0("colnames unconvenional. Error Mssg is:-",t))
+    }
+    
     .jcall(connection@jc,"V","setAutoCommit",FALSE)
     sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
     ps = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
@@ -746,10 +785,10 @@ as.FLTable.data.frame <- function(object,connection,tableName)
                   }
                   .jcall(ps,"V","addBatch")
                 }
-    # apply(object,1,function(x) myinsert(vcolnamesCopy,x))
-    object <- cbind(rownames=rownames(object),object)
-    for( i in 1:nrow(object)) myinsert(vcolnamesCopy,object[i,])
-    .jcall(ps,"[I","executeBatch")
+    apply(object,1,function(x) myinsert(vcolnamesCopy,x))
+    #for( i in 1:nrow(object)) myinsert(vcolnamesCopy,object[i,])
+    tryCatch(.jcall(ps,"[I","executeBatch"),
+      error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
     RJDBC::dbCommit(connection)
     .jcall(connection@jc,"V","setAutoCommit",TRUE)
   }
@@ -757,6 +796,6 @@ as.FLTable.data.frame <- function(object,connection,tableName)
   return(FLTable(connection,
                   getOption("ResultDatabaseFL"),
                   tableName,
-                  "rownames"
+                  obsIdColname
                   ))
 }
