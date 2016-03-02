@@ -23,8 +23,8 @@ of input FLMatrix object and replicates the equivalent R output.
 Input can only be with maximum dimension limitations of (500 x 500).
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", 
 "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- ginv(flmatrix)
 }

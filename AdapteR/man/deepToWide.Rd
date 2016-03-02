@@ -28,8 +28,8 @@ deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
 Convert Deep Table to Wide Table
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-deeptable  <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+connection <- flConnect(odbcSource="Gandalf")
+deeptable  <- FLTable( "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
 resultList <- deepToWide(deeptable)
 widetable <- resultList$table
 analysisID <- resultList$AnalysisID

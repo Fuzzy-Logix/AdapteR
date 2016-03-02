@@ -44,7 +44,7 @@ store.FLVector <- function(object)
   if(length(colnames(object))>1 && object@isDeep==FALSE)
   {
     object <- as.vector(object)
-    return(as.FLVector(object,connection))
+    return(as.FLVector(object))
   }
   vSqlStr <- paste0(" INSERT INTO ",
                     getRemoteTableName(getOption("ResultDatabaseFL"),
@@ -55,8 +55,7 @@ store.FLVector <- function(object)
   sqlSendUpdate(getConnection(object),
                   vSqlStr)
 
-  table <- FLTable(getConnection(object),
-                   getOption("ResultDatabaseFL"),
+  table <- FLTable(getOption("ResultDatabaseFL"),
                    getOption("ResultVectorTableFL"),
                    "vectorIndexColumn",
                    whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
@@ -79,7 +78,7 @@ store.FLTable <- function(object)
                   vSqlStr)
 
   if(object@isDeep)
-  table <- FLTable(connection,
+  table <- FLTable(
                    getOption("ResultDatabaseFL"),
                    table_name,
                    "obs_id_colname",
@@ -87,7 +86,7 @@ store.FLTable <- function(object)
                    "cell_val_colname"
                   )
   else
-  table <- FLTable(connection,
+  table <- FLTable(
                    getOption("ResultDatabaseFL"),
                    table_name,
                    "obs_id_colname"
@@ -137,7 +136,7 @@ store.character <- function(object,returnType,connection)
     sqlSendUpdate(connection,
                   vSqlStr)
 
-    table <- FLTable(connection,
+    table <- FLTable(
                  getOption("ResultDatabaseFL"),
                  getOption("ResultVectorTableFL"),
                  "VECTOR_INDEX",

@@ -18,8 +18,8 @@ rowSums(object, ...)
 \code{rowSums} computes the row-wise sums of FLMatrix objects.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", 
 resultFLVector <- rowSums(flmatrix)
 }
 

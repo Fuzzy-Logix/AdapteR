@@ -38,7 +38,7 @@ updateVariable <- function(P,varName,value){
                           paste0(as.character(value),".",
                                  as.character(P@variables[[varName]])))
         P@variables[[varName]] <- value
-        cat(paste0("setting var ",varName,"=",value,"\n"))
+        ##cat(paste0("setting var ",varName,"=",value,"\n"))
     }
     if("parts" %in% slotNames(P))
         P@parts <- llply(P@parts, updateVariable,
@@ -131,7 +131,7 @@ setMethod("getConnection",
           function(object) getConnection(object@parts[[1]]))
 
 setMethod("store",
-          signature(object = "FLMatrixBind",returnType="missing",connection="missing"),
+          signature(object = "FLMatrixBind",returnType="missing"),
           function(object) store.FLMatrix(object))
 
 

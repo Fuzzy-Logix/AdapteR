@@ -14,8 +14,8 @@ NULL
 #' @param ... any additional arguments
 #' @return \code{rowSums} returns a FLVector object representing the row-wise sums.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #" tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- rowSums(flmatrix)
 #' @export

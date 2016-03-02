@@ -13,6 +13,7 @@ setOldClass("RODBC")
 #' @slot variables list Named list of variables for the table query: values are rownames, names (keys) are result column names.
 #' @slot whereconditions character vector of strings restricting the select query (if any)
 #' @slot order character ordering statements (if any)
+#' @export
 setClass("FLTableQuery",
          slots=list(
              connection = "ANY",
@@ -26,6 +27,7 @@ setClass("FLTableQuery",
 ##'
 ##' @slot database character the database of the table
 ##' @slot table_name character the name oth the table to select from
+##' @export
 setClass("FLSelectFrom",
          contains="FLTableQuery",
          slots=list(
@@ -36,6 +38,7 @@ setClass("FLSelectFrom",
 ##' A TableFunctionQuery models a select from an arbitrary query
 ##'
 ##' @slot SQLquery character The free SQL query returning a table.
+##' @export
 setClass("FLTableFunctionQuery",
          contains="FLTableQuery",
          slots=list(
@@ -48,6 +51,7 @@ setClass("FLTableFunctionQuery",
 ##'
 ##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
 ##' @slot dim list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R
+##' @export
 setClass(
     "FLMatrix",
     slots = list(
@@ -65,6 +69,7 @@ setClass(
 #' @slot isDeep logical (currently ignored)
 #' @method names FLTable
 #' @param object retrieves the column names of FLTable object
+#' @export
 setClass(
     "FLTable",
     slots = list(
@@ -76,6 +81,7 @@ setClass(
 
 #' An S4 class to represent FLVector
 #'
+#' @export
 setClass(
     "FLVector",
     slots = list(
@@ -92,30 +98,30 @@ setClass(
 ##' @param connection ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query
 ##' @return in-database object after storing
 #' @export
-setGeneric("store", function(object,returnType,connection,...) {
+setGeneric("store", function(object,returnType,...) {
     standardGeneric("store")
 })
 setMethod("store",
-          signature(object = "FLMatrix",returnType="missing",connection="missing"),
+          signature(object = "FLMatrix",returnType="missing"),
           function(object,...) store.FLMatrix(object))
 setMethod("store",
-          signature(object = "FLVector",returnType="missing",connection="missing"),
+          signature(object = "FLVector",returnType="missing"),
           function(object,...) store.FLVector(object))
 setMethod("store",
-          signature(object = "FLTable",returnType="missing",connection="missing"),
+          signature(object = "FLTable",returnType="missing"),
           function(object,...) store.FLTable(object))
 setMethod("store",
-          signature(object = "character",returnType="character",connection="RODBC"),
-          function(object,returnType,connection,...) store.character(object,returnType,connection))
+          signature(object = "character",returnType="character"),
+          function(object,returnType,...) store.character(object,returnType,...))
 setMethod("store",
-          signature(object = "character",returnType="character",connection="JDBCConnection"),
-          function(object,returnType,connection,...) store.character(object,returnType,connection))
+          signature(object = "character",returnType="character"),
+          function(object,returnType,...) store.character(object,returnType,...))
 
 ##' drop a table
 ##' 
 ##' @param object FLTable object 
 ##' @return message if the table is dropped
-#' @export
+##' @export
 drop.FLTable <- function(object)
 {
     names(object@table_name) <- NULL
@@ -423,13 +429,12 @@ FLamendDimnames <- function(flm,map_table) {
 #' @return \code{FLMatrix} returns an object of class FLMatrix mapped
 #' to an in-database matrix.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti",
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", "tblMatrixMulti",
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
-FLMatrix <- function(connection,
-                     database=getOption("ResultDatabaseFL"),
+FLMatrix <- function(database=getOption("ResultDatabaseFL"),
                      table_name,
                      matrix_id_value = "",
                      matrix_id_colname = "",
@@ -440,7 +445,8 @@ FLMatrix <- function(connection,
                      dimnames = NULL,
                      conditionDims=c(FALSE,FALSE),
                      whereconditions=c(""),
-                     map_table=NULL){
+                     map_table=NULL,
+                     connection=getOption("connectionFL")){
     mConstraint <-
         equalityConstraint(
             paste0("mtrx.",matrix_id_colname),
@@ -522,6 +528,7 @@ equalityConstraint <- function(tableColName,constantValue){
 setGeneric("getConnection", function(object) {
     standardGeneric("getConnection")
 })
+setMethod("getConnection", signature(object = "ANY"), function(object) getOption("connectionFL"))
 setMethod("getConnection", signature(object = "FLMatrix"),
           function(object) object@select@connection)
 setMethod("getConnection", signature(object = "FLTable"),

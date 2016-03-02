@@ -57,6 +57,7 @@ as.data.frame.FLTable <- function(x, ...){
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
     names(D) <- toupper(names(D))
     D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
+    ##browser()
     if(x@isDeep) {
         D <- reshape2::dcast(D, paste0(toupper("obs_id_colname"),
                              " ~ ",
@@ -211,8 +212,11 @@ storeVarnameMapping <- function(connection,
 ###############################################################################################################
 
 #' @export
-as.FLMatrix.Matrix <- function(object,connection,...) {
+as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
     ##browser()
+    if(!is.logical(sparse)) stop("sparse must be logical")
+    if(is.null(connection)) connection <- getConnection(object)
+    ##print(connection)
     if((is.matrix(object) && !is.numeric(object)) || (is.data.frame(object) && !is.numeric(as.matrix(object))))
     {
         stop("ERROR: ONLY NUMERIC ENTRIES ALLOWED IN FLMATRIX")
@@ -316,90 +320,81 @@ as.FLMatrix.Matrix <- function(object,connection,...) {
 #' @return FLMatrix object after casting.
 #' @export
 
-setGeneric("as.FLMatrix", function(object,connection,sparse=TRUE,...) {
+setGeneric("as.FLMatrix", function(object,sparse=TRUE,...) {
     standardGeneric("as.FLMatrix")
 })
 setMethod("as.FLMatrix", signature(object = "matrix",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "matrix",
-                                   connection="ANY",
+                                   sparse="JDBCConnection"),
+          function(object,sparse){
+              warning("remove connection from cast")
+              stop()
+              as.FLMatrix.Matrix(object,connection=sparse)
+              })
+setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="logical"),
-          function(object,connection,sparse)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dgeMatrix",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dgeMatrix",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dgCMatrix",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dgCMatrix",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dgTMatrix",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dgTMatrix",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dsCMatrix",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "dsCMatrix",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.Matrix(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 ###########################################################################
 setMethod("as.FLMatrix", signature(object = "vector",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.vector(object,connection,sparse,rows,cols,...))
+          function(object,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.vector(object,sparse,rows,cols,...))
 setMethod("as.FLMatrix", signature(object = "vector",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.vector(object,connection,sparse=TRUE,rows,cols,...))
+          function(object,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.vector(object,sparse=TRUE,rows,cols,...))
 setMethod("as.FLMatrix", signature(object = "data.frame",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.data.frame(object,connection,sparse))
+          function(object,sparse=TRUE)
+              as.FLMatrix.data.frame(object,sparse=sparse))
 setMethod("as.FLMatrix", signature(object = "data.frame",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE)
-              as.FLMatrix.data.frame(object,connection,sparse=TRUE))
+          function(object,sparse=TRUE)
+              as.FLMatrix.data.frame(object,sparse=TRUE))
 setMethod("as.FLMatrix", signature(object = "FLVector",
-                                   connection="ANY",
                                    sparse="logical"),
-          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.FLVector(object,connection=getConnection(object),sparse,rows,cols,...))
+          function(object,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.FLVector(object,rows,cols,...))
 setMethod("as.FLMatrix", signature(object = "FLVector",
-                                   connection="ANY",
                                    sparse="missing"),
-          function(object,connection,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.FLVector(object,connection=getConnection(object),sparse=TRUE,rows,cols,...))
+          function(object,sparse=TRUE,rows=length(object),cols=1,...)
+              as.FLMatrix.FLVector(object,sparse=TRUE,rows,cols,...))
 
 
 #' @export
@@ -439,8 +434,9 @@ as.sparseMatrix.FLMatrix <- function(object) {
 }
 
 #' @export
-as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=TRUE,rows=length(object),cols=1)
+as.FLMatrix.FLVector <- function(object,sparse=TRUE,rows=length(object),cols=1,connection=NULL)
 {
+    if(is.null(connection)) connection <- getConnection(object)
   if(rows==length(object) && cols==1)
   {
     if(class(object@select)=="FLTableFunctionQuery" || ncol(object)>1)
@@ -517,7 +513,6 @@ as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=
   sqlstr <- ""
   
    return(FLMatrix(
-            connection = connection,
             database = getOption("ResultDatabaseFL"),
             table_name = getOption("ResultMatrixTableFL"),
             map_table = NULL,
@@ -525,22 +520,30 @@ as.FLMatrix.FLVector <- function(object,connection=getConnection(object),sparse=
             matrix_id_colname = "MATRIX_ID",
             row_id_colname = "rowIdColumn",
             col_id_colname = "colIdColumn",
-            cell_val_colname = "valueColumn"
+            cell_val_colname = "valueColumn",
+            connection = connection
             ))
 }
 
 #' @export
-as.FLMatrix.vector <- function(object,connection,sparse=TRUE,rows=length(object),cols=1)
+as.FLMatrix.vector <- function(object,
+                               sparse=TRUE,
+                               rows=length(object),
+                               cols=1,
+                               connection=NULL
+                               )
 {
   temp_m <- Matrix::Matrix(object,rows,cols,sparse=TRUE)
-  return(as.FLMatrix(temp_m,connection))
+  return(as.FLMatrix(temp_m))
 }
 
 #' @export
-as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
+as.FLMatrix.data.frame <- function(object,
+                                   sparse=TRUE,
+                                   connection=NULL)
 {
   temp_m <- Matrix::Matrix(as.matrix(object),sparse=TRUE)
-  return(as.FLMatrix(temp_m,connection))
+  return(as.FLMatrix(temp_m))
 }
 
 
@@ -556,48 +559,39 @@ as.FLMatrix.data.frame <- function(object,connection,sparse=TRUE)
 #' size input is not applicable only in case of FLMatrix
 #' @return FLVector object after casting.
 #' @export
-setGeneric("as.FLVector", function(object,connection,...) {
+setGeneric("as.FLVector", function(object,...) {
     standardGeneric("as.FLVector")
 })
-setMethod("as.FLVector", signature(object = "vector",
-                        connection="ANY"),
+setMethod("as.FLVector", signature(object = "vector"),
           function(object,connection)
-              as.FLVector.vector(object,connection))
-setMethod("as.FLVector", signature(object = "matrix",
-                        connection="ANY"),
+              as.FLVector.vector(object))
+setMethod("as.FLVector", signature(object = "matrix"),
           function(object,connection)
-              as.FLVector.vector(object,connection))
-setMethod("as.FLVector", signature(object = "dgeMatrix",
-                        connection="ANY"),
+              as.FLVector.vector(object))
+setMethod("as.FLVector", signature(object = "dgeMatrix"),
           function(object,connection)
-              as.FLVector.vector(object,connection))
-setMethod("as.FLVector", signature(object = "dgCMatrix",
-                        connection="ANY"),
+              as.FLVector.vector(object))
+setMethod("as.FLVector", signature(object = "dgCMatrix"),
           function(object,connection)
-              as.FLVector.vector(object,connection))
-setMethod("as.FLVector", signature(object = "dsCMatrix",
-                        connection="ANY"),
+              as.FLVector.vector(object))
+setMethod("as.FLVector", signature(object = "dsCMatrix"),
           function(object,connection)
-              as.FLVector.vector(object,connection))
-setMethod("as.FLVector", signature(object = "dgTMatrix",
-                        connection="ANY"),
+              as.FLVector.vector(object))
+setMethod("as.FLVector", signature(object = "dgTMatrix"),
           function(object,connection)
-              as.FLVector.vector(object,connection))
-setMethod("as.FLVector", signature(object = "data.frame",
-                                   connection="ANY"),
+              as.FLVector.vector(object))
+setMethod("as.FLVector", signature(object = "data.frame"),
           function(object,connection)
-              as.FLVector.vector(as.matrix(object),connection))
-setMethod("as.FLVector", signature(object = "FLMatrix",
-                                   connection="ANY"),
+              as.FLVector.vector(as.matrix(object)))
+setMethod("as.FLVector", signature(object = "FLMatrix"),
           function(object,connection)
-              as.FLVector.FLMatrix(object,connection))
-setMethod("as.FLVector", signature(object = "FLMatrix",
-                                   connection="missing"),
-          function(object,connection=getConnection(object))
-              as.FLVector.FLMatrix(object,connection=getConnection(object)))
+              as.FLVector.FLMatrix(object))
+setMethod("as.FLVector", signature(object = "FLMatrix"),
+          function(object)
+              as.FLVector.FLMatrix(object))
 
 #' @export
-as.FLVector.vector <- function(object,connection)
+as.FLVector.vector <- function(object,connection=getConnection(object))
 {
   if(!is.numeric(object))
   stop("only numeric entries allowed in vector")
@@ -624,12 +618,11 @@ as.FLVector.vector <- function(object,connection)
     t <- as.FLTable.data.frame(vdataframe,connection,getOption("ResultVectorTableFL"),1,drop=FALSE)
   }
 
-  table <- FLTable(connection,
-                 getOption("ResultDatabaseFL"),
-                 getOption("ResultVectorTableFL"),
-                 "vectorIndexColumn",
-                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
-                 )
+  table <- FLTable(getOption("ResultDatabaseFL"),
+                   getOption("ResultVectorTableFL"),
+                   "vectorIndexColumn",
+                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
+                   )
 
   return(table[,"vectorValueColumn"])
 }
@@ -706,17 +699,19 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 #' @param ... additional arguments like size
 #' @return FLTable object after casting.
 #' @export
-setGeneric("as.FLTable", function(object,connection,...) {
+setGeneric("as.FLTable", function(object,...) {
     standardGeneric("as.FLTable")
 })
-setMethod("as.FLTable", signature(object = "data.frame",
-                        connection="ANY"),
-          function(object,connection,...)
-              as.FLTable.data.frame(object,connection,...))
+setMethod("as.FLTable", signature(object = "data.frame"),
+          function(object,...)
+              as.FLTable.data.frame(object,...))
 
 #' @export
-as.FLTable.data.frame <- function(object,connection,tableName,uniqueIdColumn=0,drop=TRUE)
-{
+as.FLTable.data.frame <- function(object,
+                                  connection=getConnection(object),
+                                  tableName,
+                                  uniqueIdColumn=0,
+                                  drop=TRUE){
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -793,8 +788,7 @@ as.FLTable.data.frame <- function(object,connection,tableName,uniqueIdColumn=0,d
     .jcall(connection@jc,"V","setAutoCommit",TRUE)
   }
 
-  return(FLTable(connection,
-                  getOption("ResultDatabaseFL"),
+  return(FLTable(getOption("ResultDatabaseFL"),
                   tableName,
                   obsIdColname
                   ))

@@ -17,7 +17,7 @@ NULL
 #' or integer index of the column
 #' @return list of results from each subset
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
+#' connection <- flConnect(odbcSource="Gandalf")
 #' resultList <- FLCApply(irisfl,function(x)kmeans(x,3),"Species")
 #' print(resultList$setosa)
 #' plot(resultList$virginica)

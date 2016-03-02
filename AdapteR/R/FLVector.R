@@ -1,4 +1,5 @@
 #' @include utilities.R
+#' @include utilities.R
 #' @include FLMatrix.R
 #' @include FLTable.R
 NULL
@@ -10,8 +11,8 @@ NULL
 #' @return \code{FLVector} returns an object of class FLVector mapped to an in-database vector.
 #' @seealso \code{\link{FLTable}}
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' WideTable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide","ObsID")
+#' connection <- flConnect(odbcSource="Gandalf")
+#' WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
 #' flvectorColumn <- WideTable[,"Diameter"]
 #' flvectorRow <- WideTable[3,]
 #' flvectorRow

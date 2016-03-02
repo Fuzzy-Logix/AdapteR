@@ -4,15 +4,15 @@
 \alias{as.FLVector}
 \title{casting to FLVector}
 \usage{
-as.FLVector(object, connection, ...)
+as.FLVector(object, ...)
 }
 \arguments{
 \item{object}{matrix, vector, data frame, sparseMatrix, FLMatrix which
 needs to be casted to FLVector}
 
-\item{connection}{ODBC/JDBC connection object}
-
 \item{...}{additional arguments like size}
+
+\item{connection}{ODBC/JDBC connection object}
 
 \item{size}{number of elements in resulting FLVector.
 size input is not applicable only in case of FLMatrix}

@@ -4,7 +4,7 @@
 \alias{store}
 \title{stores an object in database}
 \usage{
-store(object, returnType, connection, ...)
+store(object, returnType, ...)
 }
 \arguments{
 \item{object}{the object to store. Can be FLMatrix, FLVector, FLTable, character}

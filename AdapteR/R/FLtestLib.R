@@ -1,26 +1,68 @@
-require(testthat)
+#' @importMethodsFrom testthat expect_equal
+#' @export
+setGeneric("FLexpect_equal",
+           function(object,expected,...)
+               standardGeneric("FLexpect_equal"))
+setMethod("FLexpect_equal",
+          signature(object="FLMatrix",expected="ANY"),
+          function(object,expected,...)
+              testthat::expect_equal(as.matrix(object),
+                                     expected,...))
+setMethod("FLexpect_equal",
+          signature(object="FLMatrix",expected="FLMatrix"),
+          function(object,expected,...)
+              testthat::expect_equal(as.matrix(object),
+                                     as.matrix(expected),...))
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLMatrix"),
+          function(object,expected,...)
+              testthat::expect_equal(object,
+                                     as.matrix(expected),...))
+setMethod("FLexpect_equal",
+          signature(object="FLVector",expected="vector"),
+          function(object,expected,...)
+              testthat::expect_equal(as.vector(object),
+                                     expected,...))
+setMethod("FLexpect_equal",
+          signature(object="FLVector",expected="FLVector"),
+          function(object,expected,...)
+              testthat::expect_equal(as.vector(object),
+                                     as.vector(expected),...))
+setMethod("FLexpect_equal",signature(object="list",expected="list"),
+          function(object,expected,...)
+              llply(names(object),
+                    function(i)
+                        FLexpect_equal(object[[i]],
+                                       expected[[i]],...)))
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="ANY"),
+          function(object,expected,...)
+              testthat::expect_equal(object,
+                                     expected,...))
 
+#' @export
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
   I <- initF(...)
-    expect_equal(FLcomputationF(I$FL),
+    FLexpect_equal(FLcomputationF(I$FL),
                  RcomputationF(I$R),
                  check.attributes=FALSE)
 }
 
+#' @export
 expect_flequal <- function(a,b,...){
     if(is.list(a))
         for(i in 1:length(a))
             expect_flequal(a[[i]],b[[i]],...)
 
-    expect_equal(a,b,...)
+    FLexpect_equal(a,b,...)
 }
 
 ## Increase n for increasing length of FLVector.
 ## If isRowVec=TRUE, rowVector(one observation of all columns) is returned.
 initF.FLVector <- function(n,isRowVec=FALSE)
 {
-  sqlSendUpdate(connection,
+  sqlSendUpdate(getConnection(NULL),
                       c(paste0("DROP TABLE FL_DEMO.test_vectortable_AdapteR;"),
                         paste0("CREATE TABLE FL_DEMO.test_vectortable_AdapteR 
                           AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
@@ -28,7 +70,7 @@ initF.FLVector <- function(n,isRowVec=FALSE)
                           FROM FL_DEMO.fzzlserial a 
                           WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
 
-  table <- FLTable(connection,
+  table <- FLTable(connection=getConnection(NULL),
                  "FL_DEMO",
                  "test_vectortable_AdapteR",
                  "VECTOR_INDEX",
@@ -48,28 +90,29 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 ## Returns n*n or n*(n-1) based on isSquare.
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
-  sqlSendUpdate(connection,
+  sqlSendUpdate(getConnection(NULL),
                       c(paste0("DROP TABLE FL_DEMO.test_matrixtable_AdapteR;"),
                         paste0("CREATE TABLE FL_DEMO.test_matrixtable_AdapteR 
                           AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
                             b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
                           FROM FL_DEMO.fzzlserial a,FL_DEMO.fzzlserial b
                           WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
-  flm <- FLMatrix(connection,
-              database          = "FL_DEMO",
-              table_name = "test_matrixtable_AdapteR",
-              matrix_id_value   = 1,
-              matrix_id_colname = "Matrix_ID",
-              row_id_colname    = "Row_ID",
-              col_id_colname    = "Col_ID",
-              cell_val_colname  = "Cell_Val")
+  flm <- FLMatrix(
+      database          = "FL_DEMO",
+      table_name = "test_matrixtable_AdapteR",
+      matrix_id_value   = 1,
+      matrix_id_colname = "Matrix_ID",
+      row_id_colname    = "Row_ID",
+      col_id_colname    = "Col_ID",
+      cell_val_colname  = "Cell_Val",
+      connection=getConnection(NULL))
   Rmatrix <- as.matrix(flm)
   return(list(FL=flm,R=Rmatrix))
 }
 
 initF.FLTable <- function(rows,cols)
 {
-  WideTable <- FLTable(connection, 
+  WideTable <- FLTable(connection=getConnection(NULL),
                       "FL_DEMO",
                       "fzzlserial",
                       "serialval",
@@ -79,29 +122,6 @@ initF.FLTable <- function(rows,cols)
 
 
 
-setMethod("expect_equal",signature("FLMatrix","matrix"),
-          function(object,expected,...) expect_equal(as.matrix(object),expected,...))
-setMethod("expect_equal",signature("FLMatrix","FLMatrix"),
-          function(object,expected,...) expect_equal(as.matrix(object),as.matrix(expected),...))
-setMethod("expect_equal",signature("dgCMatrix","FLMatrix"),
-          function(object,expected,...) expect_equal(object,as.matrix(expected),...))
-
-setMethod("expect_equal",signature("FLVector","vector"),
-          function(object,expected,...) expect_equal(as.vector(object),expected,...))
-setMethod("expect_equal",signature("FLVector","FLVector"),
-          function(object,expected,...) expect_equal(as.vector(object),as.vector(expected),...))
-setMethod("expect_equal",signature("matrix","matrix"),
-          function(object,expected,...) testthat::expect_equal(as.vector(object),as.vector(expected),...))
-
-setMethod("expect_equal",signature("list","list"),
-          function(object,expected,...)
-              llply(names(object),
-                    function(i)
-                        expect_equal(object[[i]],expected[[i]],...)))
-
-
-require(testthat)
-
 ##' tests if a R matrix is correctly stored and
 ##' represented when casting the R matrix into FLMatrix
 ##' and correctly recieved back, when cast to a vector.
@@ -110,11 +130,12 @@ require(testthat)
 ##' 
 ##' @param a an R Matrix
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
-test_equal_RMatrix_FLMatrix<- function(a){
+##' @export
+expect_equal_RMatrix_FLMatrix <- function(a){
     # browser()
     debugOld <- getOption("debugSQL")
     options(debugSQL=FALSE)
-    b <- as.FLMatrix(a,connection)
+    b <- as.FLMatrix(a)
     a <- Matrix(a)
     options(debugSQL=debugOld)
     expect_equal_Matrix(a,b,
@@ -129,6 +150,7 @@ test_equal_RMatrix_FLMatrix<- function(a){
 ##'
 ##' @param b FLMatrix
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
+##' @export
 test_equal_FLMatrix_RMatrix<- function(b){
     # browser()
     debugOld <- getOption("debugSQL")
@@ -142,14 +164,13 @@ test_equal_FLMatrix_RMatrix<- function(b){
 }
 
 
-##' 
-##'
+##' tests matrix subsetting by names and by index recursively.
 ##' 
 ##' @param a 
 ##' @param b 
 ##' @param desc 
-##' @return 
 ##' @author  Gregor Kappler <g.kappler@@gmx.net>
+##' @export
 test_Matrix_Subsetting <- function(a,b, desc=""){
     if(nrow(a)<3) return()
     nr <- nrow(a) -2 ##%/% 2
@@ -184,6 +205,8 @@ test_Matrix_Subsetting <- function(a,b, desc=""){
                             "named subset of ",
                             desc))
 }
+
+##' @export
 expect_equal_Matrix <- function(a,b,desc="",debug=TRUE){
     if(debug==TRUE){
         cat("\n-------------- ",desc,"\nR Matrix Object:\n")
@@ -202,10 +225,10 @@ expect_equal_Matrix <- function(a,b,desc="",debug=TRUE){
         x
     }
     test_that(desc,{
-        expect_equal(dimnames(a),stripNames(dimnames(b)))
-        expect_equal(rownames(a),stripNames(rownames(b)))
-        expect_equal(colnames(a),stripNames(colnames(b)))
-        expect_equal(as.vector(a),as.vector(b))
+        testthat::expect_equal(dimnames(a),stripNames(dimnames(b)))
+        testthat::expect_equal(rownames(a),stripNames(rownames(b)))
+        testthat::expect_equal(colnames(a),stripNames(colnames(b)))
+        testthat::expect_equal(as.vector(a),as.vector(b))
     })
 }
 

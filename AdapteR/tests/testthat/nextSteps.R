@@ -24,6 +24,19 @@ source("FLtestLib.R")
 
 options(debugSQL=FALSE)
 
+
+test_that("failing if object length do not match up",
+{
+    FLexpect_equal((M1$FL-V2),M1$R-V2R,check.attributes=FALSE)
+  FLexpect_equal((M1$FL-P1$FL),M1$R-P1$R,check.attributes=FALSE)
+  FLexpect_equal((V1-M2),V1R-M2R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL-M2),P1$R-M2R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2),
+               P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
+               check.attributes=FALSE)
+})
+
+
 #################################################################################
 ################### Functions work but output slightly differs ##################
 ###################### from corresponding R functions ###########################

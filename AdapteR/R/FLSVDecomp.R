@@ -20,8 +20,8 @@ NULL
 #'       \item{u}{a FLMatrix whose columns contain the left singular vectors of x, present if nu > 0. Dimension c(n, nu).}
 #'       \item{v}{a FLMatrix whose columns contain the right singular vectors of x, present if nv > 0. Dimension c(p, nv).}
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- svd(flmatrix)
 #' resultList$d
@@ -87,7 +87,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
             whereconditions= paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutVVal IS NOT NULL ")
             )
 
-	table <- FLTable(connection,
+	table <- FLTable(
 		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputRowNum",
