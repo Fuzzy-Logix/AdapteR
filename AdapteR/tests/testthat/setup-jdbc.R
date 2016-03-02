@@ -5,7 +5,7 @@
 cat(paste0("Connecting to ",user,"@",host,"/",database," ... "))
 library(RJDBC) 
 
-Connect <- function(){
+myConnect <- function(){
     ## add jdbc driver and security jars to classpath
     .jaddClassPath("/Users/gregor/fuzzylogix/terajdbc4.jar")
     .jaddClassPath("/Users/gregor/fuzzylogix/tdgssconfig.jar")
