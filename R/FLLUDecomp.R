@@ -55,7 +55,7 @@ setClass(
 #' \item{data_perm}{FLMatrix representing the permutation matrix}
 #' @examples
 #' connection<- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' FLLUobject <- lu(flmatrix)
 #' listresult <- expand(FLLUobject)
@@ -185,7 +185,7 @@ lu.FLMatrix<-function(object,...)
 		   whereconditions=paste0("mtrx.OutputValU IS NOT NULL "))
 
 	# calculating perm FLVector
-	table <- FLTable(connection,
+	table <- FLTable(
 		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputColNum",

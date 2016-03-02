@@ -28,7 +28,7 @@ None
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-widetable  <- FLTable(connection, "FL_REV4546", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable( "FL_REV4546", "tblAbaloneWide", "ObsID")
 glmfit <- glm(Rings~Height+Diameter,widetable)
 }
 

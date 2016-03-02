@@ -49,7 +49,7 @@ glm.data.frame<-stats::glm
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable(connection, "FL_REV4546", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable( "FL_REV4546", "tblAbaloneWide", "ObsID")
 #' glmfit <- glm(Rings~Height+Diameter,widetable)
 #' @export
 glm.FLTable<-function(formula,data,rushil="binomial",iter=25,threshold=0.1,...){

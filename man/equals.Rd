@@ -33,10 +33,10 @@ In case of FLVector and Rvector comparision use FLVector==RVector in place of
 RVector==FLVector
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", 
 "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
-flvector <- as.FLVector(1:5,connection)
+flvector <- as.FLVector(1:5)
 Result <- flmatrix == flmatrix
 Result <- flvector==flvector
 Result <- flvector==1:5

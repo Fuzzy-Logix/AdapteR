@@ -145,13 +145,13 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	else if(is.vector(pObj2))
 		{
 			if(pOperator %in% c("+","-","%/%","%%","/","*"))
-			pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)),connection)
+			pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)))
 			else if(pOperator %in% c("%*%"))
 			{
 				if(length(pObj2)==ncol(pObj1))
-				pObj2 <- as.FLMatrix(matrix(pObj2),connection)
+				pObj2 <- as.FLMatrix(matrix(pObj2))
 				else if(ncol(pObj1)==1)
-				pObj2 <- as.FLMatrix(matrix(pObj2,1),connection)
+				pObj2 <- as.FLMatrix(matrix(pObj2,1))
 				else
 				stop("non-conformable dimensions")
 			}
@@ -161,21 +161,21 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	else if(is.matrix(pObj2)||class(pObj2)=="dgCMatrix"||class(pObj2)=="dgeMatrix"
 			||class(pObj2)=="dsCMatrix"||class(pObj2)=="dgTMatrix")
 		{
-			pObj2 <- as.FLMatrix(pObj2,connection)
+			pObj2 <- as.FLMatrix(pObj2)
 			return(do.call(pOperator,list(pObj1,pObj2)))
 		}
 	else if(is.FLVector(pObj2))
 		{
 
 			if(pOperator %in% c("+","-","%/%","%%","/","*"))
-			pObj2 <- as.FLMatrix(pObj2,connection,
-							sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
+			pObj2 <- as.FLMatrix(pObj2,
+                                             sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
 			else if(pOperator %in% c("%*%"))
 			{
 				if(length(pObj2) == ncol(pObj1))
-				pObj2 <- as.FLMatrix(pObj2,connection)
+				pObj2 <- as.FLMatrix(pObj2)
 				else if(ncol(pObj1)==1)
-				pObj2 <- as.FLMatrix(pObj2,connection,rows=1,cols=length(pObj2))
+				pObj2 <- as.FLMatrix(pObj2,rows=1,cols=length(pObj2))
 				else
 				stop("non-conformable dimensions")
 			}
@@ -193,13 +193,13 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 	{
 		if(pOperator %in% c("%*%"))
 		  if(length(pObj1) == nrow(pObj2))
-			pObj1 <- as.FLMatrix(pObj1,connection,rows=1,cols=length(pObj1))
+			pObj1 <- as.FLMatrix(pObj1,rows=1,cols=length(pObj1))
 		  else if(nrow(pObj2)==1)
-			pObj1 <- as.FLMatrix(pObj1,connection)
+			pObj1 <- as.FLMatrix(pObj1)
 			else
 			stop(" non-conformable dimensions ")
 		else if(pOperator %in% c("+","-","%/%","%%","/","*"))
-		pObj1 <- as.FLMatrix(pObj1,connection,
+		pObj1 <- as.FLMatrix(pObj1,
 					sparse=TRUE,rows=nrow(pObj2),cols=ncol(pObj2))
 		
 		return(do.call(pOperator,list(pObj1,pObj2)))
@@ -210,9 +210,9 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 		  if(length(pObj1) != length(pObj2))
 			stop("non-conformable dimensions")
 		  else
-		    pObj2 <- as.FLMatrix(matrix(pObj2),connection)
+		    pObj2 <- as.FLMatrix(matrix(pObj2))
 		else if(pOperator %in% c("+","-","%/%","%%","/","*"))
-		pObj2 <- as.FLVector(pObj2,connection)
+		pObj2 <- as.FLVector(pObj2)
 
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
@@ -220,7 +220,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 		    ||class(pObj2)=="dgeMatrix"||class(pObj2)=="dsCMatrix"
 		    ||class(pObj2)=="dgTMatrix")
 	{
-		pObj2 <- as.FLMatrix(pObj2,connection)
+		pObj2 <- as.FLMatrix(pObj2)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
 	else if(is.FLVector(pObj2))
@@ -232,8 +232,8 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 		if(pOperator %in% c("%*%"))
 		{
 			if(length(pObj2) != length(pObj1)) stop(" non-conformable dimensions ")
-			pObj1 <- as.FLMatrix(pObj1,connection,rows=1,cols=length(pObj1))
-			pObj2 <- as.FLMatrix(pObj2,connection)
+			pObj1 <- as.FLMatrix(pObj1,rows=1,cols=length(pObj1))
+			pObj2 <- as.FLMatrix(pObj2)
 			return(pObj1 %*% pObj2)
 		}
 		else if(pOperator %in% c("+","-","%/%","%%","/","*"))
@@ -420,9 +420,9 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 		{
 			connection <- getConnection(pObj2)
 			if(nrow(pObj2)==length(pObj1))
-			pObj1 <- as.FLMatrix(matrix(pObj1,1),connection)
+			pObj1 <- as.FLMatrix(matrix(pObj1,1))
 			else if(nrow(pObj2)==1)
-			pObj1 <- as.FLMatrix(matrix(pObj1),connection)
+			pObj1 <- as.FLMatrix(matrix(pObj1))
 			else
 			stop("non-conformable dimensions")
 			return(pObj1 %*% pObj2)
@@ -431,14 +431,14 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 		{
 			connection <- getConnection(pObj2)
 			if(length(pObj2) != length(pObj1)) stop("non-conformable dimensions")
-			pObj1 <- as.FLMatrix(matrix(pObj1,1),connection)
+			pObj1 <- as.FLMatrix(matrix(pObj1,1))
 			return(pObj1 %*% pObj2)
 		}
 	}
 	if(is.FLMatrix(pObj2) || is.FLVector(pObj2))
 	{
 		connection <- getConnection(pObj2)
-		pObj1 <- as.FLVector(pObj1,connection)
+		pObj1 <- as.FLVector(pObj1)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
 	else
@@ -479,8 +479,8 @@ NULL
 #' @return \code{+} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
@@ -541,8 +541,8 @@ NULL
 #' @return \code{-} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
@@ -603,8 +603,8 @@ NULL
 #' @return \code{\%*\%} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
@@ -669,8 +669,8 @@ NULL
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %% Rvector
@@ -731,8 +731,8 @@ NULL
 #' @return \code{*} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix * Rvector
@@ -795,8 +795,8 @@ NULL
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix / Rvector
@@ -859,8 +859,8 @@ NULL
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %/% Rvector

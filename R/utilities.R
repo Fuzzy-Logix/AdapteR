@@ -29,13 +29,11 @@ sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlQuery <- function(connection,query,...) UseMethod("sqlQuery",connection)
+sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
 ## gk: this made packaging fail here, as I cannot install RODBC, and
 ## then it is unknown. Can we do a package check? We need to discuss
 ## this.
 ## sqlQuery.default <- RODBC::sqlQuery
-
-options(debugSQL=TRUE)
 
 #' Send a query to database
 #' 
@@ -247,6 +245,59 @@ gen_table_name <- function(prefix,suffix){
            paste0(prefix,"_",suffix))
 }
 
+##' Creates either an ODBC connection or an JDBC connection and initializes
+##' the FL session tables.
+##'
+##' @param odbcSource 
+##' @param host 
+##' @param database 
+##' @param user 
+##' @param passwd 
+##' @param dir.jdbcjars if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.
+##' @param ... 
+##' @return either an ODBC connection or an JDBC connection
+##' @export
+flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
+                      dir.jdbcjars=NULL,
+                      odbcSource=NULL,
+                      ...){
+    connection <- NULL
+    if(!is.null(host) &
+       !is.null(database) &
+       !is.null(user) &
+       !is.null(passwd)){
+        require(RJDBC)
+        myConnect <- function(){
+            ## add jdbc driver and security jars to classpath
+            .jaddClassPath(paste0(dir.jdbcjars,"/terajdbc4.jar"))
+            .jaddClassPath(paste0(dir.jdbcjars,"/tdgssconfig.jar"))
+            library(teradataR)
+            Sys.sleep(1)
+            tdConnect(host,user,passwd,database,"jdbc")
+        }
+
+        ## following connection code takes care of this bug:
+        ## need to add class path twice (recurring problem in MAC as of:
+        ## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
+        tryCatch({
+            connection <<- myConnect()
+        },error=function(e)e,
+        finally = {
+            Sys.sleep(3)
+            connection <- myConnect()
+        })
+    } else if (!is.null(odbcSource)){
+        require(RODBC)
+        connection <- odbcConnect("Gandalf")
+    }
+    if(is.null(connection))
+        stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")
+    
+    FLStartSession(connection=connection,database=database,...)
+    return(connection)
+}
+
+    
 #' Starts Session and Creates temp Tables for result storage
 #'
 #' Strongly recommended to run before beginning a new R session
@@ -263,10 +314,13 @@ FLStartSession <- function(connection,
                            database="FL_DEMO",
                            persistent="test",
                            drop=TRUE,
+                           debug=FALSE,
                            tableoptions=paste0(", FALLBACK ,NO BEFORE JOURNAL,NO AFTER JOURNAL,CHECKSUM = DEFAULT,DEFAULT MERGEBLOCKRATIO "))
 {
+    options(debugSQL=debug)
     options(ResultDatabaseFL=database)
     ##    browser()
+    options(connectionFL=connection)
     options(ResultVectorTableFL=gen_table_name("tblVectorResult",persistent))
     options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult",persistent))
     options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
@@ -333,68 +387,26 @@ FLStartSession <- function(connection,
     cat("DONE..\n")
 }
 
-setGeneric("getMaxId", function(vdatabase,
-                                vtable,
-                                vcolName,
-                                vconnection,...) {
-    standardGeneric("getMaxId")
-})
 
-setMethod("getMaxId",
-          signature(vdatabase="character",
-                    vtable = "character",
-                    vcolName="character",
-                    vconnection="RODBC"),
-          function(vdatabase,vtable,vcolName,vconnection,...)
-          {
-              sqlstr <- paste0(" SELECT MAX(",vcolName,
-                               " )+1 FROM ",vdatabase,".",vtable)
+getMaxId <- function(vdatabase,vtable,vcolName,
+                     vconnection=getOption("connectionFL"),...){
+    sqlstr <- paste0(" SELECT MAX(",vcolName,
+                     " )+1 FROM ",vdatabase,".",vtable)
 
-              t <- sqlQuery(vconnection,sqlstr)[1,1]
-              if(is.na(t)) return(0)
-              else return(t)
-          }
-          )
-setMethod("getMaxId",
-          signature(vdatabase="character",
-                    vtable = "character",
-                    vcolName="character",
-                    vconnection="JDBCConnection"),
-          function(vdatabase,vtable,vcolName,vconnection,...)
-          {
-              sqlstr <- paste0(" SELECT MAX(",vcolName,
-                               " )+1 FROM ",vdatabase,".",vtable)
-
-              t <- sqlQuery(vconnection,sqlstr)[1,1]
-              if(is.na(t)) return(0)
-              else return(t)
-          }
-          )
+    t <- sqlQuery(vconnection,sqlstr)[1,1]
+    if(is.na(t)) return(0)
+    else return(t)
+}
 
 #' Get Max Matrix ID+1 from result Matrix table
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-setGeneric("getMaxMatrixId", function(vconnection,...) {
-    standardGeneric("getMaxMatrixId")
-})
-
-setMethod("getMaxMatrixId",
-          signature(vconnection="RODBC"),
-          function(vconnection,...)
-              getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                          vtable=getOption("ResultMatrixTableFL"),
-                          vcolName="MATRIX_ID",
-                          vconnection=vconnection)+1
-          )
-setMethod("getMaxMatrixId",
-          signature(vconnection="JDBCConnection"),
-          function(vconnection,...)
-              getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                          vtable=getOption("ResultMatrixTableFL"),
-                          vcolName="MATRIX_ID",
-                          vconnection=vconnection)+1
-          )
+getMaxMatrixId <- function(vconnection=getOption("connectionFL"),...)
+    getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+                vtable=getOption("ResultMatrixTableFL"),
+                vcolName="MATRIX_ID",
+                vconnection=vconnection)+1
 
 
 #' Get Max ID from given table

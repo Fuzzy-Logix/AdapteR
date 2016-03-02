@@ -19,8 +19,8 @@ NULL
 #'       \item{P}{FLMatrix representing P matrix obtained from Jordan decomposition}
 #'       \item{PInv}{FLMatrix representing PInv matrix obtained from Jordan decomposition}
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLJordan(flmatrix)
 #' resultList$J
@@ -78,7 +78,7 @@ FLJordan.FLMatrix<-function(object,...)
 			            cell_val_colname = "OutPInvVal",
 			            whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutPInvVal IS NOT NULL "))
 
-	table <- FLTable(connection,
+	table <- FLTable(
 		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputRowNum",

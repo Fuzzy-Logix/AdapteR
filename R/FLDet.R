@@ -19,9 +19,9 @@ NULL
 #' @return \code{det} returns determinant as a R vector
 #' which replicates the equivalent R vector output.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",connection)
 #' resultFLvector <- det(flmatrix)
 #' @export
 det <- function (object, ...){

@@ -4,7 +4,7 @@
 \alias{getMaxMatrixId}
 \title{Get Max Matrix ID+1 from result Matrix table}
 \usage{
-getMaxMatrixId(vconnection, ...)
+getMaxMatrixId(vconnection = getOption("connectionFL"), ...)
 }
 \arguments{
 \item{vconnection}{ODBC/JDBC connection object}

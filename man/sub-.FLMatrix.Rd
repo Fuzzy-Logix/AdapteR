@@ -28,8 +28,8 @@ Applying UDT functions on subsetted matrices with discontinuous row and col ids'
 may result in error
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", 
 "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLmatrix <- flmatrix[1,]
 }

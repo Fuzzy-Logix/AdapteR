@@ -4,16 +4,14 @@
 \alias{FLMatrix}
 \title{Constructor function for FLMatrix.}
 \usage{
-FLMatrix(connection, database = getOption("ResultDatabaseFL"), table_name,
+FLMatrix(database = getOption("ResultDatabaseFL"), table_name,
   matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
   cell_val_colname = "valueColumn", dim = 0, dimnames = NULL,
   conditionDims = c(FALSE, FALSE), whereconditions = c(""),
-  map_table = NULL)
+  map_table = NULL, connection = getOption("connectionFL"))
 }
 \arguments{
-\item{connection}{ODBC/JDBC connection handle to the database.}
-
 \item{database}{name of the database}
 
 \item{table_name}{name of the matrix table}
@@ -37,6 +35,8 @@ FLMatrix(connection, database = getOption("ResultDatabaseFL"), table_name,
 \item{whereconditions}{where conditions if any to reference the in-database matrix}
 
 \item{map_table}{in-database table name which stores the dimnames of the matrix. Not required if dimnames are already specified using \code{dimnames}}
+
+\item{connection}{ODBC/JDBC connection handle to the database.}
 }
 \value{
 \code{FLMatrix} returns an object of class FLMatrix mapped
@@ -50,8 +50,8 @@ to an in-database matrix.
 This object is used as input for matrix operation functions.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", "tblMatrixMulti",
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", "tblMatrixMulti",
                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 flmatrix
 }

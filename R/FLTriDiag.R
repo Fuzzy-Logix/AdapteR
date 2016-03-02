@@ -17,8 +17,8 @@ NULL
 #' of (700 x 700).
 #' @return \code{FLTriDiag} returns a FLMatrix object representing the upper Hessenberg or TriDiagonal matrix.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- FLTriDiag(flmatrix)
 #' @export

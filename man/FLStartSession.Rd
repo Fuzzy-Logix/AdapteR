@@ -5,7 +5,7 @@
 \title{Starts Session and Creates temp Tables for result storage}
 \usage{
 FLStartSession(connection, database = "FL_DEMO", persistent = "test",
-  drop = TRUE,
+  drop = TRUE, debug = FALSE,
   tableoptions = paste0(", FALLBACK ,NO BEFORE JOURNAL,NO AFTER JOURNAL,CHECKSUM = DEFAULT,DEFAULT MERGEBLOCKRATIO "))
 }
 \arguments{

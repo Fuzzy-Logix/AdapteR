@@ -23,8 +23,8 @@ which replicates the equivalent R extraction.
 \code{[]} acts on FLMatrix objects and extracts parts of them.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-fltable <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
+connection <- flConnect(odbcSource="Gandalf")
+fltable <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
 resultFLtable <- fltable[1:10,4:6]
 }
 

@@ -25,8 +25,8 @@ NULL
 #' \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
 #' are supported.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' Result <- identical(flmatrix,flmatrix)
@@ -74,7 +74,7 @@ identical.FLMatrix <- function(pObj1, pObj2)
 		    ||class(pObj2)=="dgTMatrix")
 	{
 		checkSameDims(pObj1,pObj2)
-		pObj2 <- as.FLMatrix(pObj2,connection)
+		pObj2 <- as.FLMatrix(pObj2)
 		return(identical(pObj1,pObj2))
 	}
 	else
@@ -112,7 +112,7 @@ identical.FLVector <- function(pObj1, pObj2)
 	else if(is.vector(pObj2))
 	{
 		if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		pObj2 <- as.FLVector(pObj2,connection)
+		pObj2 <- as.FLVector(pObj2)
 		return(identical(pObj1,pObj2))
 	}
 	else
@@ -125,7 +125,7 @@ identical.matrix <- function(pObj1,pObj2)
 	if(is.FLMatrix(pObj2))
 	{
 		checkSameDims(pObj1,pObj2)
-		pObj1 <- as.FLMatrix(pObj1,getConnection(pObj2))
+		pObj1 <- as.FLMatrix(pObj1)
 		return(identical(pObj1,pObj2))
 	}
 	else
@@ -147,7 +147,7 @@ identical.numeric <- function(pObj1,pObj2)
 	if(is.FLVector(pObj2))
 	{
 		if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		pObj1 <- as.FLVector(pObj1,getConnection(pObj2))
+		pObj1 <- as.FLVector(pObj1)
 		return(identical(pObj1,pObj2))
 	}
 	else
@@ -174,10 +174,10 @@ NULL
 #' In case of FLVector and Rvector comparision use FLVector==RVector in place of 
 #' RVector==FLVector
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
-#' flvector <- as.FLVector(1:5,connection)
+#' flvector <- as.FLVector(1:5)
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector
 #' Result <- flvector==1:5
@@ -243,18 +243,17 @@ NULL
 		    ||class(pObj2)=="dgTMatrix")
 	{
 		checkSameDims(pObj1,pObj2)
-		pObj2 <- as.FLMatrix(pObj2,connection)
+		pObj2 <- as.FLMatrix(pObj2)
 		return("=="(pObj1,pObj2))
 	}
 	# if(is.FLVector(pObj2))
 	# {
-	# 	# pObj2 <- as.FLMatrix(pObj2,connection,
-	# 	# 					sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
+	# 	# pObj2 <- as.FLMatrix(pObj2, sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
 	# 	# return(pObj1==pObj2)
 	# }
 	if(is.vector(pObj2))
 	{
-		pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)),connection)
+		pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)))
 		return(pObj1==pObj2)
 	}
 	
@@ -306,8 +305,8 @@ NULL
 	                        collapse=" UNION ALL ")
 			dimnames <- list(1:max(length(newColnames1),length(newColnames2)),"vectorValueColumn")
 			}
-			else if(length(newColnames1)>1) return(as.FLVector(as.vector(pObj1),connection)==pObj2)
-			else return(as.FLVector(as.vector(pObj2),connection)==pObj1)
+			else if(length(newColnames1)>1) return(as.FLVector(as.vector(pObj1))==pObj2)
+			else return(as.FLVector(as.vector(pObj2))==pObj1)
 		}
 		else
 		{
@@ -350,15 +349,13 @@ NULL
 	}
 	if(is.vector(pObj2))
 	{
-		connection <- getConnection(pObj1)
 		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		pObj2 <- as.FLVector(pObj2,connection)
+		pObj2 <- as.FLVector(pObj2)
 		return("=="(pObj1,pObj2))
 	}
 	if(is.matrix(pObj2))
 	{
-		connection <- getConnection(pObj1)
-		pObj2 <- as.FLMatrix(pObj2,connection)
+		pObj2 <- as.FLMatrix(pObj2)
 		return(pObj2==pObj1)
 	}
 	# if(is.FLMatrix(pObj2))
@@ -373,7 +370,7 @@ NULL
 	if(is.FLMatrix(pObj2))
 	{
 		checkSameDims(pObj1,pObj2)
-		pObj1 <- as.FLMatrix(pObj1,getConnection(pObj2))
+		pObj1 <- as.FLMatrix(pObj1,connection=getConnection(pObj2))
 		return("=="(pObj1,pObj2))	
 	}
 	else
@@ -395,7 +392,7 @@ NULL
 	if(is.FLVector(pObj2))
 	{
 		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		pObj1 <- as.FLVector(pObj1,getConnection(pObj2))
+		pObj1 <- as.FLVector(pObj1,connection=getConnection(pObj2))
 		return("=="(pObj1,pObj2))	
 	}
 	else

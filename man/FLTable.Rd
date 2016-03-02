@@ -4,13 +4,11 @@
 \alias{FLTable}
 \title{Constructor function for FLTable.}
 \usage{
-FLTable(connection, database, table, obs_id_colname,
-  var_id_colnames = character(0), cell_val_colname = character(0),
-  whereconditions = character(0))
+FLTable(database, table, obs_id_colname, var_id_colnames = character(0),
+  cell_val_colname = character(0), whereconditions = character(0),
+  connection = NULL)
 }
 \arguments{
-\item{connection}{ODBC/JDBC connection object}
-
 \item{database}{name of the database}
 
 \item{table}{name of the table}
@@ -20,6 +18,8 @@ FLTable(connection, database, table, obs_id_colname,
 \item{cell_val_colname}{column name where cell values are stored if \code{FLTable} is deep}
 
 \item{whereconditions}{whereconditions if any to reference the table}
+
+\item{connection}{ODBC/JDBC connection object}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTable} is deep}
 }
@@ -35,9 +35,9 @@ in Teradata.
 This object is commonly used as input for data mining functions.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
-deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+connection <- flConnect(odbcSource="Gandalf")
+widetable  <- FLTable( "FL_Deep", "tblAbaloneWide", "ObsID")
+deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
 }
 

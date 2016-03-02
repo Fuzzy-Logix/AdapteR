@@ -26,7 +26,7 @@ library(Matrix)
 #' \item{RMatrix}{the resulting R Matrix stored in-database as FLMatrix}
 #' @examples
 #' connection<-RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- qr(flmatrix)
 #' resultList$qr
@@ -96,7 +96,7 @@ qr.FLMatrix<-function(object,...)
   	QRMatrix <- store(object=flm)
 
     #calculating qraux
-	table <- FLTable(connection,
+	table <- FLTable(
 		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputRowNum",

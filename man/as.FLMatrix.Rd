@@ -4,19 +4,19 @@
 \alias{as.FLMatrix}
 \title{Casting to FLMatrix}
 \usage{
-as.FLMatrix(object, connection, sparse = TRUE, ...)
+as.FLMatrix(object, sparse = TRUE, ...)
 }
 \arguments{
 \item{object}{matrix, vector, data frame, sparseMatrix, FLVector which
 needs to be casted to FLMatrix and inserted in-database}
-
-\item{connection}{ODBC/JDBC connection object}
 
 \item{sparse}{logical if sparse representation to be used}
 
 \item{...}{additional arguments like nr number of rows in resulting FLMatrix
 nc number of columns in resulting FLMatrix.
 nr and nc inputs are applicable only in case of vector,FLVector}
+
+\item{connection}{ODBC/JDBC connection object}
 }
 \value{
 FLMatrix object after casting.

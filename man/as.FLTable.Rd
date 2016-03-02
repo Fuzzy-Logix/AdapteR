@@ -4,15 +4,15 @@
 \alias{as.FLTable}
 \title{casting to FLTable}
 \usage{
-as.FLTable(object, connection, ...)
+as.FLTable(object, ...)
 }
 \arguments{
 \item{object}{data frame which
 needs to be casted to FLTable}
 
-\item{connection}{ODBC/JDBC connection object}
-
 \item{...}{additional arguments like size}
+
+\item{connection}{ODBC/JDBC connection object}
 }
 \value{
 FLTable object after casting.

@@ -14,8 +14,8 @@ NULL
 #' @param ... any additional arguments.
 #' @return \code{colMeans} returns a FLVector object representing the column-wise Means.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- colMeans(flmatrix)
 #' @export

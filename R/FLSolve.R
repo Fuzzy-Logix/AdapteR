@@ -18,8 +18,8 @@ NULL
 #' @return \code{solve} returns a FLMatrix object which is the inverse of input FLMatrix object
 #' and replicates the equivalent R output.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solve(flmatrix)
 #' @export

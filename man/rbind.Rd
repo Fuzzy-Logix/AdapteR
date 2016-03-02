@@ -26,8 +26,8 @@ combines them by rows and makes a FLMatrix.
 Input matrices, FLMatrices and data frames should have same number of columns.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", 
 "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 }

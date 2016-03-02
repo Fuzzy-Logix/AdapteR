@@ -20,8 +20,8 @@ NULL
 #' @return \code{solveExcl} returns a FLMatrix object which is the inverse of input FLMatrix object
 #' after excluding given dimension.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
 #' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solveExcl(flmatrix,3)
 #' @export

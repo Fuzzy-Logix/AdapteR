@@ -7,29 +7,15 @@
 ## the zip dir.
 ## 
 ##
-## devtools::document()
-## devtools::load_all(".")
-## setwd("tests/testthat/") ## here reside the demo scripts
+require(AdapteR)
 
+connection <- flConnect(host     = "10.200.4.116", ## Gandalf
+                        database = "Fl_demo",
+                        user     = "gkappler",
+                        passwd   = "fzzlpass",
+                        dir.jdbcjars = "/Users/gregor/fuzzylogix/")
 
-require(RODBC)
-connection <- odbcConnect("Gandalf")
-##
-## OR
-##
-## startup and setup with jdbc:
-##
-require(RJDBC)
-user     <- "database user"
-passwd   <- "database password" 
-host     <- "10.200.4.116" ## Gandalf
-database <- "Fl_demo"
-source("./setup-jdbc.R")
-
-
-source("./FLtestLib.R")
-
-
+options(debugSQL=FALSE)
 ## a in-memory matrix in R 
 (m <- rMatrix <- matrix(1:25,5))
 
@@ -48,8 +34,7 @@ m[2:5,4:5]
 ## (data is transfered through network)
 ## (and refetched for printing)
 ##
-(m <- flMatrix <- as.FLMatrix(rMatrix,
-                              connection))
+(m <- flMatrix <- as.FLMatrix(rMatrix))
 
 
 ## you can run above functions on m=flMatrix again with identical results!
@@ -90,7 +75,7 @@ colnames(matrixNumChar) <- c("p","q","r","s","t")
 
 ## inspect names representation in AdapteR
 { ## 
-    flm <- as.FLMatrix(matrixCharChar,connection)
+    flm <- as.FLMatrix(matrixCharChar)
     flm
     
     rownames(matrixCharChar)
@@ -106,7 +91,7 @@ colnames(matrixNumChar) <- c("p","q","r","s","t")
     flm[4:5,4:5]
 
     matrixNullChar
-    flm <- as.FLMatrix(matrixNullChar,connection)
+    flm <- as.FLMatrix(matrixNullChar)
     flm
     ## R looses the indexes if no names are set.
     ## (Note that rows start at 1)
@@ -114,7 +99,6 @@ colnames(matrixNumChar) <- c("p","q","r","s","t")
     ## FLMatrix keeps the index because otherwise
     ## it would loose reference.
     flm[3:5,3:5]
-
     ## A technical note on joining the names of rows and columns in SQL:
     ## constructSelect by default does join the rownames
     cat(constructSelect(flm))
@@ -122,38 +106,62 @@ colnames(matrixNumChar) <- c("p","q","r","s","t")
     cat(constructSelect(flm,joinNames=FALSE))
 }
 
+test_that("Casting base R matrix <---> in-database Matrices",{
+    ## Creating simple base R matrix
+    matrix1 <- matrix(1:25,5)
+    matrix2 <- matrix(1:25,5)
+    rownames(matrix1) <- c("a","b","c","d","e")
+    colnames(matrix1) <- c("p","q","r","s","t")
+    rownames(matrix2) <- c("A","B","C","D","E")
+    colnames(matrix2) <- c("P","Q","R","S","T")
+    ##  FLMatrices from R matrices
+    m1 <- as.FLMatrix(matrix1)
+    m2 <- as.FLMatrix(matrix2)
+    expect_equal(dim(m1),c(5,5))
+    expect_equal(dim(m2),c(5,5))
+    expect_equal(as.vector(m1), as.vector(matrix1))
+    expect_equal(as.vector(m2), as.vector(matrix2))
+    ##
+    ##
+    ## FLMatrix -> R matrix
+    matrix3 <- as.matrix(m2)
+    expect_equal(dim(matrix3), c(5,5))
+    expect_equal(as.vector(m2), as.vector(matrix3))
+})
 
-
-#############################################################
-## Hierachical test suite of selects of selects...
-## of above mentioned matrix names combinations:
-options(debugSQL=FALSE)
-test_equal_RMatrix_FLMatrix(matrixCharChar)
-test_equal_RMatrix_FLMatrix(matrixNumChar)
+test_that(
+    "Named Matrices: Hierachical test suite of selects of selects...",
+    {
+    expect_equal_RMatrix_FLMatrix(matrixCharChar)
+    expect_equal_RMatrix_FLMatrix(matrixNumChar)
+    })
 
 ## Note: subsetting an unnamed R Matrix will
 ## result in persistent dim-names needed for
 ## db reference
 rownames(matrixNullChar)
-test_equal_RMatrix_FLMatrix(matrixNullNull)
-test_equal_RMatrix_FLMatrix(matrixCharNull)
-test_equal_RMatrix_FLMatrix(matrixNullChar)
+test_that(
+    "Unnamed Matrices: Hierachical test suite of selects of selects...",
+    expect_equal_RMatrix_FLMatrix(matrixNullNull))
 
-
-
+test_that(
+    "Partly named matrices: Hierachical test suite of selects of selects...",
+    {
+        expect_equal_RMatrix_FLMatrix(matrixCharNull)
+        expect_equal_RMatrix_FLMatrix(matrixNullChar)
+    })
 
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
 ## Create a remote matrix object
 ##
-eqnRtn <- FLMatrix(connection,
-              database          = "FL_DEMO",
-              table_name  = "finEquityReturns",
-              matrix_id_value   = "",
-              matrix_id_colname = "",
-              row_id_colname    = "TxnDate",
-              col_id_colname    = "TickerSymbol",
-              cell_val_colname  = "EquityReturn")
+eqnRtn <- FLMatrix(database          = "FL_DEMO",
+                   table_name  = "finEquityReturns",
+                   matrix_id_value   = "",
+                   matrix_id_colname = "",
+                   row_id_colname    = "TxnDate",
+                   col_id_colname    = "TickerSymbol",
+                   cell_val_colname  = "EquityReturn")
 
 ## Hierachical tests of a name-providing matrix
 test_equal_FLMatrix_RMatrix(eqnRtn[sample(rownames(eqnRtn),10),

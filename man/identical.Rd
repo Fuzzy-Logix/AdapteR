@@ -31,8 +31,8 @@ Currently only \code{dgCMatrix},\code{dgeMatrix},\code{dsCMatrix},
 are supported.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+flmatrix <- FLMatrix("FL_DEMO", 
 "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 Result <- identical(flmatrix,flmatrix)

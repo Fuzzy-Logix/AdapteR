@@ -71,8 +71,8 @@ kmeans.default <- stats::kmeans
 #' None
 #' @return \code{kmeans} performs k-means clustering and replicates equivalent R output.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' widetable  <- FLTable(connection, "FL_TRAIN", "tblAbaloneWide", "ObsID")
+#' connection <- flConnect(odbcSource="Gandalf")
+#' widetable  <- FLTable( "FL_TRAIN", "tblAbaloneWide", "ObsID")
 #' kmeansobject <- kmeans(widetable,3,20,2,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' print(kmeansobject)
 #' @export
@@ -139,7 +139,7 @@ kmeans.FLTable<-function(x,
 		deeptablename <- gen_deep_table_name(x@select@table_name)
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
-		deepx <- FLTable(connection,
+		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename,
                    "obs_id_colname",

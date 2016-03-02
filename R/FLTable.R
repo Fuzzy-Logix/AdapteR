@@ -20,20 +20,20 @@ NULL
 #' @return \code{FLTable} returns an object of class FLTable mapped to a table
 #' in Teradata.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' widetable  <- FLTable(connection, "FL_Deep", "tblAbaloneWide", "ObsID")
-#' deeptable <- FLTable(connection,"FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+#' connection <- flConnect(odbcSource="Gandalf")
+#' widetable  <- FLTable( "FL_Deep", "tblAbaloneWide", "ObsID")
+#' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
 #' @export
-FLTable <- function(connection,
-				    database, 
-				    table,
-				    obs_id_colname,
+FLTable <- function(database, 
+                    table,
+                    obs_id_colname,
                     var_id_colnames=character(0), 
-				    cell_val_colname=character(0),
-                    whereconditions=character(0))
+                    cell_val_colname=character(0),
+                    whereconditions=character(0),
+                    connection=NULL)
 {
-
+    if(is.null(connection)) connection <- getConnection(NULL)
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- sort(sqlQuery(connection,
@@ -129,8 +129,8 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' widetable  <- FLTable(connection, "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' connection <- flConnect(odbcSource="Gandalf")
+#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -222,8 +222,7 @@ setMethod("wideToDeep",
                 
             dataprepID <- as.vector(t[1,1])
 
-            table <- FLTable(connection,
-                           outDeepTableDatabase,
+            table <- FLTable(outDeepTableDatabase,
                            deeptablename,
                            outObsIDCol,
                            outVarIDCol,
@@ -287,8 +286,8 @@ setMethod("wideToDeep",
 #' @return \code{deepToWide} returns a list containing components 
 #' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' deeptable  <- FLTable(connection, "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable  <- FLTable( "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -377,7 +376,7 @@ setMethod("deepToWide",
             }
             if(length(message)>1) stop(message)
 
-            table <- FLTable(connection,
+            table <- FLTable(
                            outWideTableDatabase,
                            outWideTableName,
                            "obs_id_colname"

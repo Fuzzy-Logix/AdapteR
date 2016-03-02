@@ -16,10 +16,10 @@ NULL
 #' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
-#' connection <- RODBC::odbcConnect("Gandalf")
-#' deeptable <- FLTable(connection, "FL_DEMO", 
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable <- FLTable( "FL_DEMO", 
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable(connection,"FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
 #' @export
@@ -76,7 +76,7 @@ cor.FLMatrix <- function(x,y=x,...)
 		y <- as.matrix(y)
 		if(is.numeric(y)) 
 		{ 
-			y<-as.FLMatrix(y,connection)
+			y<-as.FLMatrix(y)
 			return(cor(x,y))
 		}
 		else stop("only numeric entries for correlation")
@@ -87,7 +87,7 @@ cor.FLMatrix <- function(x,y=x,...)
 		else 
 		{
 			y <- matrix(y,length(y),1)
-			y <- as.FLMatrix(y,connection)
+			y <- as.FLMatrix(y)
 			return(cor(x,y))
 		}
 	}
@@ -96,7 +96,7 @@ cor.FLMatrix <- function(x,y=x,...)
 		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions ")
 		else
 		{
-			y <- as.FLMatrix(y,connection)
+			y <- as.FLMatrix(y)
 			return(cor(x,y))
 		}
 	}
@@ -105,8 +105,8 @@ cor.FLMatrix <- function(x,y=x,...)
 		if(length(y) != nrow(x)) stop("incompatible dimensions")
 		if(nrow(y)==1 && !y@isDeep)
 		{
-			y <- as.FLMatrix(y,connection,
-						sparse=TRUE,rows=length(y),cols=1)
+			y <- as.FLMatrix(y,
+                                         sparse=TRUE,rows=length(y),cols=1)
 			return(cor(x,y))
 		}
 		else if(ncol(y)==1 || y@isDeep)
@@ -166,7 +166,7 @@ cor.numeric <- function(x,y=x,...)
 		if(length(y) == length(x))
 		{
 			x <- matrix(x,length(x),1)
-			x <- as.FLMatrix(x,getConnection(y))
+			x <- as.FLMatrix(x)
 			return (cor(x,y))
 		}
 		else stop(" incompatible dimensions ")
@@ -194,7 +194,7 @@ cor.matrix <- function(x,y=x,...)
 		if(length(y) != nrow(x)) stop(" incompatible dimensions ")
 		else
 		{
-			x <- as.FLMatrix(x,getConnection(y))
+			x <- as.FLMatrix(x)
 			return (cor(x,y))
 		}
 	}
@@ -222,7 +222,7 @@ cor.data.frame <- function(x,y=x,...)
 		else
 		{
 			x <- as.matrix(x)
-			x <- as.FLMatrix(x,getConnection(y))
+			x <- as.FLMatrix(x)
 			return (cor(x,y))
 		}
 	}
@@ -244,8 +244,8 @@ cor.FLVector <- function(x,y=x,...)
 	if(is.FLVector(y))
 	{
 		if(length(x)!=length(y)) stop(" incompatible dimensions ")
-		if(nrow(y)==1) y <- as.FLVector(as.vector(y),connection)
-		if(nrow(x)==1) x <- as.FLVector(as.vector(x),connection)
+		if(nrow(y)==1) y <- as.FLVector(as.vector(y))
+		if(nrow(x)==1) x <- as.FLVector(as.vector(x))
 
 			a <- genRandVarName()
 			b <- genRandVarName()
@@ -460,8 +460,8 @@ cor.FLTable <- function(x,y=x,...)
 		if(length(y) != nrow(x)) stop("incompatible dimensions")
 		if(nrow(y)==1 && !y@isDeep)
 		{
-			y <- as.FLMatrix(y,connection,
-						sparse=TRUE,rows=length(y),cols=1)
+			y <- as.FLMatrix(y,
+                                         sparse=TRUE,rows=length(y),cols=1)
 			return(cor(x,y))
 		}
 		else if(ncol(y)==1 || y@isDeep)
@@ -520,7 +520,7 @@ cor.FLTable <- function(x,y=x,...)
 	{
 		if(nrow(x) == nrow(y))
 		{
-			y <- as.FLMatrix(y,connection)
+			y <- as.FLMatrix(y)
 			return (cor(x,y))
 		}
 		else stop(" incompatible dimensions ")
@@ -529,7 +529,7 @@ cor.FLTable <- function(x,y=x,...)
 	{
 		if(nrow(x) == length(y))
 		{
-			y <- as.FLMatrix(as.matrix(y),connection)
+			y <- as.FLMatrix(as.matrix(y))
 			return (cor(x,y))
 		}
 		else stop(" incompatible dimensions ")
@@ -538,7 +538,7 @@ cor.FLTable <- function(x,y=x,...)
 	{
 		if(nrow(x) == nrow(y))
 		{
-			y <- as.FLMatrix(as.matrix(y),connection)
+			y <- as.FLMatrix(as.matrix(y))
 			return (cor(x,y))
 		}
 		else stop(" incompatible dimensions ")

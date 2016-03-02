@@ -25,10 +25,10 @@ The number of non-null pairs must be greater than or equal to 2.
 If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 }
 \examples{
-connection <- RODBC::odbcConnect("Gandalf")
-deeptable <- FLTable(connection, "FL_DEMO", 
+connection <- flConnect(odbcSource="Gandalf")
+deeptable <- FLTable( "FL_DEMO", 
 "tblUSArrests", "ObsID","VarID","Num_Val")
-widetable <- FLTable(connection,"FL_DEMO","tblAbaloneWide","ObsID")
+widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
 cor(deeptable,deeptable)
 cor(widetable,widetable)
 }

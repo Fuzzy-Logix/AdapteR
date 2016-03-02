@@ -49,7 +49,7 @@ lm.data.frame<-stats::lm
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable(connection, "FL_REV4546", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable( "FL_REV4546", "tblAbaloneWide", "ObsID")
 #' lmfit <- lm(Rings~Height+Diameter,widetable)
 #' @export
 lm.FLTable<-function(formula,data,...){
