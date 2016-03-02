@@ -2,10 +2,13 @@
 ## ending in a web-gui interactive stock returns correlation demo
 ##
 ##
-## make sure your working dir is where you unpacked
-## the zip dir
+## make sure your working dir is
+## where you unpacked the zip to!
+##
+## devtools::document()
+## devtools::load_all(".")
+## setwd("tests/testthat/") ## here reside the demo scripts
 
-require(AdapteR)
 
 require(RODBC)
 connection <- odbcConnect("Gandalf")

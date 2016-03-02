@@ -5,8 +5,12 @@
 ##
 ## Make sure your working dir is where you unpacked
 ## the zip dir.
+## 
+##
+## devtools::document()
+## devtools::load_all(".")
+## setwd("tests/testthat/") ## here reside the demo scripts
 
-require(AdapteR)
 
 require(RODBC)
 connection <- odbcConnect("Gandalf")
