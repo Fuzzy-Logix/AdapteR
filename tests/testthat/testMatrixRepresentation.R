@@ -9,11 +9,12 @@
 ##
 require(AdapteR)
 
-connection <- flConnect(host     = "10.200.4.116", ## Gandalf
-                        database = "Fl_demo",
-                        user     = "gkappler",
-                        passwd   = "fzzlpass",
-                        dir.jdbcjars = "/Users/gregor/fuzzylogix/")
+if(!exists("connection"))
+    connection <- flConnect(host     = "10.200.4.116", ## Gandalf
+                            database = "Fl_demo",
+                            user     = yourUser,
+                            passwd   = yourPassword,
+                            dir.jdbcjars = "/Users/gregor/fuzzylogix/")
 
 options(debugSQL=FALSE)
 ## a in-memory matrix in R 

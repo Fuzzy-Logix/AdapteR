@@ -4,12 +4,12 @@ library(testthat)
 require(Matrix)
 require(AdapteR)
 
-connection <- flConnect(host     = "10.200.4.116", ## Gandalf
-                        database = "Fl_train",
-                        user     = "gkappler",
-                        passwd   = "fzzlpass",
-                        dir.jdbcjars = "/Users/gregor/fuzzylogix/")
-options(debugSQL=FALSE)
+if(!exists("connection"))
+    connection <- flConnect(host     = "10.200.4.116", ## Gandalf
+                            database = "Fl_demo",
+                            user     = yourUser,
+                            passwd   = yourPassword,
+                            dir.jdbcjars = "/Users/gregor/fuzzylogix/")
 
 ###############################################################
 ############# POSITIVE TEST CASES #############################
