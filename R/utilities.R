@@ -269,8 +269,10 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         require(RJDBC)
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
-            .jaddClassPath(paste0(dir.jdbcjars,"/terajdbc4.jar"))
-            .jaddClassPath(paste0(dir.jdbcjars,"/tdgssconfig.jar"))
+            if(!is.null(dir.jdbcjars)){
+                .jaddClassPath(paste0(dir.jdbcjars,"/terajdbc4.jar"))
+                .jaddClassPath(paste0(dir.jdbcjars,"/tdgssconfig.jar"))
+            }
             library(teradataR)
             Sys.sleep(1)
             tdConnect(host,user,passwd,database,"jdbc")
