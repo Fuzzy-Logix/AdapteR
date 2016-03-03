@@ -202,3 +202,110 @@ test_that("Binding named (not indexed) matrix rows and columns",{
 
 
 
+
+
+
+## Testing FLMatrix Subsetting
+test_that("check matrix subsetting",
+{
+
+    ## Testing result
+    expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))         
+    },function(x) do.call("[",list(x,c("b","a"),2:1)),
+    function(x) do.call("[",list(x,c("b","a"),2:1)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))  
+    },function(x) do.call("[",list(x)),
+    function(x) do.call("[",list(x)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))  
+    },function(x) "["(x,c("b","c"),),
+    function(x)"["(x,c("b","c"),),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))  
+    },function(x) "["(x,,2:3),
+    function(x) "["(x,,2:3),n=4
+  )
+   expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))         
+    },function(x) dimnames("["(list(x,c("b","a"),2:1))),
+    function(x) dimnames("["(list(x,c("b","a"),2:1))),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+
+        a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))  
+    },function(x) dimnames("["(list(x))),
+    function(x) dimnames("["(list(x))),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))  
+    },function(x) dimnames("["(x,c("b","c"),)),
+    function(x) dimnames("["(x,c("b","c"),)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
+        list(R=a,FL=as.FLMatrix(a))  
+    },function(x) dimnames("["(x,,2:3)),
+    function(x) dimnames("["(x,,2:3)),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+        list(R=as.matrix(a),
+             FL=a)
+    },function(x) do.call("[",list(x,c("b","a"),2:1)),
+    function(x) do.call("[",list(x,c("b","a"),2:1)),n=6
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+        list(R=as.matrix(a),
+             FL=a)
+    },function(x) do.call("[",list(x)),
+    function(x) do.call("[",list(x)),n=6
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+      a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+      
+      list(R=as.matrix(a),
+           FL=a)
+    },function(x) "["(x,c("b","c"),),
+    function(x)"["(x,c("b","c"),),n=4
+  )
+
+  expect_eval_equal(initF=function(n,isSquare=FALSE) {
+        a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+                   "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
+                    dimnames=list(c("a","b","c"),1:3))
+        list(R=as.matrix(a),
+             FL=a)
+    },function(x) "["(x,,2:3),
+    function(x) "["(x,,2:3),n=4
+  )
+})
