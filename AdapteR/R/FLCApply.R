@@ -18,6 +18,7 @@ NULL
 #' @return list of results from each subset
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
+#' irisfl <- FLTable(connection,"FL_DEMO","iris","rownames")
 #' resultList <- FLCApply(irisfl,function(x)kmeans(x,3),"Species")
 #' print(resultList$setosa)
 #' plot(resultList$virginica)
