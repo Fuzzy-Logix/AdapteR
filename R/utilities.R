@@ -293,6 +293,11 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     if(is.null(connection))
         stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")
     
+    if(is.null(database))
+    {
+      cat(" setting FL_DEMO as ResultDatabaseFL ")
+      database <- "FL_DEMO"
+    }
     FLStartSession(connection=connection,database=database,...)
     return(connection)
 }
@@ -421,12 +426,12 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
                         vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
                         vconnection=vconnection){
-    R <- sqlQuery(connection,
+    R <- sqlQuery(vconnection,
                     paste0("SELECT max(",
                            vcolName,")",
                            " FROM ",
                            getRemoteTableName(vdatabase,
-                                              vtable)))
+                                              vtable)))[1,1]
     if(is.na(R)) return(0)
     else return(R)
 
