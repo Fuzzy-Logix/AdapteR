@@ -370,6 +370,10 @@ setMethod("as.FLMatrix", signature(object = "dsCMatrix",
                                    sparse="missing"),
           function(object,sparse=TRUE)
               as.FLMatrix.Matrix(object,sparse=sparse))
+setMethod("as.FLMatrix", signature(object = "dtCMatrix",
+                                   sparse="missing"),
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 ###########################################################################
 setMethod("as.FLMatrix", signature(object = "vector",
                                    sparse="logical"),
@@ -390,7 +394,7 @@ setMethod("as.FLMatrix", signature(object = "data.frame",
 setMethod("as.FLMatrix", signature(object = "FLVector",
                                    sparse="logical"),
           function(object,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.FLVector(object,rows,cols,...))
+              as.FLMatrix.FLVector(object,sparse,rows,cols,...))
 setMethod("as.FLMatrix", signature(object = "FLVector",
                                    sparse="missing"),
           function(object,sparse=TRUE,rows=length(object),cols=1,...)

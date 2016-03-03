@@ -80,51 +80,24 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                                   dim(pObj2)[[2]])
 		}
 
-                ## todo gk,phani,kumar: implement with group by and test performance:
-                ##
-                ## select col, row, sum(vals)
-                ## from (select * from a union all select * from b)
-                ## group by col, row
 		if(pOperator %in% c("+","-"))
 		{
-			sqlstr <-paste0(" SELECT DISTINCT '%insertIDhere%' AS MATRIX_ID,
-								",a,".rowIdColumn AS rowIdColumn,
-								",a,".colIdColumn AS colIdColumn,
-								",a,".valueColumn AS valueColumn  
-						 FROM ( ",constructSelect(pObj1),") AS ",a,
-			            " except ",
-			            "SELECT '%insertIDhere%' AS MATRIX_ID,
-			            		",a,".rowIdColumn AS rowIdColumn,
-			            		",a,".colIdColumn AS colIdColumn,
-			            		",a,".valueColumn AS valueColumn 
-			              FROM  ( ",constructSelect(pObj1),") AS ",a,
-			                  ",( ",constructSelect(pObj2),") AS ",b,
-			            constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
-					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"))),
-			            " UNION ALL ",
-			            " SELECT DISTINCT '%insertIDhere%' AS MATRIX_ID,
-								",b,".rowIdColumn AS rowIdColumn,
-								",b,".colIdColumn AS colIdColumn,
-								",b,".valueColumn*(",pOperator,"1) AS valueColumn 
-						 FROM  ( ",constructSelect(pObj2),") AS ",b,
-			            " except ",
-			            "SELECT '%insertIDhere%' AS MATRIX_ID,
-			            		",b,".rowIdColumn AS rowIdColumn,",
-			            		b,".colIdColumn AS colIdColumn,",
-			            		b,".valueColumn*(",pOperator,"1) AS valueColumn 
-			             FROM ( ",constructSelect(pObj1),") AS ",a,
-			                ",( ",constructSelect(pObj2),") AS ",b,
-			            constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
-					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"))),
-			            " UNION ALL ",
-			            " SELECT '%insertIDhere%' AS MATRIX_ID,
-			            		",a,".rowIdColumn AS rowIdColumn,",
-			            		a,".colIdColumn AS colIdColumn,",
-			            		a,".valueColumn ",pOperator," ",b,".valueColumn AS valueColumn 
-			              FROM  ( ",constructSelect(pObj1),") AS ",a,
-			                  ",( ",constructSelect(pObj2),") AS ",b,
-			            constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
-					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"))))
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+								a,".rowIdColumn AS rowIdColumn,",
+								a,".colIdColumn AS colIdColumn,",
+								" FLSum(",a,".valueColumn) AS valueColumn ",
+								" FROM(",
+									" SELECT ",
+									" a.rowIdColumn AS rowIdColumn,",
+									" a.colIdColumn AS colIdColumn,",
+									" a.valueColumn AS valueColumn ",
+									" FROM(",constructSelect(pObj1),") AS a UNION ALL ",
+									" SELECT ",
+									" b.rowIdColumn AS rowIdColumn,",
+									" b.colIdColumn AS colIdColumn,",
+									" b.valueColumn*(",pOperator,"1) AS valueColumn ",
+									" FROM(",constructSelect(pObj2),") AS b) AS ",a,
+							 " GROUP BY ",a,".rowIdColumn,",a,".colIdColumn")
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
