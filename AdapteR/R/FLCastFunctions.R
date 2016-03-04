@@ -683,7 +683,7 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   }
     batchStore(sqlstr)
     sqlstr <- ""
-    table <- FLTable(getConnection(object),
+    table <- FLTable(connection = getConnection(object),
                    getOption("ResultDatabaseFL"),
                    getOption("ResultVectorTableFL"),
                    "vectorIndexColumn",

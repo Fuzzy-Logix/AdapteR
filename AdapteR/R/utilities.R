@@ -290,7 +290,9 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         })
     } else if (!is.null(odbcSource)){
         require(RODBC)
-        connection <- odbcConnect("Gandalf")
+        tryCatch({
+            connection <- odbcConnect(odbcSource)
+            },error=function(e)e)
     }
     if(is.null(connection))
         stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")

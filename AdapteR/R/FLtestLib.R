@@ -60,9 +60,10 @@ expect_flequal <- function(a,b,...){
 
 ## Increase n for increasing length of FLVector.
 ## If isRowVec=TRUE, rowVector(one observation of all columns) is returned.
+#' @export
 initF.FLVector <- function(n,isRowVec=FALSE)
 {
-  sqlSendUpdate(getConnection(NULL),
+  sqlSendUpdate(getOption("connectionFL"),
                       c(paste0("DROP TABLE FL_DEMO.test_vectortable_AdapteR;"),
                         paste0("CREATE TABLE FL_DEMO.test_vectortable_AdapteR 
                           AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
@@ -70,7 +71,7 @@ initF.FLVector <- function(n,isRowVec=FALSE)
                           FROM FL_DEMO.fzzlserial a 
                           WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
 
-  table <- FLTable(connection=getConnection(NULL),
+  table <- FLTable(connection=getOption("connectionFL"),
                  "FL_DEMO",
                  "test_vectortable_AdapteR",
                  "VECTOR_INDEX",
@@ -88,9 +89,10 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
+#' @export
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
-  sqlSendUpdate(getConnection(NULL),
+  sqlSendUpdate(getOption("connectionFL"),
                       c(paste0("DROP TABLE FL_DEMO.test_matrixtable_AdapteR;"),
                         paste0("CREATE TABLE FL_DEMO.test_matrixtable_AdapteR 
                           AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
@@ -105,14 +107,15 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
       row_id_colname    = "Row_ID",
       col_id_colname    = "Col_ID",
       cell_val_colname  = "Cell_Val",
-      connection=getConnection(NULL))
+      connection=getOption("connectionFL"))
   Rmatrix <- as.matrix(flm)
   return(list(FL=flm,R=Rmatrix))
 }
 
+#' @export
 initF.FLTable <- function(rows,cols)
 {
-  WideTable <- FLTable(connection=getConnection(NULL),
+  WideTable <- FLTable(connection=getOption("connectionFL"),
                       "FL_DEMO",
                       "fzzlserial",
                       "serialval",
