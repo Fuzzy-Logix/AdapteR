@@ -58,23 +58,22 @@ kmeans.default <- stats::kmeans
 #'
 #' \code{kmeans} performs k-means clustering on FLTable objects.
 #'
-#' The wrapper overloads kmeans and implicitly calls FLKMeans.
 #' @method kmeans FLTable
-#' @param table an object of class FLTable
+#' @param x an object of class FLTable, wide or deep
 #' @param centers the number of clusters
 #' @param iter.max the maximum number of iterations allowed
 #' @param nstart the initial number of random sets
 #' @param exclude the comma separated character string of columns to be excluded
 #' @param class_spec list describing the categorical dummy variables
-#' @param where_clause takes the where_clause as a string 
-#' @section Constraints:
-#' None
-#' @return \code{kmeans} performs k-means clustering and replicates equivalent R output.
+#' @param whereconditions takes the where_clause as a string 
+#' @return \code{kmeans} returns a list which replicates equivalent R output
+#' from \code{kmeans} in stats package
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_TRAIN", "tblAbaloneWide", "ObsID")
-#' kmeansobject <- kmeans(widetable,3,20,2,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
+#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' print(kmeansobject)
+#' plot(kmeansobject)
 #' @export
 kmeans.FLTable<-function(x,
 						centers,
