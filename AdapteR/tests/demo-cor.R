@@ -9,10 +9,11 @@
 ## devtools::load_all(".")
 ## setwd("tests/testthat/") ## here reside the demo scripts
 
+
 require(AdapteR)
 
 if(!exists("connection"))
-    connection <- flConnect(odbcHost = "Gandalf")
+    connection <- flConnect(odbcSource = "Gandalf")
 
 
 if(!exists("connection")){
@@ -28,6 +29,7 @@ if(!exists("connection")){
                             passwd   = yourPassword,
                             dir.jdbcjars = yourJarDir)
 }
+
 
 
 ##
@@ -49,7 +51,7 @@ dbGetQuery(connection,
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
 ##
-eqnRtn <- FLMatrix(connection,
+eqnRtn <- FLMatrix(
                    database          = "FL_DEMO",
                    table_name  = "finEquityReturns",
                    matrix_id_value   = "",
@@ -263,7 +265,7 @@ LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
 ) AS a
 ORDER BY 1,2,3;")
 
-m <- FLMatrix(connection,
+m <- FLMatrix(
               database          = "FL_DEMO",
               table_name= "tblMatrixMulti",
               matrix_id_colname = "Matrix_ID",

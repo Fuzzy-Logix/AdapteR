@@ -7,10 +7,11 @@
 ## the zip dir.
 ## 
 ##
+
 require(AdapteR)
 
 if(!exists("connection"))
-    connection <- flConnect(odbcHost = "Gandalf")
+    connection <- flConnect(odbcSource = "Gandalf")
 
 
 if(!exists("connection")){
@@ -167,47 +168,48 @@ test_that(
 ## to begin with.
 ## Create a remote matrix object
 ##
-eqnRtn <- FLMatrix(database          = "FL_DEMO",
-                   table_name  = "finEquityReturns",
-                   matrix_id_value   = "",
-                   matrix_id_colname = "",
-                   row_id_colname    = "TxnDate",
-                   col_id_colname    = "TickerSymbol",
-                   cell_val_colname  = "EquityReturn")
+#### Not running
+# eqnRtn <- FLMatrix(database          = "FL_DEMO",
+#                    table_name  = "finEquityReturns",
+#                    matrix_id_value   = "",
+#                    matrix_id_colname = "",
+#                    row_id_colname    = "TxnDate",
+#                    col_id_colname    = "TickerSymbol",
+#                    cell_val_colname  = "EquityReturn")
 
-## Hierachical tests of a name-providing matrix
-test_equal_FLMatrix_RMatrix(eqnRtn[sample(rownames(eqnRtn),10),
-                                   sample(colnames(eqnRtn),10)])
+# ## Hierachical tests of a name-providing matrix
+# test_equal_FLMatrix_RMatrix(eqnRtn[sample(rownames(eqnRtn),10),
+#                                    sample(colnames(eqnRtn),10)])
 
 
-test_that("Binding named (not indexed) matrix rows and columns",{
-    ##
-    a <- eqnRtn[2001:2010,"MSFT"]
-    b <- eqnRtn[2001:2010,"ORCL"]
-    a2 <- eqnRtn[2011:2020,"MSFT"]
-    b2 <- eqnRtn[2011:2020,"ORCL"]
-    ##
-    ##
-    ra <- as.matrix(a)
-    rb <- as.matrix(b)
-    ra2 <- as.matrix(a2)
-    rb2 <- as.matrix(b2)
-    ##
-    ## 
-    ## note: no data movement.
-    ab <- cbind(a,b)
-    expect_equal_Matrix(ab,cbind(ra,rb))
-    ##
-    ##cat(constructSelect(ab))
-    ##
-    a2b2 <- cbind(a2,b2)
-    expect_equal_Matrix(a2b2,cbind(ra2,rb2))
-    ##
-    ## rbind of 2 cbinds:
-    AB <- rbind(ab, a2b2)
-    expect_equal_Matrix(AB,rbind(cbind(ra,rb),cbind(ra2,rb2)))
-    AB
-})
+# test_that("Binding named (not indexed) matrix rows and columns",{
+#     ##
+#     a <- eqnRtn[2001:2010,"MSFT"]
+#     b <- eqnRtn[2001:2010,"ORCL"]
+#     a2 <- eqnRtn[2011:2020,"MSFT"]
+#     b2 <- eqnRtn[2011:2020,"ORCL"]
+#     ##
+#     ##
+#     ra <- as.matrix(a)
+#     rb <- as.matrix(b)
+#     ra2 <- as.matrix(a2)
+#     rb2 <- as.matrix(b2)
+#     ##
+#     ## 
+#     ## note: no data movement.
+#     ab <- cbind(a,b)
+#     expect_equal_Matrix(ab,cbind(ra,rb))
+#     ##
+#     ##cat(constructSelect(ab))
+#     ##
+#     a2b2 <- cbind(a2,b2)
+#     expect_equal_Matrix(a2b2,cbind(ra2,rb2))
+#     ##
+#     ## rbind of 2 cbinds:
+#     AB <- rbind(ab, a2b2)
+#     expect_equal_Matrix(AB,rbind(cbind(ra,rb),cbind(ra2,rb2)))
+#     AB
+# })
 
 
 

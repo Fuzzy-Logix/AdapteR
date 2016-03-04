@@ -9,7 +9,7 @@ library(RJDBC)
 library(RODBC)
 
 if(!exists("connection"))
-    connection <- flConnect(odbcHost = "Gandalf")
+    connection <- flConnect(odbcSource = "Gandalf")
 
 
 if(!exists("connection")){

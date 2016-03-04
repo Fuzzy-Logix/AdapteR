@@ -15,7 +15,7 @@ library(AdapteR)
 library(testthat)
 
 if(!exists("connection"))
-    connection <- flConnect(odbcHost = "Gandalf")
+    connection <- flConnect(odbcSource = "Gandalf")
 
 
 if(!exists("connection")){
@@ -98,17 +98,17 @@ test_that("check FLCastFunctions",
   V1R <- as.vector(V1)
   P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   T1 <- initF.FLTable(rows=5,cols=5)
-    expect_equal(as.vector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
-    expect_equal(as.vector(P1$FL),as.vector(P1$R),check.attributes=FALSE)
-    expect_equal(as.data.frame(M1$FL),as.data.frame(M1$R),check.attributes=FALSE)
+    FLexpect_equal(as.vector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
+    FLexpect_equal(as.vector(P1$FL),as.vector(P1$R),check.attributes=FALSE)
+    FLexpect_equal(as.data.frame(M1$FL),as.data.frame(M1$R),check.attributes=FALSE)
     testthat::expect_equal(as.matrix(P1$FL),as.matrix(P1$R),check.attributes=FALSE)
     testthat::expect_equal(as.matrix(V1),as.matrix(V1R),check.attributes=FALSE)
-    expect_equal(as.FLMatrix(M1$R),M1$FL,check.attributes=FALSE)
-    expect_equal(P1$FL,as.FLVector(P1$R),check.attributes=FALSE)
-    expect_equal(as.matrix(as.FLMatrix(V1)),as.matrix(V1R),check.attributes=FALSE)
-    expect_equal(as.matrix(as.FLMatrix(P1$R)),as.matrix(P1$R),check.attributes=FALSE)
-    expect_equal(as.vector(as.FLVector(M1$R)),as.vector(M1$R),check.attributes=FALSE)
-    expect_equal(as.vector(as.FLVector(M1$FL)),as.vector(M1$R),check.attributes=FALSE)
+    FLexpect_equal(as.FLMatrix(M1$R),M1$FL,check.attributes=FALSE)
+    FLexpect_equal(P1$FL,as.FLVector(P1$R),check.attributes=FALSE)
+    FLexpect_equal(as.matrix(as.FLMatrix(V1)),as.matrix(V1R),check.attributes=FALSE)
+    FLexpect_equal(as.matrix(as.FLMatrix(P1$R)),as.matrix(P1$R),check.attributes=FALSE)
+    FLexpect_equal(as.vector(as.FLVector(M1$R)),as.vector(M1$R),check.attributes=FALSE)
+    FLexpect_equal(as.FLVector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
 })
 
 ## Testing FLCholskeyDecomp
@@ -195,12 +195,11 @@ test_that("check result for Matrix M_Subtraction",
   )
 })
 
-differentLengths <- FALSE
 ## Testing M_Subtraction
 ## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for M_Subtraction",
 {
-    M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
+  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
   M2 <- FLMatrix("FL_DEMO","tblmatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10))
@@ -213,7 +212,13 @@ test_that("check result for M_Subtraction",
   FLexpect_equal(P1$FL-P1$FL,P1$R-P1$R,check.attributes=FALSE)
   FLexpect_equal(V1-P1$FL,V1R-P1$R,check.attributes=FALSE)
   FLexpect_equal(P1$FL-V2,P1$R-V2R,check.attributes=FALSE)
-    ## see tests whether failing if object length do not match up
+  FLexpect_equal((M1$FL-V2),M1$R-V2R,check.attributes=FALSE)
+  FLexpect_equal((M1$FL-P1$FL),M1$R-P1$R,check.attributes=FALSE)
+  FLexpect_equal((V1-M2),V1R-M2R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL-M2),P1$R-M2R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2),
+               P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
+               check.attributes=FALSE)
 })
 
 
@@ -253,13 +258,10 @@ test_that("check result for M_IntegerDivision",
   FLexpect_equal((P1$FL%/%P1$FL),P1$R%/%P1$R,check.attributes=FALSE)
   FLexpect_equal((V1%/%P1$FL),V1R%/%P1$R,check.attributes=FALSE)
   FLexpect_equal((P1$FL%/%V2),P1$R%/%V2R,check.attributes=FALSE)
-
-  if(differentLengths){
-      FLexpect_equal((M1$FL%/%V2),M1$R%/%V2R,check.attributes=FALSE)
-      FLexpect_equal((M1$FL%/%P1$FL),M1$R%/%P1$R,check.attributes=FALSE)
-      FLexpect_equal((V1%/%M2),V1R%/%M2R,check.attributes=FALSE)
-      FLexpect_equal((P1$FL%/%M2),P1$R%/%M2R,check.attributes=FALSE)
-  }
+  FLexpect_equal((M1$FL%/%V2),M1$R%/%V2R,check.attributes=FALSE)
+  FLexpect_equal((M1$FL%/%P1$FL),M1$R%/%P1$R,check.attributes=FALSE)
+  FLexpect_equal((V1%/%M2),V1R%/%M2R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL%/%M2),P1$R%/%M2R,check.attributes=FALSE)
 })
 
 ## Testing M_CrossProduct only two FLMatrices
