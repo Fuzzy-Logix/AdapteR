@@ -216,6 +216,24 @@ setMethod("FLStringDist",
             return(resultvec)
           })
 
+#' levenshtein.damerau.distance
+#'
+#' computes the levenshtein-damerau distance between strings
+#' @param xsource character or FLVector of characters
+#' @param targets character or FLVector of characters
+#' @param caseFLag logical or 0/1 indicating 
+#' if comparision should be case sensitive
+#' @return FLMatrix if both \code{xsource} and \code{targets}
+#' are FLVectors. Otherwise returns a FLVector
+#' @section Constraints:
+#' row vectors are not supported currently 
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- levenshtein.damerau.distance("xyz",flv)
+#' resultflmatrix <- levenshtein.damerau.distance(flv,flv,caseFLag=1)
+#' resultflvector <- levenshtein.damerau.distance(flv,"xyz",caseFLag=1)
+#' @export
 setGeneric("levenshtein.damerau.distance", function(xsource,targets,caseFlag=0,...)
     standardGeneric("levenshtein.damerau.distance"))
 
@@ -236,7 +254,24 @@ setMethod("levenshtein.damerau.distance",
                       xsource,targets,caseFlag)
           })
 
-
+#' levenshtein.distance
+#'
+#' computes the levenshtein distance between strings
+#' @param xsource character or FLVector of characters
+#' @param targets character or FLVector of characters
+#' @param caseFLag logical or 0/1 indicating 
+#' if comparision should be case sensitive
+#' @return FLMatrix if both \code{xsource} and \code{targets}
+#' are FLVectors. Otherwise returns a FLVector
+#' @section Constraints:
+#' row vectors are not supported currently
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- levenshtein.distance("xyz",flv)
+#' resultflmatrix <- levenshtein.distance(flv,flv,caseFLag=1)
+#' resultflvector <- levenshtein.distance(flv,"xyz",caseFLag=1)
+#' @export
 setGeneric("levenshtein.distance", function(xsource,targets,caseFlag=0,...)
     standardGeneric("levenshtein.distance"))
 
@@ -257,6 +292,25 @@ setMethod("levenshtein.distance",
                       xsource,targets,caseFlag)
           })
 
+#' hamming.distance
+#'
+#' computes the hamming distance between strings
+#' @param xsource character or FLVector of characters
+#' @param targets character or FLVector of characters
+#' @param caseFLag logical or 0/1 indicating
+#' if comparision should be case sensitive
+#' @param vlength optional, length of strings to compare
+#' @return FLMatrix if both \code{xsource} and \code{targets}
+#' are FLVectors. Otherwise returns a FLVector
+#' @section Constraints:
+#' row vectors are not supported currently
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- hamming.distance("xyz",flv)
+#' resultflmatrix <- hamming.distance(flv,flv,caseFLag=1)
+#' resultflvector <- hamming.distance(flv,"xyz",caseFLag=1)
+#' @export
 setGeneric("hamming.distance", function(xsource,targets,caseFlag=0,vlength=3,...)
     standardGeneric("hamming.distance"))
 
@@ -281,6 +335,33 @@ setMethod("hamming.distance",
                       xsource,targets,caseFlag,vlength=vlength)
           })
 
+#' stringdist
+#'
+#' compute distance metrics between strings
+#' @param a character or FLVector of characters
+#' @param b character or FLVector of characters
+#' @param method can be \code{c("lv","dl","hamming","jaccard","jw")}
+#' where lv - levenshtein, dl - levenshtein.damerau
+#' jw - jaro-winkler. Default is "lv"
+#' @param caseFLag logical or 0/1 indicating
+#' if comparision should be case sensitive
+#' @param p penality factor for jaro-winkler
+#' if p==0 jaro distance is computed
+#' @param vlength optional, length of strings to compare
+#' used for hamming
+#' @return FLMatrix if both \code{a} and \code{b}
+#' are FLVectors. Otherwise returns a FLVector
+#' @section Constraints:
+#' row vectors are not supported currently
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- stringdist("xyz",flv)
+#' resultflvector <- stringdist("xyz",flv,method="lv",caseFLag=1)
+#' resultflvector <- stringdist("xyz",flv,method="hamming",vlength=4)
+#' resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
+#' resultflvector <- stringdist("xyz",flv,method="jw")
+#' @export
 setGeneric("stringdist", function(a,b,method="dl",caseFlag=0,p=0,vlength=3,...)
     standardGeneric("stringdist"))
 
@@ -324,6 +405,33 @@ setMethod("stringdist",
             }
           })
 
+#' FLNeedleManWunschDist
+#'
+#' compute NeedleManWunsch distance between strings
+#' @param a character or FLVector of characters
+#' @param b character or FLVector of characters
+#' @param matchWeight integer weight for having
+#' matching sequential characters between
+#' the strings
+#' @param mismatchWeight integer Weight
+#' for having nonmatching or non-sequential characters
+#' between the strings
+#' @param gapPenalty integer penality for gaps
+#' @param caseFLag logical or 0/1 indicating 
+#' if comparision should be case sensitive
+#' @return FLMatrix if both \code{a} and \code{b}
+#' are FLVectors. Otherwise returns a FLVector
+#' @section Constraints:
+#' row vectors are not supported currently
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
+#' resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="jw")
+#' @export
 setGeneric("FLNeedleManWunschDist", function(a,b,matchWeight=1,
                                           mismatchWeight=-1,
                                           gapPenalty=-1,
