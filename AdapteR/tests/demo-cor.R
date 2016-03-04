@@ -9,21 +9,25 @@
 ## devtools::load_all(".")
 ## setwd("tests/testthat/") ## here reside the demo scripts
 
+require(AdapteR)
 
-require(RODBC)
-connection <- odbcConnect("Gandalf")
-##
-## OR
-##
-## startup and setup with jdbc:
-##
-require(RJDBC)
-user     <- "database user"
-passwd   <- "database password" 
-host     <- "10.200.4.116" ## Gandalf
-database <- "Fl_demo"
-source("./setup-jdbc.R")
+if(!exists("connection"))
+    connection <- flConnect(odbcHost = "Gandalf")
 
+
+if(!exists("connection")){
+    ## for JDBC set credential
+    yourUser <- ""
+    yourPassword <- ""
+
+    ## set this to add jdbc driver and security jars to classpath: terajdbc4.jar tdgssconfig.jar
+    yourJarDir <- NULL
+    connection <- flConnect(host     = "10.200.4.116",
+                            database = "Fl_demo",
+                            user     = yourUser,
+                            passwd   = yourPassword,
+                            dir.jdbcjars = yourJarDir)
+}
 
 
 ##

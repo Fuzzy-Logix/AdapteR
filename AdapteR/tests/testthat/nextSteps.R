@@ -8,19 +8,23 @@ require(MASS)
 library(RJDBC)
 library(RODBC)
 
-if (exists("connection")) {
-    dbDisconnect(connection)
-    rm(connection)
-}
+if(!exists("connection"))
+    connection <- flConnect(odbcHost = "Gandalf")
+
+
 if(!exists("connection")){
-    ##connection <- odbcConnect("Gandalf")
-    connection <- tdConnect(host,user,passwd,database,"jdbc")
+    ## for JDBC set credential
+    yourUser <- ""
+    yourPassword <- ""
+
+    ## set this to add jdbc driver and security jars to classpath: terajdbc4.jar tdgssconfig.jar
+    yourJarDir <- NULL
+    connection <- flConnect(host     = "10.200.4.116",
+                            database = "Fl_demo",
+                            user     = yourUser,
+                            passwd   = yourPassword,
+                            dir.jdbcjars = yourJarDir)
 }
-
-FLStartSession(connection)
-
-setwd("/Users/gregor/fuzzylogix/AdapteR/RWrappers/AdapteR/tests/testthat")
-source("FLtestLib.R")
 
 options(debugSQL=FALSE)
 
