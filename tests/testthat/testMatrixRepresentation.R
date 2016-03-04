@@ -10,11 +10,22 @@
 require(AdapteR)
 
 if(!exists("connection"))
-    connection <- flConnect(host     = "10.200.4.116", ## Gandalf
+    connection <- flConnect(odbcHost = "Gandalf")
+
+
+if(!exists("connection")){
+    ## for JDBC set credential
+    yourUser <- ""
+    yourPassword <- ""
+
+    ## set this to add jdbc driver and security jars to classpath: terajdbc4.jar tdgssconfig.jar
+    yourJarDir <- NULL
+    connection <- flConnect(host     = "10.200.4.116",
                             database = "Fl_demo",
                             user     = yourUser,
                             passwd   = yourPassword,
-                            dir.jdbcjars = "/Users/gregor/fuzzylogix/")
+                            dir.jdbcjars = yourJarDir)
+}
 
 options(debugSQL=FALSE)
 ## a in-memory matrix in R 

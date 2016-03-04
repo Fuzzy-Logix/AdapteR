@@ -2,9 +2,25 @@
 
 library(AdapteR)
 library(RODBC)
-connection <- odbcConnect("Gandalf")
+
+if(!exists("connection"))
+    connection <- flConnect(odbcHost = "Gandalf")
+
+
+if(!exists("connection")){
+    ## for JDBC set credential
+    yourUser <- ""
+    yourPassword <- ""
+
+    ## set this to add jdbc driver and security jars to classpath: terajdbc4.jar tdgssconfig.jar
+    yourJarDir <- NULL
+    connection <- flConnect(host     = "10.200.4.116",
+                            database = "Fl_demo",
+                            user     = yourUser,
+                            passwd   = yourPassword,
+                            dir.jdbcjars = yourJarDir)
+}
 data(iris)
-FLStartSession(connection)
 options(debugSQL=FALSE)
 
 
