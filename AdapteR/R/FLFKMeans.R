@@ -44,12 +44,16 @@ setClass(
 		maxit="numeric"
 	)
 )
+
+#' @export
 fanny <- function (x,k,...) {
   UseMethod("fanny", x)
 }
-
+#' @export
 fanny.data.frame<-cluster::fanny
+#' @export
 fanny.matrix <- cluster::fanny
+#' @export
 fanny.default <- cluster::fanny
 
 #' FuzzyKMeans Clustering.
@@ -77,8 +81,8 @@ fanny.default <- cluster::fanny
 #' @param trace.lev integer specifying a trace level for 
 #' printing diagnostics during the build and swap phase of the algorithm.
 #' currently always 0
-#' @param exclude the comma separated character string of columns to be excluded
-#' @param class_spec list describing the categorical dummy variables
+#' @param excludeCols the comma separated character string of columns to be excluded
+#' @param classSpec list describing the categorical dummy variables
 #' @param whereconditions takes the where_clause as a string
 #' @param distTable name of the in-database table having dissimilarity
 #' matrix or distance table
@@ -91,6 +95,7 @@ fanny.default <- cluster::fanny
 #' widetable  <- FLTable(connection, "FL_DEMO", "iris", "rownames")
 #' fkmeansobject <- fanny(widetable,2,memb.exp=2)
 #' print(fkmeansobject)
+#' plot(fkmeansobject)
 #' @export
 fanny.FLTable <- function(x,
 						k,
@@ -136,7 +141,6 @@ fanny.FLTable <- function(x,
 						keep.diss = "logical",
 						keep.data = "logical",
 						distTable = "character",
-						iniMem.p = "NULL",
 						tol = "double"
 					)
 
@@ -180,7 +184,7 @@ fanny.FLTable <- function(x,
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
-		deepx <- FLTable(connection,
+		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename1,
                    "obs_id_colname",
@@ -196,7 +200,7 @@ fanny.FLTable <- function(x,
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(connection,
+		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename,
                    "obs_id_colname",
@@ -257,7 +261,7 @@ fanny.FLTable <- function(x,
 
 	if(property=="membership")
 	{
-		membershipmatrix <- membership(object)
+		membershipmatrix <- membership.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(membershipmatrix)
 	}
@@ -269,13 +273,13 @@ fanny.FLTable <- function(x,
 	}
 	else if(property=="coeff")
 	{
-		coeffvector <- coeff(object)
+		coeffvector <- coeff.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(coeffvector)
 	}
 	else if(property=="clustering")
 	{
-		clusteringvector <- clustering(object)
+		clusteringvector <- clustering.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(clusteringvector)
 	}
@@ -287,49 +291,44 @@ fanny.FLTable <- function(x,
 	}
 	else if(property=="objective")
 	{
-		objectivevector <- objective(object)
+		objectivevector <- objective.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(objectivevector)
 	}
 	else if(property=="convergence")
 	{
-		convergencevector <- convergence(object)
+		convergencevector <- convergence.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(convergencevector)
 	}
 	else if(property=="silinfo")
 	{
-		silinfolist <- silinfo(object)
+		silinfolist <- silinfo.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(silinfolist)
 	}
 	else if(property=="diss")
 	{
-		dissmatrix <- diss(object)
+		dissmatrix <- diss.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(dissmatrix)
 	}
 	else if(property=="call")
 	{
-		callobject <- call(object)
+		callobject <- call.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(callobject)
 	}
 	else if(property=="data")
 	{
-		dataframe <- data.FLFKMeans(object)
+		dataframe <- data.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(dataframe)
 	}
 	else stop(property," is not a valid property")
 }
 
-#' @export
-clustering <- function (object, ...) {
-   UseMethod("clustering", object)
- }
 
-#' @export
 clustering.FLFKMeans <- function(object)
 {
 	if(!is.null(object@results[["clustering"]]))
@@ -371,13 +370,7 @@ clustering.FLFKMeans <- function(object)
 	}
 }
 
-#' @export
-membership <- function (object, ...)
-{
-   UseMethod("membership", object)
-}
 
-#' @export
 membership.FLFKMeans<-function(object)
 {
 	if(!is.null(object@results[["membership"]]))
@@ -424,12 +417,7 @@ membership.FLFKMeans<-function(object)
 	}
 }
 
-#' @export
-coeff <- function(object,...){
-	UseMethod("coeff",object)
-}
 
-#' @export
 coeff.FLFKMeans<-function(object){
 	if(!is.null(object@results[["coeff"]]))
 	return(object@results[["coeff"]])
@@ -457,12 +445,7 @@ coeff.FLFKMeans<-function(object){
 	}
 }
 
-#' @export
-objective <- function(object){
-	UseMethod("objective",object)
-}
 
-#' @export
 objective.FLFKMeans <- function(object){
 	if(!is.null(object@results[["objective"]]))
 	return(object@results[["objective"]])
@@ -504,12 +487,7 @@ objective.FLFKMeans <- function(object){
 	
 }
 
-#' @export
-k.crisp <- function(object,...){
-	UseMethod("k.crisp",object)
-}
 
-#' @export
 k.crisp.FLFKMeans<-function(object){
 	if(!is.null(object@results[["k.crisp"]]))
 	return(object@results[["k.crisp"]])
@@ -539,12 +517,7 @@ k.crisp.FLFKMeans<-function(object){
 	}
 }
 ## Number of iterations to convergence is not avalilable from DBLytix
-#' @export
-convergence <- function(object){
-	UseMethod("convergence",object)
-}
 
-#' @export
 convergence.FLFKMeans <- function(object){
 	if(!is.null(object@results[["convergence"]]))
 	return(object@results[["convergence"]])
@@ -558,12 +531,7 @@ convergence.FLFKMeans <- function(object){
 	}
 }
 
-#' @export
-silinfo <- function(object){
-	UseMethod("silinfo",object)
-}
 
-#' @export
 silinfo.FLFKMeans <- function(object){
 	if(!is.null(object@results[["silinfo"]]))
 	return(object@results[["silinfo"]])
@@ -723,12 +691,15 @@ silinfo.FLFKMeans <- function(object){
 		
 		object@results <- c(object@results,list(silinfo = silinfolist))
 		
-		t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
-		object@temptables[["temptbl2"]] <- NULL
-		t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl4"]]))
-		object@temptables[["temptbl4"]] <- NULL
-		t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl3"]]))
-		object@temptables[["temptbl3"]] <- NULL
+		if((!(class(widthsmatrix)=="FLTable")) && (!(class(clus.avg.widthsvector)=="FLVector")))
+		{
+			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
+			object@temptables[["temptbl2"]] <- NULL
+			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl4"]]))
+			object@temptables[["temptbl4"]] <- NULL
+			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl3"]]))
+			object@temptables[["temptbl3"]] <- NULL
+		}
 
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
@@ -736,63 +707,7 @@ silinfo.FLFKMeans <- function(object){
 	}
 }
 
-#' @export
-diss <- function (x, ...)
-{
-   UseMethod("diss", x)
-}
 
-#' @export
-diss.FLFKMeans<-function(object)
-{
-	if(!is.null(object@results[["diss"]]))
-	return(object@results[["diss"]])
-	else
-	{
-			connection <- getConnection(object@table)
-			flag1Check(connection)
-			AnalysisID <- object@AnalysisID
-			deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
-			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
-			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-
-			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID, 
-									a.",obs_id_colname," AS rowIdColumn,
-									b.",obs_id_colname," AS colIdColumn,
-									FLEuclideanDist(a.",cell_val_colname,", b.",cell_val_colname,") AS valueColumn
-							FROM ",deeptablename," a,",deeptablename," b
-							WHERE a.",var_id_colname," = b.",var_id_colname," and a.",obs_id_colname,">b.",obs_id_colname," 
-							GROUP BY a.",obs_id_colname,",b.",obs_id_colname)
-
-			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = connection,
-	                        variables=list(
-	                            rowIdColumn="rowIdColumn",
-	                            colIdColumn="colIdColumn",
-	                            valueColumn="valueColumn"),
-	                        whereconditions="",
-	                        order = "",
-	                        SQLquery=sqlstr)
-
-		  	dissmatrix <- new("FLMatrix",
-					            select= tblfunqueryobj,
-					            dim=c(length(object@deeptable@dimnames[[1]]),
-					            	length(object@deeptable@dimnames[[1]])),
-					            dimnames=list(object@deeptable@dimnames[[1]],
-					            			object@deeptable@dimnames[[1]]))
-
-		  	dissmatrix <- tryCatch(as.sparseMatrix.FLMatrix(dissmatrix),
-		  							error=function(e) dissmatrix)
-		
-		object@results <- c(object@results,list(diss = dissmatrix))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-		assign(parentObject,object,envir=parent.frame())
-		return(dissmatrix)
-	}
-}
-
-#' @export
 call.FLFKMeans<-function(object)
 {
 	if(!is.null(object@results[["call"]]))
@@ -808,56 +723,21 @@ call.FLFKMeans<-function(object)
 	}
 }
 
-#' @export
-data.FLFKMeans<-function(object)
-{
-	if(!is.null(object@results[["data"]]))
-	return(object@results[["data"]])
-	else if(object@diss==TRUE) dataframe <- c()
-	else
-	{
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
-		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
-		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-		widetable <- gen_wide_table_name("new")
-		#widetable <- "tempuniquewide12345678"
-		if(!object@table@isDeep)
-		{
-			widex <- deepToWide(object@deeptable,
-								whereconditions="",
-								mapTable= object@mapTable,
-								mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-								outWideTableDatabase=getOption("ResultDatabaseFL"),
-	                    		outWideTableName=widetable)
-			x <- widex$table
-		}
-		else
-		x <- object@deeptable
-		x <- as.data.frame(x)
-		x$obs_id_colname <- NULL
-		dataframe <- x
-	}
-	object@results <- c(object@results,list(data = dataframe))
-	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	assign(parentObject,object,envir=parent.frame())
-	return(dataframe)
-}
 
 #' @export
 print.FLFKMeans <- function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	results <- list()
-	results <- c(results,list(membership=membership(object)),
-						list(coeff=coeff(object)),
-						list(clustering=clustering(object)),
-						list(objective=objective(object)),
-						list(k.crisp=k.crisp(object)),
-						list(convergence=convergence(object)),
+	results <- c(results,list(membership=membership.FLFKMeans(object)),
+						list(coeff=coeff.FLFKMeans(object)),
+						list(clustering=clustering.FLFKMeans(object)),
+						list(objective=objective.FLFKMeans(object)),
+						list(k.crisp=k.crisp.FLFKMeans(object)),
+						list(convergence=convergence.FLFKMeans(object)),
 						list(silinfo=""),
 						list(diss=""),
-						list(call=call(object)),
+						list(call=call.FLFKMeans(object)),
 						list(data=""),
 						list(memb.exp=object@memb.exp))
 	class(results) <- c("fanny","partition","silhouette")
@@ -866,6 +746,7 @@ print.FLFKMeans <- function(object)
 	print(results)
 }
 
+#' @export
 setMethod("show","FLFKMeans",
 			function(object)
 			{
@@ -880,20 +761,16 @@ plot.FLFKMeans <- function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	results <- list()
-	dataframe <- data.FLFKMeans(object)
+	dataframe <- data.FLKMedoids(object)
 	if(is.null(dataframe) || length(dataframe)==0)
-	l <- list(diss=as.matrix(diss(object)))
+	l <- list(diss=as.matrix(diss.FLKMedoids(object)))
 	else
 	l <- list(data=dataframe)
-	results <- c(results,#list(medoids=medoids(object)),
-						#list(id.med=id.med(object)),
-						list(clustering=clustering(object)),
+	results <- c(results,
+						list(clustering=clustering.FLFKMeans(object)),
 						list(objective=""),
-						#list(isolation=isolation(object)),
-						#list(clusinfo=clusinfo(object)),
-						list(silinfo=silinfo(object)),
-						#list(diss=diss(object)),
-						list(call=call(object)),
+						list(silinfo=silinfo.FLFKMeans(object)),
+						list(call=call.FLFKMeans(object)),
 						l
 						)
 	class(results) <- c("fanny","partition","silhouette")

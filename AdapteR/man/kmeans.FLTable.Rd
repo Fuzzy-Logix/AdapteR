@@ -9,37 +9,32 @@
   whereconditions = "")
 }
 \arguments{
+\item{x}{an object of class FLTable, wide or deep}
+
 \item{centers}{the number of clusters}
 
 \item{iter.max}{the maximum number of iterations allowed}
 
 \item{nstart}{the initial number of random sets}
 
-\item{table}{an object of class FLTable}
+\item{excludeCols}{the comma separated character string of columns to be excluded}
 
-\item{exclude}{the comma separated character string of columns to be excluded}
+\item{classSpec}{list describing the categorical dummy variables}
 
-\item{class_spec}{list describing the categorical dummy variables}
-
-\item{where_clause}{takes the where_clause as a string}
+\item{whereconditions}{takes the where_clause as a string}
 }
 \value{
-\code{kmeans} performs k-means clustering and replicates equivalent R output.
+\code{kmeans} returns a list which replicates equivalent R output
+from \code{kmeans} in stats package
 }
 \description{
 \code{kmeans} performs k-means clustering on FLTable objects.
 }
-\details{
-The wrapper overloads kmeans and implicitly calls FLKMeans.
-}
-\section{Constraints}{
-
-None
-}
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_TRAIN", "tblAbaloneWide", "ObsID")
-kmeansobject <- kmeans(widetable,3,20,2,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
+widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 print(kmeansobject)
+plot(kmeansobject)
 }
 

@@ -4,30 +4,6 @@
 #' @include FLVector.R
 NULL
 #' An S4 class to represent FLKMedoids
-#'
-#' @slot centers A numeric vector containing the number of clusters, say k
-#' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot connection ODBC connectivity for R
-#' @slot table FLTable object given as input on which analysis is performed
-#' @slot resultsfetched A logical vector describing what components are fetched
-#' @slot results A list of all fetched components
-#' @slot deeptablename A character vector containing a deeptable(either conversion from a widetable or input deeptable)
-#' @method cluster FLKMeans
-#' @param object retrieves the cluster vector
-#' @method centers FLKMeans
-#' @param object retrieves the coordinates of the centroids
-#' @method print FLKMeans
-#' @param object overloads the print function
-#' @method tot.withinss FLKMeans
-#' @param object total within sum of squares
-#' @method withinss FLKMeans
-#' @param object within sum of squares
-#' @method betweenss FLKMeans
-#' @param object between sum of squares
-#' @method totss FLKMeans
-#' @param object total sum of squares
-#' @method size FLKMeans
-#' @param object size vector
 setClass(
 	"FLKMedoids",
 	slots=list(
@@ -42,18 +18,18 @@ setClass(
 		mapTable="character"
 	)
 )
+
+#' @export
 pam <- function (x,k,...) {
   UseMethod("pam", x)
 }
 
+#' @export
 pam.data.frame<-cluster::pam
+#' @export
 pam.matrix <- cluster::pam
+#' @export
 pam.default <- cluster::pam
-
-call <- function (x,k,...) {
-  UseMethod("call", x)
-}
-call.default <- base::call
 
 #' K-Medoids Clustering.
 #'
@@ -80,8 +56,8 @@ call.default <- base::call
 #' printing diagnostics during the build and swap phase of the algorithm.
 #' currently always 0
 #' @param iter.max the maximum number of iterations allowed
-#' @param exclude the comma separated character string of columns to be excluded
-#' @param class_spec list describing the categorical dummy variables
+#' @param excludeCols the comma separated character string of columns to be excluded
+#' @param classSpec list describing the categorical dummy variables
 #' @param whereconditions takes the where_clause as a string
 #' @param distTable name of the in-database table having dissimilarity
 #' matrix or distance table
@@ -184,7 +160,7 @@ pam.FLTable <- function(x,
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
-		deepx <- FLTable(connection,
+		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename1,
                    "obs_id_colname",
@@ -200,7 +176,7 @@ pam.FLTable <- function(x,
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(connection,
+		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename,
                    "obs_id_colname",
@@ -260,6 +236,7 @@ pam.FLTable <- function(x,
 	else return(FLKMedoidsobject)
 }
 
+#' @export
 `$.FLKMedoids`<-function(object,property)
 {
 	#parentObject <- deparse(substitute(object))
@@ -267,55 +244,55 @@ pam.FLTable <- function(x,
 
 	if(property=="medoids")
 	{
-		medoidsmatrix <- medoids(object)
+		medoidsmatrix <- medoids.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(medoidsmatrix)
 	}
 	else if(property=="id.med")
 	{
-		id.medvector <- id.med(object)
+		id.medvector <- id.med.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(id.medvector)
 	}
 	else if(property=="clustering")
 	{
-		clusteringvector <- clustering(object)
+		clusteringvector <- clustering.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(clusteringvector)
 	}
 	else if(property=="objective")
 	{
-		objectivevector <- objective(object)
+		objectivevector <- objective.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(objectivevector)
 	}
 	else if(property=="isolation")
 	{
-		isolationvector <- isolation(object)
+		isolationvector <- isolation.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(isolationvector)
 	}
 	else if(property=="clusinfo")
 	{
-		clusinfomatrix <- clusinfo(object)
+		clusinfomatrix <- clusinfo.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(clusinfomatrix)
 	}
 	else if(property=="silinfo")
 	{
-		silinfolist <- silinfo(object)
+		silinfolist <- silinfo.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(silinfolist)
 	}
 	else if(property=="diss")
 	{
-		dissmatrix <- diss(object)
+		dissmatrix <- diss.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(dissmatrix)
 	}
 	else if(property=="call")
 	{
-		callobject <- call(object)
+		callobject <- call.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(callobject)
 	}
@@ -328,9 +305,6 @@ pam.FLTable <- function(x,
 	else stop(property," is not a valid property")
 }
 
-clustering <- function (x, ...) {
-   UseMethod("clustering", x)
- }
 
 clustering.FLKMedoids <- function(object)
 {
@@ -377,10 +351,6 @@ clustering.FLKMedoids <- function(object)
 	}
 }
 
-medoids <- function (x, ...)
-{
-   UseMethod("medoids", x)
-}
 
 medoids.FLKMedoids<-function(object)
 {
@@ -389,7 +359,7 @@ medoids.FLKMedoids<-function(object)
 	else
 	{
 		if(object@diss)
-		medoidsmatrix <- id.med(object)
+		medoidsmatrix <- id.med.FLKMedoids(object)
 		else
 		{
 			connection <- getConnection(object@table)
@@ -442,10 +412,6 @@ medoids.FLKMedoids<-function(object)
 	}
 }
 
-id.med <- function(object,...){
-	UseMethod("id.med",object)
-}
-
 id.med.FLKMedoids<-function(object){
 	if(!is.null(object@results[["id.med"]]))
 	return(object@results[["id.med"]])
@@ -484,9 +450,6 @@ id.med.FLKMedoids<-function(object){
 	}
 }
 
-objective <- function(object){
-	UseMethod("objective",object)
-}
 
 objective.FLKMedoids <- function(object){
 	if(!is.null(object@results[["objective"]]))
@@ -519,9 +482,6 @@ objective.FLKMedoids <- function(object){
 	
 }
 
-isolation <- function(object){
-	UseMethod("isolation",object)
-}
 
 isolation.FLKMedoids <- function(object){
 	if(!is.null(object@results[["isolation"]]))
@@ -609,7 +569,9 @@ isolation.FLKMedoids <- function(object){
 			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl1"]]))
 			object@temptables[["temptbl1"]] <- NULL
 		}
-		if(!is.null(object@results[["clusinfo"]]) && !is.null(object@results[["silinfo"]]))
+		if(!is.null(object@results[["clusinfo"]]) 
+			&& is.matrix(object@results[["silinfo"]][["widths"]])
+			&& is.numeric(object@results[["silinfo"]][["clus.avg.widths"]]))
 		{
 			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
 			object@temptables[["temptbl2"]] <- NULL
@@ -623,9 +585,6 @@ isolation.FLKMedoids <- function(object){
 	}
 }
 
-clusinfo <- function(object){
-	UseMethod("clusinfo",object)
-}
 
 clusinfo.FLKMedoids <- function(object){
 	if(!is.null(object@results[["clusinfo"]]))
@@ -707,7 +666,9 @@ clusinfo.FLKMedoids <- function(object){
 			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl1"]]))
 			object@temptables[["temptbl1"]] <- NULL
 		}
-		if(!is.null(object@results[["isolation"]]) && !is.null(object@results[["silinfo"]]))
+		if(!is.null(object@results[["isolation"]]) 
+			&& is.matrix(object@results[["silinfo"]][["widths"]])
+			&& is.numeric(object@results[["silinfo"]][["clus.avg.widths"]]))
 		{
 			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
 			object@temptables[["temptbl2"]] <- NULL
@@ -720,9 +681,6 @@ clusinfo.FLKMedoids <- function(object){
 	}
 }
 
-silinfo <- function(object){
-	UseMethod("silinfo",object)
-}
 
 silinfo.FLKMedoids <- function(object){
 	if(!is.null(object@results[["silinfo"]]))
@@ -873,8 +831,7 @@ silinfo.FLKMedoids <- function(object){
 		else
 		avg.widthvector <- tryCatch(base::mean(widthsmatrix[,"sil_width"]),
 									error=function(e) base::mean(widthsmatrix[,"SIL_WIDTH"]))
-		# avg.widthvector <- base::mean(widthsmatrix[,"SIL_WIDTH"])
-
+		
 		silinfolist <- list(widths=widthsmatrix,
 							clus.avg.widths=clus.avg.widthsvector,
 							avg.width=avg.widthvector)
@@ -882,15 +839,18 @@ silinfo.FLKMedoids <- function(object){
 		
 		object@results <- c(object@results,list(silinfo = silinfolist))
 		##Drop temptables created if all components have already used them
-		if(!is.null(object@results[["clusinfo"]]) && !is.null(object@results[["isolation"]]))
+		if((!(class(widthsmatrix)=="FLTable")) && (!(class(clus.avg.widthsvector)=="FLVector")))
 		{
-			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
-			object@temptables[["temptbl2"]] <- NULL
-			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl4"]]))
-			object@temptables[["temptbl4"]] <- NULL
+			if(!is.null(object@results[["clusinfo"]]) && !is.null(object@results[["isolation"]]))
+			{
+				t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
+				object@temptables[["temptbl2"]] <- NULL
+				t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl4"]]))
+				object@temptables[["temptbl4"]] <- NULL
+			}
+			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl3"]]))
+			object@temptables[["temptbl3"]] <- NULL
 		}
-		t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl3"]]))
-		object@temptables[["temptbl3"]] <- NULL
 
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
@@ -898,10 +858,6 @@ silinfo.FLKMedoids <- function(object){
 	}
 }
 
-diss <- function (x, ...)
-{
-   UseMethod("diss", x)
-}
 
 diss.FLKMedoids<-function(object)
 {
@@ -1002,19 +958,20 @@ data.FLKMedoids<-function(object)
 	return(dataframe)
 }
 
+#' @export
 print.FLKMedoids <- function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	results <- list()
-	results <- c(results,list(medoids=medoids(object)),
-						list(id.med=id.med(object)),
-						list(clustering=clustering(object)),
-						list(objective=objective(object)),
+	results <- c(results,list(medoids=medoids.FLKMedoids(object)),
+						list(id.med=id.med.FLKMedoids(object)),
+						list(clustering=clustering.FLKMedoids(object)),
+						list(objective=objective.FLKMedoids(object)),
 						list(isolation=""),
 						list(clusinfo=""),
 						list(silinfo=""),
 						list(diss=""),
-						list(call=call(object)),
+						list(call=call.FLKMedoids(object)),
 						list(data=""))
 	class(results) <- c("pam","partition","silhouette")
 
@@ -1022,6 +979,7 @@ print.FLKMedoids <- function(object)
 	print(results)
 }
 
+#' @export
 setMethod("show","FLKMedoids",
 			function(object)
 			{
@@ -1031,24 +989,25 @@ setMethod("show","FLKMedoids",
 			}
 		 )
 
+#' @export
 plot.FLKMedoids <- function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	results <- list()
 	dataframe <- data.FLKMedoids(object)
 	if(is.null(dataframe) || length(dataframe)==0)
-	l <- list(diss=as.matrix(diss(object)))
+	l <- list(diss=as.matrix(diss.FLKMedoids(object)))
 	else
 	l <- list(data=dataframe)
 	results <- c(results,#list(medoids=medoids(object)),
 						#list(id.med=id.med(object)),
-						list(clustering=clustering(object)),
-						list(objective=objective(object)),
+						list(clustering=clustering.FLKMedoids(object)),
+						list(objective=objective.FLKMedoids(object)),
 						#list(isolation=isolation(object)),
 						#list(clusinfo=clusinfo(object)),
-						list(silinfo=silinfo(object)),
+						list(silinfo=silinfo.FLKMedoids(object)),
 						#list(diss=diss(object)),
-						list(call=call(object)),
+						list(call=call.FLKMedoids(object)),
 						l
 						)
 	class(results) <- c("pam","partition","silhouette")
