@@ -139,8 +139,7 @@ list_to_where_clause <- function (x) {
                                         #  */
 
 list_to_class_spec <- function (x) {
-    classSpec <- paste(names(x),x,sep="(",collapse="), ")
-    classSpec <- paste(classSpec,")",sep="")
+    classSpec <- paste(names(x),x,collapse=", ")
     if(nchar(classSpec) > 1) {
         classSpec <- classSpec
     } else {
