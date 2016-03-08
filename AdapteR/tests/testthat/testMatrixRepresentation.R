@@ -2,11 +2,6 @@
 ##
 ## R has very nice vector and matrix syntax.
 ## AdapteR mimics the parsimonious syntax.
-##
-## Make sure your working dir is where you unpacked
-## the zip dir.
-## 
-##
 
 require(AdapteR)
 
