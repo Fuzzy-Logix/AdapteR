@@ -39,12 +39,21 @@ hkmeans <- function (x, ...) {
 #' @param whereconditions takes the where_clause as a string 
 #' @return \code{hkmeans} returns a list which replicates equivalent R output
 #' from \code{hkmeans} in stats package
+#' @section Constraints:
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
-#' hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
+#' hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX")
 #' print(hkmeansobject)
 #' plot(hkmeansobject)
+#' One can specify ClassSpec and transform categorical variables 
+#' before clustering. This increases the number of variables in the plot
+#' because categorical variable is split into binary numerical variables.
+#' The clusters may not be well-defined as is observed in the case below:-
+#' hkmeansobjectnew <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
+#' plot(hkmeansobjectnew)
 #' @export
 hkmeans.FLTable<-function(x,
 						centers,
@@ -133,7 +142,7 @@ hkmeans.FLTable<-function(x,
 	if(whereClause!="") whereClause <- paste0("'",whereClause,"'")
 	else whereClause <- "NULL"
 
-    sqlstr <- paste("CALL FLHKMeans( '",deeptable,"',
+    sqlstr <- paste0("CALL FLHKMeans( '",deeptable,"',
 			 					   '",getVariables(deepx)[["obs_id_colname"]],"',
 			 					   '",getVariables(deepx)[["var_id_colname"]],"',
 			 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
@@ -164,6 +173,16 @@ hkmeans.FLTable<-function(x,
 	cols <- sqlQuery(connection,sqlstr)[["vectorIndexColumn"]]
 
 	deepx@dimnames <- list(rows,cols)
+
+	if(levels>1)
+	{
+		sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID",
+						" WHERE AnalysisID='",AnalysisID,"'",
+						" AND HypothesisID = ",nstart)
+
+		centers <- sqlQuery(connection,sqlstr)[1,1]
+	}
+	
 
 	new("FLHKMeans",
 		centers=centers,
@@ -555,17 +574,17 @@ plot.FLHKMeans <- function(object)
 	cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 	widetable <- gen_wide_table_name("new")
 	#widetable <- "tempuniquewide12345678"
-	if(!object@table@isDeep)
-	{
-		widex <- deepToWide(object@deeptable,
-							whereconditions="",
-							mapTable= object@mapTable,
-							mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-							outWideTableDatabase=getOption("ResultDatabaseFL"),
-                    		outWideTableName=widetable)
-		x <- widex$table
-	}
-	else
+	# if(!object@table@isDeep)
+	# {
+	# 	widex <- deepToWide(object@deeptable,
+	# 						whereconditions="",
+	# 						mapTable= object@mapTable,
+	# 						mapName = paste0(object@table@select@database,".",object@table@select@table_name),
+	# 						outWideTableDatabase=getOption("ResultDatabaseFL"),
+ #                    		outWideTableName=widetable)
+	# 	x <- widex$table
+	# }
+	# else
 	x <- object@deeptable
 	x <- as.data.frame(x)
 	x$obs_id_colname <- NULL

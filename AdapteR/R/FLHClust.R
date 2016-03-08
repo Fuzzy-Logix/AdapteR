@@ -35,6 +35,9 @@ hclust.default <- stats::hclust
 #' cluster is formed at any step.
 #' @return \code{hclust} returns a list and replicates equivalent R output
 #' from \code{hclust} in stats package
+#' @section Constraints:
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")

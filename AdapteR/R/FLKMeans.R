@@ -30,12 +30,21 @@ kmeans.default <- stats::kmeans
 #' @param whereconditions takes the where_clause as a string 
 #' @return \code{kmeans} returns a list which replicates equivalent R output
 #' from \code{kmeans} in stats package
+#' @section Constraints:
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
-#' kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
+#' kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX")
 #' print(kmeansobject)
 #' plot(kmeansobject)
+#' One can specify ClassSpec and transform categorical variables 
+#' before clustering. This increases the number of variables in the plot
+#' because categorical variable is split into binary numerical variables.
+#' The clusters may not be well-defined as is observed in the case below:-
+#' kmeansobjectnew <- kmeans(widetable,3,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
+#' plot(kmeansobjectnew)
 #' @export
 kmeans.FLTable<-function(x,
 						centers,

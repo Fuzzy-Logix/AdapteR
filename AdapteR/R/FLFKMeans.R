@@ -87,7 +87,9 @@ fanny.default <- cluster::fanny
 #' @param distTable name of the in-database table having dissimilarity
 #' matrix or distance table
 #' @section Constraints:
-#' Plotting for large datasets takes longer time to fetch data
+#' Plotting for large datasets takes longer time to fetch data.
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @return \code{fanny} returns a list and replicates equivalent R output
 #' from \code{fanny} in cluster package
 #' @examples
@@ -96,6 +98,13 @@ fanny.default <- cluster::fanny
 #' fkmeansobject <- fanny(widetable,2,memb.exp=2)
 #' print(fkmeansobject)
 #' plot(fkmeansobject)
+#' One can specify ClassSpec and transform categorical variables 
+#' before clustering. This increases the number of variables in the plot
+#' because categorical variable is split into binary numerical variables.
+#' The clusters may not be well-defined as is observed in the case below:-
+#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' fannyobjectnew <- fanny(widetable,3,classSpec=list("Species(setosa)"))
+#' plot(fannyobjectnew)
 #' @export
 fanny.FLTable <- function(x,
 						k,
@@ -219,9 +228,10 @@ fanny.FLTable <- function(x,
 	if(diss)
 	{
 		cat(" diss is not supported currently. Please input data table instead.")
+		diss <- FALSE
 	}
 
-    sqlstr <- paste("CALL FLFKMeans( '",deeptable,"',
+    sqlstr <- paste0("CALL FLFKMeans( '",deeptable,"',
 			 					   '",getVariables(deepx)[["obs_id_colname"]],"',
 			 					   '",getVariables(deepx)[["var_id_colname"]],"',
 			 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
