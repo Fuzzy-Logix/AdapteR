@@ -39,8 +39,6 @@ if(!exists("connection")){
 ## Such a dump can in many cases be used as a pure-sql script!
 options(debugSQL=TRUE)
 
-FLStartSession(connection)
-
 #############################################################
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
@@ -51,8 +49,7 @@ dbGetQuery(connection,
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
 ##
-eqnRtn <- FLMatrix(
-                   database          = "FL_DEMO",
+eqnRtn <- FLMatrix(database          = "FL_DEMO",
                    table_name  = "finEquityReturns",
                    matrix_id_value   = "",
                    matrix_id_colname = "",
