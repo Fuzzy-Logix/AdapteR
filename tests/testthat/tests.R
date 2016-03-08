@@ -121,11 +121,12 @@ test_that("check FLCholskeyDecomp",
 })
 
 # Testing FLLUDecomp
-#fail
+# Function works but comparision fails 
+# because of sparseMatrices in R output
 test_that("check LU Decomposition",
 {
   m <- initF.FLMatrix(n=5)
-  expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
+  FLexpect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
                Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
 })
 
@@ -178,7 +179,6 @@ test_that("check the result of the diag of matrix",
 
 
 ## Testing M_Subtraction
-## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for Matrix M_Subtraction",
 {
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
@@ -196,7 +196,6 @@ test_that("check result for Matrix M_Subtraction",
 })
 
 ## Testing M_Subtraction
-## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for M_Subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
@@ -241,7 +240,6 @@ test_that("check result for M_IntegerDivision",
 })
 
 ## Testing M_IntegerDivision
-## Bad performance
 test_that("check result for M_IntegerDivision",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
@@ -282,7 +280,6 @@ test_that("check result for M_CrossProduct",
 })
 
 ## Testing M_CrossProduct
-## Bad performance
 test_that("check result for M_CrossProduct",
 {
   M1 <- initF.FLMatrix(n=5) # 5*4 matrix
@@ -305,7 +302,6 @@ test_that("check result for M_CrossProduct",
 })
 
 ## Testing M_Addition
-## gk: todo: refactor SQL statements for performance.  This is bad performance.
 test_that("check result for Matrix M_Addition",
 {
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
@@ -577,6 +573,7 @@ test_that("check vector subsetting",
 })
 
 ## Testing FLCorrel
+##May fail for JDBC Connection
 test_that("check FLCorrel result",
 {
   fltDeep <- FLTable("FL_DEMO","tblAbaloneDeep",
