@@ -1,4 +1,3 @@
-#' @importMethodsFrom testthat expect_equal
 #' @export
 setGeneric("FLexpect_equal",
            function(object,expected,...)

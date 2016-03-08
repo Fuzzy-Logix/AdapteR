@@ -9,27 +9,23 @@
 ## devtools::load_all(".")
 ## setwd("tests/testthat/") ## here reside the demo scripts
 
-
 require(AdapteR)
 
+## This script first tries to create a ODBC connection
 if(!exists("connection"))
     connection <- flConnect(odbcSource = "Gandalf")
 
 
+## If ODBC has failed we try to create a JDBC connection
 if(!exists("connection")){
-    ## for JDBC set credential
-    yourUser <- ""
-    yourPassword <- ""
-
-    ## set this to add jdbc driver and security jars to classpath: terajdbc4.jar tdgssconfig.jar
-    yourJarDir <- NULL
+    ## set this to add jdbc driver and security jars to classpath:
+    ## terajdbc4.jar tdgssconfig.jar
+    ## CAVE: fully qualified PATH required
+    yourJarDir <- "/Users/gregor/fuzzylogix"
     connection <- flConnect(host     = "10.200.4.116",
                             database = "Fl_demo",
-                            user     = yourUser,
-                            passwd   = yourPassword,
                             dir.jdbcjars = yourJarDir)
 }
-
 
 
 ##
@@ -42,7 +38,7 @@ options(debugSQL=TRUE)
 #############################################################
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
-dbGetQuery(connection,
+sqlQuery(connection,
            "select top 10 * from FL_DEMO.finEquityReturns")
 
 ## 
@@ -86,7 +82,7 @@ print(E)
 ## Correlation Matrix
 ## The SQL-through R way to compute a correlation matrix with DB Lytix:
 ##
-dbGetQuery(connection, "
+sqlQuery(connection, "
 SELECT a.TickerSymbol           AS Ticker1,
         b.TickerSymbol           AS Ticker2,
         FLCorrel(a.EquityReturn,
@@ -244,7 +240,7 @@ cat(constructWhere(constraintsSQL(E)))
 ## Matrix Inversion
 ##
 ## The SQL-through R way a la Manual:
-dbGetQuery(connection, "
+sqlQuery(connection, "
 WITH z (Matrix_ID, Row_ID, Col_ID, NumVal) AS
 (
 SELECT a.Matrix_ID,
