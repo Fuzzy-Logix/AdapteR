@@ -252,7 +252,7 @@ gen_table_name <- function(prefix,suffix){
 ##' @param database 
 ##' @param user 
 ##' @param passwd 
-##' @param dir.jdbcjars if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.
+##' @param dir.jdbcjars if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.
 ##' @param ... 
 ##' @return either an ODBC connection or an JDBC connection
 ##' @export
@@ -262,19 +262,21 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       ...){
     connection <- NULL
     if(!is.null(host) &
-       !is.null(database) &
-       !is.null(user) &
-       !is.null(passwd)){
-        require(RJDBC)
+       !is.null(database)){
+        if(is.null(user)) user <- readline("Your username:")
+        if(is.null(passwd)) passwd <- readline("Your password:")
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
+            require(RJDBC)
             if(!is.null(dir.jdbcjars)){
+                cat(paste0("adding classpath ",dir.jdbcjars,"/terajdbc4.jar and ",
+                           dir.jdbcjars,"/tdgssconfig.jar\n"))
                 .jaddClassPath(paste0(dir.jdbcjars,"/terajdbc4.jar"))
                 .jaddClassPath(paste0(dir.jdbcjars,"/tdgssconfig.jar"))
             }
-            require(teradataR)
             Sys.sleep(1)
-            tdConnect(host,user,passwd,database,"jdbc")
+            require(teradataR)
+            tdConnect(dsn=host,uid=user,pwd=passwd,database=database,dType="jdbc")
         }
 
         ## following connection code takes care of this bug:
@@ -284,7 +286,9 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             connection <<- myConnect()
         },error=function(e)e,
         finally = {
-            Sys.sleep(3)
+            if(is.null(dir.jdbcjars))
+                dir.jdbcjars <- readline("Directory of teradata jdbc jar files:")
+            ##Sys.sleep(3)
             connection <- myConnect()
         })
     } else if (!is.null(odbcSource)){
@@ -444,26 +448,11 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-setGeneric("getMaxVectorId", function(vconnection,...) {
-    standardGeneric("getMaxVectorId")
-})
-
-setMethod("getMaxVectorId",
-          signature(vconnection="RODBC"),
-          function(vconnection,...)
-              getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                          vtable=getOption("ResultVectorTableFL"),
-                          vcolName="vectorIdColumn",
-                          vconnection=vconnection)+1
-          )
-setMethod("getMaxVectorId",
-          signature(vconnection="JDBCConnection"),
-          function(vconnection,...)
-              getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                          vtable=getOption("ResultVectorTableFL"),
-                          vcolName="vectorIdColumn",
-                          vconnection=vconnection)+1
-          )
+getMaxVectorId <- function(vconnection,...)
+    getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+                vtable=getOption("ResultVectorTableFL"),
+                vcolName="vectorIdColumn",
+                vconnection=vconnection)+1
 
 ensureQuerySize <- function(pResult,
                             pInput,
