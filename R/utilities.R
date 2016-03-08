@@ -272,7 +272,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                 .jaddClassPath(paste0(dir.jdbcjars,"/terajdbc4.jar"))
                 .jaddClassPath(paste0(dir.jdbcjars,"/tdgssconfig.jar"))
             }
-            library(teradataR)
+            require(teradataR)
             Sys.sleep(1)
             tdConnect(host,user,passwd,database,"jdbc")
         }

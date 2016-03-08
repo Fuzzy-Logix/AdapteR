@@ -65,6 +65,8 @@ agnes.default <- cluster::agnes
 #' no.of. observations for algorithm to reach completion.
 #' Error is thrown if algorithm does not reach completion or more than one
 #' cluster is formed at any step.
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @return \code{agnes} returns a list and replicates equivalent R output
 #' from \code{agnes} in cluster package
 #' @examples
@@ -73,6 +75,14 @@ agnes.default <- cluster::agnes
 #' agnesobject <- agnes(deeptable,maxit=50)
 #' print(agnesobject)
 #' plot(agnesobject)
+#' One can specify ClassSpec and transform categorical variables 
+#' before clustering. This increases the number of variables in the plot
+#' because categorical variable is split into binary numerical variables.
+#' The clusters may not be well-defined as is observed in the case below:-
+#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
+#' The below plot throws warnings!
+#' plot(agnesobjectnew)
 #' @export
 agnes.FLTable <- function(x,
 						diss=FALSE,
@@ -199,9 +209,10 @@ agnes.FLTable <- function(x,
 	if(diss)
 	{
 		cat(" diss is not supported currently. Please input data table instead.")
+		diss <- FALSE
 	}
 
-    sqlstr <- paste("CALL FLAggClustering( '",deeptable,"',
+    sqlstr <- paste0("CALL FLAggClustering( '",deeptable,"',
 					 					   '",getVariables(deepx)[["obs_id_colname"]],"',
 					 					   '",getVariables(deepx)[["var_id_colname"]],"',
 					 					   '",getVariables(deepx)[["cell_val_colname"]],"',",

@@ -28,7 +28,10 @@ FLVarCluster <- function (x, ...) {
 #' @param classSpec list describing the categorical dummy variables
 #' @param whereconditions takes the where_clause as a string 
 #' @return \code{FLVarCluster} returns a R vector if data can be fetched
-#' or a FLVector of cluster to which each variable or column is assigned
+#' or a FLVector of cluster to which each variable or column is assigned.
+#' @section Constraints:
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' deeptable  <- FLTable( "FL_DEMO", "tblLogRegr", "ObsID","VarID","Num_Val")

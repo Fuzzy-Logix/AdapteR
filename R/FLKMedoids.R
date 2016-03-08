@@ -15,7 +15,8 @@ setClass(
 		results ="list",
 		deeptable="FLTable",
 		temptables="list",
-		mapTable="character"
+		mapTable="character",
+		distTable="character"
 	)
 )
 
@@ -63,7 +64,9 @@ pam.default <- cluster::pam
 #' matrix or distance table
 #' @section Constraints:
 #' Plotting time increases with size of data and even fail for large
-#' datasets because data is fetched to R session for plotting
+#' datasets because data is fetched to R session for plotting.
+#' If classSpec is not specified, the categorical variables are excluded
+#' from analysis by default.
 #' @return \code{pam} gives a list which replicates equivalent R output
 #' from \code{pam} in cluster package
 #' @examples
@@ -72,6 +75,13 @@ pam.default <- cluster::pam
 #' kmedoidsobject <- pam(widetable,3)
 #' print(kmedoidsobject)
 #' plot(kmedoidsobject)
+#' One can specify ClassSpec and transform categorical variables 
+#' before clustering. This increases the number of variables in the plot
+#' because categorical variable is split into binary numerical variables.
+#' The clusters may not be well-defined as is observed in the case below:-
+#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
+#' plot(pamobjectnew)
 #' @export
 pam.FLTable <- function(x,
 						k,
@@ -194,19 +204,20 @@ pam.FLTable <- function(x,
 
 	if(diss)
 	{
-		if(distTable=="") stop("Since diss=TRUE, provide distTable input in the form of database.table")
-		else distTable <- paste0("'",distTable,"'")
+		if(distTable=="") 
+		stop("Since diss=TRUE, provide distTable input in the form of database.table")
+		distTableCopy <- paste0("'",distTable,"'")
 	}
-	else distTable <- "NULL"
+	else distTableCopy <- "NULL"
 
-    sqlstr <- paste("CALL FLKMedoids( '",deeptable,"',
+    sqlstr <- paste0("CALL FLKMedoids( '",deeptable,"',
 			 					   '",getVariables(deepx)[["obs_id_colname"]],"',
 			 					   '",getVariables(deepx)[["var_id_colname"]],"',
 			 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
 			 					   whereClause,",",
 			 					   k,",",
 			 					   iter.max,",",
-			 					   distTable,",
+			 					   distTableCopy,",
 			 					   'KMedoids with clusters=",k,"from AdapteR',
 			 					   AnalysisID );")
 	
@@ -230,7 +241,8 @@ pam.FLTable <- function(x,
 						deeptable=deepx,
 						diss=diss,
 						temptables=list(),
-						mapTable=mapTable)
+						mapTable=mapTable,
+						distTable=distTable)
 	if(cluster.only)
 	return(FLKMedoidsobject$clustering)
 	else return(FLKMedoidsobject)
@@ -865,13 +877,23 @@ diss.FLKMedoids<-function(object)
 	return(object@results[["diss"]])
 	else
 	{
-			connection <- getConnection(object@table)
-			flag1Check(connection)
-			AnalysisID <- object@AnalysisID
-			deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
-			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
-			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+		connection <- getConnection(object@table)
+		flag1Check(connection)
+		AnalysisID <- object@AnalysisID
+		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
+		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
+		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+		if(object@diss && object@distTable!="NULL")
+		{
+			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID,",
+									"a.ObsIDX AS rowIdColumn,",
+									"a.ObsIDY AS colIdColumn,",
+									"a.Dist AS valueColumn",
+							" FROM ",object@distTable," a")
+		}
+		else
+		{
 
 			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID, 
 									a.",obs_id_colname," AS rowIdColumn,
@@ -880,6 +902,8 @@ diss.FLKMedoids<-function(object)
 							FROM ",deeptablename," a,",deeptablename," b
 							WHERE a.",var_id_colname," = b.",var_id_colname," and a.",obs_id_colname,">b.",obs_id_colname," 
 							GROUP BY a.",obs_id_colname,",b.",obs_id_colname)
+
+		}
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
 	                        connection = connection,
@@ -899,7 +923,11 @@ diss.FLKMedoids<-function(object)
 					            			object@deeptable@dimnames[[1]]))
 
 		  	dissmatrix <- tryCatch(as.sparseMatrix.FLMatrix(dissmatrix),
-		  							error=function(e) dissmatrix)
+		  							error=function(e){
+		  								if(object@diss)
+		  								cat("Error:-The distTable schema is incorrect. Refer DBLytix manual")
+		  								return(dissmatrix)
+		  								})
 		
 		object@results <- c(object@results,list(diss = dissmatrix))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -936,17 +964,17 @@ data.FLKMedoids<-function(object)
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		widetable <- gen_wide_table_name("new")
 		#widetable <- "tempuniquewide12345678"
-		if(!object@table@isDeep)
-		{
-			widex <- deepToWide(object@deeptable,
-								whereconditions="",
-								mapTable= object@mapTable,
-								mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-								outWideTableDatabase=getOption("ResultDatabaseFL"),
-	                    		outWideTableName=widetable)
-			x <- widex$table
-		}
-		else
+		# if(!object@table@isDeep)
+		# {
+		# 	widex <- deepToWide(object@deeptable,
+		# 						whereconditions="",
+		# 						mapTable= object@mapTable,
+		# 						mapName = paste0(object@table@select@database,".",object@table@select@table_name),
+		# 						outWideTableDatabase=getOption("ResultDatabaseFL"),
+	 #                    		outWideTableName=widetable)
+		# 	x <- widex$table
+		# }
+		# else
 		x <- object@deeptable
 		x <- as.data.frame(x)
 		x$obs_id_colname <- NULL
