@@ -17,7 +17,7 @@ flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
 
 \item{passwd}{}
 
-\item{dir.jdbcjars}{if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.}
+\item{dir.jdbcjars}{if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.}
 
 \item{odbcSource}{}
 

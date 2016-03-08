@@ -525,6 +525,7 @@ equalityConstraint <- function(tableColName,constantValue){
 }
 
 
+##' @export
 setGeneric("getConnection", function(object) {
     standardGeneric("getConnection")
 })

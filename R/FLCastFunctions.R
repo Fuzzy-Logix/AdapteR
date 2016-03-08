@@ -327,13 +327,13 @@ setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="missing"),
           function(object,sparse=TRUE)
               as.FLMatrix.Matrix(object,sparse=sparse))
-setMethod("as.FLMatrix", signature(object = "matrix",
-                                   sparse="JDBCConnection"),
-          function(object,sparse){
-              warning("remove connection from cast")
-              stop()
-              as.FLMatrix.Matrix(object,connection=sparse)
-              })
+## setMethod("as.FLMatrix", signature(object = "matrix",
+##                                    sparse="JDBCConnection"),
+##           function(object,sparse){
+##               warning("remove connection from cast")
+##               stop()
+##               as.FLMatrix.Matrix(object,connection=sparse)
+##               })
 setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="logical"),
           function(object,sparse)
