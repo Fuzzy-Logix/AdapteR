@@ -653,16 +653,17 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   }
   colnames <- colnames(object)
   if(is.null(colnames(object))) 
-  {
-    colnames <- 1:object@dim[[2]]
-    object@dimnames[[2]] <- colnames
-  }
+  colnames <- 1:object@dim[[2]]
+  else if(!is.null(names(colnames)))
+  colnames <- names(colnames)
+  object@dimnames[[2]] <- colnames
+
   rownames <- rownames(object)
   if(is.null(rownames(object))) 
-  {
-    rownames <- 1:object@dim[[1]]
-    object@dimnames[[1]] <- rownames
-  }
+  rownames <- 1:object@dim[[1]]
+  else if(!is.null(names(rownames)))
+  rownames <- names(rownames)
+  object@dimnames[[1]] <- rownames
   ## FOR loop used only for generating SQL query.
   for(i in colnames)
   {

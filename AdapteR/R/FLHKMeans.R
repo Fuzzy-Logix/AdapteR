@@ -38,7 +38,8 @@ hkmeans <- function (x, ...) {
 #' @param classSpec list describing the categorical dummy variables
 #' @param whereconditions takes the where_clause as a string 
 #' @return \code{hkmeans} returns a list which replicates equivalent R output
-#' from \code{hkmeans} in stats package
+#' from \code{hkmeans} in stats package.The mapping table can be viewed
+#' using \code{object$mapping} if input is wide table.
 #' @section Constraints:
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
@@ -244,6 +245,12 @@ hkmeans.FLTable<-function(x,
 		sizevector <- size.FLHKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(sizevector)
+	}
+	else if(property=="mapping")
+	{
+		mapdataframe <- FLMapping.FLKMedoids(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(mapdataframe)
 	}
 	else stop(property," is not a valid property")
 }
