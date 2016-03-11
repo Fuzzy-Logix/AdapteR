@@ -17,6 +17,7 @@ NULL
 #' @export
 FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 {
+	if(pOperator=="**") pOperator <- "^"
 	op <- .Primitive(pOperator)
 	op(pObj1,pObj2)
 }
@@ -28,7 +29,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	if(is.FLMatrix(pObj2))
 	{
 		flag1Check(connection)
-		if(pOperator %in% c("+","-","%/%","%%","/","*"))
+		if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 		checkSameDims(pObj1,pObj2)
 		else if(pOperator %in% c("%*%"))
 				if(ncol(pObj1) != nrow(pObj2))
@@ -39,7 +40,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		dimnames <- dimnames(pObj1)
                 dims <- dim(pObj1)
 
-		if(pOperator %in% c("%%","/","*"))
+		if(pOperator %in% c("%%","/","*","**"))
 		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 	            		   			a,".rowIdColumn AS rowIdColumn,",
 	            		   			a,".colIdColumn AS colIdColumn,",
@@ -50,7 +51,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 			                  ",( ",constructSelect(pObj2),") AS ",b,
 	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
 					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"),
-			 		  			paste0(b,".valueColumn<>0"))))
+			 		  			ifelse(pOperator=="**","",paste0(b,".valueColumn<>0")))))
 
 		if(pOperator %in% c("%/%"))
 		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
@@ -122,7 +123,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.vector(pObj2))
 		{
-			if(pOperator %in% c("+","-","%/%","%%","/","*"))
+			if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 			pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)))
 			else if(pOperator %in% c("%*%"))
 			{
@@ -145,7 +146,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	else if(is.FLVector(pObj2))
 		{
 
-			if(pOperator %in% c("+","-","%/%","%%","/","*"))
+			if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 			pObj2 <- as.FLMatrix(pObj2,
                                              sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
 			else if(pOperator %in% c("%*%"))
@@ -176,7 +177,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			pObj1 <- as.FLMatrix(pObj1)
 			else
 			stop(" non-conformable dimensions ")
-		else if(pOperator %in% c("+","-","%/%","%%","/","*"))
+		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 		pObj1 <- as.FLMatrix(pObj1,
 					sparse=TRUE,rows=nrow(pObj2),cols=ncol(pObj2))
 		
@@ -189,7 +190,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			stop("non-conformable dimensions")
 		  else
 		    pObj2 <- as.FLMatrix(matrix(pObj2))
-		else if(pOperator %in% c("+","-","%/%","%%","/","*"))
+		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 		pObj2 <- as.FLVector(pObj2)
 
 		return(do.call(pOperator,list(pObj1,pObj2)))
@@ -214,7 +215,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			pObj2 <- as.FLMatrix(pObj2)
 			return(pObj1 %*% pObj2)
 		}
-		else if(pOperator %in% c("+","-","%/%","%%","/","*"))
+		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 		{
 
 			if(nrow(pObj1)==1 && nrow(pObj2)==1)
@@ -234,7 +235,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 								    (",constructSelect(pObj2),") AS ",b,
 							    collapse=" UNION ALL ")
 
-				else if(pOperator %in% c("+","-","%%","/","*"))
+				else if(pOperator %in% c("+","-","%%","/","*","**"))
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 										1:max_length," AS vectorIndexColumn,
 										",a,".",newColnames1,
@@ -262,7 +263,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 									b,".vectorIndexColumn IN('",rownames(pObj2),"')",
 							    collapse=" UNION ALL ")
 
-				else if(pOperator %in% c("+","-","%%","/","*"))
+				else if(pOperator %in% c("+","-","%%","/","*","**"))
 				
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 										1:max_length, " AS vectorIndexColumn",
@@ -298,7 +299,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 								" WHERE ",a,".vectorIndexColumn IN('",pObj1@dimnames[[1]],"')",
 							    collapse=" UNION ALL ")
 
-				else if(pOperator %in% c("+","-","%%","/","*"))
+				else if(pOperator %in% c("+","-","%%","/","*","**"))
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 										1:max_length, " AS vectorIndexColumn",
 										",",a,".vectorValueColumn",
@@ -331,7 +332,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 								    (",constructSelect(pObj2),") AS ",b,
 								" WHERE ",b,".vectorIndexColumn IN('",pObj2@dimnames[[1]],"')",
 							    collapse=" UNION ALL ")
-				else if(pOperator %in% c("+","-","%%","/","*"))
+				else if(pOperator %in% c("+","-","%%","/","*","**"))
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 										1:max_length, " AS vectorIndexColumn",
 										",",a,".",newColnames1,
@@ -373,7 +374,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.matrix <- function(pObj1,pObj2,pOperator)
 {
-	if(pOperator %in% c("+","-","%/%","%%","/","*"))
+	if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 	return(FLMatrixArithmetic.sparseMatrix(pObj1,pObj2,pOperator))
 	else if(pOperator %in% c("%*%"))
 	{
@@ -885,3 +886,124 @@ return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 `%/%.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
+NULL
+#' Element-Wise power of in-database objects.
+#'
+#' \code{**} does the Element-wise power of in-database objects.
+#'
+#' All combinations of operands are possible just like in R and the result is an in-database object.
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' a normal R object like matrix,sparseMatrix,vector
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' a normal R object like matrix,sparseMatrix,vector
+#' @return \code{**} returns an in-database object if there is atleast one in-database object 
+#' as input.Otherwise, the default behavior of R is preserved
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' Rvector <- 1:5
+#' ResultFLmatrix <- flmatrix ** Rvector
+#' @export
+
+"**" <- function(pObj1,pObj2)
+{
+    UseMethod("**", pObj1)
+}
+
+#' @export
+`**.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,"**"))
+
+#' @export
+`**.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`**.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+NULL
+#' Element-Wise power of in-database objects.
+#'
+#' \code{^} does the Element-wise power of in-database objects.
+#'
+#' All combinations of operands are possible just like in R and the result is an in-database object.
+#' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' a normal R object like matrix,sparseMatrix,vector
+#' @param pObj2 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
+#' a normal R object like matrix,sparseMatrix,vector
+#' @return \code{^} returns an in-database object if there is atleast one in-database object 
+#' as input.Otherwise, the default behavior of R is preserved
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
+#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' Rvector <- 1:5
+#' ResultFLmatrix <- flmatrix ** Rvector
+#' @export
+
+"^" <- function(pObj1,pObj2)
+{
+    UseMethod("^", pObj1)
+}
+
+#' @export
+`^.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,"**"))
+
+#' @export
+`^.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+`^.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"**"))

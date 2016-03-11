@@ -29,7 +29,8 @@ kmeans.default <- stats::kmeans
 #' @param classSpec list describing the categorical dummy variables
 #' @param whereconditions takes the where_clause as a string 
 #' @return \code{kmeans} returns a list which replicates equivalent R output
-#' from \code{kmeans} in stats package
+#' from \code{kmeans} in stats package. The mapping table can be viewed
+#' using \code{object$mapping} if input is wide table.
 #' @section Constraints:
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.

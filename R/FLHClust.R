@@ -34,7 +34,8 @@ hclust.default <- stats::hclust
 #' Error is thrown if algorithm does not reach completion or more than one
 #' cluster is formed at any step.
 #' @return \code{hclust} returns a list and replicates equivalent R output
-#' from \code{hclust} in stats package
+#' from \code{hclust} in stats package.The mapping table can be viewed
+#' using \code{object$mapping} if input is wide table.
 #' @section Constraints:
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
