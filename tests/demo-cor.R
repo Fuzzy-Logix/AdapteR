@@ -276,7 +276,7 @@ ms <- solve(m)
 ## check is R and DB Lytix results match up:
 rm <- as.matrix(m)
 m.r <- as.matrix(m) ## download and convert to R matrix
-expect_equal(as.matrix(ms), solve(m.r))
+expect_equal(as.matrix(ms), solve(m.r),check.attributes=FALSE)
 
 ## Matrix multiplication with inverse results in identity
 round(as.matrix(m %*% ms))

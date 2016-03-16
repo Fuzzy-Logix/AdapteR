@@ -27,12 +27,14 @@ as.vector.FLVector <- function(object,mode="any")
 {
     if(ncol(object)==1)
         x <- as.data.frame.FLVector(object)[[1]]
-    if(nrow(object)==1)
+    if(ncol(object)>1)
         x <- as.vector(as.data.frame.FLVector(object)[1,])
         if(!any(is.na(as.numeric(x))))
         x <- as.numeric(x)
-    if(!any(names(x)!=1:length(x)))
-        names(x) <- NULL
+    if(ncol(object)==1) vnames <- rownames(object)
+    else vnames <- colnames(object)
+    if(is.character(vnames) && !all(vnames==1:length(vnames)))
+    names(x) <- vnames[1:length(x)]
     return(x)
 }
 
@@ -83,15 +85,25 @@ as.data.frame.FLVector <- function(x, ...){
         Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
    
     names(D) <- toupper(names(D))
-
-     i <- charmatch(rownames(x),D[[toupper("vectorIndexColumn")]],nomatch=0)
+    vrownames <- rownames(x)
+    vcolnames <- colnames(x)
+    # if(ncol(x)<=1 && !(!x@isDeep && nrow(x)==1 && ncol(x)==1))
+    if(ncol(x)<=1 && class(x@select)!="FLTableFunctionQuery")
+    {
+      if(is.character(rownames(x)) && !all(rownames(x)==1:length(rownames(x))))
+      vrownames<-1:length(rownames(x))
+      if(is.character(colnames(x)) && !all(colnames(x)==1:length(colnames(x))))
+      vcolnames<-1:length(colnames(x))
+    }
+    
+     i <- charmatch(vrownames,D[[toupper("vectorIndexColumn")]],nomatch=0)
      if(x@isDeep) {
-        if(length(rownames(x))==1)
-        i <- charmatch(colnames(x),D[[toupper("vectorIndexColumn")]],nomatch=0)
+        if(length(colnames(x))>1)
+        i <- charmatch(vcolnames,D[[toupper("vectorIndexColumn")]],nomatch=0)
     }
     D <- D[i,]
     if(x@isDeep) {
-        if(length(rownames(x))==1)
+        if(length(colnames(x))>1)
          D <- reshape2::dcast(D, paste0(toupper("vectorIdColumn"),
                              " ~ ",
                              toupper("vectorIndexColumn")),
@@ -191,6 +203,7 @@ storeVarnameMapping <- function(connection,
     names(mynames) <- 1:Ndim
     sqlstatements <- paste0(
         " INSERT INTO ",
+        getOption("ResultDatabaseFL"),".",
         getOption("MatrixNameMapTableFL"),
         "(TABLENAME, MATRIX_ID, DIM_ID, ",
         "NAME, NUM_ID",
@@ -393,12 +406,12 @@ setMethod("as.FLMatrix", signature(object = "data.frame",
               as.FLMatrix.data.frame(object,sparse=TRUE))
 setMethod("as.FLMatrix", signature(object = "FLVector",
                                    sparse="logical"),
-          function(object,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.FLVector(object,sparse,rows,cols,...))
+          function(object,sparse=TRUE,...)
+              as.FLMatrix.FLVector(object,sparse,...))
 setMethod("as.FLMatrix", signature(object = "FLVector",
                                    sparse="missing"),
-          function(object,sparse=TRUE,rows=length(object),cols=1,...)
-              as.FLMatrix.FLVector(object,sparse=TRUE,rows,cols,...))
+          function(object,sparse=TRUE,...)
+              as.FLMatrix.FLVector(object,sparse=TRUE,...))
 
 
 #' @export
@@ -440,83 +453,61 @@ as.sparseMatrix.FLMatrix <- function(object) {
 #' @export
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,rows=length(object),cols=1,connection=NULL)
 {
-    if(is.null(connection)) connection <- getConnection(object)
-  if(rows==length(object) && cols==1)
+  if(is.null(connection)) connection <- getConnection(object)
+  ##Get names of vector
+  if(ncol(object)>1)
+  object <- store(object)
+
+  if(ncol(object)==1) vnames <- object@dimnames[[1]]
+  else vnames <- object@dimnames[[2]]
+
+  if(class(object@select)=="FLTableFunctionQuery"
+    && !all(vnames==1:length(vnames)))
+  object <- store(object)
+
+  if(!missing(rows) && missing(cols) && rows!=length(object))
+  cols <- base::ceiling(length(object)/rows)
+  if(!missing(cols) && missing(rows) && cols!=1)
+  rows <- base::ceiling(length(object)/cols)
+
+  k <- base::ceiling((rows*cols)/length(object))-1
+  a<-genRandVarName()
+  sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+                             a,".vectorIndexColumn + ",(0:k)*length(object),
+                             " - (CAST((",a,".vectorIndexColumn + ",(0:k)*length(object),
+                              "-0.355)/",rows," AS INT)*",rows,") AS rowIdColumn,",
+                            " CAST((",a,".vectorIndexColumn + ",(0:k)*length(object),
+                              "-0.355)/",rows," AS INT)+1 AS colIdColumn,",
+                             a,".vectorValueColumn AS valueColumn",
+                    " FROM(",constructSelect(object),") AS ",a,
+                    " WHERE ",a,".vectorIndexColumn + ",(0:k)*length(object)," <= ",rows*cols)
+
+  batchStore <- function(sqlstr,MID)
   {
-    if(class(object@select)=="FLTableFunctionQuery" || ncol(object)>1)
-    object <- store(object)
-    select <- new(
-        "FLSelectFrom",
-        connection = connection, 
-        database = object@select@database, 
-        table_name = object@select@table_name, 
-        variables=list(
-            rowIdColumn=getVariables(object)[["obs_id_colname"]],
-            colIdColumn="1",
-            valueColumn=object@dimnames[[2]]),
-        whereconditions=object@select@whereconditions,
-        order = "")
-    flm <- new("FLMatrix",
-              select=select,
-              dimnames=list(object@dimnames[[1]],
-                            "1"),
-              dim=c(length(object@dimnames[[1]]),1))
-    return(flm)
-  }
-  MID <- getMaxMatrixId(connection)
-  k <- 1
-  sqlstr <- character(cols*rows)
-  colnames <- renameDuplicates(colnames(object))
-  batchStore <- function(sqlstr)
-  {
-    sqlstr <- sqlstr[sqlstr!=""]
-    sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-    vSqlStr <- paste0(" INSERT INTO ",
+    if(utils::object.size(paste0(sqlstr,collapse=" UNION ALL "))>300000)
+    {
+      newindex <- base::ceiling(length(sqlstr)/2)
+      batchStore(sqlstr[1:newindex],MID)
+      batchStore(sqlstr[(newindex+1):length(sqlstr)],MID)
+    }
+    else
+    {
+      sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
+      vSqlStr <- paste0(" INSERT INTO ",
                     getRemoteTableName(getOption("ResultDatabaseFL"),
                                       getOption("ResultMatrixTableFL")),
                     "\n",
                    gsub("'%insertIDhere%'",MID,sqlstr),
                     "\n")
-    sqlSendUpdate(connection,
-                  vSqlStr)
+      sqlSendUpdate(connection,vSqlStr)
+    }
   }
-  ## FOR Loops used here Only for generating SQL Query.
-  ## Could not parallelize with apply as sequential check of size necessary.
-  for (i in 1:cols)
-  for (j in 1:rows)
+
+  if(utils::object.size(paste0(sqlstr,collapse=" UNION ALL "))>300000)
   {
-    a <- genRandVarName()
-    if(ncol(object)>1)
-    {
-      if(k>ncol(object)) k <- 1 
-      sqlstr0 <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                              j," AS rowIdColumn,",
-                              i," AS colIdColumn,",a,".",
-                              colnames[k]," AS valueColumn 
-                       FROM(",constructSelect(object),") AS ",a)
-    }
-    else
-    {
-      if(k>nrow(object)) k <- 1 
-      sqlstr0 <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                              j," AS rowIdColumn,",
-                              i," AS colIdColumn,",a,".",
-                              "vectorValueColumn AS valueColumn 
-                       FROM(",constructSelect(object),") AS ",a,"  
-                       WHERE ",a,".vectorIndexColumn in ",rownames(object)[k])
-    }
-    sqlstr <- c(sqlstr,sqlstr0)
-    if(checkMaxQuerySize(sqlstr))
-    {
-      batchStore(sqlstr[sqlstr!=sqlstr0])
-      sqlstr <- sqlstr0
-    }
-    k <- k+1
-  }
-  batchStore(sqlstr)
-  sqlstr <- ""
-  
-   return(FLMatrix(
+    MID <- getMaxMatrixId(connection)
+    batchStore(sqlstr,MID)
+    return(FLMatrix(
             database = getOption("ResultDatabaseFL"),
             table_name = getOption("ResultMatrixTableFL"),
             map_table = NULL,
@@ -527,6 +518,24 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,rows=length(object),cols=1,c
             cell_val_colname = "valueColumn",
             connection = connection
             ))
+  }
+
+  sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
+  tblfunqueryobj <- new("FLTableFunctionQuery",
+                        connection = connection,
+                        variables=list(
+                            rowIdColumn="rowIdColumn",
+                            colIdColumn="colIdColumn",
+                            valueColumn="valueColumn"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+  flm <- new("FLMatrix",
+              select= tblfunqueryobj,
+              dim = c(rows,cols),
+              dimnames=list(1:rows,1:cols))
+  return(flm)
 }
 
 #' @export
@@ -621,14 +630,24 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                             vectorValueColumn=as.numeric(object))
     t <- as.FLTable.data.frame(vdataframe,connection,getOption("ResultVectorTableFL"),1,drop=FALSE)
   }
+  select <- new(
+                "FLSelectFrom",
+                connection = connection, 
+                database = getOption("ResultDatabaseFL"), 
+                table_name = getOption("ResultVectorTableFL"),
+                variables = list(
+                        obs_id_colname = "vectorIndexColumn"),
+                whereconditions=paste0(getOption("ResultDatabaseFL"),".",
+                  getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID),
+                order = "")
 
-  table <- FLTable(getOption("ResultDatabaseFL"),
-                   getOption("ResultVectorTableFL"),
-                   "vectorIndexColumn",
-                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
-                   )
-
-  return(table[,"vectorValueColumn"])
+  if(!is.null(names(object)) && !all(names(object)==1:length(object)))
+  newnames <- as.character(names(object))
+  else newnames <- 1:length(object)
+  return(new("FLVector",
+                select=select,
+                dimnames=list(newnames,"vectorValueColumn"),
+                isDeep=FALSE))
 }
 
 #' @export
@@ -713,10 +732,11 @@ setMethod("as.FLTable", signature(object = "data.frame"),
 
 #' @export
 as.FLTable.data.frame <- function(object,
-                                  connection=getConnection(object),
+                                  connection=getOption("connectionFL"),
                                   tableName,
                                   uniqueIdColumn=0,
-                                  drop=TRUE){
+                                  drop=TRUE,
+                                  batchSize=10000){
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -756,6 +776,7 @@ as.FLTable.data.frame <- function(object,
     vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
     vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "
     vcolnamesCopy[vcolnamesCopy=="integer"] <- " INT "
+    vcolnamesCopy[vcolnamesCopy=="logical"] <- " VARCHAR(255) "
     if(!all(vcolnamesCopy %in% c(" VARCHAR(255) "," INT "," FLOAT "))==TRUE)
     stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
 
@@ -785,11 +806,28 @@ as.FLTable.data.frame <- function(object,
                   }
                   .jcall(ps,"V","addBatch")
                 }
-    apply(object,1,function(x) myinsert(vcolnamesCopy,x))
-    #for( i in 1:nrow(object)) myinsert(vcolnamesCopy,object[i,])
-    tryCatch(.jcall(ps,"[I","executeBatch"),
-      error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
-    RJDBC::dbCommit(connection)
+
+    ##Chunking
+    {
+      if(batchSize>10000)
+      {
+        batchSize <- 10000
+        cat("using max batchSize=10000")
+      }
+      k <- 1
+      vnrow <- nrow(object)
+      while(k <= vnrow)
+      {
+        j <- k + (batchSize-1)
+        if(j > vnrow) j <- vnrow
+        vsubset <- object[k:j,]
+        apply(vsubset,1,function(x) myinsert(vcolnamesCopy,x))
+        tryCatch(.jcall(ps,"[I","executeBatch"),
+          error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
+        RJDBC::dbCommit(connection)
+        k <- k + batchSize
+      }
+    }
     .jcall(connection@jc,"V","setAutoCommit",TRUE)
   }
 
