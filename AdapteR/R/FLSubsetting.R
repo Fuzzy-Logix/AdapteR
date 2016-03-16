@@ -89,6 +89,8 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
+  if(class(object@select)=="FLTableFunctionQuery")
+  object <- store(object)
 	connection<-getConnection(object)
     if(is.numeric(rows))
         newrownames <- object@dimnames[[1]][rows]
@@ -100,6 +102,8 @@ NULL
     else
         newcolnames <- cols
 
+    if(any(is.na(newrownames)) || any(is.na(newcolnames)))
+    stop("index out of bounds")
     ##browser()
     if(missing(cols))
     {
@@ -148,10 +152,72 @@ NULL
         object@dimnames = list(newrownames, newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
+    {
+      vcolnames <- object@dimnames[[2]]
+      vrownames <- object@dimnames[[1]]
+      newnames <- NULL
+      if(ncol(object)==1 && 
+        (!all(vrownames==(1:nrow(object)))))
+      {
+        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+                vtable=getOption("MatrixNameMapTableFL"),
+                vcolName="MATRIX_ID",
+                vconnection=connection)+1
+        newrownames <- storeVarnameMapping(connection=getOption("connectionFL"),
+                        tablename=object@select@table_name,
+                        matrixId=MID,
+                        dimId= 1,
+                        mynames=vrownames
+                        )
+        newrownames <- names(newrownames)
+        newcolnames <- vcolnames
+        newnames <- newrownames
+      }
+      else if(object@isDeep && nrow(object)==1 &&
+        (!all(vcolnames==(1:ncol(object)))))
+      {
+        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+                vtable=getOption("MatrixNameMapTableFL"),
+                vcolName="MATRIX_ID",
+                vconnection=connection)+1
+        newcolnames <- storeVarnameMapping(connection=getOption("connectionFL"),
+                        tablename=object@select@table_name,
+                        matrixId=MID,
+                        dimId= 1,
+                        mynames=vcolnames
+                        )
+        newcolnames <- names(newcolnames)
+        newrownames <- vrownames
+        newnames <- newcolnames
+      }
+      if(!is.null(newnames))
+      {
+        vtableref <- paste0(getOption("ResultDatabaseFL"),".",
+                      getOption("MatrixNameMapTableFL"))
+        select <- new(
+            "FLSelectFrom",
+            connection = connection, 
+            database = getOption("ResultDatabaseFL"), 
+            table_name = getOption("MatrixNameMapTableFL"),
+            variables = list(
+                    numIdColname = "Num_ID",
+                    nameColname = "NAME"),
+            whereconditions=c(paste0(vtableref,".MATRIX_ID=",MID),
+                  paste0(vtableref,".DIM_ID=1")),
+            order = "")
+        
         return(new("FLVector",
-                    select=object@select,
-                    dimnames=object@dimnames,
-                    isDeep=object@isDeep))
+                  select=object@select,
+                  dimnames=list(newrownames,newcolnames),
+                  isDeep=object@isDeep,
+                  mapSelect=select))
+      }
+      else
+      return(new("FLVector",
+                select=object@select,
+                dimnames=list(vrownames,vcolnames),
+                isDeep=object@isDeep))
+    }
     else return(object)
 }
 
@@ -174,23 +240,112 @@ NULL
 
 `[.FLVector` <- function(object,pSet=1:length(object))
 {
-    if(any(pSet>length(object))) stop("index out of bounds")
-    if(ncol(object)==1)
-    {
-        newrownames <- object@dimnames[[1]][pSet]
-        names(object@select@table_name) <- NULL
-        if(!setequal(object@dimnames[[1]], newrownames))
-            object@select@whereconditions <-
-            c(object@select@whereconditions,
-              inCondition(paste0(remoteTable(object@select),".",getVariables(object)$obs_id_colname),
-                          newrownames))
-        object@dimnames[[1]] <- newrownames
-    }
-    else if(nrow(object)==1)
-    {
-        newcolnames <- object@dimnames[[2]][pSet]
-        object@dimnames[[2]] <- newcolnames
-    }
+    if((is.numeric(pSet) && (any(pSet>length(object))
+        || any(pSet<=0)))) stop("index out of bounds")
+    # browser()
+    if(FLNamesMappedP(object)) object <- store(object)
+    newrownames <- rownames(object)
+    newcolnames <- colnames(object)
+    if(ncol(object)==1) namesvector <- rownames(object)
+    else namesvector <- colnames(object)
 
-    return(object)
+    MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+            vtable=getOption("MatrixNameMapTableFL"),
+            vcolName="MATRIX_ID",
+            vconnection=connection)+1
+    
+    if(ncol(object)>1 && !object@isDeep)
+    {
+      if(is.numeric(pSet))
+      pSet <- object@dimnames[[2]][pSet]
+      if(!all(pSet %in% colnames(object)))
+      stop("index out of bounds")
+      object@dimnames[[2]] <- pSet
+
+      if(length(pSet)==1 && object@dimnames[[1]]!=1)
+      {
+        newnames <- storeVarnameMapping(connection=getOption("connectionFL"),
+                      tablename=getOption("ResultVectorTableFL"),
+                      matrixId=MID,
+                      dimId= 1,
+                      mynames=object@dimnames[[1]]
+                      )
+
+        vtableref <- paste0(getOption("ResultDatabaseFL"),".",
+                            getOption("MatrixNameMapTableFL"))
+        mapselect <- new(
+                      "FLSelectFrom",
+                      connection = getOption("connectionFL"), 
+                      database = getOption("ResultDatabaseFL"), 
+                      table_name = getOption("MatrixNameMapTableFL"),
+                      variables = list(
+                              numIdColname = "Num_ID",
+                              nameColname = "NAME"),
+                      whereconditions=c(paste0(vtableref,".MATRIX_ID=",MID),
+                            paste0(vtableref,".DIM_ID=1")),
+                      order = "")
+        object@dimnames[[1]] <- 1
+        object@mapSelect <- mapselect
+      }
+      return(object)
+    }
+    if(is.numeric(pSet) && 
+      !all(pSet %in% base::charmatch(namesvector,base::unique(namesvector)))) 
+    stop("index out of bounds or duplicates in names of vector")
+    if(is.character(pSet) && !all(pSet %in% namesvector))
+    stop("index out of bounds")
+    if(is.character(pSet) && 
+      base::identical(as.character(namesvector),as.character(1:length(object))))
+    stop("vector names not assigned or same as indices")
+
+    charpSet <- pSet
+    if(is.character(pSet) ||
+      !base::identical(as.character(namesvector),as.character(1:length(object))))
+    {
+      if(is.character(pSet))
+      {
+        charpSet <- pSet
+        pSet <- base::charmatch(pSet,base::unique(namesvector))
+      }
+      else if(is.numeric(pSet) && is.character(namesvector))
+      charpSet <- namesvector[pSet]
+      namesvector <- base::charmatch(namesvector,base::unique(namesvector))
+    }
+    options(warn=-1)
+    if(base::identical(as.character(pSet),as.character(namesvector))) return(object)
+    options(warn=0)
+    
+    newpSet <- base::charmatch(pSet,base::unique(namesvector))
+
+    newnames <- storeVarnameMapping(connection=getOption("connectionFL"),
+                      tablename=getOption("ResultVectorTableFL"),
+                      matrixId=MID,
+                      dimId= 1,
+                      mynames=newpSet
+                      )
+
+    vtableref <- paste0(getOption("ResultDatabaseFL"),".",
+                        getOption("MatrixNameMapTableFL"))
+    mapselect <- new(
+                  "FLSelectFrom",
+                  connection = getOption("connectionFL"), 
+                  database = getOption("ResultDatabaseFL"), 
+                  table_name = getOption("MatrixNameMapTableFL"),
+                  variables = list(
+                          numIdColname = "Num_ID",
+                          nameColname = "NAME"),
+                  whereconditions=c(paste0(vtableref,".MATRIX_ID=",MID),
+                        paste0(vtableref,".DIM_ID=1")),
+                  order = "")
+    if(is.character(charpSet)) newnames <- charpSet
+    else newnames <- 1:length(charpSet)
+
+    if(ncol(object)==1) newrownames <- newnames
+    else newcolnames <- newnames
+
+    return(new("FLVector",
+                select=object@select,
+                dimnames=list(newrownames,newcolnames),
+                isDeep=object@isDeep,
+                mapSelect=mapselect))
 }

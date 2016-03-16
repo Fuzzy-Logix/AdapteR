@@ -86,8 +86,9 @@ setClass(
     "FLVector",
     slots = list(
       select = "FLTableQuery",
-      dimnames        = "list",
-      isDeep= "logical"
+      dimnames = "list",
+      isDeep= "logical",
+      mapSelect = "FLSelectFrom"
     ))
 
 

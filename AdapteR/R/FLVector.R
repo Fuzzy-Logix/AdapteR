@@ -65,4 +65,40 @@ FLVector <- function(table,
 #' @export
 setMethod("show","FLVector",function(object) print(as.vector(object)))
 
+#' Assign names to FLVectors
+#' 
+#' @param x FLVector
+#' @param value a vector of length same as
+#' FLVector
+#' @return named FLVector
+#' @export
+`names<-.FLVector` <- function(x,value)
+{
+    if(length(value)!=length(x))
+    stop("names should be of same length as FLVector")
+    else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
+    
+    if(ncol(x)==1)
+    x@dimnames[[1]] <- as.character(value)
+    else if(ncol(x)>1)
+    x@dimnames[[2]] <- as.character(value)
+    return(x)
+}
 
+#' Get names of a FLVector
+#'
+#' @param x FLVector
+#' @return character vector of names
+#' of FLVector if exists. Else NULL
+#' @export
+names.FLVector <- function(x)
+{
+    if(ncol(x)==1)
+    vnames <- x@dimnames[[1]]
+    else if(ncol(x)>1)
+    vnames <- x@dimnames[[2]]
+
+    if(all(vnames==1:length(vnames)))
+    return(NULL)
+    else return(vnames)
+}
