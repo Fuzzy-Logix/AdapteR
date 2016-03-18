@@ -16,6 +16,8 @@ if(!exists("connection")){
     yourJarDir <- "/Users/gregor/fuzzylogix"
     connection <- flConnect(host     = "10.200.4.116",
                             database = "Fl_demo",
+                            user = yourUser,
+                            passwd = yourPassword,
                             dir.jdbcjars = yourJarDir)
 }
 
@@ -25,7 +27,7 @@ if(!exists("connection")){
 ## with this option each R command that uses DBLytix will log
 ## the SQL sent to Teradata.
 ## Such a dump can in many cases be used as a pure-sql script!
-options(debugSQL=TRUE)
+options(debugSQL=FALSE)
 
 #############################################################
 ## For in-database analytics the matrix is in the warehouse
@@ -49,18 +51,20 @@ eqnRtn <- FLMatrix(database          = "FL_DEMO",
 dim(eqnRtn)
 
 
-## with ticker columns
+########################################
+## dimnames support
+## sample 20 ticker columns
 (randomstocks <- sample(colnames(eqnRtn), 20))
 
-## date rows
+## indices of date rows in december 2016
 (dec2006 <- grep("2006-12",rownames(eqnRtn)))
+
 
 ## Inspecting subsets of data in R
 ## is easy with matrix subsetting syntax:
-
 eqnRtn[dec2006, "MSFT"]
 
-
+options(debugSQL=TRUE)
 ## NO SQL is sent during the definition of subsetting
 E <- eqnRtn[dec2006, randomstocks]
 
@@ -173,7 +177,7 @@ shinyApp(
             ##browser()
             withTimeout({
                 flCorr <- as.matrix(cor(eqnRtn[,stocks]))
-                colnames(flCorr) <- metaInfo$Name[match(rownames(flCorr),
+                rownames(flCorr) <- metaInfo$Name[match(rownames(flCorr),
                                                         metaInfo$Symbol)]
                 heatmap.2(flCorr, symm=TRUE, 
                           distfun=function(c) as.dist(1 - c),
@@ -185,46 +189,6 @@ shinyApp(
         }, height=1200)
     }
 )
-
-###########################################################
-##
-## A look under the hood:
-##
-## memory consumption
-##
-Nstocks <- 100
-subEqnRtn <- eqnRtn[, sample(colnames(eqnRtn),Nstocks)]
-rEqnRtn <- as.matrix(subEqnRtn)
-dim(eqnRtn)
-dim(subEqnRtn)
-
-## only dimension names are in local memory:
-cat(paste0("Total client memory size for remote equity return table\n"))
-print(object.size(eqnRtn),units = "Kb")
-cat(paste0("dimnames client memory size for remote equity return table\n"))
-print(object.size(eqnRtn@dimnames),units = "Kb")
-cat(paste0("total client memory size for subset of remote equity return table\n"))
-print(object.size(subEqnRtn),units = "Kb")
-cat(paste0("dimnames client memory size for subset of remote equity return table\n"))
-print(object.size(subEqnRtn@dimnames),units = "Kb")
-
-## Download a subset of the remote Table into R Memory
-## rEqnRtn <- as.matrix(subEqnRtn)
-
-## compare memory consumption:
-cat(paste0("dimnames client memory size for r matrix with subset of equity return table\n"))
-print(object.size(rEqnRtn),units = "Kb")
-
-
-
-
-## BTW:
-E <- subEqnRtn
-## where clauses are dynamically constructed
-cat(constructWhere(constraintsSQL(E)))
-## dynamic where clauses support local names
-## so that SQL can be constructed flexibly
-
 
 
 ###########################################################
@@ -264,6 +228,7 @@ m <- FLMatrix(
 
 ## compute the inverse
 ms <- solve(m)
+ms
 
 ## check is R and DB Lytix results match up:
 rm <- as.matrix(m)
@@ -272,6 +237,27 @@ expect_equal(as.matrix(ms), solve(m.r),check.attributes=FALSE)
 
 ## Matrix multiplication with inverse results in identity
 round(as.matrix(m %*% ms))
+
+
+
+
+options(debugSQL=TRUE)
+flM <- as.FLMatrix(matrix(runif(25),5))
+
+flM
+
+flM + flM
+
+flM - flM
+
+flM / flM
+
+(flM %*% flM) - flM
+
+solve(flM) %*% flM - flM
+
+
+
 
 
 
