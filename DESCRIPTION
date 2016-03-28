@@ -20,7 +20,25 @@ Depends:
     cluster,
     methods,
     DBI,
-    testthat
+    testthat,
+    RJDBC,
+    RODBC,
+	mgcv
+Imports:
+    plyr,
+    MASS (>= 7.3-10),
+    Matrix (>= 1.1-5),
+    base,
+    stats,
+    psych,
+    reshape2,
+    cluster,
+    methods,
+    DBI,
+    testthat,
+    RJDBC,
+    RODBC,
+	mgcv
 License: GPL-2
 LazyData: true
 Collate:
@@ -43,7 +61,9 @@ Collate:
     'FLDet.R'
     'FLDiag.R'
     'FLEigen.R'
+    'FLExpLog.R'
     'FLFKMeans.R'
+    'FLGAM.R'
     'FLGinv.R'
     'FLHClust.R'
     'FLHKMeans.R'
