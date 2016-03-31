@@ -57,7 +57,8 @@ currently always FALSE}
 }
 \value{
 \code{pam} gives a list which replicates equivalent R output
-from \code{pam} in cluster package
+from \code{pam} in cluster package. The mapping table can be viewed
+using \code{object$mapping} if input is wide table.
 }
 \description{
 \code{pam} performs k-medoids clustering on FLTable objects.

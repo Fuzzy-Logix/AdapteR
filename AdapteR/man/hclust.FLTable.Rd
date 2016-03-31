@@ -23,7 +23,8 @@
 }
 \value{
 \code{hclust} returns a list and replicates equivalent R output
-from \code{hclust} in stats package
+from \code{hclust} in stats package.The mapping table can be viewed
+using \code{object$mapping} if input is wide table.
 }
 \description{
 \code{hclust} computes hierarchial 
