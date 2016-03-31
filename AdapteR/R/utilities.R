@@ -105,19 +105,15 @@ sqlQuery.JDBCConnection <- function(connection,query, ...) {
 sqlQuery.RODBC <- function(connection,query, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
-        tryCatch({
             resd <- RODBC::sqlQuery(connection, query, ...)
+            resd <- checkSqlQueryOutput(resd)
             return(resd)
-        },
-        error=function(e) cat(paste0(sqlError(e))))
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
-        tryCatch({
             resd <- RODBC::sqlQuery(connection, q, ...)
+            resd <- checkSqlQueryOutput(resd)
             return(resd)
-        },
-        error=function(e) cat(paste0(sqlError(e))))
     })
 }
 
@@ -224,7 +220,8 @@ FLodbcClose <- function(connection)
 {
     sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
                 paste0("DROP TABLE ",getOption("ResultSparseMatrixTableFL"),";"),
-                paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"))
+                paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"),
+                paste0("DROP TABLE ",getOption("ResultCharVectorTableFL"),";"))
 
     if(length(tempDecompTableVector)>0)
 	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
@@ -337,6 +334,7 @@ FLStartSession <- function(connection,
     options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult",persistent))
     options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
     options(MatrixNameMapTableFL=gen_table_name("tblMatrixNameMapping",persistent))
+    options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult",persistent))
     sendqueries <- c(
         paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
         paste0("SET ROLE ALL;"))
@@ -349,7 +347,8 @@ FLStartSession <- function(connection,
     	sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
                     paste0("DROP TABLE ",getOption("MatrixNameMapTableFL"),";"),
                     paste0("DROP TABLE ",getOption("ResultSparseMatrixTableFL"),";"),
-                    paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"))
+                    paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"),
+                    paste0("DROP TABLE ",getOption("ResultCharVectorTableFL"),";"))
 
     	if(length(tempDecompTableVector)>0)
             sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
@@ -394,7 +393,15 @@ FLStartSession <- function(connection,
 			 		 ( vectorIdColumn INT,
 			 		   vectorIndexColumn INT,
 				 	   vectorValueColumn FLOAT )
-			 		   PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);" ))
+			 		   PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"),
+        paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
+               getOption("ResultCharVectorTableFL"),
+               tableoptions,
+               "
+                     ( vectorIdColumn INT,
+                       vectorIndexColumn INT,
+                       vectorValueColumn VARCHAR(100) )
+                       PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"))
     sqlSendUpdate(connection, sendqueries)
     cat("DONE..\n")
 }
@@ -454,6 +461,12 @@ getMaxVectorId <- function(vconnection,...)
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
 
+getMaxCharVectorId <- function(vconnection,...)
+    getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+                vtable=getOption("ResultCharVectorTableFL"),
+                vcolName="vectorIdColumn",
+                vconnection=vconnection)+1
+
 ensureQuerySize <- function(pResult,
                             pInput,
                             pOperator,
@@ -476,6 +489,23 @@ ensureQuerySize <- function(pResult,
         else return(pResult)
     }
 }
+
+checkYorN <- function(pInput)
+{
+    pInput <- toupper(pInput)
+    if(pInput=="N") return(FALSE)
+    else if(pInput=="Y") return(TRUE)
+    else stop("invalid input. Expected y or n")
+}
+
+checkSqlQueryOutput <- function(pObject)
+{
+    if(!is.data.frame(pObject) && length(pObject)==2 && is.character(pObject))
+    stop("Error in Query:-",pObject[1])
+    else return(pObject)
+}
+
+fquote <- function(pname) return(paste0("'",pname,"'"))
 
 flag1Check <- function(connection)
 {
