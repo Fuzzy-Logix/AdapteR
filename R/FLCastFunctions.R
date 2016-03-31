@@ -25,6 +25,10 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 #' @export
 as.vector.FLVector <- function(object,mode="any")
 {
+    vprev1 <- getOption("stringsAsFactors")
+    vprev2 <- getOption("warn")
+    options(stringsAsFactors=FALSE)
+    options(warn=-1)
     if(ncol(object)==1)
         x <- as.data.frame.FLVector(object)[[1]]
     if(ncol(object)>1)
@@ -35,6 +39,9 @@ as.vector.FLVector <- function(object,mode="any")
     else vnames <- colnames(object)
     if(is.character(vnames) && !all(vnames==1:length(vnames)))
     names(x) <- vnames[1:length(x)]
+
+    options(stringsAsFactors=vprev1)
+    options(warn=0)
     return(x)
 }
 
@@ -606,18 +613,26 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 #' @export
 as.FLVector.vector <- function(object,connection=getConnection(object))
 {
-  if(!is.numeric(object))
-  stop("only numeric entries allowed in vector")
   flag3Check(connection)
-  VID <- getMaxVectorId(connection)
+  if(is.numeric(object))
+  {
+    VID <- getMaxVectorId(connection)
+    tablename <- getOption("ResultVectorTableFL")
+  }
+  else if(is.character(object))
+  {
+    VID <- getMaxCharVectorId(connection)
+    tablename <- getOption("ResultCharVectorTableFL")
+  }
+  else stop("only numeric and character vectors supported in as.FLVector")
 
   if(class(connection)=="RODBC")
   {
     sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
-           getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultVectorTableFL")),
+           getRemoteTableName(getOption("ResultDatabaseFL"),tablename),
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
-                     object[x]," AS vectorValueColumn;"
+                     ifelse(is.character(object),fquote(object[x]),object[x])," AS vectorValueColumn;"
                    ))
     retobj<-sqlSendUpdate(connection,
                               paste(sqlstr,
@@ -627,18 +642,18 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   {
     vdataframe <- data.frame(vectorIdColumn=as.integer(VID),
                             vectorIndexColumn=as.integer(1:length(object)),
-                            vectorValueColumn=as.numeric(object))
-    t <- as.FLTable.data.frame(vdataframe,connection,getOption("ResultVectorTableFL"),1,drop=FALSE)
+                            vectorValueColumn=object)
+    t <- as.FLTable.data.frame(vdataframe,connection,tablename,1,drop=FALSE)
   }
   select <- new(
                 "FLSelectFrom",
                 connection = connection, 
                 database = getOption("ResultDatabaseFL"), 
-                table_name = getOption("ResultVectorTableFL"),
+                table_name = tablename,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),
                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",
-                  getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID),
+                  tablename,".vectorIdColumn = ",VID),
                 order = "")
 
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))

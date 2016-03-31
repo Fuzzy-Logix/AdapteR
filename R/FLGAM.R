@@ -929,20 +929,3 @@ checkByVarName <- function(vByVarName,vcolnames)
 	}
 	vByVarName
 }
-
-checkYorN <- function(pInput)
-{
-	pInput <- toupper(pInput)
-	if(pInput=="N") return(FALSE)
-	else if(pInput=="Y") return(TRUE)
-	else stop("invalid input. Expected y or n")
-}
-
-checkSqlQueryOutput <- function(pObject)
-{
-	if(!is.data.frame(pObject) && length(pObject)==2 && is.character(pObject))
-	stop("Error in Query:-",pObject)
-	else return(pObject)
-}
-
-fquote <- function(pname) return(paste0("'",pname,"'"))

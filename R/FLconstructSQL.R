@@ -76,7 +76,7 @@ setMethod("constructSelect",
                                    variables," AS ",
                                    names(variables),
                                    collapse = ",\n"),
-                            "\nFROM ",remoteTable(object),
+                            "\n FROM ",remoteTable(object),
                             constructWhere(c(constraintsSQL(object))),
                             "\n"))
               }
@@ -96,7 +96,7 @@ setMethod("constructSelect",
                                  variables," AS ",
                                  names(variables),
                                  collapse = ",\n"),
-                          "\nFROM ",remoteTable(object),
+                          "\n FROM ",remoteTable(object),
                           constructWhere(c(constraintsSQL(object))),
                           "\n"))
               }
@@ -146,7 +146,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
                                    variables," AS ",
                                    names(variables),
                                    collapse = ",\n"),
-                            "\nFROM ",remoteTable(object),mapTable,
+                            "\n FROM ",remoteTable(object),mapTable,
                             constructWhere(c(constraintsSQL(object),addWhereClause)),
                             "\n"))
               } else {
@@ -173,7 +173,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
                                    variables," AS ",
                                    names(variables),
                                    collapse = ",\n"),
-                            "\nFROM ",remoteTable(object),mapTable,
+                            "\n FROM ",remoteTable(object),mapTable,
                             constructWhere(c(constraintsSQL(object),addWhereClause)),
                             "\n"))
               }
@@ -203,13 +203,13 @@ setMethod(
             ordering <- ""
         else
             ## ordering <- paste0(" ORDER BY ",paste0(object@obs_id_colname,collapse = ", "))
-            ordering <- paste0("\nORDER BY ",
+            ordering <- paste0("\n ORDER BY ",
                                paste0(order,
                                       collapse = ", "))
         return(paste0(
             "SELECT\n",
             constructVariables(variables),
-            "\nFROM ",remoteTable(object),
+            "\n FROM ",remoteTable(object),
             constructWhere(c(constraintsSQL(object))),
             ordering,
             "\n"))
@@ -288,7 +288,7 @@ setMethod("outputSelectMatrix", signature(func_name="character",
                             ifelse(!includeMID,"",
                                    "'%insertIDhere%' AS Matrix_ID, "),
                             constructVariables(outColNames),
-                            "\nFROM TABLE (",func_name,
+                            "\n FROM TABLE (",func_name,
                             "(",viewName,".Matrix_ID, ",
                             viewName,".Row_ID, ",
                             viewName,".Col_ID, ",

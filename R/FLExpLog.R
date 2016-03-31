@@ -180,11 +180,11 @@ setMethod("log",signature(x="FLVector"),
 							x=x,
 							lnb=base::logb(base[1])))
 
-setMethod("logb",signature(x="FLMatrix",base="ANY"),
+setMethod("logb",signature(x="FLMatrix"),
 	function(x,base=base::exp(1)) FLExpLog(functionName="log",
 							x=x,
 							lnb=base::logb(base[1])))
-setMethod("logb",signature(x="FLVector",base="ANY"),
+setMethod("logb",signature(x="FLVector"),
 	function(x,base=base::exp(1)) FLExpLog(functionName="log",
 							x=x,
 							lnb=base::logb(base[1])))
