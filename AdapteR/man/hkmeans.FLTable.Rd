@@ -27,7 +27,8 @@
 }
 \value{
 \code{hkmeans} returns a list which replicates equivalent R output
-from \code{hkmeans} in stats package
+from \code{hkmeans} in stats package.The mapping table can be viewed
+using \code{object$mapping} if input is wide table.
 }
 \description{
 \code{hkmeans} performs Hierarchial k-means clustering on FLTable objects.

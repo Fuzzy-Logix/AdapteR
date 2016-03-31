@@ -68,7 +68,8 @@ agnes.default <- cluster::agnes
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @return \code{agnes} returns a list and replicates equivalent R output
-#' from \code{agnes} in cluster package
+#' from \code{agnes} in cluster package. The mapping table can be viewed
+#' using \code{object$mapping} if input is wide table.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
@@ -285,6 +286,12 @@ agnes.FLTable <- function(x,
 		dataframe <- data.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(dataframe)
+	}
+	else if(property=="mapping")
+	{
+		mapdataframe <- FLMapping.FLKMedoids(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(mapdataframe)
 	}
 	else stop(property," is not a valid property")
 }

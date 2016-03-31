@@ -186,6 +186,7 @@ FLVarCluster.FLTable<-function(x,
 		{
 			sqlstr <- paste0(" SELECT columnName FROM ",mapTable," ORDER BY vectorIndexColumn")
 			names(clustervector) <- sqlQuery(connection,sqlstr)[["columnName"]]
+			t <- sqlQuery(" DROP TABLE ",mapTable)
 		}
 		return(clustervector)
 	}

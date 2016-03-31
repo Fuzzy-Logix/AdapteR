@@ -68,7 +68,8 @@ pam.default <- cluster::pam
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @return \code{pam} gives a list which replicates equivalent R output
-#' from \code{pam} in cluster package
+#' from \code{pam} in cluster package. The mapping table can be viewed
+#' using \code{object$mapping} if input is wide table.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
@@ -149,12 +150,9 @@ pam.FLTable <- function(x,
 					gen_wide_table_name("map"))
 
 		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( 
-			    	     SELECT a.Final_VarID AS VarID,
-			    	     	    a.COLUMN_NAME AS ColumnName,
-			    	     	    a.FROM_TABLE AS MapName 
+			    	     SELECT a.*  
 			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
-			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
+			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"') WITH DATA")
 		
 		sqlSendUpdate(connection,sqlstr)
 	}
@@ -313,6 +311,12 @@ pam.FLTable <- function(x,
 		dataframe <- data.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(dataframe)
+	}
+	else if(property=="mapping")
+	{
+		mapdataframe <- FLMapping.FLKMedoids(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(mapdataframe)
 	}
 	else stop(property," is not a valid property")
 }
@@ -1042,4 +1046,28 @@ plot.FLKMedoids <- function(object)
 
 	assign(parentObject,object,envir=parent.frame())
 	plot(results)
+}
+
+FLMapping.FLKMedoids <- function(object)
+{
+	if(!is.null(object@results[["mapping"]]))
+	return(object@results[["mapping"]])
+	else
+	{
+		if(object@mapTable!="")
+		{
+			sqlstr <- paste0("SELECT * FROM ",object@mapTable)
+			mapdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			if((is.vector(mapdataframe) && length(mapdataframe)==2) || is.null(mapdataframe))
+			mapdataframe <- paste0("The mapping table in database is",object@mapTable)
+			else if(is.data.frame(mapdataframe))
+			t <- sqlQuery(getOption("connectionFL"),paste0(" DROP TABLE ",object@mapTable))
+		}
+		else mapdataframe <- ""
+		
+		object@results <- c(object@results,list(mapping = mapdataframe))
+		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		assign(parentObject,object,envir=parent.frame())
+		return(mapdataframe)
+	}
 }

@@ -44,6 +44,7 @@ store.FLVector <- function(object)
   if(length(colnames(object))>1 && object@isDeep==FALSE)
   {
     object <- as.vector(object)
+    names(object)<-NULL
     return(as.FLVector(object))
   }
   vSqlStr <- paste0(" INSERT INTO ",
@@ -54,14 +55,23 @@ store.FLVector <- function(object)
                     "\n")
   sqlSendUpdate(getConnection(object),
                   vSqlStr)
+  select <- new(
+                "FLSelectFrom",
+                connection = connection, 
+                database = getOption("ResultDatabaseFL"), 
+                table_name = getOption("ResultVectorTableFL"),
+                variables = list(
+                        obs_id_colname = "vectorIndexColumn"),
+                whereconditions=paste0(getOption("ResultDatabaseFL"),".",
+                  getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID),
+                order = "")
 
-  table <- FLTable(getOption("ResultDatabaseFL"),
-                   getOption("ResultVectorTableFL"),
-                   "vectorIndexColumn",
-                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
-                  )
-
-  return(table[,"vectorValueColumn"])
+  if(ncol(object)==1) vindex <- rownames(object)
+  else vindex <- colnames(object)
+  return(new("FLVector",
+                select=select,
+                dimnames=list(vindex,"vectorValueColumn"),
+                isDeep=FALSE))
 }
 
 #' @export

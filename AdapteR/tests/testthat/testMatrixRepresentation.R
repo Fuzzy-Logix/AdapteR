@@ -25,16 +25,6 @@ options(debugSQL=FALSE)
 ## a in-memory matrix in R 
 (m <- rMatrix <- matrix(1:25,5))
 
-
-## Subsetting a row
-m[1,]
-
-## Subsetting a column
-m[,1]
-
-## Subsetting a part of a matrix
-m[2:5,4:5]
-
 ##################################################################
 ## converting the R matrix into an in-DB object
 ## (data is transfered through network)
@@ -45,13 +35,21 @@ m[2:5,4:5]
 
 ## you can run above functions on m=flMatrix again with identical results!
 ## Subsetting a row
-m[1,]
+rMatrix[1,]
+flMatrix[1,]
 
 ## Subsetting a column
-m[,1]
+rMatrix[,1]
+flMatrix[,1]
 
 ## Subsetting a part of a matrix
-m[2:5,4:5]
+rMatrix[2:5,4:5]
+
+## Subsetting a part of a matrix
+rMatrix[2:5,4:5]
+flMatrix[2:5,4:5]
+## note: the names are persistent in FLMatrix
+
 
 
 ## there are different ways to index matrices in R
@@ -68,7 +66,7 @@ matrixNullChar <- matrix(1:25,5)
 colnames(matrixNullChar) <- rev(c("a","b","c","d","e"))
 
 ## character rownames and colnames
-matrixCharChar <- matrix(rnorm(25),5)
+matrixCharChar <- matrix(1:25,5)
 rownames(matrixCharChar) <- c("a","b","c","d","e")
 colnames(matrixCharChar) <- c("p","q","r","s","t")
 
@@ -80,37 +78,124 @@ colnames(matrixNumChar) <- c("p","q","r","s","t")
 
 
 ## inspect names representation in AdapteR
-{ ## 
-    flm <- as.FLMatrix(matrixCharChar)
-    flm
-    
-    rownames(matrixCharChar)
-    ## the rownames have an index that is the mapped
-    ## numeric index in-database.
-    ## These indices are a character vector
-    ## (an R restriction).
-    rownames(flm)
-    names(rownames(flm))
+flm <- as.FLMatrix(matrixCharChar)
+flm
 
-    ## Names are selected
-    matrixCharChar[4:5,4:5]
-    flm[4:5,4:5]
+rownames(matrixCharChar)
 
-    matrixNullChar
-    flm <- as.FLMatrix(matrixNullChar)
-    flm
-    ## R looses the indexes if no names are set.
-    ## (Note that rows start at 1)
-    matrixNullChar[3:5,3:5]
-    ## FLMatrix keeps the index because otherwise
-    ## it would loose reference.
-    flm[3:5,3:5]
-    ## A technical note on joining the names of rows and columns in SQL:
-    ## constructSelect by default does join the rownames
-    cat(constructSelect(flm))
-    ## constructSelect by default does join the rownames
-    cat(constructSelect(flm,joinNames=FALSE))
-}
+## the rownames have an index that is the mapped
+## numeric index in-database.
+## These indices are a character vector
+## (an R restriction).
+rownames(flm)
+names(rownames(flm))
+
+## Names are consistent
+matrixCharChar[4:5,4:5]
+flm[4:5,4:5]
+
+matrixCharChar[c("a","b"),c("s","t")]
+flm[c("a","b"),c("s","t")]
+
+matrixNullChar
+flm <- as.FLMatrix(matrixNullChar)
+flm
+## R looses the indexes if no names are set.
+## (Note that rows start at 1)
+matrixNullChar[3:5,3:5]
+## FLMatrix keeps the index because otherwise
+## it would loose reference.
+flm[3:5,3:5]
+## A technical note on joining the names of rows and columns in SQL:
+## constructSelect by default does join the rownames
+cat(constructSelect(flm))
+## constructSelect by default does join the rownames
+cat(constructSelect(flm,joinNames=FALSE))
+
+
+########################################
+## Quality control: extensive unit tests
+test_that(
+    "Named Matrices: Hierachical test suite of selects of selects...",
+    {
+    expect_equal_RMatrix_FLMatrix(matrixCharChar)
+    expect_equal_RMatrix_FLMatrix(matrixNumChar)
+    })
+
+## Note: subsetting an unnamed R Matrix will
+## result in persistent dim-names needed for
+## db reference
+rownames(matrixNullChar)
+test_that(
+    "Unnamed Matrices: Hierachical test suite of selects of selects...",
+    expect_equal_RMatrix_FLMatrix(matrixNullNull))
+
+sorry, was disconnected
+
+test_that(
+    "Partly named matrices: Hierachical test suite of selects of selects...",
+    {
+        expect_equal_RMatrix_FLMatrix(matrixCharNull)
+        expect_equal_RMatrix_FLMatrix(matrixNullChar)
+    })
+
+
+
+
+
+###########################################################
+##
+## A look under the hood:
+##
+## memory consumption
+##
+
+## For in-database analytics the matrix is in the warehouse
+## to begin with.
+## Create a remote matrix object
+##
+if(!exists("eqnRtn"))
+    eqnRtn <- FLMatrix(database          = "FL_DEMO",
+                       table_name  = "finEquityReturns",
+                       matrix_id_value   = "",
+                       matrix_id_colname = "",
+                       row_id_colname    = "TxnDate",
+                       col_id_colname    = "TickerSymbol",
+                       cell_val_colname  = "EquityReturn")
+
+Nstocks <- 100
+subEqnRtn <- eqnRtn[, sample(colnames(eqnRtn),Nstocks)]
+rEqnRtn <- as.matrix(subEqnRtn)
+dim(eqnRtn)
+dim(subEqnRtn)
+
+## only dimension names are in local memory:
+cat(paste0("Total client memory size for remote equity return table\n"))
+print(object.size(eqnRtn),units = "Kb")
+cat(paste0("dimnames client memory size for remote equity return table\n"))
+print(object.size(eqnRtn@dimnames),units = "Kb")
+cat(paste0("total client memory size for subset of remote equity return table\n"))
+print(object.size(subEqnRtn),units = "Kb")
+cat(paste0("dimnames client memory size for subset of remote equity return table\n"))
+print(object.size(subEqnRtn@dimnames),units = "Kb")
+
+## Download a subset of the remote Table into R Memory
+## rEqnRtn <- as.matrix(subEqnRtn)
+
+## compare memory consumption:
+cat(paste0("dimnames client memory size for r matrix with subset of equity return table\n"))
+print(object.size(rEqnRtn),units = "Kb")
+
+
+
+
+## BTW:
+E <- subEqnRtn
+## where clauses are dynamically constructed
+cat(constructWhere(constraintsSQL(E)))
+## dynamic where clauses support local names
+## so that SQL can be constructed flexibly
+
 
 test_that("Casting base R matrix <---> in-database Matrices",{
     ## Creating simple base R matrix
@@ -135,40 +220,6 @@ test_that("Casting base R matrix <---> in-database Matrices",{
     expect_equal(as.vector(m2), as.vector(matrix3))
 })
 
-test_that(
-    "Named Matrices: Hierachical test suite of selects of selects...",
-    {
-    expect_equal_RMatrix_FLMatrix(matrixCharChar)
-    expect_equal_RMatrix_FLMatrix(matrixNumChar)
-    })
-
-## Note: subsetting an unnamed R Matrix will
-## result in persistent dim-names needed for
-## db reference
-rownames(matrixNullChar)
-test_that(
-    "Unnamed Matrices: Hierachical test suite of selects of selects...",
-    expect_equal_RMatrix_FLMatrix(matrixNullNull))
-
-test_that(
-    "Partly named matrices: Hierachical test suite of selects of selects...",
-    {
-        expect_equal_RMatrix_FLMatrix(matrixCharNull)
-        expect_equal_RMatrix_FLMatrix(matrixNullChar)
-    })
-
-## For in-database analytics the matrix is in the warehouse
-## to begin with.
-## Create a remote matrix object
-##
-#### Not running
-# eqnRtn <- FLMatrix(database          = "FL_DEMO",
-#                    table_name  = "finEquityReturns",
-#                    matrix_id_value   = "",
-#                    matrix_id_colname = "",
-#                    row_id_colname    = "TxnDate",
-#                    col_id_colname    = "TickerSymbol",
-#                    cell_val_colname  = "EquityReturn")
 
 # ## Hierachical tests of a name-providing matrix
 # test_equal_FLMatrix_RMatrix(eqnRtn[sample(rownames(eqnRtn),10),
@@ -315,3 +366,6 @@ test_that("check matrix subsetting",
     function(x) "["(x,,2:3),n=4
   )
 })
+
+
+

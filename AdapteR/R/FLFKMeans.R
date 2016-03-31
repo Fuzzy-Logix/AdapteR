@@ -91,7 +91,8 @@ fanny.default <- cluster::fanny
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @return \code{fanny} returns a list and replicates equivalent R output
-#' from \code{fanny} in cluster package
+#' from \code{fanny} in cluster package.The mapping table can be viewed
+#' using \code{object$mapping} if input is wide table.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
 #' widetable  <- FLTable(connection, "FL_DEMO", "iris", "rownames")
@@ -334,6 +335,12 @@ fanny.FLTable <- function(x,
 		dataframe <- data.FLKMedoids(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(dataframe)
+	}
+	else if(property=="mapping")
+	{
+		mapdataframe <- FLMapping.FLKMedoids(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(mapdataframe)
 	}
 	else stop(property," is not a valid property")
 }

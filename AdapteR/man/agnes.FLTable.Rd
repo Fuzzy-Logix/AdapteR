@@ -49,7 +49,8 @@ matrix or distance table}
 }
 \value{
 \code{agnes} returns a list and replicates equivalent R output
-from \code{agnes} in cluster package
+from \code{agnes} in cluster package. The mapping table can be viewed
+using \code{object$mapping} if input is wide table.
 }
 \description{
 \code{agnes} computes agglomeraive hierarchial 

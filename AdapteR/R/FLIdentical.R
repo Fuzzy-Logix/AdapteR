@@ -305,8 +305,8 @@ NULL
 	                        collapse=" UNION ALL ")
 			dimnames <- list(1:max(length(newColnames1),length(newColnames2)),"vectorValueColumn")
 			}
-			else if(length(newColnames1)>1) return(as.FLVector(as.vector(pObj1))==pObj2)
-			else return(as.FLVector(as.vector(pObj2))==pObj1)
+			else if(length(newColnames1)>1) return(store(pObj1)==pObj2)
+			else return(store(pObj2)==pObj1)
 		}
 		else
 		{
@@ -344,7 +344,6 @@ NULL
 		flv <- ensureQuerySize(pResult=flv,
 	            pInput=list(pObj1,pObj2),
 	            pOperator="==")
-
 		return(as.logical(as.vector(flv)))
 	}
 	if(is.vector(pObj2))
