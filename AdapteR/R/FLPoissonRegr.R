@@ -26,12 +26,11 @@ glm.default <- stats::glm
 
 #' @examples
 #' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "siemenswidetoday1", "ObsID")
-#' sqlSendUpdate(getOption("connectionFL"),"DATABASE fl_dev;")
-#' sqlSendUpdate(getOption("connectionFL"),"SET ROLE ALL;")
+#' connection <- flConnect(odbcSource = "Gandalf",database = "FL_DEV")
+#' widetable  <- FLTable("FL_DEV", "siemenswidetoday1", "ObsID")
+#' options(debugSQL=T)
 #' pfitToffA <- glm(event ~ meanTemp, family=poisson, data=widetable,offset="age")
-#' predData <- FLTable("FL_DEMO","preddata1","ObsID")
+#' predData <- FLTable("FL_DEV","preddata1","ObsID")
 #' mu <- predict(pfitToffA,newdata=predData)
 #' @export
 glm.FLTable <- function(formula,
@@ -67,7 +66,7 @@ glm.FLTable <- function(formula,
 	wideToDeepAnalysisId <- ""
     mapTable <- ""
 
-    if(!toupper(offset) %in% toupper(vcolnames))
+    if(offset!="" && !toupper(offset) %in% toupper(vcolnames))
     stop("offset not in colnames of data")
     unused_cols <- vcolnames[!vcolnames %in% all.vars(formula)]
 	unused_cols <- unused_cols[unused_cols!=getVariables(data)[["obs_id_colname"]]]
@@ -104,7 +103,7 @@ glm.FLTable <- function(formula,
 		sqlstr <- paste0("INSERT INTO ",vtablename,
 						" SELECT ",vobsid," AS obs_id_colname,",
 						" -2 AS var_id_colname,",
-						offset," AS cell_val_colname",
+						ifelse(offset!="",offset,1)," AS cell_val_colname",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
@@ -216,7 +215,7 @@ predict.FLPoissonRegr <- function(object,
 		sqlstr <- paste0("INSERT INTO ",vtablename,
 						" SELECT ",vobsid," AS obs_id_colname,",
 						" -2 AS var_id_colname,",
-						object@offset," AS cell_val_colname",
+						ifelse(object@offset!="",offset,1)," AS cell_val_colname",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
