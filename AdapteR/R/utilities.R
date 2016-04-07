@@ -335,6 +335,9 @@ FLStartSession <- function(connection,
     options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
     options(MatrixNameMapTableFL=gen_table_name("tblMatrixNameMapping",persistent))
     options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult",persistent))
+
+    options(scipen=999)
+    #options(stringsAsFactors=FALSE)
     sendqueries <- c(
         paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
         paste0("SET ROLE ALL;"))
@@ -506,6 +509,17 @@ checkSqlQueryOutput <- function(pObject)
 }
 
 fquote <- function(pname) return(paste0("'",pname,"'"))
+
+checkValidFormula <- function(pObject,pData)
+{
+    if(class(pObject)!="formula")
+    stop("invalid formula object")
+    vallVars <- base::all.vars(pObject)
+    vcolnames <- colnames(pData)
+    sapply(vallVars,function(x)
+        if(!(x %in% vcolnames))
+        stop(x," not in colnames of data\n"))
+}
 
 flag1Check <- function(connection)
 {
