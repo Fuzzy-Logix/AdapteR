@@ -99,7 +99,6 @@ coxph.FLTable <- function(formula,data,
 	vcallObject <- match.call()
 	if(!data@isDeep)
 	{
-
 		deepx <- FLRegrDataPrep(data,depCol=vTimeVal,
 								outDeepTableName="",
 								outDeepTableDatabase="",
@@ -124,10 +123,10 @@ coxph.FLTable <- function(formula,data,
 		vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
 		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 		vobsid <- getVariables(data)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,
-						" SELECT ",vobsid," AS obs_id_colname,",
-						" -2 AS var_id_colname,",
-						vStatus," AS cell_val_colname",
+		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+						" -2 AS var_id_colname,","\n               ",
+						vStatus," AS cell_val_colname","\n               ",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
@@ -184,7 +183,8 @@ coxph.FLTable <- function(formula,data,
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),
 					 				",15,'CoxPH from AdapteR',AnalysisID );")
 	
-	retobj <- sqlQuery(connection,sqlstr)
+	retobj <- sqlQuery(connection,sqlstr,
+                       AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlCoxPHInfo where Note='CoxPH from AdapteR' order by RUNENDTIME DESC")
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
@@ -239,10 +239,10 @@ predict.FLCoxPH <-function(object,
 		vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
 		vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,
-						" SELECT ",vobsid," AS obs_id_colname,",
-						" -2 AS var_id_colname,",
-						object@statusCol," AS cell_val_colname",
+		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+						" -2 AS var_id_colname,","\n               ",
+						object@statusCol," AS cell_val_colname","\n               ",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
@@ -262,7 +262,8 @@ predict.FLCoxPH <-function(object,
 											 "oAnalysisID);")
 
 	AnalysisID <- sqlQuery(getOption("connectionFL"),
-								sqlstr)
+                           sqlstr,
+                           AnalysisIDQuery=paste0("SELECT top 1 ANALYSISID from fzzlCoxPHInfo where Note='Scoring using model ",object@AnalysisID,"' order by RUNENDTIME DESC"))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

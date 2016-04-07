@@ -100,10 +100,10 @@ glm.FLTable <- function(formula,
 		vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
 		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 		vobsid <- getVariables(data)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,
-						" SELECT ",vobsid," AS obs_id_colname,",
-						" -2 AS var_id_colname,",
-						ifelse(offset!="",offset,1)," AS cell_val_colname",
+		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+						" -2 AS var_id_colname,","\n               ",
+						ifelse(offset!="",offset,1)," AS cell_val_colname","\n        ",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
@@ -154,14 +154,16 @@ glm.FLTable <- function(formula,
 
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 
+    note <- "'PoissonRegr from AdapteR'"
     sqlstr <- paste0("CALL FLPoissonRegr(",fquote(deeptable),",",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",",
-					 				maxiter,",",
-					 				"'PoissonRegr from AdapteR',AnalysisID );")
+					 				maxiter,",",note,
+					 				",AnalysisID );")
 	
-	retobj <- sqlQuery(connection,sqlstr)
+	retobj <- sqlQuery(connection,sqlstr,
+                       AnalysisIDQuery=paste0("SELECT top 1 ANALYSISID from fzzlPoissonRegrInfo where note=",note," order by RUNENDTIME DESC"))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
@@ -212,10 +214,10 @@ predict.FLPoissonRegr <- function(object,
 		vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
 		vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,
-						" SELECT ",vobsid," AS obs_id_colname,",
-						" -2 AS var_id_colname,",
-						ifelse(object@offset!="",offset,1)," AS cell_val_colname",
+		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+						" -2 AS var_id_colname,","\n               ",
+						ifelse(object@offset!="",offset,1)," AS cell_val_colname","\n        ",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
@@ -224,17 +226,19 @@ predict.FLPoissonRegr <- function(object,
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
+    note <- paste0("'Scoring using model ",object@AnalysisID,"'")
 	sqlstr <- paste0("CALL FLPoissonRegrScore (",fquote(vtable),",",
 											 fquote(vobsid),",",
 											 fquote(vvarid),",",
 											 fquote(vvalue),",",
 											 fquote(object@AnalysisID),",",
 											 fquote(scoreTable),",",
-											 "'Scoring using model ",object@AnalysisID,"',",
-											 "oAnalysisID);")
+											 note,
+											 ",oAnalysisID);")
 
 	AnalysisID <- sqlQuery(getOption("connectionFL"),
-								sqlstr)
+                           sqlstr,
+                           AnalysisIDQuery=paste0("SELECT top 1 ANALYSISID from fzzlPoissonRegrInfo where note=",note," order by RUNENDTIME DESC"))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
