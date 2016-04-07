@@ -62,8 +62,7 @@ as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
-      error=function(e){stop("error fetching data into R session.To view result in database,
-        Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+      error=function(e){stop(e)})
     names(D) <- toupper(names(D))
     D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
     ##browser()
@@ -88,8 +87,7 @@ as.data.frame.FLVector <- function(x, ...){
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
    tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
-      error=function(e){stop("error fetching data into R session.To view result in database,
-        Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+      error=function(e){stop(e)})
    
     names(D) <- toupper(names(D))
     vrownames <- rownames(x)
@@ -199,33 +197,6 @@ as.matrix.FLTable <- function(x,...)
 {
   temp_df <- as.data.frame(x)
   return(as.matrix(temp_df))
-}
-
-storeVarnameMapping <- function(connection,
-                                tablename,
-                                matrixId,
-                                dimId,
-                                mynames){
-    Ndim <- length(mynames)
-    names(mynames) <- 1:Ndim
-    sqlstatements <- paste0(
-        " INSERT INTO ",
-        getOption("ResultDatabaseFL"),".",
-        getOption("MatrixNameMapTableFL"),
-        "(TABLENAME, MATRIX_ID, DIM_ID, ",
-        "NAME, NUM_ID",
-        ")",
-        " VALUES (",
-        "'",tablename,"', ",
-        "'",matrixId,"', ",
-        dimId,", ",
-        "'",mynames,"', ",
-        names(mynames),
-        ");")
-    retobj<-sqlSendUpdate(connection,
-                          paste(sqlstatements,
-                                collapse="\n"))
-    return(mynames)
 }
 
 
@@ -426,8 +397,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
     ##browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
-      error=function(e){stop("error fetching data into R session!
-        Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+      error=function(e){stop(e)})
     i <- valuedf$rowIdColumn
     j <- valuedf$colIdColumn
     i <- FLIndexOf(i,rownames(object))
@@ -779,6 +749,7 @@ as.FLTable.data.frame <- function(object,
     vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()
+    #browser()
     for(i in 1:vcols)
     vcolnames <- c(vcolnames,class(object[[i]]))
     names(vcolnames) <- colnames(object)

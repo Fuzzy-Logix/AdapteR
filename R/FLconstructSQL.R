@@ -156,7 +156,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
                   else
                       names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
 
-                  if(ncol(object)>1 || (ncol(object)==1 &&colnames(object)==1))
+                  if(ncol(object)>1 || (ncol(object)==1 &&colnames(object)==1 &&nrow(object)==1))
                   vobsIDCol <- variables["var_id_colname"]
                   else vobsIDCol <- variables["obs_id_colname"]
 

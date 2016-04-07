@@ -127,7 +127,7 @@ NULL
         if(object@isDeep){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
-                  inCondition(paste0(object@select@select@database,".",
+                  inCondition(paste0(object@select@database,".",
                                      object@select@table_name,".",
                                      getVariables(object)$var_id_colname),
                               object@dimnames[[2]]))
@@ -243,7 +243,8 @@ NULL
     if((is.numeric(pSet) && (any(pSet>length(object))
         || any(pSet<=0)))) stop("index out of bounds")
     # browser()
-    if(FLNamesMappedP(object)) object <- store(object)
+    if(FLNamesMappedP(object) || class(object@select)=="FLTableFunctionQuery") 
+    object <- store(object)
     newrownames <- rownames(object)
     newcolnames <- colnames(object)
     if(ncol(object)==1) namesvector <- rownames(object)

@@ -217,6 +217,37 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 		}
 		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 		{
+			#browser()
+			if(ncol(pObj1)==1 && ncol(pObj2)==1)
+			{
+				#browser()
+				max_length <- max(length(rownames(pObj1)),length(rownames(pObj2)))
+				if(pOperator %in% c("%/%"))
+				
+				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+									a, ".vectorIndexColumn AS vectorIndexColumn",
+									",CAST(",a,".vectorValueColumn",
+									"/",b,".vectorValueColumn AS INT) AS vectorValueColumn 
+								 FROM (",constructSelect(pObj1),") AS ",a,", 
+								    (",constructSelect(pObj2),") AS ",b,
+								" WHERE ",a,".vectorIndexColumn = ",
+									b,".vectorIndexColumn ")
+
+				else if(pOperator %in% c("+","-","%%","/","*","**"))
+				
+				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+										a, ".vectorIndexColumn AS vectorIndexColumn",
+										",",a,".vectorValueColumn",
+										ifelse(pOperator=="%%"," MOD ",pOperator),
+										b,".vectorValueColumn AS vectorValueColumn 
+								 FROM (",constructSelect(pObj1),") AS ",a,", 
+								    (",constructSelect(pObj2),") AS ",b,
+								" WHERE ",a,".vectorIndexColumn = ",
+									b,".vectorIndexColumn ")
+
+				dimnames <- list(rownames(pObj1),
+								"vectorValueColumn")
+			}
 
 			if(nrow(pObj1)==1 && nrow(pObj2)==1)
 			{
@@ -243,37 +274,6 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 										b,".",newColnames2," AS vectorValueColumn 
 								 FROM (",constructSelect(pObj1),") AS ",a,", 
 								    (",constructSelect(pObj2),") AS ",b,
-							    collapse=" UNION ALL ")
-
-				dimnames <- list(1:max_length,
-								"vectorValueColumn")
-			}
-			if(ncol(pObj1)==1 && ncol(pObj2)==1)
-			{
-				max_length <- max(length(rownames(pObj1)),length(rownames(pObj2)))
-				if(pOperator %in% c("%/%"))
-				
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-									1:max_length, " AS vectorIndexColumn",
-									",CAST(",a,".vectorValueColumn",
-									"/",b,".vectorValueColumn AS INT) AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE ",a,".vectorIndexColumn IN('",rownames(pObj1),"') AND ",
-									b,".vectorIndexColumn IN('",rownames(pObj2),"')",
-							    collapse=" UNION ALL ")
-
-				else if(pOperator %in% c("+","-","%%","/","*","**"))
-				
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-										1:max_length, " AS vectorIndexColumn",
-										",",a,".vectorValueColumn",
-										ifelse(pOperator=="%%"," MOD ",pOperator),
-										b,".vectorValueColumn AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE ",a,".vectorIndexColumn IN('",rownames(pObj1),"') AND ",
-									b,".vectorIndexColumn IN('",rownames(pObj2),"')",
 							    collapse=" UNION ALL ")
 
 				dimnames <- list(1:max_length,
@@ -361,6 +361,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 						dimnames = dimnames,
 						isDeep = FALSE)
 
+			#return(flv)
 			return(ensureQuerySize(pResult=flv,
 								pInput=list(pObj1,pObj2),
 								pOperator=pOperator))
