@@ -56,7 +56,8 @@ matrix or distance table}
 }
 \value{
 \code{fanny} returns a list and replicates equivalent R output
-from \code{fanny} in cluster package
+from \code{fanny} in cluster package.The mapping table can be viewed
+using \code{object$mapping} if input is wide table.
 }
 \description{
 \code{fanny} performs fuzzy analysis on FLTable objects.
