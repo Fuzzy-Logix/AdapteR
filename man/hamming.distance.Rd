@@ -17,21 +17,23 @@ hamming.distance(xsource, targets, caseFlag = 0, vlength = 3, ...)
 if comparision should be case sensitive}
 }
 \value{
-FLMatrix if both \code{xsource} and \code{targets}
-are FLVectors. Otherwise returns a FLVector
+FLVector if any \code{xsource} or \code{targets}
+is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
 computes the hamming distance between strings
 }
 \section{Constraints}{
 
-row vectors are not supported currently
+row vectors are not supported currently.
+Output is slightly different from vwr::hamming.
+Refer to \code{@return} section.
 }
 \examples{
 widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 flv <- widetable[1:10,"Species"]
 resultflvector <- hamming.distance("xyz",flv)
 resultflmatrix <- hamming.distance(flv,flv,caseFLag=1)
-resultflvector <- hamming.distance(flv,"xyz",caseFLag=1)
+resultflmatrix <- hamming.distance(flv,c("xyz","poli"),caseFLag=1)
 }
 

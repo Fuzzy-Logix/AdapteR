@@ -26,15 +26,16 @@ between the strings}
 if comparision should be case sensitive}
 }
 \value{
-FLMatrix if both \code{a} and \code{b}
-are FLVectors. Otherwise returns a FLVector
+FLVector if any \code{a} or \code{b}
+is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
 compute NeedleManWunsch distance between strings
 }
 \section{Constraints}{
 
-row vectors are not supported currently
+row vectors are not supported currently.
+Refer to \code{@return} section.
 }
 \examples{
 widetable  <- FLTable("FL_DEMO", "iris", "rownames")
@@ -43,6 +44,6 @@ resultflvector <- FLNeedleManWunschDist("xyz",flv)
 resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
 resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
 resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
-resultflvector <- FLNeedleManWunschDist("xyz",flv,method="jw")
+resultflmatrix <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
 }
 
