@@ -76,8 +76,6 @@ ORDER BY 1, 2;")
 ##
 eqnRtn <- FLMatrix(database          = "FL_DEMO",
                    table_name        = "finEquityReturns",
-                   matrix_id_value   = "",
-                   matrix_id_colname = "",
                    row_id_colname    = "TxnDate",
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
@@ -217,7 +215,7 @@ shinyApp(
     ),
     server = function(input, output) {
         output$correlations <- renderPlot(
-          stockCorrelPlot(input), height=1200)
+          stockCorrelPlot(input), height=800)
     }
 )
 
@@ -244,6 +242,12 @@ FROM TABLE (
 ) AS a
 ORDER BY 1,2,3;")
 
+
+
+
+
+
+
 m <- FLMatrix(
               database          = "FL_DEMO",
               table_name        = "tblMatrixMulti",
@@ -251,24 +255,34 @@ m <- FLMatrix(
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
-              cell_val_colname  = "Cell_Val",
-              dimnames=list(c("a","b","c","d","e"),
-                            c("p","q","r","s","t"))
-)
+              cell_val_colname  = "Cell_Val")
 
-## compute the inverse
-ms <- solve(m)
-ms
+## compute inverse in R after 
+## fetching data by a simple as.matrix cast call
+solve(as.matrix(m))
+
+## compute the inverse in-database
+solve(m)
+
+## in-databse matrix multiplication with inverse
+## results in identity matrix (of course)
+round(as.matrix(m %*% ms))
+
+
+
+
+
+
+
+
+
+
+
 
 ## check is R and DB Lytix results match up:
 m.r <- as.matrix(m) ## download and convert to R matrix
 expect_equal(as.matrix(ms),
              solve(m.r),check.attributes=FALSE)
-
-## Matrix multiplication with inverse results in identity
-round(as.matrix(m %*% ms))
-
-
 
 
 options(debugSQL=TRUE)
