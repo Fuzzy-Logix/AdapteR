@@ -38,13 +38,11 @@ FLTable <- function(database,
 	{
         cols <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
-                                var_id_colnames,") as VarID
-                          FROM ",remoteTable(database,table),
+                                var_id_colnames,") as VarID FROM ",remoteTable(database,table),
                           " ",constructWhere(whereconditions)))$VarID)
         rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
-                                obs_id_colname,") as VarID
-						  FROM ",remoteTable(database,table),
+                                obs_id_colname,") as VarID FROM ",remoteTable(database,table),
                           " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
@@ -549,26 +547,26 @@ setMethod("FLRegrDataPrep",
             if(outValueCol=="") outValueCol <- "cell_val_colname"
 
             sqlstr<-paste0("CALL FLRegrDataPrep('",
-                                              object@select@database,".",object@select@table_name,"',",
-                                              fquote(getVariables(object)[["obs_id_colname"]]),",",
-                                              fquote(depCol),",",
-                                              fquote(paste0(outDeepTableDatabase,".",deeptablename)),",",
-                                              fquote(outObsIDCol),",",
-                                              fquote(outVarIDCol),",",
-                                              fquote(outValueCol),",",
-                                              catToDummy,",",
-                                              performNorm,",",
-                                              performVarReduc,",",
-                                              makeDataSparse,",",
-                                              minStdDev,",",
-                                              maxCorrel,",",
-                                              trainOrTest,",",
-                                              excludeCols,",",
-                                              classSpec,",",
-                                              whereClause,",",
-                                              inAnalysisID,",",
+                                              object@select@database,".",object@select@table_name,"',\n      ",
+                                              fquote(getVariables(object)[["obs_id_colname"]]),",\n      ",
+                                              fquote(depCol),",\n      ",
+                                              fquote(paste0(outDeepTableDatabase,".",deeptablename)),",\n      ",
+                                              fquote(outObsIDCol),",\n      ",
+                                              fquote(outVarIDCol),",\n      ",
+                                              fquote(outValueCol),",\n      ",
+                                              catToDummy,",\n      ",
+                                              performNorm,",\n      ",
+                                              performVarReduc,",\n      ",
+                                              makeDataSparse,",\n      ",
+                                              minStdDev,",\n      ",
+                                              maxCorrel,",\n      ",
+                                              trainOrTest,",\n      ",
+                                              excludeCols,",\n      ",
+                                              classSpec,",\n      ",
+                                              whereClause,",\n      ",
+                                              inAnalysisID,",\n      ",
                                               "AnalysisID);")
-            t<- sqlQuery(connection,sqlstr)
+            t <- sqlQuery(connection,sqlstr,AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
             dataprepID <- as.vector(t[1,1])
 
