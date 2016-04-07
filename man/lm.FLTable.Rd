@@ -4,7 +4,9 @@
 \alias{lm.FLTable}
 \title{Linear Regression.}
 \usage{
-\method{lm}{FLTable}(formula, data, ...)
+\method{lm}{FLTable}(formula, data, catToDummy = 0, performNorm = 0,
+  performVarReduc = 0, makeDataSparse = 0, minStdDev = 0, maxCorrel = 1,
+  classSpec = list(), whereconditions = "", ...)
 }
 \arguments{
 \item{formula}{A symbolic description of model to be fitted}
@@ -27,7 +29,11 @@ None
 \examples{
 library(RODBC)
 connection <- odbcConnect("Gandalf")
-widetable  <- FLTable(connection, "FL_REV4546", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
+deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
+lmfit1 <- lm(NULL,deeptable)
+deeptable <- FLTable("FL_DEMO","myLinRegrSmallBroken","ObsID","VarID","Num_Val")
+lmfit2 <- lm(NULL,deeptable)
 }
 
