@@ -25,7 +25,8 @@
 }
 \value{
 \code{kmeans} returns a list which replicates equivalent R output
-from \code{kmeans} in stats package
+from \code{kmeans} in stats package. The mapping table can be viewed
+using \code{object$mapping} if input is wide table.
 }
 \description{
 \code{kmeans} performs k-means clustering on FLTable objects.
