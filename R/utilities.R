@@ -82,14 +82,22 @@ sqlSendUpdate.RODBC <- function(connection,query) {
 }
 
 #' @export
-sqlQuery.JDBCConnection <- function(connection,query, ...) {
+sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
-        tryCatch({
-            resd <- DBI::dbGetQuery(connection, query, ...)
-            return(resd)
-        },
-        error=function(e) cat(paste0(sqlError(e))))
+        if(is.null(AnalysisIDQuery))
+            tryCatch({
+                resd <- DBI::dbGetQuery(connection, query, ...)
+                return(resd)
+            },
+            error=function(e) cat(paste0(sqlError(e))))
+        else
+            tryCatch({
+                DBI::dbSendQuery(connection, query, ...)
+                resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
+                return(resd)
+            },
+            error=function(e) cat(paste0(sqlError(e))))
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
