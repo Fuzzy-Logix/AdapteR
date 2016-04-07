@@ -757,7 +757,7 @@ as.FLTable.data.frame <- function(object,
     object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
-    names(vcolnames) <- gsub(".","",names(vcolnames),fixed=TRUE)
+    names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=TRUE)
     vcolnamesCopy <- vcolnames
     vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
     vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "
@@ -771,7 +771,10 @@ as.FLTable.data.frame <- function(object,
       if(RJDBC::dbExistsTable(connection,tableName))
       t<-sqlSendUpdate(connection,paste0("drop table ",getOption("ResultDatabaseFL"),".",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
-      t<-RJDBC::dbSendUpdate(connection,paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");"))
+      vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
+      sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
+      if (getOption("debugSQL")) cat(sql)
+      t<-RJDBC::dbSendUpdate(connection,sql)
       if(!is.null(t)) stop(paste0("colnames unconvenional. Error Mssg is:-",t))
     }
     
