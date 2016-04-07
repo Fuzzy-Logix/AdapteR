@@ -21,9 +21,7 @@ Depends:
     methods,
     DBI,
     testthat,
-    RJDBC,
-    RODBC,
-	mgcv
+    mgcv
 Imports:
     plyr,
     MASS (>= 7.3-10),
@@ -36,9 +34,7 @@ Imports:
     methods,
     DBI,
     testthat,
-    RJDBC,
-    RODBC,
-	mgcv
+    mgcv
 License: GPL-2
 LazyData: true
 Collate:

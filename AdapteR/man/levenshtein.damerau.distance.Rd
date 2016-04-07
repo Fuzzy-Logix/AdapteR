@@ -15,21 +15,23 @@ levenshtein.damerau.distance(xsource, targets, caseFlag = 0, ...)
 if comparision should be case sensitive}
 }
 \value{
-FLMatrix if both \code{xsource} and \code{targets}
-are FLVectors. Otherwise returns a FLVector
+FLVector if any \code{xsource} or \code{targets}
+is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
 computes the levenshtein-damerau distance between strings
 }
 \section{Constraints}{
 
-row vectors are not supported currently
+row vectors are not supported currently.
+Output is slightly different from vwr::levenshtein.damerau.distance.
+Refer to \code{@return} section.
 }
 \examples{
 widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 flv <- widetable[1:10,"Species"]
 resultflvector <- levenshtein.damerau.distance("xyz",flv)
 resultflmatrix <- levenshtein.damerau.distance(flv,flv,caseFLag=1)
-resultflvector <- levenshtein.damerau.distance(flv,"xyz",caseFLag=1)
+resultflmatrix <- levenshtein.damerau.distance(flv,c("xyz","bghy"),caseFLag=1)
 }
 
