@@ -1,8 +1,101 @@
-Package: RWrappers
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-Depends: R (>= 3.1.2)
-License: What license is it under?
+Package: AdapteR
+Title: This package wraps around Fuzzy Logix's DBLytix functions
+Version: 2.0
+Authors@R: c(
+    person("Phani", "Srikar", email = "phanisrikar93ume@gmail", role = c("aut","cre")),
+    person("Gregor", "Kappler", email = "g.kappler@@gmx.net", role = c("aut")))
+Description: The DB Lytix(TM) suite of functions offers scalable and robust high
+    performance analytical methods that are embedded seamlessly into database
+    systems. Package RLytix makes it possible to use this functionality from R
+    by providing wrapper functions around the SQL interface of DB Lytix(TM).
+Depends:
+    R (>= 3.1.0),
+    plyr,
+    MASS (>= 7.3-10),
+    Matrix (>= 1.1-5),
+    base,
+    stats,
+    psych,
+    reshape2,
+    cluster,
+    methods,
+    DBI,
+    testthat,
+    mgcv
+Imports:
+    plyr,
+    MASS (>= 7.3-10),
+    Matrix (>= 1.1-5),
+    base,
+    stats,
+    psych,
+    reshape2,
+    cluster,
+    methods,
+    DBI,
+    testthat,
+    mgcv
+License: GPL-2
 LazyData: true
+Collate:
+    'FLStore.R'
+    'utilities.R'
+    'FLMatrix.R'
+    'FLTable.R'
+    'FLVector.R'
+    'FLAggClustering.R'
+    'FLDims.R'
+    'FLIs.R'
+    'FLPrint.R'
+    'FLCApply.R'
+    'FLCastFunctions.R'
+    'FLCbind.R'
+    'FLCholeskyDecomp.R'
+    'FLColMeans.R'
+    'FLColSums.R'
+    'FLCorrel.R'
+    'data_prep.R'
+    'FLCoxph.R'
+    'FLDet.R'
+    'FLDiag.R'
+    'FLEigen.R'
+    'FLExpLog.R'
+    'FLFKMeans.R'
+    'FLGAM.R'
+    'FLGinv.R'
+    'FLHClust.R'
+    'FLHKMeans.R'
+    'FLHessenDecomp.R'
+    'FLIdentical.R'
+    'FLJordanDecomp.R'
+    'FLKMeans.R'
+    'FLKMedoids.R'
+    'FLLUDecomp.R'
+    'FLLength.R'
+    'FLLinRegr.R'
+    'FLLogRegr.R'
+    'FLMatrixArithmetic.R'
+    'FLconstructSQL.R'
+    'FLMatrixBind.R'
+    'FLMatrixClasses.R'
+    'FLMatrixNorm.R'
+    'FLMatrixREF.R'
+    'FLMatrixRREF.R'
+    'FLPoissonRegr.R'
+    'FLQRDecomp.R'
+    'FLRankMatrix.R'
+    'FLRbind.R'
+    'FLRowMeans.R'
+    'FLRowSums.R'
+    'FLSV.R'
+    'FLSVDecomp.R'
+    'FLSolve.R'
+    'FLSolveExcl.R'
+    'FLStringFunctions.R'
+    'FLSubsetting.R'
+    'FLTrace.R'
+    'FLTranspose.R'
+    'FLTriDiag.R'
+    'FLVarCluster.R'
+    'FLtestLib.R'
+RoxygenNote: 5.0.1

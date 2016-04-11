@@ -1,4 +1,0 @@
-SELECT Y, PREDICTEDY, OBS_COUNT 
-FROM fzzlLDACrossTab 
-WHERE AnalysisID = '%analysisID' 
-ORDER BY 1,2,3

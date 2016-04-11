@@ -1,1 +1,0 @@
-CALL FLNaiveBayesPredict('%deepTableName', '%obsID','%varID','%value','%regrAnalysisID','%predictTable','From RWrapper for DBLytix', OutAnalysisID)
