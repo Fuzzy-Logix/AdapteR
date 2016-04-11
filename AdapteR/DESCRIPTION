@@ -10,8 +10,7 @@ Authors@R: c(
     person("Rohit", "Gupta", email = "Rohit.Gupta@fuzzylogix.com", role = c("ctb")))
 Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize dramatic improvements
     in performance by moving computation from client machines into data warehouses and clusters
-    where big data lives.
-    As important as performance and scalability is the way in which the end user
+    where big data lives. As important as performance and scalability is the way in which the end user
     interacts with the analytics, and the R language has become most pervasive in this area.
     R is remarkably expressive and flexible, allowing for fast prototyping and evaluation,
     enabling agile analytics. Fuzzy Logix's new R package AdapteR enables
