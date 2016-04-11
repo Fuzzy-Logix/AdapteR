@@ -25,35 +25,17 @@ coxph <- function (formula,data=list(),...) {
 #' @export
 coxph.default <- survival::coxph
 
-
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "siemenswidetoday1", "ObsID")
-#' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-#' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
-#' resultList <- predict(fitT,newdata=predData)
-#' resultList[[1]]
-#' resultList[[2]]
-## Failed
-#fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
-# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
-# fitT <- coxph(Surv(age,event)~meanTemp,widetable)
 #' @export
-coxph.FLTable <- function(formula,data,
-					catToDummy=0,
-					performNorm=0,
-					performVarReduc=0,
-					makeDataSparse=0,
-					minStdDev=0,
-					maxCorrel=1,
-					classSpec=list(),
-					whereconditions="",
-					...)
-{
+prepareData.coxph <- function(formula,data,
+                              catToDummy=0,
+                              performNorm=0,
+                              performVarReduc=0,
+                              makeDataSparse=0,
+                              minStdDev=0,
+                              maxCorrel=1,
+                              classSpec=list(),
+                              whereconditions=""){
 	vallVars <- base::all.vars(formula)
-	checkValidFormula(formula,data)
-
 	vTimeVal <- ""
 	vStatus <- ""
 	vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
@@ -96,7 +78,6 @@ coxph.FLTable <- function(formula,data,
 	unused_cols <- unused_cols[unused_cols!=getVariables(data)[["obs_id_colname"]]]
 	vexcludeCols <- paste0(unused_cols,collapse=",")
 	
-	vcallObject <- match.call()
 	if(!data@isDeep)
 	{
 		deepx <- FLRegrDataPrep(data,depCol=vTimeVal,
@@ -174,7 +155,34 @@ coxph.FLTable <- function(formula,data,
                   )
 		whereconditions <- ""
 	}
+    return(list(deeptable=deepx,
+                wideToDeepAnalysisId=wideToDeepAnalysisId,
+                mapTable=mapTable,
+                vStatus=vStatus,
+                vTimeVal=vTimeVal))
+}
 
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' widetable  <- FLTable("FL_DEMO", "siemenswidetoday1", "ObsID")
+#' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
+#' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
+#' resultList <- predict(fitT,newdata=predData)
+#' resultList[[1]]
+#' resultList[[2]]
+## Failed
+#fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
+# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
+# fitT <- coxph(Surv(age,event)~meanTemp,widetable)
+#' @export
+coxph.FLTable <- function(formula,data, ...)
+{
+	checkValidFormula(formula,data)
+    deep <- prepareData.coxph(formula,data,...)
+    wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
+    deepx <- deep[["deeptable"]]
+    
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 
     sqlstr <- paste0("CALL FLCoxPH(",fquote(deeptable),",",
@@ -188,6 +196,8 @@ coxph.FLTable <- function(formula,data,
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
+	vcallObject <- match.call()
+    
 	return(new("FLCoxPH",
 				formula=formula,
 				AnalysisID=AnalysisID,
@@ -195,10 +205,10 @@ coxph.FLTable <- function(formula,data,
 				table=data,
 				results=list(call=vcallObject),
 				deeptable=deepx,
-				mapTable=mapTable,
+				mapTable=deep$mapTable,
 				scoreTable="",
-				statusCol=vStatus,
-				timeValCol=vTimeVal))
+				statusCol=deep$vStatus,
+				timeValCol=deep$vTimeVal))
 }
 
 predict.FLCoxPH <-function(object,
