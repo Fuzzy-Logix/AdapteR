@@ -1,3 +1,40 @@
+
+storeVarnameMapping <- function(connection,
+                                tablename,
+                                matrixId,
+                                dimId,
+                                mynames){
+    Ndim <- length(mynames)
+    names(mynames) <- 1:Ndim
+    sqlstatements <- paste0(
+        " INSERT INTO ",
+        getOption("ResultDatabaseFL"),".",
+        getOption("MatrixNameMapTableFL"),
+        "(TABLENAME, MATRIX_ID, DIM_ID, ",
+        "NAME, NUM_ID",
+        ")",
+        " VALUES (",
+        "'",tablename,"', ",
+        "'",matrixId,"', ",
+        dimId,", ",
+        "'",mynames,"', ",
+        names(mynames),
+        ");")
+
+    if(class(connection)=="JDBCConnection")
+    {
+      mdeep <- data.frame(tablename,as.integer(matrixId),as.integer(dimId),
+                        as.character(mynames),as.integer(names(mynames)))
+      colnames(mdeep) <- c("TABLENAME","MATRIX_ID","DIM_ID","NAME","NUM_ID")
+      t <- as.FLTable.data.frame(mdeep,connection,getOption("MatrixNameMapTableFL"),2,drop=FALSE)
+    }
+    else
+    retobj<-sqlSendUpdate(connection,
+                          paste(sqlstatements,
+                                collapse="\n"))
+    return(mynames)
+}
+
 #' @export
 store.FLMatrix <- function(object)
 {

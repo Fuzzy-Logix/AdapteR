@@ -38,13 +38,11 @@ FLTable <- function(database,
 	{
         cols <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
-                                var_id_colnames,") as VarID
-                          FROM ",remoteTable(database,table),
+                                var_id_colnames,") as VarID FROM ",remoteTable(database,table),
                           " ",constructWhere(whereconditions)))$VarID)
         rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
-                                obs_id_colname,") as VarID
-						  FROM ",remoteTable(database,table),
+                                obs_id_colname,") as VarID FROM ",remoteTable(database,table),
                           " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
@@ -399,3 +397,187 @@ setMethod("deepToWide",
                     mapName="",
                     outWideTableDatabase="",
                     outWideTableName=""))
+
+#' Convert Wide Table to Deep Table in database.
+#'
+#' @param object FLTable object
+#' @param excludeCols character vector specifying columns to be excluded from conversion
+#' @param classSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
+#' @param whereconditions character vector giving where conditions if any to reference the wide table
+#' @param outDeepTableName name to be given to the output deep table
+#' @param outDeepTableDatabase name of database to store the output deep table
+#' @param outObsIDCol name to give to the primary key column name of the output deep table
+#' @param outVarIDCol name to give to the varibales name column of the output deep table
+#' @param outValueCol name to give to the value column of the output deep table
+#' @return \code{wideToDeep} returns a list containing components 
+#' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' resultList <- wideToDeep(widetable)
+#' deeptable <- resultList$table
+#' analysisID <- resultList$AnalysisID
+#' @export
+
+setGeneric("FLRegrDataPrep", function(object,depCol,
+                                  outDeepTableName,outDeepTableDatabase,
+                                  outObsIDCol,outVarIDCol,outValueCol,
+                                  catToDummy,performNorm,performVarReduc,
+                                  makeDataSparse,minStdDev,maxCorrel,
+                                  trainOrTest,excludeCols,classSpec,
+                                  whereconditions,inAnalysisID) {
+    standardGeneric("FLRegrDataPrep")
+})
+setMethod("FLRegrDataPrep",
+          signature(object = "FLTable",
+                    depCol="character",
+                    outDeepTableName="character",
+                    outDeepTableDatabase="character",
+                    outObsIDCol="character",
+                    outVarIDCol="character",
+                    outValueCol="character",
+                    catToDummy="numeric",
+                    performNorm="numeric",
+                    performVarReduc="numeric",
+                    makeDataSparse="numeric",
+                    minStdDev="numeric",
+                    maxCorrel="numeric",
+                    trainOrTest="numeric",
+                    excludeCols="character",
+                    classSpec="list",
+                    whereconditions="character",
+                    inAnalysisID="character"
+                    ),
+          function(object,depCol,
+                  outDeepTableName,outDeepTableDatabase,
+                  outObsIDCol,outVarIDCol,outValueCol,
+                  catToDummy,performNorm,performVarReduc,
+                  makeDataSparse,minStdDev,maxCorrel,
+                  trainOrTest,excludeCols,classSpec,
+                  whereconditions,inAnalysisID)
+          {
+            if(object@isDeep) return(list(table=object))
+            connection <- getConnection(object)
+            if(outDeepTableName == "")
+            #deeptablename <- gen_deep_table_name(object@select@table_name)
+            deeptablename <- genRandVarName()
+            else deeptablename <- outDeepTableName
+            if(outDeepTableDatabase == "")
+            outDeepTableDatabase <- getOption("ResultDatabaseFL")
+            if(class(object@select)=="FLTableFunctionQuery")
+            {
+              ## Views are not working  in FLDeepToWide and FLWideToDeep
+              widetable <- gen_wide_table_name(object@select@table_name)
+              sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
+              sqlSendUpdate(connection,sqlstr)
+              select <- new("FLSelectFrom",
+                        connection = connection, 
+                        database = outDeepTableDatabase, 
+                        table_name = widetable, 
+                        variables = list(
+                                obs_id_colname = obs_id_colname),
+                        whereconditions="",
+                        order = "")
+
+              object <- new("FLTable",
+                            select = select,
+                            dimnames = object@dimnames,
+                            isDeep = FALSE)
+              #object <- store(object)
+            }
+
+            checkParamsLM <- function(pObject,pExpected)
+            {
+              vresult <- sapply(1:length(pObject),function(x){
+                vIn <- pObject[x]
+                if(is.numeric(pExpected[[x]]))
+                {
+                  
+                  if(any(is.na(as.numeric(vIn))))
+                  stop("argument mis-match.Only numeric allowed")
+                  vIn <- as.numeric(vIn)
+                }
+                if(vIn %in% pExpected[[x]])
+                return(vIn)
+                else
+                return(pExpected[[x]][1])
+                })
+            }
+
+            vresult <-
+            checkParamsLM(c(catToDummy,performNorm,performVarReduc,
+              makeDataSparse,trainOrTest),
+                            list(c(0,1),c(0,1),c(0,1),c(0,1,2),c(0,1)))
+
+            vIn <- c("catToDummy","performNorm","performVarReduc",
+                      "makeDataSparse","trainOrTest")
+
+            vtemp <- sapply(1:5,function(x){
+              assign(vIn[x],vresult[x],envir=parent.env(environment()))
+              })
+
+            if(!is.numeric(minStdDev) || !minStdDev>=0)
+            minStdDev <- 0
+            if(!is.numeric(maxCorrel) || maxCorrel<=0 || maxCorrel>1)
+            maxCorrel <- 0
+
+            if(trainOrTest==1) depCol <- "NULL"
+            else if(!(depCol %in% colnames(object)))
+            stop(depCol," not in colnames of input table for FLRegrDataPrep")
+
+            if(trainOrTest==1 && inAnalysisID %in% c("NULL",""))
+            stop("inAnalysisID should be valid when trainOrTest=1")
+            else if(inAnalysisID=="" || is.null(inAnalysisID)) inAnalysisID <- "NULL"
+            else inAnalysisID <- fquote(inAnalysisID)
+
+            if(length(classSpec)==0) classSpec <- "NULL"
+            else
+            classSpec <- paste0("'",list_to_class_spec(classSpec),"'")
+            whereconditions <- c(whereconditions,object@select@whereconditions)
+            whereClause <- constructWhere(whereconditions)
+            if(whereClause=="") whereClause <- "NULL"
+            else
+            whereClause <- paste0("'",whereClause,"'")
+            if(excludeCols=="" || length(excludeCols)==0) excludeCols <- "NULL"
+            else
+            excludeCols <- paste0("'",excludeCols,"'")
+
+            if(outObsIDCol=="") outObsIDCol <- "obs_id_colname"
+            if(outVarIDCol=="") outVarIDCol <- "var_id_colname"
+            if(outValueCol=="") outValueCol <- "cell_val_colname"
+
+            sqlstr<-paste0("CALL FLRegrDataPrep('",
+                                              object@select@database,".",object@select@table_name,"',\n      ",
+                                              fquote(getVariables(object)[["obs_id_colname"]]),",\n      ",
+                                              fquote(depCol),",\n      ",
+                                              fquote(paste0(outDeepTableDatabase,".",deeptablename)),",\n      ",
+                                              fquote(outObsIDCol),",\n      ",
+                                              fquote(outVarIDCol),",\n      ",
+                                              fquote(outValueCol),",\n      ",
+                                              catToDummy,",\n      ",
+                                              performNorm,",\n      ",
+                                              performVarReduc,",\n      ",
+                                              makeDataSparse,",\n      ",
+                                              minStdDev,",\n      ",
+                                              maxCorrel,",\n      ",
+                                              trainOrTest,",\n      ",
+                                              excludeCols,",\n      ",
+                                              classSpec,",\n      ",
+                                              whereClause,",\n      ",
+                                              inAnalysisID,",\n      ",
+                                              "AnalysisID);")
+            t <- sqlQuery(connection,sqlstr,AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
+                
+            dataprepID <- as.vector(t[1,1])
+
+            table <- FLTable(outDeepTableDatabase,
+                           deeptablename,
+                           outObsIDCol,
+                           outVarIDCol,
+                           outValueCol
+                          )
+            return(list(table=table,
+                        AnalysisID=dataprepID))
+
+          }
+        )

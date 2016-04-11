@@ -62,8 +62,7 @@ as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
-      error=function(e){stop("error fetching data into R session.To view result in database,
-        Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+      error=function(e){stop(e)})
     names(D) <- toupper(names(D))
     D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
     ##browser()
@@ -88,8 +87,7 @@ as.data.frame.FLVector <- function(x, ...){
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
    tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
-      error=function(e){stop("error fetching data into R session.To view result in database,
-        Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+      error=function(e){stop(e)})
    
     names(D) <- toupper(names(D))
     vrownames <- rownames(x)
@@ -199,33 +197,6 @@ as.matrix.FLTable <- function(x,...)
 {
   temp_df <- as.data.frame(x)
   return(as.matrix(temp_df))
-}
-
-storeVarnameMapping <- function(connection,
-                                tablename,
-                                matrixId,
-                                dimId,
-                                mynames){
-    Ndim <- length(mynames)
-    names(mynames) <- 1:Ndim
-    sqlstatements <- paste0(
-        " INSERT INTO ",
-        getOption("ResultDatabaseFL"),".",
-        getOption("MatrixNameMapTableFL"),
-        "(TABLENAME, MATRIX_ID, DIM_ID, ",
-        "NAME, NUM_ID",
-        ")",
-        " VALUES (",
-        "'",tablename,"', ",
-        "'",matrixId,"', ",
-        dimId,", ",
-        "'",mynames,"', ",
-        names(mynames),
-        ");")
-    retobj<-sqlSendUpdate(connection,
-                          paste(sqlstatements,
-                                collapse="\n"))
-    return(mynames)
 }
 
 
@@ -426,8 +397,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
     ##browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
-      error=function(e){stop("error fetching data into R session!
-        Try running this query from SQLAssistant:",gsub("[\r\n]", "",sqlstr))})
+      error=function(e){stop(e)})
     i <- valuedf$rowIdColumn
     j <- valuedf$colIdColumn
     i <- FLIndexOf(i,rownames(object))
@@ -779,6 +749,7 @@ as.FLTable.data.frame <- function(object,
     vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()
+    #browser()
     for(i in 1:vcols)
     vcolnames <- c(vcolnames,class(object[[i]]))
     names(vcolnames) <- colnames(object)
@@ -786,7 +757,7 @@ as.FLTable.data.frame <- function(object,
     object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
-    names(vcolnames) <- gsub(".","",names(vcolnames),fixed=TRUE)
+    names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=TRUE)
     vcolnamesCopy <- vcolnames
     vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
     vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "
@@ -800,7 +771,10 @@ as.FLTable.data.frame <- function(object,
       if(RJDBC::dbExistsTable(connection,tableName))
       t<-sqlSendUpdate(connection,paste0("drop table ",getOption("ResultDatabaseFL"),".",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
-      t<-RJDBC::dbSendUpdate(connection,paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");"))
+      vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
+      sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
+      if (getOption("debugSQL")) cat(sql)
+      t<-RJDBC::dbSendUpdate(connection,sql)
       if(!is.null(t)) stop(paste0("colnames unconvenional. Error Mssg is:-",t))
     }
     

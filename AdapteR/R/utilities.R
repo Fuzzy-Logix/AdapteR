@@ -82,14 +82,22 @@ sqlSendUpdate.RODBC <- function(connection,query) {
 }
 
 #' @export
-sqlQuery.JDBCConnection <- function(connection,query, ...) {
+sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
-        tryCatch({
-            resd <- DBI::dbGetQuery(connection, query, ...)
-            return(resd)
-        },
-        error=function(e) cat(paste0(sqlError(e))))
+        if(is.null(AnalysisIDQuery))
+            tryCatch({
+                resd <- DBI::dbGetQuery(connection, query, ...)
+                return(resd)
+            },
+            error=function(e) cat(paste0(sqlError(e))))
+        else
+            tryCatch({
+                DBI::dbSendQuery(connection, query, ...)
+                resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
+                return(resd)
+            },
+            error=function(e) cat(paste0(sqlError(e))))
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
@@ -335,6 +343,9 @@ FLStartSession <- function(connection,
     options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
     options(MatrixNameMapTableFL=gen_table_name("tblMatrixNameMapping",persistent))
     options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult",persistent))
+
+    options(scipen=999)
+    #options(stringsAsFactors=FALSE)
     sendqueries <- c(
         paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
         paste0("SET ROLE ALL;"))
@@ -506,6 +517,17 @@ checkSqlQueryOutput <- function(pObject)
 }
 
 fquote <- function(pname) return(paste0("'",pname,"'"))
+
+checkValidFormula <- function(pObject,pData)
+{
+    if(class(pObject)!="formula")
+    stop("invalid formula object")
+    vallVars <- base::all.vars(pObject)
+    vcolnames <- colnames(pData)
+    sapply(vallVars,function(x)
+        if(!(x %in% vcolnames))
+        stop(x," not in colnames of data\n"))
+}
 
 flag1Check <- function(connection)
 {
