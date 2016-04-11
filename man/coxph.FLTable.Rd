@@ -3,9 +3,7 @@
 \name{coxph.FLTable}
 \alias{coxph.FLTable}
 \usage{
-\method{coxph}{FLTable}(formula, data, catToDummy = 0, performNorm = 0,
-  performVarReduc = 0, makeDataSparse = 0, minStdDev = 0, maxCorrel = 1,
-  classSpec = list(), whereconditions = "", ...)
+\method{coxph}{FLTable}(formula, data, ...)
 }
 \examples{
 library(RODBC)
