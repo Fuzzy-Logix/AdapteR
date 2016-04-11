@@ -94,8 +94,7 @@ lu.FLMatrix<-function(object,...)
 	flag3Check(connection)
 	flag1Check(connection)
 	
-	tempResultTable <- gen_unique_table_name("tblLUDecompResult")
-	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
+	tempResultTable <- gen_unique_table_name("LU")
 
     sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
                      viewSelectMatrix(object, "a","z"),

@@ -612,7 +612,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   {
     vdataframe <- data.frame(vectorIdColumn=as.integer(VID),
                             vectorIndexColumn=as.integer(1:length(object)),
-                            vectorValueColumn=object)
+                            vectorValueColumn=as.vector(object))
     t <- as.FLTable.data.frame(vdataframe,connection,tablename,1,drop=FALSE)
   }
   select <- new(

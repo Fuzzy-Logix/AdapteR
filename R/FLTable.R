@@ -163,31 +163,31 @@ setMethod("wideToDeep",
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             if(outDeepTableName == "")
-            #deeptablename <- gen_deep_table_name(object@select@table_name)
-            deeptablename <- genRandVarName()
+            deeptablename <- gen_deep_table_name(object@select@table_name)
+            #deeptablename <- genRandVarName()
             else deeptablename <- outDeepTableName
             if(outDeepTableDatabase == "")
             outDeepTableDatabase <- getOption("ResultDatabaseFL")
             if(class(object@select)=="FLTableFunctionQuery")
             {
               ## Views are not working  in FLDeepToWide and FLWideToDeep
-              # widetable <- gen_wide_table_name(object@select@table_name)
-              # sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
-              # sqlSendUpdate(connection,sqlstr)
-              # select <- new("FLSelectFrom",
-              #           connection = connection, 
-              #           database = outDeepTableDatabase, 
-              #           table_name = widetable, 
-              #           variables = list(
-              #                   obs_id_colname = obs_id_colname),
-              #           whereconditions="",
-              #           order = "")
+              widetable <- gen_view_name(object@select@table_name)
+              sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
+              sqlSendUpdate(connection,sqlstr)
+              select <- new("FLSelectFrom",
+                        connection = connection, 
+                        database = outDeepTableDatabase, 
+                        table_name = widetable, 
+                        variables = list(
+                                obs_id_colname = obs_id_colname),
+                        whereconditions="",
+                        order = "")
 
-              # object <- new("FLTable",
-              #               select = select,
-              #               dimnames = object@dimnames,
-              #               isDeep = FALSE)
-              object <- store(object)
+              object <- new("FLTable",
+                            select = select,
+                            dimnames = object@dimnames,
+                            isDeep = FALSE)
+              #object <- store(object)
             }
 
             if(length(classSpec)==0) classSpec <- "NULL"
@@ -216,7 +216,8 @@ setMethod("wideToDeep",
                                               classSpec,",",
                                               whereClause,
                                               ",AnalysisID);")
-            t<- sqlQuery(connection,sqlstr)
+            t <- sqlQuery(connection,sqlstr,
+                AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
             dataprepID <- as.vector(t[1,1])
 
@@ -322,8 +323,8 @@ setMethod("deepToWide",
             #whereconditions <- whereconditions[whereconditions!="" && whereconditions!="NULL"]
             object@select@whereconditions <- whereconditions
             
-              #deeptable <- gen_deep_table_name(object@select@table_name)
-              deeptable <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
+              deeptable <- gen_view_name(object@select@table_name)
+              #deeptable <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
               sqlstr <- paste0("CREATE VIEW ",outWideTableDatabase,".",deeptable," AS ",constructSelect(object))
               sqlSendUpdate(connection,sqlstr)
               select <- new("FLSelectFrom",
@@ -345,9 +346,8 @@ setMethod("deepToWide",
             # object <- store(object)
 
             if(outWideTableName=="")
-            #outWideTableName <- gen_wide_table_name(object@select@table_name)
-            #outWideTableName <- paste0(sample(letters[1:26],1),sample(1:1000,1),sample(1:99,1))
-            outWideTableName <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
+            outWideTableName <- gen_wide_table_name(object@select@table_name)
+            #outWideTableName <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
 
             sqlstr<-paste0("CALL FLDeepToWide('",object@select@database,".",object@select@table_name,"',
                                               'obs_id_colname',
@@ -358,22 +358,7 @@ setMethod("deepToWide",
                                               paste0(outWideTableDatabase,".",outWideTableName),
                                               "',MESSAGE);")
             message <- sqlQuery(connection,sqlstr)
-            if(length(message)>1)
-            {
-              cat("output table already exists: Trying another random name for output table")
-              outWideTableName <- paste0(sample(letters[1:26],1),sample(1:1000,1),sample(1:100,1))
-              sqlstr<-paste0("CALL FLDeepToWide('",object@select@database,".",object@select@table_name,"',
-                                              'obs_id_colname',
-                                              'var_id_colname',
-                                              'cell_val_colname',",
-                                              ifelse(mapTable=="NULL",mapTable,paste0("'",mapTable,"'")),",",
-                                              ifelse(mapName=="NULL",mapName,paste0("'",mapName,"'")),",'",
-                                              paste0(outWideTableDatabase,".",outWideTableName),
-                                              "',MESSAGE);")
-              message <- sqlQuery(connection,sqlstr)
-            }
-            if(length(message)>1) stop(message)
-
+            message <- checkSqlQueryOutput(message)
             table <- FLTable(
                            outWideTableDatabase,
                            outWideTableName,

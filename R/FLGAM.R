@@ -96,6 +96,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 						maxiter=500,...)
 {
 	#browser()
+	require("mgcv")
 	if(is.character(family) && base::toupper(family)!="POISSON")
 	stop("only poisson family is supported currently\n")
 	if(is.function(family) && !base::identical(family,stats::poisson))
@@ -254,9 +255,10 @@ gam.FLTable <- function(formula,family=stats::poisson,
 								offset,",",
 								fquote(vspecid),",'POISSON',",
 								maxiter,",",
-								fquote(vspecid),",AnalysisID);")
+								fquote(genNote("gam")),",AnalysisID);")
 
-	vresult <- sqlQuery(getOption("connectionFL"),vsqlstr)
+	vresult <- sqlQuery(getOption("connectionFL"),vsqlstr,
+					AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("gam")))
 	vresult <- checkSqlQueryOutput(vresult)
 	vanalysisId <- as.character(vresult[1,1])
 	return(new("FLGAM",
@@ -824,12 +826,12 @@ predict.FLGAM <- function(object,
 										"NULL,",
 										"NULL,",
 										fquote(scoreTable),",",
-										fquote(paste0("scoring ",newdata@select@table_name,
-											" with ",object@specid," from AdapteR")),",",
-										"AnalysisID);")
+										fquote(genNote("Scoring gam")),
+										",AnalysisID);")
 
 	AnalysisID <- sqlQuery(getOption("connectionFL"),
-								sqlstr)
+					sqlstr,
+					AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("Scoring gam")))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

@@ -36,10 +36,9 @@ FLHessen.FLMatrix<-function(object,...)
 	connection<-getConnection(object)
 	flag1Check(connection)
 
-	tempResultTable <- gen_unique_table_name("tblHessenResult")
-	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
+	tempResultTable <- gen_unique_table_name("Hessen")
 
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+    sqlstr <- paste0("CREATE TABLE ",tempResultTable," AS(",
                      viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",

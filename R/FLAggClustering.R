@@ -137,6 +137,7 @@ agnes.FLTable <- function(x,
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
+	vcall <- match.call()
 	methodVector <- c("average","single","complete","centroid")
 	if(!(method[1] %in% methodVector))
 	stop("method must be one of ",methodVector)
@@ -165,7 +166,7 @@ agnes.FLTable <- function(x,
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- genRandVarName()
+		deeptablename <- gen_view_name()
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
 
@@ -213,25 +214,26 @@ agnes.FLTable <- function(x,
 		diss <- FALSE
 	}
 
+	vnote <- genNote("agnes")
     sqlstr <- paste0("CALL FLAggClustering( '",deeptable,"',
 					 					   '",getVariables(deepx)[["obs_id_colname"]],"',
 					 					   '",getVariables(deepx)[["var_id_colname"]],"',
 					 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
 					 					   whereClause,",",
 					 					   methodID,",",
-					 					   maxit,",
-					 					   'agnes from AdapteR',
-					 					   AnalysisID );")
+					 					   maxit,",",
+					 					   fquote(vnote),",AnalysisID );")
 	
-	retobj <- sqlQuery(connection,sqlstr)
-	if(length(retobj)>1) stop(retobj)
+	retobj <- sqlQuery(connection,sqlstr,
+						AnalysisIDQuery=genAnalysisIDQuery("fzzlKMeansInfo",vnote))
+	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
 	FLAggCLustobject <- new("FLAggClust",
 							AnalysisID=AnalysisID,
 							wideToDeepAnalysisId=wideToDeepAnalysisId,
 							table=x,
-							results=list(),
+							results=list(call=vcall),
 							deeptable=deepx,
 							temptables=list(),
 							mapTable=mapTable,
@@ -346,8 +348,8 @@ height.FLAggClust <- function(object)
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		a <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"3")
-		b <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"4")
+		a <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
+		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesCentroid"]]))
@@ -448,8 +450,8 @@ ac.FLAggClust <- function(object){
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		a <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"3")
-		b <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"4")
+		a <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
+		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesCentroid"]]))
@@ -553,7 +555,7 @@ merge.FLAggClust <- function(object){
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		b <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"4")
+		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesMembership"]]))
@@ -627,7 +629,7 @@ print.FLAggClust <- function(object)
 						list(order=ordervector),
 						list(order.lab=order.labvector),
 						list(diss=""),
-						list(call=base::call("agnes",x=object@table)),
+						list(call=object@results[["call"]]),
 						list(data=""),
 						list(merge=""))
 	class(results) <- c("agnes","partition","silhouette","twins")
@@ -667,7 +669,7 @@ plot.FLAggClust <- function(object)
 						list(merge=merge.FLAggClust(object)),
 						list(height=heightvector),
 						list(ac=ac.FLAggClust(object)),
-						list(call=base::call("agnes",x=object@table)),
+						list(call=object@results[["call"]]),
 						l
 						)
 	class(results) <- c("agnes","partition","silhouette","twins")

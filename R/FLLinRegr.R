@@ -95,7 +95,7 @@ lmGeneric <- function(formula,data,
 					highestpAllow2=0.1,
 					stepWiseDecrease=0.05,
 					topN=1,
-					direction="UFbackward",
+					direction="",
 					...)
 {
 	if(data@isDeep){
@@ -126,7 +126,7 @@ lmGeneric <- function(formula,data,
     	{
     		sapply(pObject,function(x)
 	        if(!(x %in% pAllVars))
-	        stop(x," not in colnames of data\n"))
+	        stop(paste0(x,collapse=",")," specified in SpecID not in colnames of data\n"))
     	}
     }
     if(direction=="UFbackward")
@@ -188,15 +188,27 @@ lmGeneric <- function(formula,data,
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					"fzzlRegrDataPrepMap")
+
+		##Get Mapping Information for specID
+		vmapping <- sqlQuery(getOption("connectionFL"),
+				paste0("SELECT a.Column_name AS colName,",
+						" a.Final_VarID AS varID",
+					   " FROM fzzlRegrDataPrepMap AS a",
+					   " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisId),
+						" ORDER BY a.Final_VarID"))
+
+		vtemp <- vmapping[["varID"]]
+		names(vtemp) <- vmapping[["colName"]]
+		vmapping <- vtemp
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- genRandVarName()
+		deeptablename <- gen_view_name("")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 							".",deeptablename," AS ",constructSelect(data))
 		sqlSendUpdate(connection,sqlstr)
 
-		deeptablename1 <- gen_deep_table_name("New")
+		deeptablename1 <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 						constructWhere(whereconditions))
@@ -211,11 +223,13 @@ lmGeneric <- function(formula,data,
                    "cell_val_colname"
                   )
 		whereconditions <- ""
+		vmapping <- colnames(deepx)
+		names(vmapping) <- colnames(deepx)
 	}
 	else
 	{
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
-		deeptablename <- gen_deep_table_name("New")
+		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 						deeptablename," AS ",constructSelect(data))
 		t <- sqlQuery(connection,sqlstr)
@@ -228,18 +242,81 @@ lmGeneric <- function(formula,data,
                    "cell_val_colname"
                   )
 		whereconditions <- ""
+		vmapping <- colnames(deepx)
+		names(vmapping) <- colnames(deepx)
 	}
 
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-
-	##Get Mapping Information for specID
-	sqlstr <- paste0("SELECT ")
-
+	vinclude <- NULL
+	vexclude <- NULL
+	##Insert SpecID
+	vspecID <- "NULL"
+	if(specID!="NULL" && is.list(specID) &&!is.null(specID)
+		&& direction %in% c("UFbackward","Fbackward","backward"))
+	{
+		vspecID <- fquote(genRandVarName())
+		sqlstr <- c()
+		if(!is.null(specID[["include"]]))
+		{
+			vinclude <- vmapping[charmatch(specID[["include"]],names(vmapping))]
+			vinclude <- vinclude[!is.na(vinclude)]
+			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
+						".","fzzlLinRegrModelVarSpec VALUES(",vspecID,",",
+							vinclude,",","'I')"),collapse=";")
+		}
+		if(!is.null(specID[["exclude"]]))
+		{
+			vexclude <- vmapping[charmatch(specID[["include"]],names(vmapping))]
+			vexclude <- vexclude[!is.na(vexclude)]
+			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
+						".","fzzlLinRegrModelVarSpec VALUES(",vspecID,",",
+							vexclude,",","'X')"),collapse=";")
+		}
+		if(!is.null(sqlstr))
+		t <- sqlSendUpdate(getOption("connectionFL"),paste0(sqlstr,collapse=";"))
+	}
+	
+	if(direction=="")
     sqlstr <- paste0("CALL FLLinRegr(",fquote(deeptable),",",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),
 					 				",'LinRegr from AdapteR',AnalysisID );")
+    else if(direction=="backward")
+    sqlstr <- paste0("CALL FLLinRegrBW(",fquote(deeptable),",",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",",
+					 				vspecID,",",
+					 				highestpAllow1,",",
+					 				"'LinRegrBW from AdapteR',AnalysisID );")
+    else if(direction=="Fbackward")
+    sqlstr <- paste0("CALL FLLinRegrFB(",fquote(deeptable),",",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",",
+					 				vspecID,",",
+					 				highestpAllow1,",",
+					 				highestpAllow2,",",
+					 				"'LinRegrFB from AdapteR',AnalysisID );")
+    else if(direction=="UFbackward")
+    sqlstr <- paste0("CALL FLLinRegrUFB(",fquote(deeptable),",",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",",
+					 				vspecID,",",
+					 				highestpAllow1,",",
+					 				highestpAllow2,",",
+					 				stepWiseDecrease,",",
+					 				"'LinRegrUFB from AdapteR',AnalysisID );")
+    else if(direction=="forward")
+    sqlstr <- paste0("CALL FLLinRegrSW(",fquote(deeptable),",",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",",
+					 				topN,",",
+					 				highestpAllow1,",",
+					 				"'LinRegrSW from AdapteR',AnalysisID );")
 	
 	retobj <- sqlQuery(connection,sqlstr)
 	retobj <- checkSqlQueryOutput(retobj)
@@ -256,6 +333,7 @@ lmGeneric <- function(formula,data,
 				scoreTable=""))
 }
 
+#' @export
 `$.FLLinRegr`<-function(object,property){
 	#parentObject <- deparse(substitute(object))
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
@@ -449,11 +527,13 @@ lmGeneric <- function(formula,data,
 	else stop("That's not a valid property")
 }
 
+#' @export
 coefficients<-function(table){
 	UseMethod("coefficients",table)
 }
-
+#' @export
 coefficients.default <- stats::coefficients
+#' @export
 coefficients.FLLinRegr<-function(object){
 	if(!is.null(object@results[["coefficients"]]))
 	return(object@results[["coefficients"]])
@@ -504,6 +584,7 @@ coefficients.FLLinRegr<-function(object){
 	}
 }
 
+#' @export
 residuals.FLLinRegr<-function(object)
 {
 	if(!is.null(object@results[["residuals"]]))
@@ -578,6 +659,8 @@ model.FLLinRegr <- function(object)
 		return(modelframe)
 	}
 }
+
+#' @export
 summary.FLLinRegr<-function(object){
 	ret <- object$FLLinRegrStats
 	colnames(ret) <- toupper(colnames(ret))
@@ -644,10 +727,12 @@ summary.FLLinRegr<-function(object){
 
 }
 
+#' @export
 predict<-function(object,newdata,...){
 	UseMethod("predict",object)
 }
 
+#' @export
 predict.FLLinRegr<-function(object,
 							newdata=object@table,
 							scoreTable=""){
@@ -721,6 +806,7 @@ predict.FLLinRegr<-function(object,
 	return(flv)
 }
 
+#' @export
 print.FLLinRegr<-function(object){
 	reqList <- list(call=object$call,
 					coefficients=object$coefficients)
@@ -730,8 +816,10 @@ print.FLLinRegr<-function(object){
 }
 
 #overloading show.
+#' @export
 setMethod("show","FLLinRegr",print.FLLinRegr)
 
+#' @export
 plot.FLLinRegr <- function(object)
 {
 	reqList <- list(residuals=as.vector(object$residuals),
@@ -750,6 +838,7 @@ plot.FLLinRegr <- function(object)
 	plot(reqList)
 }
 
+#' @export
 influence.FLLinRegr <- function(model,...){
 	reqList <- list(residuals=as.vector(model$residuals),
 					coefficients=model$coefficients,
@@ -766,12 +855,13 @@ influence.FLLinRegr <- function(model,...){
 	return(stats::influence(reqList,...))
 }
 
+#' @export
 lm.influence <- function(model,do.coef=TRUE,...){
 	UseMethod("lm.influence",model)
 }
-
+#' @export
 lm.influence.default <- stats::lm.influence
-
+#' @export
 lm.influence.FLLinRegr <- function(model,do.coef=TRUE,...){
 	reqList <- list(residuals=as.vector(model$residuals),
 					coefficients=model$coefficients,

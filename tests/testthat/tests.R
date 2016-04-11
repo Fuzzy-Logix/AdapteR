@@ -572,7 +572,7 @@ test_that("check vector subsetting",
 })
 
 ## Testing FLCorrel
-##May fail for JDBC Connection
+##Failing because of precision errors.
 test_that("check FLCorrel result",
 {
   fltDeep <- FLTable("FL_DEMO","tblAbaloneDeep",
