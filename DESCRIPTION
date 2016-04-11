@@ -2,12 +2,25 @@ Package: AdapteR
 Title: This package wraps around Fuzzy Logix's DBLytix functions
 Version: 2.0
 Authors@R: c(
-    person("Phani", "Srikar", email = "phanisrikar93ume@gmail", role = c("aut","cre")),
-    person("Gregor", "Kappler", email = "g.kappler@@gmx.net", role = c("aut")))
-Description: The DB Lytix(TM) suite of functions offers scalable and robust high
-    performance analytical methods that are embedded seamlessly into database
-    systems. Package RLytix makes it possible to use this functionality from R
-    by providing wrapper functions around the SQL interface of DB Lytix(TM).
+    person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
+    person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
+    person("Rushil", "Nagda", email = "rushil9292@gmail.com", role = c("ctb")),
+    person("Suryavamshig", "Iitr", email = "suryavamshig.iitr@gmail.com", role = c("ctb")),
+    person("Mitul", "Mundra", email = "Mitul.Mundra@fuzzylogix.com", role = c("ctb")),
+    person("Rohit", "Gupta", email = "Rohit.Gupta@fuzzylogix.com", role = c("ctb")))
+Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize dramatic improvements
+    in performance by moving computation from client machines into data warehouses and clusters
+    where big data lives.
+    As important as performance and scalability is the way in which the end user
+    interacts with the analytics, and the R language has become most pervasive in this area.
+    R is remarkably expressive and flexible, allowing for fast prototyping and evaluation,
+    enabling agile analytics. Fuzzy Logix's new R package AdapteR enables
+    the R syntax to consume DB Lytix in-database analytics by generating SQL transparently,
+    and replacing R matrix and data frame data structures with remote table objects.
+    AdapteR uses R's class system and method override to seamlessly leverage in-database analytics,
+    without requiring complicated R server installations or writing custom SQL.
+    In this session, we will demonstrate how AdapteR can be used to build interactive analytics
+    at scale with just a few lines of R code!
 Depends:
     R (>= 3.1.0),
     plyr,
