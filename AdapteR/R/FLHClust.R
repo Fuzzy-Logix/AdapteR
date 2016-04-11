@@ -73,7 +73,7 @@ hclust.FLTable <- function(d,
 						height=heightvector,
 						order=agnesobject$order,
 						labels=agnesobject$order.lab,
-						call=base::call("hclust",d=d),
+						call=match.call(),
 						method=method,
 						dist.method="euclidean"
 						)

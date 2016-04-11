@@ -46,8 +46,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
     ## gk:  we need to store such things more efficiently
     ### Phani-- done by using temp table
 
-    tempResultTable <- gen_unique_table_name("tblSVDResult")
-    tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
+    tempResultTable <- gen_unique_table_name("SVD")
         
     sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
                      viewSelectMatrix(object, "a","z"),

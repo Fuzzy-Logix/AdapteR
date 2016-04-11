@@ -110,7 +110,7 @@ sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...)
 }
 
 #' @export
-sqlQuery.RODBC <- function(connection,query, ...) {
+sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
             resd <- RODBC::sqlQuery(connection, query, ...)
@@ -189,8 +189,10 @@ is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
 is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1) }
 
 gen_deep_table_name <- function(TableName){
-    random_no <- rnorm(1);
-    paste(TableName,"Deep",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
+    #random_no <- rnorm(1);
+    vtbl <- paste0("ARBase",TableName,"D",round(as.numeric(Sys.time())))
+    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+    vtbl
 }
 
 trim <- function( x ) {
@@ -198,18 +200,31 @@ trim <- function( x ) {
 }
 
 gen_score_table_name <- function(TableName){
-    random_no <- rnorm(1);
-    paste(TableName,"Score",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
+    #random_no <- rnorm(1);
+    vtbl <- paste0("ARBase",TableName,"S",round(as.numeric(Sys.time())))
+    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+    vtbl
 }
 
 gen_wide_table_name <- function(TableName){
-    random_no <- rnorm(1);
-    paste(TableName,"Wide",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
+    #random_no <- rnorm(1);
+    vtbl <- paste0("ARBase",TableName,"W",round(as.numeric(Sys.time())))
+    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+    vtbl
 }
 
 gen_unique_table_name <- function(TableName){
-    random_no <- rnorm(1);
-    paste(TableName,"Unique",round(as.numeric(Sys.time())),round(random_no*random_no*10000000),sep="_");
+    #random_no <- rnorm(1);
+    vtbl <- paste0("ARBase",TableName,"U",round(as.numeric(Sys.time())))
+    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+    vtbl
+}
+
+gen_view_name <- function(TableName=""){
+    #random_no <- rnorm(1);
+    vtbl <- paste0("ARBase",TableName,"V",round(as.numeric(Sys.time())))
+    options("FLTempViews"=c(getOption("FLTempViews"),vtbl))
+    vtbl
 }
 
 genRandVarName <- function(){
@@ -219,6 +234,21 @@ genRandVarName <- function(){
     return(paste0(sample(letters[1:26],1),vrnum,sample(letters[1:26],1),vtime))
 }
 
+genSessionID <- function(){
+    vtbl <- paste0("ARBase",round(as.numeric(Sys.time())))
+    options("FLSessionID"=vtbl)
+    vtbl
+}
+
+genAnalysisIDQuery <- function(pTable,pNote)
+{
+    paste0("SELECT top 1 ANALYSISID from ",pTable,
+        " where Note=",fquote(pNote)," order by RUNENDTIME DESC")
+}
+
+genNote <- function(pFunction){
+    paste0(pFunction," from ",getOption("FLSessionID"))
+}
 #' Close Session and Drop temp Tables
 #'
 #' Strongly recommended to run before quitting current R session
@@ -231,22 +261,29 @@ FLodbcClose <- function(connection)
                 paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"),
                 paste0("DROP TABLE ",getOption("ResultCharVectorTableFL"),";"))
 
-    if(length(tempDecompTableVector)>0)
-	sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
+    if(length(getOption("FLTempTables"))>0)
+	sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
+    if(length(getOption("FLTempViews"))>0)
+    sqlstr <- c(sqlstr,paste0("DROP VIEW ",getOption("FLTempViews"),";"))
 
     sqlSendUpdate(connection,sqlstr)
+    if(class(connection)=="RODBC")
     RODBC::odbcClose(connection)
-    flag1 <<- 0
-    flag2 <<- 0
-    flag3 <<- 0
-
-    tempDecompTableVector <<- c()
+    else RJDBC::dbDisconnect(connection)
+    options(flag1=0)
+    options(flag1=0)
+    options(flag1=0)
+    options("FLTempTables"=c())
+    options("FLTempViews"=c())
+    options("FLSessionID"=c())
 }
 
 gen_table_name <- function(prefix,suffix){
-    ifelse(is.null(suffix),
-           paste0(prefix),
-           paste0(prefix,"_",suffix))
+    vtbl <- ifelse(is.null(suffix),
+                   paste0(prefix),
+                   paste0(prefix,"_",suffix))
+    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+    vtbl
 }
 
 ##' Creates either an ODBC connection or an JDBC connection and initializes
@@ -288,7 +325,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         ## need to add class path twice (recurring problem in MAC as of:
         ## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
         tryCatch({
-            connection <<- myConnect()
+            connection <- myConnect()
         },error=function(e)e,
         finally = {
             if(is.null(dir.jdbcjars))
@@ -351,9 +388,6 @@ FLStartSession <- function(connection,
         paste0("SET ROLE ALL;"))
     sqlSendUpdate(connection, sendqueries)
 
-
-    tempDecompTableVector <<- c()
-
     if(drop){
     	sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
                     paste0("DROP TABLE ",getOption("MatrixNameMapTableFL"),";"),
@@ -361,8 +395,10 @@ FLStartSession <- function(connection,
                     paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"),
                     paste0("DROP TABLE ",getOption("ResultCharVectorTableFL"),";"))
 
-    	if(length(tempDecompTableVector)>0)
-            sqlstr <- c(sqlstr,paste0("DROP TABLE ",tempDecompTableVector,";"))
+    	if(length(getOption("FLTempTables"))>0)
+            sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
+        if(length(getOption("FLTempViews"))>0)
+            sqlstr <- c(sqlstr,paste0("DROP VIEW ",getOption("FLTempViews"),";"))
 
         sqlSendUpdate(connection,sqlstr)
     }
@@ -414,7 +450,9 @@ FLStartSession <- function(connection,
                        vectorValueColumn VARCHAR(100) )
                        PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"))
     sqlSendUpdate(connection, sendqueries)
-    cat("DONE..\n")
+
+    genSessionID()
+    cat("Session Started..\n")
 }
 
 
@@ -532,7 +570,7 @@ checkValidFormula <- function(pObject,pData)
 flag1Check <- function(connection)
 {
     return(TRUE)
-    if(flag1==0)
+    if(getOption("flag1")==0)
     {
         sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
@@ -567,14 +605,14 @@ flag1Check <- function(connection)
 						      CELL_VAL FLOAT)
 			    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
         }
-        flag1 <<- 1
+        options(flag1=1)
     }
 }
 
 flag2Check <- function(connection)
 {
     return(TRUE)
-    if(flag2==0)
+    if(getOption("flag2")==0)
     {
         sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
@@ -609,14 +647,14 @@ flag2Check <- function(connection)
 						      CELL_VAL FLOAT)
 			    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
         }
-        flag2 <<- 1
+        options(flag2=1)
     }
 }
 
 flag3Check <- function(connection)
 {
     return(TRUE)
-    if(flag3==0)
+    if(getOption("flag3")==0)
     {
         sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
@@ -638,6 +676,6 @@ flag3Check <- function(connection)
 	 		 		 		  VECTOR_VALUE VARCHAR(20) )
 	 		 		 		  PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
         }
-        flag3 <<- 1
+        options(flag3=1)
     }
 }

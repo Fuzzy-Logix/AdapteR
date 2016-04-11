@@ -113,12 +113,12 @@ glm.FLTable <- function(formula,
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- genRandVarName()
+		deeptablename <- gen_view_name("")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 							".",deeptablename," AS ",constructSelect(data))
 		sqlSendUpdate(connection,sqlstr)
 
-		deeptablename1 <- gen_deep_table_name("New")
+		deeptablename1 <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 						constructWhere(whereconditions))
@@ -137,7 +137,7 @@ glm.FLTable <- function(formula,
 	else
 	{
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
-		deeptablename <- gen_deep_table_name("New")
+		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 						deeptablename," AS ",constructSelect(data))
 		t <- sqlQuery(connection,sqlstr)
@@ -154,7 +154,7 @@ glm.FLTable <- function(formula,
 
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 
-    note <- "'PoissonRegr from AdapteR'"
+    note <- genNote("poisson")
     sqlstr <- paste0("CALL FLPoissonRegr(",fquote(deeptable),",",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
@@ -163,7 +163,7 @@ glm.FLTable <- function(formula,
 					 				",AnalysisID );")
 	
 	retobj <- sqlQuery(connection,sqlstr,
-                       AnalysisIDQuery=paste0("SELECT top 1 ANALYSISID from fzzlPoissonRegrInfo where note=",note," order by RUNENDTIME DESC"))
+                       AnalysisIDQuery=genAnalysisIDQuery("fzzlPoissonRegrInfo",note))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
@@ -179,6 +179,7 @@ glm.FLTable <- function(formula,
 				offset=offset))
 }
 
+#' @export
 predict.FLPoissonRegr <- function(object,
 								newdata=object@table,
 								scoreTable=""){
@@ -226,7 +227,7 @@ predict.FLPoissonRegr <- function(object,
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
-    note <- paste0("'Scoring using model ",object@AnalysisID,"'")
+    note <- genNote("Scoring poisson")
 	sqlstr <- paste0("CALL FLPoissonRegrScore (",fquote(vtable),",",
 											 fquote(vobsid),",",
 											 fquote(vvarid),",",
@@ -238,7 +239,7 @@ predict.FLPoissonRegr <- function(object,
 
 	AnalysisID <- sqlQuery(getOption("connectionFL"),
                            sqlstr,
-                           AnalysisIDQuery=paste0("SELECT top 1 ANALYSISID from fzzlPoissonRegrInfo where note=",note," order by RUNENDTIME DESC"))
+                           AnalysisIDQuery=genAnalysisIDQuery("fzzlPoissonRegrInfo",note))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

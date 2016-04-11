@@ -46,7 +46,6 @@ qr.FLMatrix<-function(object,...)
 	flag3Check(connection)
 
 	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
-	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
 
     sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
                      viewSelectMatrix(object, "a","z"),

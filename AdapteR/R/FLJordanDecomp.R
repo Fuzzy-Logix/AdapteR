@@ -38,8 +38,7 @@ FLJordan.FLMatrix<-function(object,...)
 	flag1Check(connection)
 	flag3Check(connection)
 	
-	tempResultTable <- gen_unique_table_name("tblJordonDecompResult")
-	tempDecompTableVector <<- c(tempDecompTableVector,tempResultTable)
+	tempResultTable <- gen_unique_table_name("Jordon")
 
         sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
                          viewSelectMatrix(object, "a","z"),
