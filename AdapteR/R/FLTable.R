@@ -444,15 +444,15 @@ setMethod("FLRegrDataPrep",
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             if(outDeepTableName == "")
-            #deeptablename <- gen_deep_table_name(object@select@table_name)
-            deeptablename <- genRandVarName()
+            deeptablename <- gen_deep_table_name(object@select@table_name)
+            #deeptablename <- genRandVarName()
             else deeptablename <- outDeepTableName
             if(outDeepTableDatabase == "")
             outDeepTableDatabase <- getOption("ResultDatabaseFL")
             if(class(object@select)=="FLTableFunctionQuery")
             {
               ## Views are not working  in FLDeepToWide and FLWideToDeep
-              widetable <- gen_wide_table_name(object@select@table_name)
+              widetable <- gen_view_name(object@select@table_name)
               sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
               sqlSendUpdate(connection,sqlstr)
               select <- new("FLSelectFrom",

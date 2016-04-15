@@ -256,10 +256,7 @@ genNote <- function(pFunction){
 #' @export
 FLodbcClose <- function(connection)
 {
-    sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
-                paste0("DROP TABLE ",getOption("ResultSparseMatrixTableFL"),";"),
-                paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"),
-                paste0("DROP TABLE ",getOption("ResultCharVectorTableFL"),";"))
+    sqlstr <- c()
 
     if(length(getOption("FLTempTables"))>0)
 	sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
@@ -389,11 +386,7 @@ FLStartSession <- function(connection,
     sqlSendUpdate(connection, sendqueries)
 
     if(drop){
-    	sqlstr <- c(paste0("DROP TABLE ",getOption("ResultMatrixTableFL"),";"),
-                    paste0("DROP TABLE ",getOption("MatrixNameMapTableFL"),";"),
-                    paste0("DROP TABLE ",getOption("ResultSparseMatrixTableFL"),";"),
-                    paste0("DROP TABLE ",getOption("ResultVectorTableFL"),";"),
-                    paste0("DROP TABLE ",getOption("ResultCharVectorTableFL"),";"))
+    	sqlstr <- c()
 
     	if(length(getOption("FLTempTables"))>0)
             sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
