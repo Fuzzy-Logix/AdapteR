@@ -4,7 +4,6 @@
 ## SQL as low-level language makes analyses
 ## consumable from all SQL-enabled clients.
 
-
 ## This demo shows how the 
 ## AdapteR package of Fuzzy Logix is
 ## easing interaction with the DB Lytix(TM) in-database
@@ -51,30 +50,6 @@ options(debugSQL=TRUE)
 ## to begin with.
 sqlQuery(connection,
            "select top 10 * from FL_DEMO.finEquityReturns")
-
-
-
-
-###########################################################
-## Correlation Matrix
-## The SQL-through R way to compute a
-## correlation matrix with DB Lytix:
-##
-sqlQuery(connection, "
-SELECT  a.TickerSymbol           AS Ticker1,
-        b.TickerSymbol           AS Ticker2,
-        FLCorrel(a.EquityReturn,
-                 b.EquityReturn) AS FLCorrel
-FROM    finEquityReturns a,
-        finEquityReturns b
-WHERE   b.TxnDate = a.TxnDate
-AND     a.TickerSymbol = 'MSFT'
-AND     b.TickerSymbol IN ('AAPL','HPQ','IBM',
-                           'MSFT','ORCL')
-GROUP BY a.TickerSymbol,
-         b.TickerSymbol
-ORDER BY 1, 2;")
-
 
 
 ## A remote matrix is easily created by specifying
