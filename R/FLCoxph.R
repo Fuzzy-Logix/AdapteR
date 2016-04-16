@@ -25,6 +25,20 @@ coxph <- function (formula,data=list(),...) {
 #' @export
 coxph.default <- survival::coxph
 
+
+# @examples
+# library(RODBC)
+# connection <- odbcConnect("Gandalf")
+# widetable  <- FLTable("FL_DEMO", "siemenswidetoday1", "ObsID")
+# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
+# predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
+#resultList <- predict(fitT,newdata=predData)
+# resultList[[1]]
+#resultList[[2]]
+## Failed
+#fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
+# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
+# fitT <- coxph(Surv(age,event)~meanTemp,widetable)
 #' @export
 prepareData.coxph <- function(formula,data,
                               catToDummy=0,
@@ -53,7 +67,7 @@ prepareData.coxph <- function(formula,data,
 		vTimeVal1 <- vSurvival[2]
 		vTimeVal2 <- vSurvival[3]
 		vStatus <- vSurvival[4]
-		a <- genRandVarName()
+		a <- gen_unique_table_name("")
 		vTimeVal <- genRandVarName()
 		vtablename <- paste0(getOption("ResultDatabaseFL"),".",a)
 		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
@@ -117,12 +131,12 @@ prepareData.coxph <- function(formula,data,
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- genRandVarName()
+		deeptablename <- gen_view_name("")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 							".",deeptablename," AS ",constructSelect(data))
 		sqlSendUpdate(connection,sqlstr)
 
-		deeptablename1 <- gen_deep_table_name("New")
+		deeptablename1 <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 						constructWhere(whereconditions))
@@ -141,7 +155,7 @@ prepareData.coxph <- function(formula,data,
 	else
 	{
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
-		deeptablename <- gen_deep_table_name("New")
+		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 						deeptablename," AS ",constructSelect(data))
 		t <- sqlQuery(connection,sqlstr)
@@ -184,15 +198,14 @@ coxph.FLTable <- function(formula,data, ...)
     deepx <- deep[["deeptable"]]
     
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-
     sqlstr <- paste0("CALL FLCoxPH(",fquote(deeptable),",",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),
-					 				",15,'CoxPH from AdapteR',AnalysisID );")
+					 				",15,",fquote(genNote("coxph")),",AnalysisID );")
 	
-	retobj <- sqlQuery(connection,sqlstr,
-                       AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlCoxPHInfo where Note='CoxPH from AdapteR' order by RUNENDTIME DESC")
+	retobj <- sqlQuery(getOption("connectionFL"),sqlstr,
+                       AnalysisIDQuery=genAnalysisIDQuery("fzzlCoxPHInfo",genNote("coxph")))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
@@ -211,6 +224,7 @@ coxph.FLTable <- function(formula,data, ...)
 				timeValCol=deep$vTimeVal))
 }
 
+#' @export
 predict.FLCoxPH <-function(object,
 							newdata=object@table,
 							scoreTable="",
@@ -268,12 +282,12 @@ predict.FLCoxPH <-function(object,
 											 fquote(object@AnalysisID),",",
 											 fquote(scoreTable),",",
 											 fquote(survivalCurveTable),",",
-											 "'Scoring using model ",object@AnalysisID,"',",
-											 "oAnalysisID);")
+											 fquote(genNote("Scoring coxph")),
+											 ",oAnalysisID);")
 
 	AnalysisID <- sqlQuery(getOption("connectionFL"),
                            sqlstr,
-                           AnalysisIDQuery=paste0("SELECT top 1 ANALYSISID from fzzlCoxPHInfo where Note='Scoring using model ",object@AnalysisID,"' order by RUNENDTIME DESC"))
+                           AnalysisIDQuery=genAnalysisIDQuery("fzzlCoxPHInfo",genNote("Scoring coxph")))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

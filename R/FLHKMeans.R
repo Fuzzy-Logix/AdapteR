@@ -119,7 +119,7 @@ hkmeans.FLTable<-function(x,
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_deep_table_name(x@select@table_name)
+		deeptablename <- gen_view_name(x@select@table_name)
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
 		deepx <- FLTable(
@@ -151,11 +151,12 @@ hkmeans.FLTable<-function(x,
 			 					   levels,",",
 			 					   centers,",",
 			 					   iter.max,",",
-			 					   nstart,",
-			 					   'KMeans with clusters=",centers,"from AdapteR',
-			 					   AnalysisID );")
+			 					   nstart,",",
+			 					   fquote(genNote("hkmeans")),
+			 					   ",AnalysisID );")
 	
-	retobj <- sqlQuery(connection,sqlstr)
+	retobj <- sqlQuery(connection,sqlstr,AnalysisIDQuery=
+						genAnalysisIDQuery("fzzlKMeansInfo",genNote("hkmeans")))
 	AnalysisID <- as.character(retobj[1,1])
 	sqlstr<-paste0("SELECT DISTINCT ObsID AS vectorIndexColumn 
 						FROM fzzlKMeansClusterID 

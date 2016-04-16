@@ -95,7 +95,7 @@ fanny.default <- cluster::fanny
 #' using \code{object$mapping} if input is wide table.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable(connection, "FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 #' fkmeansobject <- fanny(widetable,2,memb.exp=2)
 #' print(fkmeansobject)
 #' plot(fkmeansobject)
@@ -161,6 +161,7 @@ fanny.FLTable <- function(x,
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
+	vcall <- match.call()
 	if(!x@isDeep){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
@@ -184,11 +185,11 @@ fanny.FLTable <- function(x,
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- genRandVarName()
+		deeptablename <- gen_view_name("")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
 
-		deeptablename1 <- gen_deep_table_name("New")
+		deeptablename1 <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 			" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
 		t <- sqlQuery(connection,sqlstr)
@@ -206,7 +207,7 @@ fanny.FLTable <- function(x,
 	else
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
-		deeptablename <- gen_deep_table_name("New")
+		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
@@ -239,12 +240,13 @@ fanny.FLTable <- function(x,
 			 					   whereClause,",",
 			 					   k,",",
 			 					   maxit,",",
-			 					   memb.exp,",1,
-			 					   'FKMeans with clusters=",k,"from AdapteR',
-			 					   AnalysisID );")
+			 					   memb.exp,",1,",
+			 					   fquote(genNote("fkmeans")),
+			 					   ",AnalysisID );")
 	
-	retobj <- sqlQuery(connection,sqlstr)
-	if(length(retobj)>1) stop(retobj)
+	retobj <- sqlQuery(connection,sqlstr,AnalysisIDQuery=
+						genAnalysisIDQuery("fzzlKMeansInfo",genNote("fkmeans")))
+	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
 	FLFKMeansobject <- new("FLFKMeans",
@@ -252,7 +254,7 @@ fanny.FLTable <- function(x,
 						AnalysisID=AnalysisID,
 						wideToDeepAnalysisId=wideToDeepAnalysisId,
 						table=x,
-						results=list(),
+						results=list(call=vcall),
 						deeptable=deepx,
 						diss=diss,
 						temptables=list(),
@@ -562,9 +564,9 @@ silinfo.FLFKMeans <- function(object){
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		a <- paste0(genRandVarName(),"1")
 		b <- paste0(genRandVarName(),"2")
-		c <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"3")
-		d <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"4")
-		e <- paste0(getOption("ResultDatabaseFL"),".",genRandVarName(),"5")
+		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
+		d <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
+		e <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("5"))
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["temptbl4"]]))
