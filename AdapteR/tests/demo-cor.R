@@ -40,6 +40,12 @@ if(!exists("connection")){
 
 
 
+## SQL construction
+## with this option each R command that uses DBLytix will log
+## the SQL sent to Teradata.
+## Such a dump can in many cases be used as a pure-sql script!
+options(debugSQL=TRUE)
+
 #############################################################
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
