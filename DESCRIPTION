@@ -21,6 +21,7 @@ Depends:
     methods,
     DBI,
     testthat,
+    survival,
     mgcv
 Imports:
     plyr,
