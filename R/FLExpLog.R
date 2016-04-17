@@ -197,3 +197,42 @@ setMethod("log2",signature(x="FLVector"),
 	function(x) FLExpLog(functionName="log",
 							x=x,
 							lnb=base::logb(2)))
+
+
+order <- function(...,na.last=TRUE,decreasing=FALSE)
+{
+	#browser()
+	vlist <- list(...)
+	vtemp <- unlist(lapply(vlist,is.FLVector))
+	if(!any(vtemp))
+	return(base::order(c(...),na.last=na.last,decreasing=decreasing))
+	##order only the first flvector.R also behaves similarly.
+	vflvector <- vlist[vtemp][[1]]
+	a <- genRandVarName()
+	if(decreasing) vdesc <- paste0("DESC")
+	else vdesc <- ""
+	vsqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
+						"ROW_NUMBER()OVER(ORDER BY ",a,".vectorValueColumn ",vdesc,",",
+							a,".vectorIndexColumn ) AS vectorIndexColumn,\n",
+						a,".vectorIndexColumn AS vectorValueColumn \n",
+					  " FROM (",constructSelect(vflvector),") AS ",a)
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                    connection = getOption("connectionFL"),
+	                    variables = list(
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
+	                    whereconditions="",
+	                    order = "",
+	                    SQLquery=vsqlstr)
+
+		flv <- new("FLVector",
+					select = tblfunqueryobj,
+					dimnames = list(rownames(vflvector),
+									"vectorValueColumn"),
+					isDeep = FALSE)
+
+		return(ensureQuerySize(pResult=flv,
+							pInput=list(...,na.last=na.last,decreasing=decreasing),
+							pOperator="order"))
+}
