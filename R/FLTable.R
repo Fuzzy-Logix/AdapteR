@@ -113,6 +113,45 @@ rownames.FLTable <- function(object) object@dimnames[[1]]
 #' @export
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 
+#' @export
+`$.FLTable` <- function(object,property){
+  #browser()
+  vcolnames <- colnames(object)
+  property <- property[1]
+  if(!is.character(property))
+  return(NULL)
+  if(property %in% colnames(object))
+  return(object[,as.character(property)])
+  else return(NULL)
+}
+
+#' @export
+`[[.FLTable` <- function(object,property,...){
+  #browser()
+  if(is.character(property))
+  return(do.call("$",list(object,property)))
+  else if(is.numeric(property) || as.integer(property))
+  {
+    vcolnames <- colnames(object)
+    property <- as.integer(property)
+    if(length(property)==1){
+      vtemp <- as.character(vcolnames[property])
+      return(do.call("$",list(object,vtemp)))
+    }
+    else{
+      vtemp <- object[[property[1]]]
+      property <- property[-1]
+      for(i in 1:length(property)){
+        tryCatch(vtemp <- vtemp[property[i]],
+                 error=function(e)
+                   stop("error in recursive subsetting at level",i+1))
+      }
+      return(vtemp)
+    }
+  }
+  else return(NULL)
+}
+
 #' Convert Wide Table to Deep Table in database.
 #'
 #' @param object FLTable object

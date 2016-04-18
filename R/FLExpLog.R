@@ -198,12 +198,12 @@ setMethod("log2",signature(x="FLVector"),
 							x=x,
 							lnb=base::logb(2)))
 
-
+#' @export
 order <- function(...,na.last=TRUE,decreasing=FALSE)
 {
 	#browser()
 	vlist <- list(...)
-	vtemp <- unlist(lapply(vlist,is.FLVector))
+	vtemp <- unlist(lapply(vlist,function(x)is.FLVector(x)||is.FLMatrix(x)))
 	if(!any(vtemp))
 	return(base::order(c(...),na.last=na.last,decreasing=decreasing))
 	##order only the first flvector.R also behaves similarly.
@@ -216,6 +216,12 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
 							a,".vectorIndexColumn ) AS vectorIndexColumn,\n",
 						a,".vectorIndexColumn AS vectorValueColumn \n",
 					  " FROM (",constructSelect(vflvector),") AS ",a)
+	if(is.FLMatrix(vflvector))
+	vsqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
+						"ROW_NUMBER()OVER(ORDER BY ",a,".valueColumn ",vdesc,",",
+							a,".colIdColumn,",a,".rowIdColumn) AS vectorIndexColumn,\n",
+						"ROW_NUMBER()OVER(ORDER BY ",a,".colIdColumn,",a,".rowIdColumn) AS vectorValueColumn \n",
+					  " FROM (",constructSelect(vflvector)," ) AS ",a)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
 	                    connection = getOption("connectionFL"),
@@ -226,13 +232,87 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
 	                    order = "",
 	                    SQLquery=vsqlstr)
 
-		flv <- new("FLVector",
-					select = tblfunqueryobj,
-					dimnames = list(rownames(vflvector),
-									"vectorValueColumn"),
-					isDeep = FALSE)
+	flv <- new("FLVector",
+				select = tblfunqueryobj,
+				dimnames = list(1:length(vflvector),
+								"vectorValueColumn"),
+				isDeep = FALSE)
 
-		return(ensureQuerySize(pResult=flv,
-							pInput=list(...,na.last=na.last,decreasing=decreasing),
-							pOperator="order"))
+	return(ensureQuerySize(pResult=flv,
+						pInput=list(...,na.last=na.last,decreasing=decreasing),
+						pOperator="order"))
+}
+
+#' @export
+sort.FLVector <- function(x,decreasing=FALSE,...)
+{
+	decreasing <- as.logical(decreasing)
+	if(is.na(decreasing) || length(decreasing) < 1 
+		|| is.null(decreasing))
+	stop("decreasing should be logical in sort")
+
+	a <- genRandVarName()
+	if(decreasing) vdesc <- paste0("DESC")
+	else vdesc <- ""
+	vsqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
+						"ROW_NUMBER()OVER(ORDER BY ",a,".vectorValueColumn ",vdesc,",",
+							a,".vectorIndexColumn ) AS vectorIndexColumn,\n",
+						a,".vectorValueColumn AS vectorValueColumn \n",
+					  " FROM (",constructSelect(x),") AS ",a)
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                    connection = getOption("connectionFL"),
+	                    variables = list(
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
+	                    whereconditions="",
+	                    order = "",
+	                    SQLquery=vsqlstr)
+
+	flv <- new("FLVector",
+				select = tblfunqueryobj,
+				dimnames = list(1:length(x),
+								"vectorValueColumn"),
+				isDeep = FALSE)
+
+	return(ensureQuerySize(pResult=flv,
+						pInput=list(x,decreasing=decreasing,...),
+						pOperator="sort"))
+}
+
+#' @export
+sort.FLMatrix <- function(x,decreasing=FALSE,...)
+{
+	decreasing <- as.logical(decreasing)
+	if(is.na(decreasing) || length(decreasing) < 1 
+		|| is.null(decreasing))
+	stop("decreasing should be logical in sort")
+
+	a <- genRandVarName()
+	if(decreasing) vdesc <- paste0("DESC")
+	else vdesc <- ""
+	vsqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
+						"ROW_NUMBER()OVER(ORDER BY ",a,".valueColumn ",vdesc,",",
+							a,".colIdColumn,",a,".rowIdColumn) AS vectorIndexColumn,\n",
+						a,".valueColumn AS vectorValueColumn \n",
+					  " FROM (",constructSelect(x),") AS ",a)
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                    connection = getOption("connectionFL"),
+	                    variables = list(
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
+	                    whereconditions="",
+	                    order = "",
+	                    SQLquery=vsqlstr)
+
+	flv <- new("FLVector",
+				select = tblfunqueryobj,
+				dimnames = list(1:length(x),
+								"vectorValueColumn"),
+				isDeep = FALSE)
+
+	return(ensureQuerySize(pResult=flv,
+						pInput=list(x,decreasing=decreasing,...),
+						pOperator="sort"))
 }
