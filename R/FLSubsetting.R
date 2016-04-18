@@ -242,6 +242,8 @@ NULL
 
 `[.FLVector` <- function(object,pSet=1:length(object))
 {
+    if(is.FLVector(pSet))
+    pSet <- as.vector(pSet)
     if((is.numeric(pSet) && (any(pSet>length(object))
         || any(pSet<=0)))) stop("index out of bounds")
     # browser()
