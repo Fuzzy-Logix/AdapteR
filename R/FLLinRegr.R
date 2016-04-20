@@ -942,37 +942,8 @@ residuals.FLLinRegr<-function(object)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		# vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
-		# obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
-
-		# y <- "fPred"
-		# vobsid <- "ObsID"
-		
     	vYVector <- object$y
 		residualsvector <- vYVector - object@results[["fitted.values"]]
-		# sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-		# 					object@scoreTable,".",vobsid," AS vectorIndexColumn,",
-		# 					vtablename,".",all.vars(object@formula)[1]," - ",
-		# 					object@scoreTable,".",y," AS vectorValueColumn",
-		# 				" FROM ",object@scoreTable,",",vtablename,
-		# 				" WHERE ",vtablename,".",obs_id_colname," = ",
-		# 							object@scoreTable,".",vobsid)
-
-		# tblfunqueryobj <- new("FLTableFunctionQuery",
-  #                       connection = getOption("connectionFL"),
-  #                       variables = list(
-		# 	                obs_id_colname = "vectorIndexColumn",
-		# 	                cell_val_colname = "vectorValueColumn"),
-  #                       whereconditions="",
-  #                       order = "",
-  #                       SQLquery=sqlstr)
-
-		# residualsvector <- new("FLVector",
-		# 						select = tblfunqueryobj,
-		# 						dimnames = list(rownames(object@table),
-		# 										"vectorValueColumn"),
-		# 						isDeep = FALSE)
-
 		object@results <- c(object@results,list(residuals=residualsvector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
@@ -986,7 +957,7 @@ model.FLLinRegr <- function(object)
 	return(object@results[["model"]])
 	else
 	{
-		if(interactive())
+		if(!is.null(getOption("InteractiveFL")) && getOption("InteractiveFL"))
 		{
 			vinput <- readline("Fetching entire table. Continue? y/n ")
 			if(!checkYorN(vinput)) return(NULL)
@@ -1156,10 +1127,13 @@ predict.FLLinRegr<-function(object,
 
 #' @export
 print.FLLinRegr<-function(object){
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	reqList <- list(call=object$call,
 					coefficients=object$coefficients)
 
 	class(reqList) <- "lm"
+	assign(parentObject,object,envir=parent.frame())
 	print(reqList)
 }
 
@@ -1238,7 +1212,7 @@ genDeepFormula <- function(pColnames)
 	vcolnames <- as.numeric(pColnames)
 	# if(!(-1 %in% vcolnames))
 	# stop("-1 denoting dependent column must be present in colnames of deep table.\n")
-	vcolnames <- paste0("var",vcolnames[!vcolnames %in% c(0,-1)],collapse="+")
+	vcolnames <- paste0("var",vcolnames[!vcolnames %in% c(0,-1,-2)],collapse="+")
 	vformula <- paste0("varY~",vcolnames)
 	return(as.formula(vformula))
 }
