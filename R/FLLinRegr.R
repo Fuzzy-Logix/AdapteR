@@ -46,7 +46,6 @@ lm.default <- stats::lm
 #'
 #' \code{lm} performs linear regression on FLTable objects.
 #'
-#' The wrapper overloads lm and implicitly calls FLRegrDataPrep and FLLinRegr.
 #' @method lm FLTable
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable
@@ -88,28 +87,10 @@ lm.default <- stats::lm
 #' deeptable <- FLTable("FL_DEMO","myLinRegrSmallBroken","ObsID","VarID","Num_Val")
 #' lmfit2 <- lm(NULL,deeptable)
 #' @export
-lm.FLTable <- function(formula,data,
-					catToDummy=0,
-					performNorm=0,
-					performVarReduc=0,
-					makeDataSparse=0,
-					minStdDev=0,
-					maxCorrel=1,
-					classSpec=list(),
-					whereconditions="",
-					...)
+lm.FLTable <- function(formula,data,...)
 {
 	return(lmGeneric(formula=formula,
-					data=data,
-					catToDummy=catToDummy,
-					performNorm=performNorm,
-					performVarReduc=performVarReduc,
-					makeDataSparse=makeDataSparse,
-					minStdDev=minStdDev,
-					maxCorrel=maxCorrel,
-					classSpec=classSpec,
-					whereconditions=whereconditions,
-					...))
+					data=data,...))
 }
 
 #' Choose a model.
@@ -187,6 +168,10 @@ lm.FLTable <- function(formula,data,
 #' 			direction = "UFbackward")
 #' plot(s)
 #' s$coefficients
+#' s <- step(widetable,scope=list(lower=Rings~Num_Length),
+#' 			direction = "UFbackward",performNorm=1,performVarReduc=1,maxCorrel=0.6)
+#' plot(s)
+#' s$coefficients
 #' s <- step(widetable,
 #' 			scope=list(upper=Rings~Height+Diameter+Sex+Num_Length+DummyCat),
 #'  		direction = "Fbackward")
@@ -231,17 +216,7 @@ step.default <- stats::step
 #' @export
 step.FLTable <- function(object, scope, scale = 0,
      				direction = "forward",
-     				trace = 1,catToDummy=0,
-					performNorm=0,
-					performVarReduc=0,
-					makeDataSparse=0,
-					minStdDev=0,
-					maxCorrel=1,
-					classSpec=list(),
-					whereconditions="",
-					highestpAllow1=0.5,
-					highestpAllow2=0.1,
-					stepWiseDecrease=0.05,...){
+     				trace = 1,...){
 
 	if (!direction %in% c("forward","Fbackward","backward","UFbackward"))
 	stop("direction must be in c(forward,Fbackward,backward,UFbackward)")
@@ -257,7 +232,7 @@ step.FLTable <- function(object, scope, scale = 0,
 	vinclude <- c()
 	vexclude <- c()
 	if(is.list(scope))
-	{
+	{#browser()
 		vlower <- scope[["lower"]]
 		vupper <- scope[["upper"]]
 		##If only lower is given. Upper includes all.
@@ -316,43 +291,183 @@ step.FLTable <- function(object, scope, scale = 0,
 	vcallObject <- match.call()
 	return(lmGeneric(formula=vupperformula,
 					data=object,
-					catToDummy=catToDummy,
-					performNorm=performNorm,
-					performVarReduc=performVarReduc,
-					makeDataSparse=makeDataSparse,
-					minStdDev=minStdDev,
-					maxCorrel=maxCorrel,
-					classSpec=classSpec,
-					whereconditions=whereconditions,
-					direction=direction,
 					specID=specID,
+					direction=direction,
 					trace=trace,
-					highestpAllow1=highestpAllow1,
-					highestpAllow2=highestpAllow2,
-					stepWiseDecrease=stepWiseDecrease,
 					callObject=vcallObject,
 					...))
 
 }
 lmGeneric <- function(formula,data,
-					catToDummy=0,
-					performNorm=0,
-					performVarReduc=0,
-					makeDataSparse=0,
-					minStdDev=0,
-					maxCorrel=1,
-					classSpec=list(),
-					whereconditions="",
 					specID=list(),
-					highestpAllow1=0.5,
-					highestpAllow2=0.1,
-					stepWiseDecrease=0.05,
-					topN=1,
 					direction="",
 					trace=1,
 					callObject=NULL,
 					...)
 {
+	#browser()
+	prepData <- prepareData.lmGeneric(formula,data,specID=specID,
+						direction=direction,trace=trace,
+						callObject=callObject,...)
+	deepx <- prepData[["deepx"]]
+	vmapping <- prepData[["vmapping"]]
+	formula <- prepData[["formula"]]
+	wideToDeepAnalysisId <- prepData[["wideToDeepAnalysisId"]]
+	mapTable <- prepData[["mapTable"]]
+	vspecID <- prepData[["vspecID"]]
+	highestpAllow1 <- prepData[["highestpAllow1"]]
+	highestpAllow2 <- prepData[["highestpAllow2"]]
+	topN <- prepData[["topN"]]
+	stepWiseDecrease <- prepData[["stepWiseDecrease"]]
+	vexclude <- prepData[["vexclude"]]
+	vallVars <- prepData[["vallVars"]]
+
+	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	vnote <- genNote("linregr")
+	if(direction=="")
+    sqlstr <- paste0("CALL FLLinRegr(",fquote(deeptable),",\n",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				fquote(vnote),",\nAnalysisID );\n")
+    else if(direction=="backward")
+    sqlstr <- paste0("CALL FLLinRegrBW(",fquote(deeptable),",\n",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				vspecID,",\n",
+					 				highestpAllow1,",\n",
+					 				fquote(vnote),",\nAnalysisID );\n")
+    else if(direction=="Fbackward")
+    sqlstr <- paste0("CALL FLLinRegrFB(",fquote(deeptable),",\n",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				vspecID,",\n",
+					 				highestpAllow1,",\n",
+					 				highestpAllow2,",\n",
+					 				fquote(vnote),",\nAnalysisID );\n")
+    else if(direction=="UFbackward")
+    sqlstr <- paste0("CALL FLLinRegrUFB(",fquote(deeptable),",\n",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				vspecID,",\n",
+					 				highestpAllow1,",\n",
+					 				highestpAllow2,",\n",
+					 				stepWiseDecrease,",\n",
+					 				fquote(vnote),",\nAnalysisID );\n")
+    else if(direction=="forward")
+    sqlstr <- paste0("CALL FLLinRegrSW(",fquote(deeptable),",\n",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				topN,",\n",
+					 				highestpAllow1,",\n",
+					 				fquote(vnote),",\nAnalysisID );\n")
+	
+	retobj <- sqlQuery(connection,sqlstr,
+						genAnalysisIDQuery("fzzlLinRegrInfo",vnote))
+	retobj <- checkSqlQueryOutput(retobj)
+	AnalysisID <- as.character(retobj[1,1])
+
+	##Find the max modelID to avoid joins later.
+	##For forward find best fit model id.
+	if(!direction %in% "forward"){
+	vsqlstr <- paste0("SELECT max(ModelID) from fzzlLinRegrStats WHERE AnalysisID=",fquote(AnalysisID))
+	vmaxModelID <- sqlQuery(getOption("connectionFL"),vsqlstr)[1,1]
+	}
+	
+	if(trace>0 && !direction %in% c("","forward"))
+	{
+		vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
+						" FROM fzzllinregrcoeffs a,fzzllinregrstats c \n",
+						" WHERE NOT EXISTS(SELECT 1 FROM fzzllinregrcoeffs b ",
+							" WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
+							" AND a.coeffid = b.coeffid)\n",
+						" AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
+						" AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
+						" UNION ALL\n",
+						" SELECT 0,a.* FROM fzzlLinRegrStats a \n",
+						" WHERE a.AnalysisID=",fquote(AnalysisID),
+						" AND a.ModelID=",vmaxModelID,"\n",
+						" ORDER BY 3")
+		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		colnames(d)<-toupper(colnames(d))
+		d[["ANALYSISID"]] <- NULL
+		vdroppedCols <- specID[["exclude"]]
+		if(nrow(d)>1){
+			for(i in unique(setdiff(d[["MODELID"]],vmaxModelID)))
+			{
+				cat("Step:    RSQUARED = ",d[d[,"MODELID"]==i,"RSQUARED"][1],"\n")
+				vdropped <- as.numeric(d[d[,"MODELID"]==i,"COEFFID"])
+				vcolnames <- names(vmapping)
+				vdroppedCols1 <- sapply(vdropped,function(x) vcolnames[as.numeric(vmapping)==x])
+				vdroppedCols <- c(vdroppedCols1,vdroppedCols)
+				if(data@isDeep){
+					vallVars <- all.vars(formula)
+					vfr <- genDeepFormula(c(vdropped,vexclude))
+					vdroppedCols <- all.vars(vfr)[-1]
+				}
+				cat(vallVars[1],"~",paste0(vcolnames[!toupper(vcolnames) %in% c(toupper(vdroppedCols)
+					,toupper(vallVars[1]))],
+					collapse=" + "),"\n")
+				vdataframe <- rbind(d[d[,"MODELID"]==i,][1,],d[d[,"MODELID"]==i+1,][1,])
+				rownames(vdataframe) <- c(" - None",paste0(" - ",paste0(vdroppedCols,collapse=" + ")))
+				print(vdataframe[,!colnames(vdataframe) %in% c("COEFFID","BPSTAT","SIGBPSTAT")])
+				cat("\n\n\n")
+			}
+		}
+	}
+	else if(direction %in% c("forward"))
+	{
+		vsqlstr <- paste0("SELECT TOP 1 a.*,b.maxPValue \n",
+						  " FROM fzzlLinRegrStats a,( \n",
+						  		" SELECT a.ModelID,",
+						  		" MAX(a.PValue) AS maxPValue \n",
+								" FROM fzzlLinRegrCoeffs a \n",
+								" WHERE a.AnalysisID = ",fquote(AnalysisID),
+								" GROUP BY a.ModelID) AS b \n",
+								" WHERE b.ModelID = a.ModelID \n",
+								" AND a.AnalysisID = ",fquote(AnalysisID),
+								" AND b.MaxPValue < 0.10 \n",
+								" ORDER BY 3 DESC, 2;\n")
+		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		colnames(d) <- toupper(colnames(d))
+		d[["ANALYSISID"]] <- NULL
+		vmaxModelID <- d[["MODELID"]]
+		if(trace>0) print(d)
+	}
+	return(new("FLLinRegr",
+				formula=formula,
+				AnalysisID=AnalysisID,
+				wideToDeepAnalysisId=wideToDeepAnalysisId,
+				table=data,
+				results=list(call=callObject,
+							 modelID=vmaxModelID),
+				deeptable=deepx,
+				mapTable=mapTable,
+				scoreTable=""))
+}
+
+prepareData.lmGeneric <- function(formula,data,
+								catToDummy=0,
+								performNorm=0,
+								performVarReduc=0,
+								makeDataSparse=0,
+								minStdDev=0,
+								maxCorrel=1,
+								classSpec=list(),
+								whereconditions="",
+								specID=list(),
+								highestpAllow1=0.5,
+								highestpAllow2=0.1,
+								stepWiseDecrease=0.05,
+								topN=1,
+								direction="",
+								trace=1,
+								callObject=NULL){
+	#browser()
 	if(data@isDeep){
 		vallVars <- colnames(data)
 		formula <- genDeepFormula(vallVars)
@@ -447,11 +562,12 @@ lmGeneric <- function(formula,data,
 
 		##Get Mapping Information for specID
 		vmapping <- sqlQuery(getOption("connectionFL"),
-				paste0("SELECT a.Column_name AS colName,",
-						" a.Final_VarID AS varID",
-					   " FROM fzzlRegrDataPrepMap AS a",
+				paste0("SELECT a.Column_name AS colName,\n",
+						" a.Final_VarID AS varID\n",
+					   " FROM fzzlRegrDataPrepMap AS a\n",
 					   " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisId),
-						" ORDER BY a.Final_VarID"))
+					   " AND a.Final_VarID IS NOT NULL \n",
+						" ORDER BY a.Final_VarID\n"))
 
 		vtemp <- vmapping[["varID"]]
 		names(vtemp) <- vmapping[["colName"]]
@@ -485,25 +601,27 @@ lmGeneric <- function(formula,data,
 	}
 	else
 	{
+		deepx <- data
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
-		deeptablename <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						deeptablename," AS ",constructSelect(data))
-		t <- sqlQuery(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename,
-                   "obs_id_colname",
-                   "var_id_colname",
-                   "cell_val_colname"
-                  )
+		if(length(data@select@whereconditions)>0 &&
+			data@select@whereconditions!=""){
+			deeptablename <- gen_view_name("New")
+			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+							deeptablename," AS ",constructSelect(data))
+			t <- sqlQuery(connection,sqlstr)
+			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			deepx <- FLTable(
+	                   getOption("ResultDatabaseFL"),
+	                   deeptablename,
+	                   "obs_id_colname",
+	                   "var_id_colname",
+	                   "cell_val_colname")
+		}
 		whereconditions <- ""
 		vmapping <- colnames(deepx)
 		names(vmapping) <- colnames(deepx)
 	}
 
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 	vinclude <- NULL
 	vexclude <- NULL
 	##Insert SpecID
@@ -515,8 +633,12 @@ lmGeneric <- function(formula,data,
 		sqlstr <- c()
 		if(!is.null(specID[["include"]]))
 		{
+			#browser()
 			vinclude <- vmapping[charmatch(specID[["include"]],names(vmapping))]
 			vinclude <- vinclude[!is.na(vinclude)]
+			if(is.null(vinclude) || length(vinclude) < 1)
+			stop("columns in lower are not in deeptable.",
+				" Might be due to variable reduction during data preparation")
 			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
 						".","fzzlLinRegrModelVarSpec VALUES(",vspecID,",",
 							vinclude,",","'I')"))
@@ -525,139 +647,27 @@ lmGeneric <- function(formula,data,
 		{
 			vexclude <- vmapping[charmatch(specID[["exclude"]],names(vmapping))]
 			vexclude <- vexclude[!is.na(vexclude)]
+			if(length(vexclude)>0 && vexclude!="")
 			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
 						".","fzzlLinRegrModelVarSpec VALUES(",vspecID,",",
 							vexclude,",","'X')"))
 		}
 		if(!is.null(sqlstr))
-		t <- sqlSendUpdate(getOption("connectionFL"),paste0(sqlstr,collapse=";"))
+		t <- sqlQuery(getOption("connectionFL"),paste0(sqlstr,collapse=";"))
 	}
-	
-	vnote <- genNote("linregr")
-	if(direction=="")
-    sqlstr <- paste0("CALL FLLinRegr(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="backward")
-    sqlstr <- paste0("CALL FLLinRegrBW(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				vspecID,",\n",
-					 				highestpAllow1,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="Fbackward")
-    sqlstr <- paste0("CALL FLLinRegrFB(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				vspecID,",\n",
-					 				highestpAllow1,",\n",
-					 				highestpAllow2,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="UFbackward")
-    sqlstr <- paste0("CALL FLLinRegrUFB(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				vspecID,",\n",
-					 				highestpAllow1,",\n",
-					 				highestpAllow2,",\n",
-					 				stepWiseDecrease,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="forward")
-    sqlstr <- paste0("CALL FLLinRegrSW(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				topN,",\n",
-					 				highestpAllow1,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-	
-	retobj <- sqlQuery(connection,sqlstr,
-						genAnalysisIDQuery("fzzlLinRegrInfo",vnote))
-	retobj <- checkSqlQueryOutput(retobj)
-	AnalysisID <- as.character(retobj[1,1])
 
-	##Find the max modelID to avoid joins later.
-	##For forward find best fit model id.
-	if(!direction %in% "forward"){
-	vsqlstr <- paste0("SELECT max(ModelID) from fzzlLinRegrStats WHERE AnalysisID=",fquote(AnalysisID))
-	vmaxModelID <- sqlQuery(getOption("connectionFL"),vsqlstr)[1,1]
-	}
-	
-	if(trace>0 && !direction %in% c("","forward"))
-	{
-		vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
-						" FROM fzzllinregrcoeffs a,fzzllinregrstats c \n",
-						" WHERE NOT EXISTS(SELECT 1 FROM fzzllinregrcoeffs b ",
-							" WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
-							" AND a.coeffid = b.coeffid)\n",
-						" AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
-						" AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
-						" UNION ALL\n",
-						" SELECT 0,a.* FROM fzzlLinRegrStats a \n",
-						" WHERE a.AnalysisID=",fquote(AnalysisID),
-						" AND a.ModelID=",vmaxModelID,"\n",
-						" ORDER BY 3")
-		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
-		colnames(d)<-toupper(colnames(d))
-		d[["ANALYSISID"]] <- NULL
-		vdroppedCols <- specID[["exclude"]]
-		if(nrow(d)>1){
-			for(i in unique(setdiff(d[["MODELID"]],vmaxModelID)))
-			{
-				cat("Step:    RSQUARED = ",d[d[,"MODELID"]==i,"RSQUARED"][1],"\n")
-				vdropped <- as.numeric(d[d[,"MODELID"]==i,"COEFFID"])
-				vcolnames <- names(vmapping)
-				vdroppedCols1 <- sapply(vdropped,function(x) vcolnames[as.numeric(vmapping)==x])
-				vdroppedCols <- c(vdroppedCols1,vdroppedCols)
-				if(data@isDeep){
-					vallVars <- all.vars(formula)
-					vfr <- genDeepFormula(c(vdropped,vexclude))
-					vdroppedCols <- all.vars(vfr)[-1]
-				}
-				cat(vallVars[1],"~",paste0(vallVars[!toupper(vallVars) %in% c(toupper(vdroppedCols)
-					,toupper(vallVars[1]))],
-					collapse=" + "),"\n")
-				vdataframe <- rbind(d[d[,"MODELID"]==i,][1,],d[d[,"MODELID"]==i+1,][1,])
-				rownames(vdataframe) <- c(" - None",paste0(" - ",paste0(vdroppedCols,collapse=" + ")))
-				print(vdataframe[,!colnames(vdataframe) %in% c("COEFFID","BPSTAT","SIGBPSTAT")])
-				cat("\n\n\n")
-			}
-		}
-	}
-	else if(direction %in% c("forward"))
-	{
-		vsqlstr <- paste0("SELECT TOP 1 a.*,b.maxPValue \n",
-						  " FROM fzzlLinRegrStats a,( \n",
-						  		" SELECT a.ModelID,",
-						  		" MAX(a.PValue) AS maxPValue \n",
-								" FROM fzzlLinRegrCoeffs a \n",
-								" WHERE a.AnalysisID = ",fquote(AnalysisID),
-								" GROUP BY a.ModelID) AS b \n",
-								" WHERE b.ModelID = a.ModelID \n",
-								" AND a.AnalysisID = ",fquote(AnalysisID),
-								" AND b.MaxPValue < 0.10 \n",
-								" ORDER BY 3 DESC, 2;\n")
-		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
-		colnames(d) <- toupper(colnames(d))
-		d[["ANALYSISID"]] <- NULL
-		vmaxModelID <- d[["MODELID"]]
-		if(trace>0) print(d)
-	}
-	return(new("FLLinRegr",
-				formula=formula,
-				AnalysisID=AnalysisID,
+	return(list(deepx=deepx,
 				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				table=data,
-				results=list(call=vcallObject,
-							 modelID=vmaxModelID),
-				deeptable=deepx,
+				formula=formula,
+				vmapping=vmapping,
 				mapTable=mapTable,
-				scoreTable=""))
+				vspecID=vspecID,
+				highestpAllow1=highestpAllow1,
+				highestpAllow2=highestpAllow2,
+				topN=topN,
+				vexclude=vexclude,
+				vallVars=vallVars,
+				stepWiseDecrease=stepWiseDecrease))
 }
 
 #' @export

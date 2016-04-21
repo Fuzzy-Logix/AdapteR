@@ -25,21 +25,104 @@ coxph <- function (formula,data=list(),...) {
 #' @export
 coxph.default <- survival::coxph
 
-
-# @examples
-# library(RODBC)
-# connection <- odbcConnect("Gandalf")
-# widetable  <- FLTable("FL_DEMO", "siemenswidetoday1", "ObsID")
-# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-# predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
-#resultList <- predict(fitT,newdata=predData)
-# resultList[[1]]
-#resultList[[2]]
+#' Cox Proportional Hazard Model
+#' 
+#' \code{coxph} Fits a Cox proportional hazards regression model.
+#' 
+#' @param formula A symbolic description of model to fit
+#' @param data FLTable object. Can be wide or deep
+#' @param catToDummy Transform categorical variables to numerical values
+#' either using dummy variables or by using Empirical
+#' Logit. If the value is 1, transformation is done using
+#' dummy variables, else if the value is 0,
+#' transformation is done using Empirical Logit.
+#' @param performNorm 0/1 indicating whether to perform standardization of data.
+#' @param performVarReduc 0/1. If the value is 1,
+#' the stored procedure eliminates variables based on standard deviation and
+#' correlation.
+#' @param makeDataSparse If 0,Retains zeroes and NULL values
+#' from the input table. If 1, Removes zeroes and NULL. If 2,Removes zeroes 
+#' but retains NULL values.
+#' @param minStdDev Minimum acceptable standard deviation for
+#' elimination of variables. Any variable that has a
+#' standard deviation below this threshold is
+#' eliminated. This parameter is only consequential if
+#' the parameter PerformVarReduc = 1. Must be >0.
+#' @param maxCorrel Maximum acceptable absolute correlation between
+#' a pair of columns for eliminating variables. If the
+#' absolute value of the correlation exceeds this
+#' threshold, one of the columns is not transformed.
+#' Again, this parameter is only consequential if the
+#' parameter PerformVarReduc = 1. Must be >0 and <=1.
+#' @param classSpec list describing the categorical dummy variables.
+#' @param whereconditions takes the where_clause as a string.
+#' @section Constraints:
+#' The formula object should have a \code{Surv} object.
+#' The arguments to \code{Surv} object must strictly be in the order
+#' (\code{time},\code{time2},\code{event}) or (\code{time},\code{event}).
+#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(event)}
+#' inside \code{Surv} is not supported.
+#' Only \code{coefficients},\code{linear.predictors},\code{FLSurvivalData},
+#' \code{FLCoxPHStats},\code{loglik},\code{wald.test},\code{n},\code{nevent},
+#' \code{rscore},\code{call},\code{formula},\code{call},\code{model},\code{x},
+#' \code{means},\code{terms} can be called on fitted object using $.
+#' coefficients,plot,print,summary methods are available for fitted object.
+#' @return \code{coxph} performs linear regression and replicates equivalent R output.
+#' @examples
+#' library(RODBC)
+#' connection <- odbcConnect("Gandalf")
+#' widetable  <- FLTable("FL_DEMO", "siemenswideARDemoCoxPH", "ObsID")
+#' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
+#' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
+#' resultList <- predict(fitT,newdata=predData)
+#' resultList[[1]]
+#' resultList[[2]]
+#' summary(fitT)
+#' plot(fitT)
+#' deeptable <- FLTable("FL_DEMO","siemensdeepARDemoCoxPH","obs_id_colname",
+#'						"var_id_colname","cell_val_colname")
+#' fitT <- coxph("",deeptable)
+#' fitT$coefficients
+#' summary(fitT)
+#' plot(fitT)
 ## Failed
 #fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
 # fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
 # fitT <- coxph(Surv(age,event)~meanTemp,widetable)
 #' @export
+coxph.FLTable <- function(formula,data, ...)
+{
+    deep <- prepareData.coxph(formula,data,...)
+    wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
+    deepx <- deep[["deeptable"]]
+    
+	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+    sqlstr <- paste0("CALL FLCoxPH(",fquote(deeptable),",\n",
+					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+					 				fquote(getVariables(deepx)[["cell_val_colname"]]),
+					 				",\n15,\n",fquote(genNote("coxph")),",\nAnalysisID );")
+	
+	retobj <- sqlQuery(getOption("connectionFL"),sqlstr,
+                       AnalysisIDQuery=genAnalysisIDQuery("fzzlCoxPHInfo",genNote("coxph")))
+	retobj <- checkSqlQueryOutput(retobj)
+	AnalysisID <- as.character(retobj[1,1])
+	
+	vcallObject <- match.call()
+    
+	return(new("FLCoxPH",
+				formula=deep[["formula"]],
+				AnalysisID=AnalysisID,
+				wideToDeepAnalysisId=wideToDeepAnalysisId,
+				table=data,
+				results=list(call=vcallObject),
+				deeptable=deepx,
+				mapTable=deep$mapTable,
+				scoreTable="",
+				statusCol=deep$vStatus,
+				timeValCol=deep$vTimeVal))
+}
+
 prepareData.coxph <- function(formula,data,
                               catToDummy=0,
                               performNorm=0,
@@ -51,10 +134,14 @@ prepareData.coxph <- function(formula,data,
                               whereconditions=""){
 	vTimeVal <- "timeVal"
 	vStatus <- "status"
+	if(data@isDeep){
+		vallVars <- colnames(data)
+		formula <- genDeepFormula(vallVars)
+	}
+	if(!data@isDeep)
 	{
-		if(!data@isDeep)
 		vallVars <- base::all.vars(formula)
-	
+		checkValidFormula(formula,data)
 		vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
 		if(!("Surv" %in% vSurvival))
 		stop("specify dependent variables as Surv object")
@@ -92,9 +179,11 @@ prepareData.coxph <- function(formula,data,
 	wideToDeepAnalysisId <- ""
     mapTable <- ""
 
-	unused_cols <- vcolnames[!vcolnames %in% vallVars]
-	unused_cols <- unused_cols[unused_cols!=getVariables(data)[["obs_id_colname"]]]
-	vexcludeCols <- paste0(unused_cols,collapse=",")
+    if(!data@isDeep){
+    	unused_cols <- vcolnames[!vcolnames %in% vallVars]
+		unused_cols <- unused_cols[unused_cols!=getVariables(data)[["obs_id_colname"]]]
+		vexcludeCols <- paste0(unused_cols,collapse=",")
+    }
 	
 	if(!data@isDeep)
 	{
@@ -158,75 +247,30 @@ prepareData.coxph <- function(formula,data,
 	}
 	else
 	{
+		deepx <- data
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
-		deeptablename <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						deeptablename," AS ",constructSelect(data))
-		t <- sqlQuery(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename,
-                   "obs_id_colname",
-                   "var_id_colname",
-                   "cell_val_colname"
-                  )
+		if(length(data@select@whereconditions)>0 &&
+			data@select@whereconditions!=""){
+			deeptablename <- gen_view_name("New")
+			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+							deeptablename," AS ",constructSelect(data))
+			t <- sqlQuery(connection,sqlstr)
+			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			deepx <- FLTable(
+	                   getOption("ResultDatabaseFL"),
+	                   deeptablename,
+	                   "obs_id_colname",
+	                   "var_id_colname",
+	                   "cell_val_colname")
+		}
 		whereconditions <- ""
 	}
     return(list(deeptable=deepx,
                 wideToDeepAnalysisId=wideToDeepAnalysisId,
+                formula=formula,
                 mapTable=mapTable,
                 vStatus=vStatus,
                 vTimeVal=vTimeVal))
-}
-
-#' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "siemenswidetoday1", "ObsID")
-#' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-#' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
-#' resultList <- predict(fitT,newdata=predData)
-#' resultList[[1]]
-#' resultList[[2]]
-## Failed
-#fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
-# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
-# fitT <- coxph(Surv(age,event)~meanTemp,widetable)
-#' @export
-coxph.FLTable <- function(formula,data, ...)
-{
-	checkValidFormula(formula,data)
-    deep <- prepareData.coxph(formula,data,...)
-    if(data@isDeep) formula <- genDeepFormula(colnames(data))
-    wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
-    deepx <- deep[["deeptable"]]
-    
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-    sqlstr <- paste0("CALL FLCoxPH(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),
-					 				",\n15,\n",fquote(genNote("coxph")),",\nAnalysisID );")
-	
-	retobj <- sqlQuery(getOption("connectionFL"),sqlstr,
-                       AnalysisIDQuery=genAnalysisIDQuery("fzzlCoxPHInfo",genNote("coxph")))
-	retobj <- checkSqlQueryOutput(retobj)
-	AnalysisID <- as.character(retobj[1,1])
-	
-	vcallObject <- match.call()
-    
-	return(new("FLCoxPH",
-				formula=formula,
-				AnalysisID=AnalysisID,
-				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				table=data,
-				results=list(call=vcallObject),
-				deeptable=deepx,
-				mapTable=deep$mapTable,
-				scoreTable="",
-				statusCol=deep$vStatus,
-				timeValCol=deep$vTimeVal))
 }
 
 #' @export
@@ -393,9 +437,9 @@ predict.FLCoxPH <-function(object,
 		return(loglikvector)
 	}
 	else if(property %in% c("wald.test",
-			"rscore","nevents","n"))
+			"rscore","nevent","n"))
 	{
-		vtemp <- c("wald.test","rscore","nevents","n")
+		vtemp <- c("wald.test","rscore","nevent","n")
 		names(vtemp) <- c("WALDSTATS","LOGRANKSTATS",
 			"NUMOFEVENTS","NUMOFOBS")
 		vproperty <- names(vtemp)[property==vtemp]
@@ -569,7 +613,7 @@ summary.FLCoxPH <- function(object){
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	cat("CALL:\n")
 	cat(paste0(object$call),"\n\n")
-	cat("   n = ",object$n,",   number of events = ",object$nevents,"\n\n")
+	cat("   n = ",object$n,",   number of events = ",object$nevent,"\n\n")
 	vcoeffdata <- data.frame(as.vector(object$coefficients),
 		as.vector(object$FLCoeffexp),
 		round(as.vector(object$FLCoeffStdErr),4),
