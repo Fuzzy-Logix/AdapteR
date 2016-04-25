@@ -32,7 +32,8 @@ setClass(
 				deeptable="FLTable",
 				mapTable="character",
 				scoreTable="character",
-				modelID="numeric"))
+				modelID="numeric",
+				vfcalls="character"))
 
 #' @export
 lm <- function (formula,data=list(),...) {
@@ -46,7 +47,6 @@ lm.default <- stats::lm
 #'
 #' \code{lm} performs linear regression on FLTable objects.
 #'
-#' @method lm FLTable
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable
 #' @param catToDummy Transform categorical variables to numerical values
@@ -89,8 +89,12 @@ lm.default <- stats::lm
 #' @export
 lm.FLTable <- function(formula,data,...)
 {
+	vcallObject <- match.call()
 	return(lmGeneric(formula=formula,
-					data=data,...))
+					data=data,
+					callObject=vcallObject,
+					familytype="linear",
+					...))
 }
 
 #' Choose a model.
@@ -205,6 +209,25 @@ lm.FLTable <- function(formula,data,...)
 #' s <- step(deeptable,
 #' 			scope=list(),
 #'  		direction = "forward")
+#' deeptable1 <- FLTable("FL_DEMO","tblLogRegr",
+#' 					"ObsID","VarID","Num_Val",whereconditions="ObsID < 7001")
+#' s <- step(deeptable1,
+#' 			scope=list(upper=c("-1","0","1","2","3")),
+#'  		direction = "backward",
+#' 			familytype="logistic")
+#' s <- step(deeptable1,
+#' 			scope=list(upper=c("1","2","3"),lower=c("2")),
+#'  		direction = "Fbackward",familytype="logistic")
+#' deeptable1 <- FLTable("FL_DEMO","tblLogRegr",
+#' 					"ObsID","VarID","Num_Val",
+#'                   whereconditions=c("ObsID < 7001","VarID<5"))
+#' s <- step(deeptable1,
+#'          scope=list(lower=c("2")),
+#'          direction = "UFbackward",familytype = "logistic")
+#' s <- step(deeptable1,
+#' 			scope=list(),
+#'  		direction = "forward",familytype="logistic")
+#' plot(s)
 #' @export
 step <- function (object,scope,...) {
 	UseMethod("step", object)
@@ -216,13 +239,18 @@ step.default <- stats::step
 #' @export
 step.FLTable <- function(object, scope, scale = 0,
      				direction = "forward",
-     				trace = 1,...){
+     				trace = 1,
+     				familytype="linear",
+     				...){
 
 	if (!direction %in% c("forward","Fbackward","backward","UFbackward"))
 	stop("direction must be in c(forward,Fbackward,backward,UFbackward)")
 	if(!is.list(scope) && !class(scope)=="formula")
 	stop("scope argument must be a list or formula.\n",
 		" empty list accepted for deeptable.\n")
+	if(!familytype %in% c("linear","logistic"))
+	stop("familytype argument must be one of linear or logistic ",
+		"in step.FLTable\n")
 	vupperformula <- ""
 	if(class(scope)=="formula")
 	{
@@ -295,6 +323,7 @@ step.FLTable <- function(object, scope, scale = 0,
 					direction=direction,
 					trace=trace,
 					callObject=vcallObject,
+					familytype=familytype,
 					...))
 
 }
@@ -303,12 +332,15 @@ lmGeneric <- function(formula,data,
 					direction="",
 					trace=1,
 					callObject=NULL,
+					familytype="linear",
 					...)
 {
 	#browser()
 	prepData <- prepareData.lmGeneric(formula,data,specID=specID,
 						direction=direction,trace=trace,
-						callObject=callObject,...)
+						callObject=callObject,
+						familytype=familytype,
+						...)
 	deepx <- prepData[["deepx"]]
 	vmapping <- prepData[["vmapping"]]
 	formula <- prepData[["formula"]]
@@ -321,74 +353,130 @@ lmGeneric <- function(formula,data,
 	stepWiseDecrease <- prepData[["stepWiseDecrease"]]
 	vexclude <- prepData[["vexclude"]]
 	vallVars <- prepData[["vallVars"]]
+	pThreshold <- prepData[["pThreshold"]]
+	eventweight <- prepData[["eventweight"]]
+	noneventweight <- prepData[["noneventweight"]]
+	maxiter <- prepData[["maxiter"]]
 
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-	vnote <- genNote("linregr")
+
+	if(familytype=="linear") vfcalls <- c(functionName="FLLinRegr",
+										infotableName="fzzlLinRegrInfo",
+										note="linregr",
+										coefftablename="fzzlLinRegrCoeffs",
+										statstablename="fzzlLinRegrStats",
+										valcolnamescoretable="Y",
+										scoretablename="FLLinRegrScore")
+	else if(familytype=="logistic") vfcalls <- c(functionName="FLLogRegr",
+										infotableName="fzzlLogRegrInfo",
+										note="logregr",
+										coefftablename="fzzlLogRegrCoeffs",
+										statstablename="fzzlLogRegrStats",
+										valcolnamescoretable="Y",
+										scoretablename="FLLogRegrScore")
+	else if(familytype=="poisson") vfcalls <- c(functionName="FLPoissonRegr",
+										infotableName="fzzlPoissonRegrInfo",
+										note="poissonregr",
+										coefftablename="fzzlPoissonRegrCoeffs",
+										statstablename="fzzlPoissonRegrStats",
+										valcolnamescoretable="Mu",
+										scoretablename="FLPoissonRegrScore")
+	else if(familytype=="logisticwt"){
+		vfcalls <- c(functionName="FLLogRegrWt",
+										infotableName="fzzlLogRegrInfo",
+										note="logregrwt",
+										coefftablename="fzzlLogRegrCoeffs",
+										statstablename="fzzlLogRegrStats",
+										valcolnamescoretable="Y",
+										scoretablename="FLLogRegrScore")
+		vtemp <- pThreshold
+		pThreshold <- maxiter
+		maxiter <- vtemp
+	}
+
+	functionName <- vfcalls["functionName"]
+	infotableName <- vfcalls["infotableName"]
+	vnote <- genNote(vfcalls["note"])
+	coefftablename <- vfcalls["coefftablename"]
+	statstablename <- vfcalls["statstablename"]
+
 	if(direction=="")
-    sqlstr <- paste0("CALL FLLinRegr(",fquote(deeptable),",\n",
+    sqlstr <- paste0("CALL ",functionName,"(",fquote(deeptable),",\n",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
+					 				ifelse(base::grepl("logistic",familytype),paste0(pThreshold,",\n"),""),
+					 				ifelse(familytype %in% "logisticwt",paste0(eventweight,",\n"),""),
+					 				ifelse(familytype %in% "logisticwt",paste0(noneventweight,",\n"),""),
 					 				fquote(vnote),",\nAnalysisID );\n")
     else if(direction=="backward")
-    sqlstr <- paste0("CALL FLLinRegrBW(",fquote(deeptable),",\n",
+    sqlstr <- paste0("CALL ",paste0(functionName,"BW"),"(",fquote(deeptable),",\n",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
 					 				vspecID,",\n",
 					 				highestpAllow1,",\n",
 					 				fquote(vnote),",\nAnalysisID );\n")
     else if(direction=="Fbackward")
-    sqlstr <- paste0("CALL FLLinRegrFB(",fquote(deeptable),",\n",
+    sqlstr <- paste0("CALL ",paste0(functionName,"FB"),"(",fquote(deeptable),",\n",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
 					 				vspecID,",\n",
 					 				highestpAllow1,",\n",
 					 				highestpAllow2,",\n",
 					 				fquote(vnote),",\nAnalysisID );\n")
     else if(direction=="UFbackward")
-    sqlstr <- paste0("CALL FLLinRegrUFB(",fquote(deeptable),",\n",
+    sqlstr <- paste0("CALL ",paste0(functionName,"UFB"),"(",fquote(deeptable),",\n",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
 					 				vspecID,",\n",
 					 				highestpAllow1,",\n",
 					 				highestpAllow2,",\n",
 					 				stepWiseDecrease,",\n",
 					 				fquote(vnote),",\nAnalysisID );\n")
     else if(direction=="forward")
-    sqlstr <- paste0("CALL FLLinRegrSW(",fquote(deeptable),",\n",
+    sqlstr <- paste0("CALL ",paste0(functionName,"SW"),"(",fquote(deeptable),",\n",
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
+					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
 					 				topN,",\n",
 					 				highestpAllow1,",\n",
 					 				fquote(vnote),",\nAnalysisID );\n")
 	
 	retobj <- sqlQuery(connection,sqlstr,
-						genAnalysisIDQuery("fzzlLinRegrInfo",vnote))
+						genAnalysisIDQuery(infotableName,vnote))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 
 	##Find the max modelID to avoid joins later.
 	##For forward find best fit model id.
 	if(!direction %in% "forward"){
-	vsqlstr <- paste0("SELECT max(ModelID) from fzzlLinRegrStats WHERE AnalysisID=",fquote(AnalysisID))
+	vsqlstr <- paste0("SELECT max(ModelID) from ",statstablename," WHERE AnalysisID=",fquote(AnalysisID))
 	vmaxModelID <- sqlQuery(getOption("connectionFL"),vsqlstr)[1,1]
 	}
 	
 	if(trace>0 && !direction %in% c("","forward"))
 	{
 		vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
-						" FROM fzzllinregrcoeffs a,fzzllinregrstats c \n",
-						" WHERE NOT EXISTS(SELECT 1 FROM fzzllinregrcoeffs b ",
+						" FROM ",coefftablename," a,",statstablename," c \n",
+						" WHERE NOT EXISTS(SELECT 1 FROM ",coefftablename," b ",
 							" WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
 							" AND a.coeffid = b.coeffid)\n",
 						" AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
 						" AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
 						" UNION ALL\n",
-						" SELECT 0,a.* FROM fzzlLinRegrStats a \n",
+						" SELECT 0,a.* FROM ",statstablename," a \n",
 						" WHERE a.AnalysisID=",fquote(AnalysisID),
 						" AND a.ModelID=",vmaxModelID,"\n",
 						" ORDER BY 3")
@@ -399,15 +487,21 @@ lmGeneric <- function(formula,data,
 		if(nrow(d)>1){
 			for(i in unique(setdiff(d[["MODELID"]],vmaxModelID)))
 			{
+				if(familytype=="linear")
 				cat("Step:    RSQUARED = ",d[d[,"MODELID"]==i,"RSQUARED"][1],"\n")
+				else
+				cat("Step:    Gini Coefficient = ",d[d[,"MODELID"]==i,"GINICOEFF"][1],"\n")
+				#browser()
 				vdropped <- as.numeric(d[d[,"MODELID"]==i,"COEFFID"])
 				vcolnames <- names(vmapping)
 				vdroppedCols1 <- sapply(vdropped,function(x) vcolnames[as.numeric(vmapping)==x])
-				vdroppedCols <- c(vdroppedCols1,vdroppedCols)
+				if(!data@isDeep)vdroppedCols <- c(vdroppedCols1,vdroppedCols)
 				if(data@isDeep){
 					vallVars <- all.vars(formula)
-					vfr <- genDeepFormula(c(vdropped,vexclude))
-					vdroppedCols <- all.vars(vfr)[-1]
+					vfr <- genDeepFormula(c(vdropped))
+					vdroppedCols <- c(vdroppedCols,all.vars(vfr)[-1])
+					vdroppedCols1 <- all.vars(genDeepFormula(specID[["exclude"]]))[-1]
+					vcolnames <- vallVars[!vallVars %in% vdroppedCols1]
 				}
 				cat(vallVars[1],"~",paste0(vcolnames[!toupper(vcolnames) %in% c(toupper(vdroppedCols)
 					,toupper(vallVars[1]))],
@@ -421,24 +515,32 @@ lmGeneric <- function(formula,data,
 	}
 	else if(direction %in% c("forward"))
 	{
+		if(familytype=="linear")
 		vsqlstr <- paste0("SELECT TOP 1 a.*,b.maxPValue \n",
-						  " FROM fzzlLinRegrStats a,( \n",
+						  " FROM ",statstablename," a,( \n",
 						  		" SELECT a.ModelID,",
 						  		" MAX(a.PValue) AS maxPValue \n",
-								" FROM fzzlLinRegrCoeffs a \n",
+								" FROM ",coefftablename," a \n",
 								" WHERE a.AnalysisID = ",fquote(AnalysisID),
 								" GROUP BY a.ModelID) AS b \n",
 								" WHERE b.ModelID = a.ModelID \n",
 								" AND a.AnalysisID = ",fquote(AnalysisID),
 								" AND b.MaxPValue < 0.10 \n",
 								" ORDER BY 3 DESC, 2;\n")
+		else if(familytype=="logistic")
+		vsqlstr <- paste0("SELECT TOP 1 a.*\n",
+						  " FROM ",statstablename," a\n",
+								" WHERE a.AnalysisID = ",fquote(AnalysisID),
+								" AND a.HighestPValue < 0.10 \n",
+								" ORDER BY 3 DESC, 2;\n")
+
 		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
 		colnames(d) <- toupper(colnames(d))
 		d[["ANALYSISID"]] <- NULL
 		vmaxModelID <- d[["MODELID"]]
 		if(trace>0) print(d)
 	}
-	return(new("FLLinRegr",
+	return(new(ifelse(familytype=="logisticwt","FLLogRegr",functionName),
 				formula=formula,
 				AnalysisID=AnalysisID,
 				wideToDeepAnalysisId=wideToDeepAnalysisId,
@@ -447,7 +549,9 @@ lmGeneric <- function(formula,data,
 							 modelID=vmaxModelID),
 				deeptable=deepx,
 				mapTable=mapTable,
-				scoreTable=""))
+				scoreTable="",
+				vfcalls=vfcalls,
+				modelID=vmaxModelID))
 }
 
 prepareData.lmGeneric <- function(formula,data,
@@ -466,7 +570,12 @@ prepareData.lmGeneric <- function(formula,data,
 								topN=1,
 								direction="",
 								trace=1,
-								callObject=NULL){
+								pThreshold=0.1,
+								eventweight=0.8,
+								noneventweight=1,
+								callObject=NULL,
+								maxiter=25,
+								familytype="linear"){
 	#browser()
 	if(data@isDeep){
 		vallVars <- colnames(data)
@@ -500,6 +609,21 @@ prepareData.lmGeneric <- function(formula,data,
 	        stop(paste0(x,collapse=",")," specified in SpecID not in colnames of data\n"))
     	}
     }
+
+    maxiter <- maxiter[1]
+    if(!is.numeric(maxiter) || maxiter<=0)
+    stop("maxiter should be >0")
+    maxiter <- as.integer(maxiter)
+
+    if(familytype %in% c("logistic","logisticwt"))
+    {
+    	check0To1(c(pThreshold=pThreshold))
+    	if(familytype %in% "logisticwt"){
+    		check0To1(eventweight=eventweight)
+    		check0To1(noneventweight=noneventweight)
+    	}
+    }
+    
     if(direction=="UFbackward")
     {
     	check0To1(c(highestpAllow1=highestpAllow1,
@@ -631,6 +755,8 @@ prepareData.lmGeneric <- function(formula,data,
 	{
 		vspecID <- fquote(genRandVarName())
 		sqlstr <- c()
+		vspecIDTable <- ifelse(familytype=="linear","fzzlLinRegrModelVarSpec",
+									"fzzlLogRegrModelVarSpec")
 		if(!is.null(specID[["include"]]))
 		{
 			#browser()
@@ -640,7 +766,7 @@ prepareData.lmGeneric <- function(formula,data,
 			stop("columns in lower are not in deeptable.",
 				" Might be due to variable reduction during data preparation")
 			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
-						".","fzzlLinRegrModelVarSpec VALUES(",vspecID,",",
+						".",vspecIDTable," VALUES(",vspecID,",",
 							vinclude,",","'I')"))
 		}
 		if(!is.null(specID[["exclude"]]))
@@ -649,7 +775,7 @@ prepareData.lmGeneric <- function(formula,data,
 			vexclude <- vexclude[!is.na(vexclude)]
 			if(length(vexclude)>0 && vexclude!="")
 			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
-						".","fzzlLinRegrModelVarSpec VALUES(",vspecID,",",
+						".",vspecIDTable," VALUES(",vspecID,",",
 							vexclude,",","'X')"))
 		}
 		if(!is.null(sqlstr))
@@ -667,7 +793,11 @@ prepareData.lmGeneric <- function(formula,data,
 				topN=topN,
 				vexclude=vexclude,
 				vallVars=vallVars,
-				stepWiseDecrease=stepWiseDecrease))
+				stepWiseDecrease=stepWiseDecrease,
+				eventweight=eventweight,
+				noneventweight=noneventweight,
+				maxiter=maxiter,
+				pThreshold=pThreshold))
 }
 
 #' @export
@@ -675,12 +805,12 @@ prepareData.lmGeneric <- function(formula,data,
 	#parentObject <- deparse(substitute(object))
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 	if(property=="coefficients"){
-		coefficientsvector <- coefficients.FLLinRegr(object)
+		coefficientsvector <- coefficients(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(coefficientsvector)
 	}
 	else if (property=="residuals"){
-		residualsvector <- residuals.FLLinRegr(object)
+		residualsvector <- residuals(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(residualsvector)
 	}
@@ -692,31 +822,31 @@ prepareData.lmGeneric <- function(formula,data,
 	}
 	else if(property=="FLCoeffStdErr")
 	{
-		coeffVector <- coefficients.FLLinRegr(object)
+		coeffVector <- coefficients(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(object@results[["FLCoeffStdErr"]])
 	}
 	else if(property=="FLCoeffTStat")
 	{
-		coeffVector <- coefficients.FLLinRegr(object)
+		coeffVector <- coefficients(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(object@results[["FLCoeffTStat"]])
 	}
 	else if(property=="FLCoeffPValue")
 	{
-		coeffVector <- coefficients.FLLinRegr(object)
+		coeffVector <- coefficients(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(object@results[["FLCoeffPValue"]])
 	}
 	else if(property=="FLCoeffNonZeroDensity")
 	{
-		coeffVector <- coefficients.FLLinRegr(object)
+		coeffVector <- coefficients(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(object@results[["FLCoeffNonZeroDensity"]])
 	}
 	else if(property=="FLCoeffCorrelWithRes")
 	{
-		coeffVector <- coefficients.FLLinRegr(object)
+		coeffVector <- coefficients(object)
 		assign(parentObject,object,envir=parent.frame())
 		return(object@results[["FLCoeffCorrelWithRes"]])
 	}
@@ -754,11 +884,6 @@ prepareData.lmGeneric <- function(formula,data,
 		## The Column order may not be same as
 		## in formula object because add. columns
 		## may be added by categorical trans.
-
-		# if(!is.null(object@results[["model"]]))
-		# return(object@results[["model"]])
-		# else
-		# {
 			##This might stop any parent script!!
 			##Need something that has wait time and
 			## Default value.
@@ -769,14 +894,9 @@ prepareData.lmGeneric <- function(formula,data,
 			##object@results <- c(object@results,list(model=modelframe))
 			assign(parentObject,object,envir=parent.frame())
 			return(modelframe)
-		# }
 	}
 	else if(property=="x")
 	{
-		# if(!is.null(object@results[["x"]]))
-		# return(object@results[["x"]])
-		# else
-		# {
 			modelframe <- model.FLLinRegr(object)
 			modelframe[[1]] <- 1
 			colnames(modelframe)[1] <- "Intercept"
@@ -786,7 +906,6 @@ prepareData.lmGeneric <- function(formula,data,
 			# object@results <- c(object@results,list(x=modelframe))
 			assign(parentObject,object,envir=parent.frame())
 			return(modelframe)
-		# }
 	}
 	else if(property=="y")
 	{
@@ -841,8 +960,6 @@ prepareData.lmGeneric <- function(formula,data,
 			modelmatrix <- as.matrix(object$x)
 			qrList <- base::qr(modelmatrix)
 			vrank <- qrList$rank
-			# object@results <- c(object@results,
-			# 					list(rank=vrank))
 			assign(parentObject,object,envir=parent.frame())
 			if(property=="qr")
 			return(qrList)
@@ -885,15 +1002,31 @@ coefficients<-function(table){
 coefficients.default <- stats::coefficients
 #' @export
 coefficients.FLLinRegr<-function(object){
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	coeffVector <- coefficients.lmGeneric(object,
+						FLCoeffStats=c(FLCoeffStdErr="STDERR",
+							FLCoeffPValue="PVALUE",
+							FLCoeffTStat="TSTAT",
+							FLCoeffCorrelWithRes="CORRELWITHRES",
+							FLCoeffNonZeroDensity="NONZERODENSITY"))
+		assign(parentObject,object,envir=parent.frame())
+	return(coeffVector)
+	}
+
+coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 	if(!is.null(object@results[["coefficients"]]))
 	return(object@results[["coefficients"]])
 	else
 	{
+		#browser()
 		##Since Currently only 1000 Columns are supported
 		## by FLLinRegr, fetch them.
+		vfcalls <- object@vfcalls
 		if(object@table@isDeep)
 		coeffVector <- sqlQuery(getOption("connectionFL"),
-			paste0("SELECT * FROM fzzlLinRegrCoeffs where AnalysisID=",fquote(object@AnalysisID),
+			paste0("SELECT * FROM ",vfcalls["coefftablename"],
+				" where AnalysisID=",fquote(object@AnalysisID),
 					" AND ModelID=",object@results[["modelID"]],
 					" ORDER BY CoeffID"))
 		else
@@ -901,7 +1034,7 @@ coefficients.FLLinRegr<-function(object){
 			paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
 					"a.COLUMN_NAME || a.Catvalue ELSE \n",
 					"a.Column_name END AS CoeffName,b.* \n",
-				   " FROM fzzlRegrDataPrepMap AS a,fzzlLinRegrCoeffs AS b \n",
+				   " FROM fzzlRegrDataPrepMap AS a,",vfcalls["coefftablename"]," AS b \n",
 				   " WHERE a.Final_VarID = b.CoeffID \n",
 					" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
 					"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
@@ -909,12 +1042,9 @@ coefficients.FLLinRegr<-function(object){
 					"\n ORDER BY CoeffID"))
 
 		colnames(coeffVector) <- toupper(colnames(coeffVector))
-		stderrVector <- coeffVector[["STDERR"]]
-		tstatVector <- coeffVector[["TSTAT"]]
-		pvalVector <- coeffVector[["PVALUE"]]
 		coeffVector1 <- coeffVector[["COEFFVALUE"]]
-		nonzeroDVector <- coeffVector[["NONZERODENSITY"]]
-		corwithresvector <- coeffVector[["CORRELWITHRES"]]
+		FLCoeffStats  <- lapply(FLCoeffStats,
+								function(x)coeffVector[[x]])
 
 		if(!is.null(coeffVector[["COEFFNAME"]]))
 		names(coeffVector1) <- coeffVector[["COEFFNAME"]]
@@ -926,18 +1056,14 @@ coefficients.FLLinRegr<-function(object){
 		vcolnames <- colnames(object@deeptable)
 		droppedCols <- vcolnames[!vcolnames %in% c("-1",coeffVector[["COEFFID"]])]
 		object@results <- c(object@results,list(coefficients=coeffVector1,
-												FLCoeffStdErr=stderrVector,
-												FLCoeffTStat=tstatVector,
-												FLCoeffPValue=pvalVector,
-												FLCoeffNonZeroDensity=nonzeroDVector,
-												FLCoeffCorrelWithRes=corwithresvector,
-												droppedCols=droppedCols))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+												droppedCols=droppedCols),
+												FLCoeffStats)
+		parentObject <- unlist(strsplit(unlist(strsplit(
+			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(coeffVector1)
 	}
 }
-
 #' @export
 residuals.FLLinRegr<-function(object)
 {
@@ -945,7 +1071,6 @@ residuals.FLLinRegr<-function(object)
 	return(object@results[["residuals"]])
 	else
 	{
-		
 		if(object@scoreTable==""){
 		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
 			gen_score_table_name(object@table@select@table_name))
@@ -974,6 +1099,7 @@ model.FLLinRegr <- function(object)
 		}
 		modelframe <- as.data.frame(object@deeptable)
 		modelframe[[2]] <- NULL ##Intercept
+		modelframe[is.na(modelframe)] <- 0
 		coeffVector <- object$coefficients
 		vdroppedCols <- object@results[["droppedCols"]]
 		for(i in vdroppedCols)
@@ -982,7 +1108,8 @@ model.FLLinRegr <- function(object)
 		vcolnames <- c(vallVars[1],names(coeffVector)[2:length(coeffVector)])
 		colnames(modelframe) <- vcolnames
 		object@results <- c(object@results,list(model=modelframe))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(
+			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(modelframe)
 	}
@@ -1061,7 +1188,15 @@ predict<-function(object,newdata,...){
 }
 
 #' @export
-predict.FLLinRegr<-function(object,
+predict.FLLinRegr <- function(object,
+							newdata=object@table,
+							scoreTable=""){
+	return(predict.lmGeneric(object,newdata=newdata,
+							scoreTable=scoreTable))
+}
+
+#' @export
+predict.lmGeneric <- function(object,
 							newdata=object@table,
 							scoreTable=""){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
@@ -1071,7 +1206,7 @@ predict.FLLinRegr<-function(object,
 	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
 	else if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
-
+	vfcalls <- object@vfcalls
 	if(!newdata@isDeep)
 	{
 		deepx <- FLRegrDataPrep(newdata,depCol="",
@@ -1097,24 +1232,26 @@ predict.FLLinRegr<-function(object,
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
-	sqlstr <- paste0("CALL FLLinRegrScore (",fquote(newdata@select@table_name),",\n",
-											 fquote(vobsid),",\n",
-											 fquote(vvarid),",\n",
-											 fquote(vvalue),",\n",
-											 "NULL,\n",
-											 fquote(object@AnalysisID),",\n",
-											 fquote(scoreTable),",\n",
-											 fquote(genNote("Scoring linregr")),
-											 ",\noAnalysisID);")
+	sqlstr <- paste0("CALL ",vfcalls["scoretablename"],
+							" (",fquote(newdata@select@table_name),",\n",
+							 fquote(vobsid),",\n",
+							 fquote(vvarid),",\n",
+							 fquote(vvalue),",\n",
+							 "NULL,\n",
+							 fquote(object@AnalysisID),",\n",
+							 fquote(scoreTable),",\n",
+							 fquote(genNote(paste0("Scoring ",vfcalls["note"]))),
+							 ",\noAnalysisID);")
 
 	AnalysisID <- sqlQuery(getOption("connectionFL"),
 								sqlstr,
-								genAnalysisIDQuery("fzzlLinRegrInfo",genNote("Scoring linregr")))
+								genAnalysisIDQuery(vfcalls["infotableName"],
+									genNote(paste0("Scoring ",vfcalls["note"]))))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 						vobsid," AS vectorIndexColumn,",
-						"Y AS vectorValueColumn",
+						vfcalls["valcolnamescoretable"]," AS vectorValueColumn",
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -1134,7 +1271,6 @@ predict.FLLinRegr<-function(object,
 
 	return(flv)
 }
-
 #' @export
 print.FLLinRegr<-function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
@@ -1147,7 +1283,6 @@ print.FLLinRegr<-function(object){
 	print(reqList)
 }
 
-#overloading show.
 #' @export
 setMethod("show","FLLinRegr",print.FLLinRegr)
 
@@ -1165,7 +1300,8 @@ plot.FLLinRegr <- function(object)
 					terms=object$terms)
 	class(reqList) <- "lm"
 
-	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	assign(parentObject,object,envir=parent.frame())
 	plot(reqList)
 }
@@ -1182,7 +1318,8 @@ influence.FLLinRegr <- function(model,...){
 					model=model$model,
 					terms=model$terms)
 	class(reqList) <- "lm"
-	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	parentObject <- unlist(strsplit(unlist(strsplit(as.character
+		(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	assign(parentObject,model,envir=parent.frame())
 	return(stats::influence(reqList,...))
 }
@@ -1205,7 +1342,8 @@ lm.influence.FLLinRegr <- function(model,do.coef=TRUE,...){
 					model=model$model,
 					terms=model$terms)
 	class(reqList) <- "lm"
-	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	parentObject <- unlist(strsplit(unlist(strsplit(as.character
+		(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	assign(parentObject,model,envir=parent.frame())
 	return(stats::lm.influence(reqList,do.coef,...))
 }

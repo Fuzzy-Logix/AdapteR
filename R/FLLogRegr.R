@@ -2,326 +2,289 @@
 #' @include data_prep.R
 #' @include FLTable.R
 NULL
-#' An S4 class to represent FLLogRegr
+#' An S4 class to represent FLLinRegr
 #'
-#' @slot formula an object of class 'formula': Model Formulae
-#' @slot table_name A character
-#' @slot deeptablename A character vector containing name of the deeptable on conversion from a widetable
+#' @slot formula an object of class 'formula': Model Formula
+#' @slot deeptable A character vector containing 
+#' the deeptable on conversion from a widetable
 #' @slot AnalysisID An output character ID from CALL FLLogRegr
-#' @slot dataprepID An output character ID from CALL FLRegrDataPrep
-#' @slot datatable An object of class FLTable
+#' @slot wideToDeepAnalysisID An output character ID from FLRegrDataPrep
+#' @slot mapTable name of the mapping table
+#' @slot scoreTable name of the scoring table
+#' @slot modelID id of the model with best fit
+#' @slot table input FLTable object
+#' @slot results cache list of results computed
+#' @slot vfcalls contains names of tables
 #' @method print FLLogRegr
-#' @param object contains: call,coefficients
 #' @method coefficients FLLogRegr
-#' @param object a named vector of coefficients
+#' @method residuals FLLogRegr
+#' @method influence FLLogRegr
+#' @method lm.influence FLLogRegr
+#' @method plot FLLogRegr
 #' @method summary FLLogRegr
-#' @param object contains: call,residuals,coefficients,significant codes note and statistical output.
+#' @method predict FLLogRegr
 setClass(
 	"FLLogRegr",
-	slots=list(
-		formula="formula",
-		table_name="character",
-		deeptablename="character",
-		AnalysisID="character",
-		dataprepID="character",
-		datatable="FLTable",
-		dataname="character"
-	)
-)
+	slots=list(formula="formula",
+				AnalysisID="character",
+				wideToDeepAnalysisId="character",
+				table="FLTable",
+				results="list",
+				deeptable="FLTable",
+				mapTable="character",
+				scoreTable="character",
+				modelID="numeric",
+				vfcalls="character"))
 
-glm <- function (formula,data,rushil,iter,threshold,...) {
+#' @export
+glm <- function (formula,data=list(),...) {
 	UseMethod("glm", data)
  }
 
-glm.data.frame<-stats::glm
+#' @export
+glm.default <- stats::glm
 
-#' Linear Regression.
+#' Logistic and Poisson Regression.
 #'
-#' \code{glm} performs linear regression on FLTable objects.
+#' \code{glm} performs logistic and poisson regression on FLTable objects.
 #'
-#' The wrapper overloads glm and implicitly calls FLRegrDataPrep and FLLogRegr.
-#' @method glm FLTable
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable
+#' @param catToDummy Transform categorical variables to numerical values
+#' either using dummy variables or by using Empirical
+#' Logit. If the value is 1, transformation is done using
+#' dummy variables, else if the value is 0,
+#' transformation is done using Empirical Logit.
+#' @param performNorm 0/1 indicating whether to perform standardization of data.
+#' @param performVarReduc 0/1. If the value is 1,
+#' the stored procedure eliminates variables based on standard deviation and
+#' correlation.
+#' @param makeDataSparse If 0,Retains zeroes and NULL values
+#' from the input table. If 1, Removes zeroes and NULL. If 2,Removes zeroes 
+#' but retains NULL values.
+#' @param minStdDev Minimum acceptable standard deviation for
+#' elimination of variables. Any variable that has a
+#' standard deviation below this threshold is
+#' eliminated. This parameter is only consequential if
+#' the parameter PerformVarReduc = 1. Must be >0.
+#' @param maxCorrel Maximum acceptable absolute correlation between
+#' a pair of columns for eliminating variables. If the
+#' absolute value of the correlation exceeds this
+#' threshold, one of the columns is not transformed.
+#' Again, this parameter is only consequential if the
+#' parameter PerformVarReduc = 1. Must be >0 and <=1.
+#' @param classSpec list describing the categorical dummy variables.
+#' @param whereconditions takes the where_clause as a string.
 #' @section Constraints:
-#' None
-#' @return \code{glm} performs linear regression and replicates equivalent R output.
+#' The anova method is not yet available for FLLinRegr
+#' @return \code{lm} performs linear regression and replicates equivalent R output.
 #' @examples
 #' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable( "FL_REV4546", "tblAbaloneWide", "ObsID")
-#' glmfit <- glm(Rings~Height+Diameter,widetable)
+#' connection <- flConnect("Gandalf")
+#' deeptable <- FLTable("FL_DEMO","tblLogRegr","ObsID","VarID","Num_Val",
+#'                whereconditions="ObsID<7001")
+#' glmfit <- glm(NULL,data=deeptable)
+#' summary(glmfit)
+#' plot(glmfit)
 #' @export
-glm.FLTable<-function(formula,data,rushil="binomial",iter=25,threshold=0.1,...){
-	if(rushil!="binomial")
-	{
-		stop("Currently only binomial is supported")
+glm.FLTable <- function(formula,
+						family="binomial",
+						data,...)
+{
+	vcallObject <- match.call()
+	if(is.character(family))
+	if(!family%in%c("poisson","binomial"))
+	stop("only poisson and binomial are currently supported in glm\n")
+	if(family %in% "binomial") family <- "logistic"
+	if(is.function(family)){
+		if(base::identical(family,stats::poisson))
+		family <- "poisson"
+		else if(base::identical(family,stats::binomial))
+		family <- "logistic"
+		else stop("only poisson and binomial are currently supported in glm\n")
 	}
-	dependent <- all.vars(formula)[1]
-	independents <- all.vars(formula)[2:length(formula)]
-	cols<-names(data)
 
-	unused_cols <- cols[!cols %in% all.vars(formula)]
-	unused_cols <- unused_cols[unused_cols!=data@obs_id_colname]
-	unused_cols_str <- ""
-	i<-1
-	while(i<=length(unused_cols)){
-		unused_cols_str <- paste0(unused_cols_str,unused_cols[i],", ")
-		i<-i+1
-	}
-	deeptablename <- gen_deep_table_name(data@table_name)
-	unused_cols_str <- substr(unused_cols_str,1,nchar(unused_cols_str)-2)
-	sqlQuery(data@connection,
-			 paste0("DATABASE ",data@database,";
-			 		 SET ROLE ALL;"))
-	sqlstr<-paste0("CALL FLRegrDataPrep('",data@table_name,"',
-										'",data@obs_id_colname,"',
-										'",dependent,"',
-										'",deeptablename,"',
-										'ObsID',
-										'VarID',
-										'Num_Val',
-										0,
-										0,
-										0,
-										0,
-										0,
-										0,
-										0,
-										'",unused_cols_str,"',
-										NULL,
-										NULL,
-										NULL,
-										AnalysisID);")
-	dataprepID <- sqlQuery(data@connection,sqlstr)
-	dataprepID <- as.vector(dataprepID[1,1])
-
-	AnalysisID<-as.vector(sqlQuery(data@connection,
-								   paste0("CALL FLLogRegr('",deeptablename,"', 
-								   						  'ObsID', 
-								   						  'VarID', 
-								   						  'Num_Val',
-								   						  ",iter,",
-								   						  ",threshold,", 
-								   						  'Test',
-								   						  AnalysisID);"))[1,1])
-	AnalysisID<-as.character(AnalysisID)
-	new("FLLogRegr",
-		formula=formula,
-		table_name=data@table_name,
-		deeptablename=deeptablename,
-		AnalysisID=AnalysisID,
-		dataprepID=dataprepID,
-		datatable=data,
-		dataname = deparse(substitute(data))
-	)
+	return(lmGeneric(formula=formula,
+					data=data,
+					callObject=vcallObject,
+					familytype=family,
+					...))
 }
 
+#' @export
 `$.FLLogRegr`<-function(object,property){
-	if(property=="coefficients")
+	#parentObject <- deparse(substitute(object))
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+	if(property %in% c("coefficients","residuals",
+		"fitted.values","FLCoeffStdErr",
+		"FLCoeffPValue","call","model","x",
+		"y","qr","rank","xlevels","terms","assign"))
 	{
-		coefficients(object)
+		propertyValue <- `$.FLLinRegr`(object,property)
+		assign(parentObject,object,envir=parent.frame())
+		return(propertyValue)
 	}
-	else if (property=="residuals")
+	else if(property=="FLCoeffChiSq")
 	{
-		residuals(object)
+		coeffVector <- coefficients.FLLogRegr(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(object@results[["FLCoeffChiSq"]])
 	}
-	else "That's not a valid property"
-}
+	else if(property=="FLLogRegrStats")
+	{
+		if(!is.null(object@results[["FLLogRegrStats"]]))
+		return(object@results[["FLLogRegrStats"]])
+		else
+		{
+			sqlstr <- paste0("SELECT * FROM fzzlLogRegrStats\n",
+							" WHERE AnalysisID=",fquote(object@AnalysisID),
+							" \nAND ModelID=",object@results[["modelID"]])
 
-lrdata<-function(object){
-	UseMethod("lrdata",object)
-}
-
-residuals.FLLogRegr<-function(object){
-	dependent <- all.vars(object@formula)[1]
-	scoretable<-gen_score_table_name(object@table_name)
-	queryscore<-paste0("CALL FLLogRegrScore ('",object@deeptablename,"',
-											 'ObsID',
-											 'VarID',
-											 'Num_Val',
-											 NULL,
-											 '",object@AnalysisID,"',
-											 '",scoretable,"',
-											 'Scoring using model ",object@AnalysisID,"',
-											 oAnalysisID);")
-	err<-sqlQuery(object@datatable@connection,queryscore)
-	queryresiduals<-paste0("SELECT (a.",dependent," - b.Y) as deviation 
-							FROM ",remoteTable(object)," AS a, 
-								  (SELECT * 
-								   FROM ",scoretable,") AS b 
-							WHERE a.ObsID = b.ObsID")
-	reslist<-sqlQuery(object@datatable@connection,queryresiduals)
-	options(scipen=999)
-	reslist<-as.numeric(reslist[,1])
-	reslist
-}
-
-lrdata.FLLogRegr<-function(object){
-		sqlQuery(object@datatable@connection,
-				 paste("DATABASE",object@datatable@database))
-		sqlstr<-paste0("SELECT a.Column_Name, 
-							   a.Final_VarID 
-						FROM fzzlRegrDataPrepMap a 
-						WHERE a.AnalysisID = '",object@dataprepID,"' 
-						ORDER BY a.Final_VarID;")
-		mapframe<-sqlQuery((object@datatable)@connection,sqlstr)
-
-
-		# Converting the data frame into a namedvector
-		mapList<-as.numeric(mapframe$Final_VarID)
-		names(mapList)<-as.character(mapframe$COLUMN_NAME)
-
-		sqlstr2<-paste0("SELECT a.* 
-						 FROM fzzlLogRegrCoeffs a 
-						 WHERE a.AnalysisID = '",object@AnalysisID,"' 
-						 ORDER BY COEFFID;")
-		coeffframe<-sqlQuery(object@datatable@connection,sqlstr2)
-
-		dependent <- all.vars(object@formula)[1]
-		scoretable<-gen_score_table_name(object@table_name)
-		queryscore<-paste0("CALL FLLogRegrScore ('",object@deeptablename,"',
-												 'ObsID',
-												 'VarID',
-												 'Num_Val',
-												 NULL,
-												 '",object@AnalysisID,"',
-												 '",scoretable,"',
-												 'Scoring using model ",object@AnalysisID,"',
-												 oAnalysisID);")
-		err<-sqlQuery(object@datatable@connection,queryscore)
-		queryminmax<-paste0("SELECT FLmin(c.deviation), 
-									FLMax(c.deviation) 
-							 FROM (SELECT (a.",dependent," - b.Y) AS deviation 
-							 	   FROM ",remoteTable(object)," AS a, 
-							 	   		 (SELECT * 
-							 	   		  FROM ",scoretable,") AS b 
-								   WHERE a.ObsID = b.ObsID) AS c")
-		minmax<-sqlQuery(object@datatable@connection,queryminmax)
-		query1q<-paste0("WITH z (groupID,deviation) 
-						 AS (SELECT 1,
-						 			c.deviation 
-						 	 FROM ((SELECT (a.",dependent," - b.Y) AS deviation 
-						 	 		FROM ",remoteTable(object)," AS a, 
-						 	 			  (SELECT * 
-						 	 			   FROM ",scoretable,") AS b 
-									WHERE a.ObsID = b.ObsID) AS c)) 
-							 SELECT q.* 
-							 FROM (SELECT a.oPercVal 
-							 	   FROM TABLE (FLPercUdt(z.groupID, z.deviation, 0.25) 
-							 	   			   HASH BY z.groupID 
-							 	   			   LOCAL ORDER BY z.groupID) AS a) AS q")
-		oneq<-sqlQuery(object@datatable@connection,query1q)
-		querymedian<-paste0("WITH z (groupID,deviation) 
-							 AS (SELECT 1,
-							 			c.deviation 
-							 	 FROM ((SELECT (a.",dependent," - b.Y) AS deviation 
-							 	 	    FROM ",remoteTable(object)," AS a, 
-							 	 	    	  (SELECT * 
-							 	 	    	   FROM ",scoretable,") AS b 
-										WHERE a.ObsID = b.ObsID) AS c)) 
-								 SELECT q.* 
-								 FROM (SELECT a.oPercVal 
-								 	   FROM TABLE (FLPercUdt(z.groupID, z.deviation, 0.5) 
-								 	   			   HASH BY z.groupID 
-								 	   			   LOCAL ORDER BY z.groupID) AS a) AS q")
-		median<-sqlQuery(object@datatable@connection,querymedian)
-		query3q<-paste0("WITH z (groupID,deviation) 
-						 AS (SELECT 1,
-						 			c.deviation 
-						 	 FROM ((SELECT (a.",dependent," - b.Y) AS deviation 
-						 	 		FROM ",remoteTable(object)," AS a, 
-						 	 			  (SELECT * 
-						 	 			   FROM ",scoretable,") AS b 
-									WHERE a.ObsID = b.ObsID) AS c)) 
-							 SELECT q.* 
-							 FROM (SELECT a.oPercVal 
-							 	   FROM TABLE (FLPercUdt(z.groupID, z.deviation, 0.75) 
-							 	   HASH BY z.groupID 
-							 	   LOCAL ORDER BY z.groupID) AS a) AS q")
-		threeq<-sqlQuery(object@datatable@connection,query3q)
-		minmax<- as.numeric(minmax)
-		oneq<- as.numeric(oneq)
-		three1<- as.numeric(threeq)
-		median<-as.numeric(median)
-		residuals<-as.numeric(c(minmax[1],oneq,median,threeq,minmax[2]))
-		names(residuals)<-c("min","1Q","median","3Q","max")
-		retlist<-list(mapList = mapList, coeffframe = coeffframe,residuals = residuals)
-		retlist
-}
-
-print.FLLogRegr<-function(object){
-	cat("Call: ")
-	cat("glm.FLLogRegr(formula = ")
-	cat(deparse(object@formula))
-	cat(", data = ")
-	cat(object@dataname)
-	cat(",family = \"binomial\")")
-	cat("\n\nCoefficients:\n")
-	print(coefficients(object))
-}
-
-#overloading show.
-setMethod("show","FLLogRegr",print.FLLogRegr)
-
-coefficients<-function(table){
-	UseMethod("coefficients",table)
-}
-
-coefficients.FLLogRegr<-function(object){
-	data<-lrdata(object)
-	coeffvector<-data$coeffframe$COEFFVALUE
-	for(i in 1:length(data$coeffframe$COEFFVALUE)){
-		j<-data$coeffframe$COEFFID[i]
-		names(coeffvector)[i] = names(data$mapList[data$mapList==j])
-	}
-	coeffvector
-}
-
-summary.FLLogRegr<-function(object){
-	data<-lrdata(object)
-	coeffframe<-data$coeffframe
-	if(!object@datatable@isDeep){
-		for(i in 1:length(coeffframe$COEFFVALUE)){
-			j<-coeffframe$COEFFID[i]
-			rownames(coeffframe)[i] = names(data$mapList[data$mapList==j])
+			statsdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			object@results <- c(object@results,list(FLLinRegrStats=statsdataframe))
+			assign(parentObject,object,envir=parent.frame())
+			return(statsdataframe)
 		}
 	}
+	else if(property=="df.residual")
+	{
+		df.residualsvector <- nrow(object@table)-length(object$coefficients)
+		assign(parentObject,object,envir=parent.frame())
+		return(df.residualsvector)
+	}
+	else stop("That's not a valid property")
+}
 
-	coeffframe<-coeffframe[4:7]
-	colnames(coeffframe)<-c("Estimate","Std. Error","Chi Sq","P Value")
+#' @export
+coefficients.FLLogRegr<-function(object){
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	coeffVector <- coefficients.lmGeneric(object,
+						FLCoeffStats=c(FLCoeffStdErr="STDERR",
+							FLCoeffPValue="PVALUE",
+							FLCoeffChiSq="CHISQ"))
+	assign(parentObject,object,envir=parent.frame())
+	return(coeffVector)
+	}
+
+#' @export
+residuals.FLLogRegr<-function(object)
+{
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	residualsvector <- residuals.FLLinRegr(object)
+	assign(parentObject,object,envir=parent.frame())
+	return(residualsvector)
+}
+
+#' @export
+predict.FLLogRegr <- function(object,
+							newdata=object@table,
+							scoreTable=""){
+	return(predict.lmGeneric(object,newdata=newdata,
+							scoreTable=scoreTable))
+}
+
+#' @export
+summary.FLLogRegr<-function(object){
+	ret <- object$FLLogRegrStats
+	colnames(ret) <- toupper(colnames(ret))
+	vresiduals <- object$residuals
+	sqlstr <- paste0("WITH z (id,val)",
+						" AS(SELECT 1,",
+						 		"a.vectorValueColumn AS deviation",
+						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
+					" SELECT FLMin(z.val),FLMax(z.val),q.*",
+							" FROM (SELECT a.oPercVal as perc
+							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.25) 
+							 	   HASH BY z.id
+							 	   LOCAL ORDER BY z.id) AS a) AS q,z
+								   group by 3")
+	vresult1 <- sqlQuery(getOption("connectionFL"),sqlstr)
+	sqlstr <- paste0("WITH z (id,val)",
+						" AS(SELECT 1,",
+						 		"a.vectorValueColumn AS deviation",
+						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
+					" SELECT q.*",
+							" FROM (SELECT a.oPercVal as perc
+							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.50) 
+							 	   HASH BY z.id
+							 	   LOCAL ORDER BY z.id) AS a) AS q")
+	vresult2 <- sqlQuery(getOption("connectionFL"),sqlstr)
+	sqlstr <- paste0("WITH z (id,val)",
+						" AS(SELECT 1,",
+						 		"a.vectorValueColumn AS deviation",
+						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
+					" SELECT q.*",
+							" FROM (SELECT a.oPercVal as perc
+							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.75) 
+							 	   HASH BY z.id
+							 	   LOCAL ORDER BY z.id) AS a) AS q")
+	vresult3 <- sqlQuery(getOption("connectionFL"),sqlstr)
+	coeffframe <- data.frame(object$coefficients,
+							object$FLCoeffStdErr,
+							object$FLCoeffChiSq,
+							object$FLCoeffPValue)
+	colnames(coeffframe)<-c("Estimate","Std. Error","ChiSquare","Pr(>|t|)")
+
+	residualframe <- data.frame(vresult1[[1]],
+								vresult1[[3]],
+								vresult2[[1]],
+								vresult3[[1]],
+								vresult1[[2]])
+	colnames(residualframe) <- c("Min","1Q","Median","3Q","Max")
+	parentObject <- unlist(strsplit(unlist(strsplit
+		(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	assign(parentObject,object,envir=parent.frame())
+	
 	cat("Call:\n")
-	cat("glm.FLLogRegr(formula = ")
-	cat(paste0(deparse(object@formula),", data = ",object@dataname," family = \"binomial\")\n"))
-	cat("\nDeviance Residuals:\n")
-	print(data$residuals)
+	cat(paste0(object$call),"\n")
+	cat("\nResiduals:\n")
+	print(residualframe)
 	cat("\n\nCoefficients:\n")
 	print(coeffframe)
 	cat("\n---\n")
 	cat("Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1\n")
-
+	print(ret)
+	cat("\n")
 }
 
-predict<-function(object,new,...){
-	UseMethod("predict",object)
+#' @export
+print.FLLogRegr<-function(object){
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	print.FLLinRegr(object)
+	assign(parentObject,object,envir=parent.frame())
 }
 
-predict.FLLogRegr<-function(object,new,type="response"){
-	if(type!="response"){
-		stop("Currently only type=response is supported")
-	}
-	independents <- all.vars(object@formula)[2:length(object@formula)]
-	coeffsum<-c()
-	coeffsum[1:nrow(new)] <- 0
-	coeffs<-coefficients(object)
-	for(i in 1:nrow(new)){
-		coeffsum[i]<-coeffs["INTERCEPT"]
-		for(j in 1:length(independents)){
-			coeffsum[i]<-coeffsum[i] + coeffs[independents[j]]*new[independents[j]][i,1]
-			j<-j+1
-		}
-		i<-i+1
-	}
-	coeffsum
-	return(1/(1+exp(coeffsum*(-1))))
+#' @export
+setMethod("show","FLLogRegr",print.FLLinRegr)
+
+#' @export
+plot.FLLogRegr <- function(object)
+{
+	plot.FLLinRegr(object)
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	assign(parentObject,object,envir=parent.frame())
+}
+
+#' @export
+influence.FLLogRegr <- function(model,...){
+	parentObject <- unlist(strsplit(unlist(strsplit(as.character
+		(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+
+	vresult <- influence.FLLinRegr(model,...)
+	assign(parentObject,model,envir=parent.frame())
+	return(vresult)
+}
+
+#' @export
+lm.influence.FLLogRegr <- function(model,do.coef=TRUE,...){
+	parentObject <- unlist(strsplit(unlist(strsplit(as.character
+		(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	vresult <- lm.influence.FLLinRegr(model,do.coef=do.coef,...)
+	assign(parentObject,model,envir=parent.frame())
+	return(vresult)
 }
