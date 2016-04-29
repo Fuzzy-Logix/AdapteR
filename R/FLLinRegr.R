@@ -32,7 +32,7 @@ setClass(
 				deeptable="FLTable",
 				mapTable="character",
 				scoreTable="character",
-				modelID="numeric",
+				offset="character",
 				vfcalls="character"))
 
 #' @export
@@ -228,6 +228,22 @@ lm.FLTable <- function(formula,data,...)
 #' 			scope=list(),
 #'  		direction = "forward",familytype="logistic")
 #' plot(s)
+#' deeptable2 <- FLTable("FL_DEMO","tblLogRegrMN10000",
+#' 					"ObsID","VarID","Num_Val",whereconditions="ObsID < 7001")
+#' s <- step(deeptable1,
+#' 			scope=list(upper=c("-1","0","1","2","3")),
+#'  		direction = "backward",
+#' 			familytype="multinomial",pRefLevel=1)
+#' s <- step(deeptable1,
+#' 			scope=list(upper=c("1","2","3"),lower=c("2")),
+#'  		direction = "Fbackward",familytype="multinomial",pRefLevel=1)
+#' deeptable2 <- FLTable("FL_DEMO","tblLogRegrMN10000",
+#' 					"ObsID","VarID","Num_Val",
+#'                   whereconditions=c("ObsID < 7001","VarID<5"))
+#' s <- step(deeptable2,
+#'          scope=list(lower=c("2")),
+#'          direction = "UFbackward",familytype = "multinomial",pRefLevel=1)
+#' summary(s)
 #' @export
 step <- function (object,scope,...) {
 	UseMethod("step", object)
@@ -248,9 +264,11 @@ step.FLTable <- function(object, scope, scale = 0,
 	if(!is.list(scope) && !class(scope)=="formula")
 	stop("scope argument must be a list or formula.\n",
 		" empty list accepted for deeptable.\n")
-	if(!familytype %in% c("linear","logistic"))
-	stop("familytype argument must be one of linear or logistic ",
+	if(!familytype %in% c("linear","logistic","multinomial"))
+	stop("familytype argument must be one of linear,logistic or multinomial",
 		"in step.FLTable\n")
+	if(familytype=="multinomial" && direction=="forward")
+	stop("forward not supported in multinomial logistic regr currently")
 	vupperformula <- ""
 	if(class(scope)=="formula")
 	{
@@ -341,22 +359,25 @@ lmGeneric <- function(formula,data,
 						callObject=callObject,
 						familytype=familytype,
 						...)
-	deepx <- prepData[["deepx"]]
-	vmapping <- prepData[["vmapping"]]
-	formula <- prepData[["formula"]]
-	wideToDeepAnalysisId <- prepData[["wideToDeepAnalysisId"]]
-	mapTable <- prepData[["mapTable"]]
-	vspecID <- prepData[["vspecID"]]
-	highestpAllow1 <- prepData[["highestpAllow1"]]
-	highestpAllow2 <- prepData[["highestpAllow2"]]
-	topN <- prepData[["topN"]]
-	stepWiseDecrease <- prepData[["stepWiseDecrease"]]
-	vexclude <- prepData[["vexclude"]]
-	vallVars <- prepData[["vallVars"]]
-	pThreshold <- prepData[["pThreshold"]]
-	eventweight <- prepData[["eventweight"]]
-	noneventweight <- prepData[["noneventweight"]]
-	maxiter <- prepData[["maxiter"]]
+	for(i in names(prepData))
+	assign(i,prepData[[i]])
+	# deepx <- prepData[["deepx"]]
+	# vmapping <- prepData[["vmapping"]]
+	# formula <- prepData[["formula"]]
+	# wideToDeepAnalysisId <- prepData[["wideToDeepAnalysisId"]]
+	# mapTable <- prepData[["mapTable"]]
+	# vspecID <- prepData[["vspecID"]]
+	# highestpAllow1 <- prepData[["highestpAllow1"]]
+	# highestpAllow2 <- prepData[["highestpAllow2"]]
+	# topN <- prepData[["topN"]]
+	# stepWiseDecrease <- prepData[["stepWiseDecrease"]]
+	# vexclude <- prepData[["vexclude"]]
+	# vallVars <- prepData[["vallVars"]]
+	# pThreshold <- prepData[["pThreshold"]]
+	# eventweight <- prepData[["eventweight"]]
+	# noneventweight <- prepData[["noneventweight"]]
+	# maxiter <- prepData[["maxiter"]]
+	# offset <- prepData[["offset"]]
 
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 
@@ -393,6 +414,13 @@ lmGeneric <- function(formula,data,
 		pThreshold <- maxiter
 		maxiter <- vtemp
 	}
+	else if(familytype=="multinomial") vfcalls <- c(functionName="FLLogRegrMN",
+										infotableName="fzzlLogRegrMNInfo",
+										note="logregrMN",
+										coefftablename="fzzlLogRegrMNCoeffs",
+										statstablename="fzzlLogRegrMNStats",
+										valcolnamescoretable="Y",
+										scoretablename="FLLogRegrMNScore")
 
 	functionName <- vfcalls["functionName"]
 	infotableName <- vfcalls["infotableName"]
@@ -405,6 +433,7 @@ lmGeneric <- function(formula,data,
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
 					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
 					 				ifelse(base::grepl("logistic",familytype),paste0(pThreshold,",\n"),""),
 					 				ifelse(familytype %in% "logisticwt",paste0(eventweight,",\n"),""),
@@ -415,7 +444,8 @@ lmGeneric <- function(formula,data,
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
 					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
 					 				vspecID,",\n",
 					 				highestpAllow1,",\n",
@@ -425,7 +455,8 @@ lmGeneric <- function(formula,data,
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
 					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
 					 				vspecID,",\n",
 					 				highestpAllow1,",\n",
@@ -436,7 +467,8 @@ lmGeneric <- function(formula,data,
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
 					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
 					 				vspecID,",\n",
 					 				highestpAllow1,",\n",
@@ -448,7 +480,7 @@ lmGeneric <- function(formula,data,
 					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
 					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
+					 				ifelse(!familytype %in% "linear",paste0(pThreshold,",\n"),""),
 					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
 					 				topN,",\n",
 					 				highestpAllow1,",\n",
@@ -461,9 +493,15 @@ lmGeneric <- function(formula,data,
 
 	##Find the max modelID to avoid joins later.
 	##For forward find best fit model id.
-	if(!direction %in% "forward"){
-	vsqlstr <- paste0("SELECT max(ModelID) from ",statstablename," WHERE AnalysisID=",fquote(AnalysisID))
-	vmaxModelID <- sqlQuery(getOption("connectionFL"),vsqlstr)[1,1]
+	vmaxModelID <- NULL
+	vmaxLevelID <- NULL
+	if(!direction %in% "forward" && familytype!="poisson"){
+	vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
+						ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
+						" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
+	vtemp <- sqlQuery(getOption("connectionFL"),vsqlstr)
+	vmaxModelID <- vtemp[["ModelID"]]
+	vmaxLevelID <- vtemp[["LevelID"]]
 	}
 	
 	if(trace>0 && !direction %in% c("","forward"))
@@ -472,10 +510,12 @@ lmGeneric <- function(formula,data,
 						" FROM ",coefftablename," a,",statstablename," c \n",
 						" WHERE NOT EXISTS(SELECT 1 FROM ",coefftablename," b ",
 							" WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
-							" AND a.coeffid = b.coeffid)\n",
+							" AND a.coeffid = b.coeffid ",ifelse(!is.null(vmaxLevelID),
+							" AND a.LevelID = b.LevelID ",""),")\n",
 						" AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
 						" AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
-						" UNION ALL\n",
+						ifelse(!is.null(vmaxLevelID),paste0(" AND a.LevelID = ",vmaxLevelID),""),
+						" \n UNION ALL\n",
 						" SELECT 0,a.* FROM ",statstablename," a \n",
 						" WHERE a.AnalysisID=",fquote(AnalysisID),
 						" AND a.ModelID=",vmaxModelID,"\n",
@@ -483,13 +523,14 @@ lmGeneric <- function(formula,data,
 		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
 		colnames(d)<-toupper(colnames(d))
 		d[["ANALYSISID"]] <- NULL
-		vdroppedCols <- specID[["exclude"]]
+		vdroppedCols <- c()
+		if(!data@isDeep)vdroppedCols <- specID[["exclude"]]
 		if(nrow(d)>1){
 			for(i in unique(setdiff(d[["MODELID"]],vmaxModelID)))
 			{
 				if(familytype=="linear")
 				cat("Step:    RSQUARED = ",d[d[,"MODELID"]==i,"RSQUARED"][1],"\n")
-				else
+				else if(familytype=="logistic")
 				cat("Step:    Gini Coefficient = ",d[d[,"MODELID"]==i,"GINICOEFF"][1],"\n")
 				#browser()
 				vdropped <- as.numeric(d[d[,"MODELID"]==i,"COEFFID"])
@@ -540,7 +581,8 @@ lmGeneric <- function(formula,data,
 		vmaxModelID <- d[["MODELID"]]
 		if(trace>0) print(d)
 	}
-	return(new(ifelse(familytype=="logisticwt","FLLogRegr",functionName),
+	return(new(ifelse(familytype %in% c("logisticwt","poisson"),
+					"FLLogRegr",functionName),
 				formula=formula,
 				AnalysisID=AnalysisID,
 				wideToDeepAnalysisId=wideToDeepAnalysisId,
@@ -551,7 +593,7 @@ lmGeneric <- function(formula,data,
 				mapTable=mapTable,
 				scoreTable="",
 				vfcalls=vfcalls,
-				modelID=vmaxModelID))
+				offset=as.character(offset)))
 }
 
 prepareData.lmGeneric <- function(formula,data,
@@ -575,7 +617,9 @@ prepareData.lmGeneric <- function(formula,data,
 								noneventweight=1,
 								callObject=NULL,
 								maxiter=25,
-								familytype="linear"){
+								familytype="linear",
+								offset="",
+								pRefLevel=NULL){
 	#browser()
 	if(data@isDeep){
 		vallVars <- colnames(data)
@@ -591,6 +635,9 @@ prepareData.lmGeneric <- function(formula,data,
 	vcolnames <- colnames(data)
 	wideToDeepAnalysisId <- ""
     mapTable <- ""
+
+    if(offset!="" && !toupper(offset) %in% toupper(vcolnames))
+    stop("offset not in colnames of data")
 
     check0To1 <- function(pObject)
     {
@@ -619,10 +666,14 @@ prepareData.lmGeneric <- function(formula,data,
     {
     	check0To1(c(pThreshold=pThreshold))
     	if(familytype %in% "logisticwt"){
-    		check0To1(eventweight=eventweight)
-    		check0To1(noneventweight=noneventweight)
+    		check0To1(c(eventweight=eventweight))
+    		check0To1(c(noneventweight=noneventweight))
     	}
     }
+    if(familytype=="multinomial")
+    if(!is.numeric(pRefLevel))
+    stop("invalid pRefLevel for multinomial family.")
+    else pThreshold <- pRefLevel
     
     if(direction=="UFbackward")
     {
@@ -683,7 +734,20 @@ prepareData.lmGeneric <- function(formula,data,
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					"fzzlRegrDataPrepMap")
-
+		if(familytype=="poisson")
+		{
+			vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
+			vtablename1 <- paste0(data@select@database,".",data@select@table_name)
+			vobsid <- getVariables(data)[["obs_id_colname"]]
+			sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+							" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+							" -2 AS var_id_colname,","\n               ",
+							ifelse(offset!="",offset,1)," AS cell_val_colname","\n        ",
+							" FROM ",vtablename1)
+			t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
+			deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
+		}
+		
 		##Get Mapping Information for specID
 		vmapping <- sqlQuery(getOption("connectionFL"),
 				paste0("SELECT a.Column_name AS colName,\n",
@@ -797,7 +861,8 @@ prepareData.lmGeneric <- function(formula,data,
 				eventweight=eventweight,
 				noneventweight=noneventweight,
 				maxiter=maxiter,
-				pThreshold=pThreshold))
+				pThreshold=pThreshold,
+				offset=offset))
 }
 
 #' @export
@@ -1027,7 +1092,8 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 		coeffVector <- sqlQuery(getOption("connectionFL"),
 			paste0("SELECT * FROM ",vfcalls["coefftablename"],
 				" where AnalysisID=",fquote(object@AnalysisID),
-					" AND ModelID=",object@results[["modelID"]],
+				ifelse(!is.null(object@results[["modelID"]]),
+					paste0(" AND ModelID=",object@results[["modelID"]]),""),
 					" ORDER BY CoeffID"))
 		else
 		coeffVector <- sqlQuery(getOption("connectionFL"),
@@ -1038,7 +1104,8 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 				   " WHERE a.Final_VarID = b.CoeffID \n",
 					" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
 					"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
-					"\n AND b.ModelID = ",object@results[["modelID"]],
+					ifelse(!is.null(object@results[["modelID"]]),
+					paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
 					"\n ORDER BY CoeffID"))
 
 		colnames(coeffVector) <- toupper(colnames(coeffVector))
@@ -1080,7 +1147,8 @@ residuals.FLLinRegr<-function(object)
     	vYVector <- object$y
 		residualsvector <- vYVector - object@results[["fitted.values"]]
 		object@results <- c(object@results,list(residuals=residualsvector))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(
+			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(residualsvector)
 	}
@@ -1163,7 +1231,8 @@ summary.FLLinRegr<-function(object){
 								vresult3[[1]],
 								vresult1[[2]])
 	colnames(residualframe) <- c("Min","1Q","Median","3Q","Max")
-	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	assign(parentObject,object,envir=parent.frame())
 	
 	cat("Call:\n")
@@ -1227,6 +1296,19 @@ predict.lmGeneric <- function(object,
 								whereconditions="",
 								inAnalysisID=object@wideToDeepAnalysisId)
 		newdata <- deepx[["table"]]
+
+		if(object@vfcalls["functionName"]=="FLPoissonRegr"){
+			vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
+			vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vobsid <- getVariables(object@table)[["obs_id_colname"]]
+			sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+							" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+							" -2 AS var_id_colname,\n",
+							ifelse(object@offset!="",object@offset,1)," AS cell_val_colname","\n        ",
+							" FROM ",vtablename1)
+			t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
+			newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
+		}
 	}
 	vtable <- paste0(newdata@select@database,".",newdata@select@table_name)
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
@@ -1237,7 +1319,8 @@ predict.lmGeneric <- function(object,
 							 fquote(vobsid),",\n",
 							 fquote(vvarid),",\n",
 							 fquote(vvalue),",\n",
-							 "NULL,\n",
+							 ifelse(object@vfcalls["functionName"]=="FLPoissonRegr",
+							 "",paste0("NULL,\n")),
 							 fquote(object@AnalysisID),",\n",
 							 fquote(scoreTable),",\n",
 							 fquote(genNote(paste0("Scoring ",vfcalls["note"]))),
