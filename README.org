@@ -1,0 +1,34 @@
+# Created 2016-05-05 Do 11:16
+#+TITLE: AdapteR installation and testing instructions
+#+AUTHOR: Gregor Kappler
+Fuzzy Logix's new R package AdapteR enables the R syntax to consume DB Lytix™ in-database analytics by generating SQL transparently, and replacing R matrix and data frame data structures with remote table objects.
+
+* What is AdapteR?
+With Fuzzy Logix' DB Lytix™, advanced analytics can realize dramatic improvements in performance by moving computation from client machines into data warehouses and clusters where big data lives. 
+As important as performance and scalability is the way in which the end user interacts with the analytics, and the R language has become most pervasive in this area. R is remarkably expressive and flexible, allowing for fast
+prototyping and evaluation, enabling agile analytics. 
+Fuzzy Logix's new R package AdapteR enables the R syntax to consume DB Lytix™ in-database analytics by generating SQL transparently, and replacing R matrix and data frame data structures with remote table objects. AdapteR uses R's class system and method override to
+seamlessly leverage in-database analytics, without requiring complicated R server installations or writing
+custom SQL. 
+AdapteR can be used to build interactive analytics at scale with just a few lines of R code!
+
+* Requirements
+- AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
+
+  Find more information on [[http://www.fuzzylogix.com]].
+
+- Install prerequisite teradataR
+  #+BEGIN_SRC R
+  install.packages("devtools")
+  require(devtools)
+  install_github("Teradata/teradataR")
+  #+END_SRC
+
+* Installation instructions
+Install (or update) the package 
+#+BEGIN_SRC R
+# install.packages("devtools")
+# require(devtools)
+install_github("Fuzzy-Logix/AdapteR")
+#+END_SRC
+(The package does not depend on either JDBC or ODBC but uses either you provide at runtime.  You savely can ignore warnings about xDBC.)
