@@ -4,7 +4,6 @@
 ## SQL as low-level language makes analyses
 ## consumable from all SQL-enabled clients.
 
-
 ## This demo shows how the 
 ## AdapteR package of Fuzzy Logix is
 ## easing interaction with the DB Lytix(TM) in-database
@@ -40,6 +39,12 @@ if(!exists("connection")){
 }
  
 
+
+## SQL construction
+## with this option each R command that uses DBLytix will log
+## the SQL sent to Teradata.
+## Such a dump can in many cases be used as a pure-sql script!
+options(debugSQL=TRUE)
 
 ## SQL construction
 ## with this option each R command that uses DBLytix will log
