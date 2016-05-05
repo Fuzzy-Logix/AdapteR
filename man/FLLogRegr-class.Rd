@@ -3,30 +3,32 @@
 \docType{class}
 \name{FLLogRegr-class}
 \alias{FLLogRegr-class}
-\title{An S4 class to represent FLLogRegr}
-\arguments{
-\item{object}{contains: call,coefficients}
-
-\item{object}{a named vector of coefficients}
-
-\item{object}{contains: call,residuals,coefficients,significant codes note and statistical output.}
-}
+\title{An S4 class to represent FLLinRegr}
 \description{
-An S4 class to represent FLLogRegr
+An S4 class to represent FLLinRegr
 }
 \section{Slots}{
 
 \describe{
-\item{\code{formula}}{an object of class 'formula': Model Formulae}
+\item{\code{formula}}{an object of class 'formula': Model Formula}
 
-\item{\code{table_name}}{A character}
-
-\item{\code{deeptablename}}{A character vector containing name of the deeptable on conversion from a widetable}
+\item{\code{deeptable}}{A character vector containing 
+the deeptable on conversion from a widetable}
 
 \item{\code{AnalysisID}}{An output character ID from CALL FLLogRegr}
 
-\item{\code{dataprepID}}{An output character ID from CALL FLRegrDataPrep}
+\item{\code{wideToDeepAnalysisID}}{An output character ID from FLRegrDataPrep}
 
-\item{\code{datatable}}{An object of class FLTable}
+\item{\code{mapTable}}{name of the mapping table}
+
+\item{\code{scoreTable}}{name of the scoring table}
+
+\item{\code{modelID}}{id of the model with best fit}
+
+\item{\code{table}}{input FLTable object}
+
+\item{\code{results}}{cache list of results computed}
+
+\item{\code{vfcalls}}{contains names of tables}
 }}
 
