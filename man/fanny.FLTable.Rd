@@ -70,7 +70,7 @@ from analysis by default.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable(connection, "FL_DEMO", "iris", "rownames")
+widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 fkmeansobject <- fanny(widetable,2,memb.exp=2)
 print(fkmeansobject)
 plot(fkmeansobject)
