@@ -25,6 +25,7 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 #' @export
 as.vector.FLVector <- function(object,mode="any")
 {
+  #browser()
     vprev1 <- getOption("stringsAsFactors")
     vprev2 <- getOption("warn")
     options(stringsAsFactors=FALSE)
@@ -93,7 +94,8 @@ as.data.frame.FLVector <- function(x, ...){
     vrownames <- rownames(x)
     vcolnames <- colnames(x)
     # if(ncol(x)<=1 && !(!x@isDeep && nrow(x)==1 && ncol(x)==1))
-    if(ncol(x)<=1 && class(x@select)!="FLTableFunctionQuery")
+    #if(ncol(x)<=1 && class(x@select)!="FLTableFunctionQuery")
+    if(ncol(x)<=1)
     {
       if(is.character(rownames(x)) && !all(rownames(x)==1:length(rownames(x))))
       vrownames<-1:length(rownames(x))
@@ -394,7 +396,7 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
-    ##browser()
+    #browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
       error=function(e){stop(e)})
@@ -619,9 +621,9 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                 "FLSelectFrom",
                 connection = connection, 
                 database = getOption("ResultDatabaseFL"), 
-                table_name = tablename,
+                table_name = c(flt=tablename),
                 variables = list(
-                        obs_id_colname = "vectorIndexColumn"),
+                        obs_id_colname = "flt.vectorIndexColumn"),
                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",
                   tablename,".vectorIdColumn = ",VID),
                 order = "")

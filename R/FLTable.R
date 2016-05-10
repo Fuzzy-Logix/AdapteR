@@ -34,6 +34,21 @@ FLTable <- function(database,
                     connection=NULL)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
+
+    ## If alias already exists, change it to flt.
+    if(length(names(table))>0)
+    oldalias <- names(table)[1]
+    else oldalias <- ""
+    var_id_colnames <- changeAlias(var_id_colnames,"flt",oldalias)
+    obs_id_colname <- changeAlias(obs_id_colname,"flt",oldalias)
+    cell_val_colname <- changeAlias(cell_val_colname,"flt",oldalias)
+    whereconditions <- changeAlias(whereconditions,
+                                  "flt",
+                                  c(paste0(database,".",table),
+                                    paste0(table),
+                                    paste0(database,".",oldalias),
+                                    oldalias))
+    names(table) <- "flt"
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- sort(sqlQuery(connection,
@@ -113,6 +128,45 @@ rownames.FLTable <- function(object) object@dimnames[[1]]
 #' @export
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 
+#' @export
+`$.FLTable` <- function(object,property){
+  #browser()
+  vcolnames <- colnames(object)
+  property <- property[1]
+  if(!is.character(property))
+  return(NULL)
+  if(property %in% colnames(object))
+  return(object[,as.character(property)])
+  else return(NULL)
+}
+
+#' @export
+`[[.FLTable` <- function(object,property,...){
+  #browser()
+  if(is.character(property))
+  return(do.call("$",list(object,property)))
+  else if(is.numeric(property) || as.integer(property))
+  {
+    vcolnames <- colnames(object)
+    property <- as.integer(property)
+    if(length(property)==1){
+      vtemp <- as.character(vcolnames[property])
+      return(do.call("$",list(object,vtemp)))
+    }
+    else{
+      vtemp <- object[[property[1]]]
+      property <- property[-1]
+      for(i in 1:length(property)){
+        tryCatch(vtemp <- vtemp[property[i]],
+                 error=function(e)
+                   stop("error in recursive subsetting at level",i+1))
+      }
+      return(vtemp)
+    }
+  }
+  else return(NULL)
+}
+
 #' Convert Wide Table to Deep Table in database.
 #'
 #' @param object FLTable object
@@ -162,6 +216,7 @@ setMethod("wideToDeep",
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
+            object <- setAlias(object,"")
             if(outDeepTableName == "")
             deeptablename <- gen_deep_table_name(object@select@table_name)
             #deeptablename <- genRandVarName()
@@ -311,7 +366,7 @@ setMethod("deepToWide",
           {
             if(!object@isDeep) return(list(table=object))
             connection <- getConnection(object)
-            
+            object <- setAlias(object,"")
             if(outWideTableDatabase=="")
             outWideTableDatabase <- getOption("ResultDatabaseFL")
             if(mapTable=="" || mapTable=="NULL"){
@@ -443,6 +498,7 @@ setMethod("FLRegrDataPrep",
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
+            object <- setAlias(object,"")
             if(outDeepTableName == "")
             deeptablename <- gen_deep_table_name(object@select@table_name)
             #deeptablename <- genRandVarName()
