@@ -1,4 +1,4 @@
-*.Rhistory
-*.Rproj
-*.Rbuildignore
-.Rproj.user/
+.Rproj.user
+.Rhistory
+.RData
+*~

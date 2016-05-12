@@ -1,72 +1,131 @@
 #' @include utilities.R
 #' @include FLMatrix.R
+#' @include FLVector.R
+#' @include FLPrint.R
+#' @include FLIs.R
+#' @include FLDims.R
 NULL
 
-#' Eigen decomposition of a matrix
+#' Spectral Decomposition of a Matrix.
 #'
-#' Calculates the eigenvalues and eigenvectors of a square matrix (n x n).
+#' \code{eigen} Computes eigenvalues and eigenvectors of FLMatrices.
+#'
+#' @param object is of class FLMatrix
+#' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be a square matrix (n x n) with maximum dimension limitations
-#' of (700 x 700). The current FLEigen can only calculate real eigenvalues. If
-#' the input matrix is not symmetric, it is suggested to verify the output
-#' values.
-#' @param matrix an object of class FLMatrix.
-#' @return \code{FLEigen} returns a list. The list has two components of class
-#' \code{FLMatrix}: \code{vectors} and \code{values}. \code{"vectors"} is mapped
-#' to a matrix containing the eigen vectors of the input matrix. \code{"values"}
-#' is mapped to a diagonal matrix whose diagonal elements are the eigen values
-#' of the input matrix.
+#' of (1000 x 1000).
+#' Complex Eigen values and vectors are not Supported.
+#' @return \code{eigen} returns a list of FLMatrix object containing the eigen vectors and
+#' a FLVector object containing eigen values which replicates the equivalent R output.
 #' @examples
-#' \dontrun{
-#' connection      <- odbcConnect("Gandalf")
-#' database        <- "FL_R_WRAP"
-#' matrix_table    <- "tblMatrixMulti"
-#' matrix_id_value <- 5
-#' in_matrix       <- FLMatrix(connection, database, matrix_table, matrix_id_value,
-#'                    matrix_id = "Matrix_ID", row_id = "Row_ID", column_id = "Col_ID",
-#'                    cell_value = "Cell_Val")
-#' out_eigen       <- FLEigen(in_matrix)
-#' }
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultList <- eigen(flmatrix)
+#' resultList$values
+#' resultList$vectors
 #' @export
-FLEigen <- function(matrix)  
-{	
-	if(class(matrix) != "FLMatrix")
-		stop("Argument Type Mismatch: matrix must be an FLMatrix object")
-	matrixTable   <- matrix@matrix_table
-	matrixValue <- toString(matrix@matrix_id_value)
-	connection    <- matrix@ODBC_connection
-	outTable      <- gen_out_matrix_table("FLEigenVectors",matrixTable, matrixValue)
-	sqlParameters <- list(	matrixID      = matrix@matrix_id,
-							matrixValue   = matrixValue,
-							rowID         = matrix@row_id,
-							columnID      = matrix@column_id,
-							cellValue     = matrix@cell_value,
-							matrixTable   = matrixTable,
-							outTable      = outTable )
-	run_sql(connection, "FLEigenVectorUdt.sql", sqlParameters)
-	retData <- list()
-	retData$vectors = new(	"FLMatrix", 
-							ODBC_connection = connection,
-							database        = matrix@database, 
-							matrix_table    = outTable, 
-							matrix_id_value = matrix@matrix_id_value, 
-							matrix_id       = "OutputMatrixID", 
-							row_id          = "OutputRowNum", 
-							column_id       = "OutputColNum", 
-							cell_value      = "OutputVal")
+eigen<-function(object, ...)
+{
+	UseMethod("eigen", object)
+}
 
-	outTable 		<- gen_out_matrix_table("FLEigenValues",matrixTable, matrixValue)		
-	sqlParameters$outTable <- outTable
-	run_sql(connection, "FLEigenValueUdt.sql", sqlParameters)
-	retData$values = new(	"FLMatrix", 
-							ODBC_connection = connection,
-							database        = matrix@database, 
-							matrix_table    = outTable, 
-							matrix_id_value = matrix@matrix_id_value, 
-							matrix_id       = "OutputMatrixID", 
-							row_id          = "OutputRowNum", 
-							column_id       = "OutputColNum", 
-							cell_value      = "OutputVal")
-		
-	return(retData)
+#' @export
+eigen.default<-base::eigen
+#' @export
+eigen.FLMatrix<-function(object,...)
+{
+	# if(nrow(object) != ncol(object)) 
+	# { 
+	# 	stop("eigen function applicable on square matrix only") 
+	# }
+	# checkSquare(object)
+	# checkSingular(object)
+    connection<-getConnection(object)
+    retobj <- list(values = FLEigenValues(object),
+                   vectors = FLEigenVectors(object))
+    retobj
+}
+
+#' @export
+FLEigenValues<-function(object,...)
+{
+	UseMethod("FLEigenValues", object)
+}
+
+#' @export
+FLEigenValues.FLMatrix<-function(object,...)
+{
+	
+	connection<-getConnection(object)
+	flag3Check(connection)
+
+	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
+                   outputSelectMatrix("FLEigenValueUdt",viewName="z",
+                   	                  localName="a",
+                                      includeMID=FALSE,
+                                      outColNames=list(vectorIdColumn="'%insertIDhere%'",
+                                                      vectorIndexColumn="OutputRowNum",
+                                                      vectorValueColumn="OutputVal"),
+                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;",
+                   	vconnection=connection)
+                   )
+	
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        connection = connection,
+                        variables = list(
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+	flv <- new("FLVector",
+				select = tblfunqueryobj,
+				dimnames = list(1:nrow(object),
+								"vectorValueColumn"),
+				isDeep = FALSE)
+
+	return(ensureQuerySize(pResult=flv,
+	            pInput=list(object),
+	            pOperator="FLEigenValues",
+	            pStoreResult=TRUE))
+}
+
+#' @export
+FLEigenVectors<-function(object,...)
+{
+	UseMethod("FLEigenVectors", object)
+}
+
+#' @export
+FLEigenVectors.FLMatrix<-function(object,...)
+{
+	connection<-getConnection(object)
+	flag1Check(connection)
+
+	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
+                    outputSelectMatrix("FLEigenVectorUdt",viewName="z",localName="a",includeMID=TRUE,
+                    	vconnection=connection)
+                   )
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                        connection = connection,
+                        variables=list(
+                            rowIdColumn="OutputRowNum",
+                            colIdColumn="OutputColNum",
+                            valueColumn="OutputVal"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+  	flm <- new("FLMatrix",
+            select= tblfunqueryobj,
+            dimnames=dimnames(object))
+
+  	return(ensureQuerySize(pResult=flm,
+            pInput=list(object),
+            pOperator="FLEigenVectors",
+            pStoreResult=TRUE))
 }

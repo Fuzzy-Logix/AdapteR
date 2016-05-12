@@ -1,1 +1,0 @@
-CALL FLAnova2Way('%tableName', '%response', '%variable1', '%variable2', NULL, NULL, 1, ResultTable)

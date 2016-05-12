@@ -1,1 +1,0 @@
-CALL FLLogRegrSW( '%deepTableName', '%obsID', '%varID', '%value', %threshold, %maxIter, %topN, %pAllow, '%note', AnalysisID)

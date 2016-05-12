@@ -1,1 +1,0 @@
-CALL FLLinRegrSW( '%deepTableName', '%obsID', '%varID', '%value', '%topN', '%pAllow', '%note', AnalysisID)

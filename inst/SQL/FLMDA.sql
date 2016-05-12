@@ -1,1 +1,0 @@
-CALL FLMDA('%deepTableName', '%obsID', '%varID', '%value', '%whereClause', %subclasses, %maxIter, %initialization, %hypotheses, '%note', AnalysisID)

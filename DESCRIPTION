@@ -1,50 +1,117 @@
-Package: RLytix
-Title: Wrapper functions for Fuzzy Logix's DB Lytix(TM) suite
-Version: 0.0.0.9000
-Authors@R: "Mitul Mundra <Mitul.Mundra@fuzzyl.com> [aut, cre], Rohit Gupta
-    <Rohit.Gupta@fuzzyl.com> [aut]"
-Description: The DB Lytix(TM) suite of functions offers scalable and robust high
-    performance analytical methods that are embedded seamlessly into database
-    systems. Package RLytix makes it possible to use this functionality from R
-    by providing wrapper functions around the SQL interface of DB Lytix(TM).
+Package: AdapteR
+Title: This package wraps around Fuzzy Logix's DBLytix functions
+Version: 2.0
+Authors@R: c(
+    person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
+    person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
+    person("Rushil", "Nagda", email = "rushil9292@gmail.com", role = c("ctb")),
+    person("Suryavamshig", "Iitr", email = "suryavamshig.iitr@gmail.com", role = c("ctb")),
+    person("Mitul", "Mundra", email = "Mitul.Mundra@fuzzylogix.com", role = c("ctb")),
+    person("Rohit", "Gupta", email = "Rohit.Gupta@fuzzylogix.com", role = c("ctb")))
+Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
+    dramatic improvements in performance by moving computation from client machines
+    into data warehouses and clusters where big data lives. As important as
+    performance and scalability is the way in which the end user interacts with
+    the analytics, and the R language has become most pervasive in this area.
+    R is remarkably expressive and flexible, allowing for fast prototyping and
+    evaluation, enabling agile analytics. Fuzzy Logix's new R package AdapteR
+    enables the R syntax to consume DB Lytix in-database analytics by generating
+    SQL transparently, and replacing R matrix and data frame data structures with
+    remote table objects. AdapteR uses R's class system and method override to
+    seamlessly leverage in-database analytics, without requiring complicated R
+    server installations or writing custom SQL. In this session, we will demonstrate
+    how AdapteR can be used to build interactive analytics at scale with just a few
+    lines of R code!
 Depends:
-    R (>= 3.1.1),
-    RODBC (>= 1.3-10),
-    methods
+    R (>= 3.1.0),
+    plyr,
+    MASS (>= 7.3-10),
+    Matrix (>= 1.1-5),
+    base,
+    stats,
+    psych,
+    reshape2,
+    cluster,
+    methods,
+    DBI,
+    testthat,
+    survival,
+    mgcv
+Imports:
+    plyr,
+    MASS (>= 7.3-10),
+    Matrix (>= 1.1-5),
+    base,
+    stats,
+    psych,
+    reshape2,
+    cluster,
+    methods,
+    DBI,
+    testthat,
+    mgcv
 License: GPL-2
 LazyData: true
-Suggests:
-    knitr
-VignetteBuilder: knitr
 Collate:
+    'FLStore.R'
     'utilities.R'
-    'FLAncova.R'
-    'FLAnova1Way.R'
-    'FLAnova2Way.R'
     'FLMatrix.R'
-    'FLCholeskyDecomp.R'
-    'data_prep.R'
-    'FLFetch.R'
-    'FLDecisionTree.R'
-    'FLEigen.R'
-    'FLFetchTable.R'
-    'FLFitDistribution.R'
-    'FLInsertMatrix.R'
-    'FLKMeans.R'
-    'FLLDA.R'
-    'FLLUDecomp.R'
-    'FLLinRegr.R'
-    'FLLinRegrStep.R'
-    'FLLogRegr.R'
-    'FLLogRegrStep.R'
-    'FLMDA.R'
-    'FLMatchIt.R'
-    'FLMatrixInv.R'
-    'FLNaiveBayes.R'
     'FLTable.R'
-    'FLPredict.R'
-    'FLSVD.R'
-    'FLVIF.R'
-    'FLtTest.R'
-    'FLzTest.R'
-    'RLytix.R'
+    'FLVector.R'
+    'FLAggClustering.R'
+    'FLDims.R'
+    'FLIs.R'
+    'FLPrint.R'
+    'FLCApply.R'
+    'FLCastFunctions.R'
+    'FLCbind.R'
+    'FLCholeskyDecomp.R'
+    'FLColMeans.R'
+    'FLColSums.R'
+    'FLCorrel.R'
+    'data_prep.R'
+    'FLCoxph.R'
+    'FLDet.R'
+    'FLDiag.R'
+    'FLEigen.R'
+    'FLExpLog.R'
+    'FLFKMeans.R'
+    'FLGAM.R'
+    'FLGinv.R'
+    'FLHClust.R'
+    'FLHKMeans.R'
+    'FLHeadTail.R'
+    'FLHessenDecomp.R'
+    'FLIdentical.R'
+    'FLJordanDecomp.R'
+    'FLKMeans.R'
+    'FLKMedoids.R'
+    'FLLUDecomp.R'
+    'FLLength.R'
+    'FLLinRegr.R'
+    'FLLogRegr.R'
+    'FLLogRegrMN.R'
+    'FLMatrixArithmetic.R'
+    'FLconstructSQL.R'
+    'FLMatrixBind.R'
+    'FLMatrixClasses.R'
+    'FLMatrixNorm.R'
+    'FLMatrixREF.R'
+    'FLMatrixRREF.R'
+    'FLQRDecomp.R'
+    'FLRankMatrix.R'
+    'FLRbind.R'
+    'FLRowMeans.R'
+    'FLRowSums.R'
+    'FLSV.R'
+    'FLSVDecomp.R'
+    'FLSolve.R'
+    'FLSolveExcl.R'
+    'FLStringFunctions.R'
+    'FLSubsetting.R'
+    'FLTrace.R'
+    'FLTranspose.R'
+    'FLTriDiag.R'
+    'FLVarCluster.R'
+    'FLtestLib.R'
+RoxygenNote: 5.0.1
