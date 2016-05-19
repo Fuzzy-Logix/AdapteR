@@ -507,6 +507,7 @@ changeAlias <- function(object,newalias,oldalias){
   if(!length(object)>0) return(object)
   if(length(newalias)>0 && newalias!="") 
   newalias <- paste0(newalias,".")
+  else newalias <- ""
   for(i in oldalias){
     if(grepl(i,object)){
       if(i=="") i<- "[^ ]*"
@@ -528,6 +529,8 @@ setAlias <- function(object,newalias){
   if(isAliasSet(object))
   oldalias <- names(object@select@table_name)
   else oldalias <- ""
+  if(newalias=="" ||is.null(newalias))
+  newalias <- NULL
   names(object@select@table_name) <- newalias
   variables <- lapply(getVariables(object),
               function(x)changeAlias(x,newalias,oldalias))

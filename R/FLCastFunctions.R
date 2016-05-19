@@ -209,13 +209,15 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
     ##browser()
     if(!is.logical(sparse)) stop("sparse must be logical")
     if(is.null(connection)) connection <- getConnection(object)
-    ##print(connection)
-    if((is.matrix(object) && !is.numeric(object)) || (is.data.frame(object) && !is.numeric(as.matrix(object))))
-    {
-        stop("ERROR: ONLY NUMERIC ENTRIES ALLOWED IN FLMATRIX")
-    }
-    else
-    {
+    options(warn=-1)
+    if(is.integer(as.vector(as.matrix(object))))
+    tablename <- getOption("ResultIntMatrixTableFL")
+    else if(is.numeric(as.vector(as.matrix(object))))
+    tablename <- getOption("ResultMatrixTableFL")
+    else if(is.character(as.vector(as.matrix(object))))
+    tablename <- getOption("ResultCharMatrixTableFL")
+    else stop("only integer,numeric and character type matrices allowed in as.FLMatrix\n")
+    
         mwide <- Matrix::Matrix(object, sparse=TRUE)
         if(class(mwide)=="dsCMatrix")
         mwide <- as(mwide,"dgTMatrix")
@@ -267,7 +269,8 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
           mdeep <- base::cbind(MATRIX_ID=as.integer(MID),mdeep)
           mdeep <- as.data.frame(mdeep)
           colnames(mdeep) <- c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
-          t <- as.FLTable.data.frame(mdeep,connection,getOption("ResultMatrixTableFL"),1,drop=FALSE)
+          t <- as.FLTable.data.frame(mdeep,connection,
+            getOption("ResultMatrixTableFL"),1,drop=FALSE)
         }
         mydimnames <- dimnames(object)
         mydims <- dim(object)
@@ -297,7 +300,6 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
             cell_val_colname = "valueColumn",
             dim = mydims,
             dimnames = mydimnames))
-    }
 }
 
 #' Casting to FLMatrix
@@ -430,7 +432,8 @@ as.sparseMatrix.FLMatrix <- function(object) {
 }
 
 #' @export
-as.FLMatrix.FLVector <- function(object,sparse=TRUE,rows=length(object),cols=1,connection=NULL)
+as.FLMatrix.FLVector <- function(object,sparse=TRUE,
+                rows=length(object),cols=1,connection=NULL)
 {
   if(is.null(connection)) connection <- getConnection(object)
   ##Get names of vector
@@ -586,17 +589,21 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 as.FLVector.vector <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
-  if(is.numeric(object))
-  {
-    VID <- getMaxVectorId(connection)
+  oldOption <- getOption("warn")
+  options(warn=-1)
+  if(!any(is.na(as.integer(object))) && 
+    all(as.integer(object)==object)){
+    tablename <- getOption("ResultIntVectorTableFL")
+    object <- as.integer(object)
+  }
+  else if(is.numeric(object))
     tablename <- getOption("ResultVectorTableFL")
-  }
   else if(is.character(object))
-  {
-    VID <- getMaxCharVectorId(connection)
     tablename <- getOption("ResultCharVectorTableFL")
-  }
-  else stop("only numeric and character vectors supported in as.FLVector")
+  else stop("only numeric,integer and character vectors supported in as.FLVector")
+
+  options(warn=oldOption)
+  VID <- getMaxVectorId(connection,tablename)
 
   if(class(connection)=="RODBC")
   {
@@ -604,7 +611,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
            getRemoteTableName(getOption("ResultDatabaseFL"),tablename),
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
-                     ifelse(is.character(object),fquote(object[x]),object[x])," AS vectorValueColumn;"
+                     ifelse(is.character(object),fquote(object[x]),object[x]),
+                     " AS vectorValueColumn;"
                    ))
     retobj<-sqlSendUpdate(connection,
                               paste(sqlstr,
@@ -694,7 +702,8 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
                    getOption("ResultDatabaseFL"),
                    getOption("ResultVectorTableFL"),
                    "vectorIndexColumn",
-                   whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
+                   whereconditions=paste0(getOption("ResultDatabaseFL"),
+                    ".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
                   )
 
     return(table[,"vectorValueColumn"])
@@ -756,7 +765,8 @@ as.FLTable.data.frame <- function(object,
     vcolnames <- c(vcolnames,class(object[[i]]))
     names(vcolnames) <- colnames(object)
     # Changing any factors to characters
-    object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),2,as.character)
+    object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),
+                                    2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
     names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=TRUE)
@@ -771,7 +781,8 @@ as.FLTable.data.frame <- function(object,
     if(drop)
     {
       if(RJDBC::dbExistsTable(connection,tableName))
-      t<-sqlSendUpdate(connection,paste0("drop table ",getOption("ResultDatabaseFL"),".",tableName,";"))
+      t<-sqlSendUpdate(connection,paste0("drop table ",
+                    getOption("ResultDatabaseFL"),".",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
@@ -781,7 +792,8 @@ as.FLTable.data.frame <- function(object,
     }
     
     .jcall(connection@jc,"V","setAutoCommit",FALSE)
-    sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
+    sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",
+                tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
     ps = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
     myinsert <- function(namedvector,x){
                   vsetvector <- c()

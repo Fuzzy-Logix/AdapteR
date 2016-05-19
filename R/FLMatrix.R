@@ -359,6 +359,14 @@ FLamendDimnames <- function(flm,map_table) {
     if(length(colnames)==0)
         colnames <- sort(sqlQuery(connection, selectUnique("colIdColumn"))$V)
 
+        vstringdimnames <- lapply(list(rownames,colnames),
+                                  function(x){
+                                      if(is.factor(x))
+                                      as.character(x)
+                                      else x
+                                  })
+        rownames <- vstringdimnames[[1]]
+        colnames <- vstringdimnames[[2]]
     if(all(flm@dim==0))
         flm@dim <- c(length(rownames),length(colnames))
     

@@ -62,6 +62,16 @@ FLTable <- function(database,
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
 
+        ##change factors to strings
+        vstringdimnames <- lapply(list(rows,cols),
+                                  function(x){
+                                      if(is.factor(x))
+                                      as.character(x)
+                                      else x
+                                  })
+        rows <- vstringdimnames[[1]]
+        cols <- vstringdimnames[[2]]
+
         select <- new(
         "FLSelectFrom",
         connection = connection, 
@@ -91,6 +101,17 @@ FLTable <- function(database,
                           " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
+
+        ##change factors to strings
+        vstringdimnames <- lapply(list(rows,cols),
+                                  function(x){
+                                      if(is.factor(x))
+                                      as.character(x)
+                                      else x
+                                  })
+        rows <- vstringdimnames[[1]]
+        cols <- vstringdimnames[[2]]
+        
         if(length(var_id_colnames)==0)
             var_id_colnames <- cols
         if(length(setdiff(var_id_colnames,cols)))
