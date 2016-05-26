@@ -96,7 +96,7 @@ glm.FLTable <- function(formula,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
-
+		deepx <- setAlias(deepx,"")
 		vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
 		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 		vobsid <- getVariables(data)[["obs_id_colname"]]
@@ -132,6 +132,7 @@ glm.FLTable <- function(formula,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 	else
@@ -149,6 +150,7 @@ glm.FLTable <- function(formula,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 
@@ -184,6 +186,7 @@ predict.FLPoissonRegr <- function(object,
 								newdata=object@table,
 								scoreTable=""){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
+	newdata <- setAlias(newdata,"")
 	vinputTable <- paste0(newdata@select@database,".",newdata@select@table_name)
 
 	if(scoreTable=="")
