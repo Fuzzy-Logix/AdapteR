@@ -28,21 +28,24 @@ setClass(
 	slots=list(
 		columnName = "character"))
 
-## change to S3
-##spaces instead of tabs
-## get tortoise git running
-## look at line endings
-as.FLAbstractCol <- function(object,indexCol=FALSE){
-	if(class(object)=="FLAbstractColumn")
-		return(object)
-	if(is.FLVector(object))
-		if(!indexCol)
-			vcolnames <- "vectorValueColumn"
-		else vcolnames <- c("vectorIndexColumn",
-							"vectorValueColumn")
+as.FLAbstractCol <- function(object,indexCol=FALSE)
+{
+    UseMethod("as.FLAbstractCol", object)
+}
+
+as.FLAbstractCol.FLAbstractColumn <- function(object,indexCol=FALSE){
+	return(object)
+}
+
+as.FLAbstractCol.FLVector <- function(object,indexCol=FALSE){
+	if(!indexCol)
+		vcolnames <- "vectorValueColumn"
+	else vcolnames <- c("vectorIndexColumn",
+						"vectorValueColumn")
 	return(new("FLAbstractColumn",
 				columnName=vcolnames))
 }
+
 genScalarFunCall <- function(object,func){
     sqlstr <- paste0(" SELECT ",func(as.FLAbstractCol(object)),
                      "\n FROM(",constructSelect(object),") AS a")

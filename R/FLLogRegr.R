@@ -123,6 +123,7 @@ glm.FLTable <- function(formula,
 						...)
 {
 	vcallObject <- match.call()
+	data <- setAlias(data,"")
 	if(is.character(family)){
 		if(!family%in%c("poisson","binomial","multinomial","logisticwt"))
 		stop("only poisson,binomial and multinomial are currently supported in glm\n")
