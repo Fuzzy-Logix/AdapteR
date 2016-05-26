@@ -234,4 +234,83 @@ expect_equal_Matrix <- function(a,b,desc="",debug=TRUE){
     })
 }
 
+expect_equal_RVector_FLVector <- function(a){
+    # browser()
+    debugOld <- getOption("debugSQL")
+    options(debugSQL=FALSE)
+    b <- as.FLVector(a)
+    options(debugSQL=debugOld)
+    expect_equal_Vector(a,b,
+                        "cast Vector equal")
+
+    test_Vector_Subsetting(a,b,"as.FLVector")
+    if(!is.null(names(a)))
+    test_Vector_Subsetting(a,b,"as.FLVector",index=FALSE)
+}
+
+##' tests vector subsetting by names and by index recursively.
+##' 
+##' @param a 
+##' @param b 
+##' @param desc 
+##' @author  Gregor Kappler <g.kappler@@gmx.net>
+##' @export
+test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
+    if(length(a)<3) return()
+    len <- length(a)-2
+    if(index){
+      leni <- sample(1:length(a),len)
+      cat("index is ... ",leni,"\n")
+      asel <- a[leni]
+      bsel <- b[leni]
+      expect_equal_Vector(asel,bsel,
+                          paste0(
+                              "subset by index of ",
+                              desc))
+      ## recursively test!
+      test_Vector_Subsetting(asel,bsel,
+                            paste0(
+                              "indexed subset of ",
+                              desc))
+    }
+    else{
+      leni <- sample(names(a),len)
+      cat("index is ... ",leni,"\n")
+      asel <- a[leni]
+      bsel <- b[leni]
+      expect_equal_Vector(asel,bsel,
+                          paste0(
+                              "subset by names of ",
+                              desc))
+      ## recursively test!
+      test_Vector_Subsetting(asel,bsel,
+                          paste0(
+                              "named subset of ",
+                              desc))
+    }
+}
+
+##' @export
+expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
+    if(debug==TRUE){
+        cat("\n-------------- ",desc,"\nR vector Object:\n")
+        print(a)
+        cat("\nFLVector Object:\n")
+        print(b)
+    }
+    stripNames <- function(x) {
+        if(is.null(x)) return(NULL)
+        if(is.numeric(x) & all(x==as.numeric(names(x))))
+            x <- NULL
+        else 
+            names(x) <- NULL
+        if(is.list(x)) x <- llply(x,stripNames)
+        ##if(is.null(unlist(x))) x <- NULL
+        x
+    }
+    test_that(desc,{
+        testthat::expect_equal(names(a),stripNames(names(b)))
+        testthat::expect_equal(a,as.vector(b))
+    })
+}
 
