@@ -1,3 +1,5 @@
+#' @include utilities.R
+
 #' @export
 setGeneric("FLexpect_equal",
            function(object,expected,...)
@@ -63,18 +65,18 @@ expect_flequal <- function(a,b,...){
 initF.FLVector <- function(n,isRowVec=FALSE)
 {
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE FL_DEMO.test_vectortable_AdapteR;"),
-                        paste0("CREATE TABLE FL_DEMO.test_vectortable_AdapteR 
+                      c(paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR;"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR 
                           AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                             CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                          FROM FL_DEMO.fzzlserial a 
+                          FROM", getOption("ResultDatabaseFL"),".fzzlserial a 
                           WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
 
   table <- FLTable(connection=getOption("connectionFL"),
-                 "FL_DEMO",
+                 getOption("ResultDatabaseFL"),
                  "test_vectortable_AdapteR",
                  "VECTOR_INDEX",
-                 whereconditions=paste0("FL_DEMO.test_vectortable_AdapteR.VECTOR_ID = 1")
+                 whereconditions=paste0(getOption("ResultDatabaseFL"),".test_vectortable_AdapteR.VECTOR_ID = 1")
                  )
 
   if(isRowVec)
@@ -92,14 +94,14 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE FL_DEMO.test_matrixtable_AdapteR;"),
-                        paste0("CREATE TABLE FL_DEMO.test_matrixtable_AdapteR 
+                      c(paste0("DROP TABLE", getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR;"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR 
                           AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
                             b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
-                          FROM FL_DEMO.fzzlserial a,FL_DEMO.fzzlserial b
+                          FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
                           WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
   flm <- FLMatrix(
-      database          = "FL_DEMO",
+      database          = getOption("ResultDatabaseFL"),
       table_name = "test_matrixtable_AdapteR",
       matrix_id_value   = 1,
       matrix_id_colname = "Matrix_ID",
@@ -115,10 +117,10 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
 initF.FLTable <- function(rows,cols)
 {
   WideTable <- FLTable(connection=getOption("connectionFL"),
-                      "FL_DEMO",
+                      getOption("ResultDatabaseFL"),
                       "fzzlserial",
                       "serialval",
-                      whereconditions=paste0("FL_DEMO.fzzlserial.serialval<100"))
+                      whereconditions=paste0(getOption("ResultDatabaseFL"),".fzzlserial.serialval<100"))
   return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
 }
 
@@ -313,4 +315,3 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
-
