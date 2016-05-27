@@ -70,7 +70,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 			sqlstr <-paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 									 a,".rowIdColumn AS rowIdColumn,",
 									 b,".colIdColumn AS colIdColumn,
-									 SUM(",a,".valueColumn * ",b,".valueColumn) AS valueColumn  
+									 FLSumProd(",a,".valueColumn,",b,".valueColumn) AS valueColumn  
 									 FROM (",constructSelect(pObj1),") AS ",a,
 	                                    ",(",constructSelect(pObj2),") AS ",b,
 	                        constructWhere(paste0(a,".colIdColumn = ",b,".rowIdColumn")),
