@@ -34,6 +34,21 @@ FLTable <- function(database,
                     connection=NULL)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
+
+    ## If alias already exists, change it to flt.
+    if(length(names(table))>0)
+    oldalias <- names(table)[1]
+    else oldalias <- ""
+    var_id_colnames <- changeAlias(var_id_colnames,"flt",oldalias)
+    obs_id_colname <- changeAlias(obs_id_colname,"flt",oldalias)
+    cell_val_colname <- changeAlias(cell_val_colname,"flt",oldalias)
+    whereconditions <- changeAlias(whereconditions,
+                                  "flt",
+                                  c(paste0(database,".",table),
+                                    paste0(table),
+                                    paste0(database,".",oldalias),
+                                    oldalias))
+    names(table) <- "flt"
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- sort(sqlQuery(connection,
@@ -46,6 +61,16 @@ FLTable <- function(database,
                           " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
+
+        ##change factors to strings
+        vstringdimnames <- lapply(list(rows,cols),
+                                  function(x){
+                                      if(is.factor(x))
+                                      as.character(x)
+                                      else x
+                                  })
+        rows <- vstringdimnames[[1]]
+        cols <- vstringdimnames[[2]]
 
         select <- new(
         "FLSelectFrom",
@@ -76,6 +101,17 @@ FLTable <- function(database,
                           " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
+
+        ##change factors to strings
+        vstringdimnames <- lapply(list(rows,cols),
+                                  function(x){
+                                      if(is.factor(x))
+                                      as.character(x)
+                                      else x
+                                  })
+        rows <- vstringdimnames[[1]]
+        cols <- vstringdimnames[[2]]
+        
         if(length(var_id_colnames)==0)
             var_id_colnames <- cols
         if(length(setdiff(var_id_colnames,cols)))
@@ -201,6 +237,7 @@ setMethod("wideToDeep",
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
+            object <- setAlias(object,"")
             if(outDeepTableName == "")
             deeptablename <- gen_deep_table_name(object@select@table_name)
             #deeptablename <- genRandVarName()
@@ -350,7 +387,7 @@ setMethod("deepToWide",
           {
             if(!object@isDeep) return(list(table=object))
             connection <- getConnection(object)
-            
+            object <- setAlias(object,"")
             if(outWideTableDatabase=="")
             outWideTableDatabase <- getOption("ResultDatabaseFL")
             if(mapTable=="" || mapTable=="NULL"){
@@ -482,6 +519,7 @@ setMethod("FLRegrDataPrep",
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
+            object <- setAlias(object,"")
             if(outDeepTableName == "")
             deeptablename <- gen_deep_table_name(object@select@table_name)
             #deeptablename <- genRandVarName()

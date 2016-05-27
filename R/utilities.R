@@ -378,6 +378,9 @@ FLStartSession <- function(connection,
     options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
     options(MatrixNameMapTableFL=gen_table_name("tblMatrixNameMapping",persistent))
     options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult",persistent))
+    options(ResultCharMatrixTableFL=gen_table_name("tblCharMatrixMultiResult",persistent))
+    options(ResultIntMatrixTableFL=gen_table_name("tblIntMatrixMultiResult",persistent))
+    options(ResultIntVectorTableFL=gen_table_name("tblIntVectorResult",persistent))
 
     options(scipen=999)
     #options(stringsAsFactors=FALSE)
@@ -397,59 +400,124 @@ FLStartSession <- function(connection,
         sqlSendUpdate(connection,sqlstr)
     }
 
-    sendqueries <- c(
-        paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               getOption("ResultMatrixTableFL"),
-               tableoptions,
-               "     (
-				      MATRIX_ID INTEGER,
-				      rowIdColumn INTEGER,
-					  colIdColumn INTEGER,
-					  valueColumn FLOAT)
-	    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
-        paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               getOption("MatrixNameMapTableFL"),
-               tableoptions,
-               "     (
-			TABLENAME VARCHAR(100),
-			MATRIX_ID INTEGER,
-                        DIM_ID INTEGER, -- 1: row, 2: column
-			NAME VARCHAR(100),
-			NUM_ID INTEGER)
-	    		PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);"),
-        paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               getOption("ResultSparseMatrixTableFL"),
-               tableoptions,
-               "
-				     (
-				      MATRIX_ID INTEGER,
-				      rowIdColumn INTEGER,
-					  colIdColumn INTEGER,
-					  valueColumn FLOAT)
-	    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
-        paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               getOption("ResultVectorTableFL"),
-               tableoptions,
-               "
-			 		 ( vectorIdColumn INT,
-			 		   vectorIndexColumn INT,
-				 	   vectorValueColumn FLOAT )
-			 		   PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"),
-        paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-               getOption("ResultCharVectorTableFL"),
-               tableoptions,
-               "
-                     ( vectorIdColumn INT,
-                       vectorIndexColumn INT,
-                       vectorValueColumn VARCHAR(100) )
-                       PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"))
+    sendqueries <- c(genCreateResulttbl(tablename=getOption("ResultMatrixTableFL"),
+                                        persistent=persistent,
+                                        tableoptions=tableoptions),
+                    genCreateResulttbl(tablename=getOption("ResultSparseMatrixTableFL"),
+                                        persistent=persistent,
+                                        tableoptions=tableoptions),
+                    genCreateResulttbl(tablename=getOption("ResultCharMatrixTableFL"),
+                                        persistent=persistent,
+                                        tableoptions=tableoptions,
+                                        type=" VARCHAR(100) "),
+                    genCreateResulttbl(tablename=getOption("ResultIntMatrixTableFL"),
+                                        persistent=persistent,
+                                        tableoptions=tableoptions,
+                                        type=" INTEGER "),
+                    genCreateResulttbl(tablename=getOption("ResultVectorTableFL"),
+                                        vclass="vector",
+                                        persistent=persistent,
+                                        tableoptions=tableoptions),
+                    genCreateResulttbl(tablename=getOption("ResultCharVectorTableFL"),
+                                        vclass="vector",
+                                        persistent=persistent,
+                                        tableoptions=tableoptions,
+                                        type=" VARCHAR(100) "),
+                    genCreateResulttbl(tablename=getOption("ResultIntVectorTableFL"),
+                                        vclass="vector",
+                                        persistent=persistent,
+                                        tableoptions=tableoptions,
+                                        type=" INTEGER "),
+                    paste0(" CREATE ",ifelse(is.null(persistent),
+                                            "VOLATILE TABLE ",
+                                            "TABLE "),
+                                   getOption("MatrixNameMapTableFL"),"\n",
+                                   tableoptions,"\n",
+                                "(TABLENAME VARCHAR(100),\n",
+                                " MATRIX_ID INTEGER,\n",
+                                " DIM_ID INTEGER, -- 1: row, 2: column \n",
+                                " NAME VARCHAR(100),\n",
+                                " NUM_ID INTEGER)\n",
+                                " PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);\n"))
+   #  sendqueries <- c(
+   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
+   #             getOption("ResultMatrixTableFL"),
+   #             tableoptions,
+   #             "     (
+			# 	      MATRIX_ID INTEGER,
+			# 	      rowIdColumn INTEGER,
+			# 		  colIdColumn INTEGER,
+			# 		  valueColumn FLOAT)
+	  #   			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
+   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
+   #             getOption("MatrixNameMapTableFL"),
+   #             tableoptions,
+   #             "     (
+			# TABLENAME VARCHAR(100),
+			# MATRIX_ID INTEGER,
+   #                      DIM_ID INTEGER, -- 1: row, 2: column
+			# NAME VARCHAR(100),
+			# NUM_ID INTEGER)
+	  #   		PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);"),
+   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
+   #             getOption("ResultSparseMatrixTableFL"),
+   #             tableoptions,
+   #             "
+			# 	     (
+			# 	      MATRIX_ID INTEGER,
+			# 	      rowIdColumn INTEGER,
+			# 		  colIdColumn INTEGER,
+			# 		  valueColumn FLOAT)
+	  #   			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
+   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
+   #             getOption("ResultVectorTableFL"),
+   #             tableoptions,
+   #             "
+			#  		 ( vectorIdColumn INT,
+			#  		   vectorIndexColumn INT,
+			# 	 	   vectorValueColumn FLOAT )
+			#  		   PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"),
+   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
+   #             getOption("ResultCharVectorTableFL"),
+   #             tableoptions,
+   #             "
+   #                   ( vectorIdColumn INT,
+   #                     vectorIndexColumn INT,
+   #                     vectorValueColumn VARCHAR(100) )
+   #                     PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"))
     sqlSendUpdate(connection, sendqueries)
 
     genSessionID()
     cat("Session Started..\n")
 }
 
-
+genCreateResulttbl <- function(tablename,vclass="matrix",type="FLOAT",
+                            persistent="test",
+                            tableoptions=paste0(", FALLBACK ,NO BEFORE JOURNAL,",
+                                "NO AFTER JOURNAL,CHECKSUM = DEFAULT,",
+                                "DEFAULT MERGEBLOCKRATIO ")){
+    if(vclass=="matrix"){
+        return(paste0(" CREATE ",ifelse(is.null(persistent),
+                        "VOLATILE TABLE ","TABLE "),"\n",
+                        tablename,"\n",
+                        tableoptions,
+                        " ( MATRIX_ID INTEGER,\n",
+                        " rowIdColumn INTEGER,\n",
+                        " colIdColumn INTEGER,\n",
+                        " valueColumn ",type,")\n",
+                        " PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );\n"))
+    }
+    else if(vclass=="vector"){
+        return(paste0(" CREATE ",ifelse(is.null(persistent),
+                        "VOLATILE TABLE ","TABLE "),"\n",
+                        tablename,"\n",
+                        tableoptions,
+                        "( vectorIdColumn INT,\n",
+                        " vectorIndexColumn INT,\n",
+                        " vectorValueColumn ",type," )\n",
+                        " PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);\n"))
+    }
+}
 getMaxId <- function(vdatabase,vtable,vcolName,
                      vconnection=getOption("connectionFL"),...){
     sqlstr <- paste0(" SELECT MAX(",vcolName,
@@ -464,9 +532,11 @@ getMaxId <- function(vdatabase,vtable,vcolName,
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxMatrixId <- function(vconnection=getOption("connectionFL"),...)
+getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
+                            vtable=getOption("ResultMatrixTableFL"),
+                            ...)
     getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("ResultMatrixTableFL"),
+                vtable=vtable,
                 vcolName="MATRIX_ID",
                 vconnection=vconnection)+1
 
@@ -498,15 +568,10 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxVectorId <- function(vconnection,...)
+getMaxVectorId <- function(vconnection,
+                        vtable=getOption("ResultVectorTableFL"),...)
     getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("ResultVectorTableFL"),
-                vcolName="vectorIdColumn",
-                vconnection=vconnection)+1
-
-getMaxCharVectorId <- function(vconnection,...)
-    getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("ResultCharVectorTableFL"),
+                vtable=vtable,
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
 

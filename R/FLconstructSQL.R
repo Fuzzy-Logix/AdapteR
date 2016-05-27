@@ -53,53 +53,63 @@ setMethod("constructSelect",
           function(object) {
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
+            #browser()
               if(!object@isDeep) 
               {
                 variables <- getVariables(object)
-                if(is.null(names(variables)))
-                    names(variables) <- variables
-                else
-                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
+                # if(is.null(names(variables)))
+                #     names(variables) <- variables
+                # else
+                #     names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
 
-                ifelse(is.null(variables$obs_id_colname),vobsIDCol <- variables["vectorIndexColumn"],
+                ifelse(is.null(variables$obs_id_colname),
+                  vobsIDCol <- variables["vectorIndexColumn"],
                    vobsIDCol <- variables["obs_id_colname"])
-                colnames <- colnames(object)
+                
+                colnames <- appendTableName(colnames(object),
+                              names(object@select@table_name)[1])
                 #colnames <- colnames[colnames!=vobsIDCol]
-                newColnames <- renameDuplicates(colnames)
+                newColnames <- renameDuplicates(colnames(object))
                 variables <- as.list(c(vobsIDCol[[1]],colnames))
                 names(variables) <- c("obs_id_colname",
                                       newColnames)
 
-                return(paste0(
-                            "SELECT\n",
-                            paste0("     ",
-                                   variables," AS ",
-                                   names(variables),
-                                   collapse = ",\n"),
-                            "\n FROM ",remoteTable(object),
-                            constructWhere(c(constraintsSQL(object))),
-                            "\n"))
+                # return(paste0(
+                #             "SELECT\n",
+                #             paste0("     ",
+                #                    variables," AS ",
+                #                    names(variables),
+                #                    collapse = ",\n"),
+                #             "\n FROM ",remoteTable(object),
+                #             constructWhere(c(constraintsSQL(object))),
+                #             "\n"))
               }
               else 
               {
                 variables <- getVariables(object)
-                if(is.null(names(variables)))
-                  names(variables) <- variables
-                else
-                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
+                # if(is.null(names(variables)))
+                #   names(variables) <- variables
+                # else
+                #     names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
 
-                variables <- as.list(c(variables[["obs_id_colname"]],variables[["var_id_colname"]],variables[["cell_val_colname"]]))
-                names(variables) <- c("obs_id_colname","var_id_colname","cell_val_colname")
-                return(paste0(
-                          "SELECT\n",
-                          paste0("     ",
-                                 variables," AS ",
-                                 names(variables),
-                                 collapse = ",\n"),
-                          "\n FROM ",remoteTable(object),
-                          constructWhere(c(constraintsSQL(object))),
-                          "\n"))
+                # variables <- as.list(c(variables[["obs_id_colname"]],
+                #   variables[["var_id_colname"]],
+                #   variables[["cell_val_colname"]]))
+                # names(variables) <- c("obs_id_colname",
+                #                       "var_id_colname",
+                #                       "cell_val_colname")
+                # return(paste0(
+                #           "SELECT\n",
+                #           paste0("     ",
+                #                  variables," AS ",
+                #                  names(variables),
+                #                  collapse = ",\n"),
+                #           "\n FROM ",remoteTable(object),
+                #           constructWhere(c(constraintsSQL(object))),
+                #           "\n"))
               }
+              object@select@variables <- variables
+              return(constructSelect(object@select))
           })
 
 setMethod("constructSelect", signature(object = "FLVector"),
@@ -107,79 +117,100 @@ setMethod("constructSelect", signature(object = "FLVector"),
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
             ## If mapSelect exists join tables
-            mapTable <- ""
-            addWhereClause <- ""
-            if(joinNames && length(object@mapSelect@table_name)>0)
-            {
-              # if(ncol(object)==1) newnames <- rownames(object)
-              # else newnames <- colnames(object)
-              # namesflvector <- new("FLVector",
-              #           select=object@mapSelect,
-              #           dimnames=list(newnames,"NAME"),
-              #           isDeep=FALSE)
-              mapTable <- paste0(",(",constructSelect(object@mapSelect),") AS b ")
-            }
-              if(!object@isDeep) {
-                newColnames <- renameDuplicates(colnames(object))
-                variables <- getVariables(object)
-                if(is.null(names(variables)))
-                    names(variables) <- variables
-                else
-                    names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
+            # mapTable <- ""
+            # addWhereClause <- ""
+            # if(joinNames && length(object@mapSelect@table_name)>0)
+            # {
+            #   # if(ncol(object)==1) newnames <- rownames(object)
+            #   # else newnames <- colnames(object)
+            #   # namesflvector <- new("FLVector",
+            #   #           select=object@mapSelect,
+            #   #           dimnames=list(newnames,"NAME"),
+            #   #           isDeep=FALSE)
+            #   mapTable <- paste0(",(",constructSelect(object@mapSelect),") AS b ")
+            # }
+            variables <- getVariables(object)
+            if(!object@isDeep) {
+              newColnames <- renameDuplicates(colnames(object))
+              # if(is.null(names(variables)))
+              #     names(variables) <- variables
+              # else
+              #     names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
 
-                ifelse(is.null(variables$obs_id_colname),vobsIDCol <- variables["vectorIndexColumn"],
-                   vobsIDCol <- variables["obs_id_colname"])
+              ifelse(is.null(variables$obs_id_colname),
+                vobsIDCol <- variables["vectorIndexColumn"],
+                 vobsIDCol <- variables["obs_id_colname"])
 
-                if(mapTable!="")
-                {
-                  addWhereClause <- c(paste0("CAST(",vobsIDCol[[1]]," AS VARCHAR(100)) = b.nameColname "))
-                  vobsIDCol[[1]] <- "b.numIdColname"
-                }
-                variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],colnames(object)))
+              # if(mapTable!="")
+              # {
+              #   addWhereClause <- c(paste0("CAST(",vobsIDCol[[1]]," AS VARCHAR(100)) = b.nameColname "))
+              #   vobsIDCol[[1]] <- "b.numIdColname"
+              # }
+              colnames <- appendTableName(colnames(object),
+                              names(object@select@table_name)[1])
+
+              variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],colnames))
+              names(variables) <- c("vectorIdColumn",
+                                    "vectorIndexColumn",
+                                    if(length(colnames(object))>1)
+                                     newColnames else "vectorValueColumn")
+
+              # return(paste0(
+              #             "SELECT\n",
+              #             paste0("     ",
+              #                    variables," AS ",
+              #                    names(variables),
+              #                    collapse = ",\n"),
+              #             "\n FROM ",remoteTable(object),mapTable,
+              #             constructWhere(c(constraintsSQL(object),addWhereClause)),
+              #             "\n"))
+            } else {
+                # if(is.null(names(variables)))
+                #   names(variables) <- variables
+                # else
+                #     names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
+
+                if(ncol(object)>1 || (ncol(object)==1 &&colnames(object)==1 &&nrow(object)==1))
+                vobsIDCol <- variables["var_id_colname"]
+                else vobsIDCol <- variables["obs_id_colname"]
+
+                # if(mapTable!="")
+                # {
+                #   addWhereClause <- c(paste0("CAST(",vobsIDCol[[1]]," AS VARCHAR(100)) = b.nameColname "))
+                #   vobsIDCol[[1]] <- "b.numIdColname"
+                # }
+                variables <- as.list(c("'%insertIDhere%'",
+                                    vobsIDCol[[1]],
+                                    variables[["cell_val_colname"]]))
                 names(variables) <- c("vectorIdColumn",
                                       "vectorIndexColumn",
-                                      if(length(colnames(object))>1) newColnames else "vectorValueColumn")
-
-                return(paste0(
-                            "SELECT\n",
-                            paste0("     ",
-                                   variables," AS ",
-                                   names(variables),
-                                   collapse = ",\n"),
-                            "\n FROM ",remoteTable(object),mapTable,
-                            constructWhere(c(constraintsSQL(object),addWhereClause)),
-                            "\n"))
-              } else {
-                  variables <- getVariables(object)
-                  if(is.null(names(variables)))
-                    names(variables) <- variables
-                  else
-                      names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
-                  if(ncol(object)>1 || (ncol(object)==1 &&colnames(object)==1 &&nrow(object)==1))
-                  vobsIDCol <- variables["var_id_colname"]
-                  else vobsIDCol <- variables["obs_id_colname"]
-
-                  if(mapTable!="")
-                  {
-                    addWhereClause <- c(paste0("CAST(",vobsIDCol[[1]]," AS VARCHAR(100)) = b.nameColname "))
-                    vobsIDCol[[1]] <- "b.numIdColname"
-                  }
-                  variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],variables[["cell_val_colname"]]))
-                  names(variables) <- c("vectorIdColumn","vectorIndexColumn","vectorValueColumn")
-                  return(paste0(
-                            "SELECT\n",
-                            paste0("     ",
-                                   variables," AS ",
-                                   names(variables),
-                                   collapse = ",\n"),
-                            "\n FROM ",remoteTable(object),mapTable,
-                            constructWhere(c(constraintsSQL(object),addWhereClause)),
-                            "\n"))
+                                      "vectorValueColumn")
+                # return(paste0(
+                #           "SELECT\n",
+                #           paste0("     ",
+                #                  variables," AS ",
+                #                  names(variables),
+                #                  collapse = ",\n"),
+                #           "\n FROM ",remoteTable(object),mapTable,
+                #           constructWhere(c(constraintsSQL(object),addWhereClause)),
+                #           "\n"))
+            }
+            select <- object@select
+              select@variables <- variables
+              if(joinNames && length(object@mapSelect@table_name)>0)
+              {
+                select@variables <- c(variables,
+                                    object@mapSelect@variables)
+                select@table_name <- c(select@table_name,
+                                       object@mapSelect@table_name)
+                select@whereconditions <- c(select@whereconditions,
+                                            object@mapSelect@whereconditions)
               }
+              return(constructSelect(select))
           })
 
 constructVariables <- function(variables){
+  #browser()
     if(!is.null(names(variables)))
         return(paste0("     ",
                       variables, " ",
@@ -195,6 +226,7 @@ setMethod(
     "constructSelect",
     signature(object = "FLSelectFrom"),
     function(object) {
+      #browser()
         if(is.null(object@database)) return(NULL)
         if(length(object@database)==0) return(NULL)
         variables <- getVariables(object)
@@ -226,7 +258,6 @@ setMethod("constructSelect",
 setMethod("constructSelect",
           signature(object = "character"),
           function(object) return(object))
-
 
 
 ## Phani-- removed \n as it was creating problem in FLCorrel test cases

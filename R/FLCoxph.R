@@ -207,7 +207,7 @@ prepareData.coxph <- function(formula,data,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
-
+		deepx <- setAlias(deepx,"")
 		vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
 		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 		vobsid <- getVariables(data)[["obs_id_colname"]]
@@ -243,6 +243,7 @@ prepareData.coxph <- function(formula,data,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 	else
@@ -262,6 +263,7 @@ prepareData.coxph <- function(formula,data,
 	                   "obs_id_colname",
 	                   "var_id_colname",
 	                   "cell_val_colname")
+			deepx <- setAlias(deepx,"")
 		}
 		whereconditions <- ""
 	}
