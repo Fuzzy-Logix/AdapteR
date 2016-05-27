@@ -4,14 +4,45 @@
 \alias{lm.FLTable}
 \title{Linear Regression.}
 \usage{
-\method{lm}{FLTable}(formula, data, catToDummy = 0, performNorm = 0,
-  performVarReduc = 0, makeDataSparse = 0, minStdDev = 0, maxCorrel = 1,
-  classSpec = list(), whereconditions = "", ...)
+\method{lm}{FLTable}(formula, data, ...)
 }
 \arguments{
 \item{formula}{A symbolic description of model to be fitted}
 
 \item{data}{An object of class FLTable}
+
+\item{catToDummy}{Transform categorical variables to numerical values
+either using dummy variables or by using Empirical
+Logit. If the value is 1, transformation is done using
+dummy variables, else if the value is 0,
+transformation is done using Empirical Logit.}
+
+\item{performNorm}{0/1 indicating whether to perform standardization of data.}
+
+\item{performVarReduc}{0/1. If the value is 1,
+the stored procedure eliminates variables based on standard deviation and
+correlation.}
+
+\item{makeDataSparse}{If 0,Retains zeroes and NULL values
+from the input table. If 1, Removes zeroes and NULL. If 2,Removes zeroes 
+but retains NULL values.}
+
+\item{minStdDev}{Minimum acceptable standard deviation for
+elimination of variables. Any variable that has a
+standard deviation below this threshold is
+eliminated. This parameter is only consequential if
+the parameter PerformVarReduc = 1. Must be >0.}
+
+\item{maxCorrel}{Maximum acceptable absolute correlation between
+a pair of columns for eliminating variables. If the
+absolute value of the correlation exceeds this
+threshold, one of the columns is not transformed.
+Again, this parameter is only consequential if the
+parameter PerformVarReduc = 1. Must be >0 and <=1.}
+
+\item{classSpec}{list describing the categorical dummy variables.}
+
+\item{whereconditions}{takes the where_clause as a string.}
 }
 \value{
 \code{lm} performs linear regression and replicates equivalent R output.
@@ -19,16 +50,13 @@
 \description{
 \code{lm} performs linear regression on FLTable objects.
 }
-\details{
-The wrapper overloads lm and implicitly calls FLRegrDataPrep and FLLinRegr.
-}
 \section{Constraints}{
 
-None
+The anova method is not yet available for FLLinRegr
 }
 \examples{
 library(RODBC)
-connection <- odbcConnect("Gandalf")
+connection <- flConnect("Gandalf")
 widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
 deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")

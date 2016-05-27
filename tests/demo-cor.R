@@ -13,6 +13,7 @@
 ## interactive stock returns correlation demo
 ## computed in database!
 
+require(AdapteR)
 
 ## Setting up a connection can be either done with
 ## ODBC or JDBC
@@ -36,7 +37,7 @@ if(!exists("connection")){
             ## CAVE: fully qualified PATH required
             dir.jdbcjars = yourJarDir)
 }
-
+ 
 
 
 ## SQL construction
@@ -51,6 +52,28 @@ options(debugSQL=TRUE)
 sqlQuery(connection,
            "select top 10 * from FL_DEMO.finEquityReturns")
 
+###########################################################
+## Correlation Matrix
+## The SQL-through R way to compute a
+## correlation matrix with DB Lytix:
+##
+sqlQuery(connection, "
+SELECT  a.TickerSymbol           AS Ticker1,
+        b.TickerSymbol           AS Ticker2,
+        FLCorrel(a.EquityReturn,
+                 b.EquityReturn) AS FLCorrel
+FROM    FL_DEMO.finEquityReturns a,
+        FL_DEMO.finEquityReturns b
+WHERE   b.TxnDate = a.TxnDate
+AND     a.TickerSymbol IN ('AAPL','HPQ','IBM',
+                           'MSFT','ORCL')
+AND     b.TickerSymbol IN ('AAPL','HPQ','IBM',
+                           'MSFT','ORCL')
+GROUP BY a.TickerSymbol,
+         b.TickerSymbol
+ORDER BY 1, 2;")
+
+
 
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
@@ -60,6 +83,16 @@ eqnRtn <- FLMatrix(database          = "FL_DEMO",
                    row_id_colname    = "TxnDate",
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
+
+
+## The AdapteR way to compute a correlation matrix
+## from a matrix with correlated random variables in columns:
+## (transparently creating a SQL query a la Manual):
+##
+sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
+
+flCorr <- cor(sm)
+flCorr
 
 ## this is a medium large matrix
 dim(eqnRtn)
@@ -76,7 +109,7 @@ dim(eqnRtn)
 
 ## Inspecting subsets of data in R
 ## is easy with matrix subsetting syntax:
-eqnRtn[dec2006, "MSFT"]
+eqnRtn[dec2006, c("HPQ","MSFT")]
 
 
 ## #####################
@@ -94,13 +127,6 @@ E <- eqnRtn[dec2006, randomstocks]
 print(E)
 
 
-
-## The AdapteR way to compute a correlation matrix
-## from a matrix with correlated random variables in columns:
-## (transparently creating a SQL query a la Manual):
-##
-flCorr <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')],
-              eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 
 round(as.matrix(flCorr),2)
 
@@ -143,7 +169,21 @@ metaInfo <- read.csv(
 table(metaInfo$industry)
 table(metaInfo$Sector)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 stockCorrelPlot <- function(input){
+    ## get selected and available ticker symbols
     metastocks <- as.character(
         metaInfo$Symbol[
             metaInfo$industry %in% input$industries |
@@ -152,21 +192,20 @@ stockCorrelPlot <- function(input){
         unique(c(input$stocks,
                  metastocks)),
         colnames(eqnRtn))
-    if(length(stocks)>100)
-        stocks <- sample(stocks,100)
-    ##browser()
-    withTimeout({
-        flCorr <- as.matrix(cor(eqnRtn[,stocks]))
-        rownames(flCorr) <- metaInfo$Name[
-            match(rownames(flCorr),
-                  metaInfo$Symbol)]
-        heatmap.2(flCorr, symm=TRUE, 
-                  distfun=function(c) as.dist(1 - c),
-                  trace="none",
-                  col=redgreen(100),
-                  cexCol = 1,
-                  cexRow = 1)
-    }, timeout = 40)
+
+    ## compute correlation matrix
+    flCorr <- as.matrix(cor(eqnRtn[,stocks]))
+
+    ## plot with company names and stocks
+    rownames(flCorr) <- metaInfo$Name[
+        match(rownames(flCorr),
+              metaInfo$Symbol)]
+    heatmap.2(flCorr, symm=TRUE, 
+              distfun=function(c) as.dist(1 - c),
+              trace="none",
+              col=redgreen(100),
+              cexCol = 1, srtCol=90, 
+              cexRow = 1)
 }
 
 require(R.utils)
@@ -229,8 +268,7 @@ ORDER BY 1,2,3;")
 
 
 
-m <- FLMatrix(
-              database          = "FL_DEMO",
+m <- FLMatrix(database          = "FL_DEMO",
               table_name        = "tblMatrixMulti",
               matrix_id_colname = "Matrix_ID",
               matrix_id_value   = "5",
@@ -240,10 +278,12 @@ m <- FLMatrix(
 
 ## compute inverse in R after 
 ## fetching data by a simple as.matrix cast call
-solve(as.matrix(m))
+rm <- as.matrix(m)
+solve(rm)
 
 ## compute the inverse in-database
-solve(m)
+ms <- solve(m)
+ms
 
 ## in-databse matrix multiplication with inverse
 ## results in identity matrix (of course)
@@ -277,7 +317,8 @@ flM - flM
 
 flM / flM
 
-(flM %*% flM) - flM
+a <- (flM %*% flM) - flM
+a
 
 solve(flM) %*% flM - flM
 
