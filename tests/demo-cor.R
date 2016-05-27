@@ -162,7 +162,7 @@ heatmap.2(as.matrix(M),
 ## download metadata from
 ## https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv
 metaInfo <- read.csv(
-    "/Users/gregor/Downloads/companylist.csv")
+    "https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
 
 ## metadata contains sectors and industries
 ## that will be selectable in the shiny web ui
@@ -200,14 +200,19 @@ stockCorrelPlot <- function(input){
     rownames(flCorr) <- metaInfo$Name[
         match(rownames(flCorr),
               metaInfo$Symbol)]
-    heatmap.2(flCorr, symm=TRUE, 
+    heatmap.2(flCorr, symm=TRUE,
               distfun=function(c) as.dist(1 - c),
               trace="none",
               col=redgreen(100),
-              cexCol = 1, srtCol=90, 
+              cexCol = 1, srtCol=90,
               cexRow = 1)
 }
 
+##install.packages("R.utils")
+##install.packages("shiny")
+
+
+require(shiny)
 require(R.utils)
 require(shiny)
 shinyApp(
@@ -252,7 +257,7 @@ SELECT a.Matrix_ID,
        a.Row_ID,
        a.Col_ID,
        a.Cell_Val
-FROM fl_dev.tblMatrixMulti a
+FROM fl_demo.tblMatrixMulti a
 WHERE a.Matrix_ID = 5
 )
 SELECT a.*
@@ -276,7 +281,15 @@ m <- FLMatrix(database          = "FL_DEMO",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
 
-## compute inverse in R after 
+print(m)
+
+
+n <- solve(m) %*% m
+
+round(as.matrix(n),2)
+
+
+## compute inverse in R after
 ## fetching data by a simple as.matrix cast call
 rm <- as.matrix(m)
 solve(rm)
