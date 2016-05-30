@@ -36,7 +36,7 @@ t.FLMatrix<-function(object,...){
         return(select)
     }
     object@select <- swapRowCol(object@select)
-    object@mapSelect <- swapRowCol(object@select)
+    object@mapSelect <- swapRowCol(object@mapSelect)
     object@dim <- rev(object@dim)
     object@dimnames <- rev(object@dimnames)
     return(object)
