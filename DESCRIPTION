@@ -114,4 +114,5 @@ Collate:
     'FLTriDiag.R'
     'FLVarCluster.R'
     'FLtestLib.R'
+    'apply.R'
 RoxygenNote: 5.0.1

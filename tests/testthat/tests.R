@@ -27,7 +27,7 @@ if(!exists("connection")){
     ## CAVE: fully qualified PATH required
     yourJarDir <- "/Users/gregor/fuzzylogix"
     connection <- flConnect(host     = "10.200.4.116",
-                            database = "Fl_demo",
+                            database = "fuzzylogix",
                             dir.jdbcjars = yourJarDir)
 }
 
@@ -114,7 +114,7 @@ test_that("check FLCastFunctions",
 ## needs a hermitian positive definite matrix as input
 test_that("check FLCholskeyDecomp",
 {
-  m4 <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+  m4 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   expect_equal(as.matrix(chol(m4)),
                Matrix::chol(as.matrix(m4)))
 })
@@ -182,7 +182,7 @@ test_that("check result for Matrix M_Subtraction",
 {
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
       a <- initF.FLMatrix(n,isSquare)
-      b <- FLMatrix("FL_DEMO", "tblmatrixMulti",
+      b <- FLMatrix(getOption("ResultDatabaseFL"), "tblmatrixMulti",
                     5, "MATRIX_ID",
                     "ROW_ID","COL_ID","CELL_VAL")
       list(R=list(a$R,
@@ -198,7 +198,7 @@ test_that("check result for Matrix M_Subtraction",
 test_that("check result for M_Subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10))
   V1R <- as.vector(V1)
@@ -226,7 +226,7 @@ test_that("check result for M_IntegerDivision",
 {
   expect_eval_equal(initF=function(n) {
       a <- initF.FLMatrix(n=5,isSquare=TRUE)
-      b <- FLMatrix("FL_DEMO", "tblmatrixMulti",
+      b <- FLMatrix(getOption("ResultDatabaseFL"), "tblmatrixMulti",
                     5, "MATRIX_ID",
                     "ROW_ID","COL_ID","CELL_VAL")
       list(R=list(a$R,
@@ -242,7 +242,7 @@ test_that("check result for M_IntegerDivision",
 test_that("check result for M_IntegerDivision",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10))
   V1R <- as.vector(V1)
@@ -266,7 +266,7 @@ test_that("check result for M_CrossProduct",
 {
   expect_eval_equal(initF=function(n) {
       a <- initF.FLMatrix(n=5)
-      b <- FLMatrix("FL_DEMO", "tblmatrixMulti",
+      b <- FLMatrix(getOption("ResultDatabaseFL"), "tblmatrixMulti",
                     3, "MATRIX_ID",
                     "ROW_ID","COL_ID","CELL_VAL")
       list(R=list(a$R,
@@ -282,7 +282,7 @@ test_that("check result for M_CrossProduct",
 test_that("check result for M_CrossProduct",
 {
   M1 <- initF.FLMatrix(n=5) # 5*4 matrix
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",3,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL") # 4*5 matrix
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",3,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL") # 4*5 matrix
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,5))
   V1R <- as.vector(V1)
@@ -305,7 +305,7 @@ test_that("check result for Matrix M_Addition",
 {
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
       a <- initF.FLMatrix(n,isSquare)
-      b <- FLMatrix("FL_DEMO", "tblmatrixMulti",
+      b <- FLMatrix(getOption("ResultDatabaseFL"), "tblmatrixMulti",
                     5, "MATRIX_ID",
                     "ROW_ID","COL_ID","CELL_VAL")
       list(R=list(a$R,
@@ -321,7 +321,7 @@ test_that("check result for Matrix M_Addition",
 test_that("check result for M_Addition",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO", "tblmatrixMulti",
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"), "tblmatrixMulti",
                   5, "MATRIX_ID",
                   "ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
@@ -368,7 +368,7 @@ test_that("check result for M_Division",
 {
     M1 <- initF.FLMatrix(n=5,
                          isSquare=TRUE)
-    M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",
+    M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",
               5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
     M2R <- as.matrix(M2)
     V1 <- as.FLVector(sample(1:100,
@@ -412,7 +412,7 @@ test_that("check result for M_Division",
 test_that("check result for M_Multiplication",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10))
   V1R <- as.vector(V1)
@@ -439,7 +439,7 @@ test_that("check result for M_Multiplication",
 test_that("check result for M_Remainder",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10))
   V1R <- as.vector(V1)
@@ -462,7 +462,7 @@ test_that("check result for M_Remainder",
 test_that("check result for M_Equality",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M3 <- as.FLMatrix(as.matrix(M2))
   M3R <- as.matrix(M2)
   M2R <- as.matrix(M2)
@@ -489,7 +489,7 @@ test_that("check result for M_Equality",
 test_that("check result for identical",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M3 <- as.FLMatrix(as.matrix(M2))
   M3R <- as.matrix(M2)
   M2R <- as.matrix(M2)
@@ -516,7 +516,7 @@ test_that("check result for identical",
 ## testing M_Subtraction with different length vectors
 test_that("check FLVector subtraction",
 {
-  flt <- FLTable("FL_DEMO","finequityreturns","txndate")
+  flt <- FLTable(getOption("ResultDatabaseFL"),"finequityreturns","txndate")
   flv1 <- flt[1:8,"equityreturn"]
   flv <- flt[1:10,"equityreturn"]
   flv1R <- as.vector(flv1)
@@ -575,12 +575,12 @@ test_that("check vector subsetting",
 ##Failing because of precision errors.
 test_that("check FLCorrel result",
 {
-  fltDeep <- FLTable("FL_DEMO","tblAbaloneDeep",
+  fltDeep <- FLTable(getOption("ResultDatabaseFL"),"tblAbaloneDeep",
                 "ObsID","VarID","Num_Val",
-                whereconditions="FL_DEMO.tblAbaloneDeep.ObsID < 21")
+                whereconditions=paste0(getOption("ResultDatabaseFL"),".tblAbaloneDeep.ObsID < 21")
   RtDeep <- as.data.frame(fltDeep)
-  fltWide <- FLTable("FL_DEMO","tblAbaloneWide",
-                "ObsID",whereconditions="FL_DEMO.tblAbaloneWide.ObsID < 21")
+  fltWide <- FLTable(getOption("ResultDatabaseFL"),"tblAbaloneWide",
+                "ObsID",whereconditions=paste0(getOption("ResultDatabaseFL"),".tblAbaloneWide.ObsID < 21")
   RtWide <- as.data.frame(fltWide)
   vRow <- initF.FLVector(20,TRUE)
   flvRow <- vRow$FL
@@ -659,7 +659,7 @@ test_that("check FLMatrixNorm working",
 ### eigen values. So input taken from DbLytix manual.
 test_that("check Jordan Decomposition",
 {
-  M <- FLMatrix("FL_DEMO","tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
     FLJordan(M)
 })
 
@@ -676,6 +676,362 @@ test_that("check FLTriDiag",
 {
     FLTriDiag(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

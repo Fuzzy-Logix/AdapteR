@@ -90,6 +90,7 @@ lm.default <- stats::lm
 lm.FLTable <- function(formula,data,...)
 {
 	vcallObject <- match.call()
+	data <- setAlias(data,"")
 	return(lmGeneric(formula=formula,
 					data=data,
 					callObject=vcallObject,
@@ -731,6 +732,7 @@ prepareData.lmGeneric <- function(formula,data,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					"fzzlRegrDataPrepMap")
@@ -783,6 +785,7 @@ prepareData.lmGeneric <- function(formula,data,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(setAlias,"")
 		whereconditions <- ""
 		vmapping <- colnames(deepx)
 		names(vmapping) <- colnames(deepx)
@@ -804,6 +807,7 @@ prepareData.lmGeneric <- function(formula,data,
 	                   "obs_id_colname",
 	                   "var_id_colname",
 	                   "cell_val_colname")
+			deepx <- setAlias(deepx,"")
 		}
 		whereconditions <- ""
 		vmapping <- colnames(deepx)
@@ -1079,6 +1083,7 @@ coefficients.FLLinRegr<-function(object){
 	return(coeffVector)
 	}
 
+#' @export
 coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 	if(!is.null(object@results[["coefficients"]]))
 	return(object@results[["coefficients"]])
@@ -1154,6 +1159,7 @@ residuals.FLLinRegr<-function(object)
 	}
 }
 
+#' @export
 model.FLLinRegr <- function(object)
 {
 	if(!is.null(object@results[["model"]]))
@@ -1296,6 +1302,7 @@ predict.lmGeneric <- function(object,
 								whereconditions="",
 								inAnalysisID=object@wideToDeepAnalysisId)
 		newdata <- deepx[["table"]]
+		newdata <- setAlias(newdata,"")
 
 		if(object@vfcalls["functionName"]=="FLPoissonRegr"){
 			vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
