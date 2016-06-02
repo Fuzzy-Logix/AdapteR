@@ -207,7 +207,27 @@ initF.FLTable <- function(rows,cols)
 }
 
 
+##' initF.default helps to return a list of list.
+##' Can be used for comparing results of R and FL functions which require two objects.
 
+initF.default <- function(specs=list(c(n=5,isSquare = TRUE),c(n =5,isRowVec = FALSE)),
+        classes = c("FLMatrix","FLVector")){
+        #browser()
+        l<-lapply(1:length(classes),function(x){
+            #browser()
+            I <- do.call(paste0("initF.",classes[x]),list(specs[[x]]))
+            return(I)
+            })
+        FL <- lapply(1:length(l),function(x){
+                    #browser()
+                    if(classes[x] %in% c("FLMatrix","FLVector","FLTable"))
+                    subscript <- "FL"
+                    else subscript <- "R"
+                    return(do.call("$",list(l[[x]],subscript)))
+            })
+        R <- lapply(1:length(l),function(x)l[[x]]$"R")
+        return(list(FL=FL,R=R)) 
+        }
 ##' tests if a R matrix is correctly stored and
 ##' represented when casting the R matrix into FLMatrix
 ##' and correctly recieved back, when cast to a vector.
@@ -397,3 +417,7 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
+
+initF.numeric <- initF.FLVector
+initF.data.frame <- initF.FLTable
+initF.matrix <- initF.FLMatrix

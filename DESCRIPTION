@@ -118,4 +118,6 @@ Collate:
     'FLVarCluster.R'
     'FLtestLib.R'
     'apply.R'
+    'crossprod.R'
+    'tcrossprod.R'
 RoxygenNote: 5.0.1
