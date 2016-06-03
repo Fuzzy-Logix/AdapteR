@@ -40,7 +40,10 @@ setMethod("FLexpect_equal",
           function(object,expected,...)
               testthat::expect_equal(object,
                                      expected,...))
-
+setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
+          function(object,expected,...)
+              testthat::expect_equal(as.data.frame(object),
+                                     as.data.frame(expected),...))
 #' @export
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
