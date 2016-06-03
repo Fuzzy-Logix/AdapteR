@@ -72,7 +72,7 @@ initF.FLVector <- function(n,isRowVec=FALSE)
                         paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR 
                           AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                             CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                          FROM", getOption("ResultDatabaseFL"),".fzzlserial a 
+                          FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
                           WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
 
   table <- FLTable(connection=getOption("connectionFL"),
@@ -97,7 +97,7 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE", getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR;"),
+                      c(paste0("DROP TABLE ", getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR;"),
                         paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR 
                           AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
                             b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 

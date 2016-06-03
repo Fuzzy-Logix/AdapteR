@@ -1,4 +1,4 @@
-## This script is for documentation. 
+## This script is for documentation.
 ##
 ## R has very nice vector and matrix syntax.
 ## AdapteR mimics the parsimonious syntax.
@@ -22,7 +22,7 @@ if(!exists("connection")){
 }
 
 options(debugSQL=FALSE)
-## a in-memory matrix in R 
+## a in-memory matrix in R
 (m <- rMatrix <- matrix(1:25,5))
 
 ##################################################################
@@ -59,22 +59,26 @@ matrixNullNull <- matrix(1:25,5)
 ## character rownames, no colnames, just proper 1:N numeric indices:
 matrixCharNull <- matrix(1:25,5)
 rownames(matrixCharNull) <- rev(c("a","b","c","d","e"))
-
+matrixCharNull
 
 ## character colnames, no rownames, just proper 1:N numeric indices:
 matrixNullChar <- matrix(1:25,5)
 colnames(matrixNullChar) <- rev(c("a","b","c","d","e"))
+matrixNullChar
+rownames(matrixNullChar)
+colnames(matrixNullChar)
 
 ## character rownames and colnames
 matrixCharChar <- matrix(1:25,5)
 rownames(matrixCharChar) <- c("a","b","c","d","e")
 colnames(matrixCharChar) <- c("p","q","r","s","t")
+matrixCharChar
 
 ## numeric rownames (arbitrary unique) and character colnames
 matrixNumChar <- matrix(1:25,5)
 rownames(matrixNumChar) <- c(9,6,5,2,1)
 colnames(matrixNumChar) <- c("p","q","r","s","t")
-
+matrixNumChar
 
 
 ## inspect names representation in AdapteR
@@ -129,8 +133,6 @@ rownames(matrixNullChar)
 test_that(
     "Unnamed Matrices: Hierachical test suite of selects of selects...",
     expect_equal_RMatrix_FLMatrix(matrixNullNull))
-
-sorry, was disconnected
 
 test_that(
     "Partly named matrices: Hierachical test suite of selects of selects...",
@@ -239,7 +241,7 @@ test_that("Casting base R matrix <---> in-database Matrices",{
 #     ra2 <- as.matrix(a2)
 #     rb2 <- as.matrix(b2)
 #     ##
-#     ## 
+#     ##
 #     ## note: no data movement.
 #     ab <- cbind(a,b)
 #     expect_equal_Matrix(ab,cbind(ra,rb))
@@ -269,7 +271,7 @@ test_that("check matrix subsetting",
     ## Testing result
     expect_eval_equal(initF=function(n,isSquare=FALSE) {
         a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))         
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) do.call("[",list(x,c("b","a"),2:1)),
     function(x) do.call("[",list(x,c("b","a"),2:1)),n=4
   )
@@ -277,28 +279,28 @@ test_that("check matrix subsetting",
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
 
         a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))  
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) do.call("[",list(x)),
     function(x) do.call("[",list(x)),n=4
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
       a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))  
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) "["(x,c("b","c"),),
     function(x)"["(x,c("b","c"),),n=4
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
       a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))  
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) "["(x,,2:3),
     function(x) "["(x,,2:3),n=4
   )
    expect_eval_equal(initF=function(n,isSquare=FALSE) {
 
         a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))         
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) dimnames("["(list(x,c("b","a"),2:1))),
     function(x) dimnames("["(list(x,c("b","a"),2:1))),n=4
   )
@@ -306,21 +308,21 @@ test_that("check matrix subsetting",
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
 
         a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))  
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) dimnames("["(list(x))),
     function(x) dimnames("["(list(x))),n=4
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
       a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))  
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) dimnames("["(x,c("b","c"),)),
     function(x) dimnames("["(x,c("b","c"),)),n=4
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
       a <- matrix(c(1:(n*(n-1))),n,dimnames=list(letters[1:(n%%26)],1:(n-1)))
-        list(R=a,FL=as.FLMatrix(a))  
+        list(R=a,FL=as.FLMatrix(a))
     },function(x) dimnames("["(x,,2:3)),
     function(x) dimnames("["(x,,2:3)),n=4
   )
@@ -349,7 +351,7 @@ test_that("check matrix subsetting",
       a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
                     "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
-      
+
       list(R=as.matrix(a),
            FL=a)
     },function(x) "["(x,c("b","c"),),
