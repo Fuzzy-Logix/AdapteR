@@ -367,8 +367,14 @@ setMethod("wideToDeep",
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-setGeneric("deepToWide", function(object,whereconditions,
-                                  mapTable,mapName,outWideTableDatabase,outWideTableName,Analysisid,usedwidetablename) {
+setGeneric("deepToWide", function(object,
+                                  whereconditions,
+                                  mapTable,
+                                  mapName,
+                                  outWideTableDatabase,
+                                  outWideTableName,
+                                  Analysisid,
+                                  usedwidetablename) {
     standardGeneric("deepToWide")
 })
 setMethod("deepToWide",
@@ -379,7 +385,7 @@ setMethod("deepToWide",
                     outWideTableDatabase="character",
                     outWideTableName="character",
                     Analysisid = "character",
-                    usedwidetablename = "charcter"),
+                    usedwidetablename = "character"),
           function(object,
                   whereconditions,
                   mapTable,
@@ -389,6 +395,7 @@ setMethod("deepToWide",
                   Analysisid,
                   usedwidetablename)
           {
+            browser()
             if(!object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             object <- setAlias(object,"")

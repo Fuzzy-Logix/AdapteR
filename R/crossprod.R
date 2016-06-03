@@ -95,7 +95,7 @@ setMethod("crossprod",
                if(nrow(x)!=nrow(y))
                stop("non-conformable dimensions")
                else{
-               x <- as.FLMatrix(x,getConnection(y))
+               x <- as.FLMatrix(x)
                return(do.call(crossprod,list(x,y)))
                }
            })
@@ -115,12 +115,13 @@ setMethod("crossprod",
 setMethod("crossprod",
           signature(x = "matrix",y = "matrix"),
           function(x,y){
-
-         return(do.call("%*%",list(x,t(y))))
+          x<-t(x)
+         return(do.call("%*%",list(x,y)))
           })
 
 setMethod("crossprod",
           signature(x ="matrix",y = "vector"),
           function(x,y){
-          return(do.call("%*%",list(x,t(y))))
+          x<-t(x)
+          return(do.call("%*%",list(x,y)))
           })

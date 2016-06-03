@@ -568,7 +568,7 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxVectorId <- function(vconnection,
+getMaxVectorId <- function(vconnection=getOption("connectionFL"),
                         vtable=getOption("ResultVectorTableFL"),...)
     getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
                 vtable=vtable,
