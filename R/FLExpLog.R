@@ -17,9 +17,11 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 		a <- genRandVarName()
 
 		## Check validity of x for log
-		if(functionName=="log")
+		if(functionName=="log" || functionName=="sqrt")
 		{
 			if(p1==1) vcondition <- " <= -1 "
+			if(functionName=="sqrt")
+			vcondition <- " < 0 "
 			else vcondition <- " <= 0 "
 			sqlstr <- paste0(" SELECT COUNT(a.valueColumn) AS cnt",
 						" FROM(",constructSelect(x),") AS a",
@@ -33,7 +35,6 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 		sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 							a,".rowIdColumn AS rowIdColumn,",
 							a,".colIdColumn AS colIdColumn,",
-							#functionName,"((",a,".valueColumn+(",p1,")-(",m1,"))/",lnb,") AS valueColumn",
 							functionName,"(",a,".valueColumn+(1*(",p1,")))/",lnb,"-(",m1,") AS valueColumn",
 						" FROM(",constructSelect(x),") AS ",a)
 
