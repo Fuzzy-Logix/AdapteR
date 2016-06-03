@@ -43,3 +43,14 @@ test_that("FLTable in-database transformations work -- ALTER TABLE and UPDATE",{
     expect_equal(irisFL$SepalBoxLength,
                  2 * (iris$Sepal.Length   + iris$Sepal.Width))
 })
+
+
+test_that("Selection of columns works with $ and with [,name]",{
+    ## A remote matrix is easily created by specifying
+    ## table, row id, column id and value columns
+    DfilmF <- FLTable(database          = "FL_DEMO",
+                      table        = "actressldist",
+                      obs_id_colname    = "ObsID")
+    expect_equal(as.vector(head(DfilmF$Actor)),
+                 as.vector(head(DfilmF[,"Actor"])))
+})
