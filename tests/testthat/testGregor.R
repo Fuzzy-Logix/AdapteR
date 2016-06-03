@@ -3,6 +3,29 @@ data(iris)
 ##test_that("iris table upload works",{
 irisFL <- as.FLTable(iris)
 
+test_that("iris matrix upload works -- names, use mapping table",
+{
+    irism <- as.matrix(iris[,1:4])
+    irismFL <- as.FLMatrix(irism)
+    ## asana
+    ## optimize:
+    ## should not have QUERY SQL:
+    ## select top 1 * from Fl_demo.tblMatrixNameMapping_test AS flt
+    expect_equal(
+        colnames(irismFL),
+        colnames(irism),
+        check.attributes=FALSE)
+})
+
+
+
+## asana
+test_that("iris table upload works -- names, use mapping table",{
+    expect_equal(
+        names(iris),
+        names(irisFL),
+        check.attributes=FALSE)
+})
 
 
 
