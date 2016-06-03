@@ -146,25 +146,27 @@ expect_flequal <- function(a,b,...){
 #' @export
 initF.FLVector <- function(n,isRowVec=FALSE)
 {
+  vmaxId <- getMaxVectorId()
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR;"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR 
-                          AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
+                      c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
+                                            ".",getOption("ResultVectorTableFL")," \n ",
+                          " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                             CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
                           FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
-                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
+                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1))))
 
   table <- FLTable(connection=getOption("connectionFL"),
                  getOption("ResultDatabaseFL"),
-                 "test_vectortable_AdapteR",
-                 "VECTOR_INDEX",
-                 whereconditions=paste0(getOption("ResultDatabaseFL"),".test_vectortable_AdapteR.VECTOR_ID = 1")
+                 getOption("ResultVectorTableFL"),
+                 "vectorIndexColumn",
+                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",
+                                  getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
                  )
 
   if(isRowVec)
-  flv <- table[1,base::sample(c("VECTOR_VALUE","VECTOR_INDEX"),n,replace=TRUE)]
+  flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
   else
-  flv <- table[1:n,"VECTOR_VALUE"]
+  flv <- table[1:n,"vectorValueColumn"]
 
   Rvector <- as.vector(flv)
   return(list(FL=flv,R=Rvector))
@@ -175,21 +177,21 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 #' @export
 initF.FLMatrix <- function(n,isSquare=FALSE)
 {
+  vmaxId <- getMaxMatrixId()
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE ", getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR;"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR 
-                          AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
+                        paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," \n ",
+                          " SELECT ",vmaxId," AS MATRIX_ID,a.serialval AS ROW_ID,
                             b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
                           FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
-                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
+                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n)))
   flm <- FLMatrix(
       database          = getOption("ResultDatabaseFL"),
-      table_name = "test_matrixtable_AdapteR",
-      matrix_id_value   = 1,
+      table_name = getOption("ResultMatrixTableFL"),
+      matrix_id_value   = vmaxId,
       matrix_id_colname = "Matrix_ID",
-      row_id_colname    = "Row_ID",
-      col_id_colname    = "Col_ID",
-      cell_val_colname  = "Cell_Val",
+      row_id_colname    = "rowIdColumn",
+      col_id_colname    = "colIdColumn",
+      cell_val_colname  = "valueColumn",
       connection=getOption("connectionFL"))
   Rmatrix <- as.matrix(flm)
   return(list(FL=flm,R=Rmatrix))
@@ -210,7 +212,7 @@ initF.FLTable <- function(rows,cols)
 ##' initF.default helps to return a list of list.
 ##' Can be used for comparing results of R and FL functions which require two objects.
 
-initF.default <- function(specs=list(c(n=5,isSquare = TRUE),c(n =5,isRowVec = FALSE)),
+initFdefault<- function(specs=list(c(n=5,isSquare = TRUE),c(n =5,isRowVec = FALSE)),
         classes = c("FLMatrix","FLVector")){
         #browser()
         l<-lapply(1:length(classes),function(x){
