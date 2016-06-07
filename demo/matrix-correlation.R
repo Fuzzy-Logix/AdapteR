@@ -4,7 +4,7 @@
 ## SQL as low-level language makes analyses
 ## consumable from all SQL-enabled clients.
 
-## This demo shows how the 
+## This demo shows how the
 ## AdapteR package of Fuzzy Logix is
 ## easing interaction with the DB Lytix(TM) in-database
 ## library.
@@ -13,18 +13,23 @@
 ## interactive stock returns correlation demo
 ## computed in database!
 
-require(AdapteR)
+## require(AdapteR)
 
 ## Setting up a connection can be either done with
 ## ODBC or JDBC
 ## Setting up a ODBC connection
-if(!exists("connection"))
-    connection <- flConnect(odbcSource = "Gandalf")
+if(!exists("yourODBCSource") & !exists("yourUser"))
+    stop("Please set the variable \nyourODBCSource <- \"...\" for odbc login!\nor set for jdbc login:\nyourUser <- \"...\"\nyourPassword <- \"...\"")
 
+if(!exists("connection") & exists("yourODBCSource")){
+    connection <- flConnect(odbcSource = yourODBCSource)
+}
 
 ## If ODBC has failed we try to create a JDBC connection
 if(!exists("connection")){
-    yourJarDir <- "/Users/gregor/fuzzylogix/Teradata/jdbc"
+    if(!exists("yourUser")) stop("Please set the variable \nyourUser <- \"...\" for jdbc login!")
+    if(!exists("yourPassword")) stop("Please set the variable \nyourPassword <- \"...\" for jdbc login!")
+    if(!exists("yourJarDir")) yourJarDir <- NULL
     connection <-
         flConnect(
             host     = "10.200.4.116",
@@ -36,21 +41,18 @@ if(!exists("connection")){
             ##    terajdbc4.jar tdgssconfig.jar
             ## CAVE: fully qualified PATH required
             dir.jdbcjars = yourJarDir)
+    if(!exists("connection")) stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
- 
 
-
-## SQL construction
-## with this option each R command that uses DBLytix will log
-## the SQL sent to Teradata.
-## Such a dump can in many cases be used as a pure-sql script!
-options(debugSQL=TRUE)
+readline("press any key to continue")
 
 #############################################################
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
 sqlQuery(connection,
            "select top 10 * from FL_DEMO.finEquityReturns")
+
+readline("press any key to continue")
 
 ###########################################################
 ## Correlation Matrix
@@ -73,7 +75,7 @@ GROUP BY a.TickerSymbol,
          b.TickerSymbol
 ORDER BY 1, 2;")
 
-
+readline("press any key to continue")
 
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
@@ -84,18 +86,50 @@ eqnRtn <- FLMatrix(database          = "FL_DEMO",
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
 
+## the equity return matrix is about 3k rows and cols
+dim(eqnRtn)
 
-## The AdapteR way to compute a correlation matrix
-## from a matrix with correlated random variables in columns:
-## (transparently creating a SQL query a la Manual):
-##
+readline("press any key to continue")
+## The AdapteR way to compute a correlation matrix:
+## 1. select the desired colums from the full matrix
 sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
 
+readline("press any key to continue")
+
+## 2. select the desired colums from the full matrix
 flCorr <- cor(sm)
 flCorr
 
-## this is a medium large matrix
-dim(eqnRtn)
+readline("press any key to continue")
+
+
+## with this option each R command that uses DBLytix will log
+## the SQL sent to Teradata.
+## Such a dump can in many cases be used as a pure-sql script!
+options(debugSQL=TRUE)
+
+## Note that no SQL is sent when defining data-sets
+## 1. select the desired colums from the full matrix
+sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
+
+readline("press any key to continue")
+
+## 2. select the desired colums from the full matrix
+flCorr <- cor(sm)
+## Note that SQL is sent when data is printed or otherwise used
+flCorr
+
+readline("press any key to continue")
+
+## Casting methods fetch (selected) data from the warehouse into R memory
+rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
+rEqnRtn <- na.omit(rEqnRtn)
+
+## the result is in the same format as the R results
+rCorr <- cor(rEqnRtn, rEqnRtn)
+round(rCorr,2)
+
+round(flCorr,2)
 
 
 ########################################
@@ -106,48 +140,32 @@ dim(eqnRtn)
 ## indices of date rows in december 2016
 (dec2006 <- grep("2006-12",rownames(eqnRtn)))
 
+readline("press any key to continue")
 
 ## Inspecting subsets of data in R
 ## is easy with matrix subsetting syntax:
 eqnRtn[dec2006, c("HPQ","MSFT")]
 
-
-## #####################
-## SQL construction
-## with this option each R command that uses DBLytix will log
-## the SQL sent to Teradata.
-## This can in many cases be migrated to a SQL script.
-options(debugSQL=FALSE)
-options(debugSQL=TRUE)
+readline("press any key to continue")
 
 ## NO SQL is sent during the definition of subsetting
 E <- eqnRtn[dec2006, randomstocks]
 
 ## Data is fetched on demand only, e.g. when printing
 print(E)
-
-
-
-round(as.matrix(flCorr),2)
-
-## the result is in the same format as the R results
-rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
-rEqnRtn <- na.omit(rEqnRtn)
-
-rCorr <- cor(rEqnRtn, rEqnRtn)
-round(rCorr,2)
+readline("press any key to continue")
 
 
 
 ############################################################
-## And of course you can now use  
-## thousands of R packages to operate on DB Lytix results, 
+## And of course you can now use
+## thousands of R packages to operate on DB Lytix results,
 require(gplots)
 ## install.packages("gplots")
 
 M <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 heatmap.2(as.matrix(M),
-          symm=TRUE, 
+          symm=TRUE,
           distfun=function(c) as.dist(1 - c),
           trace="none",
           col=redgreen(100),
@@ -200,11 +218,11 @@ stockCorrelPlot <- function(input){
     rownames(flCorr) <- metaInfo$Name[
         match(rownames(flCorr),
               metaInfo$Symbol)]
-    heatmap.2(flCorr, symm=TRUE, 
+    heatmap.2(flCorr, symm=TRUE,
               distfun=function(c) as.dist(1 - c),
               trace="none",
               col=redgreen(100),
-              cexCol = 1, srtCol=90, 
+              cexCol = 1, srtCol=90,
               cexRow = 1)
 }
 
@@ -215,19 +233,19 @@ shinyApp(
         fluidRow(
             column(3,
                    selectInput(
-                       "sectors", "Sectors:", 
+                       "sectors", "Sectors:",
                        choices = levels(metaInfo$Sector),
                        selected = "Energy",
                        multiple = TRUE)),
             column(3,
                    selectInput(
-                       "industries", "Industries:", 
+                       "industries", "Industries:",
                        choices = levels(metaInfo$industry),
                        selected = "Commercial Banks",
                        multiple = TRUE)),
             column(6,
                    selectInput(
-                       "stocks", "Stocks:", 
+                       "stocks", "Stocks:",
                        choices = colnames(eqnRtn),
                        selected = c(),
                        multiple = TRUE))),
@@ -276,7 +294,7 @@ m <- FLMatrix(database          = "FL_DEMO",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
 
-## compute inverse in R after 
+## compute inverse in R after
 ## fetching data by a simple as.matrix cast call
 rm <- as.matrix(m)
 solve(rm)
@@ -321,13 +339,3 @@ a <- (flM %*% flM) - flM
 a
 
 solve(flM) %*% flM - flM
-
-
-
-
-
-
-
-gregor.kappler@fuzzylogix.com
-
-Thanks!
