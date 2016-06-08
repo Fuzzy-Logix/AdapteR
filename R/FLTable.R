@@ -373,8 +373,8 @@ setGeneric("deepToWide", function(object,
                                   mapName,
                                   outWideTableDatabase,
                                   outWideTableName,
-                                  Analysisid,
-                                  usedwidetablename) {
+                                  Analysisid
+                                  ) {
     standardGeneric("deepToWide")
 })
 setMethod("deepToWide",
@@ -384,36 +384,37 @@ setMethod("deepToWide",
                     mapName="character",
                     outWideTableDatabase="character",
                     outWideTableName="character",
-                    Analysisid = "character",
-                    usedwidetablename = "character"),
+                    Analysisid = "character"),
           function(object,
                   whereconditions,
                   mapTable,
                   mapName,
                   outWideTableDatabase,
                   outWideTableName,
-                  Analysisid,
-                  usedwidetablename)
+                  Analysisid
+                  )
           {
-            browser()
+            #browser()
             if(!object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             object <- setAlias(object,"")
             if(outWideTableDatabase=="")
             outWideTableDatabase <- getOption("ResultDatabaseFL")
+            usedwidetablename <- paste0(getOption("ResultDatabaseFL"),".",
+                                      gen_wide_table_name("MAP"))
             if(mapTable=="" || mapTable=="NULL"){
-              if(length(Analysisid)>1)
+              if(Analysisid!="")
               {
-                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"Map; 
-                                 INSERT INTO ",usedwidetablename,"Map 
-                                 SELECT a.Final_VarID,
-                                        a.COLUMN_NAME,
-                                        a.FROM_TABLE 
+                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ",
+                                " INSERT INTO ",usedwidetablename," \n ", 
+                                " SELECT a.Final_VarID, \n  
+                                        a.COLUMN_NAME, \n 
+                                        a.FROM_TABLE
                                  FROM fzzlRegrDataPrepMap a 
                                  WHERE a.AnalysisID = '",Analysisid,"';")
                 sqlSendUpdate(connection,sqlstr1)
-                mapTable<-paste0(usedwidetablename,"Map")
-                mapname<-usedwidetablename
+                mapTable<-usedwidetablename
+                mapname<- genRandVarName()
               }
               else{
               mapTable <- "NULL"
@@ -477,8 +478,8 @@ setMethod("deepToWide",
                     mapName="missing",
                     outWideTableDatabase="missing",
                     outWideTableName="missing",
-                    Analysisid = "missing",
-                    usedwidetablename = "missing"),
+                    Analysisid = "missing"
+                   ),
           function(object)
           deepToWide(object,
                     whereconditions="",
@@ -486,8 +487,8 @@ setMethod("deepToWide",
                     mapName="",
                     outWideTableDatabase="",
                     outWideTableName="",
-                    Analysisid = "",
-                    usedwidetablename = ""))
+                    Analysisid = ""
+                    ))
 
 #' Convert Wide Table to Deep Table in database.
 #'
