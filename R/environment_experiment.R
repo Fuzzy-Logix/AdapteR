@@ -149,14 +149,20 @@ as.Renvironment<-function(FLenv){
   Renv<-new.env()
   for(n in ls(FLenv)){
     objectFL <- get(n,envir = FLenv)
+    #browser()
     if(is.FLMatrix(objectFL)){
       obj2<-as.matrix(objectFL)
       assign(n,obj2,envir = Renv)
     }
-    if(is.FLVector(objectFL)){
+    else if(is.FLVector(objectFL)){
       obj2<-as.vector(objectFL)
       assign(n,obj2,envir = Renv)
     }
+    else if(is.FLTable(objectFL)){
+      obj2<-as.data.frame(objectFL)
+      assign(n,obj2,envir = Renv)
+    }
+    else 
     assign(n,objectFL,envir= Renv)
   }
   return(Renv)
@@ -165,8 +171,9 @@ as.Renvironment<-function(FLenv){
 
 FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE),list(n =5,isRowVec = FALSE)),
                           classes = c("FLMatrix","FLVector"),operator = "+"){
-    #browser()
+    
   FLenv<-new.env()
+  browser()
   lapply(1:length(classes),function(i){
     obj<-initFgeneric(specs[[i]],classes[i])
     x=i
@@ -174,9 +181,9 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE),list(n =5,isRowVe
   })
   Renv<-as.Renvironment(FLenv)
   obj1<-do.call(operator,lapply(ls(FLenv),function(x)do.call("$",list(FLenv,paste0(x)))))
-  obj2<-do.call(.Primitive(operator),lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
+  obj2<-do.call(operator,lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
   
-  FLexpect_equal(obj1,obj2)
+  FLexpect_equal(obj1,obj2,check.attributes =FALSE)
 }
 
 expect_equal_RMatrix_FLMatrix <- function(a){
