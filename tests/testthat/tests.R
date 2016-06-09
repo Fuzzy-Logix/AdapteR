@@ -575,10 +575,10 @@ test_that("check FLCorrel result",
 {
   fltDeep <- FLTable(getOption("ResultDatabaseFL"),"tblAbaloneDeep",
                 "ObsID","VarID","Num_Val",
-                whereconditions=paste0(getOption("ResultDatabaseFL"),".tblAbaloneDeep.ObsID < 21")
+                whereconditions=paste0(getOption("ResultDatabaseFL"),".tblAbaloneDeep.ObsID < 21"))
   RtDeep <- as.data.frame(fltDeep)
   fltWide <- FLTable(getOption("ResultDatabaseFL"),"tblAbaloneWide",
-                "ObsID",whereconditions=paste0(getOption("ResultDatabaseFL"),".tblAbaloneWide.ObsID < 21")
+                "ObsID",whereconditions=paste0(getOption("ResultDatabaseFL"),".tblAbaloneWide.ObsID < 21"))
   RtWide <- as.data.frame(fltWide)
   vRow <- initF.FLVector(20,TRUE)
   flvRow <- vRow$FL
