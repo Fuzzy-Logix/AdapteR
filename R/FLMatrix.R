@@ -307,7 +307,7 @@ restrictFLMatrix <-
 ##' @return the FLMatrix object, with slot dimnames re set 
 #' @export
 FLamendDimnames <- function(flm,map_table) {
-    ##browser()
+    #browser()
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -407,7 +407,7 @@ FLamendDimnames <- function(flm,map_table) {
         flm@mapSelect <- new(
             "FLSelectFrom",
             connection = connection,
-            database = flm@select@database,
+            database = getOption("ResultDatabaseFL"),
             table_name = tablenames,
             variables=variables,
             whereconditions=mConstraint,

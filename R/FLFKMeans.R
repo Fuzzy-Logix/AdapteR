@@ -647,6 +647,7 @@ silinfo.FLFKMeans <- function(object){
 			ObsID <- rownames(widthsDataFrame)
 			widthsDataFrame$obs_id_colname <- NULL
 			widthsmatrix <- as.matrix(widthsDataFrame)
+			widthsmatrix <- matrix(as.numeric(widthsmatrix),nrow(widthsmatrix))
 			rownames(widthsmatrix) <- ObsID
 			colnames(widthsmatrix) <- c("cluster","neighbor","sil_width")
 		}
