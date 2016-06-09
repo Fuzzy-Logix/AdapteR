@@ -23,15 +23,286 @@ NULL
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
 #' @export
-cor <- function (x,y, ...) {
-	UseMethod("cor", x)
+cor <- function(x,y,use="everything",
+				method="pearson",...){
+	UseMethod("cor",x)
 }
 
 #' @export
-cor.default<-stats::cor
+cor.default <- stats::cor
 
 #' @export
-cor.FLMatrix <- function(x,y=x,...)
+cor.FLMatrix <- function(x,y=x,use="everything",
+				method="pearson",...){
+	if(!method %in% c("pearson","spearman","shuffle"))
+	stop("currently pearson,spearman,shuffle methods supported \n")
+	if(method=="spearman")
+	
+	return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...)
+	})
+#' @export
+cor.numeric <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+#' @export
+cov.matrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+#' @export
+cor.data.frame <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+#' @export
+cor.FLVector <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+#' @export
+cor.FLTable <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+
+#' CoVariance.
+#'
+#' \code{cov} computes correlation of in-database Objects
+#'
+#' @param x FLMatrix, FLVector or FLTable object or any R object
+#' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @param ... any additional arguments
+#' @section Constraints:
+#' The number of non-null pairs must be greater than or equal to 2.
+#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' @return \code{cov} returns FLMatrix object representing correlation of x and y.
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable <- FLTable( "FL_DEMO", 
+#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' cov(deeptable,deeptable)
+#' cov(widetable,widetable)
+#' @export
+cov <- function(x,y,...){
+	UseMethod("cov",x)
+}
+
+#' @export
+cov.default <- stats::cov
+
+#' @export
+cov.FLMatrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+#' @export
+cov.numeric <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+#' @export
+cov.matrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+#' @export
+cov.data.frame <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+#' @export
+cov.FLVector <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+#' @export
+cov.FLTable <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+
+#' Population CoVariance.
+#'
+#' \code{cov} computes correlation of in-database Objects
+#'
+#' @param x FLMatrix, FLVector or FLTable object or any R object
+#' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @param ... any additional arguments
+#' @section Constraints:
+#' The number of non-null pairs must be greater than or equal to 2.
+#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' @return \code{cov} returns FLMatrix object representing correlation of x and y.
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable <- FLTable( "FL_DEMO", 
+#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' FLCovarP(deeptable,deeptable)
+#' FLCovarP(widetable,widetable)
+#' @export
+FLCovarP <- function(x,y=NULL,...){
+	UseMethod("FLCovarP",x)
+}
+
+#' @export
+FLCovarP.FLMatrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+#' @export
+FLCovarP.numeric <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+#' @export
+FLCovarP.matrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+#' @export
+FLCovarP.data.frame <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+#' @export
+FLCovarP.FLVector <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+#' @export
+FLCovarP.FLTable <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+
+
+#' variance.
+#'
+#' \code{cov} computes correlation of in-database Objects
+#'
+#' @param x FLMatrix, FLVector or FLTable object or any R object
+#' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @param ... any additional arguments
+#' @section Constraints:
+#' The number of non-null pairs must be greater than or equal to 2.
+#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' @return \code{cov} returns FLMatrix object representing correlation of x and y.
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable <- FLTable( "FL_DEMO", 
+#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' FLCovarP(deeptable,deeptable)
+#' FLCovarP(widetable,widetable)
+#' @export
+var <- function(x,y=NULL,...){
+	UseMethod("var",x)
+}
+#' @export
+var.default <- stats::var
+
+#' @export
+var.FLMatrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+#' @export
+var.numeric <- function(x,y=x,...){
+	if(missing(y))
+	return(var.default(x,...))
+	else if(!is.FLVector(y) && !is.FLMatrix(y) && !is.FLTable(y))
+	return(var.default(x,y,...))
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+}
+#' @export
+var.matrix <- function(x,y=x,...){
+	if(missing(y))
+	return(var.default(x,...))
+	else if(!is.FLVector(y) && !is.FLMatrix(y) && !is.FLTable(y))
+	return(var.default(x,y,...))
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+}
+#' @export
+var.data.frame <- function(x,y=x,...){
+	if(missing(y))
+	return(var.default(x,...))
+	else if(!is.FLVector(y) && !is.FLMatrix(y) && !is.FLTable(y))
+	return(var.default(x,y,...))
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+}
+#' @export
+var.FLAbstractColumn <- function(object){
+	return(paste0(" FLVar(",
+				paste0(object@columnName,collapse=","),") "))
+}
+#' @export
+var.FLVector <- function(x,y=x,...){
+	if(missing(y)){
+		if(ncol(x)>1 && !x@isDeep)
+		x <- as.FLVector(as.vector(x))
+		return(genScalarFunCall(x,var.FLAbstractColumn))
+	}
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+}
+#' @export
+var.FLTable <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+
+#' population variance.
+#'
+#' \code{cov} computes correlation of in-database Objects
+#'
+#' @param x FLMatrix, FLVector or FLTable object or any R object
+#' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @param ... any additional arguments
+#' @section Constraints:
+#' The number of non-null pairs must be greater than or equal to 2.
+#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' @return \code{cov} returns FLMatrix object representing correlation of x and y.
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable <- FLTable( "FL_DEMO", 
+#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' FLCovarP(deeptable,deeptable)
+#' FLCovarP(widetable,widetable)
+#' @export
+FLVarP <- function(x,y=NULL,...){
+	UseMethod("FLVarP",x)
+}
+
+varP <- function(x,...){
+	if(is.vector(x))
+		n <- length(x)
+		else n <- nrow(x)
+		return((stats::var(x,...)*(n-1))/n)
+}
+#' @export
+FLVarP.FLMatrix <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+#' @export
+FLVarP.numeric <- function(x,y=x,...){
+	if(missing(y))
+	return(varP(x,...))
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+}
+#' @export
+FLVarP.matrix <- function(x,y=x,...){
+	if(missing(y))
+	return(varP(x,...))
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+}
+#' @export
+FLVarP.data.frame <- function(x,y=x,...){
+	if(missing(y))
+	return(varP(x,...))
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+}
+#' @export
+FLVarP.FLAbstractColumn <- function(object){
+	return(paste0(" FLVarP(",
+				paste0(object@columnName,collapse=","),") "))
+}
+#' @export
+FLVarP.FLVector <- function(x,y=x,...){
+	if(missing(y)){
+		if(ncol(x)>1 && !x@isDeep)
+		x <- as.FLVector(as.vector(x))
+		return(genScalarFunCall(x,FLVarP.FLAbstractColumn))
+	}
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+}
+#' @export
+FLVarP.FLTable <- function(x,y=x,...)
+return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+
+
+## Generic function to cover FLCorrel,FLCovar,FLCovarP
+FLCorGeneric <- function (x,y=x,functionName,...) {
+	UseMethod("FLCorGeneric", x)
+}
+
+FLCorGeneric.default <- function(x,y=x,functionName,...){
+	#browser()
+	if(functionName=="FLCorrel")
+	return(stats::cor(x,y,...))
+	else if(functionName=="FLCovar")
+	return(stats::cov(x,y,...))
+	else if(functionName=="FLCovarP"){
+		if(is.vector(x))
+		n <- length(x)
+		else n <- nrow(x)
+		return((stats::cov(x,y,...)*(n-1))/n)
+		}
+}
+
+FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
 {
 	connection <- getConnection(x)
     ##browser()
@@ -44,7 +315,7 @@ cor.FLMatrix <- function(x,y=x,...)
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 								a,".colIdColumn AS rowIdColumn,",
 								b,".colIdColumn AS colIdColumn,",
-							 x@select@database,".FLCorrel(",a,".valueColumn,",
+							 x@select@database,".",functionName,"(",a,".valueColumn,",
 							 					  b,".valueColumn) AS valueColumn 
 						FROM ( ",constructSelect(x),") AS ",a,
 		                  ",( ",constructSelect(y),") AS ",b,
@@ -68,8 +339,8 @@ cor.FLMatrix <- function(x,y=x,...)
                                 colnames(x),
                                 colnames(y)))
 		return(ensureQuerySize(pResult=flm,
-							pInput=list(x,y),
-							pOperator="cor"))
+							pInput=list(x,y,functionName,...),
+							pOperator="FLCorGeneric"))
     }
     if(is.data.frame(y))
 	{
@@ -93,7 +364,7 @@ cor.FLMatrix <- function(x,y=x,...)
 	}
 	if(is.matrix(y))
 	{
-		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions ")
+		if(nrow(x)!=nrow(y)) stop("incompatible dimensions\n")
 		else
 		{
 			y <- as.FLMatrix(y)
@@ -102,7 +373,7 @@ cor.FLMatrix <- function(x,y=x,...)
 	}
 	if(is.FLVector(y))
 	{
-		if(length(y) != nrow(x)) stop("incompatible dimensions")
+		if(length(y) != nrow(x)) stop("incompatible dimensions\n")
 		if(nrow(y)==1 && !y@isDeep)
 		{
 			y <- as.FLMatrix(y,
@@ -116,7 +387,7 @@ cor.FLMatrix <- function(x,y=x,...)
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 									a,".colIdColumn AS rowIdColumn,
 									 1 AS colIdColumn,",
-								 x@select@database,".FLCorrel(",a,".valueColumn,",
+								 x@select@database,".",functionName,"(",a,".valueColumn,",
 								 					  b,".vectorValueColumn) AS valueColumn 
 							FROM ( ",constructSelect(x),") AS ",a,
 			                  ",( ",constructSelect(y),") AS ",b,
@@ -141,21 +412,22 @@ cor.FLMatrix <- function(x,y=x,...)
                           "1"))
 
 			return(ensureQuerySize(pResult=flm,
-							pInput=list(x,y),
-							pOperator="cor"))
+							pInput=list(x,y,functionName,...),
+							pOperator="FLCorGeneric"))
 		}
 	}
 	if(is.FLTable(y))
 	{
-		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions ")
+		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions\n")
 		else 
 		return(t(cor(y,x)))
 	}
 }
 
 #' @export
-cor.numeric <- function(x,y=x,...)
+FLCorGeneric.numeric <- function(x,y=x,functionName,...)
 {
+	#browser()
 	if(is.FLMatrix(y))
 	{
 		res<- t(cor(y,x))
@@ -178,11 +450,11 @@ cor.numeric <- function(x,y=x,...)
 		return(t(cor(y,x)))
 	}
 	else
-	return(cor.default(x,y))
+	return(FLCorGeneric.default(x,y,functionName,...))
 }
 
 #' @export
-cor.matrix <- function(x,y=x,...)
+FLCorGeneric.matrix <- function(x,y=x,functionName,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -205,11 +477,11 @@ cor.matrix <- function(x,y=x,...)
 		return(t(cor(y,x)))
 	}
 	else
-	return(cor.default(x,y))
+	return(FLCorGeneric.default(x,y,functionName,...))
 }
 
 #' @export
-cor.data.frame <- function(x,y=x,...)
+FLCorGeneric.data.frame <- function(x,y=x,functionName,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -233,26 +505,26 @@ cor.data.frame <- function(x,y=x,...)
 		return(t(cor(y,x)))
 	}
 	else
-	return(cor.default(x,y))
+	return(FLCorGeneric.default(x,y,functionName,...))
 }
 
 #' @export
-cor.FLVector <- function(x,y=x,...)
+FLCorGeneric.FLVector <- function(x,y=x,functionName,...)
 {	
 	connection <- getConnection(x)
 
 	if(is.FLVector(y))
 	{
 		if(length(x)!=length(y)) stop(" incompatible dimensions ")
-		if(nrow(y)==1) y <- as.FLVector(as.vector(y))
-		if(nrow(x)==1) x <- as.FLVector(as.vector(x))
+		if(nrow(y)==1 && !y@isDeep) y <- as.FLVector(as.vector(y))
+		if(nrow(x)==1 && !x@isDeep) x <- as.FLVector(as.vector(x))
 
 			a <- genRandVarName()
 			b <- genRandVarName()
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 										"1 AS rowIdColumn,",
 										"1 AS colIdColumn,",
-									 x@select@database,".FLCorrel(",a,".vectorValueColumn,",
+									 x@select@database,".",functionName,"(",a,".vectorValueColumn,",
 									 					  b,".vectorValueColumn) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
 				                  ",( ",constructSelect(y),") AS ",b,
@@ -302,7 +574,7 @@ cor.FLVector <- function(x,y=x,...)
 }
 
 #' @export
-cor.FLTable <- function(x,y=x,...)
+FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 {
 	connection <- getConnection(x)
 	if(is.FLTable(y))
@@ -316,7 +588,7 @@ cor.FLTable <- function(x,y=x,...)
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 										a,".var_id_colname AS rowIdColumn,",
 										b,".var_id_colname AS colIdColumn,",
-									 x@select@database,".FLCorrel(",a,".cell_val_colname,",
+									 x@select@database,".",functionName,"(",a,".cell_val_colname,",
 									 					  b,".cell_val_colname) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
 				                  ",( ",constructSelect(y),") AS ",b,
@@ -341,8 +613,8 @@ cor.FLTable <- function(x,y=x,...)
                           colnames(y)))
 
 			return(ensureQuerySize(pResult=flm,
-							pInput=list(x,y),
-							pOperator="cor"))
+							pInput=list(x,y,functionName,...),
+							pOperator="FLCorGeneric"))
 		}
 		if(!y@isDeep && !x@isDeep)
 		{
@@ -401,7 +673,7 @@ cor.FLTable <- function(x,y=x,...)
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 										a,".var_id_colname AS rowIdColumn,",
 										b,".colIdColumn AS colIdColumn,",
-									 x@select@database,".FLCorrel(",a,".cell_val_colname,",
+									 x@select@database,".",functionName,"(",a,".cell_val_colname,",
 									 					  b,".valueColumn) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
 				                  ",( ",constructSelect(y),") AS ",b,
@@ -426,8 +698,8 @@ cor.FLTable <- function(x,y=x,...)
                           colnames(y)))
 
 			return(ensureQuerySize(pResult=flm,
-							pInput=list(x,y),
-							pOperator="cor"))
+							pInput=list(x,y,functionName,...),
+							pOperator="FLCorGeneric"))
 		}
 		if(!x@isDeep)
 		{
@@ -483,7 +755,7 @@ cor.FLTable <- function(x,y=x,...)
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 									a,".var_id_colname AS rowIdColumn,
 									 1 AS colIdColumn,",
-								 x@select@database,".FLCorrel(",a,".cell_val_colname,",
+								 x@select@database,".",functionName,"(",a,".cell_val_colname,",
 								 					  b,".vectorValueColumn) AS valueColumn 
 							FROM ( ",constructSelect(x),") AS ",a,
 			                  ",( ",constructSelect(y),") AS ",b,
@@ -512,8 +784,8 @@ cor.FLTable <- function(x,y=x,...)
 			flm@dimnames[[1]] <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
 
 			return(ensureQuerySize(pResult=flm,
-							pInput=list(x,y),
-							pOperator="cor"))
+							pInput=list(x,y,functionName,...),
+							pOperator="FLCorGeneric"))
 		}
 	}
 	if(is.matrix(y))
@@ -545,3 +817,140 @@ cor.FLTable <- function(x,y=x,...)
 	}
 }
 
+#' Weighted Covariance.
+#'
+#' \code{cov.wt} computes correlation of in-database Objects
+#'
+#' @param x FLMatrix, FLVector or FLTable object or any R object
+#' @param y FLMatrix, FLVector or FLTable object or any R object
+#' @param ... any additional arguments
+#' @section Constraints:
+#' The \code{method} input can be 1,2,3 as in DB-Lytix manual.
+#' "ML" method is equivalent to method=1."unbiased" is not supported.
+#' The number of non-null pairs must be greater than or equal to 2.
+#' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' @return \code{cor} returns FLMatrix object representing correlation of x and y.
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' deeptable <- FLTable( "FL_DEMO", 
+#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' cor(deeptable,deeptable)
+#' cor(widetable,widetable)
+#' @export
+
+cov.wtGeneric <- function(x,
+			    		wt = rep(1/nrow(x), nrow(x)),
+			    		cor = FALSE, 
+			    		center = TRUE,
+			       		method = 1,
+			       		rowIdColumn="rowIdColumn",
+			       		colIdColumn="colIdColumn",
+			       		valueColumn="valueColumn"){
+    if(length(wt)!=nrow(x))
+    stop("length of 'wt' must equal the number of rows in 'x' \n")
+    if(!method %in% c(1,2,3,"ML"))
+    stop("method should be 1,2,3 or ML \n")
+    if(method=="ML") method <- 1
+
+    if(is.vector(wt))
+    wt <- as.FLVector(wt)
+    else if(!is.FLVector(wt))
+    stop(" wt should be vector or FLVector \n ")
+
+    sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,\n",
+    					"a.",colIdColumn," AS rowIdColumn,\n",
+    					"b.",colIdColumn," AS colIdColumn,\n",
+    					"FLWtCovar(a.",valueColumn,",b.",valueColumn,",c.vectorValueColumn,",method,") AS valueColumn\n",
+    				" FROM(",constructSelect(x),") a,\n (",
+    						constructSelect(x)," ) b, \n (",
+    						constructSelect(wt)," ) c \n ",
+    				constructWhere(c(paste0("a.",rowIdColumn," = b.",rowIdColumn))),
+            			" GROUP BY a.",colIdColumn,",b.",colIdColumn)
+
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                connection = connection,
+                variables=list(
+                    rowIdColumn="rowIdColumn",
+                    colIdColumn="colIdColumn",
+                    valueColumn="valueColumn"),
+                whereconditions="",
+                order = "",
+                SQLquery=sqlstr)
+
+	flm <- new("FLMatrix",
+                       select= tblfunqueryobj,
+                       dim=c(ncol(x),ncol(x)),
+	            	   dimnames = list(
+                            colnames(x),
+                            colnames(x)))
+	flm <- ensureQuerySize(pResult=flm,
+						pInput=list(x,wt,cor,center,method),
+						pOperator="cov.wt")
+	cov <- flm
+	if(center){
+		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n",
+								"a.",colIdColumn," AS vectorIndexColumn, \n",
+								"FLWtAvg(b.vectorValueColumn,a.",valueColumn,") AS vectorValueColumn \n",
+						" FROM (",constructSelect(x),") a,\n",
+								"(",constructSelect(wt),") b ",
+						" WHERE a.",rowIdColumn," = b.vectorIndexColumn ",
+						" GROUP BY 1,2")
+
+		tblfunqueryobj <- new("FLTableFunctionQuery",
+	                    connection = connection,
+	                    variables = list(
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
+	                    whereconditions="",
+	                    order = "",
+	                    SQLquery=sqlstr)
+
+		center <- new("FLVector",
+					select = tblfunqueryobj,
+					dimnames = list(colnames(x),"vectorValueColumn"),
+					isDeep = FALSE)
+	}
+	n.obs <- nrow(x)
+	if(cor)
+	cor <- cor(x)
+	if(!is.logical(center))
+	resultList <- list(cov=cov,
+						center=center,
+						n.obs=n.obs,
+						wt=wt)
+	else resultList <- list(cov=cov,
+						center=center,
+						n.obs=n.obs,
+						wt=wt)
+	if(!is.logical(cor))
+	resultList <- c(resultList,cor=cor)
+	return(resultList)
+        }
+
+setMethod("cov.wt",signature(x="FLMatrix"),
+    function(x,
+    		wt = rep(1/nrow(x), nrow(x)),
+    		cor = FALSE, 
+    		center = TRUE,
+       		method = 1){
+    	return(cov.wtGeneric(x=x,
+    				wt=wt,
+    				cor=cor,
+    				center=center,
+    				method=method))})
+
+setMethod("cov.wt",signature(x="FLTable"),
+    function(x,
+    		wt = rep(1/nrow(x), nrow(x)),
+    		cor = FALSE, 
+    		center = TRUE,
+       		method = 1){
+    	return(cov.wtGeneric(x=x,
+    				wt=wt,
+    				cor=cor,
+    				center=center,
+    				method=method,
+    				rowIdColumn="obs_id_colname",
+    				colIdColumn="var_id_colname",
+    				valueColumn="cell_val_colname"))})

@@ -39,13 +39,30 @@ as.FLAbstractCol.FLAbstractColumn <- function(object,indexCol=FALSE){
 
 as.FLAbstractCol.FLVector <- function(object,indexCol=FALSE){
 	if(!indexCol)
-		vcolnames <- "vectorValueColumn"
-	else vcolnames <- c("vectorIndexColumn",
-						"vectorValueColumn")
+		vcolnames <- c(valueColumn="vectorValueColumn")
+	else vcolnames <- c(indexColumn="vectorIndexColumn",
+						valueColumn="vectorValueColumn")
 	return(new("FLAbstractColumn",
 				columnName=vcolnames))
 }
 
+as.FLAbstractCol.FLMatrix <- function(object,indexCol=FALSE){
+	if(!indexCol)
+		vcolnames <- c(valuecolumn="valuecolumn")
+	else vcolnames <- c(indexColumn="ROW_NUMBER() OVER(ORDER BY colIdColumn,rowIdColumn)",
+						valuecolumn="valuecolumn")
+	return(new("FLAbstractColumn",
+				columnName=vcolnames))
+}
+
+as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
+	if(!indexCol)
+		vcolnames <- c(valuecolumn="cell_val_colname")
+	else vcolnames <- c(indexColumn="ROW_NUMBER() OVER(ORDER BY obs_id_colname,var_id_colname)",
+						valuecolumn="cell_val_colname")
+	return(new("FLAbstractColumn",
+				columnName=vcolnames))
+}
 genScalarFunCall <- function(object,func){
     sqlstr <- paste0(" SELECT ",func(as.FLAbstractCol(object)),
                      "\n FROM(",constructSelect(object),") AS a")
@@ -59,9 +76,17 @@ mean.FLAbstractColumn <- function(object){
 mean.FLVector <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn))
 }
+mean.FLMatrix <- function(x,...){
+	return(genScalarFunCall(x,mean.FLAbstractColumn))
+}
+mean.FLTable <- function(x,...){
+	if(!x@isDeep)
+	stop("convert to deep format using wideToDeep \n")
+	return(genScalarFunCall(x,mean.FLAbstractColumn))
+}
 
-function (.data, .variables, .fun = NULL, ..., .progress = "none", 
-    .inform = FALSE, .drop = TRUE, .parallel = FALSE, .paropts = NULL) 
+# function (.data, .variables, .fun = NULL, ..., .progress = "none", 
+#     .inform = FALSE, .drop = TRUE, .parallel = FALSE, .paropts = NULL) 
 
 
 require(plyr)
