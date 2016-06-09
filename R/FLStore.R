@@ -69,6 +69,7 @@ store.FLMatrix <- function(object)
             row_id_colname = "rowIdColumn", 
             col_id_colname = "colIdColumn", 
             cell_val_colname = "valueColumn",
+            dimnames=dimnames(object)
             ))
     }
 }

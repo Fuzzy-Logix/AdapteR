@@ -34,7 +34,7 @@ FLTable <- function(database,
                     connection=NULL)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
-
+    browser()
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
     oldalias <- names(table)[1]
@@ -140,9 +140,14 @@ FLTable <- function(database,
 ##'
 ##' @param object 
 #' @export
-names.FLTable <- function(object) object@dimnames[[2]]
+names.FLTable <- function(object){
+  if(!is.null(names(object@dimnames[[2]])))
+  return(names(object@dimnames[[2]]))
+  else return(object@dimnames[[2]])
+  }
 #' @export
-colnames.FLTable <- function(object) object@dimnames[[2]]
+colnames.FLTable <- function(object)
+return(names(object))
 #' @export
 rownames.FLTable <- function(object) object@dimnames[[1]]
 
@@ -187,6 +192,76 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
   }
   else return(NULL)
 }
+
+# data(iris)
+# irisFL <- as.FLTable(iris)
+# irisFL$SepalArea <- irisFL$SepalLength * irisFL$SepalWidth
+# head(irisFL)
+#' @export
+`$<-.FLTable` <- function(x,name,value){
+  vcolnames <- colnames(x)
+  vtablename <- getRemoteTableName(databaseName=x@select@database,
+                tableName=x@select@table_name)
+  xcopy <- x
+  x <- setAlias(x,"")
+  sqlstr <- c()
+  getFLColumnType <- function(x){
+    if(is.FLVector(x))
+    x <- as.vector(head(x))
+    if(is.vector(x)){
+      vmapping <- c(VARCHAR="character",
+                    INT="integer",
+                    FLOAT="numeric",
+                    INT="logical")
+      vresult <- names(vmapping)[vmapping==class(x)]
+      if(vresult=="VARCHAR") return("VARCHAR(255)")
+      else return(vresult)
+    }
+  }
+  addColumnFLQuery <- function(pTable,pName,pValue){
+    ##Get data type of pValue
+    vColumnType <- getFLColumnType(x=pValue)
+    sqlstr <- paste0("ALTER TABLE ",pTable," \n ",
+                    " ADD ",pName," ",vColumnType,";")
+    return(sqlstr)
+  }
+  if(!x@isDeep){
+    if(!tolower(name) %in% tolower(vcolnames)){
+      sqlstr <- addColumnFLQuery(pTable=vtablename,
+                              pName=name,
+                              pValue=value)
+      vcolnames <- c(vcolnames,name)
+    }
+    if(!is.FLVector(value))
+    value <- as.FLVector(value)
+    sqlstr <- c(sqlstr,paste0("UPDATE ",vtablename," \n ",
+                    " FROM(",constructSelect(value),") a \n ",
+                    " SET ",name," = a.vectorValueColumn \n ",
+                    " WHERE a.vectorIndexColumn = ",getVariables(x)[["obs_id_colname"]],";"))
+  }
+  else{
+    if(tolower(name)%in%tolower(vcolnames))
+    sqlstr <- c(sqlstr,paste0("UPDATE ",vtablename," \n ",
+                    " FROM(",constructSelect(value),") a \n ",
+                    " SET ",getVariables(x)[["cell_val_colname"]]," = a.vectorValueColumn \n ",
+                    " WHERE a.vectorIndexColumn = ",getVariables(x)[["obs_id_colname"]],
+                            " AND ",getVariables(x)[["var_id_colname"]]," = ",name,";"))
+    else{
+      if(is.na(as.numeric(name)))
+      stop("name should be numeric in deep table \n ")
+      sqlstr <- c(sqlstr,paste0(" INSERT INTO ",vtablename," \n ",
+                    " SELECT a.vectorIndexColumn, \n ",
+                            name,
+                            ", \n a.vectorValueColumn \n ",
+                    " FROM(",constructSelect(value),") a;"))
+      vcolnames <- c(vcolnames,name)
+    }
+  }
+  sqlSendUpdate(getOption("connectionFL"),sqlstr)
+  xcopy@dimnames[[2]] <- vcolnames
+  return(xcopy)
+}
+
 
 #' Convert Wide Table to Deep Table in database.
 #'

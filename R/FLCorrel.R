@@ -14,6 +14,7 @@ NULL
 #' @section Constraints:
 #' The number of non-null pairs must be greater than or equal to 2.
 #' If number of non-null pairs is less than 2, FLCorrel returns a NULL.
+#' Only methods c("pearson","spearman","shuffle") are supported.
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
@@ -34,27 +35,40 @@ cor.default <- stats::cor
 #' @export
 cor.FLMatrix <- function(x,y=x,use="everything",
 				method="pearson",...){
-	if(!method %in% c("pearson","spearman","shuffle"))
-	stop("currently pearson,spearman,shuffle methods supported \n")
-	if(method=="spearman")
-	
-	return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...)
-	})
+	return(FLCorGeneric(x=x,y=y,
+						functionName="FLCorrel",
+						method=method,...))
+	}
 #' @export
-cor.numeric <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+cor.numeric <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCorrel",
+					method=method,...))
 #' @export
-cov.matrix <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+cov.matrix <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCorrel",
+					method=method,...))
 #' @export
-cor.data.frame <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+cor.data.frame <- function(x,y=x,use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCorrel",
+					method=method,...))
 #' @export
-cor.FLVector <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+cor.FLVector <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCorrel",
+					method=method,...))
 #' @export
-cor.FLTable <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
+cor.FLTable <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCorrel",
+					method="pearson",...))
 
 #' CoVariance.
 #'
@@ -75,7 +89,8 @@ return(FLCorGeneric(x=x,y=y,functionName="FLCorrel",...))
 #' cov(deeptable,deeptable)
 #' cov(widetable,widetable)
 #' @export
-cov <- function(x,y,...){
+cov <- function(x,y,use="everything",
+				method="pearson",...){
 	UseMethod("cov",x)
 }
 
@@ -83,23 +98,41 @@ cov <- function(x,y,...){
 cov.default <- stats::cov
 
 #' @export
-cov.FLMatrix <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+cov.FLMatrix <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovar",
+					method=method,...))
 #' @export
-cov.numeric <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+cov.numeric <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovar",
+					method=method,...))
 #' @export
-cov.matrix <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+cov.matrix <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovar",
+					method=method,...))
 #' @export
-cov.data.frame <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+cov.data.frame <- function(x,y=x,use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovar",
+					method=method,...))
 #' @export
-cov.FLVector <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+cov.FLVector <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovar",
+					method=method,...))
 #' @export
-cov.FLTable <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
+cov.FLTable <- function(x,y=x,use="everything",
+						method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovar",
+					method=method,...))
 
 #' Population CoVariance.
 #'
@@ -120,28 +153,49 @@ return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
 #' @export
-FLCovarP <- function(x,y=NULL,...){
+FLCovarP <- function(x,y=NULL,
+					use="everything",
+					method="pearson",...){
 	UseMethod("FLCovarP",x)
 }
 
 #' @export
-FLCovarP.FLMatrix <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+FLCovarP.FLMatrix <- function(x,y=x,
+							use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovarP",
+					method=method,...))
 #' @export
-FLCovarP.numeric <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+FLCovarP.numeric <- function(x,y=x,use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovarP",
+					method=method,...))
 #' @export
-FLCovarP.matrix <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+FLCovarP.matrix <- function(x,y=x,use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovarP",
+					method=method,...))
 #' @export
-FLCovarP.data.frame <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+FLCovarP.data.frame <- function(x,y=x,use="everything",
+								method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovarP",
+					method=method,...))
 #' @export
-FLCovarP.FLVector <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+FLCovarP.FLVector <- function(x,y=x,use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovarP",
+					method=method,...))
 #' @export
-FLCovarP.FLTable <- function(x,y=x,...)
-return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
+FLCovarP.FLTable <- function(x,y=x,use="everything",
+							method="pearson",...)
+return(FLCorGeneric(x=x,y=y,
+					functionName="FLCovarP",
+					method=method,...))
 
 
 #' variance.
@@ -284,12 +338,13 @@ return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 
 
 ## Generic function to cover FLCorrel,FLCovar,FLCovarP
-FLCorGeneric <- function (x,y=x,functionName,...) {
+FLCorGeneric <- function (x,y=x,functionName,method="pearson",...) {
 	UseMethod("FLCorGeneric", x)
 }
 
-FLCorGeneric.default <- function(x,y=x,functionName,...){
-	#browser()
+FLCorGeneric.default <- function(x,y=x,
+								functionName,
+								method,...){
 	if(functionName=="FLCorrel")
 	return(stats::cor(x,y,...))
 	else if(functionName=="FLCovar")
@@ -302,9 +357,12 @@ FLCorGeneric.default <- function(x,y=x,functionName,...){
 		}
 }
 
-FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
+FLCorGeneric.FLMatrix <- function(x,y=x,
+								functionName,
+								method,...)
 {
 	connection <- getConnection(x)
+	pStoreResult <- FALSE
     ##browser()
     if(is.FLMatrix(y))
     {
@@ -312,6 +370,12 @@ FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
 
         a <- genRandVarName()
 		b <- genRandVarName()
+		sqlstr <- genCorrelUDTSql(object1=x,
+								object2=y,
+								functionName=functionName,
+								method=method)
+		vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
+		if(is.null(sqlstr))
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 								a,".colIdColumn AS rowIdColumn,",
 								b,".colIdColumn AS colIdColumn,",
@@ -340,7 +404,8 @@ FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
                                 colnames(y)))
 		return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y,functionName,...),
-							pOperator="FLCorGeneric"))
+							pOperator="FLCorGeneric",
+							pStoreResult=vstoreFlag))
     }
     if(is.data.frame(y))
 	{
@@ -377,13 +442,19 @@ FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
 		if(nrow(y)==1 && !y@isDeep)
 		{
 			y <- as.FLMatrix(y,
-                                         sparse=TRUE,rows=length(y),cols=1)
+                            sparse=TRUE,rows=length(y),cols=1)
 			return(cor(x,y))
 		}
 		else if(ncol(y)==1 || y@isDeep)
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
+			sqlstr <- genCorrelUDTSql(object1=x,
+								object2=y,
+								functionName=functionName,
+								method=method)
+			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
+			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 									a,".colIdColumn AS rowIdColumn,
 									 1 AS colIdColumn,",
@@ -413,7 +484,8 @@ FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
 
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y,functionName,...),
-							pOperator="FLCorGeneric"))
+							pOperator="FLCorGeneric",
+							pStoreResult=vstoreFlag))
 		}
 	}
 	if(is.FLTable(y))
@@ -425,7 +497,9 @@ FLCorGeneric.FLMatrix <- function(x,y=x,functionName,...)
 }
 
 #' @export
-FLCorGeneric.numeric <- function(x,y=x,functionName,...)
+FLCorGeneric.numeric <- function(x,y=x,
+								functionName,
+								method,...)
 {
 	#browser()
 	if(is.FLMatrix(y))
@@ -454,7 +528,9 @@ FLCorGeneric.numeric <- function(x,y=x,functionName,...)
 }
 
 #' @export
-FLCorGeneric.matrix <- function(x,y=x,functionName,...)
+FLCorGeneric.matrix <- function(x,y=x,
+								functionName,
+								method,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -481,7 +557,9 @@ FLCorGeneric.matrix <- function(x,y=x,functionName,...)
 }
 
 #' @export
-FLCorGeneric.data.frame <- function(x,y=x,functionName,...)
+FLCorGeneric.data.frame <- function(x,y=x,
+									functionName,
+									method,...)
 {
 	if(is.FLMatrix(y))
 	{
@@ -509,7 +587,9 @@ FLCorGeneric.data.frame <- function(x,y=x,functionName,...)
 }
 
 #' @export
-FLCorGeneric.FLVector <- function(x,y=x,functionName,...)
+FLCorGeneric.FLVector <- function(x,y=x,
+								functionName,
+								method,...)
 {	
 	connection <- getConnection(x)
 
@@ -521,9 +601,13 @@ FLCorGeneric.FLVector <- function(x,y=x,functionName,...)
 
 			a <- genRandVarName()
 			b <- genRandVarName()
-			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-										"1 AS rowIdColumn,",
-										"1 AS colIdColumn,",
+			sqlstr <- genCorrelUDTSql(object1=x,
+								object2=y,
+								functionName=functionName,
+								method=method)
+			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
+			if(is.null(sqlstr))
+			sqlstr <- paste0("SELECT ",
 									 x@select@database,".",functionName,"(",a,".vectorValueColumn,",
 									 					  b,".vectorValueColumn) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
@@ -574,7 +658,9 @@ FLCorGeneric.FLVector <- function(x,y=x,functionName,...)
 }
 
 #' @export
-FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
+FLCorGeneric.FLTable <- function(x,y=x,
+								functionName,
+								method,...)
 {
 	connection <- getConnection(x)
 	if(is.FLTable(y))
@@ -585,6 +671,12 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
+			sqlstr <- genCorrelUDTSql(object1=x,
+								object2=y,
+								functionName=functionName,
+								method=method)
+			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
+			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 										a,".var_id_colname AS rowIdColumn,",
 										b,".var_id_colname AS colIdColumn,",
@@ -614,7 +706,8 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y,functionName,...),
-							pOperator="FLCorGeneric"))
+							pOperator="FLCorGeneric",
+							pStoreResult=vstoreFlag))
 		}
 		if(!y@isDeep && !x@isDeep)
 		{
@@ -624,23 +717,6 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 			y <- deepy[["table"]]
 			
 			flm <- cor(x,y)
-			# varnamesx <- sqlQuery(connection,
-			# 					  paste0(" SELECT COLUMN_NAME, Final_VarID 
-			# 					  		   FROM fzzlRegrDataPrepMap 
-			# 					  		   WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
-			# 	                		   AND Final_VarID IS NOT NULL 
-			# 	                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
-			# rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
-			# varnamesy <- sqlQuery(getConnection(y),
-			# 					  paste0(" 	SELECT COLUMN_NAME ,Final_VarID 
-			# 					  			FROM fzzlRegrDataPrepMap 
-			# 					  			WHERE AnalysisID = '",deepy[["AnalysisID"]],"' 
-			# 	                			AND Final_VarID IS NOT NULL 
-			# 	                			ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
-			# colnames <- varnamesy[charmatch(colnames(flm),varnamesy[["Final_VarID"]]),"COLUMN_NAME"]
-			# # correlmat <- matrix(vec,ncolx,byrow=T,dimnames=list(varnamesx,varnamesy))
-			# ##Phani-- names mapping needs to be implemented for this to work
-			# flm@dimnames <- list(rownames,colnames)
 			return(flm)
 		}
 		if(y@isDeep && !x@isDeep)
@@ -670,6 +746,12 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
+			sqlstr <- genCorrelUDTSql(object1=x,
+								object2=y,
+								functionName=functionName,
+								method=method)
+			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
+			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 										a,".var_id_colname AS rowIdColumn,",
 										b,".colIdColumn AS colIdColumn,",
@@ -699,7 +781,8 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y,functionName,...),
-							pOperator="FLCorGeneric"))
+							pOperator="FLCorGeneric",
+							pStoreResult=vstoreFlag))
 		}
 		if(!x@isDeep)
 		{
@@ -713,17 +796,8 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
 			rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
-			# correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
 			flm@dimnames[[1]] <- rownames 
 			return(flm)
-			# varnamesx <- sqlQuery(getConnection(x),
-			# 					  paste0(" 	SELECT COLUMN_NAME 
-			# 					  			FROM fzzlRegrDataPrepMap 
-			# 					  			WHERE AnalysisID = '",dataprepIDx,"' 
-			# 	                			AND Final_VarID IS NOT NULL 
-			# 	                			ORDER BY Final_VarID"))[,1]
-			# correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
-			# return(correlmat)
 		}
 	}
 
@@ -752,6 +826,12 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
 			}
 			else varnamesx <- NULL
+			sqlstr <- genCorrelUDTSql(object1=x,
+								object2=y,
+								functionName=functionName,
+								method=method)
+			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
+			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 									a,".var_id_colname AS rowIdColumn,
 									 1 AS colIdColumn,",
@@ -785,7 +865,8 @@ FLCorGeneric.FLTable <- function(x,y=x,functionName,...)
 
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y,functionName,...),
-							pOperator="FLCorGeneric"))
+							pOperator="FLCorGeneric",
+							pStoreResult=vstoreFlag))
 		}
 	}
 	if(is.matrix(y))
@@ -954,3 +1035,112 @@ setMethod("cov.wt",signature(x="FLTable"),
     				rowIdColumn="obs_id_colname",
     				colIdColumn="var_id_colname",
     				valueColumn="cell_val_colname"))})
+
+setGeneric("genCorrelUDTSql", function(object1,
+									object2,
+									functionName,
+									method) {
+    standardGeneric("genCorrelUDTSql")
+})
+
+setMethod("genCorrelUDTSql", signature(object1 = "ANY",
+                               		object2="ANY"),
+		function(object1,
+				object2,
+				functionName,
+				method) {
+	rows=ncol(object1)
+	cols=ncol(object2)
+
+	if(functionName %in% c("FLCovarP","FLCorrel","FLCovar")){
+		if(method %in% c("spearman"))
+			functionName <- paste0(functionName,"Rank")
+		else if(method %in% "shuffle")
+				functionName <- paste0(functionName,"Shuffle")
+		else return(NULL)
+	}
+	else return(NULL)
+
+	voutCol <- c(oRankCorrel="FLCorrelRank",
+						oRankCovarP="FLCovarPRank",
+						oRankCovar="FLCovarRank",
+						oShuffleCorrel="FLCorrelShuffle",
+						oShuffleCovarP="FLCovarPShuffle",
+						oShuffleCovar="FLCovarShuffle")
+	voutCol <- names(voutCol)[functionName==voutCol]
+
+	vfuncName <- c(FLRankCorrelUDT="FLCorrelRank",
+					FLRankCovarUDT="FLCovarRank",
+					FLRankCovarPUDT="FLCovarPRank",
+					FLShuffleCorrelUDT="FLCorrelShuffle",
+					FLShuffleCovarUDT="FLCovarShuffle",
+					FLShuffleCovarPUDT="FLCovarPShuffle")
+
+	functionName <- names(vfuncName)[vfuncName==functionName]
+
+    sqlstr <- paste0("WITH z (pGroupID, pXValue, pYValue) AS ( \n ",
+						" SELECT  DENSE_RANK()OVER(ORDER BY ",
+									getVarIDColAliasName(object=object1,
+														alias="a"),",",
+									getVarIDColAliasName(object=object2,
+														alias="b"),"), \n ",
+									getCellValColAliasName(object=object1,
+														alias="a"),", \n ",
+									getCellValColAliasName(object=object2,
+														alias="b")," \n ",
+						" FROM(",constructSelect(object1),") a,\n ",
+							" (",constructSelect(object2),") b \n ",
+						" WHERE ",getObsIDColAliasName(object=object1,
+														alias="a"),
+							" = ",getObsIDColAliasName(object=object2,
+														alias="b"),") \n ",
+					" SELECT '%insertIDhere%' AS MATRIX_ID,\n ",
+							" a.oGroupId - (CAST((a.oGroupID-0.355)/",
+								rows," AS INT)*",rows,") AS rowIdColumn,\n ",
+							" CAST((a.oGroupid -0.355)/",rows," AS INT)+1 AS colIdColumn,\n ",
+							" a.",voutCol," AS valueColumn \n ",
+					" FROM TABLE (",functionName,"(z.pGroupID, z.pXValue, z.pYValue) \n ",
+									" HASH BY z.pGroupID \n ",
+									" LOCAL ORDER BY z.pGroupID) AS a ")
+    return(sqlstr)
+})
+
+setGeneric("getObsIDColAliasName", function(object,alias="") {
+    standardGeneric("getObsIDColAliasName")
+})
+setMethod("getObsIDColAliasName", signature(object = "FLMatrix"),
+		function(object,alias) 
+		return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"rowIdColumn")))
+setMethod("getObsIDColAliasName", signature(object = "FLVector"),
+function(object,alias)
+return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"vectorIndexColumn")))
+setMethod("getObsIDColAliasName", signature(object = "FLTable"),
+function(object,alias) 
+return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"obs_id_colname")))
+
+setGeneric("getVarIDColAliasName", function(object,alias="") {
+    standardGeneric("getVarIDColAliasName")
+})
+setMethod("getVarIDColAliasName", signature(object = "FLMatrix"),
+		function(object,alias) 
+		return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"colIdColumn")))
+setMethod("getVarIDColAliasName", signature(object = "FLVector"),
+function(object,alias) 
+return("1"))
+setMethod("getVarIDColAliasName", signature(object = "FLTable"),
+function(object,alias) 
+return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"var_id_colname")))
+
+setGeneric("getCellValColAliasName", function(object,alias="") {
+    standardGeneric("getCellValColAliasName")
+})
+setMethod("getCellValColAliasName", signature(object = "FLMatrix"),
+		function(object,alias) 
+		return(paste0(ifelse(alias=="",paste0(""),
+			paste0(alias,".")),"valueColumn")))
+setMethod("getCellValColAliasName", signature(object = "FLVector"),
+function(object,alias) 
+return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"vectorValueColumn")))
+setMethod("getCellValColAliasName", signature(object = "FLTable"),
+function(object,alias) 
+return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"cell_val_colname")))

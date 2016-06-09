@@ -62,6 +62,9 @@ as.data.frame <- function(x, ...)
 as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+    vcolnames <- ifelse(is.null(names(x@dimnames[[2]])),
+                        x@dimnames[[2]],
+                        names(x@dimnames[[2]]))
     tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
       error=function(e){stop(e)})
     names(D) <- toupper(names(D))
@@ -435,6 +438,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
 {
+  #browser()
   if(is.null(connection)) connection <- getConnection(object)
   ##Get names of vector
   if(ncol(object)>1)
@@ -733,13 +737,17 @@ as.FLTable.data.frame <- function(object,
                                   uniqueIdColumn=0,
                                   drop=TRUE,
                                   batchSize=10000){
+  #browser()
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
   stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
   if(uniqueIdColumn==0)
   {
-    object <- base::cbind(rownames=rownames(object),object)
+    vrownames <- rownames(object)
+    if(!any(is.na(as.numeric(vrownames))))
+    vrownames <- as.numeric(vrownames)
+    object <- base::cbind(rownames=vrownames,object)
     obsIdColname <- "rownames"
   }
   else if(is.numeric(uniqueIdColumn))
@@ -752,6 +760,8 @@ as.FLTable.data.frame <- function(object,
   }
   if(class(connection)=="RODBC")
   {
+    vcolnames <- colnames(object)
+    names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=TRUE)
     tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE,safer=drop),
       error=function(e){stop(e)})
   }
@@ -783,7 +793,6 @@ as.FLTable.data.frame <- function(object,
       if(RJDBC::dbExistsTable(connection,tableName))
       t<-sqlSendUpdate(connection,paste0("drop table ",
                     getOption("ResultDatabaseFL"),".",tableName,";"))
-      vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
       if (getOption("debugSQL")) cat(sql)
@@ -834,8 +843,27 @@ as.FLTable.data.frame <- function(object,
     .jcall(connection@jc,"V","setAutoCommit",TRUE)
   }
 
-  return(FLTable(getOption("ResultDatabaseFL"),
-                  tableName,
-                  obsIdColname
-                  ))
+  # return(FLTable(getOption("ResultDatabaseFL"),
+  #                 tableName,
+  #                 obsIdColname
+  #                 ))
+  vtemp <- colnames(object)
+  names(vtemp) <- vcolnames
+  select <- new(
+          "FLSelectFrom",
+          connection = getOption("connectionFL"), 
+          database = getOption("ResultDatabaseFL"), 
+          table_name = tableName, 
+          variables = list(
+                  obs_id_colname = obsIdColname),
+                  #var_id_colname = var_id_colnames,
+                  #cell_val_colname = cell_val_colname),
+          whereconditions=character(0),
+          order = "")
+
+  return(new("FLTable", 
+              select = select,
+              dimnames = list(object[,obsIdColname],
+                              vtemp),
+              isDeep = FALSE))
 }
