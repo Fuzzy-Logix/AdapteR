@@ -61,8 +61,16 @@ expect_flequal <- function(a,b,...){
     FLexpect_equal(a,b,...)
 }
 
-initF.FLVector <- function(n,isRowVec=FALSE)
+initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 {
+  ## althought its dirty but we want to not move data from R to DB.
+  if(type == "character"){
+    widetable<-FLTable(getOption("ResultDatabaseFL"),"tblAutoMpg","ObsID")
+    if(!isRowVec)
+    flvector = widetable[sample(1:400,n,replace=TRUE),"CarName"]
+    else flvector = widetable[sample(1:400,1),rep("CarName",n)]
+    return(FL=flvector)
+  }
   vmaxId <- getMaxVectorId()
   sqlSendUpdate(getOption("connectionFL"),
                       c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
@@ -90,15 +98,16 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
 #' @export
-initF.FLMatrix <- function(n,isSquare=FALSE)
+initF.FLMatrix <- function(n,isSquare=FALSE,...)
 {
   vmaxId <- getMaxMatrixId()
+  
   sqlSendUpdate(getOption("connectionFL"),
-                        paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," \n ",
-                          " SELECT ",vmaxId," AS MATRIX_ID,a.serialval AS ROW_ID,
-                            b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
-                          FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
-                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n)))
+                paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," \n ",
+                  " SELECT ",vmaxId," AS MATRIX_ID,a.serialval AS ROW_ID,
+                    b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
+                  FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
+                  WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n)))
   flm <- FLMatrix(
       database          = getOption("ResultDatabaseFL"),
       table_name = getOption("ResultMatrixTableFL"),
@@ -112,7 +121,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE)
 }
 
 #' @export
-initF.FLTable <- function(rows,cols)
+initF.FLTable <- function(rows,cols,...)
 {
   WideTable <- FLTable(connection=getOption("connectionFL"),
                       getOption("ResultDatabaseFL"),
