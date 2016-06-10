@@ -113,5 +113,7 @@ Collate:
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
+    'crossprod.R'
     'environment_experiment.R'
+    'tcrossprod.R'
 RoxygenNote: 5.0.1

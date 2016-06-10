@@ -140,6 +140,9 @@ initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE),
   }
   else{
     obj<-do.call(paste0("initF.",class),specs)
+    if(class == "numeric")
+    obj<-do.call("as.vector",list(obj))
+    else
     obj<-do.call(paste0("as.",class),list(obj))
   }
   return(obj) 
@@ -173,7 +176,7 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE),list(n =5,isRowVe
                           classes = c("FLMatrix","FLVector"),operator = "+"){
     
   FLenv<-new.env()
-  browser()
+  #browser()
   lapply(1:length(classes),function(i){
     obj<-initFgeneric(specs[[i]],classes[i])
     x=i
