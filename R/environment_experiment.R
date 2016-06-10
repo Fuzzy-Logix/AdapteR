@@ -141,7 +141,7 @@ initF.matrix <- initF.FLMatrix
 
 
 
-initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE),
+initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE,...),
                         class = "FLMatrix"){
   #browser()
   if(class%in%c("FLVector","FLMatrix","FLTable")){
@@ -181,11 +181,11 @@ as.Renvironment<-function(FLenv){
 }
 
 
-FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE),list(n =5,isRowVec = FALSE)),
+FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),list(n =5,isRowVec = FALSE,...)),
                           classes = c("FLMatrix","FLVector"),operator = "+"){
     
   FLenv<-new.env()
-  #browser()
+  browser()
   lapply(1:length(classes),function(i){
     obj<-initFgeneric(specs[[i]],classes[i])
     x=i

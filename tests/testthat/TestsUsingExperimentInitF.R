@@ -167,7 +167,41 @@ test_that("check for FL correl",{
 
     })
 
+test_that("check for FL crossprod",{
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLMatrix","FLVector"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLMatrix","numeric"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","matrix"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLVector","FLMatrix"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","FLVector"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLVector","matrix"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","numeric"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = FALSE)),classes = c("matrix","FLVector"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = FALSE)),classes = c("matrix","numeric"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("matrix","FLMatrix"),operator = "crossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("matrix","matrix"),operator = "crossprod")
+    })
 
+test_that("check for FL tcrossprod",{
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLMatrix","FLVector"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLMatrix","numeric"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","matrix"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLVector","FLMatrix"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","FLVector"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLVector","matrix"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=6,isRowVec=FALSE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","numeric"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = FALSE)),classes = c("matrix","FLVector"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=6,isRowVec = FALSE)),classes = c("matrix","numeric"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("matrix","FLMatrix"),operator = "tcrossprod")
+    FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("matrix","matrix"),operator = "tcrossprod")
+    })
+
+test_that("check for FL string functions",{
+    FL_test_generic(specs = list(list(n=6,isRowVec = FALSE,type ="character"),list(n=5,isRowVec=FALSE,type = "character")),classes = c("FLVector","FLVector"),operator = "hamming.distance")
+    })
 # Not changed below test functions
 #They are as it is as they were in previous tests file.
 test_that("check FLSV working",
