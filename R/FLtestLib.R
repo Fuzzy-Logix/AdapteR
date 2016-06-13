@@ -96,15 +96,17 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
-    rResults <- eval(expr = e, envir=Renv)
+    rDim <- eval(expr = e, envir=Renv)
     rEndT <- Sys.time()
     flStartT <- Sys.time()
-    flResults <- eval(expr = e, envir=FLenv)
+    flDim <- eval(expr = e, envir=FLenv)
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
     for(n in setdiff(newNames,oldNames))
         FLexpect_equal(get(n,envir = Renv), get(n,envir = LFenv),...)
-    return(data.frame(description = description,
+    ## TODO: store statistics in database
+    return(data.frame(description  = description,
+                      dim          = paste0(dim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       r.Size       = as.numeric(object.size(rResults)),
                       fl.Runtime   = flEndT-flStartT,
