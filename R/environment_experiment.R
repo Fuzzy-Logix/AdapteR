@@ -67,10 +67,11 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
   if(type == "character"){
     widetable<-FLTable(getOption("ResultDatabaseFL"),"tblAutoMpg","ObsID")
     if(!isRowVec)
-    flvector = widetable[sample(1:400,n,replace=TRUE),"CarName"]
-    else flvector = widetable[sample(1:400,1),rep("CarName",n)]
+    flvector = widetable[1:n,"CarName"]
+    else flvector = widetable[sample(1,1),rep("CarName",n)]
     return(FL=flvector)
   }
+  else{
   vmaxId <- getMaxVectorId()
   sqlSendUpdate(getOption("connectionFL"),
                       c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
@@ -92,7 +93,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
   flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
   else
   flv <- table[1:n,"vectorValueColumn"]
-  return(FL=flv)
+  return(FL=flv)}
 }
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
