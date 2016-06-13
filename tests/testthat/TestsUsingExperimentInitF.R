@@ -199,6 +199,7 @@ test_that("check for FL tcrossprod",{
     FL_test_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = TRUE)),classes = c("matrix","matrix"),operator = "tcrossprod")
     })
 
+#objects are not created.Sql problem.
 test_that("check for FL string functions",{
     FL_test_generic(specs = list(list(n=6,isRowVec = FALSE,type ="character"),list(n=5,isRowVec=FALSE,type = "character")),classes = c("FLVector","FLVector"),operator = "hamming.distance")
     })

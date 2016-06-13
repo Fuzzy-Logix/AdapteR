@@ -143,7 +143,7 @@ initF.matrix <- initF.FLMatrix
 
 
 initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE,...),
-                        class = "FLMatrix"){
+                        class = c("FLMatrix")){
   #browser()
   if(class%in%c("FLVector","FLMatrix","FLTable")){
     obj<-do.call(paste0("initF.",class),specs)

@@ -53,7 +53,6 @@ Imports:
 License: GPL-2
 LazyData: true
 Collate:
-    'Benchmarking.R'
     'FLStore.R'
     'utilities.R'
     'FLMatrix.R'
@@ -116,5 +115,6 @@ Collate:
     'FLVarCluster.R'
     'crossprod.R'
     'environment_experiment.R'
+    'experiment_benchmarking.R'
     'tcrossprod.R'
 RoxygenNote: 5.0.1

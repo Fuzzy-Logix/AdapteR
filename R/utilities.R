@@ -24,7 +24,6 @@ sqlError <- function(e){
 sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
-#' 
 #' Result is returned as data.frame
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
