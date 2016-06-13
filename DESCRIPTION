@@ -34,7 +34,6 @@ Depends:
     cluster,
     methods,
     DBI,
-    testthat,
     survival,
     mgcv
 Imports:
@@ -50,6 +49,8 @@ Imports:
     DBI,
     testthat,
     mgcv
+Suggests:
+    testthat
 License: GPL-2
 LazyData: true
 Collate:
