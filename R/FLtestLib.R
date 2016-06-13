@@ -54,13 +54,14 @@ setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
 
 #' @export
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
+setMethod("as.FL","numeric", function(object) as.FLVector(object))
 setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 
 
 as.FLEnvironment <- function(Renv){
-    FLenv <- new.env()
+    FLenv <- new.env(parent = parent.env(Renv))
     for(n in ls(envir = Renv)){
         object <- get(n,envir = Renv)
         assign(n, as.FL(object), envir=FLenv)
@@ -107,14 +108,13 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
     for(n in setdiff(newNames,oldNames))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = LFenv),...)
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
     ## TODO: store statistics in database
+    ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      dim          = paste0(dim, collapse = " x "),
+                      dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
-                      r.Size       = as.numeric(object.size(rResults)),
-                      fl.Runtime   = flEndT-flStartT,
-                      fl.Size      = as.numeric(object.size(flResults))))
+                      fl.Runtime   = flEndT-flStartT))
 }
 
 

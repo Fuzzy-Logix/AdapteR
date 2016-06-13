@@ -1,3 +1,7 @@
+testthat("as.FLTable is replacing special keywords as column names",
+         FLexpect_equal(as.FLTable(longley),longley)
+         )
+
 data(iris)
 
 ##test_that("iris table upload works",{
