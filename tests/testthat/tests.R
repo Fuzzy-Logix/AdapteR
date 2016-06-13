@@ -675,3 +675,4 @@ test_that("check FLTriDiag",
     FLTriDiag(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
 })
 
+
