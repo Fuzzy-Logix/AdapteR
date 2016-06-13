@@ -670,6 +670,9 @@ setMethod("checkSameDims", signature(object1="FLMatrix",object2="dgCMatrix"),
                   return(stop("ERROR: Invalid matrix dimensions for Operation"))
           })
 
+## todo: create FLMatrix with rounded values (FLRound)
+setMethod("round","FLMatrix",function(x, digits=0) round(as.matrix(x),digits))
+
 #' @export
 print.FLMatrix <- function(object)
 {
