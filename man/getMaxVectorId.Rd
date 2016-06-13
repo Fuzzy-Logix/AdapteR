@@ -4,7 +4,7 @@
 \alias{getMaxVectorId}
 \title{Get Max Vector ID+1 from result Vector table}
 \usage{
-getMaxVectorId(vconnection, ...)
+getMaxVectorId(vconnection, vtable = getOption("ResultVectorTableFL"), ...)
 }
 \arguments{
 \item{vconnection}{ODBC/JDBC connection object}

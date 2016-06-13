@@ -41,12 +41,94 @@ setMethod("FLexpect_equal",
               testthat::expect_equal(object,
                                      expected,...))
 
+setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
+          function(object,expected,...)
+              testthat::expect_equal(as.data.frame(object),
+                                     as.data.frame(expected),...))
+
+
+#' @export
+setGeneric("as.R", function(flobject) standardGeneric("as.R"))
+setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
+setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
+
+#' @export
+setGeneric("as.FL", function(object) standardGeneric("as.FL"))
+setMethod("as.FL","numeric", function(object) as.FLVector(object))
+setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","data.frame", function(object) as.FLTable(object))
+setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
+
+
+as.FLEnvironment <- function(Renv){
+    FLenv <- new.env(parent = parent.env(Renv))
+    for(n in ls(envir = Renv)){
+        object <- get(n,envir = Renv)
+        assign(n, as.FL(object), envir=FLenv)
+    }
+    FLenv
+}
+
+##' Evaluates and benchmarks the expression e in an R and an FL environment.
+##' tests all your new variable names for equality in R and FL environments.
+##' TODO: The results of both expressions will be returned together with benchmarking statistics
+##'
+##' Created objects will be in both environments.
+##'
+##' @param e the expression that will be evaluated in both environments
+##' @param Renv
+##' @param FLenv
+##' @param description if not supplied will default to deparse of the expression
+##' @param runs if runs>1 the expressions are evaluated several times.  Make sure you do not re-assign the variables in environments that are evaluated on.
+##' @param noexpectation You can exclude names from
+##' @param ... arguments passed to FLexpect_equal
+##' @return a data frame with the description
+#' @export
+##' @author  Gregor Kappler <gregor.kappler@@fuzzylogix.com>
+eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
+                              description=NULL,
+                              runs=1,
+                              noexpectation=c(),
+                              ...){
+    if(runs>=1)
+        e <- substitute(e)
+    if(runs>1)
+        return(ldply(1:runs,
+                     function(i) eval_expect_equal(e,
+                                                   Renv, FLenv,
+                                                   description=description,
+                                                   runs=-1,...)))
+    if(is.null(description)) description <- paste(deparse(e),collapse="\n")
+    oldNames <- ls(envir = Renv)
+    rStartT <- Sys.time()
+    rDim <- eval(expr = e, envir=Renv)
+    rEndT <- Sys.time()
+    flStartT <- Sys.time()
+    flDim <- eval(expr = e, envir=FLenv)
+    flEndT <- Sys.time()
+    newNames <- ls(envir = Renv)
+    for(n in setdiff(newNames,oldNames))
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+    ## TODO: store statistics in database
+    ## TODO: cbind values set in expression
+    return(data.frame(description  = description,
+                      dim          = paste0(flDim, collapse = " x "),
+                      r.Runtime    = rEndT-rStartT,
+                      fl.Runtime   = flEndT-flStartT))
+}
+
+
+
+
+#' DEPRECATED: use eval_expect_equal
 #' @export
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
   I <- initF(...)
-    FLexpect_equal(FLcomputationF(I$FL),
-                 RcomputationF(I$R),
+  if(!is.list(I$FL))
+  I <- list(FL=list(I$FL),R=list(I$R))
+    FLexpect_equal(do.call(FLcomputationF,I$FL),
+                 do.call(RcomputationF,I$R),
                  check.attributes=FALSE)
 }
 
