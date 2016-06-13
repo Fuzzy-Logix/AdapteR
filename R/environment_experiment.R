@@ -101,6 +101,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 #' @export
 initF.FLMatrix <- function(n,isSquare=FALSE,...)
 {
+  #browser()
   vmaxId <- getMaxMatrixId()
   
   sqlSendUpdate(getOption("connectionFL"),
@@ -143,7 +144,7 @@ initF.matrix <- initF.FLMatrix
 
 
 initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE,...),
-                        class = c("FLMatrix")){
+                        class = "FLMatrix"){
   #browser()
   if(class%in%c("FLVector","FLMatrix","FLTable")){
     obj<-do.call(paste0("initF.",class),specs)
@@ -186,7 +187,7 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),list(n =5,isR
                           classes = c("FLMatrix","FLVector"),operator = "+"){
     
   FLenv<-new.env()
-  browser()
+  #browser()
   lapply(1:length(classes),function(i){
     obj<-initFgeneric(specs[[i]],classes[i])
     x=i
