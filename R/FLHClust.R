@@ -67,7 +67,7 @@ hclust.FLTable <- function(d,
 	{
 		tryCatch(heightvector <- as.vector(heightvector),
 			error=function(e)stop("cannot fetch height vector. Try this to view:-",
-				constructSelect(heightvector)))
+				cat(constructSelect(heightvector))))
 	}
 	resultList <- list(merge=agnesobject$merge,
 						height=heightvector,

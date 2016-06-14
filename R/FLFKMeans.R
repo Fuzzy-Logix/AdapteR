@@ -169,6 +169,7 @@ fanny.FLTable <- function(x,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
@@ -202,6 +203,7 @@ fanny.FLTable <- function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 	else
@@ -218,6 +220,7 @@ fanny.FLTable <- function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 
@@ -644,6 +647,7 @@ silinfo.FLFKMeans <- function(object){
 			ObsID <- rownames(widthsDataFrame)
 			widthsDataFrame$obs_id_colname <- NULL
 			widthsmatrix <- as.matrix(widthsDataFrame)
+			widthsmatrix <- matrix(as.numeric(widthsmatrix),nrow(widthsmatrix))
 			rownames(widthsmatrix) <- ObsID
 			colnames(widthsmatrix) <- c("cluster","neighbor","sil_width")
 		}

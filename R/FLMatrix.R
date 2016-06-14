@@ -75,7 +75,8 @@ setClass(
     slots = list(
         select = "FLTableQuery",
         dimnames = "list",
-        isDeep = "logical"
+        isDeep = "logical",
+        mapSelect = "FLSelectFrom"
     )
 )
 
@@ -306,7 +307,7 @@ restrictFLMatrix <-
 ##' @return the FLMatrix object, with slot dimnames re set 
 #' @export
 FLamendDimnames <- function(flm,map_table) {
-    ##browser()
+    #browser()
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -358,6 +359,14 @@ FLamendDimnames <- function(flm,map_table) {
     if(length(colnames)==0)
         colnames <- sort(sqlQuery(connection, selectUnique("colIdColumn"))$V)
 
+        vstringdimnames <- lapply(list(rownames,colnames),
+                                  function(x){
+                                      if(is.factor(x))
+                                      as.character(x)
+                                      else x
+                                  })
+        rownames <- vstringdimnames[[1]]
+        colnames <- vstringdimnames[[2]]
     if(all(flm@dim==0))
         flm@dim <- c(length(rownames),length(colnames))
     
@@ -398,7 +407,7 @@ FLamendDimnames <- function(flm,map_table) {
         flm@mapSelect <- new(
             "FLSelectFrom",
             connection = connection,
-            database = flm@select@database,
+            database = getOption("ResultDatabaseFL"),
             table_name = tablenames,
             variables=variables,
             whereconditions=mConstraint,
@@ -448,24 +457,44 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
                      whereconditions=c(""),
                      map_table=NULL,
                      connection=getOption("connectionFL")){
+
+  ## If alias already exists, change it to flt.
+    if(length(names(table_name))>0)
+    oldalias <- names(table_name)[1]
+    else oldalias <- ""
+    matrix_id_colname <- changeAlias(matrix_id_colname,"mtrx",oldalias)
+    row_id_colname <- changeAlias(row_id_colname,"mtrx",oldalias)
+    col_id_colname <- changeAlias(col_id_colname,"mtrx",oldalias)
+    cell_val_colname <- changeAlias(cell_val_colname,"mtrx",oldalias)
+    whereconditions <- changeAlias(whereconditions,
+                                  "mtrx",
+                                  c(paste0(database,".",table_name),
+                                    paste0(table_name),
+                                    paste0(database,".",oldalias),
+                                    oldalias))
+    names(table_name) <- "mtrx"
+
     mConstraint <-
         equalityConstraint(
-            paste0("mtrx.",matrix_id_colname),
+            paste0(matrix_id_colname),
             matrix_id_value)
-    names(table_name) <- NULL
-    tablenames <- c(mtrx=table_name)
+    tablenames <- table_name
     variables <- list(
-        rowIdColumn=paste0("mtrx.",row_id_colname),
-        colIdColumn=paste0("mtrx.",col_id_colname),
-        valueColumn=paste0("mtrx.",cell_val_colname))
+        rowIdColumn=paste0(row_id_colname),
+        colIdColumn=paste0(col_id_colname),
+        valueColumn=paste0(cell_val_colname))
     
-      if((length(dimnames[[1]])>0 || length(dimnames[[2]])>0 )&& length(map_table)==0)
+      if((length(dimnames[[1]])>0 || 
+        length(dimnames[[2]])>0 )&& 
+        length(map_table)==0)
       {
         remoteTable <- getRemoteTableName(
                 getOption("ResultDatabaseFL"),
                 getOption("MatrixNameMapTableFL"))
 
-        t<-sqlSendUpdate(connection,paste0(" DELETE FROM ",remoteTable," WHERE MATRIX_ID=",matrix_id_value))
+        t<-sqlSendUpdate(connection,
+                      paste0(" DELETE FROM ",remoteTable,
+                        " WHERE MATRIX_ID=",matrix_id_value))
         
         map_table <- getOption("MatrixNameMapTableFL")
         for(i in 1:length(dimnames))
@@ -588,11 +617,16 @@ setMethod("remoteTable", signature(object = "FLVector", table="missing"),
           function(object)
               remoteTable(object@select))
 setMethod("remoteTable", signature(object = "character", table="character"),
-          function(object,table)
-              getRemoteTableName(object,table))
+          function(object,table){
+            vtemp <- getRemoteTableName(object,table)
+            if(length(names(table))>0)
+            vtemp <- paste0(vtemp," AS ",names(table))
+            return(vtemp)
+          })
 setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
           function(object){
-              if(is.null(names(object@table_name)))
+              if(is.null(names(object@table_name))||
+                names(object@table_name)=="")
                   return(paste0(sapply(object@table_name,
                                        getRemoteTableName,
                                        database=object@database),
@@ -635,6 +669,9 @@ setMethod("checkSameDims", signature(object1="FLMatrix",object2="dgCMatrix"),
               if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
                   return(stop("ERROR: Invalid matrix dimensions for Operation"))
           })
+
+## todo: create FLMatrix with rounded values (FLRound)
+setMethod("round","FLMatrix",function(x, digits=0) round(as.matrix(x),digits))
 
 #' @export
 print.FLMatrix <- function(object)

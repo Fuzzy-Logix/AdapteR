@@ -1,7 +1,15 @@
 
 
+
 setGeneric("crossprod",function(x,y)
                    standardGeneric("crossprod"))
+
+
+## gk: why does it not suffice to define
+## gk: move checks into %*% because then they are checked only once ane more easily maintained
+setMethod("crossprod",
+        signature(x ="ANY",y ="ANY"),
+        function(x,y) t(x) %*% y )
 
 setMethod("crossprod",
         signature(x ="FLMatrix",y ="FLMatrix"),
@@ -13,7 +21,7 @@ setMethod("crossprod",
           return(do.call("%*%",list(x,y)))
         }})
 
-        
+
 
 setMethod("crossprod",
            signature(x = "FLMatrix",y = "vector"),
@@ -26,7 +34,7 @@ setMethod("crossprod",
                 else
                 stop("non-conformable dimensions")
                 return(do.call(crossprod,list(x,y)))
-           }) 
+           })
 
 setMethod("crossprod",
            signature(x = "FLMatrix",y = "matrix"),
@@ -79,12 +87,13 @@ setMethod("crossprod",
           else
             y <- as.FLMatrix(matrix(y))
 
-          return(do.call(crossprod,list(x,y)))  
+          return(do.call(crossprod,list(x,y)))
           })
 
 setMethod("crossprod",
           signature(x = "FLVector",y = "matrix"),
           function(x,y){
+    ## gk: check here?
           y <- as.FLMatrix(y)
           return(do.call(crossprod,list(x,y)))
           })
@@ -112,6 +121,7 @@ setMethod("crossprod",
                }
            })
 
+## todo: resolve masking
 setMethod("crossprod",
           signature(x = "matrix",y = "matrix"),
           function(x,y){
@@ -119,6 +129,7 @@ setMethod("crossprod",
          return(do.call("%*%",list(x,y)))
           })
 
+## todo: resolve masking
 setMethod("crossprod",
           signature(x ="matrix",y = "vector"),
           function(x,y){
