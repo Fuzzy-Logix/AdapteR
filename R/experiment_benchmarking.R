@@ -18,5 +18,6 @@ FL_benchmarking_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),list(
   Robjectsize = as.numeric(object.size(obj2))
   result<-data.frame(FLTime = y-x,RTime =z-y,FLobjectsize = FLobjectsize,Robjectsize = Robjectsize)
   result
+  
 }
 

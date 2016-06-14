@@ -1,53 +1,55 @@
-FL_benchmarking_generic(specs = list(list(n =5,isSquare =TRUE)),classes = c("FLMatrix"),operator = "solve")
 
-
+    #benchmarking for solve.
     FL_benchmarking_generic(specs = list(list(n =5,isSquare =TRUE)),classes = c("FLMatrix"),operator = "solve")
     
 
-
+    #benchmarking for ginv
     FL_benchmarking_generic(specs = list(list(n=5,isSquare = FALSE)),classes = c("FLMatrix"),operator = "ginv")
     
 
+    #benchmarking for dim
+    alply(expand.grid(list(n=c(5,50),m = c(6,60),la = c("FLMatrix","FLTable"))),function(des){
+        browser()
+        prepargs <- function(D){
+            if(D %in% "FLTable")
+                preparedArg <- list (rows = des$n,cols =des$m)
+            else 
+                preparedArg <- list (n = des$n,isSquare =TRUE)
+            preparedArg   
+        }
+        specslist<-prepargs(des$la)
+        FL_benchmarking_generic(specs = list(specslist),classes = c(paste0(des$la)),operator = "dim")
+        })
 
-    FL_benchmarking_generic(specs = list(list(n=5,isSquare = TRUE)),classes = c("FLMatrix"),operator = "dim")
-    FL_benchmarking_generic(specs = list(list(5,6)),classes = c("FLTable"),operator = "dim")
-    
-#as.FLMatrix is not defined for FLMatrix signature and as.FLVector needs vconnection for FLVector.
-#This test case is not working
 
+    #benchmarking for cast functions
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE)),classes = c("FLVector"),operator = "as.FLVector")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE)),classes = c("FLMatrix"),operator = "as.FLMatrix")
     
 
-#Problem in do.call for obj1 in FL_test_generic
-
+    #benchmarking for cholesky decomposition
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE)),classes = c("FLMatrix"),operator = "chol")
     
 
-
+    ##benchmarking for LU decomposition
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE)),classes = c("FLMatrix"),operator = "lu")
     
-
-#Error for FL Vector test case.
-
+    #benchmarking for length
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE)),classes = c("FLMatrix"),operator = "length")
     FL_benchmarking_generic(specs = list(list(rows=5,cols =4)),classes = c("FLTable"),operator = "length")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE)),classes = c("FLVector"),operator = "length")
     
 
-
-    FL_benchmarking_generic(specs = list(list(n=5,isSquare=FALSE)),classes = c("FLMatrix"),operator = "tr")
+    #benchmarking for transpose.
+    FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE)),classes = c("FLMatrix"),operator = "tr")
     
 
-#Error for Fl Vector test case 
-
+    #benchmarking for diagnol
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE)),classes = c("FLMatrix"),operator = "diag")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=FALSE)),classes = c("FLVector"),operator = "diag")
     
 
-#Error for FL vector cases
-#May be need to check initF.FLVector
-
+    #benchmarking for subtraction operator.
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "-")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","matrix"),operator = "-")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=FALSE),list(n=5,isSquare = TRUE)),classes = c("FLVector","FLMatrix"),operator = "-")
@@ -57,9 +59,7 @@ FL_benchmarking_generic(specs = list(list(n =5,isSquare =TRUE)),classes = c("FLM
 
     
 
-#Error in FL vector cases
-#Need some modifications to make this generic test to work for more than two objects with a single operator
-
+    ##benchmarking for division operator.
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "%/%")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLVector","numeric"),operator = "%/%")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","FLVector"),operator = "%/%")
@@ -70,17 +70,17 @@ FL_benchmarking_generic(specs = list(list(n =5,isSquare =TRUE)),classes = c("FLM
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","matrix","FLMatrix"),operator = "%/%")
 
 
-
+    #benchmarking for crossproduct.
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "%*%")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLVector","numeric"),operator = "%*%")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","FLVector"),operator = "%*%")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","numeric"),operator = "%*%")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","matrix"),operator = "%*%")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLVector","matrix"),operator = "%*%")
-    FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","FLVector"),operator = "%*%")
+    FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = TRUE)),classes = c("FLVector","FLVector"),operator = "%*%")
     
 
-
+    #benchmarking for addition operator.
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = FALSE)),classes = c("FLMatrix","FLMatrix"),operator = "+")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLVector","numeric"),operator = "+")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","FLVector"),operator = "+")
@@ -91,7 +91,7 @@ FL_benchmarking_generic(specs = list(list(n =5,isSquare =TRUE)),classes = c("FLM
     
 
 
-
+    #benchmarking for / operator.
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = FALSE)),classes = c("FLMatrix","FLMatrix"),operator = "/")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLVector","numeric"),operator = "/")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","FLVector"),operator = "/")
@@ -101,7 +101,7 @@ FL_benchmarking_generic(specs = list(list(n =5,isSquare =TRUE)),classes = c("FLM
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","FLVector"),operator = "/")
    
 
-
+    #benchmarking for multiplication operator.
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=FALSE),list(n=5,isSquare = FALSE)),classes = c("FLMatrix","FLMatrix"),operator = "*")
     FL_benchmarking_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLVector","numeric"),operator = "*")
     FL_benchmarking_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","FLVector"),operator = "*")
