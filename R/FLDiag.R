@@ -44,13 +44,15 @@ diag.FLMatrix<-function(object,...)
 
     table <- FLTable(
                      object@select@database,
-                     paste0(object@select@table_name," AS mtrx "),
+                     object@select@table_name,
                      getVariables(object)$rowIdColumn,
                      whereconditions=c(object@select@whereconditions,
                                        paste0(getVariables(object)$rowIdColumn,
                                               "=",getVariables(object)$colIdColumn)))
 
-    return(table[,getVariables(object)$valueColumn])
+    valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
+
+    return(table[,valueColumn])
 }
 
 #' @export
@@ -67,7 +69,8 @@ diag.FLVector <- function(object,...)
 
         sqlstr <- paste(sapply(1:value,FUN=function(i)
             paste0(" INSERT INTO ",
-                   getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultMatrixTableFL")),
+                   getRemoteTableName(getOption("ResultDatabaseFL"),
+                    getOption("ResultMatrixTableFL")),
                    " SELECT ",MID,",",
                    i,",",
                    i,",",
@@ -109,15 +112,20 @@ diag.FLVector <- function(object,...)
             if(length(object@dimnames[[1]])==1)
             {
                 MID <- getMaxMatrixId(connection)
-                sqlstr <- paste(sapply(1:length(object),FUN=function(i)
+                sqlstr <- paste(sapply(1:length(object),FUN=function(i){
+                    if(isAliasSet(object)) 
+                    vpatch <- paste0(getAlias(object),".")
+                    else vpatch <- ""
                     paste0(" INSERT INTO ",
-                           getRemoteTableName(getOption("ResultDatabaseFL"),getOption("ResultMatrixTableFL")),
+                           getRemoteTableName(getOption("ResultDatabaseFL"),
+                            getOption("ResultMatrixTableFL")),
                            " SELECT ",MID,",",
                            i,",",
                            i,",",
-                           object@dimnames[[2]][i],
-                           " FROM ",getRemoteTableName(object@select@database,object@select@table_name),
-                           constructWhere(constraintsSQL(object)))),collapse=";")
+                           paste0(vpatch,object@dimnames[[2]][i]),
+                           " FROM ",remoteTable(object),
+                           constructWhere(constraintsSQL(object)))
+                    }),collapse=";")
 
                 sqlSendUpdate(connection,sqlstr)
 

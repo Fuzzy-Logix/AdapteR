@@ -103,6 +103,7 @@ hkmeans.FLTable<-function(x,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
@@ -129,12 +130,14 @@ hkmeans.FLTable<-function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- whereconditions
 	}
 	else
 	{
 		deepx <- x
-		whereconditions <- c(x@select@whereconditions,whereconditions)
+		deepx <- setAlias(deepx,"")
+		whereconditions <- c(deepx@select@whereconditions,whereconditions)
 	}
 
 	whereconditions <- whereconditions[whereconditions!=""]

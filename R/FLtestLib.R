@@ -41,6 +41,97 @@ setMethod("FLexpect_equal",
               testthat::expect_equal(object,
                                      expected,...))
 
+setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
+          function(object,expected,...)
+              testthat::expect_equal(as.data.frame(object),
+                                     as.data.frame(expected),...))
+
+
+#' @export
+setGeneric("as.R", function(flobject) standardGeneric("as.R"))
+setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
+setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
+setMethod("as.R","environment", function(object) as.REnvironment(object))
+
+#' @export
+setGeneric("as.FL", function(object) standardGeneric("as.FL"))
+setMethod("as.FL","numeric", function(object) as.FLVector(object))
+setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","data.frame", function(object) as.FLTable(object))
+setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
+
+
+as.REnvironment<-function(FLenv){
+  Renv<-new.env()
+  for(n in ls(FLenv)){
+      object <- get(n,envir = FLenv)
+      assign(n, as.R(object), envir=FLenv)
+  }
+  return(Renv)
+}
+
+
+as.FLEnvironment <- function(Renv){
+    FLenv <- new.env(parent = parent.env(Renv))
+    for(n in ls(envir = Renv)){
+        object <- get(n,envir = Renv)
+        assign(n, as.FL(object), envir=FLenv)
+    }
+    FLenv
+}
+
+##' Evaluates and benchmarks the expression e in an R and an FL environment.
+##' tests all your new variable names for equality in R and FL environments.
+##' TODO: The results of both expressions will be returned together with benchmarking statistics
+##'
+##' Created objects will be in both environments.
+##'
+##' @param e the expression that will be evaluated in both environments
+##' @param Renv
+##' @param FLenv
+##' @param description if not supplied will default to deparse of the expression
+##' @param runs if runs>1 the expressions are evaluated several times.  Make sure you do not re-assign the variables in environments that are evaluated on.
+##' @param noexpectation You can exclude names from
+##' @param ... arguments passed to FLexpect_equal
+##' @return a data frame with the description
+#' @export
+##' @author  Gregor Kappler <gregor.kappler@@fuzzylogix.com>
+eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
+                              description=NULL,
+                              runs=1,
+                              noexpectation=c(),
+                              ...){
+    if(runs>=1)
+        e <- substitute(e)
+    if(runs>1)
+        return(ldply(1:runs,
+                     function(i) eval_expect_equal(e,
+                                                   Renv, FLenv,
+                                                   description=description,
+                                                   runs=-1,...)))
+    if(is.null(description)) description <- paste(deparse(e),collapse="\n")
+    oldNames <- ls(envir = Renv)
+    rStartT <- Sys.time()
+    rDim <- eval(expr = e, envir=Renv)
+    rEndT <- Sys.time()
+    flStartT <- Sys.time()
+    flDim <- eval(expr = e, envir=FLenv)
+    flEndT <- Sys.time()
+    newNames <- ls(envir = Renv)
+    for(n in setdiff(newNames,oldNames))
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+    ## TODO: store statistics in database
+    ## TODO: cbind values set in expression
+    return(data.frame(description  = description,
+                      dim          = paste0(flDim, collapse = " x "),
+                      r.Runtime    = rEndT-rStartT,
+                      fl.Runtime   = flEndT-flStartT))
+}
+
+
+
+
+#' DEPRECATED: use eval_expect_equal
 #' @export
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
 {
@@ -61,6 +152,9 @@ expect_flequal <- function(a,b,...){
     FLexpect_equal(a,b,...)
 }
 
+
+## gk: refactor such that initF code is used for one-time creation of huge testing tables (on demand)
+## gk: and that all actual testing is done by creating references to that permanent table
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 {
   ## althought its dirty but we want to not move data from R to DB.
@@ -159,32 +253,13 @@ initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE,..
   return(obj) 
 }
 
-as.Renvironment<-function(FLenv){
-  Renv<-new.env()
-  for(n in ls(FLenv)){
-    objectFL <- get(n,envir = FLenv)
-    #browser()
-    if(is.FLMatrix(objectFL)){
-      obj2<-as.matrix(objectFL)
-      assign(n,obj2,envir = Renv)
-    }
-    else if(is.FLVector(objectFL)){
-      obj2<-as.vector(objectFL)
-      assign(n,obj2,envir = Renv)
-    }
-    else if(is.FLTable(objectFL)){
-      obj2<-as.data.frame(objectFL)
-      assign(n,obj2,envir = Renv)
-    }
-    else 
-    assign(n,objectFL,envir= Renv)
-  }
-  return(Renv)
-}
 
-
-FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),list(n =5,isRowVec = FALSE,...)),
-                          classes = c("FLMatrix","FLVector"),operator = "+"){
+## gk: think of a better name FL_test_operators
+## gk: document
+FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),
+                                     list(n =5,isRowVec = FALSE,...)),
+                          classes = c("FLMatrix","FLVector"),
+                          operator = "+"){
     
   FLenv<-new.env()
   #browser()
@@ -200,6 +275,15 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),list(n =5,isR
   FLexpect_equal(obj1,obj2,check.attributes =FALSE)
 }
 
+##' tests if a R matrix is correctly stored and
+##' represented when casting the R matrix into FLMatrix
+##' and correctly recieved back, when cast to a vector.
+##' checking dimnames, checking for subsetting.
+##' For an optical check, both matrices are printed.
+##' 
+##' @param a an R Matrix
+##' @author  Gregor Kappler <g.kappler@@gmx.net>
+##' @export
 expect_equal_RMatrix_FLMatrix <- function(a){
     # browser()
     debugOld <- getOption("debugSQL")
@@ -380,5 +464,3 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
-
-

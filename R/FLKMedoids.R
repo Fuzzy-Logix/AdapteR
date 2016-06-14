@@ -145,6 +145,7 @@ pam.FLTable <- function(x,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
@@ -175,6 +176,7 @@ pam.FLTable <- function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 	else
@@ -191,6 +193,7 @@ pam.FLTable <- function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 

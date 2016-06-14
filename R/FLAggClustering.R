@@ -150,6 +150,7 @@ agnes.FLTable <- function(x,
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
@@ -183,6 +184,7 @@ agnes.FLTable <- function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 	else
@@ -199,6 +201,7 @@ agnes.FLTable <- function(x,
                    "var_id_colname",
                    "cell_val_colname"
                   )
+		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 

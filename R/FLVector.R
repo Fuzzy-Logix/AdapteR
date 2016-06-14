@@ -79,9 +79,13 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
     else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
     
     if(ncol(x)==1)
-    x@dimnames[[1]] <- as.character(value)
+    ifelse(is.FLVector(value),
+        x@dimnames[[1]] <- value,
+        x@dimnames[[1]] <- as.character(value))
     else if(ncol(x)>1)
-    x@dimnames[[2]] <- as.character(value)
+    ifelse(is.FLVector(value),
+        x@dimnames[[2]] <- value,
+        x@dimnames[[2]] <- as.character(value))
     return(x)
 }
 
