@@ -187,7 +187,9 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
   flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
   else
   flv <- table[1:n,"vectorValueColumn"]
-  return(FL=flv)}
+
+  Rvector <- as.vector(flv)
+  return(list(FL=flv,R=Rvector))
 }
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
@@ -195,15 +197,13 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 #' @export
 initF.FLMatrix <- function(n,isSquare=FALSE,...)
 {
-  #browser()
   vmaxId <- getMaxMatrixId()
-  
   sqlSendUpdate(getOption("connectionFL"),
-                paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," \n ",
-                  " SELECT ",vmaxId," AS MATRIX_ID,a.serialval AS ROW_ID,
-                    b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
-                  FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
-                  WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n)))
+                        paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," \n ",
+                          " SELECT ",vmaxId," AS MATRIX_ID,a.serialval AS ROW_ID,
+                            b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
+                          FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
+                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n)))
   flm <- FLMatrix(
       database          = getOption("ResultDatabaseFL"),
       table_name = getOption("ResultMatrixTableFL"),
@@ -273,6 +273,28 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),
   obj2<-do.call(operator,lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
   
   FLexpect_equal(obj1,obj2,check.attributes =FALSE)
+}
+
+##' initF.default helps to return a list of list.
+##' Can be used for comparing results of R and FL functions which require two objects.
+
+initFdefault<- function(specs=list(c(n=5,isSquare = TRUE),c(n =5,isRowVec = FALSE)),
+        classes = c("FLMatrix","FLVector")){
+        #browser()
+        l<-lapply(1:length(classes),function(x){
+            #browser()
+            I <- do.call(paste0("initF.",classes[x]),list(specs[[x]]))
+            return(I)
+            })
+        FL <- lapply(1:length(l),function(x){
+                    #browser()
+                    if(classes[x] %in% c("FLMatrix","FLVector","FLTable"))
+                    subscript <- "FL"
+                    else subscript <- "R"
+                    return(do.call("$",list(l[[x]],subscript)))
+            })
+        R <- lapply(1:length(l),function(x)l[[x]]$"R")
+    return(list(FL=FL,R=R)) 
 }
 
 ##' tests if a R matrix is correctly stored and
@@ -464,3 +486,7 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
+
+initF.numeric <- initF.FLVector
+initF.data.frame <- initF.FLTable
+initF.matrix <- initF.FLMatrix
