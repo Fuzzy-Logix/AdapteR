@@ -137,7 +137,7 @@ hkmeans.FLTable<-function(x,
 	{
 		deepx <- x
 		deepx <- setAlias(deepx,"")
-		whereconditions <- c(x@select@whereconditions,whereconditions)
+		whereconditions <- c(deepx@select@whereconditions,whereconditions)
 	}
 
 	whereconditions <- whereconditions[whereconditions!=""]

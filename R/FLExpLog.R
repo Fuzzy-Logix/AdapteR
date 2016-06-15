@@ -17,9 +17,11 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 		a <- genRandVarName()
 
 		## Check validity of x for log
-		if(functionName=="log")
+		if(functionName=="log" || functionName=="sqrt")
 		{
 			if(p1==1) vcondition <- " <= -1 "
+			if(functionName=="sqrt")
+			vcondition <- " < 0 "
 			else vcondition <- " <= 0 "
 			sqlstr <- paste0(" SELECT COUNT(a.valueColumn) AS cnt",
 						" FROM(",constructSelect(x),") AS a",
@@ -33,7 +35,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 		sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 							a,".rowIdColumn AS rowIdColumn,",
 							a,".colIdColumn AS colIdColumn,",
-							functionName,"(",a,".valueColumn+(1*(",p1,")))-(1*(",m1,"))/",lnb," AS valueColumn",
+							functionName,"(",a,".valueColumn+(1*(",p1,")))/",lnb,"-(",m1,") AS valueColumn",
 						" FROM(",constructSelect(x),") AS ",a)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -64,7 +66,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
 			maxLength <- length(colnames(x))
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 										1:maxLength," AS vectorIndexColumn,",
-							functionName,"(",a,".",newColnames,"+(1*(",p1,")))-(1*(",m1,"))/",lnb," AS vectorValueColumn",
+							functionName,"(",a,".",newColnames,"+(1*(",p1,")))/",lnb,"-(1*(",m1,")) AS vectorValueColumn",
 							" FROM (",constructSelect(x),") AS ",a,
 							    collapse=" UNION ALL ")
 			dimnames <- list(1:maxLength,
@@ -75,7 +77,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
 			a <- genRandVarName()
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 								a,".vectorIndexColumn AS vectorIndexColumn,",
-							functionName,"(",a,".vectorValueColumn+(1*(",p1,")))-(1*(",m1,"))/",lnb," AS vectorValueColumn",
+							functionName,"(",a,".vectorValueColumn+(1*(",p1,")))/",lnb,"-(1*(",m1,")) AS vectorValueColumn",
 							" FROM(",constructSelect(x),") AS ",a)
 			if(ncol(x)>1 && x@isDeep)
 			dimnames <- list(dimnames(x)[[2]],
@@ -165,39 +167,44 @@ setMethod("log10",signature(x="FLVector"),
 setMethod("log1p",signature(x="FLMatrix"),
 	function(x) FLExpLog(functionName="log",
 							x=x,
-							p1=1))
+							p1=1, lnb=base::logb(exp(1),10)))
 setMethod("log1p",signature(x="FLVector"),
 	function(x) FLExpLog(functionName="log",
 							x=x,
-							p1=1))
+							p1=1, lnb=base::logb(exp(1),10)))
 
 setMethod("log",signature(x="FLMatrix"),
 	function(x,base=base::exp(1)) FLExpLog(functionName="log",
 							x=x,
-							lnb=base::logb(base[1])))
+							lnb=base::logb(base[1],10)))
 setMethod("log",signature(x="FLVector"),
 	function(x,base=base::exp(1)) FLExpLog(functionName="log",
 							x=x,
-							lnb=base::logb(base[1])))
+							lnb=base::logb(base[1],10)))
 
 setMethod("logb",signature(x="FLMatrix"),
 	function(x,base=base::exp(1)) FLExpLog(functionName="log",
 							x=x,
-							lnb=base::logb(base[1])))
+							lnb=base::logb(base[1],10)))
 setMethod("logb",signature(x="FLVector"),
 	function(x,base=base::exp(1)) FLExpLog(functionName="log",
 							x=x,
-							lnb=base::logb(base[1])))
+							lnb=base::logb(base[1],10)))
 
 setMethod("log2",signature(x="FLMatrix"),
 	function(x) FLExpLog(functionName="log",
 							x=x,
-							lnb=base::logb(2)))
+							lnb=base::logb(2,10)))
 setMethod("log2",signature(x="FLVector"),
 	function(x) FLExpLog(functionName="log",
 							x=x,
-							lnb=base::logb(2)))
-
+							lnb=base::logb(2,10)))
+setMethod("sqrt", signature(x="FLVector"), 
+	function(x)FLExpLog(functionName="sqrt",
+		                           x=x))
+setMethod("sqrt", signature(x="FLMatrix"), 
+	function(x)FLExpLog(functionName="sqrt",
+		                           x=x))
 #' @export
 order <- function(...,na.last=TRUE,decreasing=FALSE)
 {
@@ -315,4 +322,5 @@ sort.FLMatrix <- function(x,decreasing=FALSE,...)
 	return(ensureQuerySize(pResult=flv,
 						pInput=list(x,decreasing=decreasing,...),
 						pOperator="sort"))
+
 }
