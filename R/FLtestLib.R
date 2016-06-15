@@ -55,7 +55,7 @@ setMethod("as.R","environment", function(object) as.REnvironment(object))
 
 #' @export
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
-setMethod("as.FL","numeric", function(object) as.FLVector(object))
+setMethod("as.FL","vector", function(object) as.FLVector(object))
 setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
