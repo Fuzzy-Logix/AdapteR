@@ -490,17 +490,17 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
       {
         remoteTable <- getRemoteTableName(
                 getOption("ResultDatabaseFL"),
-                getOption("MatrixNameMapTableFL"))
+                getOption("NameMapTableFL"))
 
         t<-sqlSendUpdate(connection,
                       paste0(" DELETE FROM ",remoteTable,
                         " WHERE MATRIX_ID=",matrix_id_value))
         
-        map_table <- getOption("MatrixNameMapTableFL")
+        map_table <- getOption("NameMapTableFL")
         for(i in 1:length(dimnames))
             #if(is.character(mydimnames[[i]]))
             {
-                map_table <- getOption("MatrixNameMapTableFL")
+                map_table <- getOption("NameMapTableFL")
                 if(!is.null(dimnames[[i]]))
                 dimnames[[i]] <- storeVarnameMapping(
                     connection,
@@ -627,16 +627,18 @@ setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
           function(object){
               if(is.null(names(object@table_name))||
                 names(object@table_name)=="")
-                  return(paste0(sapply(object@table_name,
-                                       getRemoteTableName,
-                                       database=object@database),
-                                collapse=",\n    "))
+                return(paste0(sapply(1:length(object@table_name),
+                            function(x)
+                            paste0(getRemoteTableName(databaseName=object@database[x],
+                                                      tableName=object@table_name[x]))),
+                                  collapse=",\n  "))
               else
-                  return(paste0(sapply(object@table_name,
-                                       getRemoteTableName,
-                                       database=object@database),
-                                " AS ", names(object@table_name),
-                                collapse=",\n    "))
+                return(paste0(sapply(1:length(object@table_name),
+                            function(x)
+                            paste0(getRemoteTableName(databaseName=object@database[x],
+                                                      tableName=object@table_name[x]),
+                                  " AS ",names(object@table_name)[x])),
+                                  collapse=",\n  "))
           })
 
 #' Compare Matrix Dimensions
