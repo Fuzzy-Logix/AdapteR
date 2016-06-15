@@ -120,5 +120,6 @@ Collate:
     'apply.R'
     'crossprod.R'
     'environment_experiment.R'
+    'experiment_benchmarking.R'
     'tcrossprod.R'
 RoxygenNote: 5.0.1
