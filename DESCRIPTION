@@ -119,4 +119,11 @@ Collate:
     'FLgreaterthan.R'
     'FLtestLib.R'
     'apply.R'
+<<<<<<< HEAD
+=======
+    'crossprod.R'
+    'environment_experiment.R'
+    'experiment_benchmarking.R'
+    'tcrossprod.R'
+>>>>>>> 7a9a63f498bdbdb6bec3f35e1cf2f3d5b120c538
 RoxygenNote: 5.0.1
