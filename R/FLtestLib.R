@@ -100,6 +100,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
+    #browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     rDim <- eval(expr = e, envir=Renv)
@@ -109,7 +110,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
     for(n in setdiff(newNames,oldNames))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),check.attributes=FALSE,...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
@@ -139,7 +140,7 @@ expect_flequal <- function(a,b,...){
         for(i in 1:length(a))
             expect_flequal(a[[i]],b[[i]],...)
 
-    FLexpect_equal(a,b,...)
+    FLexpect_equal(a,b,check.attributes=FALSE,...)
 }
 
 ## Increase n for increasing length of FLVector.
