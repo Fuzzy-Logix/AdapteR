@@ -51,14 +51,25 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
 setGeneric("as.R", function(flobject) standardGeneric("as.R"))
 setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
 setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
+setMethod("as.R","environment", function(object) as.REnvironment(object))
 
 #' @export
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
-setMethod("as.FL","numeric", function(object) as.FLVector(object))
+setMethod("as.FL","vector", function(object) as.FLVector(object))
 setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 setMethod("as.FL","character", function(object) as.FLVector(object))
+
+
+as.REnvironment<-function(FLenv){
+  Renv<-new.env()
+  for(n in ls(FLenv)){
+      object <- get(n,envir = FLenv)
+      assign(n, as.R(object), envir=FLenv)
+  }
+  return(Renv)
+}
 
 
 as.FLEnvironment <- function(Renv){
@@ -143,30 +154,41 @@ expect_flequal <- function(a,b,...){
     FLexpect_equal(a,b,check.attributes=FALSE,...)
 }
 
-## Increase n for increasing length of FLVector.
-## If isRowVec=TRUE, rowVector(one observation of all columns) is returned.
-#' @export
-initF.FLVector <- function(n,isRowVec=FALSE)
+
+## gk: refactor such that initF code is used for one-time creation of huge testing tables (on demand)
+## gk: and that all actual testing is done by creating references to that permanent table
+initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 {
+  ## althought its dirty but we want to not move data from R to DB.
+  if(type == "character"){
+    widetable<-FLTable(getOption("ResultDatabaseFL"),"tblAutoMpg","ObsID")
+    if(!isRowVec)
+    flvector = widetable[1:n,"CarName"]
+    else flvector = widetable[sample(1,1),rep("CarName",n)]
+    return(FL=flvector)
+  }
+  else{
+  vmaxId <- getMaxVectorId()
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR;"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR 
-                          AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
+                      c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
+                                            ".",getOption("ResultVectorTableFL")," \n ",
+                          " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                             CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
                           FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
-                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
+                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1))))
 
   table <- FLTable(connection=getOption("connectionFL"),
                  getOption("ResultDatabaseFL"),
-                 "test_vectortable_AdapteR",
-                 "VECTOR_INDEX",
-                 whereconditions=paste0(getOption("ResultDatabaseFL"),".test_vectortable_AdapteR.VECTOR_ID = 1")
+                 getOption("ResultVectorTableFL"),
+                 "vectorIndexColumn",
+                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",
+                                  getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
                  )
 
   if(isRowVec)
-  flv <- table[1,base::sample(c("VECTOR_VALUE","VECTOR_INDEX"),n,replace=TRUE)]
+  flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
   else
-  flv <- table[1:n,"VECTOR_VALUE"]
+  flv <- table[1:n,"vectorValueColumn"]
 
   Rvector <- as.vector(flv)
   return(list(FL=flv,R=Rvector))
@@ -175,30 +197,29 @@ initF.FLVector <- function(n,isRowVec=FALSE)
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
 #' @export
-initF.FLMatrix <- function(n,isSquare=FALSE)
+initF.FLMatrix <- function(n,isSquare=FALSE,...)
 {
+  vmaxId <- getMaxMatrixId()
   sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE ", getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR;"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR 
-                          AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
+                        paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",getOption("ResultMatrixTableFL")," \n ",
+                          " SELECT ",vmaxId," AS MATRIX_ID,a.serialval AS ROW_ID,
                             b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
                           FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
-                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
+                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n)))
   flm <- FLMatrix(
       database          = getOption("ResultDatabaseFL"),
-      table_name = "test_matrixtable_AdapteR",
-      matrix_id_value   = 1,
+      table_name = getOption("ResultMatrixTableFL"),
+      matrix_id_value   = vmaxId,
       matrix_id_colname = "Matrix_ID",
-      row_id_colname    = "Row_ID",
-      col_id_colname    = "Col_ID",
-      cell_val_colname  = "Cell_Val",
+      row_id_colname    = "rowIdColumn",
+      col_id_colname    = "colIdColumn",
+      cell_val_colname  = "valueColumn",
       connection=getOption("connectionFL"))
-  Rmatrix <- as.matrix(flm)
-  return(list(FL=flm,R=Rmatrix))
+  return(FL=flm)
 }
 
 #' @export
-initF.FLTable <- function(rows,cols)
+initF.FLTable <- function(rows,cols,...)
 {
   WideTable <- FLTable(connection=getOption("connectionFL"),
                       getOption("ResultDatabaseFL"),
@@ -209,6 +230,74 @@ initF.FLTable <- function(rows,cols)
 }
 
 
+initF.numeric <- initF.FLVector
+initF.data.frame <- initF.FLTable
+initF.matrix <- initF.FLMatrix
+
+##' initF.default helps to return a list of list.
+##' Can be used for comparing results of R and FL functions which require two objects.
+
+
+
+initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE,...),
+                        class = "FLMatrix"){
+  #browser()
+  if(class%in%c("FLVector","FLMatrix","FLTable")){
+    obj<-do.call(paste0("initF.",class),specs)
+  }
+  else{
+    obj<-do.call(paste0("initF.",class),specs)
+    if(class == "numeric")
+    obj<-do.call("as.vector",list(obj))
+    else
+    obj<-do.call(paste0("as.",class),list(obj))
+  }
+  return(obj) 
+}
+
+
+## gk: think of a better name FL_test_operators
+## gk: document
+FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),
+                                     list(n =5,isRowVec = FALSE,...)),
+                          classes = c("FLMatrix","FLVector"),
+                          operator = "+"){
+    
+  FLenv<-new.env()
+  #browser()
+  lapply(1:length(classes),function(i){
+    obj<-initFgeneric(specs[[i]],classes[i])
+    x=i
+    assign(paste0("a",x),obj,envir = FLenv)
+  })
+  Renv<-as.Renvironment(FLenv)
+  obj1<-do.call(operator,lapply(ls(FLenv),function(x)do.call("$",list(FLenv,paste0(x)))))
+  obj2<-do.call(operator,lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
+  
+  FLexpect_equal(obj1,obj2,check.attributes =FALSE)
+}
+
+##' initF.default helps to return a list of list.
+##' Can be used for comparing results of R and FL functions which require two objects.
+
+initFdefault<- function(specs=list(c(n=5,isSquare = TRUE),c(n =5,isRowVec = FALSE)),
+        classes = c("FLMatrix","FLVector")){
+        #browser()
+        l<-lapply(1:length(classes),function(x){
+            #browser()
+            I <- do.call(paste0("initF.",classes[x]),list(specs[[x]]))
+            return(I)
+            })
+        FL <- lapply(1:length(l),function(x){
+                    #browser()
+                    if(classes[x] %in% c("FLMatrix","FLVector","FLTable"))
+                    subscript <- "FL"
+                    else subscript <- "R"
+                    return(do.call("$",list(l[[x]],subscript)))
+            })
+        R <- lapply(1:length(l),function(x)l[[x]]$"R")
+    return(list(FL=FL,R=R)) 
+}
 
 ##' tests if a R matrix is correctly stored and
 ##' represented when casting the R matrix into FLMatrix
@@ -399,3 +488,7 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
+
+initF.numeric <- initF.FLVector
+initF.data.frame <- initF.FLTable
+initF.matrix <- initF.FLMatrix
