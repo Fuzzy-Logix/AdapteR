@@ -24,7 +24,6 @@ sqlError <- function(e){
 sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
-#' 
 #' Result is returned as data.frame
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
@@ -143,7 +142,7 @@ list_to_where_clause <- function (x) {
                                         #  */
 
 list_to_class_spec <- function (x) {
-    classSpec <- paste(names(x),x,collapse=", ")
+    classSpec <- paste0(names(x),"(",x,")",collapse=", ")
     if(nchar(classSpec) > 1) {
         classSpec <- classSpec
     } else {
@@ -552,7 +551,8 @@ getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
 getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
                         vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
-                        vconnection=vconnection){
+                        vconnection=getOption("connectionFL"))
+{
     R <- sqlQuery(vconnection,
                     paste0("SELECT max(",
                            vcolName,")",
@@ -568,12 +568,13 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxVectorId <- function(vconnection,
-                        vtable=getOption("ResultVectorTableFL"),...)
+getMaxVectorId <- function(vconnection = getOption("connectionFL"),
+                           vtable=getOption("ResultVectorTableFL"),...)
     getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
                 vtable=vtable,
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
+
 
 ensureQuerySize <- function(pResult,
                             pInput,

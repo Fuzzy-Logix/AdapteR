@@ -1150,7 +1150,13 @@ residuals.FLLinRegr<-function(object)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
     	vYVector <- object$y
+    	if(sum(as.vector(object$y)==1 , as.vector(object$y)==0)==length(object$y)){
+    		score <- object@results[["fitted.values"]]
+    		residualsvector <- (object$y - score)/(score*(1-score))
+    	}
+    	else{
 		residualsvector <- vYVector - object@results[["fitted.values"]]
+	    }
 		object@results <- c(object@results,list(residuals=residualsvector))
 		parentObject <- unlist(strsplit(unlist(strsplit(
 			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
