@@ -60,6 +60,7 @@ setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 setMethod("as.FL","character", function(object) as.FLVector(object))
 
+
 as.FLEnvironment <- function(Renv){
     FLenv <- new.env(parent = parent.env(Renv))
     for(n in ls(envir = Renv)){
