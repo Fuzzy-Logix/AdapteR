@@ -328,4 +328,3 @@ setMethod("outputSelectMatrix", signature(func_name="character",
           LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
           ") AS ",localName," ",whereClause))
           })
-

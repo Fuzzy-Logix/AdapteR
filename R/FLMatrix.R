@@ -307,7 +307,7 @@ restrictFLMatrix <-
 ##' @return the FLMatrix object, with slot dimnames re set 
 #' @export
 FLamendDimnames <- function(flm,map_table) {
-    ##browser()
+    #browser()
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -407,7 +407,7 @@ FLamendDimnames <- function(flm,map_table) {
         flm@mapSelect <- new(
             "FLSelectFrom",
             connection = connection,
-            database = flm@select@database,
+            database = getOption("ResultDatabaseFL"),
             table_name = tablenames,
             variables=variables,
             whereconditions=mConstraint,
@@ -669,6 +669,9 @@ setMethod("checkSameDims", signature(object1="FLMatrix",object2="dgCMatrix"),
               if(!((nrow(object1)==nrow(object2))&&(ncol(object1)==ncol(object2))))
                   return(stop("ERROR: Invalid matrix dimensions for Operation"))
           })
+
+## todo: create FLMatrix with rounded values (FLRound)
+setMethod("round","FLMatrix",function(x, digits=0) round(as.matrix(x),digits))
 
 #' @export
 print.FLMatrix <- function(object)

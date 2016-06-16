@@ -1,6 +1,6 @@
 Package: AdapteR
-Title: This package wraps around Fuzzy Logix's DBLytix functions
-Version: 2.0
+Title: Beta 1: This package wraps around Fuzzy Logix's DBLytix functions.
+Version: 2.1
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -34,7 +34,6 @@ Depends:
     cluster,
     methods,
     DBI,
-    testthat,
     survival,
     mgcv
 Imports:
@@ -50,6 +49,8 @@ Imports:
     DBI,
     testthat,
     mgcv
+Suggests:
+    testthat
 License: GPL-2
 LazyData: true
 Collate:
@@ -98,7 +99,6 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
-    'FLPoissonRegr.R'
     'FLQRDecomp.R'
     'FLRankMatrix.R'
     'FLRbind.R'
@@ -108,6 +108,7 @@ Collate:
     'FLSVDecomp.R'
     'FLSolve.R'
     'FLSolveExcl.R'
+    'FLStatFunctions.R'
     'FLStringFunctions.R'
     'FLSubsetting.R'
     'FLTrace.R'

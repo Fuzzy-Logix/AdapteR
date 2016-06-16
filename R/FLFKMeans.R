@@ -570,7 +570,6 @@ silinfo.FLFKMeans <- function(object){
 		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
 		d <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 		e <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("5"))
-		browser()
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["temptbl4"]]))
