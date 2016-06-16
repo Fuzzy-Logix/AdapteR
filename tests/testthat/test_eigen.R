@@ -13,18 +13,18 @@ Renv$mat5 = cbind( 1, 3:1, 1:3)
 Renv$mat6 = cbind(-1, c(1:2,0), 0:2)
 
 test_that("Check for eigen function",{
-    result = eval_expect_equal({eigen(mat1)
-                     eigen(mat1,symmetric = FALSE)
-                     eigen(mat2,only.values = TRUE)
-                     eigen(mat4)
-                     eigen(mat5)
-                     eigen(mat6)},Renv)
+    result = eval_expect_equal({test1 =eigen(mat1)
+                     test2 = eigen(mat1,symmetric = FALSE)
+                     test3 = eigen(mat2,only.values = TRUE)
+                     test4 = eigen(mat4)
+                     tets5 = eigen(mat5)
+                     test6 = eigen(mat6)},Renv)
     print(result)
     })
 
 # Hermittian matrix is not formed due to bug in FLMatrixArithematic.default
 test_that("Check for eigen function with Hermittian matrix",{
-    result = eval_expect_equal({eigen(mat3)
+    result = eval_expect_equal({test7 = eigen(mat3)
                      },Renv)
     print(result)
     })

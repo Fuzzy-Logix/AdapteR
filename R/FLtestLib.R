@@ -56,6 +56,9 @@ setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
 setMethod("as.FL","numeric", function(object) as.FLVector(object))
 setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dpoMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 
@@ -99,6 +102,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
+    #browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     rDim <- eval(expr = e, envir=Renv)
@@ -108,7 +112,9 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
     for(n in setdiff(newNames,oldNames))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+
+    # Added check.attributes = FALSE in FLexpect_equal.
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),check.attributes = FALSE,...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,

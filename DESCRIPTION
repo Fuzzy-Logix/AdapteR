@@ -54,6 +54,7 @@ Suggests:
 License: GPL-2
 LazyData: true
 Collate:
+    'Benchmarking.R'
     'FLStore.R'
     'utilities.R'
     'FLMatrix.R'
@@ -118,6 +119,4 @@ Collate:
     'FLgreaterthan.R'
     'FLtestLib.R'
     'apply.R'
-    'crossprod.R'
-    'tcrossprod.R'
 RoxygenNote: 5.0.1
