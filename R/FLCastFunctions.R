@@ -62,9 +62,6 @@ as.data.frame <- function(x, ...)
 as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-    vcolnames <- ifelse(is.null(names(x@dimnames[[2]])),
-                        x@dimnames[[2]],
-                        names(x@dimnames[[2]]))
     tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
       error=function(e){stop(e)})
     names(D) <- toupper(names(D))
@@ -282,7 +279,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         mapTable <- NULL
         for(i in 1:length(mydimnames))
             if(is.character(mydimnames[[i]])){
-                mapTable <- getOption("MatrixNameMapTableFL")
+                mapTable <- getOption("NameMapTableFL")
                 mydimnames[[i]] <- storeVarnameMapping(
                     connection,
                     mapTable,
@@ -438,7 +435,6 @@ as.sparseMatrix.FLMatrix <- function(object) {
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
 {
-  #browser()
   if(is.null(connection)) connection <- getConnection(object)
   ##Get names of vector
   if(ncol(object)>1)
@@ -737,7 +733,6 @@ as.FLTable.data.frame <- function(object,
                                   uniqueIdColumn=0,
                                   drop=TRUE,
                                   batchSize=10000){
-  #browser()
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -760,8 +755,7 @@ as.FLTable.data.frame <- function(object,
   }
   if(class(connection)=="RODBC")
   {
-    vcolnames <- colnames(object)
-    names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=TRUE)
+    vcolnames <- gsub("\\.","",colnames(object),fixed=TRUE)
     tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE,safer=drop),
       error=function(e){stop(e)})
   }
@@ -841,14 +835,9 @@ as.FLTable.data.frame <- function(object,
       }
     }
     .jcall(connection@jc,"V","setAutoCommit",TRUE)
+    vcolnames <- names(vcolnames)
   }
 
-  # return(FLTable(getOption("ResultDatabaseFL"),
-  #                 tableName,
-  #                 obsIdColname
-  #                 ))
-  vtemp <- colnames(object)
-  names(vtemp) <- vcolnames
   select <- new(
           "FLSelectFrom",
           connection = getOption("connectionFL"), 
@@ -864,6 +853,6 @@ as.FLTable.data.frame <- function(object,
   return(new("FLTable", 
               select = select,
               dimnames = list(object[,obsIdColname],
-                              vtemp),
+                              vcolnames),
               isDeep = FALSE))
 }

@@ -9,7 +9,7 @@ storeVarnameMapping <- function(connection,
     sqlstatements <- paste0(
         " INSERT INTO ",
         getOption("ResultDatabaseFL"),".",
-        getOption("MatrixNameMapTableFL"),
+        getOption("NameMapTableFL"),
         "(TABLENAME, MATRIX_ID, DIM_ID, ",
         "NAME, NUM_ID",
         ")",
@@ -26,7 +26,7 @@ storeVarnameMapping <- function(connection,
       mdeep <- data.frame(tablename,as.integer(matrixId),as.integer(dimId),
                         as.character(mynames),as.integer(names(mynames)))
       colnames(mdeep) <- c("TABLENAME","MATRIX_ID","DIM_ID","NAME","NUM_ID")
-      t <- as.FLTable.data.frame(mdeep,connection,getOption("MatrixNameMapTableFL"),2,drop=FALSE)
+      t <- as.FLTable.data.frame(mdeep,connection,getOption("NameMapTableFL"),2,drop=FALSE)
     }
     else
     retobj<-sqlSendUpdate(connection,
@@ -50,9 +50,15 @@ store.FLMatrix <- function(object)
                                    "rowIdColumn",
                                    "colIdColumn",
                                    "valueColumn"))
+        vtemp <- getFLColumnType(object)
+        vmapping <- c("FLOAT","INT","VARCHAR(255)")
+        names(vmapping) <- c(getOption("ResultMatrixTableFL"),
+                            getOption("ResultIntMatrixTableFL"),
+                            getOption("ResultCharMatrixTableFL"))
+        vtableName <- as.character(names(vmapping)[vtemp==vmapping])
         vSqlStr <- paste0(" INSERT INTO ",
                           getRemoteTableName(getOption("ResultDatabaseFL"),
-                                            getOption("ResultMatrixTableFL")),
+                                            vtableName),
                           "\n",
                           gsub("'%insertIDhere%'",MID,
                                constructSelect(object,joinNames=FALSE)),
@@ -63,7 +69,7 @@ store.FLMatrix <- function(object)
     return(FLMatrix(
             connection = getConnection(object),
             database = getOption("ResultDatabaseFL"), 
-            table_name = getOption("ResultMatrixTableFL"), 
+            table_name = vtableName, 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "rowIdColumn", 
@@ -85,9 +91,15 @@ store.FLVector <- function(object)
     names(object)<-NULL
     return(as.FLVector(object))
   }
+  vtemp <- getFLColumnType(object)
+  vmapping <- c("FLOAT","INT","VARCHAR(255)")
+  names(vmapping) <- c(getOption("ResultVectorTableFL"),
+                      getOption("ResultIntVectorTableFL"),
+                      getOption("ResultCharVectorTableFL"))
+  vtableName <- as.character(names(vmapping)[vtemp==vmapping])
   vSqlStr <- paste0(" INSERT INTO ",
                     getRemoteTableName(getOption("ResultDatabaseFL"),
-                                      getOption("ResultVectorTableFL")),
+                                      vtableName),
                     "\n",
                    gsub("'%insertIDhere%'",VID,constructSelect(object)),
                     "\n")
@@ -97,11 +109,11 @@ store.FLVector <- function(object)
                 "FLSelectFrom",
                 connection = connection, 
                 database = getOption("ResultDatabaseFL"), 
-                table_name = getOption("ResultVectorTableFL"),
+                table_name = vtableName,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),
                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",
-                  getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID),
+                  vtableName,".vectorIdColumn = ",VID),
                 order = "")
 
   if(ncol(object)==1) vindex <- rownames(object)
@@ -150,7 +162,7 @@ store.character <- function(object,returnType,connection)
     MID <- getMaxMatrixId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
                       getRemoteTableName(getOption("ResultDatabaseFL"),
-                                        getOption("ResultMatrixTableFL")),
+                                        getOption("ResultCharMatrixTableFL")),
                       "\n",
                       gsub("'%insertIDhere%'",MID,object),
                       "\n")
@@ -161,7 +173,7 @@ store.character <- function(object,returnType,connection)
     return(FLMatrix(
             connection = connection,
             database = getOption("ResultDatabaseFL"), 
-            table_name = getOption("ResultMatrixTableFL"), 
+            table_name = getOption("ResultCharMatrixTableFL"), 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "rowIdColumn", 
@@ -176,7 +188,7 @@ store.character <- function(object,returnType,connection)
     VID <- getMaxVectorId(connection)
     vSqlStr <- paste0(" INSERT INTO ",
                       getRemoteTableName(getOption("ResultDatabaseFL"),
-                                        getOption("ResultVectorTableFL")),
+                                        getOption("ResultCharVectorTableFL")),
                       "\n",
                       gsub("'%insertIDhere%'",MID,object),
                       "\n")
@@ -186,9 +198,10 @@ store.character <- function(object,returnType,connection)
 
     table <- FLTable(
                  getOption("ResultDatabaseFL"),
-                 getOption("ResultVectorTableFL"),
+                 getOption("ResultCharVectorTableFL"),
                  "VECTOR_INDEX",
-                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),".VECTOR_ID = ",VID)
+                 whereconditions=paste0(getOption("ResultDatabaseFL"),".",
+                    getOption("ResultCharVectorTableFL"),".VECTOR_ID = ",VID)
                  )
 
     return(table[,"VECTOR_VALUE"])

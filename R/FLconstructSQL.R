@@ -31,6 +31,8 @@ setMethod("constructSelect",
                                      object@mapSelect@table_name)
               select@whereconditions <- c(select@whereconditions,
                                           object@mapSelect@whereconditions)
+              select@database <- c(select@database,
+                                  rep(object@mapSelect@database,length(select@table_name)))
               return(constructSelect(select))
           })
 
@@ -195,7 +197,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
                 #           constructWhere(c(constraintsSQL(object),addWhereClause)),
                 #           "\n"))
             }
-            select <- object@select
+              select <- object@select
               select@variables <- variables
               if(joinNames && length(object@mapSelect@table_name)>0)
               {
@@ -205,6 +207,9 @@ setMethod("constructSelect", signature(object = "FLVector"),
                                        object@mapSelect@table_name)
                 select@whereconditions <- c(select@whereconditions,
                                             object@mapSelect@whereconditions)
+                select@database <- c(select@database,
+                                    rep(object@mapSelect@database,
+                                      length(select@table_name)))
               }
               return(constructSelect(select))
           })
