@@ -60,6 +60,7 @@ setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 
 
+
 as.FLEnvironment <- function(Renv){
     FLenv <- new.env(parent = parent.env(Renv))
     for(n in ls(envir = Renv)){
@@ -112,7 +113,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      dim          = paste0(flDim, collapse = " x "),
+#                      dim          = paste0(flDim, collapse = " "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }
