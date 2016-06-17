@@ -34,7 +34,6 @@ FLTable <- function(database,
                     connection=NULL)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
-
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
     oldalias <- names(table)[1]
@@ -437,8 +436,14 @@ setMethod("wideToDeep",
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-setGeneric("deepToWide", function(object,whereconditions,
-                                  mapTable,mapName,outWideTableDatabase,outWideTableName) {
+setGeneric("deepToWide", function(object,
+                                  whereconditions,
+                                  mapTable,
+                                  mapName,
+                                  outWideTableDatabase,
+                                  outWideTableName,
+                                  Analysisid
+                                  ) {
     standardGeneric("deepToWide")
 })
 setMethod("deepToWide",
@@ -447,27 +452,48 @@ setMethod("deepToWide",
                     mapTable="character",
                     mapName="character",
                     outWideTableDatabase="character",
-                    outWideTableName="character"),
+                    outWideTableName="character",
+                    Analysisid = "character"),
           function(object,
                   whereconditions,
                   mapTable,
                   mapName,
                   outWideTableDatabase,
-                  outWideTableName)
+                  outWideTableName,
+                  Analysisid
+                  )
           {
+            #browser()
             if(!object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             object <- setAlias(object,"")
             if(outWideTableDatabase=="")
             outWideTableDatabase <- getOption("ResultDatabaseFL")
+            usedwidetablename <- paste0(getOption("ResultDatabaseFL"),".",
+                                      gen_wide_table_name("MAP"))
             if(mapTable=="" || mapTable=="NULL"){
+              if(Analysisid!="")
+              {
+                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ",
+                                " INSERT INTO ",usedwidetablename," \n ", 
+                                " SELECT a.Final_VarID, \n  
+                                        a.COLUMN_NAME, \n 
+                                        a.FROM_TABLE
+                                 FROM fzzlRegrDataPrepMap a 
+                                 WHERE a.AnalysisID = '",Analysisid,"';")
+                sqlSendUpdate(connection,sqlstr1)
+                mapTable<-usedwidetablename
+                mapname<- genRandVarName()
+              }
+              else{
               mapTable <- "NULL"
               mapName <- "NULL"}
+            }
             else if(mapName == "") mapName <- "NULL"
 
             whereconditions <- c(whereconditions,object@select@whereconditions)
             #whereconditions <- whereconditions[whereconditions!="" && whereconditions!="NULL"]
-            object@select@whereconditions <- whereconditions
+              object@select@whereconditions <- whereconditions
             
               deeptable <- gen_view_name(object@select@table_name)
               #deeptable <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
@@ -520,14 +546,18 @@ setMethod("deepToWide",
                     mapTable="missing",
                     mapName="missing",
                     outWideTableDatabase="missing",
-                    outWideTableName="missing"),
+                    outWideTableName="missing",
+                    Analysisid = "missing"
+                   ),
           function(object)
           deepToWide(object,
                     whereconditions="",
                     mapTable="",
                     mapName="",
                     outWideTableDatabase="",
-                    outWideTableName=""))
+                    outWideTableName="",
+                    Analysisid = ""
+                    ))
 
 #' Convert Wide Table to Deep Table in database.
 #'

@@ -29,7 +29,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 			vcount <- sqlQuery(getOption("connectionFL"),sqlstr)
 			if(length(vcount)>1 || is.null(vcount))
 			stop(vcount)
-			else if(vcount[["cnt"]]>0) stop("invalid argument for log")
+			else if(vcount[["cnt"]]>0) stop("invalid argument")
 		}
 
 		sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",

@@ -370,6 +370,11 @@ setMethod("as.FLMatrix", signature(object = "dtCMatrix",
                                    sparse="missing"),
           function(object,sparse=TRUE)
               as.FLMatrix.Matrix(object,sparse=sparse))
+
+setMethod("as.FLMatrix", signature(object = "dpoMatrix",
+                                   sparse="missing"),
+          function(object,sparse=TRUE)
+              as.FLMatrix.Matrix(object,sparse=sparse))
 ###########################################################################
 setMethod("as.FLMatrix", signature(object = "vector",
                                    sparse="logical"),
