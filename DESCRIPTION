@@ -54,17 +54,17 @@ Suggests:
 License: GPL-2
 LazyData: true
 Collate:
-    'FLStore.R'
+    'FLDims.R'
+    'FLIs.R'
+    'FLPrint.R'
     'utilities.R'
+    'FLCastFunctions.R'
+    'FLStore.R'
     'FLMatrix.R'
     'FLTable.R'
     'FLVector.R'
     'FLAggClustering.R'
-    'FLDims.R'
-    'FLIs.R'
-    'FLPrint.R'
     'FLCApply.R'
-    'FLCastFunctions.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'
     'FLColMeans.R'
