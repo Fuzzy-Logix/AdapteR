@@ -63,6 +63,7 @@ setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
+setMethod("as.FL","character", function(object) as.FLVector(object))
 
 
 as.REnvironment<-function(FLenv){

@@ -9,7 +9,7 @@ Renv$mat5 <- cbind(-1, c(1:2,0), 0:2)
 ## In order for examples to work in a chain, FLenv is needed
 FLenv <- as.FL(Renv)
 
-test_that("eigen1",{
+test_that("eigen values",{
     result = eval_expect_equal({
         e1 <- eigen(mat1)
         e12 <- eigen(mat1, symmetric = FALSE)
@@ -18,12 +18,12 @@ test_that("eigen1",{
     print(result)
 })
 
-test_that("eigen only.values",{
+test_that("eigen, option only.values",{
     result = eval_expect_equal({
         e2 <- eigen(mat2, only.values = TRUE)
     print(result)
 })
-test_that("eigen",{
+test_that("eigen values",{
     result = eval_expect_equal({
         e4 <- eigen(mat4)
     }, Renv, FLenv)
