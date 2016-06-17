@@ -31,6 +31,11 @@ setMethod("FLexpect_equal",
               testthat::expect_equal(as.vector(object),
                                      expected,...))
 setMethod("FLexpect_equal",
+          signature(object="FLVector",expected="integer"),
+          function(object,expected,...)
+              testthat::expect_equal(as.vector(object),
+                                     expected,...))
+setMethod("FLexpect_equal",
           signature(object="FLVector",expected="FLVector"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
@@ -43,9 +48,14 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                                        expected[[i]],...)))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(object,
-                                     expected,...))
+          function(object,expected,...){
+            if(is.FL(object))
+            object <- as.R(object)
+            if(is.FL(expected))
+            expected <- as.R(expected)
+            testthat::expect_equal(object,
+                                     expected,...)
+          })
 
 setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
           function(object,expected,...)
@@ -57,10 +67,12 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
 setGeneric("as.R", function(flobject) standardGeneric("as.R"))
 setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
 setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
+setMethod("as.R","FLVector", function(flobject) as.vector(flobject))
 
 #' @export
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
 setMethod("as.FL","numeric", function(object) as.FLVector(object))
+setMethod("as.FL","character", function(object) as.FLVector(object))
 setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
@@ -99,6 +111,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
                               runs=1,
                               noexpectation=c(),
                               ...){
+    #browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)

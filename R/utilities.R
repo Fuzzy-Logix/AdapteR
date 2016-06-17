@@ -676,7 +676,7 @@ is.RSparseMatrix <- function(object){
     vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
                     "dgTMatrix","dtrMatrix","pMatrix",
                     "dspMatrix","dtCMatrix","dgRMatrix",
-                    "ddiMatrix"
+                    "ddiMatrix","dpoMatrix"
                     )
     if(class(object) %in% vsparseClass)
     return(TRUE)
