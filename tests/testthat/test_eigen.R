@@ -23,7 +23,6 @@ test_that("eigen only.values",{
         e2 <- eigen(mat2, only.values = TRUE)
     print(result)
 })
-
 test_that("eigen",{
     result = eval_expect_equal({
         e4 <- eigen(mat4)
@@ -31,6 +30,7 @@ test_that("eigen",{
     print(result)
 })
 
+# Hermittian matrix is not formed due to bug in FLMatrixArithematic.default
 test_that("eigen supports complex values",{
     result = eval_expect_equal({
         e2a <- eigen(print(mat2a)) # Hermite ==> real Eigenvalues

@@ -99,6 +99,7 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
+    'FLPoissonRegr.R'
     'FLQRDecomp.R'
     'FLRankMatrix.R'
     'FLRbind.R'
@@ -119,7 +120,6 @@ Collate:
     'FLtestLib.R'
     'apply.R'
     'crossprod.R'
-    'environment_experiment.R'
     'experiment_benchmarking.R'
     'tcrossprod.R'
 RoxygenNote: 5.0.1
