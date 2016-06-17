@@ -1,4 +1,5 @@
-
+#' @include FLCastFunctions.R
+#' @include FLStore.R
 storeVarnameMapping <- function(connection,
                                 tablename,
                                 matrixId,

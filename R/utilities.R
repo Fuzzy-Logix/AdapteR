@@ -636,15 +636,18 @@ getFLColumnType <- function(x,columnName=NULL){
                     cell_val_colname="FLTable")
         columnName <- as.character(names(vmapping)[class(x)==vmapping])
       }
-      vresult <- tolower(sqlQuery(getOption("connectionFL"),
+      if(!grepl("with",tolower(constructSelect(x)))){
+        vresult <- tolower(sqlQuery(getOption("connectionFL"),
                             paste0("SELECT TOP 1 TYPE(a.",columnName,
                                     ") \n FROM (",constructSelect(x),
                                     ") a"))[1,1])
-      vmapping <- c("VARCHAR","INT","FLOAT")
-      vtemp <- as.vector(sapply(c("char","int","float"),
+        vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
+        vtemp <- as.vector(sapply(c("char","int","float","number"),
                         function(y)
                         return(grepl(y,vresult))))
-      vresult <- vmapping[vtemp]
+        vresult <- vmapping[vtemp]
+      }
+      else vresult <- "FLOAT"
     }
     else{
       vmapping <- c(VARCHAR="character",
@@ -667,6 +670,18 @@ is.FL <- function(x){
                         "FLTableFunctionQuery"))
     return(TRUE)
     else return(FALSE)
+}
+
+is.RSparseMatrix <- function(object){
+    vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
+                    "dgTMatrix","dtrMatrix","pMatrix",
+                    "dspMatrix","dtCMatrix","dgRMatrix",
+                    "ddiMatrix"
+                    )
+    if(class(object) %in% vsparseClass)
+    return(TRUE)
+    else
+    return(FALSE)
 }
 
 flag1Check <- function(connection)

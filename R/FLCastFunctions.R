@@ -243,10 +243,11 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         #     mdeep <- base::rbind(mdeep,
         #                    c(i=nrow(object),j=ncol(object),
         #                      x=0))
-        MID <- getMaxMatrixId(connection)
+        MID <- getMaxMatrixId(vconnection=connection,
+                              vtable=tablename)
         remoteTable <- getRemoteTableName(
             getOption("ResultDatabaseFL"),
-            getOption("ResultMatrixTableFL"))
+            tablename)
 
         #analysisID <- paste0("AdapteR",remoteTable,MID)
         if(class(connection)=="RODBC")
@@ -270,7 +271,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
           mdeep <- as.data.frame(mdeep)
           colnames(mdeep) <- c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
           t <- as.FLTable.data.frame(mdeep,connection,
-            getOption("ResultMatrixTableFL"),1,drop=FALSE)
+                                    tablename,1,drop=FALSE)
         }
         mydimnames <- dimnames(object)
         mydims <- dim(object)
@@ -291,7 +292,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         return(FLMatrix(
             connection = connection,
             database = getOption("ResultDatabaseFL"),
-            table_name = getOption("ResultMatrixTableFL"),
+            table_name = tablename,
             map_table = mapTable,
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID",

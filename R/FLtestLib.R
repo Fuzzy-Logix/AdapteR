@@ -6,9 +6,12 @@ setGeneric("FLexpect_equal",
                standardGeneric("FLexpect_equal"))
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.matrix(object),
-                                     expected,...))
+          function(object,expected,...){
+            if(is.RSparseMatrix(expected))
+            expected <- matrix(expected,dim(expected))
+            testthat::expect_equal(as.matrix(object),
+                                     expected,...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="FLMatrix"),
           function(object,expected,...)
@@ -16,9 +19,12 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
-          function(object,expected,...)
-              testthat::expect_equal(object,
-                                     as.matrix(expected),...))
+          function(object,expected,...){
+            if(is.RSparseMatrix(object))
+            object <- matrix(object,dim(object))
+            testthat::expect_equal(object,
+                                     as.matrix(expected),...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
           function(object,expected,...)
@@ -56,6 +62,9 @@ setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
 setMethod("as.FL","numeric", function(object) as.FLVector(object))
 setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 
@@ -112,7 +121,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      dim          = paste0(flDim, collapse = " x "),
+                      #dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }
