@@ -51,7 +51,7 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
 setGeneric("as.R", function(flobject) standardGeneric("as.R"))
 setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
 setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
-setMethod("as.R","environment", function(object) as.REnvironment(object))
+setMethod("as.R","environment", function(flobject) as.REnvironment(flobject))
 
 #' @export
 setGeneric("as.FL", function(object) standardGeneric("as.FL"))
@@ -60,6 +60,7 @@ setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dpoMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
 
@@ -129,7 +130,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      dim          = paste0(flDim, collapse = " x "),
+                      #dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }
@@ -197,7 +198,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
   Rvector <- as.vector(flv)
   return(list(FL=flv,R=Rvector))
 }
-
+}
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
 #' @export
@@ -492,7 +493,6 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
-
 initF.numeric <- initF.FLVector
 initF.data.frame <- initF.FLTable
 initF.matrix <- initF.FLMatrix

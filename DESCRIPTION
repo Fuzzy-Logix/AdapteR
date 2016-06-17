@@ -54,7 +54,6 @@ Suggests:
 License: GPL-2
 LazyData: true
 Collate:
-    'Benchmarking.R'
     'FLStore.R'
     'utilities.R'
     'FLMatrix.R'
@@ -100,6 +99,7 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
+    'FLPoissonRegr.R'
     'FLQRDecomp.R'
     'FLRankMatrix.R'
     'FLRbind.R'
@@ -119,11 +119,7 @@ Collate:
     'FLgreaterthan.R'
     'FLtestLib.R'
     'apply.R'
-<<<<<<< HEAD
-=======
     'crossprod.R'
-    'environment_experiment.R'
     'experiment_benchmarking.R'
     'tcrossprod.R'
->>>>>>> 7a9a63f498bdbdb6bec3f35e1cf2f3d5b120c538
 RoxygenNote: 5.0.1
