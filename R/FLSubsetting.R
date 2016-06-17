@@ -155,7 +155,7 @@ NULL
         (!all(vrownames==(1:nrow(object)))))
       {
         MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("MatrixNameMapTableFL"),
+                vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newrownames <- storeVarnameMapping(connection=getOption("connectionFL"),
@@ -173,7 +173,7 @@ NULL
         (!all(vcolnames==(1:ncol(object)))))
       {
         MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("MatrixNameMapTableFL"),
+                vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newcolnames <- storeVarnameMapping(connection=getOption("connectionFL"),
@@ -195,7 +195,7 @@ NULL
                   "FLSelectFrom",
                   connection = getOption("connectionFL"), 
                   database = getOption("ResultDatabaseFL"), 
-                  table_name = c(nameflt=getOption("MatrixNameMapTableFL")),
+                  table_name = c(nameflt=getOption("NameMapTableFL")),
                   variables = list(),
                   whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
                         paste0("nameflt.DIM_ID=1"),
@@ -207,12 +207,12 @@ NULL
 
 
         # vtableref <- paste0(getOption("ResultDatabaseFL"),".",
-        #               getOption("MatrixNameMapTableFL"))
+        #               getOption("NameMapTableFL"))
         # select <- new(
         #     "FLSelectFrom",
         #     connection = connection, 
         #     database = getOption("ResultDatabaseFL"), 
-        #     table_name = c(nameflta=getOption("MatrixNameMapTableFL")),
+        #     table_name = c(nameflta=getOption("NameMapTableFL")),
         #     variables = list(
         #             numIdColname = "Num_ID",
         #             nameColname = "NAME"),
@@ -345,7 +345,7 @@ NULL
         if(length(pSet)==1 && object@dimnames[[1]]!=1)
         {
           MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-              vtable=getOption("MatrixNameMapTableFL"),
+              vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
@@ -359,7 +359,7 @@ NULL
                     "FLSelectFrom",
                     connection = getOption("connectionFL"), 
                     database = getOption("ResultDatabaseFL"), 
-                    table_name = c(nameflt=getOption("MatrixNameMapTableFL")),
+                    table_name = c(nameflt=getOption("NameMapTableFL")),
                     variables = list(),
                     whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
                           paste0("nameflt.DIM_ID=1"),
@@ -445,7 +445,7 @@ NULL
       }
       else{
         MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-              vtable=getOption("MatrixNameMapTableFL"),
+              vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
@@ -460,7 +460,7 @@ NULL
                       "FLSelectFrom",
                       connection = getOption("connectionFL"), 
                       database = getOption("ResultDatabaseFL"), 
-                      table_name = c(nameflt=getOption("MatrixNameMapTableFL")),
+                      table_name = c(nameflt=getOption("NameMapTableFL")),
                       variables = list(),
                       whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
                             paste0("nameflt.DIM_ID=1"),

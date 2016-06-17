@@ -54,17 +54,17 @@ Suggests:
 License: GPL-2
 LazyData: true
 Collate:
-    'FLStore.R'
+    'FLDims.R'
+    'FLIs.R'
+    'FLPrint.R'
     'utilities.R'
+    'FLCastFunctions.R'
+    'FLStore.R'
     'FLMatrix.R'
     'FLTable.R'
     'FLVector.R'
     'FLAggClustering.R'
-    'FLDims.R'
-    'FLIs.R'
-    'FLPrint.R'
     'FLCApply.R'
-    'FLCastFunctions.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'
     'FLColMeans.R'
@@ -99,6 +99,7 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
+    'FLPoissonRegr.R'
     'FLQRDecomp.R'
     'FLRankMatrix.R'
     'FLRbind.R'
@@ -119,7 +120,6 @@ Collate:
     'FLtestLib.R'
     'apply.R'
     'crossprod.R'
-    'environment_experiment.R'
     'experiment_benchmarking.R'
     'tcrossprod.R'
 RoxygenNote: 5.0.1
