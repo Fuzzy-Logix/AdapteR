@@ -11,9 +11,8 @@ FLenv <- as.FL(Renv)
 
 #Test failed due to types not compatible.
 #Results of slot x was same.
-#No inherited method for dgeMatrix and denseLU in as.FL function.
+#No inherited method for dgeMatrix and denseLU in as.FL function.(resolved)
 #Asana Ticket - https://app.asana.com/0/143316600934101/145318689357916
-#resolved
 test_that("Check for LU Decomposition function ",{
     result = eval_expect_equal({
         test1 = (lu(mat1))@x},
@@ -21,9 +20,9 @@ test_that("Check for LU Decomposition function ",{
     print(result)
     })
 
-#Test failed
-#results were also different.
- #no method for coercing this S4 class to a vector
+
+#test passed but results format were different and number of results were different too.
+#Asana Ticket - https://app.asana.com/0/134161214112401/145335789954337
 test_that("Check for LU Decomposition function ",{
     result = eval_expect_equal({
         test2 = (lu(mat2))@x},

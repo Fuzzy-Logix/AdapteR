@@ -29,7 +29,7 @@ test_that("Check for Cholesky function ",{
 
 #Test Failed
 #Matrix not positive or semi definite.
-#Asana Ticket - https://app.asana.com/0/143316600934101/145335789954341
+#Asana Ticket - https://app.asana.com/0/143316600934101/145335789954341s
 test_that("Check for Cholesky function ",{
     result = eval_expect_equal({
         test3 = chol(mat3,pivot = TRUE)},
