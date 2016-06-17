@@ -188,6 +188,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 
   Rvector <- as.vector(flv)
   return(list(FL=flv,R=Rvector))
+  } 
 }
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
