@@ -1,7 +1,7 @@
 
 
 
-setGeneric("crossprod",function(x,y)
+setGeneric("crossprod",function(x,y=x)
                    standardGeneric("crossprod"))
 
 
