@@ -125,7 +125,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      dim          = paste0(flDim, collapse = " x "),
+                      #dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }
@@ -192,6 +192,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
 
   Rvector <- as.vector(flv)
   return(list(FL=flv,R=Rvector))
+}
 }
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
