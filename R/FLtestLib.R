@@ -17,7 +17,7 @@ setMethod("FLexpect_equal",
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
           function(object,expected,...)
-              testthat::expect_equal(object,
+              testthat::expect_equal(as.matrix(object),
                                      as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
@@ -114,7 +114,7 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
-    #browser()
+    browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     rDim <- eval(expr = e, envir=Renv)
