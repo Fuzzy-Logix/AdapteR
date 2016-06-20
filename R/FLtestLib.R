@@ -6,9 +6,12 @@ setGeneric("FLexpect_equal",
                standardGeneric("FLexpect_equal"))
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.matrix(object),
-                                     expected,...))
+          function(object,expected,...){
+            if(is.RSparseMatrix(expected))
+            expected <- matrix(expected,dim(expected))
+            testthat::expect_equal(as.matrix(object),
+                                     expected,...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="FLMatrix"),
           function(object,expected,...)
@@ -16,9 +19,12 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
-          function(object,expected,...)
-              testthat::expect_equal(object,
-                                     as.matrix(expected),...))
+          function(object,expected,...){
+            if(is.RSparseMatrix(object))
+            object <- matrix(object,dim(object))
+            testthat::expect_equal(object,
+                                     as.matrix(expected),...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
           function(object,expected,...)
@@ -63,7 +69,7 @@ setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
 setMethod("as.FL","data.frame", function(object) as.FLTable(object))
 setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
-
+setMethod("as.FL","character", function(object) as.FLVector(object))
 
 as.REnvironment<-function(FLenv){
   Renv<-new.env()
@@ -73,7 +79,6 @@ as.REnvironment<-function(FLenv){
   }
   return(Renv)
 }
-
 
 as.FLEnvironment <- function(Renv){
     FLenv <- new.env(parent = parent.env(Renv))
@@ -87,6 +92,7 @@ as.FLEnvironment <- function(Renv){
 ##' Evaluates and benchmarks the expression e in an R and an FL environment.
 ##' tests all your new variable names for equality in R and FL environments.
 ##' TODO: The results of both expressions will be returned together with benchmarking statistics
+##' TDOD: collect more information: length of sql sent, amount of data fetched
 ##'
 ##' Created objects will be in both environments.
 ##'
@@ -96,11 +102,11 @@ as.FLEnvironment <- function(Renv){
 ##' @param description if not supplied will default to deparse of the expression
 ##' @param runs if runs>1 the expressions are evaluated several times.  Make sure you do not re-assign the variables in environments that are evaluated on.
 ##' @param noexpectation You can exclude names from
-##' @param ... arguments passed to FLexpect_equal
+##' @param ... arguments passed to FLexpect_equal, e.g.  check.attributes = FALSE
 ##' @return a data frame with the description
 #' @export
 ##' @author  Gregor Kappler <gregor.kappler@@fuzzylogix.com>
-eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
+eval_expect_equal <- function(e, Renv, FLenv,
                               description=NULL,
                               runs=1,
                               noexpectation=c(),
@@ -117,20 +123,17 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     #browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
-    rDim <- eval(expr = e, envir=Renv)
+    eval(expr = e, envir=Renv)
     rEndT <- Sys.time()
     flStartT <- Sys.time()
-    flDim <- eval(expr = e, envir=FLenv)
+    eval(expr = e, envir=FLenv)
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
     for(n in setdiff(newNames,oldNames))
-
-    # Added check.attributes = FALSE in FLexpect_equal.
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),check.attributes = FALSE,...)
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      #dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }

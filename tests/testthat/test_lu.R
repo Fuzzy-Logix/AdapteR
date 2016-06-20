@@ -1,31 +1,41 @@
-pm <- as(readMM(system.file("external/pores_1.mtx",
+Renv <- new.env(parent = globalenv())
+Renv$x <- Matrix(rnorm(9),3,3)
+library(Matrix)
+Renv$pm <- as(readMM(system.file("external/pores_1.mtx",
                             package = "Matrix")),
-         "CsparseMatrix")
-Renv = new.env(parent = globalenv())
+                "CsparseMatrix")
 
-#dgeMatrix
-Renv$mat1 = Matrix(rnorm(9), 3, 3)
-
-Renv$mat2 = pm
 FLenv <- as.FL(Renv)
 
-#Test failed due to types not compatible.
-#Results of slot x was same.
-#No inherited method for dgeMatrix and denseLU in as.FL function.(resolved)
-#Asana Ticket - https://app.asana.com/0/143316600934101/145318689357916
-test_that("Check for LU Decomposition function ",{
-    result = eval_expect_equal({
-        test1 = (lu(mat1))@x},
-        Renv,FLenv)
-    print(result)
-    })
+test_that("LU on dense square matrix running",
+eval_expect_equal({
+  result1 <- lu(x)
+},Renv,FLenv,check.attributes=FALSE))
 
+## fails.. different results in R and FL
+test_that("exapnd LU on dense square matrix ",
+eval_expect_equal({
+  result2 <- expand(result1)
+  print(result2)
+},Renv,FLenv,check.attributes=FALSE))
 
-#test passed but results format were different and number of results were different too.
-#Asana Ticket - https://app.asana.com/0/134161214112401/145335789954337
-test_that("Check for LU Decomposition function ",{
-    result = eval_expect_equal({
-        test2 = (lu(mat2))@x},
-        Renv,FLenv)
-    print(result)
-    })
+## No round available yet
+test_that("LU on dense non-square matrix",
+          eval_expect_equal({
+            result3 <- round(10 * x[,-3])
+            result4 <- dim(result3)
+            result5 <- lu(result3)
+            result6 <- expand(result5)
+          },Renv,FLenv,check.attributes=FALSE))
+
+## No drop0 function available yet
+test_that("Sparse LU",
+        eval_expect_equal({
+            pmLU <- lu(pm)
+            str(pmLU)
+            ppm <- pm[pmLU@p + 1L, pmLU@q + 1L]
+            pLU <- drop0(pmLU@L %*% pmLU@U) # L %*% U -- dropping extra zeros
+            #pLU <- pmLU@L %*% pmLU@U # L %*% U -- dropping extra zeros
+            result7 <- ppm[1:14, 1:5]
+            result8 <- pLU[1:14, 1:5]
+        },Renv,FLenv,check.attributes=FALSE))

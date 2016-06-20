@@ -22,7 +22,8 @@ setClass(
 		Dim="vector",
 		lower="FLMatrix",
 		upper="FLMatrix",
-		data_perm="FLMatrix"
+		data_perm="FLMatrix",
+        Dimnames="list"
 	)
 )
 
@@ -113,28 +114,28 @@ lu.FLMatrix<-function(object,...)
 	# calculating LU matrix
 	MID1 <- getMaxMatrixId(connection)
 
-	sqlstrLU <-paste0(" SELECT ",MID1," AS OutputMatrixID
-					          ,OutputRowNum
-					          ,OutputColNum
-					          ,CAST(OutputValL AS NUMBER) 
-					  	FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
-					 	" WHERE OutputRowNum > OutputColNum 
-				   		AND OutputValL IS NOT NULL ",
-				   		" UNION ALL ",
-				   		" SELECT ",MID1," AS OutputMatrixID
-					          ,OutputRowNum
-					          ,OutputColNum
-					          ,CAST(OutputValU AS NUMBER) 
-					  	FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
-					 	" WHERE OutputRowNum <= OutputColNum 
-				   		AND OutputValU IS NOT NULL;")
+	sqlstrLU <-paste0(" SELECT ",MID1," AS MATRIX_ID, \n ",
+					          "OutputRowNum AS rowIdColumn, \n ",
+					          "OutputColNum AS colIdColumn, \n ",
+					          "CAST(OutputValL AS NUMBER) AS valueColumn \n ",
+					  	" FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
+					 	" WHERE OutputRowNum > OutputColNum \n ",
+				   		" AND OutputValL IS NOT NULL \n ",
+				   		" UNION ALL \n ",
+				   		" SELECT ",MID1," AS MATRIX_ID, \n ",
+					          " OutputRowNum AS rowIdColumn, \n ",
+					          " OutputColNum AS colIdColumn, \n ",
+					          " CAST(OutputValU AS NUMBER) AS valueColumn \n ", 
+					  	" FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
+					 	" WHERE OutputRowNum <= OutputColNum \n ",
+				   		" AND OutputValU IS NOT NULL ")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
                         variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
+                            rowIdColumn="rowIdColumn",
+                            colIdColumn="colIdColumn",
+                            valueColumn="valueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstrLU)
@@ -188,7 +189,8 @@ lu.FLMatrix<-function(object,...)
 		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputColNum",
-		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputPermut = 1 ")
+		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),
+                                            tempResultTable),".OutputPermut = 1 ")
 		             )
 
 	perm <- table[,"OutputRowNum"]
@@ -197,7 +199,9 @@ lu.FLMatrix<-function(object,...)
 	VID2 <- getMaxVectorId(connection)
 	
 	sqlstrX <-paste0("SELECT ",VID2," AS vectorIdColumn",
-							",ROW_NUMBER() OVER(ORDER BY ",getVariables(LUMatrix)$colId,",",getVariables(LUMatrix)$rowId,") AS vectorIndexColumn
+							",ROW_NUMBER() OVER(ORDER BY ",
+                                getVariables(LUMatrix)$colId,",",
+                                getVariables(LUMatrix)$rowId,") AS vectorIndexColumn
 	                   		, ",getVariables(LUMatrix)$value," AS vectorValueColumn 
 					  FROM ",remoteTable(LUMatrix),
 					 constructWhere(constraintsSQL(LUMatrix)))
@@ -228,7 +232,8 @@ lu.FLMatrix<-function(object,...)
 		Dim=Dim,
 		lower=l,
 		upper=u,
-		data_perm = data_perm
+		data_perm = data_perm,
+        Dimnames=dimnames(object)
 	)
 	class(a)<-"FLLU"
 
@@ -283,3 +288,5 @@ expand.FLLU <- function(object,...)
 	else "That's not a valid property"
 }
 
+#' @export
+`@.FLLU`<- `$.FLLU`
