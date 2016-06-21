@@ -48,41 +48,60 @@ as.FLAbstractCol.FLVector <- function(object,indexCol=FALSE){
 
 as.FLAbstractCol.FLMatrix <- function(object,indexCol=FALSE){
 	if(!indexCol)
-		vcolnames <- c(valuecolumn="valuecolumn")
-	else vcolnames <- c(indexColumn="ROW_NUMBER() OVER(ORDER BY colIdColumn,rowIdColumn)",
-						valuecolumn="valuecolumn")
+		vcolnames <- c(valueColumn="valuecolumn")
+	else vcolnames <- c(indexColumn="ROW_NUMBER()OVER(ORDER BY colIdColumn,rowIdColumn)",
+						valueColumn="valueColumn")
 	return(new("FLAbstractColumn",
 				columnName=vcolnames))
 }
 
 as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
 	if(!indexCol)
-		vcolnames <- c(valuecolumn="cell_val_colname")
-	else vcolnames <- c(indexColumn="ROW_NUMBER() OVER(ORDER BY obs_id_colname,var_id_colname)",
-						valuecolumn="cell_val_colname")
+		vcolnames <- c(valueColumn="cell_val_colname")
+	else vcolnames <- c(indexColumn="ROW_NUMBER()OVER(ORDER BY var_id_colname,obs_id_colname)",
+						valueColumn="cell_val_colname")
 	return(new("FLAbstractColumn",
 				columnName=vcolnames))
 }
-genScalarFunCall <- function(object,func){
-    sqlstr <- paste0(" SELECT ",func(as.FLAbstractCol(object)),
+genScalarFunCall <- function(object,func,indexCol=FALSE,...){
+	##If FLMatrix or FLTable and indexCol is needed for function
+	if(indexCol && 
+		(is.FLMatrix(object)||
+			is.FLTable(object))){
+			voldAbsCol <- as.FLAbstractCol(object=object,
+									indexCol=indexCol)
+			vnewObsCol <- new("FLAbstractColumn",
+								columnName=c(indexColumn="indexColumn",
+										valueColumn="valueColumn"))
+		
+		sqlstr <- paste0(" SELECT ",
+						func(vnewObsCol),
+						" FROM (SELECT ",voldAbsCol@columnName[["indexColumn"]]," AS indexColumn, \n ",
+							voldAbsCol@columnName[["valueColumn"]]," AS valueColumn \n ",
+							" FROM (",constructSelect(object),") a) b ")
+	}
+	else
+    sqlstr <- paste0(" SELECT ",func(as.FLAbstractCol(object=object,
+    												indexCol=indexCol)
+    								,...),
                      "\n FROM(",constructSelect(object),") AS a")
 
     return(sqlQuery(getOption("connectionFL"),sqlstr)[1,1])
 }
-mean.FLAbstractColumn <- function(object){
+mean.FLAbstractColumn <- function(object,...){
 	return(paste0(" FLMean(",
 				paste0(object@columnName,collapse=","),") "))
 }
 mean.FLVector <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn))
+	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 mean.FLMatrix <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn))
+	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 mean.FLTable <- function(x,...){
 	if(!x@isDeep)
 	stop("convert to deep format using wideToDeep \n")
-	return(genScalarFunCall(x,mean.FLAbstractColumn))
+	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 
@@ -144,6 +163,7 @@ as.FLAbstractTable <- function(object){
 # flm <- as.FLMatrix(matrix(1:4,2,
 #         dimnames=list(c("a","b"),c("c","d"))))
 # apply(flm,1,mean)
+## fails for below case
 # apply(flm,1,function(x)c(meanx=mean(x),
 # 						meany=mean(x)))
 # SELECT
@@ -162,17 +182,18 @@ setMethod("apply",
 			 MARGIN="numeric",
 			 FUN="function"),
 	function(X,MARGIN,FUN,...){
+		browser()
 		X <- setAlias(X,"")
 		if(MARGIN==1){
 		vgroupCol <- getVariables(X)[["rowIdColumn"]]
-		vvalueCol <- getVariables(X)[["colIdColumn"]]
+		vvalueCol <- getVariables(X)[["valueColumn"]]
 		vrownames <- rownames(X)
 		ifelse(is.null(vrownames),vrownames <- 1:nrow(X),
 			vrownames <- vrownames)
 		}
 		else if(MARGIN==2){
 		vgroupCol <- getVariables(X)[["colIdColumn"]]
-		vvalueCol <- getVariables(X)[["rowIdColumn"]]
+		vvalueCol <- getVariables(X)[["valueColumn"]]
 		vrownames <- colnames(X)
 		ifelse(is.null(vrownames),vrownames <- 1:ncol(X),
 			vrownames <- vrownames)
@@ -180,7 +201,7 @@ setMethod("apply",
 		else stop("MARGIN can be 0 or 1 in apply.FLMatrix")
 		vabstractCol <- new("FLAbstractColumn",
 							columnName=vvalueCol)
-		vfunCalls <- FUN(vabstractCol)
+		vfunCalls <- FUN(vabstractCol,...)
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
 								vgroupCol," AS vectorIndexColumn,\n",
 								vfunCalls," AS vectorValueColumn \n",

@@ -413,7 +413,9 @@ FLCorGeneric.FLMatrix <- function(x,y=x,
 		if(is.numeric(y)) 
 		{ 
 			y<-as.FLMatrix(y)
-			return(cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else stop("only numeric entries for correlation")
 	}
@@ -424,7 +426,9 @@ FLCorGeneric.FLMatrix <- function(x,y=x,
 		{
 			y <- matrix(y,length(y),1)
 			y <- as.FLMatrix(y)
-			return(cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 	}
 	if(is.matrix(y))
@@ -433,7 +437,9 @@ FLCorGeneric.FLMatrix <- function(x,y=x,
 		else
 		{
 			y <- as.FLMatrix(y)
-			return(cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 	}
 	if(is.FLVector(y))
@@ -443,7 +449,9 @@ FLCorGeneric.FLMatrix <- function(x,y=x,
 		{
 			y <- as.FLMatrix(y,
                             sparse=TRUE,rows=length(y),cols=1)
-			return(cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else if(ncol(y)==1 || y@isDeep)
 		{
@@ -492,7 +500,9 @@ FLCorGeneric.FLMatrix <- function(x,y=x,
 	{
 		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions\n")
 		else 
-		return(t(cor(y,x)))
+		return(t(return(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))))
 	}
 }
 
@@ -504,7 +514,9 @@ FLCorGeneric.numeric <- function(x,y=x,
 	#browser()
 	if(is.FLMatrix(y))
 	{
-		res<- t(cor(y,x))
+		res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 		return (res)
 	}
 	else if(is.FLVector(y))
@@ -513,7 +525,9 @@ FLCorGeneric.numeric <- function(x,y=x,
 		{
 			x <- matrix(x,length(x),1)
 			x <- as.FLMatrix(x)
-			return (cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else stop(" incompatible dimensions ")
 	}
@@ -521,7 +535,9 @@ FLCorGeneric.numeric <- function(x,y=x,
 	{
 		if(length(x)!=nrow(y)) stop(" incompatible dimensions ")
 		else 
-		return(t(cor(y,x)))
+		return(t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...)))
 	}
 	else
 	return(FLCorGeneric.default(x,y,functionName,...))
@@ -534,7 +550,9 @@ FLCorGeneric.matrix <- function(x,y=x,
 {
 	if(is.FLMatrix(y))
 	{
-		res<- t(cor(y,x))
+		res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 		return (res)
 	}
 	else if(is.FLVector(y))
@@ -543,14 +561,18 @@ FLCorGeneric.matrix <- function(x,y=x,
 		else
 		{
 			x <- as.FLMatrix(x)
-			return (cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 	}
 	else if(is.FLTable(y))
 	{
 		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions ")
 		else 
-		return(t(cor(y,x)))
+		return(t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...)))
 	}
 	else
 	return(FLCorGeneric.default(x,y,functionName,...))
@@ -563,7 +585,9 @@ FLCorGeneric.data.frame <- function(x,y=x,
 {
 	if(is.FLMatrix(y))
 	{
-		res<- t(cor(y,x))
+		res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 		return (res)
 	}
 	else if(is.FLVector(y))
@@ -573,14 +597,18 @@ FLCorGeneric.data.frame <- function(x,y=x,
 		{
 			x <- as.matrix(x)
 			x <- as.FLMatrix(x)
-			return (cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 	}
 	else if(is.FLTable(y))
 	{
 		if(nrow(x)!=nrow(y)) stop(" incompatible dimensions ")
 		else 
-		return(t(cor(y,x)))
+		return(t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...)))
 	}
 	else
 	return(FLCorGeneric.default(x,y,functionName,...))
@@ -619,14 +647,18 @@ FLCorGeneric.FLVector <- function(x,y=x,
 	}
 	if(is.FLMatrix(y))
 	{
-		res<- t(cor(y,x))
+		res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 		return (res)
 	}
 	if(is.matrix(y))
 	{
 		if(length(x) == nrow(y))
 		{
-			res<- t(cor(y,x))
+			res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 			return (res)
 		}
 		else stop(" invalid dimensions ")
@@ -635,7 +667,9 @@ FLCorGeneric.FLVector <- function(x,y=x,
 	{
 		if(length(x) == length(y))
 		{
-			res<- t(cor(y,x))
+			res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 			return (res)
 		}
 		else stop(" invalid dimensions ")
@@ -644,7 +678,9 @@ FLCorGeneric.FLVector <- function(x,y=x,
 	{
 		if(length(x) == nrow(y))
 		{
-			res<- t(cor(y,x))
+			res<- t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...))
 			return (res)
 		}
 		else stop(" invalid dimensions ")
@@ -653,7 +689,9 @@ FLCorGeneric.FLVector <- function(x,y=x,
 	{
 		if(length(x)!=nrow(y)) { stop(" invalid dimensions ") }
 		else 
-		return(t(cor(y,x)))
+		return(t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...)))
 	}
 }
 
@@ -716,14 +754,18 @@ FLCorGeneric.FLTable <- function(x,y=x,
 			x <- deepx[["table"]]
 			y <- deepy[["table"]]
 			
-			flm <- cor(x,y)
+			flm <-FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...)
 			return(flm)
 		}
 		if(y@isDeep && !x@isDeep)
 		{
 			deepx <- wideToDeep(x)
 			x <- deepx[["table"]]
-			flm <- cor(x,y)
+			flm <- FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...)
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME, Final_VarID 
 								  		   FROM fzzlRegrDataPrepMap 
@@ -736,7 +778,9 @@ FLCorGeneric.FLTable <- function(x,y=x,
 			return(flm)
 		}
 		if(!y@isDeep && x@isDeep)
-		return ( t(cor(y,x)))
+		return ( t(FLCorGeneric(x=y,y=x,
+						functionName=functionName,
+						method=method,...)))
 	}
 	
 	if(is.FLMatrix(y))
@@ -788,7 +832,9 @@ FLCorGeneric.FLTable <- function(x,y=x,
 		{
 			deepx <- wideToDeep(x)
 			x <- deepx[["table"]]
-			flm <- cor(x,y)
+			flm <- FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...)
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME, Final_VarID 
 								  		   FROM fzzlRegrDataPrepMap 
@@ -808,7 +854,9 @@ FLCorGeneric.FLTable <- function(x,y=x,
 		{
 			y <- as.FLMatrix(y,
                                          sparse=TRUE,rows=length(y),cols=1)
-			return(cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else if(ncol(y)==1 || y@isDeep)
 		{
@@ -874,7 +922,9 @@ FLCorGeneric.FLTable <- function(x,y=x,
 		if(nrow(x) == nrow(y))
 		{
 			y <- as.FLMatrix(y)
-			return (cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else stop(" incompatible dimensions ")
 	}
@@ -883,7 +933,9 @@ FLCorGeneric.FLTable <- function(x,y=x,
 		if(nrow(x) == length(y))
 		{
 			y <- as.FLMatrix(as.matrix(y))
-			return (cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else stop(" incompatible dimensions ")
 	}
@@ -892,7 +944,9 @@ FLCorGeneric.FLTable <- function(x,y=x,
 		if(nrow(x) == nrow(y))
 		{
 			y <- as.FLMatrix(as.matrix(y))
-			return (cor(x,y))
+			return(FLCorGeneric(x=x,y=y,
+						functionName=functionName,
+						method=method,...))
 		}
 		else stop(" incompatible dimensions ")
 	}
