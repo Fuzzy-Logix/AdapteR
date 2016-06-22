@@ -1,0 +1,17 @@
+Renv = new.env(parent = globalenv())
+
+Renv$var1 = 1:4
+Renv$var2 = c(1:3, 100, 1000)
+
+FLenv = as.FL(Renv)
+
+
+
+test_that("Check for weighted mean function",{
+          result = eval_expect_equal({
+                   test1 = median(var1)
+                   tets2 = median(var2)
+            },Renv,FLenv)
+          print(result)
+    })
+
