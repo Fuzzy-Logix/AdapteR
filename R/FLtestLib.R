@@ -120,7 +120,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
-    #browser()
+    browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     eval(expr = e, envir=Renv)
