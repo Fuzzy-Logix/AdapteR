@@ -19,12 +19,9 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
-          function(object,expected,...){
-            if(is.RSparseMatrix(object))
-            object <- matrix(object,dim(object))
-            testthat::expect_equal(object,
-                                     as.matrix(expected),...)
-          })
+          function(object,expected,...)
+              testthat::expect_equal(as.matrix(object),
+                                     as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
           function(object,expected,...)
