@@ -34,6 +34,7 @@ FLTable <- function(database,
                     connection=NULL)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
+    #browser()
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
     oldalias <- names(table)[1]
