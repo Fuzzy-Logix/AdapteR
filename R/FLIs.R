@@ -25,3 +25,9 @@ is.FLTable <- function(object)
 {
 	ifelse(class(object)=="FLTable",TRUE,FALSE)
 }
+
+is.FLAbstractColumn <- function(object){
+    if(class(object)=="FLAbstractColumn")
+    return(TRUE)
+    else return(FALSE)
+}
