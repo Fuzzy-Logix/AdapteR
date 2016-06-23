@@ -47,6 +47,12 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
 setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLVector"),
+          function(object,expected,...)
+              FLexpect_equal(as.FLVector(object),
+                                     expected,...))
+
+setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
           function(object,expected,...){
             if(is.FL(object))
@@ -133,7 +139,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
-    #browser()
+    browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     eval(expr = e, envir=Renv)
