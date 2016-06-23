@@ -13,7 +13,7 @@ eval_expect_equal({
 },Renv,FLenv,check.attributes=FALSE))
 
 ## fails.. different results in R and FL
-test_that("exapnd LU on dense square matrix ",
+test_that("exapnd LU on dense square matrix https://app.asana.com/0/143316600934101/145318689357916 ",
 eval_expect_equal({
   result2 <- expand(result1)
   print(result2)

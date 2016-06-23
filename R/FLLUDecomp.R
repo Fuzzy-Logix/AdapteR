@@ -287,6 +287,3 @@ expand.FLLU <- function(object,...)
 	}
 	else "That's not a valid property"
 }
-
-#' @export
-`@.FLLU`<- `$.FLLU`

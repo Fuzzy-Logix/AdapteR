@@ -417,6 +417,9 @@ as.sparseMatrix.FLMatrix <- function(object) {
     if(any(is.na(c(i,j))))
         browser()
   values <- valuedf$valueColumn
+  if(is.factor(values))
+  return(matrix(values,dim(object),
+          dimnames=dn))
   if(is.null(values))
       m <- Matrix::sparseMatrix(i = i,
                         j = j,

@@ -23,8 +23,8 @@ NULL
 #' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solve(flmatrix)
 #' @export
-solve <- function (x, ...){
-	UseMethod("solve", x)
+solve <- function (a,b=NULL, ...){
+	UseMethod("solve", a)
 }
 #solve.default <- base::solve
 # do not define solve.default in this package as it is already defined in base::solve.default.
@@ -32,14 +32,19 @@ solve <- function (x, ...){
 
 
 #' @export
-solve.FLMatrix <- function(x,...)
+solve.FLMatrix <- function(a,b=NULL,...)
 {
     ## checkSquare(object,"solve")
     ## checkSingularity(object)
+  if(is.null(b))
+  return(FLInv(a))
+  else
+  return(FLInv(a)%*%b)
+}
 
-    connection <- getConnection(x)
 
-    flag1Check(connection)
+FLInv <- function(x,...)
+{
 
   sqlstr<-paste0(viewSelectMatrix(x, "mtrx", withName="z"),
                  outputSelectMatrix("FLMatrixInvUdt",
@@ -49,7 +54,7 @@ solve.FLMatrix <- function(x,...)
                 )
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connection = getOption("connectionFL"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",
@@ -65,9 +70,7 @@ solve.FLMatrix <- function(x,...)
 
    return(ensureQuerySize(pResult=flm,
             pInput=list(x),
-            pOperator="solve",
+            pOperator="FLInv",
             pStoreResult=TRUE))
 
 }
-
-
