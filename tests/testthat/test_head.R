@@ -26,7 +26,7 @@ test_that("Head/Tail",
             tx <- tail(fx)
             ty <- tail(freeny.y)
             
-            ##tail(library)
+            ##tail(library) ## does not apply to AdapteR
             
             htT <- head(tT)
           }, Renv))
