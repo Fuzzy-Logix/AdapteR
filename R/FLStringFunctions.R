@@ -866,7 +866,8 @@ setMethod("regexpr",
             text="ANY"),
           function(pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE)
-          base::regexpr(pattern,text,...)
+          base::regexpr(pattern,text,ignore.case = ignore.case, perl = perl,
+        fixed = fixed, useBytes = useBytes)
           )
 
 #' Pattern Matching
