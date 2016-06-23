@@ -75,7 +75,7 @@ as.REnvironment<-function(FLenv){
   Renv<-new.env()
   for(n in ls(FLenv)){
       object <- get(n,envir = FLenv)
-      assign(n, as.R(object), envir=FLenv)
+      assign(n, as.R(object), envir=Renv)
   }
   return(Renv)
 }
@@ -272,13 +272,13 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),
                           operator = "+"){
     
   FLenv<-new.env()
-  #browser()
+  ##browser()
   lapply(1:length(classes),function(i){
     obj<-initFgeneric(specs[[i]],classes[i])
     x=i
     assign(paste0("a",x),obj,envir = FLenv)
   })
-  Renv<-as.Renvironment(FLenv)
+  Renv<-as.R(FLenv)
   obj1<-do.call(operator,lapply(ls(FLenv),function(x)do.call("$",list(FLenv,paste0(x)))))
   obj2<-do.call(operator,lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
   
