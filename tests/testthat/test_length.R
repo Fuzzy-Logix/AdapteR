@@ -52,3 +52,17 @@ test_that("length of data.frame",{
     print(result)
 })
 
+
+
+############################################################
+## initF based tests
+test_that("check length",
+{
+    T1 <- initF.FLTable(rows=5,cols=5)
+    T1R <- as.data.frame(T1)
+    expect_eval_equal(initF.FLMatrix,AdapteR::length,base::length,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
+    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
+    expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
+})
+

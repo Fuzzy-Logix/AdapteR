@@ -1,4 +1,4 @@
-## The formal test suite.
+## The old formal test suite.
 ##
 ## Tests have been abstracted such that
 ## function initF.FLMatrix creates equivalent
@@ -10,26 +10,6 @@
 ## are tested to be equal.
 ##
 ## Next, benchmarking will be incorporated in these functions.
-
-library(AdapteR)
-library(testthat)
-
-
-## This script first tries to create a ODBC connection
-if(!exists("connection"))
-    connection <- flConnect(odbcSource = "Gandalf")
-
-
-## If ODBC has failed we try to create a JDBC connection
-if(!exists("connection")){
-    ## set this to add jdbc driver and security jars to classpath:
-    ## terajdbc4.jar tdgssconfig.jar
-    ## CAVE: fully qualified PATH required
-    yourJarDir <- "/Users/gregor/fuzzylogix"
-    connection <- flConnect(host     = "10.200.4.116",
-                            database = "fuzzylogix",
-                            dir.jdbcjars = yourJarDir)
-}
 
 
 options(debugSQL=FALSE)
@@ -126,18 +106,6 @@ test_that("check LU Decomposition",
   expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
                Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
 })
-
-## Testing FLLength
-test_that("check length",
-{
-  T1 <- initF.FLTable(rows=5,cols=5)
-  T1R <- as.data.frame(T1)
-    expect_eval_equal(initF.FLMatrix,AdapteR::length,base::length,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
-    expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
-})
-
 
 ## Testing FLTrace
 test_that("check FLTrace",
