@@ -66,18 +66,21 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
                                      as.data.frame(expected),...))
 
 
-##' Evaluates and benchmarks the expression e in an R and an FL environment.
-##' tests all your new variable names for equality in R and FL environments.
-##' TODO: The results of both expressions will be returned together with benchmarking statistics
+##' Evaluates the expression e in an R and an FL environment, tests assignment for equality.
+##' 
+##' Tests all variables in expectation and new variable names for equality in R and FL environments.
+##' Created objects will be in both environments.
+##' The results of both expressions will be returned together with benchmarking statistics.
+##' 
 ##' TDOD: collect more information: length of sql sent, amount of data fetched
 ##'
-##' Created objects will be in both environments.
 ##'
 ##' @param e the expression that will be evaluated in both environments
-##' @param Renv
-##' @param FLenv
+##' @param Renv 
+##' @param FLenv 
 ##' @param description if not supplied will default to deparse of the expression
 ##' @param runs if runs>1 the expressions are evaluated several times.  Make sure you do not re-assign the variables in environments that are evaluated on.
+##' @param expectation provide variable names to check for equality when environments did already contain these variables.
 ##' @param noexpectation You can exclude names from
 ##' @param ... arguments passed to FLexpect_equal, e.g.  check.attributes = FALSE
 ##' @return a data frame with the description
@@ -86,6 +89,7 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
 eval_expect_equal <- function(e, Renv, FLenv,
                               description=NULL,
                               runs=1,
+                              expectation=c(),
                               noexpectation=c(),
                               ...){
     #browser()
@@ -106,7 +110,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
     eval(expr = e, envir=FLenv)
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
-    for(n in setdiff(newNames,oldNames))
+    for(n in unique(c(expectation,setdiff(newNames,oldNames))))
         FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
