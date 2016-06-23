@@ -66,44 +66,6 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
                                      as.data.frame(expected),...))
 
 
-#' @export
-setGeneric("as.R", function(flobject) standardGeneric("as.R"))
-setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
-setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
-setMethod("as.R","environment", function(flobject) as.REnvironment(flobject))
-setMethod("as.R","FLVector", function(flobject) as.vector(flobject))
-
-#' @export
-setGeneric("as.FL", function(object) standardGeneric("as.FL"))
-setMethod("as.FL","numeric", function(object) as.FLVector(object))
-setMethod("as.FL","character", function(object) as.FLVector(object))
-setMethod("as.FL","vector", function(object) as.FLVector(object))
-setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dpoMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","data.frame", function(object) as.FLTable(object))
-setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
-
-as.REnvironment<-function(FLenv){
-  Renv<-new.env()
-  for(n in ls(FLenv)){
-      object <- get(n,envir = FLenv)
-      assign(n, as.R(object), envir=Renv)
-  }
-  return(Renv)
-}
-
-as.FLEnvironment <- function(Renv){
-    FLenv <- new.env(parent = parent.env(Renv))
-    for(n in ls(envir = Renv)){
-        object <- get(n,envir = Renv)
-        assign(n, as.FL(object), envir=FLenv)
-    }
-    FLenv
-}
-
 ##' Evaluates and benchmarks the expression e in an R and an FL environment.
 ##' tests all your new variable names for equality in R and FL environments.
 ##' TODO: The results of both expressions will be returned together with benchmarking statistics
@@ -136,7 +98,6 @@ eval_expect_equal <- function(e, Renv, FLenv,
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
-    browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     eval(expr = e, envir=Renv)
