@@ -23,6 +23,6 @@ FLStartSession(connection, database = "FL_DEMO", persistent = "test",
 Strongly recommended to run before beginning a new R session
 use options to specify the following:- 
 ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, 
-MatrixNameMapTableFL, ResultSparseMatrixTableFL
+NameMapTableFL, ResultSparseMatrixTableFL
 }
 

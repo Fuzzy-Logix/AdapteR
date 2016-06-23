@@ -5,7 +5,7 @@
 \title{Convert Deep Table to Wide Table}
 \usage{
 deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
-  outWideTableName)
+  outWideTableName, Analysisid)
 }
 \arguments{
 \item{object}{FLTable object to convert to wide table}
