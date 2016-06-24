@@ -598,6 +598,10 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 as.FLVector.vector <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
+  if(!is.null(names(object)) && !all(names(object)==1:length(object)))
+  newnames <- as.character(names(object))
+  else newnames <- 1:length(object)
+  
   oldOption <- getOption("warn")
   options(warn=-1)
   if(!any(is.na(as.integer(object))) && 
@@ -614,6 +618,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   options(warn=oldOption)
   VID <- getMaxVectorId(connection,tablename)
 
+  #vobjcopy <- ifelse(is.character(object),fquote(object[x]),object[x])
+  #object <- c(1,"NULL")
   if(class(connection)=="RODBC")
   {
     sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
@@ -645,9 +651,6 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                   tablename,".vectorIdColumn = ",VID),
                 order = "")
 
-  if(!is.null(names(object)) && !all(names(object)==1:length(object)))
-  newnames <- as.character(names(object))
-  else newnames <- 1:length(object)
   return(new("FLVector",
                 select=select,
                 dimnames=list(newnames,"vectorValueColumn"),

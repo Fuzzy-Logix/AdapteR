@@ -9,6 +9,10 @@ setMethod("FLexpect_equal",
           function(object,expected,...){
             if(is.RSparseMatrix(expected))
             expected <- matrix(expected,dim(expected))
+            if(class(expected)=="dist")
+            return(testthat::expect_equal(as.dist(as.matrix(object)),
+                                     expected,...))
+
             testthat::expect_equal(as.matrix(object),
                                      expected,...)
           })
@@ -22,6 +26,11 @@ setMethod("FLexpect_equal",
           function(object,expected,...){
             if(is.RSparseMatrix(object))
             object <- matrix(object,dim(object))
+            if(class(object)=="dist")
+            return(testthat::expect_equal(object,
+                        as.dist(as.matrix(expected))
+                        ,...))
+
             testthat::expect_equal(object,
                                      as.matrix(expected),...)
           })
@@ -46,11 +55,6 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                     function(i)
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
-setMethod("FLexpect_equal",
-          signature(object="ANY",expected="FLVector"),
-          function(object,expected,...)
-              FLexpect_equal(as.FLVector(object),
-                                     expected,...))
 
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
@@ -139,7 +143,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
-    browser()
+    #browser()
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     eval(expr = e, envir=Renv)

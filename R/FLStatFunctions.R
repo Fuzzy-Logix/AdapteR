@@ -17,15 +17,15 @@ FLStatsDist <- function(x,method="euclidean",
                         functionName){
     if(!is.null(vvaridCol))
     vwhereConditions <- paste0("a.",vvaridCol," = b.",vvaridCol)
-    if(diag && !upper)
-    vwhereConditions <- c(vwhereConditions,
-        paste0("a.",vobsidCol," >= b.",vobsidCol))
-    else if(upper && !diag)
-    vwhereConditions <- c(vwhereConditions,
-        paste0("a.",vobsidCol," <> b.",vobsidCol))
-    else if(!diag && !upper)
-    vwhereConditions <- c(vwhereConditions,
-        paste0("a.",vobsidCol," > b.",vobsidCol))
+    # if(diag && !upper)
+    # vwhereConditions <- c(vwhereConditions,
+    #     paste0("a.",vobsidCol," >= b.",vobsidCol))
+    # else if(upper && !diag)
+    # vwhereConditions <- c(vwhereConditions,
+    #     paste0("a.",vobsidCol," <> b.",vobsidCol))
+    # else if(!diag && !upper)
+    # vwhereConditions <- c(vwhereConditions,
+    #     paste0("a.",vobsidCol," > b.",vobsidCol))
 
     sqlstr <- paste0("SELECT '%insertIDhere%' AS matrixIdColumn,\n",
                             "a.",vobsidCol," AS rowIdColumn,\n",
@@ -74,8 +74,8 @@ FLStatsDist <- function(x,method="euclidean",
 #' dist(flmatrix,"manhattan",TRUE,TRUE)
 setMethod("dist",signature(x="FLMatrix"),
     function(x,method="euclidean",
-            diag=FALSE,
-            upper=FALSE,
+            diag=TRUE,
+            upper=TRUE,
             p=2){
     if(method=="euclidean")
     functionName <- "FLEuclideanDist"
@@ -95,8 +95,8 @@ setMethod("dist",signature(x="FLMatrix"),
 
 setMethod("dist",signature(x="FLVector"),
     function(x,method="euclidean",
-            diag=FALSE,
-            upper=FALSE,
+            diag=TRUE,
+            upper=TRUE,
             p=2){
     if(method=="euclidean")
     functionName <- "FLEuclideanDist"
@@ -115,8 +115,8 @@ setMethod("dist",signature(x="FLVector"),
 
 setMethod("dist",signature(x="FLTable"),
     function(x,method="euclidean",
-            diag=FALSE,
-            upper=FALSE,
+            diag=TRUE,
+            upper=TRUE,
             p=2){
     if(method=="euclidean")
     functionName <- "FLEuclideanDist"
@@ -195,47 +195,47 @@ setMethod("wt.mean",signature(x="ANY"),
 
 
 ######################### sd ###########################################
-sd.FLAbstractColumn <- function(x,na.rm=FALSE){
+sd.FLAbstractColumn <- function(x,na.rm=TRUE){
     return(paste0(" FLStdDev(",
                 paste0(x@columnName,collapse=","),") "))
 }
 setMethod("sd",signature(x="FLVector"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=sd.FLAbstractColumn))})
 setMethod("sd",signature(x="FLAbstractColumn"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(sd.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("sd",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=sd.FLAbstractColumn))})
 setMethod("sd",signature(x="FLTable"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=sd.FLAbstractColumn))})
 
 ########################## FLSdP ##################################
 #' @export
-setGeneric("FLSdP",function(x,na.rm=FALSE)
+setGeneric("FLSdP",function(x,na.rm=TRUE)
                 standardGeneric("FLSdP"))
-FLSdP.FLAbstractColumn <- function(x,na.rm=FALSE){
+FLSdP.FLAbstractColumn <- function(x,na.rm=TRUE){
     return(paste0(" FLStdDevP(",
                 paste0(x@columnName,collapse=","),") "))
 }
 setMethod("FLSdP",signature(x="FLVector"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=FLSdP.FLAbstractColumn))})
 setMethod("FLSdP",signature(x="FLAbstractColumn"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(FLSdP.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("FLSdP",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=FLSdP.FLAbstractColumn))})
 setMethod("FLSdP",signature(x="FLTable"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         if(!x@isDeep)
         stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
@@ -245,29 +245,29 @@ setMethod("FLSdP",signature(x="FLTable"),
 #' @export
 setGeneric("skewness",function(x,na.rm=FALSE)
                 standardGeneric("skewness"))
-skewness.FLAbstractColumn <- function(x,na.rm=FALSE){
+skewness.FLAbstractColumn <- function(x,na.rm=TRUE){
     return(paste0(" FLSkewness(",
                 paste0(x@columnName,collapse=","),") "))
 }
 setMethod("skewness",signature(x="FLVector"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="FLAbstractColumn"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(skewness.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("skewness",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(genScalarFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="FLTable"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         if(!x@isDeep)
         stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="ANY"),
-    function(x,na.rm=FALSE){
+    function(x,na.rm=TRUE){
         return(moments::skewness(x=x,na.rm=na.rm))})
 
 ##################### kurtosis ##########################################
@@ -657,14 +657,18 @@ setMethod("quantile",signature(x="FLVector"),
                 na.rm=FALSE,names=TRUE,
                 type=7,...){
         probs <- as.vector(probs)
-        vtemp <- sapply(probs,function(y)
+        vtemp <- sapply(probs,function(y){
+                    if(is.na(y)) return(NA)
                     getDescStatsUDT(object=x,
                         functionName="FLPercUDT",
                         outCol=c(vectorValueColumn="oPercVal"),
                         viewCols=c(pGroupID=1,
                             pValue="vectorValueColumn",
-                            pPerc=y)))
-        names(vtemp) <- paste0(probs*100,"%")
+                            pPerc=y))
+                    })
+        names(vtemp) <- sapply(probs,function(y)
+                        ifelse(is.na(y),"",
+                            paste0(y*100,"%")))
         return(vtemp)
         })
 
@@ -673,14 +677,17 @@ setMethod("quantile",signature(x="FLMatrix"),
                 na.rm=FALSE,names=TRUE,
                 type=7,...){
         probs <- as.vector(probs)
-        vtemp <- sapply(probs,function(y)
+        vtemp <- sapply(probs[!is.na(probs)],function(y){
+                    if(is.na(y)) return(NA)
                     getDescStatsUDT(object=x,
                         functionName="FLPercUDT",
                         outCol=c(vectorValueColumn="oPercVal"),
                         viewCols=c(pGroupID=1,
                             pValue="valueColumn",
-                            pPerc=y)))
-        names(vtemp) <- paste0(probs*100,"%")
+                            pPerc=y))})
+        names(vtemp) <- sapply(probs,function(y)
+                        ifelse(is.na(y),"",
+                            paste0(y*100,"%")))
         return(vtemp)
         })
 
@@ -689,14 +696,17 @@ setMethod("quantile",signature(x="FLTable"),
                 na.rm=FALSE,names=TRUE,
                 type=7,...){
         probs <- as.vector(probs)
-        vtemp <- sapply(probs,function(y)
+        vtemp <- sapply(probs[!is.na(probs)],function(y){
+                    if(is.na(y)) return(NA)
                     getDescStatsUDT(object=x,
                         functionName="FLPercUDT",
                         outCol=c(vectorValueColumn="oPercVal"),
                         viewCols=c(pGroupID=1,
                             pValue="cell_val_colname",
-                            pPerc=y)))
-        names(vtemp) <- paste0(probs*100,"%")
+                            pPerc=y))})
+        names(vtemp) <- sapply(probs,function(y)
+                        ifelse(is.na(y),"",
+                            paste0(y*100,"%")))
         return(vtemp)
         })
 
@@ -933,9 +943,13 @@ getDescStatsUDTjoin <- function(object,
                     length(object),
                     nrow(object)*ncol(object))
 
+    if(is.FLVector(object) && !is.null(names(object)))
+    vnames <- names(object)
+    else vnames <- 1:vlength
+
     return(store(new("FLVector",
             select=tblfunqueryobj,
-            dimnames=list(1:vlength,"vectorValueColumn"),
+            dimnames=list(vnames,"vectorValueColumn"),
             isDeep=FALSE)))
 }
 
@@ -944,22 +958,21 @@ getDescStatsUDTjoin <- function(object,
 #' @export
 setGeneric("rank",function(x,na.last=TRUE,
                             ties.method="average",
-                            type="normal",
                             ...)
                 standardGeneric("rank"))
 
 selectRankMethod <- function(rankOrder,type){
     if(!rankOrder %in% c("A","D"))
         stop("rankOrder must be A or D \n ")
-        vtemp <- c(FLRankUDT="normal",
-                    FLFracRankUDT="frac",
+        vtemp <- c(FLRankUDT="duplicate",
+                    FLFracRankUDT="average",
                     FLPercRankUDT="perc")
         vfunction <- names(vtemp)[vtemp==type]
         if(length(vfunction)==0)
-        stop("type should be c(normal,frac,perc) \n ")
+        stop("type should be c(average,duplicate,perc) for FL objects \n ")
 
-        vtemp <- c(oRank="normal",
-                    oFracRank="frac",
+        vtemp <- c(oRank="duplicate",
+                    oFracRank="average",
                     opercRank="perc")
         voutcol <- names(vtemp)[vtemp==type]
 
@@ -970,11 +983,10 @@ selectRankMethod <- function(rankOrder,type){
 setMethod("rank",signature(x="FLVector"),
     function(x,na.last=TRUE,
             ties.method="average",
-            type="normal",
             rankOrder="A",
             ...){
         vtemp <- selectRankMethod(rankOrder=rankOrder,
-                        type=type)
+                        type=ties.method)
         vfunction <- vtemp["vfunction"]
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL
@@ -994,11 +1006,10 @@ setMethod("rank",signature(x="FLVector"),
 setMethod("rank",signature(x="FLMatrix"),
     function(x,na.last=TRUE,
             ties.method="average",
-            type="normal",
             rankOrder="A",
             ...){
         vtemp <- selectRankMethod(rankOrder=rankOrder,
-                        type=type)
+                        type=ties.method)
         vfunction <- vtemp["vfunction"]
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL
@@ -1018,11 +1029,10 @@ setMethod("rank",signature(x="FLMatrix"),
 setMethod("rank",signature(x="FLTable"),
     function(x,na.last=TRUE,
             ties.method="average",
-            type="normal",
             rankOrder="A",
             ...){
         vtemp <- selectRankMethod(rankOrder=rankOrder,
-                        type=type)
+                        type=ties.method)
         vfunction <- vtemp["vfunction"]
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL
@@ -1042,7 +1052,6 @@ setMethod("rank",signature(x="FLTable"),
 setMethod("rank",signature(x="ANY"),
     function(x,na.last=TRUE,
             ties.method="average",
-            type="normal",
             rankOrder="A",
             ...){
         return(base::rank(x=x,

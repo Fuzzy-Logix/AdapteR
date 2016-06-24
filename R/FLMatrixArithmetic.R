@@ -434,7 +434,7 @@ FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 {
 	if(is.FLMatrix(pObj2)||is.FLVector(pObj2))
 	{
-		pObj1 <- as.FLMatrix(pObj1,getConnection(pObj2))
+		pObj1 <- as.FLMatrix(pObj1)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
 	else

@@ -757,6 +757,21 @@ FLCorGeneric.FLTable <- function(x,y=x,
 			flm <-FLCorGeneric(x=x,y=y,
 						functionName=functionName,
 						method=method,...)
+			varnamesx <- sqlQuery(connection,
+								  paste0(" SELECT COLUMN_NAME, Final_VarID 
+								  		   FROM fzzlRegrDataPrepMap 
+								  		   WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
+				                		   AND Final_VarID IS NOT NULL 
+				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME")]
+			varnamesy <- sqlQuery(connection,
+								  paste0(" SELECT COLUMN_NAME, Final_VarID 
+								  		   FROM fzzlRegrDataPrepMap 
+								  		   WHERE AnalysisID = '",deepy[["AnalysisID"]],"' 
+				                		   AND Final_VarID IS NOT NULL 
+				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME")]
+
+			flm@dimnames <- list(varnamesx,
+								varnamesy)
 			return(flm)
 		}
 		if(y@isDeep && !x@isDeep)
