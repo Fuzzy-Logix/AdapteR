@@ -196,3 +196,24 @@ FLVarCluster.FLTable<-function(x,
 	else
 	return(clustervector)
 }
+
+
+#' @export
+FLVarCluster.FLMatrix <- function(x,
+                            contrib,
+                            matrixType = "COVAR",
+                            groupBy = "NULL",
+                            excludeCols = as.character(c()),
+                            classSpec = list(),
+                            whereconditions = ""
+                        )
+{
+    x <- as.FLTable(x)
+    return(FLVarCluster(x=x,
+                contrib=contrib,
+                matrixType = matrixType,
+                groupBy = groupBy,
+                excludeCols = excludeCols,
+                classSpec = classSpec,
+                whereconditions = whereconditions))
+}

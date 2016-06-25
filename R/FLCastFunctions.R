@@ -323,13 +323,6 @@ setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="missing"),
           function(object,sparse=TRUE)
               as.FLMatrix.Matrix(object,sparse=sparse))
-## setMethod("as.FLMatrix", signature(object = "matrix",
-##                                    sparse="JDBCConnection"),
-##           function(object,sparse){
-##               warning("remove connection from cast")
-##               stop()
-##               as.FLMatrix.Matrix(object,connection=sparse)
-##               })
 setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="logical"),
           function(object,sparse)
@@ -401,6 +394,11 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
           function(object,sparse=TRUE,...)
               as.FLMatrix.FLVector(object,sparse=TRUE,...))
 
+setMethod("as.FLMatrix",signature(object="FLTable"),
+          function(object,sparse=TRUE,...)
+            as.FLMatrix.FLTable(object=object,
+                                sparse=sparse,...))
+###########################################################################
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
@@ -550,7 +548,26 @@ as.FLMatrix.data.frame <- function(object,
   return(as.FLMatrix(temp_m))
 }
 
+as.FLMatrix.FLTable <- function(object,
+                                sparse=TRUE,...){
+  object <- setAlias(object,"")
+  if(!object@isDeep)
+  object <- wideToDeep(object=object)[["table"]]
 
+  vdimnames <- lapply(dimnames(object),
+                  function(x){
+                      if(all(x==1:length(x)))
+                      return(NULL)
+                      else return(x)
+                  })
+  return(FLMatrix(database=object@select@database,
+                  table_name=object@select@table_name,
+                  row_id_colname=getVariables(object)[["obs_id_colname"]],
+                  col_id_colname=getVariables(object)[["var_id_colname"]],
+                  cell_val_colname=getVariables(object)[["cell_val_colname"]],
+                  dimnames=vdimnames,
+                  whereconditions=object@select@whereconditions))
+}
 ######################################################################################################################
 #' casting to FLVector
 #'
@@ -737,7 +754,20 @@ setGeneric("as.FLTable", function(object,...) {
 setMethod("as.FLTable", signature(object = "data.frame"),
           function(object,...)
               as.FLTable.data.frame(object,...))
+setMethod("as.FLTable",signature(object="FLMatrix"),
+          function(object,...)
+          as.FLTable.FLMatrix(object=object,...))
 
+
+as.FLTable.FLMatrix <- function(object=object,...){
+  object <- setAlias(object,"")
+  return(FLTable(database=object@select@database,
+                table=object@select@table_name,
+                obs_id_colname=getVariables(object)[["rowIdColumn"]],
+                var_id_colnames=getVariables(object)[["colIdColumn"]],
+                cell_val_colname=getVariables(object)[["valueColumn"]],
+                whereconditions=object@select@whereconditions))
+}
 #' @export
 as.FLTable.data.frame <- function(object,
                                   connection=getOption("connectionFL"),

@@ -25,6 +25,12 @@ FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 {
+	if(missing(pObj2)){
+		if(pOperator=="+") return(pObj1)
+		else if(pOperator=="-") return(-1 * pObj1)
+		else stop("two arguments needed for ",pOperator," \n ")
+	}
+
 	connection <- getConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
@@ -165,6 +171,12 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 {
+	if(missing(pObj2)){
+		if(pOperator=="+") return(pObj1)
+		else if(pOperator=="-") return(-1 * pObj1)
+		else stop("two arguments needed for ",pOperator," \n ")
+	}
+
 	connection <- getConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
@@ -379,6 +391,12 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.matrix <- function(pObj1,pObj2,pOperator)
 {
+	if(missing(pObj2))
+	{
+		op <- .Primitive(pOperator)
+		return(op(pObj1))
+	}
+	
 	if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
 	return(FLMatrixArithmetic.sparseMatrix(pObj1,pObj2,pOperator))
 	else if(pOperator %in% c("%*%"))
@@ -432,6 +450,11 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 {
+	if(missing(pObj2)){
+		if(pOperator=="+") return(pObj1)
+		else if(pOperator=="-") return(-1 * pObj1)
+		else stop("two arguments needed for ",pOperator," \n ")
+	}
 	if(is.FLMatrix(pObj2)||is.FLVector(pObj2))
 	{
 		pObj1 <- as.FLMatrix(pObj1)

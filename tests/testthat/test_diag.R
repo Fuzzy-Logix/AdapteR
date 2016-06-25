@@ -3,9 +3,17 @@ Renv <- new.env(parent = globalenv())
 Renv$a <-3
 Renv$b<-1:3
 Renv$c<-1:5
+Renv$d <- matrix(0,3,3)
+diag(Renv$d) <- 1:3
+Renv$x <- 1:5
+Renv$y <- stats::rnorm(5)
+Renv$z <- matrix(rnorm(6),3,
+            dimnames=list(c("a","b",""),
+              c("a","b")))
+
 FLenv <- as.FL(Renv)
 test_that(
-  "Testing",
+  "Testing dim of diag for vector of length 1 ",
   {
     result1=eval_expect_equal({test1<-dim(diag(a))},Renv,FLenv)
     print(result1)
@@ -13,43 +21,39 @@ test_that(
   })
 
 test_that(
-  "Testing",
+  "Testing diag for vector of length > 1 ",
   {
     result2=eval_expect_equal({test2<-diag(10,3,4)},Renv,FLenv)
     print(result2)
   })
 
-#error: no method for coercing this S4 class to a vector
 test_that(
-  "Testing",
+  "Testing diag for matrix with unconventional names ",
   {
-    result3=eval_expect_equal({test3<-all(diag(b))},Renv,FLenv)
+    result5=eval_expect_equal({
+     test5<-diag(z)
+     },Renv,FLenv)
+    print(result5)
+  })
+
+#equality fails
+test_that(
+  "Testing equality works for vectors from diag ",
+  {
+    result3=eval_expect_equal({
+              test3<-all(diag(b)==d)
+            },Renv,FLenv)
     print(result3)
   })
 
 
-
-#error: get(n, envir = Renv) not equal to get(n, envir = FLenv).
+# cbind fails
 test_that(
-  "Testing",
+  "Testing diag for matrix with names ",
   {
     result4=eval_expect_equal({
-      v<-var(M <- cbind(X = 1:5, Y = stats::rnorm(5)))
-      test4<-all(diag(v))},Renv,FLenv)
+      v<-var(M <- cbind(x,y))
+      test4<-diag(v)
+      },Renv,FLenv)
     print(result4)
   })
-
-
-#error: get(n, envir = Renv) not equal to get(n, envir = FLenv).
-test_that(
-  "Testing",
-  {
-    result5=eval_expect_equal({
-      rownames(M) <- c(colnames(M), rep("", 3));
-      
-     test5<-diag(M)},Renv,FLenv)
-    print(result5)
-  })
-
-
-
