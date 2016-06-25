@@ -10,4 +10,3 @@ test_that("Testing weighted variance",
 })
 
 
-
