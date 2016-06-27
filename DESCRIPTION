@@ -99,7 +99,6 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
-    'FLPoissonRegr.R'
     'FLQRDecomp.R'
     'FLRankMatrix.R'
     'FLRbind.R'

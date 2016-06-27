@@ -9,6 +9,10 @@ setMethod("FLexpect_equal",
           function(object,expected,...){
             if(is.RSparseMatrix(expected))
             expected <- matrix(expected,dim(expected))
+            if(class(expected)=="dist")
+            return(testthat::expect_equal(as.dist(as.matrix(object)),
+                                     expected,...))
+
             testthat::expect_equal(as.matrix(object),
                                      expected,...)
           })
@@ -19,9 +23,17 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
-          function(object,expected,...)
-              testthat::expect_equal(as.matrix(object),
-                                     as.matrix(expected),...))
+          function(object,expected,...){
+            if(is.RSparseMatrix(object))
+            object <- matrix(object,dim(object))
+            if(class(object)=="dist")
+            return(testthat::expect_equal(object,
+                        as.dist(as.matrix(expected))
+                        ,...))
+
+            testthat::expect_equal(object,
+                                     as.matrix(expected),...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
           function(object,expected,...)
@@ -43,11 +55,6 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                     function(i)
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
-setMethod("FLexpect_equal",
-          signature(object="ANY",expected="FLVector"),
-          function(object,expected,...)
-              FLexpect_equal(as.FLVector(object),
-                                     expected,...))
 
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),

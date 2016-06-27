@@ -209,8 +209,8 @@ NULL
 								   a,".rowIdColumn AS rowIdColumn,",
 								   a,".colIdColumn AS colIdColumn,
 								   CASE 
-								    WHEN ",a,".valueColumn <> ",b,".valueColumn THEN 0 
-								    WHEN ",a,".valueColumn = ",b,".valueColumn THEN 1 
+								    WHEN ",a,".valueColumn <> ",b,".valueColumn THEN 'FALSE' 
+								    WHEN ",a,".valueColumn = ",b,".valueColumn THEN 'TRUE' 
 								   END AS valueColumn 
 						 FROM (",constructSelect(pObj1),") AS ",a,
 						 	",(",constructSelect(pObj2),") AS ",b,
@@ -235,7 +235,7 @@ NULL
 		            pInput=list(pObj1,pObj2),
 		            pOperator="==",
 		            pStoreResult=TRUE)
-
+	    return(flm)
 	    return(matrix(as.logical(as.matrix(flm)),nrow(pObj1),ncol(pObj1)))
 	}
 	if(is.matrix(pObj2)||class(pObj2)=="dgCMatrix"

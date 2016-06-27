@@ -6,9 +6,6 @@ names(Renv$var2) = letters[1:11]
 
 FLenv = as.FL(Renv)
 
-#Test failed .Giving different results for R and AdapteR.
-#AdapteR is giving result like rankMatrix( i.e. it is giving number of independent vectors)
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360570
 test_that("Check for rank function with default method average",{
           result = eval_expect_equal({
                    test1 = rank(var1)
@@ -25,19 +22,24 @@ test_that("Check for idempotent characteristic of rank function",{
     })
 
 
-#Test failed . Error message - sort.list can be called on atomic list only.
+## fail..
 #Asana ticket - https://app.asana.com/0/143316600934101/146934264360570
-test_that("Check for different methods of rank function",{
-          result = eval_expect_equal({
-                   test3 = rank(var2, ties.method= "first")  # first occurrence wins
-                   test4 = rank(var2, ties.method= "last")   #  last occurrence wins
-                   test5 = rank(var2, ties.method= "random") # ties broken at random
-                   test6 = rank(var2, ties.method= "random")
-                   test7 = rank(var2, ties.method= "max")
-                   test8 = rank(var2, ties.method= "min")
-                   },Renv,FLenv)
-          print(result)
-    })
+
+## All these methods are not supported.. DB-Lytix and  R have average.
+## In addition FL has "perc" and "duplicate" which are not in R
+## documentation
+
+# test_that("Check for different methods of rank function",{
+#           result = eval_expect_equal({
+#                    test3 = rank(var2, ties.method= "first")  # first occurrence wins
+#                    test4 = rank(var2, ties.method= "last")   #  last occurrence wins
+#                    test5 = rank(var2, ties.method= "random") # ties broken at random
+#                    test6 = rank(var2, ties.method= "random")
+#                    test7 = rank(var2, ties.method= "max")
+#                    test8 = rank(var2, ties.method= "min")
+#                    },Renv,FLenv)
+#           print(result)
+#     })
 
   
    

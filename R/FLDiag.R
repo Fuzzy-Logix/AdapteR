@@ -43,16 +43,20 @@ diag.FLMatrix<-function(object,...)
     flag3Check(connection)
 
     table <- FLTable(
-                     object@select@database,
-                     object@select@table_name,
-                     getVariables(object)$rowIdColumn,
+                     database=object@select@database,
+                     table=object@select@table_name,
+                     obs_id_colname = getVariables(object)$rowIdColumn,
                      whereconditions=c(object@select@whereconditions,
                                        paste0(getVariables(object)$rowIdColumn,
                                               "=",getVariables(object)$colIdColumn)))
 
     valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
 
-    return(table[,valueColumn])
+    flv <- table[,valueColumn]
+    vlength <- min(dim(object))
+    if(all(rownames(object)[1:vlength]==colnames(object)[1:vlength]))
+    names(flv) <- rownames(object)[1:vlength]
+    return(flv)
 }
 
 #' @export

@@ -46,10 +46,30 @@ test_that("Check qr.solve and qr.coef ",{
     })
 
 
-test_that("Check qr.Q, qr.R correctness ",{
+test_that("Check QR gives same matrix in R,FL ",{
     result = eval_expect_equal({
         Qmat7 = qr.Q(qrmat7) %*% qr.R(qrmat7)
         qrresid = qr.resid(qrmat7,mat8)
+        },Renv,FLenv)
+    print(result)
+    })
+
+test_that("Check Q is orthogonal ",{
+    result = eval_expect_equal({
+        FLexpect_equal(t(qr.Q(qrmat7))
+            ,solve(qr.Q(qrmat7)))
+        },Renv,FLenv)
+    print(result)
+    })
+
+test_that("Check R is upper-triangular ",{
+    result = eval_expect_equal({
+        vtemp1 <- as.matrix(qr.R(qrmat7))
+        vtemp2 <- vtemp1[lower.tri(vtemp1)]
+        FLexpect_equal(rep(0,length(vtemp2))
+            ,vtemp2)
+        rm(vtemp1)
+        rm(vtemp2)
         },Renv,FLenv)
     print(result)
     })

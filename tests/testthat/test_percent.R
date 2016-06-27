@@ -5,8 +5,6 @@ Renv$var2 = runif(10, 1, 10)
 
 FLenv = as.FL(Renv)
 
-#No applicable method of roundany for FLVector.
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360558
 test_that("Check for weighted mean function",{
           result = eval_expect_equal({
                    test1 = percent(var1)
