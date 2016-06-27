@@ -244,9 +244,19 @@ setMethod("FLStringDist",
             return(resultvec)
           })
 
+## move to file FLStringFunctions.R
 #' levenshtein.damerau.distance
 #'
-#' computes the levenshtein-damerau distance between strings
+#' computes the levenshtein-damerau distance between strings.
+#'
+#' The DB Lytix function called is FLDLevenshteinDist.
+#' This function computes the levenshtein-damerau distance between the 
+#' two char string arguments (the minimal number of insertions, deletions 
+#' replacements,or transpositions required to transform one string into the other).
+#' 
+#' @seealso \code{\link[vwr]{levenshtein.damerau.distance}} for R function reference
+#' implementation.
+#'
 #' @param xsource character or FLVector of characters
 #' @param targets character or FLVector of characters
 #' @param caseFLag logical or 0/1 indicating 
@@ -284,9 +294,19 @@ setMethod("levenshtein.damerau.distance",
                       xsource,targets,caseFlag)
           })
 
+## move to file FLStringFunctions.R
 #' levenshtein.distance
 #'
-#' computes the levenshtein distance between strings
+#' computes the levenshtein distance between strings.
+#' 
+#' The DB Lytix function called is FLLevenshteinDist.
+#' This function computes the levenshtein distance between the 
+#' first two char string arguments(the minimal number of insertions, deletions  
+#' or replacements required to transform one string into the other). 
+#'
+#' @seealso \code{\link[vwr]{levenshtein.distance}} for R function reference
+#' implementation.
+#'
 #' @param xsource character or FLVector of characters
 #' @param targets character or FLVector of characters
 #' @param caseFLag logical or 0/1 indicating 
@@ -324,9 +344,19 @@ setMethod("levenshtein.distance",
                       xsource,targets,caseFlag)
           })
 
+## move to file FLStringFunctions.R
 #' hamming.distance
 #'
-#' computes the hamming distance between strings
+#' computes the hamming distance between strings.
+#'
+#' The DB Lytix function called is FLHammingDist.
+#' This function computes the hamming distance between the 
+#' two char string arguments(the number of non-overlapping characters). 
+#' The DB Lytix function called is FLHammingDist.
+#'
+#' @seealso \code{\link[vwr]{hamming.distance}} for R function reference
+#' implementation.
+#'
 #' @param xsource character or FLVector of characters
 #' @param targets character or FLVector of characters
 #' @param caseFLag logical or 0/1 indicating
@@ -369,9 +399,18 @@ setMethod("hamming.distance",
                       xsource,targets,caseFlag,vlength=vlength)
           })
 
+## move to file FLStringFunctions.R
 #' stringdist
 #'
-#' compute distance metrics between strings
+#' compute distance metrics between strings.
+#'
+#' This function computes pairwise string distances between elements of 
+#' a and b, where the argument with less elements is recycled;according 
+#' to different distance metrics.
+#'
+#' @seealso \code{\link[stringdist]{stringdist}} for R function reference
+#' implementation.
+#'
 #' @param a character or FLVector of characters
 #' @param b character or FLVector of characters
 #' @param method can be \code{c("lv","dl","hamming","jaccard","jw")}
@@ -441,9 +480,20 @@ setMethod("stringdist",
             }
           })
 
+## move to file FLStringFunctions.R
 #' FLNeedleManWunschDist
 #'
-#' compute NeedleManWunsch distance between strings
+#' compute NeedleManWunsch distance between strings.
+#'
+#' The DB Lytix function called is FLNeedlemanWunschDist.
+#' This function performs global sequence alignment between two
+#' sequences and finds out structural and functional similarity between them
+#' and returns a score which indicates the best alignment between two  
+#' sequences by searching the highest scores in the similarity matrix.
+#'
+#' @seealso \code{\link[Biostrings]{pairwiseAlignment}} for R function 
+#' reference implementation in \code{\link[Bioconductor]}.
+#' 
 #' @param a character or FLVector of characters
 #' @param b character or FLVector of characters
 #' @param matchWeight integer weight for having

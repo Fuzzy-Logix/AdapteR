@@ -14,7 +14,7 @@ NULL
 #'
 #' \code{cbind} takes a sequence of vector, FLVector, matrix, FLMatrix or data frames arguments,
 #' combines them by columns and makes a FLMatrix.
-#' @param x... can be a sequence of vector, FLVector, matrix, FLMatrix or data frames
+#' @param object... can be a sequence of vector, FLVector, matrix, FLMatrix or data frames
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.

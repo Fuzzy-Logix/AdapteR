@@ -202,7 +202,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float")
   return(list(FL=flv,R=Rvector))
   } 
 }
-}
+
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
 #' @export

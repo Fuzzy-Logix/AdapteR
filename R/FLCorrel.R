@@ -1007,7 +1007,7 @@ cov.wtGeneric <- function(x,
 	if(!is.logical(cor))
 	resultList <- c(resultList,cor=cor)
 	return(resultList)
-        }
+}
 
 setMethod("cov.wt",signature(x="FLMatrix"),
     function(x,

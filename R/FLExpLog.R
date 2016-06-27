@@ -55,7 +55,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 		return(ensureQuerySize(pResult=flm,
 						pInput=list(x),
 						pOperator="FLExpLog"))
-		})
+})
 
 setMethod("FLExpLog",signature(x="FLVector"),
 	function(functionName, x,m1=0,p1=0,lnb=1,...){
