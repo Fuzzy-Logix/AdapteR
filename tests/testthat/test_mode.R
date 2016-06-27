@@ -11,8 +11,8 @@ FLenv = as.FL(Renv)
 #Test Failed : For FL object mode is returning all possible mode and 
 #for R object mode is returning first possible mode only.
 #Asana Ticket - https://app.asana.com/0/143316600934101/148420141220850
-  
-test_that("Check for mode with FL and R matrix object",{
+
+test_that("Check for mode with FL and R vector object",{
           result = eval_expect_equal({
           test1 = mode(vector1)
           #print(paste0("Result for ",environment()," is :",test1))
@@ -32,7 +32,7 @@ test_that("Check for mode with FL and R matrix object",{
 
 #Test failed as getDescStatsUdt needs deep table.
 #Asana Ticket - https://app.asana.com/0/143316600934101/148420141220860
-test_that("Check for mode with FL and R matrix object",{
+test_that("Check for mode with FL and R dataframe object",{
           result = eval_expect_equal({
           test3 = mode(dataframe1)
             },Renv,FLenv)

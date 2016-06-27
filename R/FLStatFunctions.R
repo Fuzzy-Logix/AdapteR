@@ -845,6 +845,8 @@ setMethod("deviation",signature(x="FLTable"),
     function(x,
             method="mean-abs",
             average=TRUE){
+        if(!x@isDeep)
+        x = wideToDeep(x)
         vtemp <- selectDeviationMethod(method=method)
         vfunction <- vtemp["vfunction"]
         voutcol <- vtemp["voutcol"]
