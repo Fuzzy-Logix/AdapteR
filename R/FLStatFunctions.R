@@ -603,6 +603,8 @@ setMethod("mode",signature(x="FLMatrix"),
 
 setMethod("mode",signature(x="FLTable"),
     function(x,na.rm=FALSE){
+        if(!x@isDeep)
+        x = wideToDeep(x)
         return(getDescStatsUDT(object=x,
                                 functionName="FLModeUDT",
                                 outCol=c(vectorValueColumn="oMode"),
@@ -612,8 +614,8 @@ setMethod("mode",signature(x="FLTable"),
 setMethod("mode",signature(x="ANY"),
     function(x,na.rm=FALSE){
         x <- x[!is.na(x)]
-        vcount <- plyr::count(x=x)
-        return(vcount[which.max(vcount[,"freq"]),"x"])
+        vcount <- plyr::count(x)
+        return(vcount[vcount[,"freq"] == vcount[which.max(vcount[,"freq"]),"freq"],"x"])
         })
 
 ######################### median ################################################
