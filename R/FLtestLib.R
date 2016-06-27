@@ -55,6 +55,11 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                     function(i)
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLVector"),
+          function(object,expected,...)
+              FLexpect_equal(as.FLVector(object),
+                                     expected,...))
 
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
