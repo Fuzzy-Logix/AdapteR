@@ -14,30 +14,12 @@
 
 options(debugSQL=FALSE)
 
-## Testing FLSolve
-test_that("check inverse calculation of matrix", {
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::solve,
-                      base::solve,
-                      n=5,
-                      isSquare=TRUE)
-})
-
 options(debugSQL=FALSE)
 # Testing rankMatrix
 test_that("check rankMatrix result",{
     expect_eval_equal(initF.FLMatrix,
                       AdapteR::rankMatrix,
                       Matrix::rankMatrix,
-                      n=5)
-})
-
-## Testing FLGinv
-test_that("check FLGinv",
-{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::ginv,
-                      MASS::ginv,
                       n=5)
 })
 
@@ -397,8 +379,8 @@ test_that("check result for M_Multiplication",
   FLexpect_equal(P1$FL*M2,P1$R*M2R,check.attributes=FALSE)
   
   FLexpect_equal(P1$FL*P1$FL*V1*V2*M2*P1$FL*M1$FL*V2,
-               P1$R*P1$R*V1R*V2R*M2R*P1$R*M1$R*V2R,
-               check.attributes=FALSE)
+                 P1$R*P1$R*V1R*V2R*M2R*P1$R*M1$R*V2R,
+                 check.attributes=FALSE)
 })
 
 ## Testing M_Remainder
