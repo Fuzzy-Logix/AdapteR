@@ -1,10 +1,6 @@
-
-
 Renv <- new.env(parent = globalenv())
-library(testthat)
-
 Renv$x <- swiss$Education[1:25]
-#set.seed(1213)
+                                        #set.seed(1213)
 Renv$x1 <- rnorm(100)
 
 FLenv <- as.FL(Renv)

@@ -55,6 +55,11 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                     function(i)
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLVector"),
+          function(object,expected,...)
+              FLexpect_equal(as.FLVector(object),
+                                     expected,...))
 
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
@@ -97,7 +102,7 @@ as.REnvironment<-function(FLenv){
   Renv<-new.env()
   for(n in ls(FLenv)){
       object <- get(n,envir = FLenv)
-      assign(n, as.R(object), envir=FLenv)
+      assign(n, as.R(object), envir=Renv)
   }
   return(Renv)
 }
@@ -156,7 +161,6 @@ eval_expect_equal <- function(e, Renv, FLenv,
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-    #dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }
@@ -417,13 +421,13 @@ FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),
                           operator = "+"){
     
   FLenv<-new.env()
-  #browser()
+  ##browser()
   lapply(1:length(classes),function(i){
     obj<-initFgeneric(specs[[i]],classes[i])
     x=i
     assign(paste0("a",x),obj,envir = FLenv)
   })
-  Renv<-as.Renvironment(FLenv)
+  Renv<-as.R(FLenv)
   obj1<-do.call(operator,lapply(ls(FLenv),function(x)do.call("$",list(FLenv,paste0(x)))))
   obj2<-do.call(operator,lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
   

@@ -1,4 +1,3 @@
-library(testthat)
 Renv <- new.env(parent = globalenv())
 hilbert <- function(n) { i <- 1:n; 1 / outer(i - 1, i, "+") }
 
@@ -30,3 +29,4 @@ test_that("abs(D) is same in R and FL ",{eval_expect_equal({
     vabsd <- abs(as.vector(s$d))
 }, Renv,FLenv,tolerance=0.01)
 })
+

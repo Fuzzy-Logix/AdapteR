@@ -1,8 +1,6 @@
 #ERRORS   asana tickets- https://app.asana.com/0/143316600934101/144942913968262
 #                        https://app.asana.com/0/143316600934101/144952239565760 
 Renv <- new.env(parent=globalenv())
-library(testthat)
-
 Renv$txt <- c("arm","foot","lefroo", "bafoobar")
 Renv$l <- letters
 
