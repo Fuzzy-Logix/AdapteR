@@ -1041,7 +1041,10 @@ setMethod("rank",signature(x="FLTable"),
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL
         names(voutcol) <- NULL
-
+        
+        if(!x@isDeep)
+        x = wideToDeep(x)
+        
         return(getDescStatsUDTjoin(object=x,
                 functionName=vfunction,
                 outCol=c(
@@ -1099,7 +1102,8 @@ setMethod("FLNtile",signature(x="FLMatrix"),
 
 setMethod("FLNtile",signature(x="FLTable"),
     function(x,n,...){
-
+        if(!x@isDeep)
+        x = wideToDeep(x)
         return(getDescStatsUDTjoin(object=x,
                 functionName="FLNtileUDT",
                 outCol=c(
