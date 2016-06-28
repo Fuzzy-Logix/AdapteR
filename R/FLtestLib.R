@@ -104,7 +104,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               ...){
-    #browser()
+    browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)

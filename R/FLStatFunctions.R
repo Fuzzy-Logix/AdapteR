@@ -603,6 +603,8 @@ setMethod("mode",signature(x="FLMatrix"),
 
 setMethod("mode",signature(x="FLTable"),
     function(x,na.rm=FALSE){
+        if(!x@isDeep)
+        x = wideToDeep(x)
         return(getDescStatsUDT(object=x,
                                 functionName="FLModeUDT",
                                 outCol=c(vectorValueColumn="oMode"),
@@ -612,8 +614,8 @@ setMethod("mode",signature(x="FLTable"),
 setMethod("mode",signature(x="ANY"),
     function(x,na.rm=FALSE){
         x <- x[!is.na(x)]
-        vcount <- plyr::count(x=x)
-        return(vcount[which.max(vcount[,"freq"]),"x"])
+        vcount <- plyr::count(x)
+        return(vcount[vcount[,"freq"] == vcount[which.max(vcount[,"freq"]),"freq"],"x"])
         })
 
 ######################### median ################################################
@@ -843,6 +845,8 @@ setMethod("deviation",signature(x="FLTable"),
     function(x,
             method="mean-abs",
             average=TRUE){
+        if(!x@isDeep)
+        x = wideToDeep(x)
         vtemp <- selectDeviationMethod(method=method)
         vfunction <- vtemp["vfunction"]
         voutcol <- vtemp["voutcol"]
@@ -1037,7 +1041,10 @@ setMethod("rank",signature(x="FLTable"),
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL
         names(voutcol) <- NULL
-
+        
+        if(!x@isDeep)
+        x = wideToDeep(x)
+        
         return(getDescStatsUDTjoin(object=x,
                 functionName=vfunction,
                 outCol=c(
@@ -1095,7 +1102,8 @@ setMethod("FLNtile",signature(x="FLMatrix"),
 
 setMethod("FLNtile",signature(x="FLTable"),
     function(x,n,...){
-
+        if(!x@isDeep)
+        x = wideToDeep(x)
         return(getDescStatsUDTjoin(object=x,
                 functionName="FLNtileUDT",
                 outCol=c(
