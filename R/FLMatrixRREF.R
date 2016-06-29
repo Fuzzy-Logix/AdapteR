@@ -1,9 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLPrint.R
-#' @include FLIs.R
-#' @include FLDims.R
 NULL
 
 #' Reduced Row Echelon form of a Matrix.

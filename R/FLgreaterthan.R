@@ -1,3 +1,6 @@
+#' @include FLMatrix.R
+NULL
+
 
 ">" <- function(pObj1,pObj2)
 {

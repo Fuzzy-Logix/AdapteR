@@ -5,11 +5,15 @@
 \alias{dist,FLMatrix-method}
 \title{computes distance between}
 \usage{
-\S4method{dist}{FLMatrix}(x, method = "euclidean", diag = FALSE,
-  upper = FALSE, p = 2)
+\S4method{dist}{FLMatrix}(x, method = "euclidean", diag = TRUE,
+  upper = TRUE, p = 2)
 }
 \description{
 computes distance between
+}
+\section{Constraints}{
+
+only manhattan and euclidean are supported currently.
 }
 \examples{
 flmatrix <- FLMatrix("FL_DEMO",

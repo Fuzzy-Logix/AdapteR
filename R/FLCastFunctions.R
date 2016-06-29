@@ -1,9 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLPrint.R
-#' @include FLIs.R
-#' @include FLDims.R
 NULL
 
 #' Converts FLMatrix object to vector in R

@@ -1,6 +1,7 @@
 # Gives the dimensions of the objects
 
-# nrow and NROW gives the number of rows of the objects
+#' nrow and NROW gives the number of rows of the objects.
+#' 
 #' @export
 nrow<-function(x, ...)
 {

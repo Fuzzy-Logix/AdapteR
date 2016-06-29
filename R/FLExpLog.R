@@ -1,12 +1,4 @@
-#' @include utilities.R
-#' @include FLIs.R
-#' @include FLCastFunctions.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLTable.R
-#' @include FLDims.R
-#' @include FLPrint.R
-
 NULL
 
 setGeneric("FLExpLog", function(functionName,x,m1=0,p1=0,lnb=1,...)

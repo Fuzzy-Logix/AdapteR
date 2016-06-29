@@ -1,4 +1,3 @@
-#' @include utilities.R
 #' @include FLMatrix.R
 NULL
 

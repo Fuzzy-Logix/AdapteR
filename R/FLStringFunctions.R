@@ -1,3 +1,6 @@
+#' @include FLMatrix.R
+NULL
+
 ## move to file stringdist.R
 setGeneric("FLStringDist", function(functionName,
                                     xsource,

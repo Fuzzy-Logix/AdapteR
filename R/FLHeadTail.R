@@ -1,6 +1,10 @@
+#' @include FLMatrix.R
+NULL
+
 #' @export
 head.FLTable <- function(x,n=6,...){
-  stopifnot(length(n) == 1L)
+
+    stopifnot(length(n) == 1L)
   n <- if (n < 0L) max(nrow(x) + n, 0L) else min(n, nrow(x))
   if(n <= 0) stop("n value in head function is out of bounds")
   x[seq_len(n), ,drop=FALSE]

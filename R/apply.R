@@ -1,3 +1,6 @@
+#' @include FLMatrix.R
+NULL
+
 ##Apply functions
 # widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 # ddply(widetable,c("PetalWidth","PetalLength"),
@@ -12,21 +15,6 @@
 # group by flt.petalwidth,flt.petallength"
 ## Return Type ?
 ## deeptable ?
-
-setClass(
-    "FLAbstractTable",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
-
-setClass(
-	"FLAbstractColumn",
-	slots=list(
-		columnName = "character"))
 
 as.FLAbstractCol <- function(object,indexCol=FALSE)
 {

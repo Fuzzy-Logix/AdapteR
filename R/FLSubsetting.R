@@ -1,10 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLTable.R
-#' @include FLIs.R
-#' @include FLDims.R
-#' @include FLPrint.R
 NULL
 
 #' Extract part of FLMatrix object.

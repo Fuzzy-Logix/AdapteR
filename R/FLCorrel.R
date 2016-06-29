@@ -1,7 +1,4 @@
-#' @include FLVector.R
 #' @include FLMatrix.R
-#' @include FLTable.R
-#' @include utilities.R
 NULL
 
 #' Correlation.

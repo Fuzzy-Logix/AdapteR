@@ -1,4 +1,5 @@
-#' @include utilities.R
+#' @include FLMatrix.R
+NULL
 
 #' @export
 setGeneric("FLexpect_equal",
