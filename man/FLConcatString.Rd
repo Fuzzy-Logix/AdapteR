@@ -21,8 +21,8 @@ a delimiter as collapse value.
 \details{
 The DB Lytix function called is FLConcatString.
 The concat string function is an aggregate that joins the values of a string 
-column from a table into an output string using a user supplied delimiter 
-to separate the fields.
+column from a table(or a vector of characters) into an output string using a 
+user supplied delimiter to separate the fields.
 }
 \section{Constraints}{
 
@@ -32,5 +32,9 @@ row vectors are not supported currently.
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- FLConcatString(flv,",")
+}
+\seealso{
+\code{\link[base]{paste0}} for R function reference
+implementation.
 }
 

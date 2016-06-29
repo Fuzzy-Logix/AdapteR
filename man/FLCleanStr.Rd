@@ -14,7 +14,12 @@ a clean FLVector
 }
 \description{
 Remove non-printable characters from each
-element of FLVector of strings
+element of FLVector of strings.
+}
+\details{
+The DB lytix function called is FLCleanStr.
+The clean string function is a scaler that removes all non-printable
+characters from a string(vector of characters) and outputs a formatted string.
 }
 \section{Constraints}{
 

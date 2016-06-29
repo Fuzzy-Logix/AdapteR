@@ -4,12 +4,12 @@
 \alias{solve}
 \title{Inverse of a Matrix.}
 \usage{
-solve(x, ...)
+solve(a, b = NULL, ...)
 }
 \arguments{
-\item{x}{is of class FLMatrix}
-
 \item{...}{any additional arguments}
+
+\item{x}{is of class FLMatrix}
 }
 \value{
 \code{solve} returns a FLMatrix object which is the inverse of input FLMatrix object
