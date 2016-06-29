@@ -2,20 +2,23 @@
 % Please edit documentation in R/FLtestLib.R
 \name{eval_expect_equal}
 \alias{eval_expect_equal}
-\title{Evaluates and benchmarks the expression e in an R and an FL environment.
-tests all your new variable names for equality in R and FL environments.
-TODO: The results of both expressions will be returned together with benchmarking statistics
-TDOD: collect more information: length of sql sent, amount of data fetched}
+\title{Evaluates the expression e in an R and an FL environment, tests assignment for equality.}
 \usage{
 eval_expect_equal(e, Renv, FLenv, description = NULL, runs = 1,
-  noexpectation = c(), ...)
+  expectation = c(), noexpectation = c(), ...)
 }
 \arguments{
 \item{e}{the expression that will be evaluated in both environments}
 
+\item{Renv}{}
+
+\item{FLenv}{}
+
 \item{description}{if not supplied will default to deparse of the expression}
 
 \item{runs}{if runs>1 the expressions are evaluated several times.  Make sure you do not re-assign the variables in environments that are evaluated on.}
+
+\item{expectation}{provide variable names to check for equality when environments did already contain these variables.}
 
 \item{noexpectation}{You can exclude names from}
 
@@ -25,7 +28,12 @@ eval_expect_equal(e, Renv, FLenv, description = NULL, runs = 1,
 a data frame with the description
 }
 \description{
+Tests all variables in expectation and new variable names for equality in R and FL environments.
 Created objects will be in both environments.
+The results of both expressions will be returned together with benchmarking statistics.
+}
+\details{
+TDOD: collect more information: length of sql sent, amount of data fetched
 }
 \author{
 Gregor Kappler <gregor.kappler@fuzzylogix.com>

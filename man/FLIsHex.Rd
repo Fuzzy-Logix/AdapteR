@@ -15,6 +15,12 @@ FLVector with 1 for TRUE and 0 for FALSE
 \description{
 Check if an element is hexadecimal number
 }
+\details{
+The DB Lytix function called is FLIsHex.
+FLIsHex function determines if the input string is a valid Hexadecimal number.
+FLIsHex function does not require a leading 0 for an expression to be
+evaluated as a hexadecimal.
+}
 \section{Constraints}{
 
 row vectors are not supported currently.

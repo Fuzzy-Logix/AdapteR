@@ -15,6 +15,10 @@ FLVector with extra spaces removed
 \description{
 Removes extra spaces from elements
 }
+\details{
+The DB Lytix function called is FLSqueezeSpace.The squeeze space function is a scalar 
+that removes extra spaces within a string and outputs a properly formatted string.
+}
 \section{Constraints}{
 
 row vectors are not supported currently.
@@ -23,5 +27,11 @@ row vectors are not supported currently.
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- FLSqueezeSpace(flv)
+}
+\seealso{
+\code{\link[base]{gsub}} for base aproach,  \code{\link[stringr]{str_replace_all}} 
+and \code{\link[stringr]{str_trim}} for stringr approach, 
+ \code{\link[stringi]{stri_replace_all_charclass}} and \code{\link[stringi]{stri_trim}}  
+ for stringi approach in R function reference implementation.
 }
 

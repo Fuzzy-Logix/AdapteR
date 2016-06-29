@@ -4,22 +4,30 @@
 \alias{stringdist}
 \title{stringdist}
 \usage{
-stringdist(a, b, method = "dl", caseFlag = 0, p = 0, vlength = 3, ...)
+stringdist(a, b, method = c("lv", "dl", "hamming", "jaccard", "jw", "nmw"),
+  weight = c(match = 1, mismatch = 1, gap = -1), caseFlag = 0, p = 0,
+  vlength = 3, ...)
 }
 \arguments{
 \item{a}{character or FLVector of characters}
 
 \item{b}{character or FLVector of characters}
 
-\item{method}{can be \code{c("lv","dl","hamming","jaccard","jw")}
-where lv - levenshtein, dl - levenshtein.damerau
-jw - jaro-winkler. Default is "lv"}
+\item{method}{can be \code{c("lv","dl","hamming","jaccard","jw","nmw")}
+where lv - Levenshtein, dl - Levenshtein-Damerau,
+jw - Jaro-Winkler, nmw - NeedleManWunsch. Default is "lv"}
+
+\item{weight}{for method=nmw, weights and penalties for match, mismatch and gaps,
+integer weights for matching sequential, nonmatching non-sequential characters 
+between the strings, and integer penality for gaps (ideally negative).}
 
 \item{p}{penality factor for jaro-winkler
 if p==0 jaro distance is computed}
 
 \item{vlength}{optional, length of strings to compare
 used for hamming}
+
+\item{...}{}
 
 \item{caseFLag}{logical or 0/1 indicating
 if comparision should be case sensitive}
@@ -33,8 +41,16 @@ compute distance metrics between strings.
 }
 \details{
 This function computes pairwise string distances between elements of 
-a and b, where the argument with less elements is recycled;according 
-to different distance metrics.
+a and b, where the argument with less elements is recycled.
+
+The following distance metrics are supported:
+lv:  Levenshtein, calling FLLevenshteinDist;
+dl: Levenshtein-Damerau, calling FLDLevenshteinDist;
+hamming: Hamming, calling FLHammingDist;
+jaccard: Jaccard, calling FLHammingDist;
+j, p==0: Jaro, calling FLJaroDist; 
+j, p>0: Jaro-Winkler, calling FLJaroWinklerDist;
+nmw: Needleman-Wunsch, calling FLNeedleManWunschDist.
 }
 \section{Constraints}{
 
