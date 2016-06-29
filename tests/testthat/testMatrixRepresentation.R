@@ -1,25 +1,3 @@
-## This script is for documentation.
-##
-## R has very nice vector and matrix syntax.
-## AdapteR mimics the parsimonious syntax.
-
-require(AdapteR)
-
-## This script first tries to create a ODBC connection
-if(!exists("connection"))
-    connection <- flConnect(odbcSource = "Gandalf")
-
-
-## If ODBC has failed we try to create a JDBC connection
-if(!exists("connection")){
-    ## set this to add jdbc driver and security jars to classpath:
-    ## terajdbc4.jar tdgssconfig.jar
-    ## CAVE: fully qualified PATH required
-    yourJarDir <- "/Users/gregor/fuzzylogix"
-    connection <- flConnect(host     = "10.200.4.116",
-                            database = "Fl_demo",
-                            dir.jdbcjars = yourJarDir)
-}
 
 options(debugSQL=FALSE)
 ## a in-memory matrix in R
