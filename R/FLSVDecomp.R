@@ -90,8 +90,9 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 		             getOption("ResultDatabaseFL"),
 		             tempResultTable,
 		             "OutputRowNum",
-		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
-		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum ")
+		             whereconditions=c(paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
+		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum "),
+                        paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutSVal IS NOT NULL "))
 		             )
 
 	SVector <- table[,"OutSVal"]

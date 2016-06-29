@@ -677,7 +677,7 @@ is.RSparseMatrix <- function(object){
     vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
                     "dgTMatrix","dtrMatrix","pMatrix",
                     "dspMatrix","dtCMatrix","dgRMatrix",
-                    "ddiMatrix"
+                    "ddiMatrix","dpoMatrix"
                     )
     if(class(object) %in% vsparseClass)
     return(TRUE)
@@ -685,6 +685,17 @@ is.RSparseMatrix <- function(object){
     return(FALSE)
 }
 
+checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
+                                    tableName)
+{
+    vtemp <- sqlQuery(getOption("connectionFL"),paste0(
+                        "SELECT 1 FROM dbc.tables \n ",
+                        " WHERE databaseName = ",fquote(databaseName),
+                        " AND tablename = ",fquote(tableName)))
+    if(!is.na(vtemp[1,1]) && vtemp[1,1]==1)
+    return(TRUE)
+    else return(FALSE)
+}
 flag1Check <- function(connection)
 {
     return(TRUE)

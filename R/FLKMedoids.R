@@ -1075,3 +1075,45 @@ FLMapping.FLKMedoids <- function(object)
 		return(mapdataframe)
 	}
 }
+
+
+#' @export
+pam.FLMatrix <- function(x,
+						k,
+						diss=FALSE,
+						metric="euclidean",##notUsed
+						medoids=NULL,##notUsed
+						Stand=FALSE,##notUsed
+						cluster.only = FALSE,
+    					do.swap = TRUE,##notUsed
+    					keep.diss = (!diss && !cluster.only),
+    					keep.data = (!diss && !cluster.only),
+    					pamonce = FALSE,##notUsed
+    					trace.lev = 0,##notUsed
+    					iter.max =10,
+						excludeCols = "",
+						classSpec = list(),
+						whereconditions = "",
+						distTable=""
+						)
+{
+	x <- as.FLTable(x)
+	return(pam (x=x,
+				k=k,
+				diss=diss,
+				metric=metric,##notUsed
+				medoids=medoids,##notUsed
+				Stand=Stand,##notUsed
+				cluster.only = cluster.only,
+				do.swap = do.swap,##notUsed
+				keep.diss = keep.diss,
+				keep.data = keep.data,
+				pamonce =pamonce,##notUsed
+				trace.lev = trace.lev,##notUsed
+				iter.max =iter.max,
+				excludeCols = excludeCols,
+				classSpec = classSpec,
+				whereconditions = whereconditions,
+				distTable=distTable))
+}
+

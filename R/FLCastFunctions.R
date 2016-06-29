@@ -323,13 +323,6 @@ setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="missing"),
           function(object,sparse=TRUE)
               as.FLMatrix.Matrix(object,sparse=sparse))
-## setMethod("as.FLMatrix", signature(object = "matrix",
-##                                    sparse="JDBCConnection"),
-##           function(object,sparse){
-##               warning("remove connection from cast")
-##               stop()
-##               as.FLMatrix.Matrix(object,connection=sparse)
-##               })
 setMethod("as.FLMatrix", signature(object = "matrix",
                                    sparse="logical"),
           function(object,sparse)
@@ -401,6 +394,52 @@ setMethod("as.FLMatrix", signature(object = "FLVector",
           function(object,sparse=TRUE,...)
               as.FLMatrix.FLVector(object,sparse=TRUE,...))
 
+setMethod("as.FLMatrix",signature(object="FLTable"),
+          function(object,sparse=TRUE,...)
+            as.FLMatrix.FLTable(object=object,
+                                sparse=sparse,...))
+###########################################################################
+
+
+#' @export
+setGeneric("as.R", function(flobject) standardGeneric("as.R"))
+setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
+setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
+setMethod("as.R","environment", function(flobject) as.REnvironment(flobject))
+setMethod("as.R","FLVector", function(flobject) as.vector(flobject))
+
+#' @export
+setGeneric("as.FL", function(object) standardGeneric("as.FL"))
+setMethod("as.FL","numeric", function(object) as.FLVector(object))
+setMethod("as.FL","complex", function(object) stop("complex numbers not currently supported."))
+setMethod("as.FL","character", function(object) as.FLVector(object))
+setMethod("as.FL","vector", function(object) as.FLVector(object))
+setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dpoMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
+setMethod("as.FL","data.frame", function(object) as.FLTable(object))
+setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
+
+as.REnvironment<-function(FLenv){
+  Renv<-new.env()
+  for(n in ls(FLenv)){
+      object <- get(n,envir = FLenv)
+      assign(n, as.R(object), envir=Renv)
+  }
+  return(Renv)
+}
+
+as.FLEnvironment <- function(Renv){
+    FLenv <- new.env(parent = parent.env(Renv))
+    for(n in ls(envir = Renv)){
+        object <- get(n,envir = Renv)
+        assign(n, as.FL(object), envir=FLenv)
+    }
+    FLenv
+}
+
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
@@ -417,6 +456,9 @@ as.sparseMatrix.FLMatrix <- function(object) {
     if(any(is.na(c(i,j))))
         browser()
   values <- valuedf$valueColumn
+  if(is.factor(values))
+  return(matrix(values,dim(object),
+          dimnames=dn))
   if(is.null(values))
       m <- Matrix::sparseMatrix(i = i,
                         j = j,
@@ -547,7 +589,26 @@ as.FLMatrix.data.frame <- function(object,
   return(as.FLMatrix(temp_m))
 }
 
+as.FLMatrix.FLTable <- function(object,
+                                sparse=TRUE,...){
+  object <- setAlias(object,"")
+  if(!object@isDeep)
+  object <- wideToDeep(object=object)[["table"]]
 
+  vdimnames <- lapply(dimnames(object),
+                  function(x){
+                      if(all(x==1:length(x)))
+                      return(NULL)
+                      else return(x)
+                  })
+  return(FLMatrix(database=object@select@database,
+                  table_name=object@select@table_name,
+                  row_id_colname=getVariables(object)[["obs_id_colname"]],
+                  col_id_colname=getVariables(object)[["var_id_colname"]],
+                  cell_val_colname=getVariables(object)[["cell_val_colname"]],
+                  dimnames=vdimnames,
+                  whereconditions=object@select@whereconditions))
+}
 ######################################################################################################################
 #' casting to FLVector
 #'
@@ -595,6 +656,10 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 as.FLVector.vector <- function(object,connection=getConnection(object))
 {
   flag3Check(connection)
+  if(!is.null(names(object)) && !all(names(object)==1:length(object)))
+  newnames <- as.character(names(object))
+  else newnames <- 1:length(object)
+  
   oldOption <- getOption("warn")
   options(warn=-1)
   if(!any(is.na(as.integer(object))) && 
@@ -611,6 +676,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   options(warn=oldOption)
   VID <- getMaxVectorId(connection,tablename)
 
+  #vobjcopy <- ifelse(is.character(object),fquote(object[x]),object[x])
+  #object <- c(1,"NULL")
   if(class(connection)=="RODBC")
   {
     sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
@@ -642,9 +709,6 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                   tablename,".vectorIdColumn = ",VID),
                 order = "")
 
-  if(!is.null(names(object)) && !all(names(object)==1:length(object)))
-  newnames <- as.character(names(object))
-  else newnames <- 1:length(object)
   return(new("FLVector",
                 select=select,
                 dimnames=list(newnames,"vectorValueColumn"),
@@ -731,7 +795,20 @@ setGeneric("as.FLTable", function(object,...) {
 setMethod("as.FLTable", signature(object = "data.frame"),
           function(object,...)
               as.FLTable.data.frame(object,...))
+setMethod("as.FLTable",signature(object="FLMatrix"),
+          function(object,...)
+          as.FLTable.FLMatrix(object=object,...))
 
+
+as.FLTable.FLMatrix <- function(object=object,...){
+  object <- setAlias(object,"")
+  return(FLTable(database=object@select@database,
+                table=object@select@table_name,
+                obs_id_colname=getVariables(object)[["rowIdColumn"]],
+                var_id_colnames=getVariables(object)[["colIdColumn"]],
+                cell_val_colname=getVariables(object)[["valueColumn"]],
+                whereconditions=object@select@whereconditions))
+}
 #' @export
 as.FLTable.data.frame <- function(object,
                                   connection=getOption("connectionFL"),

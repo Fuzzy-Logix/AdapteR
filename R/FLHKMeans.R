@@ -603,3 +603,25 @@ plot.FLHKMeans <- function(object)
 	plot(x,col=as.vector(object$cluster))
 	points(as.matrix(object$centers),col=1:object@centers,pch=8,cex=2)
 }
+
+#' @export
+hkmeans.FLMatrix <- function(x,
+						centers,
+						levels = 1,
+						iter.max =10,
+						nstart = 1,
+						excludeCols = as.character(c()),
+						classSpec = list(),
+						whereconditions = ""
+						)
+{
+	x <- as.FLTable(x)
+	return(hkmeans(x=x,
+				centers=centers,
+				levels=levels,
+				iter.max =iter.max,
+				nstart = nstart,
+				excludeCols = excludeCols,
+				classSpec = classSpec,
+				whereconditions = whereconditions))
+}

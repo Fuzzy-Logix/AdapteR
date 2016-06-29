@@ -80,3 +80,25 @@ hclust.FLTable <- function(d,
 	class(resultList) <- "hclust"
 	return(resultList)
 }
+
+
+#' @export
+hclust.FLMatrix <- function(d,
+						method="average",
+    					maxit = 500,
+						excludeCols = "",
+						classSpec = list(),
+						whereconditions = "",
+						...
+						)
+{
+	x <- as.FLTable(x)
+	return(hclust(x=d,
+				method=method,
+				maxit = maxit,
+				excludeCols = excludeCols,
+				classSpec = classSpec,
+				whereconditions = whereconditions,
+				...))
+}
+

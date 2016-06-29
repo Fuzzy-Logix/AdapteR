@@ -57,7 +57,7 @@ test_that("check for FL subtraction ",{
 
 #Error in FL vector cases
 #Need some modifications to make this generic test to work for more than two objects with a single operator
-test_that("check for FL division "),{
+test_that("check for FL division ",{
     FL_test_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "%/%")
     FL_test_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLVector","numeric"),operator = "%/%")
     FL_test_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isRowVec = FALSE)),classes = c("FLMatrix","FLVector"),operator = "%/%")
@@ -66,7 +66,7 @@ test_that("check for FL division "),{
     FL_test_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLVector","matrix"),operator = "%/%")
     FL_test_generic(specs = list(list(n=5,isRowVec=TRUE),list(n=6,isRowVec = TRUE)),classes = c("FLVector","FLVector"),operator = "%/%")
     FL_test_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","matrix","FLMatrix"),operator = "%/%")
-}
+})
 
 test_that("check for FLcrossproduct",{
     FL_test_generic(specs = list(list(n=5,isSquare=TRUE),list(n=5,isSquare = TRUE)),classes = c("FLMatrix","FLMatrix"),operator = "%*%")
