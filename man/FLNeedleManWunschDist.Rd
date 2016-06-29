@@ -30,7 +30,14 @@ FLVector if any \code{a} or \code{b}
 is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
-compute NeedleManWunsch distance between strings
+compute NeedleManWunsch distance between strings.
+}
+\details{
+The DB Lytix function called is FLNeedlemanWunschDist.
+This function performs global sequence alignment between two
+sequences and finds out structural and functional similarity between them
+and returns a score which indicates the best alignment between two  
+sequences by searching the highest scores in the similarity matrix.
 }
 \section{Constraints}{
 
@@ -45,5 +52,9 @@ resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
 resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
 resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
 resultflmatrix <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
+}
+\seealso{
+\code{\link[Biostrings]{pairwiseAlignment}} for R function 
+reference implementation in BioConductor.
 }
 

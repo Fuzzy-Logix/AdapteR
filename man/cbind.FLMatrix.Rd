@@ -7,7 +7,7 @@
 cbind.FLMatrix(object, ...)
 }
 \arguments{
-\item{x...}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}
+\item{object...}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}
 }
 \value{
 \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.

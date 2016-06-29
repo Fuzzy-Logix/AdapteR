@@ -503,6 +503,64 @@ setMethod("stringdist",
                 return(FLStringDist("FLJaroDist",
                                     a,b,caseFlag))
               else
+              return(FLStringDist("FLJaroWinklerDist",
+                      a,b,caseFlag))
+            }
+          })
+
+## move to file FLStringFunctions.R
+#' FLNeedleManWunschDist
+#'
+#' compute NeedleManWunsch distance between strings.
+#'
+#' The DB Lytix function called is FLNeedlemanWunschDist.
+#' This function performs global sequence alignment between two
+#' sequences and finds out structural and functional similarity between them
+#' and returns a score which indicates the best alignment between two  
+#' sequences by searching the highest scores in the similarity matrix.
+#'
+#' @seealso \code{\link[Biostrings]{pairwiseAlignment}} for R function 
+#' reference implementation in BioConductor.
+#' 
+#' @param a character or FLVector of characters
+#' @param b character or FLVector of characters
+#' @param matchWeight integer weight for having
+#' matching sequential characters between
+#' the strings
+#' @param mismatchWeight integer Weight
+#' for having nonmatching or non-sequential characters
+#' between the strings
+#' @param gapPenalty integer penality for gaps
+#' @param caseFLag logical or 0/1 indicating 
+#' if comparision should be case sensitive
+#' @return FLVector if any \code{a} or \code{b}
+#' is R character of length 1. Otherwise returns a FLMatrix.
+#' @section Constraints:
+#' row vectors are not supported currently.
+#' Refer to \code{@return} section.
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
+#' resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
+#' resultflmatrix <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
+#' @export
+setGeneric("FLNeedleManWunschDist", function(a,b,matchWeight=1,
+                                          mismatchWeight=-1,
+                                          gapPenalty=-1,
+                                          caseFlag=0,...)
+    standardGeneric("FLNeedleManWunschDist"))
+
+setMethod("FLNeedleManWunschDist",
+          signature(a="character",
+            b="character"),
+          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
+          FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
+                      mismatchWeight=mismatchWeight,
+                      gapPenalty=gapPenalty,
+                      caseFlag=caseFlag))
                 return(FLStringDist("FLJaroWinklerDist",
                                     a,b,caseFlag))
             } else if(method=="nmw")
@@ -518,7 +576,14 @@ setMethod("stringdist",
 ## move to file stringdist.R
 #' stringdistmatrix
 #'
-#' compute distance metrics between strings
+#' compute distance metrics between strings.
+#'
+#' stringdistmatrix computes the string distance matrix with rows
+#' according to a and columns according to b.
+#'
+#' @seealso \code{\link[stringdist]{stringdist}} for R function reference
+#' implementation.
+#'
 #' @param a character or FLVector of characters
 #' @param b character or FLVector of characters
 #' @param method can be \code{c("lv","dl","hamming","jaccard","jw")}
@@ -673,7 +738,16 @@ setMethod("FLStrCommon",
 #' Concatenate elements of vector
 #'
 #' Concatenate elements of FLVector with
-#' a delimiter as collapse value
+#' a delimiter as collapse value.
+#'
+#' The DB Lytix function called is FLConcatString.
+#' The concat string function is an aggregate that joins the values of a string 
+#' column from a table(or a vector of characters) into an output string using a 
+#' user supplied delimiter to separate the fields.
+#'
+#' @seealso \code{\link[base]{paste0}} for R function reference
+#' implementation.
+#'
 #' @param object FLVector of characters
 #' @param delimiter character
 #' @return FLVector of length 1 with result string
@@ -723,10 +797,19 @@ setMethod("FLConcatString",
             return(resultvec)
             })
 
+## move to file FL StringFunctions.R
 #' Clean string
 #'
 #' Remove non-printable characters from each
-#' element of FLVector of strings
+#' element of FLVector of strings.
+#'
+#' The DB lytix function called is FLCleanStr.
+#' The clean string function is a scaler that removes all non-printable
+#' characters from a string(vector of characters) and outputs a formatted string.
+#'
+#' ######@seealso \code{\link[base]{paste0}} for R function reference
+#' ######implementation.
+#'
 #' @param object FLVector of characters
 #' @return a clean FLVector 
 #' @section Constraints:
@@ -1260,4 +1343,4 @@ setMethod("FLParseXML",
                               ORDER BY 1,2;")
 
             return(sqlQuery(getOption("connectionFL"),sqlstr))
-          })
+            })
