@@ -105,7 +105,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               ...){
-    browser()
+    ##browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
@@ -117,11 +117,24 @@ eval_expect_equal <- function(e, Renv, FLenv,
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
-    eval(expr = e, envir=Renv)
+    re <- tryCatch({
+        eval(expr = e, envir=Renv)
+        NULL
+    }, error=function(err) {
+        err
+    })
     rEndT <- Sys.time()
     flStartT <- Sys.time()
-    eval(expr = e, envir=FLenv)
+    fle <- tryCatch({
+        eval(expr = e, envir=FLenv)
+        NULL
+    }, error=function(err) {
+        err
+    })
     flEndT <- Sys.time()
+    if(is.null(re))
+        expect_null(fle,label=fle)
+    ##expect_equal(e,fle)
     newNames <- ls(envir = Renv)
     for(n in unique(c(expectation,setdiff(noexpectation,setdiff(newNames,oldNames)))))
         FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
