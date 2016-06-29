@@ -1,4 +1,4 @@
-
+## move to file stringdist.R
 setGeneric("FLStringDist", function(functionName,
                                     xsource,
                                     targets,
@@ -10,6 +10,7 @@ setGeneric("FLStringDist", function(functionName,
                                     asMatrix=FALSE,...)
     standardGeneric("FLStringDist"))
 
+## move to file stringdist.R
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="character",
@@ -66,7 +67,8 @@ setMethod("FLStringDist",
             else
             sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
                              a,".vectorIndexColumn AS vectorIndexColumn,",
-                              functionName,"('",xsource,"',",a,".vectorValueColumn,",caseFlag,") AS vectorValueColumn ",
+                             functionName,"('",xsource,"',",a,".vectorValueColumn,",
+                             caseFlag,") AS vectorValueColumn ",
                              " FROM(",constructSelect(targets),") AS ",a)
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -86,6 +88,7 @@ setMethod("FLStringDist",
             return(resultvec)
           })
 
+## move to file stringdist.R
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="FLVector",
@@ -162,6 +165,7 @@ setMethod("FLStringDist",
             return(flm)
           })
 
+## move to file stringdist.R
 ##Assumed that function is symmetric wrt two strings
 setMethod("FLStringDist",
           signature(functionName="character",
@@ -203,6 +207,7 @@ setMethod("FLStringDist",
                                   asMatrix=asMatrix)
           })
 
+## move to file stringdist.R
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="character",
@@ -244,9 +249,19 @@ setMethod("FLStringDist",
             return(resultvec)
           })
 
+## move to file vwr.R
 #' levenshtein.damerau.distance
 #'
-#' computes the levenshtein-damerau distance between strings
+#' computes the levenshtein-damerau distance between strings.
+#'
+#' The DB Lytix function called is FLDLevenshteinDist.
+#' This function computes the levenshtein-damerau distance between the 
+#' two char string arguments (the minimal number of insertions, deletions 
+#' replacements,or transpositions required to transform one string into the other).
+#' 
+#' @seealso \code{\link[vwr]{levenshtein.damerau.distance}} for R function reference
+#' implementation.
+#'
 #' @param xsource character or FLVector of characters
 #' @param targets character or FLVector of characters
 #' @param caseFLag logical or 0/1 indicating 
@@ -284,9 +299,19 @@ setMethod("levenshtein.damerau.distance",
                       xsource,targets,caseFlag)
           })
 
+## move to file vwr.R
 #' levenshtein.distance
 #'
-#' computes the levenshtein distance between strings
+#' computes the levenshtein distance between strings.
+#' 
+#' The DB Lytix function called is FLLevenshteinDist.
+#' This function computes the levenshtein distance between the 
+#' first two char string arguments(the minimal number of insertions, deletions  
+#' or replacements required to transform one string into the other). 
+#'
+#' @seealso \code{\link[vwr]{levenshtein.distance}} for R function reference
+#' implementation.
+#'
 #' @param xsource character or FLVector of characters
 #' @param targets character or FLVector of characters
 #' @param caseFLag logical or 0/1 indicating 
@@ -324,9 +349,19 @@ setMethod("levenshtein.distance",
                       xsource,targets,caseFlag)
           })
 
+## move to file vwr.R
 #' hamming.distance
 #'
-#' computes the hamming distance between strings
+#' computes the hamming distance between strings.
+#'
+#' The DB Lytix function called is FLHammingDist.
+#' This function computes the hamming distance between the 
+#' two char string arguments(the number of non-overlapping characters). 
+#' The DB Lytix function called is FLHammingDist.
+#'
+#' @seealso \code{\link[vwr]{hamming.distance}} for R function reference
+#' implementation.
+#'
 #' @param xsource character or FLVector of characters
 #' @param targets character or FLVector of characters
 #' @param caseFLag logical or 0/1 indicating
@@ -369,20 +404,41 @@ setMethod("hamming.distance",
                       xsource,targets,caseFlag,vlength=vlength)
           })
 
+## move to file stringdist.R
 #' stringdist
 #'
-#' compute distance metrics between strings
+#' compute distance metrics between strings.
+#'
+#' This function computes pairwise string distances between elements of 
+#' a and b, where the argument with less elements is recycled.
+#'
+#' The following distance metrics are supported:
+#' lv:  Levenshtein, calling FLLevenshteinDist;
+#' dl: Levenshtein-Damerau, calling FLDLevenshteinDist;
+#' hamming: Hamming, calling FLHammingDist;
+#' jaccard: Jaccard, calling FLHammingDist;
+#' j, p==0: Jaro, calling FLJaroDist; 
+#' j, p>0: Jaro-Winkler, calling FLJaroWinklerDist;
+#' nmw: Needleman-Wunsch, calling FLNeedleManWunschDist.
+#' 
+#' @seealso \code{\link[stringdist]{stringdist}} for R function reference
+#' implementation.
+#'
 #' @param a character or FLVector of characters
 #' @param b character or FLVector of characters
-#' @param method can be \code{c("lv","dl","hamming","jaccard","jw")}
-#' where lv - levenshtein, dl - levenshtein.damerau
-#' jw - jaro-winkler. Default is "lv"
+#' @param method can be \code{c("lv","dl","hamming","jaccard","jw","nmw")}
+#' where lv - Levenshtein, dl - Levenshtein-Damerau,
+#' jw - Jaro-Winkler, nmw - NeedleManWunsch. Default is "lv"
+#' @param weight for method=nmw, weights and penalties for match, mismatch and gaps,
+#' integer weights for matching sequential, nonmatching non-sequential characters between the strings,
+#' and integer penality for gaps (ideally negative).
 #' @param caseFLag logical or 0/1 indicating
 #' if comparision should be case sensitive
 #' @param p penality factor for jaro-winkler
 #' if p==0 jaro distance is computed
 #' @param vlength optional, length of strings to compare
 #' used for hamming
+#' @param ... 
 #' @return FLVector if any \code{a} or \code{b}
 #' is R character of length 1. Otherwise returns a FLMatrix.
 #' @section Constraints:
@@ -398,104 +454,68 @@ setMethod("hamming.distance",
 #' resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
 #' resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")
 #' @export
-setGeneric("stringdist", function(a,b,method="dl",caseFlag=0,p=0,vlength=3,...)
+setGeneric("stringdist", function(a,b,
+                                  method=c("lv","dl","hamming","jaccard","jw","nmw"),
+                                  weight=c(match=1, mismatch=1, gap=-1),
+                                  caseFlag=0,
+                                  p=0,
+                                  vlength=3,
+                                  ...)
     standardGeneric("stringdist"))
 
+## move to file stringdist.R
 setMethod("stringdist",
           signature(a="character",
-            b="character"),
+                    b="character"),
           function(a,b,method="osa",...)
           stringdist::stringdist(a, b,method,...)
           )
 
+## move to file stringdist.R
 setMethod("stringdist",
-          signature(a="ANY",
-            b="ANY"),
-          function(a,b,method="dl",caseFlag=0,p=0,
-                  vlength=3,...)
-          {
+          signature(a="ANY", b="ANY"),
+          function(a,b,
+                   method=c("lv","dl","hamming","jaccard","jw","nmw"),
+                   weight=c(match=1, mismatch=1, gap=-1),
+                   caseFlag=0,
+                   p=0,
+                   vlength=3,
+                   ...){
+            method <- match.arg(method)
             FLStringDistFunctionsClassCheck(a,b)
-
+            
             if(!(method %in% c("lv","dl","hamming","jaccard","jw")))
-            stop(" method not supported ")
+              stop(" method not supported ")
             if(method=="lv")
-            return(FLStringDist("FLLevenshteinDist",
-                      a,b,caseFlag))
+              return(FLStringDist("FLLevenshteinDist",
+                                  a,b,caseFlag))
             else if(method=="dl")
-            return(FLStringDist("FLDLevenshteinDist",
-                      a,b,caseFlag))
+              return(FLStringDist("FLDLevenshteinDist",
+                                  a,b,caseFlag))
             else if(method=="hamming")
-            return(FLStringDist("FLHammingDist",
-                      a,b,caseFlag,vlength=vlength))
+              return(FLStringDist("FLHammingDist",
+                                  a,b,caseFlag,vlength=vlength))
             else if(method=="jaccard")
-            return(FLStringDist("FLJaccardIndex",
-                      a,b,caseFlag))
-            else if(method=="jw")
-            {
+              return(FLStringDist("FLJaccardIndex",
+                                  a,b,caseFlag))
+            else if(method=="jw"){
               if(p==0)
-              return(FLStringDist("FLJaroDist",
-                      a,b,caseFlag))
+                return(FLStringDist("FLJaroDist",
+                                    a,b,caseFlag))
               else
-              return(FLStringDist("FLJaroWinklerDist",
-                      a,b,caseFlag))
-            }
+                return(FLStringDist("FLJaroWinklerDist",
+                                    a,b,caseFlag))
+            } else if(method=="nmw")
+              return(FLStringDist("FLNeedleManWunschDist",
+                                  a,b,
+                                  matchWeight=weight$match,
+                                  mismatchWeight=weight$mismatch,
+                                  gapPenalty=weight$gap,...))
+
           })
 
-#' FLNeedleManWunschDist
-#'
-#' compute NeedleManWunsch distance between strings
-#' @param a character or FLVector of characters
-#' @param b character or FLVector of characters
-#' @param matchWeight integer weight for having
-#' matching sequential characters between
-#' the strings
-#' @param mismatchWeight integer Weight
-#' for having nonmatching or non-sequential characters
-#' between the strings
-#' @param gapPenalty integer penality for gaps
-#' @param caseFLag logical or 0/1 indicating 
-#' if comparision should be case sensitive
-#' @return FLVector if any \code{a} or \code{b}
-#' is R character of length 1. Otherwise returns a FLMatrix.
-#' @section Constraints:
-#' row vectors are not supported currently.
-#' Refer to \code{@return} section.
-#' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
-#' flv <- widetable[1:10,"Species"]
-#' resultflvector <- FLNeedleManWunschDist("xyz",flv)
-#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
-#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
-#' resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
-#' resultflmatrix <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
-#' @export
-setGeneric("FLNeedleManWunschDist", function(a,b,matchWeight=1,
-                                          mismatchWeight=-1,
-                                          gapPenalty=-1,
-                                          caseFlag=0,...)
-    standardGeneric("FLNeedleManWunschDist"))
 
-setMethod("FLNeedleManWunschDist",
-          signature(a="character",
-            b="character"),
-          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
-          FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
-                      mismatchWeight=mismatchWeight,
-                      gapPenalty=gapPenalty,
-                      caseFlag=caseFlag))
-
-setMethod("FLNeedleManWunschDist",
-          signature(a="ANY",
-            b="ANY"),
-          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
-          {
-            FLStringDistFunctionsClassCheck(a,b)
-            FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
-                      mismatchWeight=mismatchWeight,
-                      gapPenalty=gapPenalty,
-                      caseFlag=caseFlag)
-          })
-
+## move to file stringdist.R
 #' stringdistmatrix
 #'
 #' compute distance metrics between strings
@@ -525,6 +545,7 @@ setMethod("FLNeedleManWunschDist",
 setGeneric("stringdistmatrix", function(a,b,method="dl",caseFlag=0,p=0,vlength=3,asMatrix=TRUE,...)
     standardGeneric("stringdistmatrix"))
 
+## move to file stringdist.R
 setMethod("stringdistmatrix",
           signature(a="character",
             b="character"),
@@ -532,6 +553,7 @@ setMethod("stringdistmatrix",
           stringdist::stringdistmatrix(a, b,method,...)
           )
 
+## move to file stringdist.R
 setMethod("stringdistmatrix",
           signature(a="ANY",
             b="ANY"),
@@ -572,6 +594,7 @@ setMethod("stringdistmatrix",
             }
           })
 
+## move to file stringdist.R
 FLStringDistFunctionsClassCheck <- function(a,b,...)
 {
   if(!(class(a)=="FLVector" || is.character(a)))
@@ -866,7 +889,8 @@ setMethod("regexpr",
             text="ANY"),
           function(pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE)
-          base::regexpr(pattern,text,...)
+          base::regexpr(pattern,text,ignore.case = ignore.case, perl = perl,
+        fixed = fixed, useBytes = useBytes)
           )
 
 #' Pattern Matching

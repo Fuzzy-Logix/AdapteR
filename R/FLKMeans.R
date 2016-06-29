@@ -67,3 +67,24 @@ kmeans.FLTable<-function(x,
 
 	return(hkmeansobject)
 }
+
+
+#' @export
+kmeans.FLMatrix <- function(x,
+						centers,
+						iter.max =10,
+						nstart = 1,
+						excludeCols = as.character(c()),
+						classSpec = list(),
+						whereconditions = ""
+						)
+{
+	x <- as.FLTable(x)
+	return(kmeans(x=x,
+				centers=centers,
+				iter.max =iter.max,
+				nstart = nstart,
+				excludeCols = excludeCols,
+				classSpec = classSpec,
+				whereconditions = whereconditions))
+}

@@ -6,9 +6,16 @@ setGeneric("FLexpect_equal",
                standardGeneric("FLexpect_equal"))
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.matrix(object),
+          function(object,expected,...){
+            if(is.RSparseMatrix(expected))
+            expected <- matrix(expected,dim(expected))
+            if(class(expected)=="dist")
+            return(testthat::expect_equal(as.dist(as.matrix(object)),
                                      expected,...))
+
+            testthat::expect_equal(as.matrix(object),
+                                     expected,...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="FLMatrix"),
           function(object,expected,...)
@@ -16,11 +23,24 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
-          function(object,expected,...)
-              testthat::expect_equal(object,
-                                     as.matrix(expected),...))
+          function(object,expected,...){
+            if(is.RSparseMatrix(object))
+            object <- matrix(object,dim(object))
+            if(class(object)=="dist")
+            return(testthat::expect_equal(object,
+                        as.dist(as.matrix(expected))
+                        ,...))
+
+            testthat::expect_equal(object,
+                                     as.matrix(expected),...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
+          function(object,expected,...)
+              testthat::expect_equal(as.vector(object),
+                                     expected,...))
+setMethod("FLexpect_equal",
+          signature(object="FLVector",expected="integer"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
@@ -36,10 +56,21 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
 setMethod("FLexpect_equal",
-          signature(object="ANY",expected="ANY"),
+          signature(object="ANY",expected="FLVector"),
           function(object,expected,...)
-              testthat::expect_equal(object,
+              FLexpect_equal(as.FLVector(object),
                                      expected,...))
+
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="ANY"),
+          function(object,expected,...){
+            if(is.FL(object))
+            object <- as.R(object)
+            if(is.FL(expected))
+            expected <- as.R(expected)
+            testthat::expect_equal(object,
+                                     expected,...)
+          })
 
 setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
           function(object,expected,...)
@@ -47,49 +78,33 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
                                      as.data.frame(expected),...))
 
 
-#' @export
-setGeneric("as.R", function(flobject) standardGeneric("as.R"))
-setMethod("as.R","FLMatrix", function(flobject) as.matrix(flobject))
-setMethod("as.R","FLTable", function(flobject) as.data.frame(flobject))
-
-#' @export
-setGeneric("as.FL", function(object) standardGeneric("as.FL"))
-setMethod("as.FL","numeric", function(object) as.FLVector(object))
-setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","data.frame", function(object) as.FLTable(object))
-setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
-
-
-as.FLEnvironment <- function(Renv){
-    FLenv <- new.env(parent = parent.env(Renv))
-    for(n in ls(envir = Renv)){
-        object <- get(n,envir = Renv)
-        assign(n, as.FL(object), envir=FLenv)
-    }
-    FLenv
-}
-
-##' Evaluates and benchmarks the expression e in an R and an FL environment.
-##' tests all your new variable names for equality in R and FL environments.
-##' TODO: The results of both expressions will be returned together with benchmarking statistics
-##'
+##' Evaluates the expression e in an R and an FL environment, tests assignment for equality.
+##' 
+##' Tests all variables in expectation and new variable names for equality in R and FL environments.
 ##' Created objects will be in both environments.
+##' The results of both expressions will be returned together with benchmarking statistics.
+##' 
+##' TDOD: collect more information: length of sql sent, amount of data fetched
+##'
 ##'
 ##' @param e the expression that will be evaluated in both environments
-##' @param Renv
-##' @param FLenv
+##' @param Renv 
+##' @param FLenv 
 ##' @param description if not supplied will default to deparse of the expression
 ##' @param runs if runs>1 the expressions are evaluated several times.  Make sure you do not re-assign the variables in environments that are evaluated on.
+##' @param expectation provide variable names to check for equality when environments did already contain these variables.
 ##' @param noexpectation You can exclude names from
-##' @param ... arguments passed to FLexpect_equal
+##' @param ... arguments passed to FLexpect_equal, e.g.  check.attributes = FALSE
 ##' @return a data frame with the description
 #' @export
 ##' @author  Gregor Kappler <gregor.kappler@@fuzzylogix.com>
-eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
+eval_expect_equal <- function(e, Renv, FLenv,
                               description=NULL,
                               runs=1,
+                              expectation=c(),
                               noexpectation=c(),
                               ...){
+    browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
@@ -101,18 +116,17 @@ eval_expect_equal <- function(e, Renv, FLenv=as.FL(Renv),
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
-    rDim <- eval(expr = e, envir=Renv)
+    eval(expr = e, envir=Renv)
     rEndT <- Sys.time()
     flStartT <- Sys.time()
-    flDim <- eval(expr = e, envir=FLenv)
+    eval(expr = e, envir=FLenv)
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
-    for(n in setdiff(newNames,oldNames))
+    for(n in unique(c(expectation,setdiff(noexpectation,setdiff(newNames,oldNames)))))
         FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      dim          = paste0(flDim, collapse = " x "),
                       r.Runtime    = rEndT-rStartT,
                       fl.Runtime   = flEndT-flStartT))
 }
@@ -141,62 +155,194 @@ expect_flequal <- function(a,b,...){
     FLexpect_equal(a,b,...)
 }
 
-## Increase n for increasing length of FLVector.
-## If isRowVec=TRUE, rowVector(one observation of all columns) is returned.
-#' @export
-initF.FLVector <- function(n,isRowVec=FALSE)
+
+## gk: refactor such that initF code is used for one-time creation of huge testing tables (on demand)
+## gk: and that all actual testing is done by creating references to that permanent table
+## type should be in c("float","int","character")
+initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
-  sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR;"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_vectortable_AdapteR 
-                          AS(SELECT 1 AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
-                            CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                          FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
-                          WHERE a.serialval < ",ifelse(isRowVec,2,n+1),") WITH DATA ")))
+  #browser()
+  if(n>1000000)
+  stop("maximum n allowed is 1000000 \n ")
+  else if(!isRowVec){
+    if(type=="float")
+    {
+      select <- new(
+                  "FLSelectFrom",
+                  connection = getOption("connectionFL"), 
+                  database = getOption("ResultDatabaseFL"), 
+                  table_name = "fzzlserial",
+                  variables = list(obs_id_colname="SERIALVAL"),
+                  whereconditions=paste0(getOption("ResultDatabaseFL"),
+                                        ".fzzlserial.SERIALVAL < ",n+1),
+                  order = "")
+      flv <- new("FLVector",
+                select=select,
+                dimnames=list(1:n,"RANDVAL"),
+                isDeep=FALSE)
+    }
+    else if(is.null(getOption("FLTestVectorTable")) ||
+            !getOption("FLTestVectorTable"))
+    {
+      if(!checkRemoteTableExistence(tableName="ARTestIntVectorTable"))
+      vtemp <- sqlQuery(getOption("connectionFL"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
+                                ".ARTestIntVectorTable AS \n ",
+                                "(SELECT a.serialval AS vectorIndexColumn, \n ",
+                                " CAST(FLSimUniform(a.serialval,-100,100) AS INT) AS vectorValueColumn \n ",
+                                " FROM fzzlserial a) WITH DATA;")
+                        )
+      if(!checkRemoteTableExistence(tableName="ARTestCharVectorTable"))
+      vtemp <- sqlQuery(getOption("connectionFL"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
+                                ".ARTestCharVectorTable AS \n ",
+                                "(SELECT a.serialval AS vectorIndexColumn, \n ",
+                                " b.string1 AS vectorValueColumn \n ",
+                                " FROM fzzlserial a, \n ",
+                                    "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
+                                      "string1 \n ",
+                                    " FROM tblstring ) AS b \n ",
+                                " WHERE FLMOD(a.serialval,5) + 1 = b.obsid) WITH DATA;")
+                        )
+      if(type=="int") vtableName <- "ARTestIntVectorTable"
+      else vtableName <- "ARTestCharVectorTable"
+      options(FLTestVectorTable=TRUE)
+      select <- new(
+                    "FLSelectFrom",
+                    connection = getOption("connectionFL"), 
+                    database = getOption("ResultDatabaseFL"), 
+                    table_name = vtableName,
+                    variables = list(obs_id_colname="vectorIndexColumn"),
+                    whereconditions=paste0(getOption("ResultDatabaseFL"),
+                                          ".",vtableName,".vectorIndexColumn < ",n+1),
+                    order = "")
+      flv <- new("FLVector",
+                  select=select,
+                  dimnames=list(1:n,"vectorValueColumn"),
+                  isDeep=FALSE)
+    }
+  }
+  else{
+    if(type == "character"){
+      widetable<-FLTable(getOption("ResultDatabaseFL"),"tblAutoMpg","ObsID")
+      flv <- widetable[1,rep("CarName",n)]
+    }
+    else{
+      vmaxId <- getMaxVectorId()
+      sqlSendUpdate(getOption("connectionFL"),
+                          c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
+                                                ".",getOption("ResultVectorTableFL")," \n ",
+                              " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
+                                CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
+                              FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
+                              WHERE a.serialval < 2 ")))
 
-  table <- FLTable(connection=getOption("connectionFL"),
-                 getOption("ResultDatabaseFL"),
-                 "test_vectortable_AdapteR",
-                 "VECTOR_INDEX",
-                 whereconditions=paste0(getOption("ResultDatabaseFL"),".test_vectortable_AdapteR.VECTOR_ID = 1")
-                 )
-
-  if(isRowVec)
-  flv <- table[1,base::sample(c("VECTOR_VALUE","VECTOR_INDEX"),n,replace=TRUE)]
-  else
-  flv <- table[1:n,"VECTOR_VALUE"]
-
+      table <- FLTable(connection=getOption("connectionFL"),
+                     getOption("ResultDatabaseFL"),
+                     getOption("ResultVectorTableFL"),
+                     "vectorIndexColumn",
+                     whereconditions=paste0(getOption("ResultDatabaseFL"),".",
+                                      getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
+                     )
+      flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
+    }
+  }
   Rvector <- as.vector(flv)
+  if(type=="int")
+  Rvector <- as.integer(Rvector)
   return(list(FL=flv,R=Rvector))
 }
 
 ## Increase the value of n to increase the dimensions of FLMatrix returned.
 ## Returns n*n or n*(n-1) based on isSquare.
+## type should be in c("float","int","character")
 #' @export
-initF.FLMatrix <- function(n,isSquare=FALSE)
+initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
 {
-  sqlSendUpdate(getOption("connectionFL"),
-                      c(paste0("DROP TABLE ", getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR;"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".test_matrixtable_AdapteR 
-                          AS(SELECT 1 AS MATRIX_ID,a.serialval AS ROW_ID,
-                            b.serialval AS COL_ID,CAST(random(0,100) AS FLOAT)AS CELL_VAL 
-                          FROM ",getOption("ResultDatabaseFL"),".fzzlserial a,",getOption("ResultDatabaseFL"),".fzzlserial b
-                          WHERE a.serialval < ",n+1," and b.serialval < ",ifelse(isSquare,n+1,n),") WITH DATA ")))
-  flm <- FLMatrix(
-      database          = getOption("ResultDatabaseFL"),
-      table_name = "test_matrixtable_AdapteR",
-      matrix_id_value   = 1,
-      matrix_id_colname = "Matrix_ID",
-      row_id_colname    = "Row_ID",
-      col_id_colname    = "Col_ID",
-      cell_val_colname  = "Cell_Val",
-      connection=getOption("connectionFL"))
-  Rmatrix <- as.matrix(flm)
-  return(list(FL=flm,R=Rmatrix))
+  if(any(n>1000))
+  stop("maximum rows,cols allowed is 1000 \n ")
+
+  ## here manually set option as true if tables exist.
+  if(is.null(getOption("FLTestMatrixTable")) || 
+    !getOption("FLTestMatrixTable")){
+    if(type=="int")
+    {
+      vtableName <- "ARTestIntMatrixTable"
+      if(!checkRemoteTableExistence(tableName="ARTestIntMatrixTable"))
+      vtemp <- sqlQuery(getOption("connectionFL"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
+                                ".ARTestIntMatrixTable AS \n ",
+                                "(SELECT a.serialval AS rowIdColumn, \n ",
+                                " b.serialval AS colIdColumn, \n ",
+                                " CAST(FLSimUniform(ROW_NUMBER()",
+                                "OVER(ORDER BY a.serialval,b.serialval),",
+                                " -100,100) AS INT) AS valueColumn \n ",
+                                " FROM fzzlserial a,fzzlserial b \n ",
+                                " WHERE a.serialval < 1001",n+1,
+                                " AND b.serialval < 1001) WITH DATA;")
+                        )
+    }
+    else if(type=="character"){
+      vtableName <- "ARTestCharMatrixTable"
+      if(!checkRemoteTableExistence(tableName="ARTestCharMatrixTable"))
+      vtemp <- sqlQuery(getOption("connectionFL"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
+                                ".ARTestCharMatrixTable AS \n ",
+                                "(SELECT a.serialval AS rowIdColumn, \n ",
+                                " b.serialval AS colIdColumn, \n ",
+                                " c.string1 AS valueColumn \n ",
+                                " FROM fzzlserial a,fzzlserial b, \n ",
+                                "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
+                                  "string1 FROM tblstring) c ",
+                                " WHERE a.serialval < 1001 \n ",
+                                " AND b.serialval < 1001 \n ",
+                                " AND MOD(a.serialval,5)+1=c.obsid) WITH DATA;")
+                        )
+    }
+    else if(type=="float"){
+      vtableName <- "ARTestMatrixTable"
+      if(!checkRemoteTableExistence(tableName="ARTestMatrixTable"))
+      vtemp <- sqlQuery(getOption("connectionFL"),
+                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
+                                ".ARTestMatrixTable AS \n ",
+                                "(SELECT a.serialval AS rowIdColumn, \n ",
+                                " b.serialval AS colIdColumn, \n ",
+                                " FLSimUniform(ROW_NUMBER()",
+                                "OVER(ORDER BY a.serialval,b.serialval),",
+                                " -100,100) AS valueColumn \n ",
+                                " FROM fzzlserial a,fzzlserial b \n ",
+                                " WHERE a.serialval < 1001 \n ",
+                                " AND b.serialval < 1001) WITH DATA;")
+                        )
+    }
+    else stop("type should be int,float,character")
+  }
+  vtemp <- c(ARTestMatrixTable="float",
+            ARTestCharMatrixTable="character",
+            ARTestIntMatrixTable="int")
+  vtableName <- names(vtemp)[vtemp==type]
+  select <- new(
+        "FLSelectFrom",
+        connection = getOption("connectionFL"),
+        database = getOption("ResultDatabaseFL"),
+        table_name = c(mtrx=vtableName),
+        variables=list(rowIdColumn=paste0("mtrx.rowIdColumn"),
+                      colIdColumn=paste0("mtrx.colIdColumn"),
+                      valueColumn=paste0("mtrx.valueColumn")),
+        whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),
+                          paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
+        order = "")
+    
+  flm <- new("FLMatrix",
+            select = select,
+            dim = c(n,ifelse(isSquare,n,n-1)),
+            dimnames = list(NULL,NULL))
+
+  return(list(FL=flm,R=as.matrix(flm)))
 }
 
 #' @export
-initF.FLTable <- function(rows,cols)
+initF.FLTable <- function(rows,cols,...)
 {
   WideTable <- FLTable(connection=getOption("connectionFL"),
                       getOption("ResultDatabaseFL"),
@@ -207,6 +353,74 @@ initF.FLTable <- function(rows,cols)
 }
 
 
+initF.numeric <- initF.FLVector
+initF.data.frame <- initF.FLTable
+initF.matrix <- initF.FLMatrix
+
+##' initF.default helps to return a list of list.
+##' Can be used for comparing results of R and FL functions which require two objects.
+
+
+
+initFgeneric<- function(specs=list(numberattribute =5,featureattribute = TRUE,...),
+                        class = "FLMatrix"){
+  #browser()
+  if(class%in%c("FLVector","FLMatrix","FLTable")){
+    obj<-do.call(paste0("initF.",class),specs)
+  }
+  else{
+    obj<-do.call(paste0("initF.",class),specs)
+    if(class == "numeric")
+    obj<-do.call("as.vector",list(obj))
+    else
+    obj<-do.call(paste0("as.",class),list(obj))
+  }
+  return(obj) 
+}
+
+
+## gk: think of a better name FL_test_operators
+## gk: document
+FL_test_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),
+                                     list(n =5,isRowVec = FALSE,...)),
+                          classes = c("FLMatrix","FLVector"),
+                          operator = "+"){
+    
+  FLenv<-new.env()
+  ##browser()
+  lapply(1:length(classes),function(i){
+    obj<-initFgeneric(specs[[i]],classes[i])
+    x=i
+    assign(paste0("a",x),obj,envir = FLenv)
+  })
+  Renv<-as.R(FLenv)
+  obj1<-do.call(operator,lapply(ls(FLenv),function(x)do.call("$",list(FLenv,paste0(x)))))
+  obj2<-do.call(operator,lapply(ls(Renv),function(x)do.call("$",list(Renv,paste0(x)))))
+  
+  FLexpect_equal(obj1,obj2,check.attributes =FALSE)
+}
+
+##' initF.default helps to return a list of list.
+##' Can be used for comparing results of R and FL functions which require two objects.
+
+initFdefault<- function(specs=list(c(n=5,isSquare = TRUE),c(n =5,isRowVec = FALSE)),
+        classes = c("FLMatrix","FLVector")){
+        #browser()
+        l<-lapply(1:length(classes),function(x){
+            #browser()
+            I <- do.call(paste0("initF.",classes[x]),list(specs[[x]]))
+            return(I)
+            })
+        FL <- lapply(1:length(l),function(x){
+                    #browser()
+                    if(classes[x] %in% c("FLMatrix","FLVector","FLTable"))
+                    subscript <- "FL"
+                    else subscript <- "R"
+                    return(do.call("$",list(l[[x]],subscript)))
+            })
+        R <- lapply(1:length(l),function(x)l[[x]]$"R")
+    return(list(FL=FL,R=R)) 
+}
 
 ##' tests if a R matrix is correctly stored and
 ##' represented when casting the R matrix into FLMatrix
@@ -397,3 +611,6 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
         testthat::expect_equal(a,as.vector(b))
     })
 }
+initF.numeric <- initF.FLVector
+initF.data.frame <- initF.FLTable
+initF.matrix <- initF.FLMatrix

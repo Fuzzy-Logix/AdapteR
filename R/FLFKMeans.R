@@ -801,3 +801,44 @@ plot.FLFKMeans <- function(object)
 	assign(parentObject,object,envir=parent.frame())
 	plot(results)
 }
+
+#' @export
+fanny.FLMatrix <- function(x,
+						k,
+						diss=FALSE,
+						memb.exp= 2,
+						metric="euclidean",##notUsed
+						Stand=FALSE,##notUsed
+						iniMem.p=NULL,##notUsed
+						cluster.only = FALSE,
+    					keep.diss = (!diss && !cluster.only),
+    					keep.data = (!diss && !cluster.only),
+    					maxit = 500,
+    					tol = 0.000001,##From dbLytix
+    					trace.lev = 0,##notUsed
+						excludeCols = "",
+						classSpec = list(),
+						whereconditions = "",
+						distTable=""
+						)
+{
+	x <- as.FLTable(x)
+	return(fanny(x=x,
+				k=k,
+				diss=diss,
+				memb.exp= memb.exp,
+				metric=metric,##notUsed
+				Stand=Stand,##notUsed
+				iniMem.p=iniMem.p,##notUsed
+				cluster.only = cluster.only,
+				keep.diss = keep.diss,
+				keep.data = keep.data,
+				maxit = maxit,
+				tol = tol,##From dbLytix
+				trace.lev = trace.lev,##notUsed
+				excludeCols = excludeCols,
+				classSpec = classSpec,
+				whereconditions = whereconditions,
+				distTable=distTable
+			))
+}

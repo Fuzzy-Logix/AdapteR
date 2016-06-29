@@ -6,7 +6,7 @@
 \usage{
 getMaxValue(vdatabase = getOption("ResultDatabaseFL"),
   vtable = getOption("ResultVectorTableFL"), vcolName = "vectorIdColumn",
-  vconnection = vconnection)
+  vconnection = getOption("connectionFL"))
 }
 \arguments{
 \item{vdatabase}{name of the database of table}

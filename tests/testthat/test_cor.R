@@ -30,12 +30,25 @@ Renv$eqnRtn <- na.omit(as.matrix(FLenv$eqnRtn))
 ## You can add your own tests and search for tests for function cor in
 ## the test suite so far.
 ## move them here!
-test_that("Correlation of equity returns",
+test_that("Correlation of equity returns, low precision, 1e-3",
           eval_expect_equal({
               corER <- cor(eqnRtn)
-              print(corER)
+              ##print(corER)
               dim(eqnRtn)
-          }, Renv, FLenv))
+          }, Renv, FLenv,
+          tolerance=1e-3))
+
+## You can add your own tests and search for tests for function cor in
+## the test suite so far.
+## move them here!
+test_that("Correlation of equity returns, high precision",
+          eval_expect_equal({
+              corER <- cor(eqnRtn)
+              ##print(corER)
+              dim(eqnRtn)
+          }, Renv, FLenv,
+          expectation="corER"
+          ))
 
 ############################################################
 ## R documentation example from stats::cor

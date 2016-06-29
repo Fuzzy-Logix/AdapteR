@@ -4,10 +4,11 @@
 \alias{eval_expect_equal}
 \title{Evaluates and benchmarks the expression e in an R and an FL environment.
 tests all your new variable names for equality in R and FL environments.
-TODO: The results of both expressions will be returned together with benchmarking statistics}
+TODO: The results of both expressions will be returned together with benchmarking statistics
+TDOD: collect more information: length of sql sent, amount of data fetched}
 \usage{
-eval_expect_equal(e, Renv, FLenv = as.FL(Renv), description = NULL,
-  runs = 1, noexpectation = c(), ...)
+eval_expect_equal(e, Renv, FLenv, description = NULL, runs = 1,
+  noexpectation = c(), ...)
 }
 \arguments{
 \item{e}{the expression that will be evaluated in both environments}
@@ -18,7 +19,7 @@ eval_expect_equal(e, Renv, FLenv = as.FL(Renv), description = NULL,
 
 \item{noexpectation}{You can exclude names from}
 
-\item{...}{arguments passed to FLexpect_equal}
+\item{...}{arguments passed to FLexpect_equal, e.g.  check.attributes = FALSE}
 }
 \value{
 a data frame with the description

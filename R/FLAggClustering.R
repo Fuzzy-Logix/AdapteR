@@ -680,3 +680,39 @@ plot.FLAggClust <- function(object)
 	assign(parentObject,object,envir=parent.frame())
 	plot(results)
 }
+
+
+#' @export
+agnes.FLMatrix <- function(x,
+						diss=FALSE,
+						metric="euclidean",##notUsed
+						Stand=FALSE,##notUsed
+						method="average",
+						par.method = 0,
+    					keep.diss = (!diss),
+    					keep.data = (!diss),
+    					trace.lev = 0,##notUsed
+    					maxit = 500,
+						excludeCols = "",
+						classSpec = list(),
+						whereconditions = "",
+						distTable=""
+						)
+{
+	x <- as.FLTable(x)
+	return(agnes(x=x,
+				diss=diss,
+				metric=metric,##notUsed
+				Stand=Stand,##notUsed
+				method="average",
+				par.method = 0,
+				keep.diss = keep.diss,
+				keep.data = keep.data,
+				trace.lev = 0,##notUsed
+				maxit = maxit,
+				excludeCols = excludeCols,
+				classSpec = classSpec,
+				whereconditions = whereconditions,
+				distTable=distTable
+			))
+}

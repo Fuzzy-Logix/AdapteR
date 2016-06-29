@@ -24,7 +24,6 @@ sqlError <- function(e){
 sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
-#' 
 #' Result is returned as data.frame
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
@@ -143,7 +142,7 @@ list_to_where_clause <- function (x) {
                                         #  */
 
 list_to_class_spec <- function (x) {
-    classSpec <- paste(names(x),x,collapse=", ")
+    classSpec <- paste0(names(x),"(",x,")",collapse=", ")
     if(nchar(classSpec) > 1) {
         classSpec <- classSpec
     } else {
@@ -354,7 +353,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
 #' Strongly recommended to run before beginning a new R session
 #' use options to specify the following:- 
 #' ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, 
-#' MatrixNameMapTableFL, ResultSparseMatrixTableFL
+#' NameMapTableFL, ResultSparseMatrixTableFL
 #' @param connection ODBC/JDBC connection object
 #' @param database name of current database
 #' @param persistent NULL if result tables are to be created as volatile tables
@@ -376,7 +375,7 @@ FLStartSession <- function(connection,
     options(ResultVectorTableFL=gen_table_name("tblVectorResult",persistent))
     options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult",persistent))
     options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
-    options(MatrixNameMapTableFL=gen_table_name("tblMatrixNameMapping",persistent))
+    options(NameMapTableFL=gen_table_name("tblNameMapping",persistent))
     options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult",persistent))
     options(ResultCharMatrixTableFL=gen_table_name("tblCharMatrixMultiResult",persistent))
     options(ResultIntMatrixTableFL=gen_table_name("tblIntMatrixMultiResult",persistent))
@@ -431,7 +430,7 @@ FLStartSession <- function(connection,
                     paste0(" CREATE ",ifelse(is.null(persistent),
                                             "VOLATILE TABLE ",
                                             "TABLE "),
-                                   getOption("MatrixNameMapTableFL"),"\n",
+                                   getOption("NameMapTableFL"),"\n",
                                    tableoptions,"\n",
                                 "(TABLENAME VARCHAR(100),\n",
                                 " MATRIX_ID INTEGER,\n",
@@ -450,7 +449,7 @@ FLStartSession <- function(connection,
 			# 		  valueColumn FLOAT)
 	  #   			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
    #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-   #             getOption("MatrixNameMapTableFL"),
+   #             getOption("NameMapTableFL"),
    #             tableoptions,
    #             "     (
 			# TABLENAME VARCHAR(100),
@@ -552,7 +551,8 @@ getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
 getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
                         vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
-                        vconnection=vconnection){
+                        vconnection=getOption("connectionFL"))
+{
     R <- sqlQuery(vconnection,
                     paste0("SELECT max(",
                            vcolName,")",
@@ -568,12 +568,13 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxVectorId <- function(vconnection,
-                        vtable=getOption("ResultVectorTableFL"),...)
+getMaxVectorId <- function(vconnection = getOption("connectionFL"),
+                           vtable=getOption("ResultVectorTableFL"),...)
     getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
                 vtable=vtable,
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
+
 
 ensureQuerySize <- function(pResult,
                             pInput,
@@ -626,6 +627,75 @@ checkValidFormula <- function(pObject,pData)
         stop(x," not in colnames of data\n"))
 }
 
+## returns INT for integers or bool,VARCHAR(255)
+## for characters and FLOAT for numeric
+getFLColumnType <- function(x,columnName=NULL){
+    if(is.FL(x)){
+      if(is.null(columnName)){
+        vmapping <- c(valueColumn="FLMatrix",
+                    vectorValueColumn="FLVector",
+                    cell_val_colname="FLTable")
+        columnName <- as.character(names(vmapping)[class(x)==vmapping])
+      }
+      if(!grepl("with",tolower(constructSelect(x)))){
+        vresult <- tolower(sqlQuery(getOption("connectionFL"),
+                            paste0("SELECT TOP 1 TYPE(a.",columnName,
+                                    ") \n FROM (",constructSelect(x),
+                                    ") a"))[1,1])
+        vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
+        vtemp <- as.vector(sapply(c("char","int","float","number"),
+                        function(y)
+                        return(grepl(y,vresult))))
+        vresult <- vmapping[vtemp]
+      }
+      else vresult <- "FLOAT"
+    }
+    else{
+      vmapping <- c(VARCHAR="character",
+                    INT="integer",
+                    FLOAT="numeric",
+                    INT="logical")
+      vresult <- names(vmapping)[vmapping==class(x)]
+    }
+    if(vresult=="VARCHAR") 
+    vresult <- "VARCHAR(255)"
+    return(vresult)
+}
+
+is.FL <- function(x){
+    if(class(x) %in% c("FLMatrix",
+                        "FLVector",
+                        "FLTable",
+                        "FLTableQuery",
+                        "FLSelectFrom",
+                        "FLTableFunctionQuery"))
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.RSparseMatrix <- function(object){
+    vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
+                    "dgTMatrix","dtrMatrix","pMatrix",
+                    "dspMatrix","dtCMatrix","dgRMatrix",
+                    "ddiMatrix","dpoMatrix"
+                    )
+    if(class(object) %in% vsparseClass)
+    return(TRUE)
+    else
+    return(FALSE)
+}
+
+checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
+                                    tableName)
+{
+    vtemp <- sqlQuery(getOption("connectionFL"),paste0(
+                        "SELECT 1 FROM dbc.tables \n ",
+                        " WHERE databaseName = ",fquote(databaseName),
+                        " AND tablename = ",fquote(tableName)))
+    if(!is.na(vtemp[1,1]) && vtemp[1,1]==1)
+    return(TRUE)
+    else return(FALSE)
+}
 flag1Check <- function(connection)
 {
     return(TRUE)
