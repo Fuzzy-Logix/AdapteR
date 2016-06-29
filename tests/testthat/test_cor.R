@@ -86,15 +86,12 @@ test_that("Correlation on longley dataset",{
         ## How much do they differ?
         i <- lower.tri(Cl)
         cor(cbind(P = Cl[i], S = clS[i], K = clK[i]))
-
-
         ## cov2cor() scales a covariance matrix by its diagonal
         ##           to become the correlation matrix.
         cov2cor # see the function definition {and learn ..}
         stopifnot(all.equal(Cl, cov2cor(cov(longley))),
                   all.equal(cor(longley, method = "kendall"),
                             cov2cor(cov(longley, method = "kendall"))))
-
     }, Renv, FLenv)
     ## TODO: add a better and unique description!
 })
@@ -102,15 +99,12 @@ test_that("Correlation on longley dataset",{
 test_that("Missing Data, swiss dataset",{
     eval_expect_equal({
         ##--- Missing value treatment:
-
         C1 <- cov(swiss)
         range(eigen(C1, only.values = TRUE)$values) # 6.19        1921
-
         ## swM := "swiss" with  3 "missing"s :
         swM <- swiss
         colnames(swM) <- abbreviate(colnames(swiss), min=6)
         swM[1,2] <- swM[7,3] <- swM[25,5] <- NA # create 3 "missing"
-
         ## Consider all 5 "use" cases :
         (C. <- cov(swM)) # use="everything"  quite a few NA's in cov.matrix
         try(cov(swM, use = "all")) # Error: missing obs...
@@ -120,7 +114,6 @@ test_that("Missing Data, swiss dataset",{
         C3 <- cov(swM, use = "pairwise")
         range(eigen(C3, only.values = TRUE)$values) # 6.19   1938
     }, Renv, FLenv)
-
 })
 
 test_that("Swiss dataset, ...",{
@@ -131,11 +124,9 @@ test_that("Swiss dataset, ...",{
         symnum(Rc <- cor(swM, method = "kendall", use = "complete"))
         symnum(Rp <- cor(swM, method = "kendall", use = "pairwise"))
         symnum(R. <- cor(swiss, method = "kendall"))
-
         ## "pairwise" is closer componentwise,
         summary(abs(c(1 - Rp/R.)))
         summary(abs(c(1 - Rc/R.)))
-
         ## but "complete" is closer in Eigen space:
         EV <- function(m) eigen(m, only.values=TRUE)$values
         summary(abs(1 - EV(Rp)/EV(R.)) / abs(1 - EV(Rc)/EV(R.)))
