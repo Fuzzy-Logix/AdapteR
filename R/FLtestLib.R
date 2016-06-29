@@ -104,7 +104,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               ...){
-    #browser()
+    browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
@@ -122,7 +122,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
     eval(expr = e, envir=FLenv)
     flEndT <- Sys.time()
     newNames <- ls(envir = Renv)
-    for(n in unique(c(expectation,setdiff(newNames,oldNames))))
+    for(n in unique(c(expectation,setdiff(noexpectation,setdiff(newNames,oldNames)))))
         FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression

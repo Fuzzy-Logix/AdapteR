@@ -1108,7 +1108,7 @@ pam.FLMatrix <- function(x,
 				do.swap = do.swap,##notUsed
 				keep.diss = keep.diss,
 				keep.data = keep.data,
-				pamonce =pomance,##notUsed
+				pamonce =pamonce,##notUsed
 				trace.lev = trace.lev,##notUsed
 				iter.max =iter.max,
 				excludeCols = excludeCols,
