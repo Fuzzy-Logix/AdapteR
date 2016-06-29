@@ -166,13 +166,13 @@ eval_expect_equal <- function(e, Renv, FLenv,
 
 #' DEPRECATED: use eval_expect_equal
 #' @export
-expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
+expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,...)
 {
   I <- initF(...)
   if(!is.list(I$FL))
   I <- list(FL=list(I$FL),R=list(I$R))
-    FLexpect_equal(do.call(FLcomputationF,I$FL),
-                 do.call(RcomputationF,I$R),
+   FLexpect_equal(FLcomputationF(I$FL),
+                 RcomputationF(I$R),
                  check.attributes=FALSE)
 }
 
@@ -356,7 +356,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
         connection = getOption("connectionFL"),
         database = getOption("ResultDatabaseFL"),
         table_name = c(mtrx=vtableName),
-        variables=list(rowIdColumn=paste0("mtrx.rowIdColumn"),
+        variables=list(MATRIX_ID="'%insertIDhere%'",
+                      rowIdColumn=paste0("mtrx.rowIdColumn"),
                       colIdColumn=paste0("mtrx.colIdColumn"),
                       valueColumn=paste0("mtrx.valueColumn")),
         whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),

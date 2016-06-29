@@ -438,52 +438,6 @@ FLStartSession <- function(connection,
                                 " NAME VARCHAR(100),\n",
                                 " NUM_ID INTEGER)\n",
                                 " PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);\n"))
-   #  sendqueries <- c(
-   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-   #             getOption("ResultMatrixTableFL"),
-   #             tableoptions,
-   #             "     (
-			# 	      MATRIX_ID INTEGER,
-			# 	      rowIdColumn INTEGER,
-			# 		  colIdColumn INTEGER,
-			# 		  valueColumn FLOAT)
-	  #   			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
-   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-   #             getOption("NameMapTableFL"),
-   #             tableoptions,
-   #             "     (
-			# TABLENAME VARCHAR(100),
-			# MATRIX_ID INTEGER,
-   #                      DIM_ID INTEGER, -- 1: row, 2: column
-			# NAME VARCHAR(100),
-			# NUM_ID INTEGER)
-	  #   		PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);"),
-   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-   #             getOption("ResultSparseMatrixTableFL"),
-   #             tableoptions,
-   #             "
-			# 	     (
-			# 	      MATRIX_ID INTEGER,
-			# 	      rowIdColumn INTEGER,
-			# 		  colIdColumn INTEGER,
-			# 		  valueColumn FLOAT)
-	  #   			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );"),
-   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-   #             getOption("ResultVectorTableFL"),
-   #             tableoptions,
-   #             "
-			#  		 ( vectorIdColumn INT,
-			#  		   vectorIndexColumn INT,
-			# 	 	   vectorValueColumn FLOAT )
-			#  		   PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"),
-   #      paste0(" CREATE ",ifelse(is.null(persistent),"VOLATILE TABLE ","TABLE "),
-   #             getOption("ResultCharVectorTableFL"),
-   #             tableoptions,
-   #             "
-   #                   ( vectorIdColumn INT,
-   #                     vectorIndexColumn INT,
-   #                     vectorValueColumn VARCHAR(100) )
-   #                     PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);"))
     sqlSendUpdate(connection, sendqueries)
 
     genSessionID()

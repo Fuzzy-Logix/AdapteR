@@ -480,6 +480,7 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
             matrix_id_value)
     tablenames <- table_name
     variables <- list(
+        MATRIX_ID="'%insertIDhere%'",
         rowIdColumn=paste0(row_id_colname),
         colIdColumn=paste0(col_id_colname),
         valueColumn=paste0(cell_val_colname))

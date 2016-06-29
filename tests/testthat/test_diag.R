@@ -36,7 +36,6 @@ test_that(
     print(result5)
   })
 
-#equality fails
 test_that(
   "Testing equality works for vectors from diag ",
   {

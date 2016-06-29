@@ -115,7 +115,6 @@ Collate:
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
-    'FLgreaterthan.R'
     'FLtestLib.R'
     'apply.R'
     'crossprod.R'

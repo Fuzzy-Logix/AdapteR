@@ -372,7 +372,7 @@ max <- function(...,na.rm=FALSE){
     vlist <- list(...)
     vtemp <- unlist(lapply(vlist,function(x)is.FL(x)))
     if(!any(vtemp))
-    return(base::prod(...,na.rm=na.rm))
+    return(base::max(...,na.rm=na.rm))
 
     vprod <- sapply(list(...),function(x){
                 if(is.FLAbstractColumn(x)){
@@ -612,7 +612,7 @@ setMethod("mode",signature(x="FLTable"),
 setMethod("mode",signature(x="ANY"),
     function(x,na.rm=FALSE){
         x <- x[!is.na(x)]
-        vcount <- plyr::count(x=x)
+        vcount <- plyr::count(df=x)
         return(vcount[which.max(vcount[,"freq"]),"x"])
         })
 
