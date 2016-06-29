@@ -1401,6 +1401,7 @@ setMethod("gsub",
             fixed = FALSE, useBytes = FALSE)
           )
 
+
 #################################################################################
 
 ## move to file FLParseXML.R
