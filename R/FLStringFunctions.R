@@ -1339,5 +1339,4 @@ setMethod("FLParseXML",
                               ORDER BY 1,2;")
 
             return(sqlQuery(getOption("connectionFL"),sqlstr))
-            
-          })
+            })
