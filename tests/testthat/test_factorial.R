@@ -6,17 +6,16 @@ FLenv <- as.FL(Renv)
 test_that(
   "Testing factorial",
   {
-    result1<-eval_expect_equal({test1<-factorial(a)},Renv,FLenv)
-    print(result1)
+    result1 <- eval_expect_equal({test1<-factorial(a)},Renv,FLenv)
+    ##print(result1)
     
   }
 )
 test_that(
   "Testing factorial",
   {
-    result2<-eval_expect_equal({test2<-factorial(b)},Renv,FLenv)
-    print(result2)
-    
+    result2 <- eval_expect_equal({test2<-factorial(b)},Renv,FLenv)
+    ##print(result2)
   }
 )
 
