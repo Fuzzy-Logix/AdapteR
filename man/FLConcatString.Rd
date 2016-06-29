@@ -16,7 +16,13 @@ FLVector of length 1 with result string
 }
 \description{
 Concatenate elements of FLVector with
-a delimiter as collapse value
+a delimiter as collapse value.
+}
+\details{
+The DB Lytix function called is FLConcatString.
+The concat string function is an aggregate that joins the values of a string 
+column from a table into an output string using a user supplied delimiter 
+to separate the fields.
 }
 \section{Constraints}{
 

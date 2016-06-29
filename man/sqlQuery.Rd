@@ -2,7 +2,8 @@
 % Please edit documentation in R/utilities.R
 \name{sqlQuery}
 \alias{sqlQuery}
-\title{Send a query to database}
+\title{Send a query to database
+Result is returned as data.frame}
 \usage{
 sqlQuery(connection, query, ...)
 }
@@ -12,6 +13,7 @@ sqlQuery(connection, query, ...)
 \item{channel}{ODBC/JDBC connection object}
 }
 \description{
+Send a query to database
 Result is returned as data.frame
 }
 

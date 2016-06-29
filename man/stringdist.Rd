@@ -29,7 +29,12 @@ FLVector if any \code{a} or \code{b}
 is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
-compute distance metrics between strings
+compute distance metrics between strings.
+}
+\details{
+This function computes pairwise string distances between elements of 
+a and b, where the argument with less elements is recycled;according 
+to different distance metrics.
 }
 \section{Constraints}{
 
@@ -45,5 +50,9 @@ resultflvector <- stringdist("xyz",flv,method="lv",caseFLag=1)
 resultflvector <- stringdist("xyz",flv,method="hamming",vlength=4)
 resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
 resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")
+}
+\seealso{
+\code{\link[stringdist]{stringdist}} for R function reference
+implementation.
 }
 
