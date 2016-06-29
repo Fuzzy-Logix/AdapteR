@@ -1,4 +1,4 @@
-## The formal test suite.
+## The old formal test suite.
 ##
 ## Tests have been abstracted such that
 ## function initF.FLMatrix creates equivalent
@@ -11,37 +11,8 @@
 ##
 ## Next, benchmarking will be incorporated in these functions.
 
-library(AdapteR)
-library(testthat)
-
-
-## This script first tries to create a ODBC connection
-if(!exists("connection"))
-    connection <- flConnect(odbcSource = "Gandalf")
-
-
-## If ODBC has failed we try to create a JDBC connection
-if(!exists("connection")){
-    ## set this to add jdbc driver and security jars to classpath:
-    ## terajdbc4.jar tdgssconfig.jar
-    ## CAVE: fully qualified PATH required
-    yourJarDir <- "/Users/gregor/fuzzylogix"
-    connection <- flConnect(host     = "10.200.4.116",
-                            database = "fuzzylogix",
-                            dir.jdbcjars = yourJarDir)
-}
-
 
 options(debugSQL=FALSE)
-
-## Testing FLSolve
-test_that("check inverse calculation of matrix", {
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::solve,
-                      base::solve,
-                      n=5,
-                      isSquare=TRUE)
-})
 
 options(debugSQL=FALSE)
 # Testing rankMatrix
@@ -49,15 +20,6 @@ test_that("check rankMatrix result",{
     expect_eval_equal(initF.FLMatrix,
                       AdapteR::rankMatrix,
                       Matrix::rankMatrix,
-                      n=5)
-})
-
-## Testing FLGinv
-test_that("check FLGinv",
-{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::ginv,
-                      MASS::ginv,
                       n=5)
 })
 
@@ -126,18 +88,6 @@ test_that("check LU Decomposition",
   expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
                Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
 })
-
-## Testing FLLength
-test_that("check length",
-{
-  T1 <- initF.FLTable(rows=5,cols=5)
-  T1R <- as.data.frame(T1)
-    expect_eval_equal(initF.FLMatrix,AdapteR::length,base::length,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5)
-    expect_eval_equal(initF.FLVector,AdapteR::length,base::length,n=5,isRowVec=TRUE)
-    expect_equal(AdapteR::length(T1),base::length(T1R),check.attributes=FALSE)
-})
-
 
 ## Testing FLTrace
 test_that("check FLTrace",
@@ -429,8 +379,8 @@ test_that("check result for M_Multiplication",
   FLexpect_equal(P1$FL*M2,P1$R*M2R,check.attributes=FALSE)
   
   FLexpect_equal(P1$FL*P1$FL*V1*V2*M2*P1$FL*M1$FL*V2,
-               P1$R*P1$R*V1R*V2R*M2R*P1$R*M1$R*V2R,
-               check.attributes=FALSE)
+                 P1$R*P1$R*V1R*V2R*M2R*P1$R*M1$R*V2R,
+                 check.attributes=FALSE)
 })
 
 ## Testing M_Remainder

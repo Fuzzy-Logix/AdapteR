@@ -2,7 +2,7 @@
 x <- matrix(c(1:5, (1:5)^2), 5, 2)
 x <- cbind(x, x[, 1] + 3*x[, 2])
 colnames(x) <- letters[20:22]
-m <- crossprod(x)
+m <- Matrix::crossprod(x)
 
 Renv = new.env(parent = globalenv())
 Renv$mat1 = matrix(c(5,1,1,3),2,2)

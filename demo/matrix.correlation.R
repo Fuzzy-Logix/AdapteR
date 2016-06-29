@@ -22,7 +22,7 @@ if(!exists("connection")) {
 sqlQuery(connection,
            "select top 10 * from FL_DEMO.finEquityReturns")
 
-readline("The table consists of triples that define a matrix of equity returns")
+readline("Above: The table has equity returns stored as triples (what was the equity return of which ticker on what date).\nThese triples define a matrix in deep format.")
 
 ###########################################################
 ## Correlation Matrix
@@ -44,7 +44,7 @@ GROUP BY a.TickerSymbol,
          b.TickerSymbol
 ORDER BY 1, 2;")
 
-readline("The SQL-through R way to compute a correlation matrix with DB Lytix.")
+readline("Above: The SQL-through R way to compute a correlation matrix with DB Lytix.")
 
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
@@ -58,18 +58,18 @@ eqnRtn <- FLMatrix(database          = "FL_DEMO",
 ## the equity return matrix is about 3k rows and cols
 dim(eqnRtn)
 
-readline("press any key to continue")
-## The AdapteR way to compute a correlation matrix:
+readline("Above: a remote matrix is defined.")
+
 ## 1. select the desired colums from the full matrix
 sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
 
-readline("press any key to continue")
+readline("Next: the R/AdapteR way to compute a correlation matrix -- transparently in-database")
 
-## 2. select the desired colums from the full matrix
+## 2. use the default R 'cor' function
 flCorr <- cor(sm)
 flCorr
 
-readline("press any key to continue")
+readline("Next: the SQL syntax created for you")
 
 
 ## with this option each R command that uses DBLytix will log
@@ -80,13 +80,14 @@ options(debugSQL=TRUE)
 ## Note that no SQL is sent when defining data-sets
 ## 1. select the desired colums from the full matrix
 sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
+
 ## 2. use the default R 'cor' function
 flCorr <- cor(sm)
 readline("Note that SQL is not sent yet during definition")
 
 flCorr
 readline("Note that SQL is sent when data is printed or otherwise used")
-
+options(debugSQL=FALSE)
 ## Casting methods fetch (selected) data from the warehouse into R memory
 rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 rEqnRtn <- na.omit(rEqnRtn)
@@ -107,13 +108,11 @@ readline("Note: The result is in the same format as the R results.")
 ## indices of date rows in december 2016
 (dec2006 <- grep("2006-12",rownames(eqnRtn)))
 
-readline("press any key to continue")
+readline("Above: dimnames and index support")
 
-## Inspecting subsets of data in R
-## is easy with matrix subsetting syntax:
-eqnRtn[dec2006, c("HPQ","MSFT")]
+eqnRtn[dec2006[1:5], c("HPQ","MSFT")]
 
-readline("press any key to continue")
+readline("Above: Inspecting subsets of data in R is easy with matrix subsetting syntax")
 
 E <- eqnRtn[dec2006, randomstocks]
 readline("NO SQL is sent during the definition of subsetting")

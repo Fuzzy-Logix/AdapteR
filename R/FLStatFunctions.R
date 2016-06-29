@@ -236,8 +236,6 @@ setMethod("FLSdP",signature(x="FLMatrix"),
                                 func=FLSdP.FLAbstractColumn))})
 setMethod("FLSdP",signature(x="FLTable"),
     function(x,na.rm=TRUE){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=FLSdP.FLAbstractColumn))})
 
@@ -262,8 +260,6 @@ setMethod("skewness",signature(x="FLMatrix"),
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="FLTable"),
     function(x,na.rm=TRUE){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="ANY"),
@@ -291,8 +287,6 @@ setMethod("kurtosis",signature(x="FLMatrix"),
                                 func=kurtosis.FLAbstractColumn))})
 setMethod("kurtosis",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=kurtosis.FLAbstractColumn))})
 setMethod("kurtosis",signature(x="ANY"),
@@ -319,9 +313,6 @@ prod <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    if(is.FLTable(x) && !x@isDeep)
-                    stop("convert to deep format using wideToDeep \n")
-                    else
                     return(genScalarFunCall(object=x,
                                 func=prod.FLAbstractColumn))
                 }
@@ -350,9 +341,6 @@ sum <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    if(is.FLTable(x) && !x@isDeep)
-                    stop("convert to deep format using wideToDeep \n")
-                    else
                     return(genScalarFunCall(object=x,
                                 func=sum.FLAbstractColumn))
                 }
@@ -380,9 +368,6 @@ max <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    if(is.FLTable(x) && !x@isDeep)
-                    stop("convert to deep format using wideToDeep \n")
-                    else
                     return(genScalarFunCall(object=x,
                                 func=max.FLAbstractColumn))
                 }
@@ -410,9 +395,6 @@ min <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    if(is.FLTable(x) && !x@isDeep)
-                    stop("convert to deep format using wideToDeep \n")
-                    else
                     return(genScalarFunCall(object=x,
                                 func=min.FLAbstractColumn))
                 }
@@ -444,8 +426,6 @@ setMethod("which.max",signature(x="FLMatrix"),
                                 indexCol=TRUE))})
 setMethod("which.max",signature(x="FLTable"),
     function(x){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=which.max.FLAbstractColumn,
                                 indexCol=TRUE))})
@@ -473,8 +453,6 @@ setMethod("which.min",signature(x="FLMatrix"),
                                 indexCol=TRUE))})
 setMethod("which.min",signature(x="FLTable"),
     function(x){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=which.min.FLAbstractColumn,
                                 indexCol=TRUE))})
@@ -501,8 +479,6 @@ setMethod("geometric.mean",signature(x="FLMatrix"),
                                 func=geometric.mean.FLAbstractColumn))})
 setMethod("geometric.mean",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=geometric.mean.FLAbstractColumn))})
 setMethod("geometric.mean",signature(x="ANY"),
@@ -530,8 +506,6 @@ setMethod("harmonic.mean",signature(x="FLMatrix"),
                                 func=harmonic.mean.FLAbstractColumn))})
 setMethod("harmonic.mean",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=harmonic.mean.FLAbstractColumn))})
 setMethod("harmonic.mean",signature(x="ANY"),
@@ -546,7 +520,7 @@ getDescStatsUDT <- function(object,
                             outFLVector=FALSE){
     
     if(is.FLTable(object) && !object@isDeep)
-    stop("convert to deep format using wideToDeep \n")
+    object <- wideToDeep(object)[["table"]]
 
     sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
                     " SELECT ",paste0(viewCols,collapse=",")," \n ",
@@ -613,7 +587,8 @@ setMethod("mode",signature(x="ANY"),
     function(x,na.rm=FALSE){
         x <- x[!is.na(x)]
         vcount <- plyr::count(df=x)
-        return(vcount[which.max(vcount[,"freq"]),"x"])
+        vmaxCount <- max(vcount[,"freq"])
+        return(vcount[vcount[,"freq"]==vmaxCount,"x"])
         })
 
 ######################### median ################################################
@@ -904,8 +879,6 @@ setMethod("FLDevSq",signature(x="FLMatrix"),
                                 func=FLDevSq.FLAbstractColumn))})
 setMethod("FLDevSq",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        if(!x@isDeep)
-        stop("convert to deep format using wideToDeep \n")
         return(genScalarFunCall(object=x,
                                 func=FLDevSq.FLAbstractColumn))})
 
@@ -916,7 +889,7 @@ getDescStatsUDTjoin <- function(object,
                             viewCols){
     
     if(is.FLTable(object) && !object@isDeep)
-    stop("convert to deep format using wideToDeep \n")
+    object <- wideToDeep(object)[["table"]]
 
     sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
                     " SELECT ",paste0(viewCols,collapse=",")," \n ",
@@ -1037,7 +1010,7 @@ setMethod("rank",signature(x="FLTable"),
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL
         names(voutcol) <- NULL
-
+        
         return(getDescStatsUDTjoin(object=x,
                 functionName=vfunction,
                 outCol=c(
@@ -1095,7 +1068,6 @@ setMethod("FLNtile",signature(x="FLMatrix"),
 
 setMethod("FLNtile",signature(x="FLTable"),
     function(x,n,...){
-
         return(getDescStatsUDTjoin(object=x,
                 functionName="FLNtileUDT",
                 outCol=c(

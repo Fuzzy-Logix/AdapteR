@@ -18,7 +18,6 @@ test_that("Check for matrix distance with different arguments",{
     })
 
 
-
 # rbind function is not working. Error coming No method for coercing S4 class to vector.
 ## casting with Inf does not work.https://app.asana.com/0/143316600934101/146934264360563
 ## only manhattan and euclidean methods are in DB-Lytix.
