@@ -52,7 +52,9 @@ as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
 				columnName=vcolnames))
 }
 genScalarFunCall <- function(object,func,indexCol=FALSE,...){
-	##If FLMatrix or FLTable and indexCol is needed for function
+	##If FLMatrix or FLTable and indexCol may be needed for function
+	if(is.FLTable(object) && !object@isDeep)
+	object <- wideToDeep(object)[["table"]]
 	if(indexCol && 
 		(is.FLMatrix(object)||
 			is.FLTable(object))){

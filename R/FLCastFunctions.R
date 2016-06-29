@@ -29,15 +29,16 @@ as.vector.FLVector <- function(object,mode="any")
         x <- as.data.frame.FLVector(object)[[1]]
     if(ncol(object)>1)
         x <- as.vector(as.data.frame.FLVector(object)[1,])
-        if(!any(is.na(as.numeric(x))))
-        x <- as.numeric(x)
+    if(!any(is.na(as.numeric(x))) && !is.logical(x))
+    x <- as.numeric(x)
+
     if(ncol(object)==1) vnames <- rownames(object)
     else vnames <- colnames(object)
     if(is.character(vnames) && !all(vnames==1:length(vnames)))
     names(x) <- vnames[1:length(x)]
 
     options(stringsAsFactors=vprev1)
-    options(warn=0)
+    options(warn=vprev2)
     return(x)
 }
 
@@ -451,9 +452,31 @@ as.sparseMatrix.FLMatrix <- function(object) {
     if(any(is.na(c(i,j))))
         browser()
   values <- valuedf$valueColumn
+
   if(is.factor(values))
   return(matrix(values,dim(object),
           dimnames=dn))
+  else if(is.logical(values)){
+    vsummary <- base::rbind(Matrix::summary(Matrix(TRUE,
+                                                dim(object)[1],
+                                                dim(object)[2],
+                                                sparse=TRUE)),
+                            Matrix::summary(Matrix::sparseMatrix(i=i,
+                              j=j,
+                              x=values,
+                              dims=dim(object)))
+                            )
+    vsparseRes <- Matrix::sparseMatrix(i=vsummary$i,
+                                      j=vsummary$j,
+                                      x=vsummary$x,
+                                      dims=dim(object),
+                                      dimnames=dn,
+                                      use.last.ij = TRUE)
+    return(matrix(vsparseRes,
+                  dim(object),
+                  dimnames=dn))
+  }
+
   if(is.null(values))
       m <- Matrix::sparseMatrix(i = i,
                         j = j,
@@ -654,11 +677,11 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))
   newnames <- as.character(names(object))
   else newnames <- 1:length(object)
-  
-  oldOption <- getOption("warn")
-  options(warn=-1)
-  if(!any(is.na(as.integer(object))) && 
-    all(as.integer(object)==object)){
+
+  if(is.logical(object))
+  tablename <- getOption("ResultCharVectorTableFL")
+  else if(suppressWarnings(!any(is.na(as.integer(object))) && 
+    all(as.integer(object)==object))){
     tablename <- getOption("ResultIntVectorTableFL")
     object <- as.integer(object)
   }
@@ -668,7 +691,6 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
     tablename <- getOption("ResultCharVectorTableFL")
   else stop("only numeric,integer and character vectors supported in as.FLVector")
 
-  options(warn=oldOption)
   VID <- getMaxVectorId(connection,tablename)
 
   #vobjcopy <- ifelse(is.character(object),fquote(object[x]),object[x])
@@ -679,7 +701,9 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
            getRemoteTableName(getOption("ResultDatabaseFL"),tablename),
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
-                     ifelse(is.character(object),fquote(object[x]),object[x]),
+                     ifelse(tablename==getOption("ResultCharVectorTableFL"),
+                            fquote(object[x]),
+                            object[x]),
                      " AS vectorValueColumn;"
                    ))
     retobj<-sqlSendUpdate(connection,
@@ -688,6 +712,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   }
   else if(class(connection)=="JDBCConnection")
   {
+    #browser()
     vdataframe <- data.frame(vectorIdColumn=as.integer(VID),
                             vectorIndexColumn=as.integer(1:length(object)),
                             vectorValueColumn=as.vector(object))
@@ -839,6 +864,7 @@ as.FLTable.data.frame <- function(object,
   }
   else if(class(connection)=="JDBCConnection")
   {
+    browser()
     vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()
@@ -848,6 +874,8 @@ as.FLTable.data.frame <- function(object,
     names(vcolnames) <- colnames(object)
     # Changing any factors to characters
     object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),
+                                    2,as.character)
+    object[,as.logical(vcolnames=="logical")] <- apply(as.data.frame(object[,as.logical(vcolnames=="logical")]),
                                     2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
@@ -883,6 +911,7 @@ as.FLTable.data.frame <- function(object,
                   vsetvector[" INT "] <- "setInt"
                   for(i in 1:length(namedvector))
                   {
+                    #browser()
                     .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
                       if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
                       else if(namedvector[i]==" FLOAT ") .jfloat(x[i])

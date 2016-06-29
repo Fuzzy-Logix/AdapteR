@@ -19,7 +19,10 @@ setGeneric("constructSelect", function(object,...) {
 setMethod("constructSelect",
           signature(object = "FLMatrix"),
           function(object,joinNames=TRUE){
-              ##browser()
+            if(!"matrix_id" %in% tolower(names(getVariables(object))))
+            object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
+                                        getVariables(object))
+
               if(!FLNamesMappedP(object) | !joinNames)
                   return(constructSelect(object@select))
               select <- object@select
@@ -287,12 +290,15 @@ setMethod("viewSelectMatrix", signature(object = "FLMatrix",
                                         localName="character",
                                         withName="character"),
           function(object,localName, withName="z") {
-              object <- orderVariables(
-                  updateVariable(object,"Matrix_ID",-1),
-                  c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn")
+            if(!"matrix_id" %in% tolower(names(getVariables(object))))
+            object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
+                                        getVariables(object))
+            
+              object <- orderVariables(object,
+                  c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
               )
               return(paste0(" WITH ",withName,
-                            " (Matrix_ID, Row_ID, Col_ID, Cell_Val)
+                            " (MATRIX_ID, Row_ID, Col_ID, Cell_Val)
               AS (",constructSelect(object,joinNames=FALSE)," ) "))
           })
 

@@ -929,8 +929,9 @@ setMethod("gregexpr",
           function(pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE)
           {
-            return(regexpr(pattern, text, ignore.case = FALSE, perl = FALSE,
-        fixed = FALSE, useBytes = FALSE))
+            base::gregexpr(pattern, text, 
+            ignore.case = ignore.case, perl = perl,
+            fixed = fixed, useBytes = useBytes)
           })
 
 #' Pattern Matching
@@ -1021,9 +1022,11 @@ setMethod("grep",
           function(pattern,x,ignore.case=FALSE,
                   perl=FALSE,value=FALSE,
                   fixed=FALSE,useBytes=FALSE,invert=FALSE)
-          base::grep(pattern,x,ignore.case=FALSE,
-                    perl=FALSE,value=FALSE,
-                    fixed=FALSE,useBytes=FALSE,invert=FALSE)
+          base::grep(pattern,x, 
+            ignore.case = ignore.case, perl = perl,
+            value=value,
+            fixed = fixed, useBytes = useBytes,
+            invert=invert)
           )
 
 #' Pattern Matching
@@ -1100,8 +1103,9 @@ setMethod("grepl",
             x="ANY"),
           function(pattern, x, ignore.case = FALSE, perl = FALSE,
       fixed = FALSE, useBytes = FALSE)
-          base::grepl(pattern, x, ignore.case = FALSE, perl = FALSE,
-      fixed = FALSE, useBytes = FALSE)
+          base::grepl(pattern,x, 
+            ignore.case = ignore.case, perl = perl,
+            fixed = fixed, useBytes = useBytes)
           )
 
 ## Only one char taken from replacement
@@ -1160,8 +1164,8 @@ setMethod("sub",
             ignore.case = FALSE, perl = FALSE,
             fixed = FALSE, useBytes = FALSE)
           base::sub(pattern, replacement,x, 
-            ignore.case = FALSE, perl = FALSE,
-            fixed = FALSE, useBytes = FALSE)
+            ignore.case = ignore.case, perl = perl,
+            fixed = fixed, useBytes = useBytes)
           )
 
 #' Pattern Matching and Replacement
@@ -1217,8 +1221,8 @@ setMethod("gsub",
             ignore.case = FALSE, perl = FALSE,
             fixed = FALSE, useBytes = FALSE)
           base::gsub(pattern, replacement,x, 
-            ignore.case = FALSE, perl = FALSE,
-            fixed = FALSE, useBytes = FALSE)
+            ignore.case = ignore.case, perl = perl,
+            fixed = fixed, useBytes = useBytes)
           )
 
 #################################################################################

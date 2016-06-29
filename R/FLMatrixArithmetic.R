@@ -18,6 +18,7 @@ FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 {
+	vcompvector <- c("==",">","<",">=","<=","!=")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)
 		else if(pOperator=="-") return(-1 * pObj1)
@@ -28,18 +29,18 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	if(is.FLMatrix(pObj2))
 	{
 		flag1Check(connection)
-		if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+		if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 		checkSameDims(pObj1,pObj2)
 		else if(pOperator %in% c("%*%"))
 				if(ncol(pObj1) != nrow(pObj2))
-				stop("non-conformable dimensions")
+					stop("non-conformable dimensions")
 
 		a <- genRandVarName()
 		b <- genRandVarName()
 		dimnames <- dimnames(pObj1)
-                dims <- dim(pObj1)
+        dims <- dim(pObj1)
 
-		if(pOperator %in% c("%%","/","*","**"))
+		if(pOperator %in% c("%%","*","**"))
 		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 	            		   			a,".rowIdColumn AS rowIdColumn,",
 	            		   			a,".colIdColumn AS colIdColumn,",
@@ -52,19 +53,34 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"),
 			 		  			ifelse(pOperator=="**","",paste0(b,".valueColumn<>0")))))
 
-		if(pOperator %in% c("%/%"))
-		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-	            		   			a,".rowIdColumn AS rowIdColumn,",
-	            		   			a,".colIdColumn AS colIdColumn,
-	            		   			CAST( ",a,".valueColumn / ",
-	            		   			b,".valueColumn AS INT ) AS valueColumn 
-	            		    FROM ( ",constructSelect(pObj1),") AS ",a,
+		else if(pOperator %in% c("/"))
+		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+	            		   			a,".rowIdColumn AS rowIdColumn, \n ",
+	            		   			a,".colIdColumn AS colIdColumn, \n ",
+	            		   			"CAST(",a,".valueColumn AS FLOAT) ",pOperator," ",
+	            		   			b,".valueColumn AS valueColumn \n ",
+	            		    " FROM ( ",constructSelect(pObj1),") AS ",a,
+			                  ",( ",constructSelect(pObj2),") AS ",b,
+	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
+					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"),
+			 		  			ifelse(pOperator=="**","",paste0(b,".valueColumn<>0")))))
+
+		else if(pOperator %in% c("%/%"))
+		sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+	            		   			a,".rowIdColumn AS rowIdColumn, \n ",
+	            		   			a,".colIdColumn AS colIdColumn, \n ",
+	            		   			"CASE WHEN ((",a,".valueColumn/",b,".valueColumn)<0) ",
+	            		   			" THEN CAST( ",a,".valueColumn / ",
+	            		   			b,".valueColumn AS INT ) - 1 ",
+	            		   			" ELSE CAST( ",a,".valueColumn / ",
+	            		   			b,".valueColumn AS INT ) END AS valueColumn \n ",
+	            		    " FROM ( ",constructSelect(pObj1),") AS ",a,
 			                  ",( ",constructSelect(pObj2),") AS ",b,
 	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
 					 		  	paste0(a,".colIdColumn = ",b,".colIdColumn"),
 			 		  			paste0(b,".valueColumn<>0"))))
 
-		if(pOperator %in% c("%*%"))
+		else if(pOperator %in% c("%*%"))
 		{
 			sqlstr <-paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 									 a,".rowIdColumn AS rowIdColumn,",
@@ -80,7 +96,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                                   dim(pObj2)[[2]])
 		}
 
-		if(pOperator %in% c("+","-"))
+		else if(pOperator %in% c("+","-"))
 		{
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
 								a,".rowIdColumn AS rowIdColumn,",
@@ -98,6 +114,23 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 									" b.valueColumn*(",pOperator,"1) AS valueColumn ",
 									" FROM(",constructSelect(pObj2),") AS b) AS ",a,
 							 " GROUP BY ",a,".rowIdColumn,",a,".colIdColumn")
+		}
+
+		else if(pOperator %in% vcompvector){
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+								" a.rowIdColumn AS rowIdColumn, \n ",
+								"a.colIdColumn AS colIdColumn, \n ",
+								" CASE WHEN FLSum(a.valueColumn) ",
+									ifelse(pOperator=="==","=",pOperator)," 0 ",
+								" THEN 'TRUE' ELSE 'FALSE' END AS valueColumn \n ",
+								" FROM(",constructSelect(pObj1,joinNames=FALSE),
+									" \n UNION ALL \n ",
+									" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+									" b.rowIdColumn AS rowIdColumn, \n ",
+									" b.colIdColumn AS colIdColumn, \n ",
+									" b.valueColumn*(-1) AS valueColumn \n ",
+									" FROM(",constructSelect(pObj2),") AS b) AS a \n ",
+							 " GROUP BY 1,2,3 ")
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -120,7 +153,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.vector(pObj2))
 		{
-			if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+			if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 			pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)))
 			else if(pOperator %in% c("%*%"))
 			{
@@ -143,9 +176,9 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	else if(is.FLVector(pObj2))
 		{
 			#browser()
-			if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+			if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 			pObj2 <- as.FLMatrix(pObj2,
-                                             sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
+                            sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
 			else if(pOperator %in% c("%*%"))
 			{
 				if(length(pObj2) == ncol(pObj1))
@@ -158,12 +191,20 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 
 			return(do.call(pOperator,list(pObj1,pObj2)))
 		}
+	else if(is.FLTable(pObj2))
+	{
+		if(!pObj2@isDeep)
+		pObj2 <- wideToDeep(pObj2)[["table"]]
+		pObj2 <- as.FLMatrix(pObj2)
+		return(do.call(pOperator,list(pObj1,pObj2)))
+	}
 	else stop("Operation Currently Not Supported")
 }
 
 #' @export
 FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 {
+	vcompvector <- c("==",">","<",">=","<=","<>")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)
 		else if(pOperator=="-") return(-1 * pObj1)
@@ -180,7 +221,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			pObj1 <- as.FLMatrix(pObj1)
 			else
 			stop(" non-conformable dimensions ")
-		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+		else if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 		pObj1 <- as.FLMatrix(pObj1,
 					sparse=TRUE,rows=nrow(pObj2),cols=ncol(pObj2))
 		
@@ -193,7 +234,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			stop("non-conformable dimensions")
 		  else
 		    pObj2 <- as.FLMatrix(matrix(pObj2))
-		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+		else if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 		pObj2 <- as.FLVector(pObj2)
 
 		return(do.call(pOperator,list(pObj1,pObj2)))
@@ -207,8 +248,6 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.FLVector(pObj2))
 	{
-		a <- genRandVarName()
-		b <- genRandVarName()
 		flag3Check(connection)
 
 		if(pOperator %in% c("%*%"))
@@ -218,146 +257,152 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			pObj2 <- as.FLMatrix(pObj2)
 			return(pObj1 %*% pObj2)
 		}
-		else if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+		else if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 		{
-			#browser()
-			if(ncol(pObj1)==1 && ncol(pObj2)==1)
-			{
-				vminLength <- min(length(rownames(pObj2)),length(rownames(pObj1)))
-				if(vminLength==length(rownames(pObj1))){
-					vtemp <- pObj2
-					pObj2 <- pObj1
-					pObj1 <- vtemp
-				}
+        if(checkMaxQuerySize(pObj1))
+        pObj1 <- store(pObj1)
+        if(checkMaxQuerySize(pObj2))
+        pObj2 <- store(pObj2)
 
-				if(pOperator %in% c("%/%"))
-				
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-									a, ".vectorIndexColumn AS vectorIndexColumn",
-									",CAST(",a,".vectorValueColumn",
-									"/",b,".vectorValueColumn AS INT) AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE CAST(MOD(",a,".vectorIndexColumn,",
-													vminLength,") AS INT) = ",
-									"CAST(MOD(",b,".vectorIndexColumn,",
-													vminLength,") AS INT)")
 
-				else if(pOperator %in% c("+","-","%%","/","*","**"))
-				
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-										a, ".vectorIndexColumn AS vectorIndexColumn",
-										",",a,".vectorValueColumn",
-										ifelse(pOperator=="%%"," MOD ",pOperator),
-										b,".vectorValueColumn AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE CAST(MOD(",a,".vectorIndexColumn,",
-													vminLength,") AS INT) = ",
-									"CAST(MOD(",b,".vectorIndexColumn,",
-													vminLength,") AS INT)")
+        if(ncol(pObj1)>1 && !pObj1@isDeep 
+            && ncol(pObj2)>1 && !pObj2@isDeep)
+        {
+        	vmaxlen <- max(length(pObj1),length(pObj2))
+            newColnames1 <- renameDuplicates(colnames(pObj1))
+            newColnames2 <- renameDuplicates(colnames(pObj2))
+            if(pOperator %in% c("%/%"))
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									1:vmaxlen," AS vectorIndexColumn, \n ",
+									"CASE WHEN (a.",newColnames1,
+									"/ b.",newColnames2,") < 0 \n ",
+									"THEN CAST( a.",newColnames1,
+									"/ b.",newColnames2," AS INT ) - 1 \n ",
+									"ELSE CAST( a.",newColnames1,
+									"/ b.",newColnames2," AS INT ) \n ",
+									" END AS vectorValueColumn \n ",
+							 " FROM (",constructSelect(pObj1),") AS a, \n ",
+							    "(",constructSelect(pObj2),") AS b \n ",
+						    collapse=" UNION ALL ")
 
-				dimnames <- list(rownames(pObj1),
-								"vectorValueColumn")
-			}
-
-			else if(nrow(pObj1)==1 && nrow(pObj2)==1)
-			{
-				if(ncol(pObj2)>ncol(pObj1))
-				max_length <- ncol(pObj2)
-				else max_length <- ncol(pObj1)
-				newColnames1 <- renameDuplicates(colnames(pObj1))
-				newColnames2 <- renameDuplicates(colnames(pObj2))
-
-				if(pOperator %in% c("%/%"))
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-										1:max_length," AS vectorIndexColumn,
-										CAST( ",a,".",newColnames1,
-										"/",b,".",newColnames2," AS INT ) AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
+			else if(pOperator %in% c("+","-","%%","*","**"))
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									1:vmaxlen," AS vectorIndexColumn, \n ",
+									"a.",newColnames1,
+									ifelse(pOperator=="%%"," MOD ",pOperator),
+									"b.",newColnames2," AS vectorValueColumn \n ",
+								" FROM (",constructSelect(pObj1),") AS a, \n ", 
+								    " (",constructSelect(pObj2),") AS b \n ",
 							    collapse=" UNION ALL ")
 
-				else if(pOperator %in% c("+","-","%%","/","*","**"))
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-										1:max_length," AS vectorIndexColumn,
-										",a,".",newColnames1,
-										ifelse(pOperator=="%%"," MOD ",pOperator),
-										b,".",newColnames2," AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
+			else if(pOperator %in% c("/"))
+			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									1:vmaxlen," AS vectorIndexColumn, \n ",
+									"CAST(a.",newColnames1," AS FLOAT)",pOperator,
+									"b.",newColnames2," AS vectorValueColumn \n ",
+								" FROM (",constructSelect(pObj1),") AS a, \n ", 
+								    " (",constructSelect(pObj2),") AS b \n ",
 							    collapse=" UNION ALL ")
 
-				dimnames <- list(1:max_length,
-								"vectorValueColumn")
-			}
+			else if(pOperator %in% vcompvector)
+			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									1:vmaxlen," AS vectorIndexColumn, \n ",
+									" CASE \n ",
+									" WHEN (a.",newColnames1," - b.",newColnames2, ") ",
+									ifelse(pOperator=="==","=",pOperator),
+									" 0 THEN 'TRUE' ELSE 'FALSE' \n ",
+									" END AS vectorValueColumn \n ",
+							" FROM (",constructSelect(pObj1),") AS a, \n ",
+							 	"(",constructSelect(pObj2),") AS b \n ",
+	                        collapse=" UNION ALL ")
 
-			else if(ncol(pObj1)==1 && nrow(pObj2)==1)
-			{
-				if(ncol(pObj2)>nrow(pObj1))
-				max_length <- ncol(pObj2)
-				else max_length <- nrow(pObj1)
+            dimnames <- list(1:vmaxlen,
+            				"vectorValueColumn")
+        }
+        else{
+        	if(ncol(pObj1)>1 && !pObj1@isDeep)
+	        pObj1 <- store(pObj1)
+	        if(ncol(pObj2)>1 && !pObj2@isDeep)
+	        pObj2 <- store(pObj2)
 
-				newColnames1 <- renameDuplicates(colnames(pObj1))
-				newColnames2 <- renameDuplicates(colnames(pObj2))
+	        ifelse(length(pObj1)>length(pObj2),{
+	            vmaxlen <- length(pObj1);
+	            vminlen <- length(pObj2);
+	            vmaxref <- "a";
+	            ifelse(pObj1@isDeep && length(colnames(pObj1))>1,
+	            vmaxrownames <- colnames(pObj1),
+	            vmaxrownames <- rownames(pObj1))
+	        },{
+	                vmaxlen <- length(pObj2);
+	                vmaxref <- "b";
+	                vminlen <- length(pObj1);
+	                ifelse(pObj2@isDeep && length(colnames(pObj2))>1,
+	                vmaxrownames <- colnames(pObj2),
+	                vmaxrownames <- rownames(pObj2))
+	        })
 
-				if(pOperator %in% c("%/%"))
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-									1:max_length, " AS vectorIndexColumn",
-									",CAST(",a,".vectorValueColumn",
-									"/",b,".",newColnames2," AS INT) AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE ",a,".vectorIndexColumn IN('",pObj1@dimnames[[1]],"')",
-							    collapse=" UNION ALL ")
+	        if((pObj1@isDeep && pObj2@isDeep) 
+	            ||(pObj1@isDeep && ncol(pObj2)==1)
+	            ||(pObj2@isDeep && ncol(pObj1)==1)
+	            ||(ncol(pObj1)==1 && ncol(pObj2)==1)){
 
-				else if(pOperator %in% c("+","-","%%","/","*","**"))
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-										1:max_length, " AS vectorIndexColumn",
-										",",a,".vectorValueColumn",
-										ifelse(pOperator=="%%"," MOD ",pOperator),
-										b,".",newColnames2," AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE ",a,".vectorIndexColumn IN('",pObj1@dimnames[[1]],"')",
-							    collapse=" UNION ALL ")
+	        	if(pOperator %in% c("%/%"))
+					
+				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+										vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
+										"CASE WHEN ((a.vectorValueColumn*b.vectorValueColumn)<0) \n ",
+										"THEN CAST(a.vectorValueColumn / b.vectorValueColumn AS INT) -1 \n ",
+										"ELSE CAST(a.vectorValueColumn / b.vectorValueColumn AS INT) \n ",
+										"END AS vectorValueColumn \n ",
+								" FROM (",constructSelect(pObj1),") AS a, \n ",
+									    "(",constructSelect(pObj2),") AS b \n ",
+								" WHERE CAST(MOD(a.vectorIndexColumn,",
+														vminlen,") AS INT) = ",
+										"CAST(MOD(b.vectorIndexColumn,",
+														vminlen,") AS INT)")
 
-				dimnames <- list(1:max_length,
-								"vectorValueColumn")
-			}
+				else if(pOperator %in% c("+","-","%%","*","**"))
+					
+				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+											vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
+											"a.vectorValueColumn ",
+											ifelse(pOperator=="%%"," MOD ",pOperator),
+											"b.vectorValueColumn AS vectorValueColumn \n ",
+								" FROM (",constructSelect(pObj1),") AS a, \n ",
+									    "(",constructSelect(pObj2),") AS b \n ",
+								" WHERE CAST(MOD(a.vectorIndexColumn,",
+														vminlen,") AS INT) = ",
+										"CAST(MOD(b.vectorIndexColumn,",
+														vminlen,") AS INT)")
 
-			else if(nrow(pObj1)==1 && ncol(pObj2)==1)
-			{
-				if(nrow(pObj2)>ncol(pObj1))
-				max_length <- nrow(pObj2)
-				else max_length <- ncol(pObj1)
+				else if(pOperator %in% c("/"))
+					
+				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+											vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
+											"CAST(a.vectorValueColumn AS FLOAT)",pOperator,
+											"b.vectorValueColumn AS vectorValueColumn \n ",
+								" FROM (",constructSelect(pObj1),") AS a, \n ",
+									    "(",constructSelect(pObj2),") AS b \n ",
+								" WHERE CAST(MOD(a.vectorIndexColumn,",
+														vminlen,") AS INT) = ",
+										"CAST(MOD(b.vectorIndexColumn,",
+														vminlen,") AS INT)")
 
-				newColnames1 <- renameDuplicates(colnames(pObj1))
-				newColnames2 <- renameDuplicates(colnames(pObj2))
+				else if(pOperator %in% vcompvector)
+				sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									vmaxref,".vectorIndexColumn AS vectorIndexColumn \n ,",
+									"CASE \n ",
+									" WHEN (a.vectorValueColumn - b.vectorValueColumn) ",
+									ifelse(pOperator=="==","=",pOperator)," 0 \n ",
+									" THEN 'TRUE' ELSE 'FALSE' END AS vectorValueColumn \n ",
+							" FROM (",constructSelect(pObj1),") AS a, \n ",
+							 	"(",constructSelect(pObj2),") AS b \n ",
+	                        constructWhere(c(paste0(" MOD(a.vectorIndexColumn,",vminlen,
+	                        					") = MOD(b.vectorIndexColumn,",vminlen,")"))))
 
-				if(pOperator %in% c("%/%"))
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-									1:max_length, " AS vectorIndexColumn",
-									",CAST(",a,".",newColnames1,
-									"/",b,".vectorValueColumn AS INT) AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE ",b,".vectorIndexColumn IN('",pObj2@dimnames[[1]],"')",
-							    collapse=" UNION ALL ")
-				else if(pOperator %in% c("+","-","%%","/","*","**"))
-				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-										1:max_length, " AS vectorIndexColumn",
-										",",a,".",newColnames1,
-										ifelse(pOperator=="%%"," MOD ",pOperator),
-										b,".vectorValueColumn AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,", 
-								    (",constructSelect(pObj2),") AS ",b,
-								" WHERE ",b,".vectorIndexColumn IN('",pObj2@dimnames[[1]],"')",
-							    collapse=" UNION ALL ")
-
-				dimnames <- list(1:max_length,
-								"vectorValueColumn")
-			}
+	            dimnames <- list(vmaxrownames,"vectorValueColumn")
+	        }
+        }
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
 	                    connection = connection,
@@ -378,19 +423,27 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 								pOperator=pOperator))
 		}
 	}
+	else if(is.FLTable(pObj2))
+	{
+		if(!pObj2@isDeep)
+		pObj2 <- wideToDeep(pObj2)[["table"]]
+		pObj2 <- as.FLMatrix(pObj2)
+		return(do.call(pOperator,list(pObj1,pObj2)))
+	}
 	else cat("ERROR::Operation Currently Not Supported")
 }
 
 #' @export
 FLMatrixArithmetic.matrix <- function(pObj1,pObj2,pOperator)
 {
+	vcompvector <- c("==",">","<",">=","<=","!=")
 	if(missing(pObj2))
 	{
 		op <- .Primitive(pOperator)
 		return(op(pObj1))
 	}
 	
-	if(pOperator %in% c("+","-","%/%","%%","/","*","**"))
+	if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 	return(FLMatrixArithmetic.sparseMatrix(pObj1,pObj2,pOperator))
 	else if(pOperator %in% c("%*%"))
 	{
@@ -404,6 +457,7 @@ FLMatrixArithmetic.matrix <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 {	
+	vcompvector <- c("==",">","<",">=","<=","!=")
 	if(missing(pObj2))
 	{
 		op <- .Primitive(pOperator)
@@ -430,10 +484,21 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 			return(pObj1 %*% pObj2)
 		}
 	}
-	if(is.FLMatrix(pObj2) || is.FLVector(pObj2))
+	else if(is.FLMatrix(pObj2) || is.FLVector(pObj2))
 	{
 		connection <- getConnection(pObj2)
+		if(is.FLMatrix(pObj2))
+		pObj1 <- as.FLMatrix(matrix(pObj1,nrow(pObj2),ncol(pObj2)))
+		else 
 		pObj1 <- as.FLVector(pObj1)
+		return(do.call(pOperator,list(pObj1,pObj2)))
+	}
+	else if(is.FLTable(pObj2))
+	{
+		if(!pObj2@isDeep)
+		pObj2 <- wideToDeep(pObj2)[["table"]]
+		pObj2 <- as.FLMatrix(pObj2)
+		pObj1 <- as.FLMatrix(matrix(pObj1,nrow(pObj2),ncol(pObj2)))
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
 	else
@@ -443,6 +508,7 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 {
+	vcompvector <- c("==",">","<",">=","<=","!=")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)
 		else if(pOperator=="-") return(-1 * pObj1)
@@ -453,9 +519,26 @@ FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 		pObj1 <- as.FLMatrix(pObj1)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
+	else if(is.FLTable(pObj2))
+	{
+		if(!pObj2@isDeep)
+		pObj2 <- wideToDeep(pObj2)[["table"]]
+		pObj2 <- as.FLMatrix(pObj2)
+		return(do.call(pOperator,list(pObj1,pObj2)))
+	}
 	else
 	return(FLMatrixArithmetic.default(pObj1,pObj2,pOperator))
 }
+
+#' @export
+FLMatrixArithmetic.FLTable <- function(pObj1,pObj2)
+{
+	if(!pObj1@isDeep)
+	pObj1 <- wideToDeep(pObj1)[["table"]]
+	pObj1 <- as.FLMatrix(pObj1)
+	return(do.call(pOperator,list(pObj1,pObj2)))
+}
+
 #' @export
 FLMatrixArithmetic.dgCMatrix <- FLMatrixArithmetic.sparseMatrix
 #' @export
@@ -1028,3 +1111,310 @@ return(FLMatrixArithmetic(pObj1,pObj2,"**"))
 #' @export
 `^.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"**"))
+
+#' @export
+">=" <- function(pObj1,pObj2)
+{
+    UseMethod(">=", pObj1)
+}
+
+#' @export
+`>=.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,">="))
+
+#' @export
+`>=.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.FLTable` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+`>=.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">="))
+
+#' @export
+"<=" <- function(pObj1,pObj2)
+{
+    UseMethod("<=", pObj1)
+}
+
+#' @export
+`<=.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,"<="))
+
+#' @export
+`<=.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.FLTable` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+`<=.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<="))
+
+#' @export
+">" <- function(pObj1,pObj2)
+{
+    UseMethod(">", pObj1)
+}
+
+#' @export
+`>.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,">"))
+
+#' @export
+`>.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.FLTable` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+`>.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,">"))
+
+#' @export
+"<" <- function(pObj1,pObj2)
+{
+    UseMethod("<", pObj1)
+}
+
+#' @export
+`<.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,"<"))
+
+#' @export
+`<.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.FLTable` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+`<.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"<"))
+
+#' @export
+"!=" <- function(pObj1,pObj2)
+{
+    UseMethod("!=", pObj1)
+}
+
+#' @export
+`!=.default` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic.default(pObj1,pObj2,"!="))
+
+#' @export
+`!=.matrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.numeric` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.FLMatrix` <- function(pObj1, pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.FLVector` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.FLTable` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.dgCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.dgeMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.dgTMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+#' @export
+`!=.dsCMatrix` <- function(pObj1,pObj2)
+return(FLMatrixArithmetic(pObj1,pObj2,"!="))
+
+## This is not working for FLMatrix,FLVector case.
+## Refer FLIdentical for this implementation.
+NULL
+#' Equality of in-database objects.
+#'
+#' \code{==} checks the equality of in-database objects.
+#'
+#' The equality of in-database objects mimics the normal addition of R data types.
+#' One can check equality of FLMatrices, FLMatrix - R matrices, FLVectors and
+#' FLVector - RVector.
+#' @param pObj1 can be an in-database object like FLMatrix,FLVector or
+#' a normal R object like matrix,sparseMatrix,vector
+#' @param pObj2 can be an in-database object like FLMatrix,FLVector or
+#' a normal R object like matrix,sparseMatrix,vector
+#' @return \code{==} returns a logical TRUE or FALSE matrix similar to R output
+#' @section Constraints:
+#' Currently only \code{dgCMatrix},\code{dgeMatrix},\code{dsCMatrix},
+#' \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
+#' are supported. Comparision of FLMatrix with FLVector is not currently Supported.
+#' In case of FLVector and Rvector comparision use FLVector==RVector in place of 
+#' RVector==FLVector
+#' @examples
+#' connection <- flConnect(odbcSource="Gandalf")
+#' flmatrix <- FLMatrix("FL_DEMO", 
+#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flvector <- as.FLVector(1:5)
+#' Result <- flmatrix == flmatrix
+#' Result <- flvector==flvector
+#' Result <- flvector==1:5
+# #' @export
+# "==" <- function(pObj1,pObj2)
+# {
+#     UseMethod("==", pObj1)
+# }
+
+# #' @export
+# `==.default` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic.default(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.matrix` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.numeric` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.FLMatrix` <- function(pObj1, pObj2){
+# 	browser()
+# 	return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+# }
+
+# #' @export
+# `==.FLVector` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.FLTable` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.dgCMatrix` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.dgeMatrix` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.dgTMatrix` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
+
+# #' @export
+# `==.dsCMatrix` <- function(pObj1,pObj2)
+# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
