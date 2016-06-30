@@ -1,5 +1,8 @@
 Renv <- new.env(parent = globalenv())
-Renv$x <- rbind(cbind(rnorm(10,0,0.5), rnorm(10,0,0.5)),cbind(rnorm(15,5,0.5), rnorm(15,5,0.5)))
+Renv$x <- rbind(cbind(rnorm(10,0,0.5), 
+            rnorm(10,0,0.5)),
+            cbind(rnorm(15,5,0.5), 
+            rnorm(15,5,0.5)))
 FLenv <- as.FL(Renv)
 
 
@@ -13,8 +16,8 @@ test_that("Kmedoids",eval_expect_equal({
   silinfo_width <- dim(pamx$silinfo$widths)
   diss <- pamx$diss
 },Renv,FLenv,
+expectation=c("medoids","id.med",
+            "clust","isolate","clusinfo",
+            "silinfo_width")
 noexpectation = c("pamx")
 ))
-
-
-#pam(daisy(x, metric = "manhattan"), 2, diss = TRUE)           NOT RUNNING FOR FL

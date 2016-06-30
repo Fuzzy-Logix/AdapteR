@@ -140,7 +140,7 @@ agnes.FLTable <- function(x,
 	vcall <- match.call()
 	methodVector <- c("average","single","complete","centroid")
 	if(!(method[1] %in% methodVector))
-	stop("method must be one of ",methodVector)
+	stop("method must be one of ",paste0(methodVector,collapse=","))
 	else
 	methodID <- as.integer(charmatch(method[1],methodVector)[1])
 	if(!x@isDeep){
