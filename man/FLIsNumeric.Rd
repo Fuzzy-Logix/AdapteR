@@ -15,6 +15,10 @@ FLVector with 1 for TRUE and 0 for FALSE
 \description{
 Check if an element is numeric
 }
+\details{
+The DB Lytix function called is FLIsNumeric.FLIsNumeric function determines if the 
+input string is a valid decimal number.
+}
 \section{Constraints}{
 
 row vectors are not supported currently.
@@ -23,5 +27,9 @@ row vectors are not supported currently.
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- FLIsNumeric(flv)
+}
+\seealso{
+\code{\link[base]{numeric}} for R function reference
+implementation.
 }
 

@@ -16,6 +16,11 @@ dataframe with parsed XML
 Parse XML files stored in-database
 as elements of FLVector.
 }
+\details{
+The DB Lytix function called is FLParseXMLUdt.An XML parser is a utility that goes through 
+text documents containing XML trees and allows the information in the 
+hierarchy to be extracted to replicate the tree structure in a columnar layout.
+}
 \section{Constraints}{
 
 row vectors are not supported currently.
@@ -24,5 +29,8 @@ row vectors are not supported currently.
 wtd <- FLTable("FL_DEMO","tblXMLTest","GroupID")
 flv <- wtd[,"pXML"]
 resultdataframe <- FLParseXML(flv)
+}
+\seealso{
+\code{\link[XML]{xmlParse}}
 }
 

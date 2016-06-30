@@ -858,7 +858,7 @@ as.FLTable.data.frame <- function(object,
   }
   if(class(connection)=="RODBC")
   {
-    vcolnames <- gsub("\\.","",colnames(object),fixed=TRUE)
+    vcolnames <- gsub("\\.","",colnames(object),fixed=FALSE)
     tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE,safer=drop),
       error=function(e){stop(e)})
   }
@@ -878,7 +878,7 @@ as.FLTable.data.frame <- function(object,
                                     2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
-    names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=TRUE)
+    names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=FALSE)
     vcolnamesCopy <- vcolnames
     vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
     vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "

@@ -33,7 +33,7 @@ rather than character-by-character. Always FALSE for FLVector}
 FLVector or R vector with indices or values where match is found
 }
 \description{
-Match \code{patern} in each element of \code{x}
+Match \code{pattern} in each element of \code{x}
 }
 \section{Constraints}{
 
@@ -45,5 +45,8 @@ flv <- widetable[1:6,"string"]
 flvector <- grep("A",flv,value=TRUE)
 flvector <- grep("A",flv,invert=TRUE)
 flvector <- grep("A",flv,invert=TRUE,value=TRUE)
+}
+\seealso{
+\code{\link[base]{grep}} for R function reference implementation.
 }
 

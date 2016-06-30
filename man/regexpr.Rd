@@ -4,13 +4,15 @@
 \alias{regexpr}
 \title{Pattern Matching}
 \usage{
-regexpr(pattern, text, ignore.case = FALSE, perl = FALSE, fixed = FALSE,
-  useBytes = FALSE)
+regexpr(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
+  fixed = FALSE, useBytes = FALSE)
 }
 \arguments{
+\item{startpos}{integer(numeric) specifying starting position for each search}
+
 \item{pattern}{string to search for}
 
-\item{text}{FLVector of characters or R vector
+\item{text}{FLVector of characters or R vector to be searched.
 where matches are sought}
 
 \item{ignore.case}{logical indicating case-sensitivity.
@@ -30,7 +32,12 @@ FLVector with position of first match
 or -1 for no match or R Vector
 }
 \description{
-Match \code{patern} in each element of \code{text}
+Match \code{pattern} in each element of \code{text}
+}
+\details{
+The DB Lytix function called is FLInstr.This function returns the position of 
+the first occurrence of one string within another starting from the
+search position indicated.
 }
 \section{Constraints}{
 
@@ -40,5 +47,8 @@ row FLVectors are not supported currently.
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- regexpr("A",flv)
+}
+\seealso{
+\code{\link[base]{regexpr}} for R function reference implementation.
 }
 

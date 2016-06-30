@@ -30,7 +30,7 @@ FLVector with position of first match
 or -1 for no match or R Vector
 }
 \description{
-Match \code{patern} in each element of \code{text}
+Match \code{pattern} in each element of \code{text}
 }
 \section{Constraints}{
 
@@ -40,5 +40,8 @@ row FLVectors are not supported currently.
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- gregexpr("A",flv)
+}
+\seealso{
+\code{\link[base]{gregexpr}} for R function reference implementation.
 }
 

@@ -31,7 +31,7 @@ and 0 for no match is returned.Else R Vector as in base::grepl
 is returned.
 }
 \description{
-Match \code{patern} in each element of \code{x}
+Match \code{pattern} in each element of \code{x}
 }
 \section{Constraints}{
 
@@ -42,5 +42,8 @@ Output slightly differs from base::grepl. See \code{return}
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 flvector <- grepl("A",flv)
+}
+\seealso{
+\code{\link[base]{grepl}} for R function reference implementation.
 }
 

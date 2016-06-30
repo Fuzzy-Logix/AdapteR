@@ -13,24 +13,8 @@ test_that("FLFKMeans",eval_expect_equal({
   k_crisp <- fannyx$k.crisp
   silinfo_width <- dim(fannyx$silinfo$widths)
   diss <- fannyx$diss
-},Renv,FLenv,noexpectations = c("fannyx")
+},Renv,FLenv,
+expectation=c("memb_exp","clust","k_crisp",
+            "silinfo_width","diss"),
+noexpectation = c("fannyx")
 ))
-
-
-#fanny_fl <- fanny(as.FLMatrix(x),2)
-#fanny_fl$convergence                #GIVING NA for iterations
-#fannyx$convergence
-
-
-
-
-
-
-
-
-
-
-
-
-
-
