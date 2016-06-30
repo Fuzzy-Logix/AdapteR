@@ -864,7 +864,6 @@ as.FLTable.data.frame <- function(object,
   }
   else if(class(connection)=="JDBCConnection")
   {
-    browser()
     vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()

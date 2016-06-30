@@ -137,7 +137,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
     ##expect_equal(e,fle)
     newNames <- ls(envir = Renv)
     for(n in unique(c(expectation,setdiff(noexpectation,setdiff(newNames,oldNames)))))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),label=n,...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
