@@ -7,7 +7,7 @@
 \method{fanny}{FLTable}(x, k, diss = FALSE, memb.exp = 2,
   metric = "euclidean", Stand = FALSE, iniMem.p = NULL,
   cluster.only = FALSE, keep.diss = (!diss && !cluster.only),
-  keep.data = (!diss && !cluster.only), maxit = 500, tol = 0.000001,
+  keep.data = (!diss && !cluster.only), maxit = 500, tol = 1e-06,
   trace.lev = 0, excludeCols = "", classSpec = list(),
   whereconditions = "", distTable = "")
 }
