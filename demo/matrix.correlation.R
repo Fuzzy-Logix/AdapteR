@@ -138,6 +138,7 @@ heatmap.2(as.matrix(M),
           cexRow = 1)
 readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
 
+metaInfo <- read.csv("https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
 
 run.FLCorrelationShiny <- function (){
 ###########################################################
@@ -145,7 +146,6 @@ run.FLCorrelationShiny <- function (){
     ##
     ## metadata can be easily combined on the client
     ## download metadata from
-    metaInfo <- read.csv("https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
 
     ## metadata contains sectors and industries
     ## that will be selectable in the shiny web ui

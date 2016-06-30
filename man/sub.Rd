@@ -34,6 +34,10 @@ FLVector or R vector after replacement
 Replace \code{pattern} in each element of \code{x}
 with \code{replacement}
 }
+\details{
+The DB Lytix function called is FLReplaceChar.The replace character function is a
+scaler that replaces a character in a string with a another character.
+}
 \section{Constraints}{
 
 row FLVectors are not supported currently.
