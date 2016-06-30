@@ -4,8 +4,7 @@
 \alias{expect_eval_equal}
 \title{DEPRECATED: use eval_expect_equal}
 \usage{
-expect_eval_equal(initF, FLcomputationF, RcomputationF, benchmark = FALSE,
-  ...)
+expect_eval_equal(initF, FLcomputationF, RcomputationF, ...)
 }
 \description{
 DEPRECATED: use eval_expect_equal

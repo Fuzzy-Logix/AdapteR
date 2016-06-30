@@ -29,7 +29,11 @@ if comparision should be case sensitive}
 FLMatrix of string distances
 }
 \description{
-compute distance metrics between strings
+compute distance metrics between strings.
+}
+\details{
+stringdistmatrix computes the string distance matrix with rows
+according to a and columns according to b.
 }
 \section{Constraints}{
 
@@ -43,5 +47,9 @@ resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFLag=1)
 resultflmatrix <- stringdistmatrix("xyz",flv,method="hamming",vlength=4)
 resultflmatrix <- stringdistmatrix(flv,flv,method="jw",p=1)
 resultflmatrix <- stringdistmatrix(flv,c("xyz","abc"),method="jw")
+}
+\seealso{
+\code{\link[stringdist]{stringdist}} for R function reference
+implementation.
 }
 

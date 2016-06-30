@@ -433,8 +433,8 @@ setMethod("hamming.distance",
 #' where lv - Levenshtein, dl - Levenshtein-Damerau,
 #' jw - Jaro-Winkler, nmw - NeedleManWunsch. Default is "lv"
 #' @param weight for method=nmw, weights and penalties for match, mismatch and gaps,
-#' integer weights for matching sequential, nonmatching non-sequential characters between the strings,
-#' and integer penality for gaps (ideally negative).
+#' integer weights for matching sequential, nonmatching non-sequential characters 
+#' between the strings, and integer penality for gaps (ideally negative).
 #' @param caseFLag logical or 0/1 indicating
 #' if comparision should be case sensitive
 #' @param p penality factor for jaro-winkler
@@ -506,22 +506,101 @@ setMethod("stringdist",
                 return(FLStringDist("FLJaroDist",
                                     a,b,caseFlag))
               else
-                return(FLStringDist("FLJaroWinklerDist",
-                                    a,b,caseFlag))
-            } else if(method=="nmw")
-              return(FLStringDist("FLNeedleManWunschDist",
-                                  a,b,
-                                  matchWeight=weight$match,
-                                  mismatchWeight=weight$mismatch,
-                                  gapPenalty=weight$gap,...))
+              return(FLStringDist("FLJaroWinklerDist",
+                      a,b,caseFlag))
 
+            ###RV:Should nmw be included in stringdist? It is not as much a distance metric method as a sequence/alignment operation.
+
+        ##  else if(method=="nmw")
+           ## return(FLStringDist("FLNeedleManWunschDist",
+            ##                      a,b,
+            ##                      matchWeight=weight$match,
+            ##                      mismatchWeight=weight$mismatch,
+            ##                      gapPenalty=weight$gap,...)) 
+            }
+          })
+
+## move to file FLNeedleManWunschDist.R
+#' FLNeedleManWunschDist
+#'
+#' compute NeedleManWunsch distance between strings.
+#'
+#' The DB Lytix function called is FLNeedlemanWunschDist.
+#' This function performs global sequence alignment between two
+#' sequences and finds out structural and functional similarity between them
+#' and returns a score which indicates the best alignment between two  
+#' sequences by searching the highest scores in the similarity matrix.
+#'
+#' @seealso \code{\link[Biostrings]{pairwiseAlignment}} for R function 
+#' reference implementation in BioConductor.
+#' 
+#' @param a character or FLVector of characters
+#' @param b character or FLVector of characters
+#' @param matchWeight integer weight for having
+#' matching sequential characters between
+#' the strings
+#' @param mismatchWeight integer Weight
+#' for having nonmatching or non-sequential characters
+#' between the strings
+#' @param gapPenalty integer penality for gaps
+#' @param caseFLag logical or 0/1 indicating 
+#' if comparision should be case sensitive
+#' @return FLVector if any \code{a} or \code{b}
+#' is R character of length 1. Otherwise returns a FLMatrix.
+#' @section Constraints:
+#' row vectors are not supported currently.
+#' Refer to \code{@return} section.
+#' @examples 
+#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' flv <- widetable[1:10,"Species"]
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
+#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
+#' resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
+#' resultflmatrix <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
+#' @export
+setGeneric("FLNeedleManWunschDist", function(a,b,matchWeight=1,
+                                          mismatchWeight=-1,
+                                          gapPenalty=-1,
+                                          caseFlag=0,...)
+    standardGeneric("FLNeedleManWunschDist"))
+
+## move to file FLNeedleManWunschDist.R
+setMethod("FLNeedleManWunschDist",
+          signature(a="character",
+            b="character"),
+          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
+          FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
+                      mismatchWeight=mismatchWeight,
+                      gapPenalty=gapPenalty,
+                      caseFlag=caseFlag))
+
+ ## move to file FLNeedleManWunschDist.R               
+setMethod("FLNeedleManWunschDist",
+          signature(a="ANY",
+            b="ANY"),
+          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
+          {
+          FLStringDistFunctionsClassCheck(a,b)
+          FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
+                      mismatchWeight=mismatchWeight,
+                      gapPenalty=gapPenalty,
+                      caseFlag=caseFlag)
+                               
           })
 
 
 ## move to file stringdist.R
 #' stringdistmatrix
 #'
-#' compute distance metrics between strings
+#' compute distance metrics between strings.
+#'
+#' stringdistmatrix computes the string distance matrix with rows
+#' according to a and columns according to b.
+#'
+#' @seealso \code{\link[stringdist]{stringdist}} for R function reference
+#' implementation.
+#'
 #' @param a character or FLVector of characters
 #' @param b character or FLVector of characters
 #' @param method can be \code{c("lv","dl","hamming","jaccard","jw")}
@@ -668,15 +747,25 @@ setMethod("FLStrCommon",
                             isDeep = FALSE)
             return(resultvec)
           })
-
+################################################################################
 
 ##paste0 is already working for FLVectors,but fetches data.
 ## only single char as delimiter used in DB-Lytix!
 
+## move to file FLConcatString.R
 #' Concatenate elements of vector
 #'
 #' Concatenate elements of FLVector with
-#' a delimiter as collapse value
+#' a delimiter as collapse value.
+#'
+#' The DB Lytix function called is FLConcatString.
+#' The concat string function is an aggregate that joins the values of a string 
+#' column from a table(or a vector of characters) into an output string using a 
+#' user supplied delimiter to separate the fields.
+#'
+#' @seealso \code{\link[base]{paste0}} for R function reference
+#' implementation.
+#'
 #' @param object FLVector of characters
 #' @param delimiter character
 #' @return FLVector of length 1 with result string
@@ -690,6 +779,7 @@ setMethod("FLStrCommon",
 setGeneric("FLConcatString",function(object,delimiter)
     standardGeneric("FLConcatString"))
 
+## move to file FLConcatString.R
 setMethod("FLConcatString",
           signature(object="FLVector",
                     delimiter="character"),
@@ -725,11 +815,18 @@ setMethod("FLConcatString",
                             isDeep = FALSE)
             return(resultvec)
             })
+################################################################################
 
+## move to file FLCleanStr.R
 #' Clean string
 #'
 #' Remove non-printable characters from each
-#' element of FLVector of strings
+#' element of FLVector of strings.
+#'
+#' The DB lytix function called is FLCleanStr.
+#' The clean string function is a scaler that removes all non-printable
+#' characters from a string(vector of characters) and outputs a formatted string.
+#'
 #' @param object FLVector of characters
 #' @return a clean FLVector 
 #' @section Constraints:
@@ -742,6 +839,7 @@ setMethod("FLConcatString",
 setGeneric("FLCleanStr",function(object)
     standardGeneric("FLCleanStr"))
 
+## move to file FL StringFunctions.R
 setMethod("FLCleanStr",
           signature(object="FLVector"),
           function(object){
@@ -749,9 +847,16 @@ setMethod("FLCleanStr",
                             object=object))
             })
 
+## move to file FLIsHex.R
 #' Check if HexaDecimal
 #'
 #' Check if an element is hexadecimal number
+#'
+#' The DB Lytix function called is FLIsHex.
+#' FLIsHex function determines if the input string is a valid Hexadecimal number.
+#' FLIsHex function does not require a leading 0 for an expression to be
+#' evaluated as a hexadecimal.
+#'
 #' @param object FLVector
 #' @return FLVector with 1 for TRUE and 0 for FALSE
 #' @section Constraints:
@@ -764,16 +869,24 @@ setMethod("FLCleanStr",
 setGeneric("FLIsHex",function(object)
     standardGeneric("FLIsHex"))
 
+## move to file FLIsHex.R
 setMethod("FLIsHex",
           signature(object="FLVector"),
           function(object){
             return(FLStrCommon(functionName="FLIsHex",
                             object=object))
             })
-
+## move to file FLIsNumeric.R
 #' Check if Numeric
 #'
 #' Check if an element is numeric
+#'
+#' The DB Lytix function called is FLIsNumeric.FLIsNumeric function determines if the 
+#' input string is a valid decimal number.
+#'
+#' @seealso \code{\link[base]{numeric}} for R function reference
+#' implementation.
+#'
 #' @param object FLVector
 #' @return FLVector with 1 for TRUE and 0 for FALSE
 #' @section Constraints:
@@ -786,6 +899,7 @@ setMethod("FLIsHex",
 setGeneric("FLIsNumeric",function(object)
     standardGeneric("FLIsNumeric"))
 
+## move to file FLIsNumeric.R
 setMethod("FLIsNumeric",
           signature(object="FLVector"),
           function(object){
@@ -793,9 +907,19 @@ setMethod("FLIsNumeric",
                             object=object))
             })
 
+## move to file FLSqueezeSpace.R
 #' Remove extra spaces in strings
 #'
 #' Removes extra spaces from elements
+#'
+#' The DB Lytix function called is FLSqueezeSpace.The squeeze space function is a scalar 
+#' that removes extra spaces within a string and outputs a properly formatted string.
+#' 
+#' @seealso \code{\link[base]{gsub}} for base aproach,  \code{\link[stringr]{str_replace_all}} 
+#' and \code{\link[stringr]{str_trim}} for stringr approach, 
+#'  \code{\link[stringi]{stri_replace_all_charclass}} and \code{\link[stringi]{stri_trim}}  
+#'  for stringi approach in R function reference implementation.
+#'
 #' @param object FLVector of characters
 #' @return FLVector with extra spaces removed
 #' @section Constraints:
@@ -808,20 +932,34 @@ setMethod("FLIsNumeric",
 setGeneric("FLSqueezeSpace",function(object)
     standardGeneric("FLSqueezeSpace"))
 
+## move to file FLSqueezeSpace.R
 setMethod("FLSqueezeSpace",
           signature(object="FLVector"),
           function(object){
             return(FLStrCommon(functionName="FLSqueezeSpace",
                             object=object))
             })
+
+
 ## No point in overloading strsplit because list
 ## output is not possible and only single char taken from
 ## delimiter in DB-Lytix
 
+## move to file FLExtractStr.R
 #' Extract parts of strings
 #'
 #' Extract sub-strings separated by a
-#' delimiter and identified by their position
+#' delimiter and identified by their position.
+#'
+#' The DB lytix function called is FlExtractStr.The extract string function is a scaler that
+#' extracts a segment from a string concatenated with delimiter. The position parameter
+#' indicates the location of the delimiter.If the string input doesn't have the delimiter 
+#' indicated, a null is returned. If the last segment doesn't have a trailing delimiter 
+#' but the position is indicated, then the last segment is returned.
+#'
+#' @seealso \code{\link[base]{substr}} , \code{\link[base]{strsplit}} for R function reference
+#' implementation.
+#'
 #' @param object FLVector of characters
 #' @param delimiter character
 #' @param stringpos identifier to reference the
@@ -837,6 +975,7 @@ setMethod("FLSqueezeSpace",
 setGeneric("FLExtractStr",function(object,delimiter,stringpos)
     standardGeneric("FLExtractStr"))
 
+## move to file FLExtractStr.R
 setMethod("FLExtractStr",
           signature(object="FLVector",
                     delimiter="character",
@@ -848,11 +987,21 @@ setMethod("FLExtractStr",
                             stringpos=as.integer(stringpos[1])))
             })
 
+
+## move to file regexpr.R
 #' Pattern Matching
 #'
-#' Match \code{patern} in each element of \code{text}
+#' Match \code{pattern} in each element of \code{text}  
+#' 
+#' The DB Lytix function called is FLInstr.This function returns the position of 
+#' the first occurrence of one string within another starting from the
+#' search position indicated.
+#'
+#' @seealso \code{\link[base]{regexpr}} for R function reference implementation.
+#'
+#' @param startpos integer(numeric) specifying starting position for each search
 #' @param pattern string to search for
-#' @param text FLVector of characters or R vector
+#' @param text FLVector of characters or R vector to be searched.
 #' where matches are sought
 #' @param ignore.case logical indicating case-sensitivity.
 #' Currently always FALSE for FLVectors
@@ -871,34 +1020,45 @@ setMethod("FLExtractStr",
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- regexpr("A",flv)
 #' @export
-setGeneric("regexpr", function(pattern, text, ignore.case = FALSE, perl = FALSE,
+
+## RV: StartPos argument in DB Lytix for FLInStr had not been implemented here in regexpr though it is calling FLInStr. 
+## TODO: implement passing of startpos argument(default = 1)
+## RV: StartPos argument need only be included in regexpr since only that is calling DB Lytix FLInStr right?
+##     Others(gregexpr,grep,sub,......) dont though they essentially perform similar functions; so we dont need startpos there right???
+
+setGeneric("regexpr", function(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE)
     standardGeneric("regexpr"))
 
+## move to file regexpr.R
 setMethod("regexpr",
           signature(
             text="FLVector"),
-          function(pattern, text, ignore.case = FALSE, perl = FALSE,
+          function(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE)
           {
             if(is.null(pattern)||is.na(pattern)||length(pattern)==0)
             pattern <- "NULL"
             return(FLStrCommon("FLInstr",
-                      text,delimiter=pattern))
+                      text,delimiter=pattern,stringpos=startpos))
           })
 
+## move to file regexpr.R
 setMethod("regexpr",
           signature(
             text="ANY"),
-          function(pattern, text, ignore.case = FALSE, perl = FALSE,
+          function(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE)
           base::regexpr(pattern,text,ignore.case = ignore.case, perl = perl,
         fixed = fixed, useBytes = useBytes)
           )
 
+## move to file gregexpr.R
 #' Pattern Matching
 #'
-#' Match \code{patern} in each element of \code{text}
+#' Match \code{pattern} in each element of \code{text}
+#'
+#' @seealso \code{\link[base]{gregexpr}} for R function reference implementation.
 #' @param pattern string to search for
 #' @param text FLVector of characters or R vector
 #' where matches are sought
@@ -923,6 +1083,7 @@ setGeneric("gregexpr", function(pattern, text, ignore.case = FALSE, perl = FALSE
         fixed = FALSE, useBytes = FALSE)
     standardGeneric("gregexpr"))
 
+## move to file gregexpr.R
 setMethod("gregexpr",
           signature(
             text="ANY"),
@@ -934,9 +1095,12 @@ setMethod("gregexpr",
             fixed = fixed, useBytes = useBytes)
           })
 
+## move to file grep.R
 #' Pattern Matching
 #'
-#' Match \code{patern} in each element of \code{x}
+#' Match \code{pattern} in each element of \code{x}
+#'
+#' @seealso \code{\link[base]{grep}} for R function reference implementation.
 #' @param pattern string to search for
 #' @param x FLVector of characters or R vector
 #' where matches are sought
@@ -1029,9 +1193,12 @@ setMethod("grep",
             invert=invert)
           )
 
+## move to file grepl.R
 #' Pattern Matching
 #'
-#' Match \code{patern} in each element of \code{x}
+#' Match \code{pattern} in each element of \code{x}
+#'
+#' @seealso \code{\link[base]{grepl}} for R function reference implementation.
 #' @param pattern string to search for
 #' @param x FLVector of characters or R vector
 #' where matches are sought
@@ -1058,6 +1225,7 @@ setGeneric("grepl", function(pattern, x, ignore.case = FALSE, perl = FALSE,
       fixed = FALSE, useBytes = FALSE)
     standardGeneric("grepl"))
 
+## move to file grepl.R
 setMethod("grepl",
           signature(
             x="FLVector"),
@@ -1111,10 +1279,16 @@ setMethod("grepl",
 ## Only one char taken from replacement
 ## in DB-Lytix!
 
+## move to file sub.R
 #' Pattern Matching and Replacement
 #'
-#' Replace \code{patern} in each element of \code{x}
+#' Replace \code{pattern} in each element of \code{x}
 #' with \code{replacement}
+#'
+#' The DB Lytix function called is FLReplaceChar.The replace character function is a
+#' scaler that replaces a character in a string with a another character.
+#'
+#' @seealso \code{\link[base]{sub}} for R function reference implementation.
 #' @param pattern string to search for
 #' @param the replacement character
 #' @param x FLVector of characters or R vector
@@ -1141,6 +1315,7 @@ setGeneric("sub", function(pattern,replacement,x,
                     fixed = FALSE, useBytes = FALSE)
     standardGeneric("sub"))
 
+## move to file sub.R
 setMethod("sub",
           signature(
             x="FLVector"),
@@ -1168,10 +1343,16 @@ setMethod("sub",
             fixed = fixed, useBytes = useBytes)
           )
 
+## move to file gsub.R
 #' Pattern Matching and Replacement
 #'
-#' Replace \code{patern} in each element of \code{x}
+#' Replace \code{pattern} in each element of \code{x}
 #' with \code{replacement}
+#'
+#' The DB Lytix function called is FLReplaceChar.The replace character function is a
+#' scaler that replaces a character in a string with a another character.
+#'
+#' @seealso \code{\link[base]{gsub}} for R function reference implementation.
 #' @param pattern string to search for
 #' @param the replacement character
 #' @param x FLVector of characters or R vector
@@ -1198,6 +1379,7 @@ setGeneric("gsub", function(pattern,replacement,x,
                     fixed = FALSE, useBytes = FALSE)
     standardGeneric("gsub"))
 
+## move to file gsub.R
 setMethod("gsub",
           signature(
             x="FLVector"),
@@ -1214,6 +1396,7 @@ setMethod("gsub",
                       stringpos=fquote(replacement[1])))
           })
 
+## move to file gsub.R
 setMethod("gsub",
           signature(
             x="ANY"),
@@ -1226,10 +1409,18 @@ setMethod("gsub",
           )
 
 #################################################################################
+
+## move to file FLParseXML.R
 #' Parse XML files
 #'
 #' Parse XML files stored in-database
 #' as elements of FLVector.
+#'
+#' The DB Lytix function called is FLParseXMLUdt.An XML parser is a utility that goes through 
+#' text documents containing XML trees and allows the information in the 
+#' hierarchy to be extracted to replicate the tree structure in a columnar layout.
+#'
+#' @seealso  \code{\link[XML]{xmlParse}} 
 #' @param object FLVector of characters
 #' @return dataframe with parsed XML
 #' @section Constraints:
@@ -1242,6 +1433,7 @@ setMethod("gsub",
 setGeneric("FLParseXML", function(object)
     standardGeneric("FLParseXML"))
 
+## move to file FLParseXML.R
 setMethod("FLParseXML",
           signature(
             object="FLVector"),
@@ -1263,4 +1455,4 @@ setMethod("FLParseXML",
                               ORDER BY 1,2;")
 
             return(sqlQuery(getOption("connectionFL"),sqlstr))
-          })
+            })

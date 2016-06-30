@@ -105,7 +105,6 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               ...){
-    ##browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
@@ -135,9 +134,14 @@ eval_expect_equal <- function(e, Renv, FLenv,
     if(is.null(re))
         expect_null(fle,label=fle)
     ##expect_equal(e,fle)
-    newNames <- ls(envir = Renv)
-    for(n in unique(c(expectation,setdiff(noexpectation,setdiff(newNames,oldNames)))))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+    vToCheckNames <- setdiff(newNames,oldNames)
+    if(length(noexpectation)>0)
+    vToCheckNames <- setdiff(noexpectation,vToCheckNames)
+    if(length(expectation)>0)
+    vToCheckNames <- c(expectation,vToCheckNames)
+
+    for(n in unique(vToCheckNames))
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),label=n,...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
@@ -363,7 +367,7 @@ initF.FLTable <- function(rows,cols,...)
                       getOption("ResultDatabaseFL"),
                       "fzzlserial",
                       "serialval",
-                      whereconditions=paste0(getOption("ResultDatabaseFL"),".fzzlserial.serialval<100"))
+                      whereconditions=paste0(getOption("ResultDatabaseFL"),".fzzlserial.serialval < ",rows+1))
   return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
 }
 

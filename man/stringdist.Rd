@@ -18,8 +18,8 @@ where lv - Levenshtein, dl - Levenshtein-Damerau,
 jw - Jaro-Winkler, nmw - NeedleManWunsch. Default is "lv"}
 
 \item{weight}{for method=nmw, weights and penalties for match, mismatch and gaps,
-integer weights for matching sequential, nonmatching non-sequential characters between the strings,
-and integer penality for gaps (ideally negative).}
+integer weights for matching sequential, nonmatching non-sequential characters 
+between the strings, and integer penality for gaps (ideally negative).}
 
 \item{p}{penality factor for jaro-winkler
 if p==0 jaro distance is computed}

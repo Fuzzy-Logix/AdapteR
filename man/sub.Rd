@@ -31,8 +31,12 @@ rather than character-by-character. Always FALSE for FLVector}
 FLVector or R vector after replacement
 }
 \description{
-Replace \code{patern} in each element of \code{x}
+Replace \code{pattern} in each element of \code{x}
 with \code{replacement}
+}
+\details{
+The DB Lytix function called is FLReplaceChar.The replace character function is a
+scaler that replaces a character in a string with a another character.
 }
 \section{Constraints}{
 
@@ -43,5 +47,8 @@ Currently only one character is used for replacement.
 widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 flvector <- sub("A","X",flv)
+}
+\seealso{
+\code{\link[base]{sub}} for R function reference implementation.
 }
 

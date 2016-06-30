@@ -1,6 +1,7 @@
 library(testthat)
 Renv <- new.env(parent = globalenv())
-data <- dist(USArrests) 
+Renv$data <- USArrests
+rownames(Renv$data) <- 1:nrow(Renv$data)
 FLenv <- as.FL(Renv)
 
 
@@ -13,7 +14,8 @@ test_that("hclust",{eval_expect_equal(
   order <- length(hc$order)
   label <- length(hc$labels)
   )Renv,FLenv,
-  noexpectations = c("hc")
+  expectation=c("merge","height","order","label"),
+  noexpectation = c("hc")
 })
 
 #cutree,rbind functions not developed yet.

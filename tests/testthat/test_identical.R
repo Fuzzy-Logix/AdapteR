@@ -5,8 +5,7 @@ test_that(
   "Testing ",
   {
     result1=eval_expect_equal({test1<-identical(1,NULL)},Renv,FLenv)
-    print(result1)
-    
+    ##print(result1)
   })
 
 test_that(

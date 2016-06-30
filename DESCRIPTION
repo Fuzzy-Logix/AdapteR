@@ -109,7 +109,6 @@ Collate:
     'FLTriDiag.R'
     'FLVarCluster.R'
     'FLVector.R'
-    'FLgreaterthan.R'
     'FLtestLib.R'
     'apply.R'
     'crossprod.R'

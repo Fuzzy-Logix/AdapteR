@@ -4,7 +4,7 @@
 \alias{cov}
 \title{CoVariance.}
 \usage{
-cov(x, y, use = "everything", method = "pearson", ...)
+cov(x, y = NULL, use = "everything", method = "pearson", ...)
 }
 \arguments{
 \item{x}{FLMatrix, FLVector or FLTable object or any R object}

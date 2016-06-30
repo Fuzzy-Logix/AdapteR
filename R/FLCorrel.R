@@ -21,7 +21,7 @@ NULL
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
 #' @export
-cor <- function(x,y,use="everything",
+cor <- function(x,y=NULL,use="everything",
 				method="pearson",...){
 	UseMethod("cor",x)
 }
@@ -30,38 +30,38 @@ cor <- function(x,y,use="everything",
 cor.default <- stats::cor
 
 #' @export
-cor.FLMatrix <- function(x,y=x,use="everything",
+cor.FLMatrix <- function(x,y=NULL,use="everything",
 				method="pearson",...){
 	return(FLCorGeneric(x=x,y=y,
 						functionName="FLCorrel",
 						method=method,...))
 	}
 #' @export
-cor.numeric <- function(x,y=x,use="everything",
+cor.numeric <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCorrel",
 					method=method,...))
 #' @export
-cov.matrix <- function(x,y=x,use="everything",
+cov.matrix <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCorrel",
 					method=method,...))
 #' @export
-cor.data.frame <- function(x,y=x,use="everything",
+cor.data.frame <- function(x,y=NULL,use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCorrel",
 					method=method,...))
 #' @export
-cor.FLVector <- function(x,y=x,use="everything",
+cor.FLVector <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCorrel",
 					method=method,...))
 #' @export
-cor.FLTable <- function(x,y=x,use="everything",
+cor.FLTable <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCorrel",
@@ -86,7 +86,7 @@ return(FLCorGeneric(x=x,y=y,
 #' cov(deeptable,deeptable)
 #' cov(widetable,widetable)
 #' @export
-cov <- function(x,y,use="everything",
+cov <- function(x,y=NULL,use="everything",
 				method="pearson",...){
 	UseMethod("cov",x)
 }
@@ -95,37 +95,37 @@ cov <- function(x,y,use="everything",
 cov.default <- stats::cov
 
 #' @export
-cov.FLMatrix <- function(x,y=x,use="everything",
+cov.FLMatrix <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovar",
 					method=method,...))
 #' @export
-cov.numeric <- function(x,y=x,use="everything",
+cov.numeric <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovar",
 					method=method,...))
 #' @export
-cov.matrix <- function(x,y=x,use="everything",
+cov.matrix <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovar",
 					method=method,...))
 #' @export
-cov.data.frame <- function(x,y=x,use="everything",
+cov.data.frame <- function(x,y=NULL,use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovar",
 					method=method,...))
 #' @export
-cov.FLVector <- function(x,y=x,use="everything",
+cov.FLVector <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovar",
 					method=method,...))
 #' @export
-cov.FLTable <- function(x,y=x,use="everything",
+cov.FLTable <- function(x,y=NULL,use="everything",
 						method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovar",
@@ -157,38 +157,38 @@ FLCovarP <- function(x,y=NULL,
 }
 
 #' @export
-FLCovarP.FLMatrix <- function(x,y=x,
+FLCovarP.FLMatrix <- function(x,y=NULL,
 							use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovarP",
 					method=method,...))
 #' @export
-FLCovarP.numeric <- function(x,y=x,use="everything",
+FLCovarP.numeric <- function(x,y=NULL,use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovarP",
 					method=method,...))
 #' @export
-FLCovarP.matrix <- function(x,y=x,use="everything",
+FLCovarP.matrix <- function(x,y=NULL,use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovarP",
 					method=method,...))
 #' @export
-FLCovarP.data.frame <- function(x,y=x,use="everything",
+FLCovarP.data.frame <- function(x,y=NULL,use="everything",
 								method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovarP",
 					method=method,...))
 #' @export
-FLCovarP.FLVector <- function(x,y=x,use="everything",
+FLCovarP.FLVector <- function(x,y=NULL,use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovarP",
 					method=method,...))
 #' @export
-FLCovarP.FLTable <- function(x,y=x,use="everything",
+FLCovarP.FLTable <- function(x,y=NULL,use="everything",
 							method="pearson",...)
 return(FLCorGeneric(x=x,y=y,
 					functionName="FLCovarP",
@@ -221,10 +221,10 @@ var <- function(x,y=NULL,...){
 var.default <- stats::var
 
 #' @export
-var.FLMatrix <- function(x,y=x,...)
+var.FLMatrix <- function(x,y=NULL,...)
 return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 #' @export
-var.numeric <- function(x,y=x,...){
+var.numeric <- function(x,y=NULL,...){
 	if(missing(y))
 	return(var.default(x,...))
 	else if(!is.FLVector(y) && !is.FLMatrix(y) && !is.FLTable(y))
@@ -232,7 +232,7 @@ var.numeric <- function(x,y=x,...){
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
-var.matrix <- function(x,y=x,...){
+var.matrix <- function(x,y=NULL,...){
 	if(missing(y))
 	return(var.default(x,...))
 	else if(!is.FLVector(y) && !is.FLMatrix(y) && !is.FLTable(y))
@@ -240,7 +240,7 @@ var.matrix <- function(x,y=x,...){
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
-var.data.frame <- function(x,y=x,...){
+var.data.frame <- function(x,y=NULL,...){
 	if(missing(y))
 	return(var.default(x,...))
 	else if(!is.FLVector(y) && !is.FLMatrix(y) && !is.FLTable(y))
@@ -253,7 +253,7 @@ var.FLAbstractColumn <- function(object){
 				paste0(object@columnName,collapse=","),") "))
 }
 #' @export
-var.FLVector <- function(x,y=x,...){
+var.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
 		if(ncol(x)>1 && !x@isDeep)
 		x <- as.FLVector(as.vector(x))
@@ -262,7 +262,7 @@ var.FLVector <- function(x,y=x,...){
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
-var.FLTable <- function(x,y=x,...)
+var.FLTable <- function(x,y=NULL,...)
 return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 
 #' population variance.
@@ -295,22 +295,22 @@ varP <- function(x,...){
 		return((stats::var(x,...)*(n-1))/n)
 }
 #' @export
-FLVarP.FLMatrix <- function(x,y=x,...)
+FLVarP.FLMatrix <- function(x,y=NULL,...)
 return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 #' @export
-FLVarP.numeric <- function(x,y=x,...){
+FLVarP.numeric <- function(x,y=NULL,...){
 	if(missing(y))
 	return(varP(x,...))
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 }
 #' @export
-FLVarP.matrix <- function(x,y=x,...){
+FLVarP.matrix <- function(x,y=NULL,...){
 	if(missing(y))
 	return(varP(x,...))
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 }
 #' @export
-FLVarP.data.frame <- function(x,y=x,...){
+FLVarP.data.frame <- function(x,y=NULL,...){
 	if(missing(y))
 	return(varP(x,...))
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
@@ -321,7 +321,7 @@ FLVarP.FLAbstractColumn <- function(object){
 				paste0(object@columnName,collapse=","),") "))
 }
 #' @export
-FLVarP.FLVector <- function(x,y=x,...){
+FLVarP.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
 		if(ncol(x)>1 && !x@isDeep)
 		x <- as.FLVector(as.vector(x))
@@ -330,16 +330,16 @@ FLVarP.FLVector <- function(x,y=x,...){
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 }
 #' @export
-FLVarP.FLTable <- function(x,y=x,...)
+FLVarP.FLTable <- function(x,y=NULL,...)
 return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 
 
 ## Generic function to cover FLCorrel,FLCovar,FLCovarP
-FLCorGeneric <- function (x,y=x,functionName,method="pearson",...) {
+FLCorGeneric <- function (x,y=NULL,functionName,method="pearson",...) {
 	UseMethod("FLCorGeneric", x)
 }
 
-FLCorGeneric.default <- function(x,y=x,
+FLCorGeneric.default <- function(x,y=NULL,
 								functionName,
 								method,...){
 	if(functionName=="FLCorrel")
@@ -354,10 +354,12 @@ FLCorGeneric.default <- function(x,y=x,
 		}
 }
 
-FLCorGeneric.FLMatrix <- function(x,y=x,
+FLCorGeneric.FLMatrix <- function(x,y=NULL,
 								functionName,
 								method,...)
 {
+	if(is.null(y))
+	y <- x
 	connection <- getConnection(x)
 	pStoreResult <- FALSE
     ##browser()
@@ -504,11 +506,12 @@ FLCorGeneric.FLMatrix <- function(x,y=x,
 }
 
 #' @export
-FLCorGeneric.numeric <- function(x,y=x,
+FLCorGeneric.numeric <- function(x,y=NULL,
 								functionName,
 								method,...)
 {
-	#browser()
+	if(is.null(y))
+	y <- x
 	if(is.FLMatrix(y))
 	{
 		res<- t(FLCorGeneric(x=y,y=x,
@@ -541,10 +544,13 @@ FLCorGeneric.numeric <- function(x,y=x,
 }
 
 #' @export
-FLCorGeneric.matrix <- function(x,y=x,
+FLCorGeneric.matrix <- function(x,y=NULL,
 								functionName,
 								method,...)
 {
+	if(is.null(y))
+	y <- x
+
 	if(is.FLMatrix(y))
 	{
 		res<- t(FLCorGeneric(x=y,y=x,
@@ -576,10 +582,13 @@ FLCorGeneric.matrix <- function(x,y=x,
 }
 
 #' @export
-FLCorGeneric.data.frame <- function(x,y=x,
+FLCorGeneric.data.frame <- function(x,y=NULL,
 									functionName,
 									method,...)
 {
+	if(is.null(y))
+	y <- x
+
 	if(is.FLMatrix(y))
 	{
 		res<- t(FLCorGeneric(x=y,y=x,
@@ -612,10 +621,13 @@ FLCorGeneric.data.frame <- function(x,y=x,
 }
 
 #' @export
-FLCorGeneric.FLVector <- function(x,y=x,
+FLCorGeneric.FLVector <- function(x,y=NULL,
 								functionName,
 								method,...)
 {	
+	if(is.null(y))
+	y <- x
+
 	connection <- getConnection(x)
 
 	if(is.FLVector(y))
@@ -693,10 +705,16 @@ FLCorGeneric.FLVector <- function(x,y=x,
 }
 
 #' @export
-FLCorGeneric.FLTable <- function(x,y=x,
+FLCorGeneric.FLTable <- function(x,y=NULL,
 								functionName,
 								method,...)
 {
+	if(is.null(y)){
+		vnullFlag <- 1
+		y <- x
+	}
+	else vnullFlag <- 0
+
 	connection <- getConnection(x)
 	if(is.FLTable(y))
 	{
@@ -747,9 +765,16 @@ FLCorGeneric.FLTable <- function(x,y=x,
 		if(!y@isDeep && !x@isDeep)
 		{
 			deepx <- wideToDeep(x)
-			deepy <- wideToDeep(y)
 			x <- deepx[["table"]]
-			y <- deepy[["table"]]
+
+			if(!vnullFlag){
+				deepy <- wideToDeep(y)
+				y <- deepy[["table"]]
+			}
+			else{
+				deepy <- deepx
+				y <- x
+			}
 			
 			flm <-FLCorGeneric(x=x,y=y,
 						functionName=functionName,
