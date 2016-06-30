@@ -47,7 +47,6 @@ FLVarCluster.FLTable<-function(x,
 							whereconditions = ""
 							)
 {
-
 	#Type validation
 	if(!(base::toupper(matrixType) %in% c("COVAR","CORREL")))
 	stop("matrixType should be in c(COVAR,CORREL)")
@@ -181,19 +180,14 @@ FLVarCluster.FLTable<-function(x,
   							}
   							return(clustervector)})
 
-	if(is.numeric(clustervector) || is.vector(clustervector))
-	{
-		if(x@isDeep)
-		names(clustervector) <- deepx@dimnames[[2]]
-		else
+	if(!x@isDeep)
 		{
-			sqlstr <- paste0(" SELECT columnName FROM ",mapTable," ORDER BY vectorIndexColumn")
-			names(clustervector) <- sqlQuery(connection,sqlstr)[["columnName"]]
+			sqlstr <- paste0(" SELECT a.columnName AS vcolnames \n ",
+                            " FROM ",mapTable," a,",outputTable," b \n ",
+                            " WHERE a.vectorIndexColumn=b.vectorIndexColumn ")
+			names(clustervector) <- sqlQuery(getOption("connectionFL"),sqlstr)[["vcolnames"]]
 			t <- sqlQuery(" DROP TABLE ",mapTable)
 		}
-		return(clustervector)
-	}
-	else
 	return(clustervector)
 }
 

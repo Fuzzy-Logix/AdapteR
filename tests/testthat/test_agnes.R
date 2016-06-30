@@ -7,7 +7,7 @@ rownames(Renv$data) <- 1:nrow(Renv$data)
 # rownames(Renv$animals) <- 1:nrow(Renv$animals)
 FLenv <- as.FL(Renv)
 
-## For Loop gives error!
+## For Loop gives error
 #for(vmethod in c("average","complete"))
 
 test_that("agnes components dimensions for average method ",{
