@@ -19,7 +19,13 @@ FLVector if any \code{xsource} or \code{targets}
 is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
-computes the levenshtein distance between strings
+computes the levenshtein distance between strings.
+}
+\details{
+The DB Lytix function called is FLLevenshteinDist.
+This function computes the levenshtein distance between the 
+first two char string arguments(the minimal number of insertions, deletions  
+or replacements required to transform one string into the other).
 }
 \section{Constraints}{
 
@@ -33,5 +39,9 @@ flv <- widetable[1:10,"Species"]
 resultflvector <- levenshtein.distance("xyz",flv)
 resultflmatrix <- levenshtein.distance(flv,flv,caseFLag=1)
 resultflmatrix <- levenshtein.distance(flv,c("xyz","poli"),caseFLag=1)
+}
+\seealso{
+\code{\link[vwr]{levenshtein.distance}} for R function reference
+implementation.
 }
 

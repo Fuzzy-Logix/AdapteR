@@ -1,11 +1,4 @@
-#' @include utilities.R
-#' @include FLIs.R
-#' @include FLCastFunctions.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLTable.R
-#' @include FLDims.R
-#' @include FLPrint.R
 NULL
 
 #' Equality of in-database objects.
@@ -47,16 +40,20 @@ identical.FLMatrix <- function(pObj1, pObj2)
 	connection <- getConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
-		checkSameDims(pObj1,pObj2)
-		a <- genRandVarName()
-		b <- genRandVarName()
+		if(!all(dim(pObj1)==dim(pObj2)))
+		return(FALSE)
 
-		sqlstr <- paste0("SELECT 0
-						 FROM (",constructSelect(pObj1),") AS ",a,
-						 	",(",constructSelect(pObj2),") AS ",b,
-                        constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
-                                         paste0(a,".colIdColumn = ",b,".colIdColumn"),
-                                         paste0(a,".valueColumn <> ",b,".valueColumn"))))
+		sqlstr <- paste0(" SELECT a.rowIdColumn AS rowIdColumn, \n ",
+								"a.colIdColumn AS colIdColumn, \n ",
+								" CASE WHEN FLSum(a.valueColumn)<>0 THEN 'FALSE' ELSE 'TRUE' END AS EqualityColumn \n ",
+								" FROM(",constructSelect(pObj1,joinNames=FALSE)," UNION ALL ",
+									" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+									" b.rowIdColumn AS rowIdColumn, \n ",
+									" b.colIdColumn AS colIdColumn, \n ",
+									" b.valueColumn*(-1) AS valueColumn \n ",
+									" FROM(",constructSelect(pObj2),") AS b) AS a \n ",
+							 " GROUP BY a.rowIdColumn,a.colIdColumn \n ",
+							 " HAVING EqualityColumn = 'FALSE' ")
 
 		sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(pObj1,pObj2),
@@ -73,7 +70,8 @@ identical.FLMatrix <- function(pObj1, pObj2)
 		    ||class(pObj2)=="dgeMatrix"||class(pObj2)=="dsCMatrix"
 		    ||class(pObj2)=="dgTMatrix")
 	{
-		checkSameDims(pObj1,pObj2)
+		if(!all(dim(pObj1)==dim(pObj2)))
+		return(FALSE)
 		pObj2 <- as.FLMatrix(pObj2)
 		return(identical(pObj1,pObj2))
 	}
@@ -87,12 +85,12 @@ identical.FLVector <- function(pObj1, pObj2)
 	connection <- getConnection(pObj1)
 	if(is.FLVector(pObj2))
 	{
-		if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
+		if(length(pObj1) != length(pObj2)) return(FALSE)
 		a <- genRandVarName()
 		b <- genRandVarName()
 		newColnames1 <- renameDuplicates(colnames(pObj1))
 		newColnames2 <- renameDuplicates(colnames(pObj2))
-		sqlstr <- paste0("SELECT 0
+		sqlstr <- paste0("SELECT 'TRUE' 
 						 FROM (",constructSelect(pObj1),") AS ",a,
 						 	",(",constructSelect(pObj2),") AS ",b,
                         constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"),
@@ -111,7 +109,7 @@ identical.FLVector <- function(pObj1, pObj2)
 	}
 	else if(is.vector(pObj2))
 	{
-		if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
+		if(length(pObj1) != length(pObj2)) return(FALSE)
 		pObj2 <- as.FLVector(pObj2)
 		return(identical(pObj1,pObj2))
 	}
@@ -124,7 +122,8 @@ identical.matrix <- function(pObj1,pObj2)
 {
 	if(is.FLMatrix(pObj2))
 	{
-		checkSameDims(pObj1,pObj2)
+		if(!all(dim(pObj1)==dim(pObj2)))
+		return(FALSE)
 		pObj1 <- as.FLMatrix(pObj1)
 		return(identical(pObj1,pObj2))
 	}
@@ -146,7 +145,7 @@ identical.numeric <- function(pObj1,pObj2)
 {
 	if(is.FLVector(pObj2))
 	{
-		if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
+		if(length(pObj1) != length(pObj2)) return(FALSE)
 		pObj1 <- as.FLVector(pObj1)
 		return(identical(pObj1,pObj2))
 	}
@@ -202,20 +201,18 @@ NULL
 	if(is.FLMatrix(pObj2))
 	{
 		checkSameDims(pObj1,pObj2)
-		a <- genRandVarName()
-		b <- genRandVarName()
 
-		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-								   a,".rowIdColumn AS rowIdColumn,",
-								   a,".colIdColumn AS colIdColumn,
-								   CASE 
-								    WHEN ",a,".valueColumn <> ",b,".valueColumn THEN 'FALSE' 
-								    WHEN ",a,".valueColumn = ",b,".valueColumn THEN 'TRUE' 
-								   END AS valueColumn 
-						 FROM (",constructSelect(pObj1),") AS ",a,
-						 	",(",constructSelect(pObj2),") AS ",b,
-                        constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"),
-                                         paste0(a,".colIdColumn = ",b,".colIdColumn"))))
+		sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+								" a.rowIdColumn AS rowIdColumn, \n ",
+								"a.colIdColumn AS colIdColumn, \n ",
+								" CASE WHEN FLSum(a.valueColumn)<>0 THEN 'FALSE' ELSE 'TRUE' END AS valueColumn \n ",
+								" FROM(",constructSelect(pObj1,joinNames=FALSE)," \n UNION ALL \n ",
+									" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+									" b.rowIdColumn AS rowIdColumn, \n ",
+									" b.colIdColumn AS colIdColumn, \n ",
+									" b.valueColumn*(-1) AS valueColumn \n ",
+									" FROM(",constructSelect(pObj2),") AS b) AS a \n ",
+							 " GROUP BY 1,2,3 ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
@@ -229,14 +226,13 @@ NULL
 
 	    flm <- new("FLMatrix",
 	            select= tblfunqueryobj,
+	            dim=dim(pObj1),
 	            dimnames=dimnames(pObj1))
 
 	    flm <- ensureQuerySize(pResult=flm,
 		            pInput=list(pObj1,pObj2),
-		            pOperator="==",
-		            pStoreResult=TRUE)
+		            pOperator="==")
 	    return(flm)
-	    return(matrix(as.logical(as.matrix(flm)),nrow(pObj1),ncol(pObj1)))
 	}
 	if(is.matrix(pObj2)||class(pObj2)=="dgCMatrix"
 		    ||class(pObj2)=="dgeMatrix"||class(pObj2)=="dsCMatrix"
@@ -246,17 +242,23 @@ NULL
 		pObj2 <- as.FLMatrix(pObj2)
 		return("=="(pObj1,pObj2))
 	}
-	# if(is.FLVector(pObj2))
-	# {
-	# 	# pObj2 <- as.FLMatrix(pObj2, sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
-	# 	# return(pObj1==pObj2)
-	# }
+	if(is.FLVector(pObj2))
+	{
+		pObj2 <- as.FLMatrix(pObj2, sparse=TRUE,rows=nrow(pObj1),cols=ncol(pObj1))
+		return(pObj1==pObj2)
+	}
 	if(is.vector(pObj2))
 	{
 		pObj2 <- as.FLMatrix(matrix(pObj2,nrow(pObj1),ncol(pObj1)))
 		return(pObj1==pObj2)
 	}
-	
+	if(is.FLTable(pObj2))
+	{
+		if(!pObj2@isDeep)
+		pObj2 <- wideToDeep(pObj2)[["table"]]
+		pObj2 <- as.FLMatrix(pObj2)
+		return(pObj1==pObj2)
+	}
 	return(stop("incomparable inputs"))
 }
 
@@ -265,66 +267,62 @@ NULL
 {
 	if(is.FLVector(pObj2))
 	{
-		connection <- getConnection(pObj2)
+		connection <- getOption("connectionFL")
 		if(checkMaxQuerySize(pObj1))
 		pObj1 <- store(pObj1)
 		if(checkMaxQuerySize(pObj2))
 		pObj2 <- store(pObj2)
-		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		a <- genRandVarName()
-		b <- genRandVarName()
 
-		if(!pObj1@isDeep && !pObj2@isDeep)
+		ifelse(length(pObj1)>length(pObj2),{
+			vmaxlen <- length(pObj1);
+			vminlen <- length(pObj2);
+			vmaxref <- "a";
+			ifelse(pObj1@isDeep && length(colnames(pObj1))>1,
+			vmaxrownames <- colnames(pObj1),
+			vmaxrownames <- rownames(pObj1))
+			},{
+				vmaxlen <- length(pObj2);
+				vmaxref <- "b";
+				vminlen <- length(pObj1);
+				ifelse(pObj2@isDeep && length(colnames(pObj2))>1,
+				vmaxrownames <- colnames(pObj2),
+				vmaxrownames <- rownames(pObj2))
+				})
+
+		if(ncol(pObj1)>1 && !pObj1@isDeep 
+			&& ncol(pObj2)>1 && !pObj2@isDeep)
 		{
 			newColnames1 <- renameDuplicates(colnames(pObj1))
 			newColnames2 <- renameDuplicates(colnames(pObj2))
-			if(length(newColnames1)==1 && length(newColnames2)==1)
-			{
-			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-									a,".vectorIndexColumn AS vectorIndexColumn,
-									CASE 
-									 WHEN ",a,".",newColnames1," <> ",b,".",newColnames2, " THEN 0 
-									 WHEN ",a,".",newColnames1," = ",b,".",newColnames2, " THEN 1 
-									END AS vectorValueColumn 
-							 FROM (",constructSelect(pObj1),") AS ",a,
-							 	",(",constructSelect(pObj2),") AS ",b,
-	                        constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"))),
+			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									1:vmaxlen," AS vectorIndexColumn, \n ",
+									" CASE \n ",
+									" WHEN (a.",newColnames1," - b.",newColnames2, ") <> 0 THEN 'FALSE' ELSE 'TRUE' \n ",
+									" END AS vectorValueColumn \n ",
+							" FROM (",constructSelect(pObj1),") AS a, \n ",
+							 	"(",constructSelect(pObj2),") AS b \n ",
 	                        collapse=" UNION ALL ")
-			dimnames <- list(rownames(pObj1),"vectorValueColumn")
-			}
-			else if(length(newColnames1)>1 && length(newColnames2)>1)
-			{
-			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-									1:max(length(newColnames1),length(newColnames2))," AS vectorIndexColumn,
-									CASE 
-									 WHEN ",a,".",newColnames1," <> ",b,".",newColnames2, " THEN 0 
-									 WHEN ",a,".",newColnames1," = ",b,".",newColnames2, " THEN 1 
-									END AS vectorValueColumn 
-							 FROM (",constructSelect(pObj1),") AS ",a,
-							 	",(",constructSelect(pObj2),") AS ",b,
-	                        collapse=" UNION ALL ")
-			dimnames <- list(1:max(length(newColnames1),length(newColnames2)),"vectorValueColumn")
-			}
-			else if(length(newColnames1)>1) return(store(pObj1)==pObj2)
-			else return(store(pObj2)==pObj1)
+			dimnames <- list(1:vmaxlen,"vectorValueColumn")
 		}
-		else
-		{
-			if(pObj1@isDeep && pObj2@isDeep)
-			{
-				sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-										a,".vectorIndexColumn AS vectorIndexColumn,
-										CASE 
-										 WHEN ",a,".vectorValueColumn <> ",b,".vectorValueColumn THEN 0 
-										 WHEN ",a,".vectorValueColumn = ",b,".vectorValueColumn THEN 1 
-										END AS vectorValueColumn 
-								 FROM (",constructSelect(pObj1),") AS ",a,
-								 	",(",constructSelect(pObj2),") AS ",b,
-		                        constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"))),
-		                        collapse=" UNION ALL ")
-				dimnames <- list(rownames(pObj1),c("vectorIdColumn","vectorIndexColumn","vectorValueColumn"))
-			}
-			else return(as.vector(pObj1)==as.vector(pObj2))
+		if(ncol(pObj1)>1 && !pObj1@isDeep)
+		pObj1 <- store(pObj1)
+		if(ncol(pObj2)>1 && !pObj2@isDeep)
+		pObj2 <- store(pObj2)
+		if((pObj1@isDeep && pObj2@isDeep) 
+			||(pObj1@isDeep && ncol(pObj2)==1)
+			||(pObj2@isDeep && ncol(pObj1)==1)
+			||(ncol(pObj1)==1 && ncol(pObj2)==1)){
+			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+									vmaxref,".vectorIndexColumn AS vectorIndexColumn \n ,",
+									"CASE \n ",
+									" WHEN (a.vectorValueColumn - b.vectorValueColumn) <> 0 \n ",
+										 " THEN 'FALSE' ELSE 'TRUE' END AS vectorValueColumn \n ",
+							" FROM (",constructSelect(pObj1),") AS a, \n ",
+							 	"(",constructSelect(pObj2),") AS b \n ",
+	                        constructWhere(c(paste0(" MOD(a.vectorIndexColumn,",vminlen,
+	                        					") = MOD(b.vectorIndexColumn,",vminlen,")"))))
+
+			dimnames <- list(vmaxrownames,"vectorValueColumn")
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -344,11 +342,10 @@ NULL
 		flv <- ensureQuerySize(pResult=flv,
 	            pInput=list(pObj1,pObj2),
 	            pOperator="==")
-		return(as.logical(as.vector(flv)))
+		return(flv)
 	}
 	if(is.vector(pObj2))
 	{
-		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
 		pObj2 <- as.FLVector(pObj2)
 		return("=="(pObj1,pObj2))
 	}
@@ -357,23 +354,41 @@ NULL
 		pObj2 <- as.FLMatrix(pObj2)
 		return(pObj2==pObj1)
 	}
-	# if(is.FLMatrix(pObj2))
-	# return(pObj2==pObj1)
-
+	if(is.FLMatrix(pObj2))
+	{
+		pObj1 <- as.FLMatrix(pObj1, sparse=TRUE,
+					rows=nrow(pObj2),cols=ncol(pObj2))
+		return(pObj1==pObj2)
+	}
+	if(is.FLTable(pObj2))
+	{
+		if(!pObj2@isDeep)
+		pObj2 <- wideToDeep(pObj2)[["table"]]
+		pObj2 <- as.FLMatrix(pObj2)
+		return(pObj1==pObj2)
+	}
 	return(stop("incomparable inputs"))
 }
 
 #' @export
+`==.FLTable` <- function(pObj1,pObj2)
+{
+	if(!pObj1@isDeep)
+	pObj1 <- wideToDeep(pObj1)[["table"]]
+	pObj1 <- as.FLMatrix(pObj1)
+	pObj2 <- as.FLMatrix(pObj2)
+	return(pObj1==pObj2)
+}
+
+
+#' @export
 `==.matrix` <- function(pObj1,pObj2)
 {
-	if(is.FLMatrix(pObj2))
-	{
-		checkSameDims(pObj1,pObj2)
-		pObj1 <- as.FLMatrix(pObj1,connection=getConnection(pObj2))
-		return("=="(pObj1,pObj2))	
+	if(is.FL(pObj2)){
+		pObj1 <- as.FLMatrix(pObj1)
+		return(pObj1==pObj2)
 	}
-	else
-	return(base::"=="(pObj1,pObj2))
+	else return(base::"=="(pObj1,pObj2))
 }
 
 #' @export
@@ -388,12 +403,91 @@ NULL
 #' @export
 `==.numeric` <- function(pObj1,pObj2)
 {
-	if(is.FLVector(pObj2))
+	if(is.FL(pObj2))
 	{
-		#if(length(pObj1) != length(pObj2)) stop("non-conformable dimensions")
-		pObj1 <- as.FLVector(pObj1,connection=getConnection(pObj2))
+		pObj1 <- as.FLVector(pObj1)
 		return("=="(pObj1,pObj2))	
 	}
 	else
 	return(base::"=="(pObj1,pObj2))
+}
+
+
+#' @export
+any <- function(...,na.rm=FALSE){
+	return(FLanyall(...,na.rm=na.rm,
+					vfunction="any"))
+}
+
+#' @export
+all <- function(...,na.rm=FALSE){
+	return(FLanyall(...,na.rm=na.rm,
+					vfunction="all"))
+}
+
+FLanyall <- function(...,na.rm=FALSE,vfunction="all"){
+	#browser()
+	vlist <- list(...)
+	vtemp <- unlist(lapply(vlist,
+		function(x)
+			return(is.FL(x))))
+
+	ifelse(vfunction=="all",{
+			vbasefunc <- base::all;
+			vresult <- TRUE;
+		},{
+			vbasefunc <- base::any;
+			vresult <- FALSE;
+		})
+
+    if(!base::any(vtemp))
+    return(vbasefunc(...,na.rm=na.rm))
+
+    vresult <- vbasefunc(unlist(vlist[!vtemp]))
+
+    vlist <- vlist[vtemp]
+
+    getColumnName <- function(x){
+    	vmapp <- c(vectorValueColumn="FLVector",
+    				valueColumn="FLMatrix",
+    				cell_val_colname="FLTable")
+    	vres <- names(vmapp)[vmapp==class(x)]
+    	names(vres) <- NULL
+    	return(vres)
+    }
+    vlength <- length(vlist)
+    getTrueorFalse <- function(x,vfunction){
+    	vrescolumn <- getColumnName(x)
+    	vreqLogic <- ifelse(vfunction=="all",
+    						fquote("FALSE"),
+    						fquote("TRUE"))
+    	vsqlstr <- paste0("SELECT a.",vrescolumn," \n ",
+    				" FROM (",constructSelect(x),") AS a \n ",
+    				" WHERE a.",vrescolumn," = ",vreqLogic
+    				)
+    	vresult <- sqlQuery(getOption("connectionFL"),
+    				vsqlstr)
+    	if(nrow(vresult)>0){
+	    	if(vfunction=="all") return(FALSE)
+	    	else return(TRUE)}
+    	else{
+    		if(vfunction=="all") return(TRUE)
+	    	else return(FALSE)}
+    }
+    ## for loop is used because instead of joining all inputs
+    ## this would check sequentially for FALSE and when found
+    ## terminates the loop.
+    for(i in vlist){
+    	if(is.FLTable(i) && !i@isDeep)
+    	i <- wideToDeep(i)[["table"]]
+    	if(vfunction=="all"){
+	    	vresult <- (vresult && getTrueorFalse(x=i,vfunction=vfunction))
+	    	if(!vresult) return(vresult)
+	    }
+    	else{
+    		vresult <- (vresult || getTrueorFalse(x=i,vfunction=vfunction))
+	    	if(vresult) return(vresult)
+    	}
+    }
+    return(vresult)
 }

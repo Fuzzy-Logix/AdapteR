@@ -16,7 +16,7 @@ test_that("Check for deviation with FL and R vector object",{
           test2 = deviation(vector1,method = "mean-abs")
           test3 = deviation(vector1,method = "mean-square")
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })
 
 #Test for deviation with matrix type objects .
@@ -30,7 +30,7 @@ test_that("Check for deviation with FL and R matrix object",{
           test5 = deviation(matrix1,method = "mean-abs")
           test6 = deviation(matrix1,method = "mean-square")
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })
 
 #Test for deviation with dataframe type objects .
@@ -45,5 +45,5 @@ test_that("Check for deviation with FL and R dataframe object",{
           test8 = deviation(dataframe1,method = "mean-abs")
           test9 = deviation(dataframe1,method = "mean-square")
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })

@@ -1,3 +1,5 @@
+#' @include FLMatrix.R
+NULL
 
 
 

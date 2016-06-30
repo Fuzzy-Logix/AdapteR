@@ -9,14 +9,14 @@ FLenv <- as.FL(Renv)
 #Asana Ticket - https://app.asana.com/0/143316600934101/145657030318423
 test_that("Check for weighted covariance with unbiased method",{
     result = eval_expect_equal({ test1 = cov.wt(df1, wt = wt1)},
-                                Renv,FLenv)
-    print(result)
-    })
+                               Renv,FLenv)
+    ##print(result)
+})
 
 #test Failed. Different results for R and AdapteR.
 #Asana Ticket - https://app.asana.com/0/143316600934101/145657030318423
 test_that("Check for weighted covariance with ML method",{
     result = eval_expect_equal({ test2 = cov.wt(df1, wt = wt1,method = "ML",cor = TRUE)},
                                 Renv,FLenv)
-    print(result)
-    })
+    ##print(result)
+})

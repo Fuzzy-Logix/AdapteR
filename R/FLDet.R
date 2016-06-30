@@ -1,10 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLTable.R
-#' @include FLIs.R
-#' @include FLDims.R
-#' @include FLPrint.R
 NULL
 
 #' Determinant of a Matrix.

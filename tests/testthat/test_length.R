@@ -33,7 +33,7 @@ test_that("length of matrix",{
         Lnm <- length(nmatrix)
         ##Lcm <- length(cmatrix)
     },Renv,FLenv)
-    print(result)
+    ##print(result)
 })
 
 test_that("length of vector",{
@@ -42,14 +42,14 @@ test_that("length of vector",{
         Lcv <- length(cvector)
         Lbv <- length(bvector)
     },Renv,FLenv)
-    print(result)
+    ##print(result)
 })
 
 test_that("length of data.frame",{
     result = eval_expect_equal({
         Ldf <- length(df)
     },Renv,FLenv)
-    print(result)
+    ##print(result)
 })
 
 

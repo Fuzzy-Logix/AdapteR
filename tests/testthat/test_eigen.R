@@ -15,19 +15,20 @@ test_that("eigen values",{
         e12 <- eigen(mat1, symmetric = FALSE)
                                         # same (different algorithm).
     }, Renv, FLenv)
-    print(result)
+    ##print(result)
 })
 
 test_that("eigen, option only.values",{
     result = eval_expect_equal({
         e2 <- eigen(mat2, only.values = TRUE)
-    print(result)
+    })
+    #print(result)
 })
 test_that("eigen values",{
     result = eval_expect_equal({
         e4 <- eigen(mat4)
     }, Renv, FLenv)
-    print(result)
+    ##print(result)
 })
 
 # Hermittian matrix is not formed due to bug in FLMatrixArithematic.default
@@ -38,5 +39,5 @@ test_that("eigen supports complex values",{
         e3 <- eigen(mat3) # complex values
         e5 <- eigen(mat5) # complex values
     }, Renv, FLenv)
-    print(result)
+    ##print(result)
 })

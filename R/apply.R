@@ -1,3 +1,6 @@
+#' @include FLMatrix.R
+NULL
+
 ##Apply functions
 # widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 # ddply(widetable,c("PetalWidth","PetalLength"),
@@ -12,21 +15,6 @@
 # group by flt.petalwidth,flt.petallength"
 ## Return Type ?
 ## deeptable ?
-
-setClass(
-    "FLAbstractTable",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
-
-setClass(
-	"FLAbstractColumn",
-	slots=list(
-		columnName = "character"))
 
 as.FLAbstractCol <- function(object,indexCol=FALSE)
 {
@@ -64,7 +52,9 @@ as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
 				columnName=vcolnames))
 }
 genScalarFunCall <- function(object,func,indexCol=FALSE,...){
-	##If FLMatrix or FLTable and indexCol is needed for function
+	##If FLMatrix or FLTable and indexCol may be needed for function
+	if(is.FLTable(object) && !object@isDeep)
+	object <- wideToDeep(object)[["table"]]
 	if(indexCol && 
 		(is.FLMatrix(object)||
 			is.FLTable(object))){

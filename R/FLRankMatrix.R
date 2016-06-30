@@ -1,6 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
 NULL
 
 #' Matrix Rank.

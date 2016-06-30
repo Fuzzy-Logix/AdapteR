@@ -6,28 +6,31 @@ Renv = new.env(parent = globalenv())
 Renv$l = letters
 Renv$fx <- freeny.x
 Renv$freeny.y <- freeny.y
-Renv$tT <- stats::ftable(Titanic)
+##Renv$tT <- stats::ftable(Titanic)
 
 ## In order for examples to work in a chain, FLenv is needed
 FLenv <- as.FL(Renv)
 
 #head/tail
-test_that("Head/Tail",
+test_that("Head/Tail of a vector",
           eval_expect_equal({
             hl <- head(l)
-            hl2 <- head(l, n = -6L)
-            
-            hx <- head(fx, n = 10L)
-            hy <- head(freeny.y)
-            
             tl <- tail(l)
-            tl2 <- tail(l, n = -6L)
-            
-            tx <- tail(fx)
+            hy <- head(freeny.y)
             ty <- tail(freeny.y)
+          }, Renv, FLenv))
             
+test_that("Head/Tail of a vector with negative n",
+          eval_expect_equal({
+            tl2 <- tail(l, n = -6L)
+            hl2 <- head(l, n = -6L)
+          }, Renv, FLenv))
+            
+test_that("Head/Tail of a matrix",
+          eval_expect_equal({
+            hx <- head(fx, n = 10L)
+            tx <- tail(fx)
             ##tail(library) ## does not apply to AdapteR
-            
-            htT <- head(tT)
-          }, Renv))
+            ##htT <- head(tT)
+          }, Renv, FLenv))
 

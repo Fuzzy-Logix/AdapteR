@@ -1,9 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLPrint.R
-#' @include FLIs.R
-#' @include FLDims.R
 NULL
 
 #' An S4 class to represent LU Decomposition

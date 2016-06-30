@@ -1,6 +1,4 @@
-#' @include utilities.R
-#' @include data_prep.R
-#' @include FLTable.R
+#' @include FLMatrix.R
 NULL
 
 setClass(

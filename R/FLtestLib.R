@@ -1,4 +1,5 @@
-#' @include utilities.R
+#' @include FLMatrix.R
+NULL
 
 #' @export
 setGeneric("FLexpect_equal",
@@ -104,7 +105,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               ...){
-    browser()
+    ##browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
@@ -116,11 +117,24 @@ eval_expect_equal <- function(e, Renv, FLenv,
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
-    eval(expr = e, envir=Renv)
+    re <- tryCatch({
+        eval(expr = e, envir=Renv)
+        NULL
+    }, error=function(err) {
+        err
+    })
     rEndT <- Sys.time()
     flStartT <- Sys.time()
-    eval(expr = e, envir=FLenv)
+    fle <- tryCatch({
+        eval(expr = e, envir=FLenv)
+        NULL
+    }, error=function(err) {
+        err
+    })
     flEndT <- Sys.time()
+    if(is.null(re))
+        expect_null(fle,label=fle)
+    ##expect_equal(e,fle)
     newNames <- ls(envir = Renv)
     for(n in unique(c(expectation,setdiff(noexpectation,setdiff(newNames,oldNames)))))
         FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
@@ -136,13 +150,13 @@ eval_expect_equal <- function(e, Renv, FLenv,
 
 #' DEPRECATED: use eval_expect_equal
 #' @export
-expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,benchmark=FALSE,...)
+expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,...)
 {
   I <- initF(...)
   if(!is.list(I$FL))
   I <- list(FL=list(I$FL),R=list(I$R))
-    FLexpect_equal(do.call(FLcomputationF,I$FL),
-                 do.call(RcomputationF,I$R),
+   FLexpect_equal(FLcomputationF(I$FL),
+                 RcomputationF(I$R),
                  check.attributes=FALSE)
 }
 
@@ -326,7 +340,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
         connection = getOption("connectionFL"),
         database = getOption("ResultDatabaseFL"),
         table_name = c(mtrx=vtableName),
-        variables=list(rowIdColumn=paste0("mtrx.rowIdColumn"),
+        variables=list(MATRIX_ID="'%insertIDhere%'",
+                      rowIdColumn=paste0("mtrx.rowIdColumn"),
                       colIdColumn=paste0("mtrx.colIdColumn"),
                       valueColumn=paste0("mtrx.valueColumn")),
         whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),

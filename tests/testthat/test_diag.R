@@ -16,15 +16,14 @@ test_that(
   "Testing dim of diag for vector of length 1 ",
   {
     result1=eval_expect_equal({test1<-dim(diag(a))},Renv,FLenv)
-    print(result1)
-    
+    ##print(result1)
   })
 
 test_that(
   "Testing diag for vector of length > 1 ",
   {
     result2=eval_expect_equal({test2<-diag(10,3,4)},Renv,FLenv)
-    print(result2)
+    ##print(result2)
   })
 
 test_that(
@@ -33,17 +32,16 @@ test_that(
     result5=eval_expect_equal({
      test5<-diag(z)
      },Renv,FLenv)
-    print(result5)
+    ##print(result5)
   })
 
-#equality fails
 test_that(
   "Testing equality works for vectors from diag ",
   {
     result3=eval_expect_equal({
               test3<-all(diag(b)==d)
             },Renv,FLenv)
-    print(result3)
+    ##print(result3)
   })
 
 
@@ -55,5 +53,5 @@ test_that(
       v<-var(M <- cbind(x,y))
       test4<-diag(v)
       },Renv,FLenv)
-    print(result4)
+    ##print(result4)
   })

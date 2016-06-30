@@ -1,4 +1,6 @@
-#' @include FLconstructSQL.R
+#' @include FLconstructSQL.R FLMatrix.R FLStore.R
+NULL
+
 
 #' An S4 class to represent FLMatrix
 #'

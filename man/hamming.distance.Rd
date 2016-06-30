@@ -21,7 +21,13 @@ FLVector if any \code{xsource} or \code{targets}
 is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
-computes the hamming distance between strings
+computes the hamming distance between strings.
+}
+\details{
+The DB Lytix function called is FLHammingDist.
+This function computes the hamming distance between the 
+two char string arguments(the number of non-overlapping characters). 
+The DB Lytix function called is FLHammingDist.
 }
 \section{Constraints}{
 
@@ -35,5 +41,9 @@ flv <- widetable[1:10,"Species"]
 resultflvector <- hamming.distance("xyz",flv)
 resultflmatrix <- hamming.distance(flv,flv,caseFLag=1)
 resultflmatrix <- hamming.distance(flv,c("xyz","poli"),caseFLag=1)
+}
+\seealso{
+\code{\link[vwr]{hamming.distance}} for R function reference
+implementation.
 }
 

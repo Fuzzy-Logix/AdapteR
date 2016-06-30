@@ -1,8 +1,7 @@
-#' @include utilities.R
-#' @include FLTable.R
 #' @include FLMatrix.R
-#' @include FLVector.R
 NULL
+
+
 #' An S4 class to represent FLKMedoids
 setClass(
 	"FLKMedoids",

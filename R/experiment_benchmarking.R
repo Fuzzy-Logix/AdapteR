@@ -1,3 +1,6 @@
+#' @include FLMatrix.R
+NULL
+
 FL_benchmarking_generic<-function(specs=list(list(n=5,isSquare = TRUE,...),list(n =5,isRowVec = FALSE,...)),
                           classes = c("FLMatrix","FLVector"),operator = "+"){
     

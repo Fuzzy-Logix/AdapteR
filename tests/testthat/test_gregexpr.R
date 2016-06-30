@@ -21,7 +21,7 @@ test_that("Check for regexpr function with pattern of string type for text2 ",{
           result = eval_expect_equal({
                    test2 = regexpr("foo", text2)
                 },Renv,FLenv,check.attributes = FALSE)
-          print(result)
+          ##print(result)
     })
 
 

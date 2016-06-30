@@ -19,7 +19,13 @@ FLVector if any \code{xsource} or \code{targets}
 is R character of length 1. Otherwise returns a FLMatrix.
 }
 \description{
-computes the levenshtein-damerau distance between strings
+computes the levenshtein-damerau distance between strings.
+}
+\details{
+The DB Lytix function called is FLDLevenshteinDist.
+This function computes the levenshtein-damerau distance between the 
+two char string arguments (the minimal number of insertions, deletions 
+replacements,or transpositions required to transform one string into the other).
 }
 \section{Constraints}{
 
@@ -33,5 +39,9 @@ flv <- widetable[1:10,"Species"]
 resultflvector <- levenshtein.damerau.distance("xyz",flv)
 resultflmatrix <- levenshtein.damerau.distance(flv,flv,caseFLag=1)
 resultflmatrix <- levenshtein.damerau.distance(flv,c("xyz","bghy"),caseFLag=1)
+}
+\seealso{
+\code{\link[vwr]{levenshtein.damerau.distance}} for R function reference
+implementation.
 }
 
