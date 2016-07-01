@@ -302,7 +302,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                   "string1 FROM tblstring) c ",
                                 " WHERE a.serialval < 1001 \n ",
                                 " AND b.serialval < 1001 \n ",
-                                " AND MOD(a.serialval,5)+1=c.obsid) WITH DATA;")
+                                " AND FLMOD(a.serialval,5)+1=c.obsid) WITH DATA;")
                         )
     }
     else if(type=="float"){

@@ -52,7 +52,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	            		   			a,".rowIdColumn AS rowIdColumn,",
 	            		   			a,".colIdColumn AS colIdColumn,",
 	            		   			a,".valueColumn ",
-	            		   			ifelse(pOperator=="%%"," MOD ",pOperator)," ",
+	            		   			ifelse(pOperator=="%%"," FLMOD ",pOperator)," ",
 	            		   			b,".valueColumn AS valueColumn 
 	            		    FROM ( ",constructSelect(pObj1),") AS ",a,
 			                  ",( ",constructSelect(pObj2),") AS ",b,
@@ -296,7 +296,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 									1:vmaxlen," AS vectorIndexColumn, \n ",
 									"a.",newColnames1,
-									ifelse(pOperator=="%%"," MOD ",pOperator),
+									ifelse(pOperator=="%%"," FLMOD ",pOperator),
 									"b.",newColnames2," AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ", 
 								    " (",constructSelect(pObj2),") AS b \n ",
@@ -363,9 +363,9 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 										"END AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
-								" WHERE CAST(MOD(a.vectorIndexColumn,",
+								" WHERE CAST(FLMOD(a.vectorIndexColumn,",
 														vminlen,") AS INT) = ",
-										"CAST(MOD(b.vectorIndexColumn,",
+										"CAST(FLMOD(b.vectorIndexColumn,",
 														vminlen,") AS INT)")
 
 				else if(pOperator %in% c("+","-","%%","*","**"))
@@ -373,13 +373,13 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 											vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
 											"a.vectorValueColumn ",
-											ifelse(pOperator=="%%"," MOD ",pOperator),
+											ifelse(pOperator=="%%"," FLMOD ",pOperator),
 											"b.vectorValueColumn AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
-								" WHERE CAST(MOD(a.vectorIndexColumn,",
+								" WHERE CAST(FLMOD(a.vectorIndexColumn,",
 														vminlen,") AS INT) = ",
-										"CAST(MOD(b.vectorIndexColumn,",
+										"CAST(FLMOD(b.vectorIndexColumn,",
 														vminlen,") AS INT)")
 
 				else if(pOperator %in% c("/"))
@@ -390,9 +390,9 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 											"b.vectorValueColumn AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
-								" WHERE CAST(MOD(a.vectorIndexColumn,",
+								" WHERE CAST(FLMOD(a.vectorIndexColumn,",
 														vminlen,") AS INT) = ",
-										"CAST(MOD(b.vectorIndexColumn,",
+										"CAST(FLMOD(b.vectorIndexColumn,",
 														vminlen,") AS INT)")
 
 				else if(pOperator %in% vcompvector)
@@ -404,8 +404,8 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 									" THEN 'TRUE' ELSE 'FALSE' END AS vectorValueColumn \n ",
 							" FROM (",constructSelect(pObj1),") AS a, \n ",
 							 	"(",constructSelect(pObj2),") AS b \n ",
-	                        constructWhere(c(paste0(" MOD(a.vectorIndexColumn,",vminlen,
-	                        					") = MOD(b.vectorIndexColumn,",vminlen,")"))))
+	                        constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
+	                        					") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
 
 	            dimnames <- list(vmaxrownames,"vectorValueColumn")
 	        }
