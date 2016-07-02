@@ -1,20 +1,10 @@
 #Function not in R
 #FLNeedleManWunschDist
 
-test_that("testing the example written in FLStringFunctions",{
-  widetable  <- FLTable("FL_DEMO", "iris", "rownames")
-  flv <- widetable[1:10,"Species"]
-  resultflvector1 <- FLNeedleManWunschDist("xyz",flv)
-  resultflvector2 <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
-  resultflvector3 <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
-  resultflmatrix1 <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
-  resultflmatrix2 <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
-  print(resultflvector1)
-  print(resultflvector2)
-  print(resultflvector3)
-  print(resultflmatrix1)
-  print(resultflmatrix2)
-    
+test_that("testing FLNeedleManWunschDist working ",{
+  flv <- as.FLVector(c("foo","bar"))
+  result1 <- stringdist(c("xyz","juio"),flv,method="nmw")
+  result1 <- stringdist(flv,c("xyz","juio"),method="nmw",weight=c(d=1))
+  result1 <- stringdist(flv,flv,method="nmw",weight=c(d=1,i=-1))
+  result1 <- stringdist(c("xyz","juio"),flv,method="nmw",weight=c(d=1,i=-1,s=-1))
   })
-
-

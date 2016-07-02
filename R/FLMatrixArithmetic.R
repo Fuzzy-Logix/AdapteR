@@ -52,7 +52,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	            		   			a,".rowIdColumn AS rowIdColumn,",
 	            		   			a,".colIdColumn AS colIdColumn,",
 	            		   			a,".valueColumn ",
-	            		   			ifelse(pOperator=="%%"," FLMOD ",pOperator)," ",
+	            		   			ifelse(pOperator=="%%"," MOD ",pOperator)," ",
 	            		   			b,".valueColumn AS valueColumn 
 	            		    FROM ( ",constructSelect(pObj1),") AS ",a,
 			                  ",( ",constructSelect(pObj2),") AS ",b,
@@ -98,9 +98,9 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	                        constructWhere(paste0(a,".colIdColumn = ",b,".rowIdColumn")),
 	                        " GROUP BY 1,2,3")
 			dimnames <- list(dimnames(pObj1)[[1]],
-                                         dimnames(pObj2)[[2]])
-                        dims <- c(dim(pObj1)[[1]],
-                                  dim(pObj2)[[2]])
+                            dimnames(pObj2)[[2]])
+            dims <- c(dim(pObj1)[[1]],
+                      dim(pObj2)[[2]])
 		}
 
 		else if(pOperator %in% c("+","-"))
@@ -296,7 +296,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 									1:vmaxlen," AS vectorIndexColumn, \n ",
 									"a.",newColnames1,
-									ifelse(pOperator=="%%"," FLMOD ",pOperator),
+									ifelse(pOperator=="%%"," MOD ",pOperator),
 									"b.",newColnames2," AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ", 
 								    " (",constructSelect(pObj2),") AS b \n ",
@@ -373,7 +373,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 				sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 											vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
 											"a.vectorValueColumn ",
-											ifelse(pOperator=="%%"," FLMOD ",pOperator),
+											ifelse(pOperator=="%%"," MOD ",pOperator),
 											"b.vectorValueColumn AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
@@ -490,6 +490,8 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 			pObj1 <- as.FLMatrix(matrix(pObj1,1))
 			return(pObj1 %*% pObj2)
 		}
+		else
+		return(FLMatrixArithmetic.default(pObj1,pObj2,pOperator))
 	}
 	else if(is.FLMatrix(pObj2) || is.FLVector(pObj2))
 	{
