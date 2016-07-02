@@ -124,7 +124,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
     newNames <- ls(envir = Renv)
     vToCheckNames <- setdiff(newNames,oldNames)
     if(length(noexpectation)>0)
-    vToCheckNames <- setdiff(noexpectation,vToCheckNames)
+    vToCheckNames <- setdiff(vToCheckNames,noexpectation)
     if(length(expectation)>0)
     vToCheckNames <- c(expectation,vToCheckNames)
 
