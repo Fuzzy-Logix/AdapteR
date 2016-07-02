@@ -46,6 +46,8 @@ FLHessen.FLMatrix<-function(object,...)
                     	whereClause=") WITH DATA;")
                    )
 
+    sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object),
 	            pOperator="FLHessen")

@@ -91,11 +91,12 @@ lu.default <- Matrix::lu
 #' @export
 lu.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
+	connection<-getOption("connectionFL")
 	flag3Check(connection)
 	flag1Check(connection)
 	
 	tempResultTable <- gen_unique_table_name("LU")
+    MID1 <- getMaxMatrixId(connection)
 
     sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
                      viewSelectMatrix(object, "a","z"),
@@ -104,6 +105,7 @@ lu.FLMatrix<-function(object,...)
                     		"OutputColNum","OutputValL","OutputValU","OutputPermut"),
                     	whereClause=") WITH DATA;")
                    )
+    sqlstr <- gsub("'%insertIDhere%'",MID1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object),
@@ -112,7 +114,6 @@ lu.FLMatrix<-function(object,...)
     sqlSendUpdate(connection,sqlstr)
 
 	# calculating LU matrix
-	MID1 <- getMaxMatrixId(connection)
 
 	sqlstrLU <-paste0(" SELECT ",MID1," AS MATRIX_ID, \n ",
 					          "OutputRowNum AS rowIdColumn, \n ",
