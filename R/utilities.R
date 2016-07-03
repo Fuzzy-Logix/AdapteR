@@ -1,5 +1,8 @@
 # Contains the support functions
+#' @include FLMatrix.R
 NULL
+
+
 setOldClass("RODBC")
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),

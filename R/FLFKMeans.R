@@ -1,8 +1,7 @@
-#' @include utilities.R
-#' @include FLTable.R
 #' @include FLMatrix.R
-#' @include FLVector.R
 NULL
+
+
 #' An S4 class to represent FLFKMeans
 #'
 #' @slot centers A numeric vector containing the number of clusters, say k

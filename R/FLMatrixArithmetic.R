@@ -1,11 +1,4 @@
-#' @include utilities.R
-#' @include FLIs.R
-#' @include FLCastFunctions.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLTable.R
-#' @include FLDims.R
-#' @include FLPrint.R
 NULL
 
 #' @export
@@ -1120,7 +1113,6 @@ return(FLMatrixArithmetic(pObj1,pObj2,"**"))
 #' @export
 `^.dsCMatrix` <- function(pObj1,pObj2)
 return(FLMatrixArithmetic(pObj1,pObj2,"**"))
-
 
 #' @export
 ">=" <- function(pObj1,pObj2)

@@ -16,7 +16,7 @@ test_that("Check for harmonic mean function",{
                    test1 = harmonic.mean(var1)
                    test2 = harmonic.mean(var2)
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })
 
 
@@ -28,5 +28,5 @@ test_that("Check for harmonic mean function with NA value in one column",{
                    test3 = harmonic.mean(var5)
                    test4 = harmonic.mean(var5,na.rm=FALSE)
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })

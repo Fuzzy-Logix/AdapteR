@@ -5,9 +5,13 @@ Renv$x <- hilbert(9)[, 1:6]
 
 FLenv <- as.FL(Renv)
 
-Renv$s <- svd(Renv$x)
-FLenv$s <- svd(FLenv$x)
-
+test_that("Singular Value Decomposition of a Matrix.",{
+    eval_expect_equal({
+        Renv$s <- svd(Renv$x)
+        FLenv$s <- svd(FLenv$x)
+    }, Renv,FLenv,tolerance=0.15)
+})
+        
 ## fails without tolerance and 0.15 is high!
 test_that("U is orthogonal https://app.asana.com/0/143316600934101/145369346525139",{eval_expect_equal({
     vUinv <- as.vector(as.matrix(s$u %*% t(s$u)))

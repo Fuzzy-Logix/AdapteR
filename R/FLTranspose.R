@@ -1,8 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLIs.R
-#' @include FLDims.R
-#' @include FLPrint.R
 NULL
 
 #' Matrix Transpose.

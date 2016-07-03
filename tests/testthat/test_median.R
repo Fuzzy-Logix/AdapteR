@@ -12,6 +12,6 @@ test_that("Check for weighted mean function",{
                    test1 = median(var1)
                    test2 = median(var2)
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })
 

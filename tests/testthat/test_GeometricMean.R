@@ -15,7 +15,7 @@ test_that("Check for geometric mean function",{
                    test1 = geometric.mean(var1)
                    test2 = geometric.mean(var2)
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })
 
 #test failed . Not running for class FLTable.
@@ -26,5 +26,5 @@ test_that("Check for geometric mean function with NA value in one column",{
                    test3 = geometric.mean(var5)
                    test4 = geometric.mean(var5,na.rm=FALSE)
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })

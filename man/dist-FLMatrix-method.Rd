@@ -11,6 +11,10 @@
 \description{
 computes distance between
 }
+\section{Constraints}{
+
+only manhattan and euclidean are supported currently.
+}
 \examples{
 flmatrix <- FLMatrix("FL_DEMO",
 "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")

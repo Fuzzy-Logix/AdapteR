@@ -1,12 +1,5 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLPrint.R
-#' @include FLIs.R
-#' @include FLDims.R
 NULL
-
-library(Matrix)
 
 #' QR Decomposition.
 #'

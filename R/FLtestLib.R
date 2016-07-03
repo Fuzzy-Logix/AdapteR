@@ -1,4 +1,5 @@
-#' @include utilities.R
+#' @include FLMatrix.R
+NULL
 
 #' @export
 setGeneric("FLexpect_equal",
@@ -104,7 +105,6 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               ...){
-    #browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
@@ -116,12 +116,24 @@ eval_expect_equal <- function(e, Renv, FLenv,
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
-    eval(expr = e, envir=Renv)
+    re <- tryCatch({
+        eval(expr = e, envir=Renv)
+        NULL
+    }, error=function(err) {
+        err
+    })
     rEndT <- Sys.time()
     flStartT <- Sys.time()
-    eval(expr = e, envir=FLenv)
+    fle <- tryCatch({
+        eval(expr = e, envir=FLenv)
+        NULL
+    }, error=function(err) {
+        err
+    })
     flEndT <- Sys.time()
-    newNames <- ls(envir = Renv)
+    if(is.null(re))
+        expect_null(fle,label=fle)
+    ##expect_equal(e,fle)
     vToCheckNames <- setdiff(newNames,oldNames)
     if(length(noexpectation)>0)
     vToCheckNames <- setdiff(vToCheckNames,noexpectation)
@@ -129,7 +141,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
     vToCheckNames <- c(expectation,vToCheckNames)
 
     for(n in unique(vToCheckNames))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),...)
+        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),label=n,...)
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,

@@ -34,7 +34,7 @@ test_that("Log and Exp",{
             ln2 <- log10(n2)
             1
     }, Renv, FLenv)
-    print(result)
+    ##print(result)
 })
 
 test_that("power of vector arithmetic",{
@@ -43,7 +43,7 @@ test_that("power of vector arithmetic",{
         x <- 10^-(1+constVec)
         length(nvector)
     }, Renv, FLenv)
-    print(result)
+    ##print(result)
 })
 
 test_that("cbind to a matrix",{
@@ -51,5 +51,5 @@ test_that("cbind to a matrix",{
         m <- cbind(x, log(1+x), log1p(x), exp(x)-1, expm1(x))
         dim(m)
     }, Renv, FLenv)
-    print(result)
+    ##print(result)
 })

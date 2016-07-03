@@ -14,34 +14,33 @@ test_that("Check for rank function with default method average",{
                    test1 = rank(var1)
                    test2 = rank(var2)
             },Renv,FLenv)
-          print(result)
+          ##print(result)
     })
 
 #AdapteR supports perc and frac methods other than average method for tie breaking.
 #Even after masking rank function of R in AdapteR , it is not working for R objects.
 #SQL Query takes lot of time.
 test_that("Check for rank function with DB Lytix supported method",{
-                   test3 = rank(FLenv$vector1,ties.method = "perc")
-                   print(test3)
-                   test4 = rank(FLenv$vector1,ties.method = "duplicate")
-                   print(test4)
-                   test5 = rank(FLenv$matrix1,ties.method = "perc")
-                   print(test5)
-                   test6 = rank(FLenv$matrix1,ties.method = "duplicate")
-                   print(test6)
-                   test7 = rank(FLenv$dataframe1,ties.method = "perc")
-                   print(test7)
-                   test8 = rank(FLenv$dataframe1,ties.method = "duplicate")
-                   print(test8)
-          
-    })
+    test3 = rank(FLenv$vector1,ties.method = "perc")
+    print(test3)
+    test4 = rank(FLenv$vector1,ties.method = "duplicate")
+    print(test4)
+    test5 = rank(FLenv$matrix1,ties.method = "perc")
+    print(test5)
+    test6 = rank(FLenv$matrix1,ties.method = "duplicate")
+    print(test6)
+    test7 = rank(FLenv$dataframe1,ties.method = "perc")
+    print(test7)
+    test8 = rank(FLenv$dataframe1,ties.method = "duplicate")
+    print(test8)
+})
 
 test_that("Check for idempotent characteristic of rank function",{
-          result = eval_expect_equal({
-                   stopifnot(rank(test1) == test1, rank(test2) == test2)
-            },Renv,FLenv)
-          print(result)
-    })
+    result = eval_expect_equal({
+        stopifnot(rank(test1) == test1, rank(test2) == test2)
+    },Renv,FLenv)
+    ##print(result)
+})
 
 
 ## fail..

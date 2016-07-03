@@ -1,10 +1,4 @@
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLVector.R
-#' @include FLTable.R
-#' @include FLPrint.R
-#' @include FLIs.R
-#' @include FLDims.R
 NULL
 
 #' Apply a function to a subset of data

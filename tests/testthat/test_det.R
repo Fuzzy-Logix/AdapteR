@@ -12,5 +12,5 @@ test_that("Check for determinant function ",{
         e2 <- det(mat1)
         e3 <- det(mat2)},
         Renv,FLenv)
-    print(result)
+    ##print(result)
     })

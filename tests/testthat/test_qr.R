@@ -27,7 +27,7 @@ FLenv$qrmat7 <- qr(FLenv$mat7)
 test_that("Check rank from qr Decomposition function with tol",{
     result = eval_expect_equal({test2 = qr(mat1,tol = 1e-10)$rank
                                 },Renv,FLenv)
-    print(result)
+    ##print(result)
     })
 
 ## qr.solve(A,b) solves AX=b in the following way:-
@@ -42,7 +42,7 @@ test_that("Check qr.solve and qr.coef ",{
         qrsolve = qr.solve(mat7,mat8)
         qrfitted = qr.fitted(qrmat7,mat8)
         },Renv,FLenv,check.attributes=FALSE)
-    print(result)
+    ##print(result)
     })
 
 
@@ -51,7 +51,7 @@ test_that("Check QR gives same matrix in R,FL ",{
         Qmat7 = qr.Q(qrmat7) %*% qr.R(qrmat7)
         qrresid = qr.resid(qrmat7,mat8)
         },Renv,FLenv)
-    print(result)
+    ##print(result)
     })
 
 test_that("Check Q is orthogonal ",{
@@ -59,7 +59,7 @@ test_that("Check Q is orthogonal ",{
         FLexpect_equal(t(qr.Q(qrmat7))
             ,solve(qr.Q(qrmat7)))
         },Renv,FLenv)
-    print(result)
+    ##print(result)
     })
 
 test_that("Check R is upper-triangular ",{
@@ -71,7 +71,7 @@ test_that("Check R is upper-triangular ",{
         rm(vtemp1)
         rm(vtemp2)
         },Renv,FLenv)
-    print(result)
+    ##print(result)
     })
 
 # ## These fail because of different R and FL outputs for

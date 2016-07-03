@@ -4,7 +4,7 @@
 \alias{cor}
 \title{Correlation.}
 \usage{
-cor(x, y, use = "everything", method = "pearson", ...)
+cor(x, y = NULL, use = "everything", method = "pearson", ...)
 }
 \arguments{
 \item{x}{FLMatrix, FLVector or FLTable object or any R object}

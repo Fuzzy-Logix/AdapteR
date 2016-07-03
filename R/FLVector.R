@@ -1,7 +1,4 @@
-#' @include utilities.R
-#' @include utilities.R
 #' @include FLMatrix.R
-#' @include FLTable.R
 NULL
 
 

@@ -1,9 +1,7 @@
-#' @include utilities.R
-#' @include FLStore.R
-#' @include FLTable.R
-#' @include FLVector.R
 #' @include FLMatrix.R
 NULL
+
+
 setOldClass("RODBC")
 
 

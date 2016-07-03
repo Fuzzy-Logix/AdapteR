@@ -1,5 +1,34 @@
-#' @include FLCastFunctions.R
-#' @include FLStore.R
+#' @include FLMatrix.R
+NULL
+
+
+##' stores an object in database.
+##' 
+##'
+##' @param object the object to store. Can be FLMatrix, FLVector, FLTable, character
+##' @param returnType return type of the stored data. Applicable only when object is a character representing a SQL Query
+##' @param connection ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query
+##' @return in-database object after storing
+##' @export
+setGeneric("store", function(object,returnType,...) {
+    standardGeneric("store")
+})
+setMethod("store",
+          signature(object = "FLMatrix",returnType="missing"),
+          function(object,...) store.FLMatrix(object))
+setMethod("store",
+          signature(object = "FLVector",returnType="missing"),
+          function(object,...) store.FLVector(object))
+setMethod("store",
+          signature(object = "FLTable",returnType="missing"),
+          function(object,...) store.FLTable(object))
+setMethod("store",
+          signature(object = "character",returnType="character"),
+          function(object,returnType,...) store.character(object,returnType,...))
+setMethod("store",
+          signature(object = "character",returnType="character"),
+          function(object,returnType,...) store.character(object,returnType,...))
+
 storeVarnameMapping <- function(connection,
                                 tablename,
                                 matrixId,
