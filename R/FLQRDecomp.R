@@ -37,6 +37,7 @@ qr.FLMatrix<-function(object,...)
 	connection<-getConnection(object)
 	flag1Check(connection)
 	flag3Check(connection)
+  MID1 <- getMaxMatrixId(connection)
 
 	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
 
@@ -48,6 +49,8 @@ qr.FLMatrix<-function(object,...)
                     	whereClause=") WITH DATA;")
                    )
 
+    sqlstr <- gsub("'%insertIDhere%'",MID1,sqlstr)
+
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object),
 	            pOperator="qr")
@@ -55,7 +58,6 @@ qr.FLMatrix<-function(object,...)
     sqlSendUpdate(connection,sqlstr)
 	
 	#calculating QRMatrix
-    MID1 <- getMaxMatrixId(connection)
 
     sqlstrQR <-paste0(" SELECT ",MID1," AS MATRIX_ID, \n ",
 					         "OutputRowNum AS rowIdColumn, \n ",

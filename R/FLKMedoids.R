@@ -159,12 +159,15 @@ pam.FLTable <- function(x,
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+						".",deeptablename," AS  \n ",constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
 
 		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-			" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
+		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+						".",deeptablename1,
+						" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
+						".",deeptablename,constructWhere(whereconditions))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
@@ -182,7 +185,8 @@ pam.FLTable <- function(x,
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
 		deeptablename <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+						".",deeptablename," AS \n  ",constructSelect(x))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
@@ -210,16 +214,16 @@ pam.FLTable <- function(x,
 	}
 	else distTableCopy <- "NULL"
 
-    sqlstr <- paste0("CALL FLKMedoids( '",deeptable,"',
-			 					   '",getVariables(deepx)[["obs_id_colname"]],"',
-			 					   '",getVariables(deepx)[["var_id_colname"]],"',
-			 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
-			 					   whereClause,",",
-			 					   k,",",
-			 					   iter.max,",",
-			 					   distTableCopy,",",
+    sqlstr <- paste0("CALL FLKMedoids(",fquote(deeptable),", \n ",
+			 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
+			 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
+			 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
+			 					   whereClause,", \n ",
+			 					   k,", \n ",
+			 					   iter.max,", \n ",
+			 					   distTableCopy,", \n ",
 			 					   fquote(genNote("kmedoids")),
-			 					   ",AnalysisID );")
+			 					   ", \n AnalysisID );")
 	
 	retobj <- sqlQuery(connection,sqlstr,
 				AnalysisIDQuery=genAnalysisIDQuery("fzzlKMedoidsInfo",genNote("kmedoids")))
@@ -227,10 +231,10 @@ pam.FLTable <- function(x,
 	AnalysisID <- as.character(retobj[1,1])
 
 	## medoid points are necessary for calculating some results
-	sqlstr0 <- paste0("INSERT INTO fzzlKMedoidsCluster 
-						SELECT AnalysisID,MedoidID,MedoidID 
-						FROM fzzlKMedoidsMedoidIDs 
-						WHERE AnalysisID='",AnalysisID,"' ")
+	sqlstr0 <- paste0("INSERT INTO fzzlKMedoidsCluster \n ",
+						" SELECT AnalysisID,MedoidID,MedoidID \n ", 
+						" FROM fzzlKMedoidsMedoidIDs \n ",
+						" WHERE AnalysisID='",AnalysisID,"' ")
 	sqlSendUpdate(connection,sqlstr0)
 	
 	FLKMedoidsobject <- new("FLKMedoids",
@@ -253,7 +257,8 @@ pam.FLTable <- function(x,
 `$.FLKMedoids`<-function(object,property)
 {
 	#parentObject <- deparse(substitute(object))
-	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+	parentObject <- unlist(strsplit(unlist(strsplit(
+					as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
 	if(property=="medoids")
 	{
@@ -334,16 +339,16 @@ clustering.FLKMedoids <- function(object)
 		connection <- getConnection(object@table)
 		flag3Check(connection)
 		AnalysisID <- object@AnalysisID
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-								 a.ObsID AS vectorIndexColumn, 
-						         b.newMedoidID AS vectorValueColumn  
-						FROM fzzlKMedoidsCluster a,
-						(SELECT z.MedoidID as MedoidID,
-							ROW_NUMBER() OVER(ORDER BY z.MedoidID) AS newMedoidID
-						FROM fzzlKMedoidsMedoidIDs z 
-						WHERE z.AnalysisID = '",AnalysisID,"') AS b 
-						WHERE a.AnalysisID = '",AnalysisID,
-						"' AND a.MedoidID=b.MedoidID")
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+								" a.ObsID AS vectorIndexColumn, \n ", 
+						        " b.newMedoidID AS vectorValueColumn \n ",  
+						"FROM fzzlKMedoidsCluster a, \n ",
+						"(SELECT z.MedoidID as MedoidID, \n ",
+							" ROW_NUMBER() OVER(ORDER BY z.MedoidID) AS newMedoidID \n ",
+						" FROM fzzlKMedoidsMedoidIDs z \n ", 
+						"WHERE z.AnalysisID = ",fquote(AnalysisID),") AS b \n ", 
+						"WHERE a.AnalysisID = ",fquote(AnalysisID),
+						" \n  AND a.MedoidID=b.MedoidID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
@@ -389,16 +394,16 @@ medoids.FLKMedoids<-function(object)
 			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 
-			sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, 
-						         b.newMedoidID AS rowIdColumn,
-						         a.",var_id_colname," AS colIdColumn,
-						         a.",cell_val_colname," AS valueColumn 
-							FROM ",deeptablename," AS a,
-							(SELECT z.MedoidID as MedoidID,
-								ROW_NUMBER() OVER(ORDER BY z.MedoidID) AS newMedoidID
-							FROM fzzlKMedoidsMedoidIDs z 
-							WHERE z.AnalysisID = '",AnalysisID,"') AS b 
-							WHERE a.",obs_id_colname," = b.MedoidID")
+			sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ", 
+						        " b.newMedoidID AS rowIdColumn, \n ",
+						        " a.",var_id_colname," AS colIdColumn, \n ",
+						        " a.",cell_val_colname," AS valueColumn \n ",
+							" FROM ",deeptablename," AS a, \n ",
+							"(SELECT z.MedoidID as MedoidID, \n ",
+								" ROW_NUMBER() OVER(ORDER BY z.MedoidID) AS newMedoidID \n ",
+							" FROM fzzlKMedoidsMedoidIDs z \n ", 
+							" WHERE z.AnalysisID = '",AnalysisID,"') AS b \n ", 
+							" WHERE a.",obs_id_colname," = b.MedoidID")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
 	                        connection = connection,
@@ -425,7 +430,8 @@ medoids.FLKMedoids<-function(object)
       						error=function(e){medoidsmatrix})
 		
 		object@results <- c(object@results,list(medoids = medoidsmatrix))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(
+						as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(medoidsmatrix)
 	}
@@ -439,11 +445,11 @@ id.med.FLKMedoids<-function(object){
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, 
-						         ROW_NUMBER() OVER(ORDER BY ",a,".MedoidID) AS vectorIndexColumn,",
-						         a,".MedoidID AS vectorValueColumn 
-						FROM fzzlKMedoidsMedoidIDs ",a,"
-						WHERE ",a,".AnalysisID = '",object@AnalysisID,"'")
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+						        " ROW_NUMBER() OVER(ORDER BY ",a,".MedoidID) AS vectorIndexColumn, \n ",
+						         a,".MedoidID AS vectorValueColumn \n ", 
+						" FROM fzzlKMedoidsMedoidIDs ",a," \n ",
+						" WHERE ",a,".AnalysisID = '",object@AnalysisID,"'")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
@@ -463,7 +469,8 @@ id.med.FLKMedoids<-function(object){
       						error=function(e){id.medvector})
 
 		object@results <- c(object@results,list(id.med = id.medvector))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(
+						as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(id.medvector)
 	}
@@ -482,13 +489,13 @@ objective.FLKMedoids <- function(object){
 		flag3Check(connection)
 		n <- length(object@deeptable@dimnames[[1]])
 
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-						         a,".Iteration AS vectorIndexColumn,",
-						         a,".TotalCost AS vectorValueColumn 
-						FROM fzzlKMedoidsTotalCost ",a,"
-						WHERE ",a,".AnalysisID = '",object@AnalysisID,"' 
-						AND ",a,".Iteration < 3 
-						ORDER BY ",a,".Iteration")
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+						         a,".Iteration AS vectorIndexColumn, \n ",
+						         a,".TotalCost AS vectorValueColumn \n ", 
+						" FROM fzzlKMedoidsTotalCost ",a," \n ",
+						" WHERE ",a,".AnalysisID = '",object@AnalysisID,"' \n ", 
+						" AND ",a,".Iteration < 3 \n ",
+						" ORDER BY ",a,".Iteration")
 
 		objectivevector <- as.numeric(sqlQuery(connection,sqlstr)[[3]])
 		names(objectivevector) <- c("build","swap")
@@ -522,28 +529,39 @@ isolation.FLKMedoids <- function(object){
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["temptbl4"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",e," as (SELECT a.",obs_id_colname," AS ObsID,a.",var_id_colname," AS VarID,a.",cell_val_colname," AS Num_Val,b.MedoidID 
-									  FROM ",deeptablename," a,fzzlKMedoidsCluster b WHERE a.",obs_id_colname,"=b.ObsID and b.AnalysisID='",object@AnalysisID,"' )WITH DATA"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",e,
+								" as  \n (SELECT a.",obs_id_colname," AS ObsID, \n a.",var_id_colname,
+									" AS VarID, \n a.",cell_val_colname," AS Num_Val, \n b.MedoidID  \n ",
+									" FROM  \n ",deeptablename," a, \n ",
+											"fzzlKMedoidsCluster b  \n ",
+									" WHERE a.",obs_id_colname,"=b.ObsID and  \n b.AnalysisID='",
+									object@AnalysisID,"' )WITH DATA"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl4=e))
 		}
 		if(is.null(object@temptables[["temptbl1"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",c," as (SELECT a.MedoidID as MedoidIDX,b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX,
-										b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist
-								  FROM ",object@temptables[["temptbl4"]]," a,",object@temptables[["temptbl4"]]," b 
-								  WHERE a.VarID = b.VarID and a.MedoidID = b.MedoidID
-								  GROUP BY 1,2,3,4) with data"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",c,
+								" as \n (SELECT a.MedoidID as MedoidIDX, \n b.MedoidID as MedoidIDY,",
+											"a.ObsID AS ObsIDX, \n ",
+											" b.ObsID AS ObsIDY, \n FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
+								  " FROM ",object@temptables[["temptbl4"]]," a, \n ",
+								  			object@temptables[["temptbl4"]]," b \n ", 
+								 " WHERE a.VarID = b.VarID and a.MedoidID = b.MedoidID \n ",
+								 " GROUP BY 1,2,3,4) with data"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl1=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",d," as (SELECT a.MedoidID as MedoidIDX,b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX,
-										b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist
-								  FROM ",object@temptables[["temptbl4"]]," a,",object@temptables[["temptbl4"]]," b 
-								  WHERE a.VarID = b.VarID and a.MedoidID <> b.MedoidID
-								  GROUP BY 1,2,3,4) with data"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",d,
+									" as \n (SELECT a.MedoidID as MedoidIDX, \n ",
+										" b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX, \n ",
+										" b.ObsID AS ObsIDY, \n FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
+								  " FROM ",object@temptables[["temptbl4"]]," a, \n ",
+								  			object@temptables[["temptbl4"]]," b \n ",
+								  " WHERE a.VarID = b.VarID and a.MedoidID <> b.MedoidID \n ",
+								  " GROUP BY 1,2,3,4) with data"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl2=d))
 		}
@@ -551,29 +569,30 @@ isolation.FLKMedoids <- function(object){
 		temptbl1 <- object@temptables[["temptbl1"]]
 		temptbl2 <- object@temptables[["temptbl2"]]
 
-		sqlstr<-paste0("SELECT ROW_NUMBER() OVER(ORDER BY a.MedoidIDX) as MedoidID, 
-							   CASE WHEN (SUM(CASE WHEN a.maxim < b.minim THEN 0 ELSE 1 END)>0) THEN 0 ELSE 1 END AS isL 
-						FROM(SELECT a.MedoidIDX,a.ObsIDX, FLMax(a.Dist) AS maxim
-							FROM ",temptbl1," a
-							group by 1,2) as a,
-						 (select a.MedoidIDX , a.ObsIDX, FLMin(a.Dist) as minim 
-						 FROM ",temptbl2," a
-						 GROUP BY 1,2) as b
-						WHERE a.ObsIDX=b.ObsIDX AND a.MedoidIDX=b.MedoidIDX
-						GROUP BY a.MedoidIDX")
+		sqlstr<-paste0("SELECT ROW_NUMBER() OVER(ORDER BY a.MedoidIDX) as MedoidID, \n ", 
+							"  CASE WHEN (SUM(CASE WHEN a.maxim < b.minim THEN 0 ELSE 1 END)>0) THEN 0 ELSE 1 END AS isL \n ",
+						" FROM(SELECT a.MedoidIDX,a.ObsIDX, FLMax(a.Dist) AS maxim \n ",
+							" FROM ",temptbl1," a \n ",
+							" group by 1,2) as a, \n ",
+						 " (select a.MedoidIDX , a.ObsIDX, FLMin(a.Dist) as minim \n ", 
+						 " FROM ",temptbl2," a \n ",
+						 " GROUP BY 1,2) as b \n ",
+						" WHERE a.ObsIDX=b.ObsIDX  \n AND a.MedoidIDX=b.MedoidIDX \n ",
+						" GROUP BY a.MedoidIDX")
 
 		isL <- sqlQuery(connection,sqlstr)[["isL"]]
 
-		sqlstr <- paste0("SELECT ROW_NUMBER() OVER(ORDER BY a.MedoidIDX) AS MedoidID, 
-								CASE WHEN (SUM(CASE WHEN a.diameter<b.separation THEN 0 ELSE 1 END)>0) THEN 0 ELSE 1 END AS isLstar 
-						FROM(SELECT a.MedoidIDX , FLMax(a.Dist) AS diameter 
-							FROM ",temptbl1," a
-							GROUP BY 1) as a,
-							(SELECT a.MedoidIDX , FLMin(a.Dist) AS separation  
-							FROM ",temptbl2," a
-						GROUP BY 1) as b
-						WHERE  a.MedoidIDX=b.MedoidIDX
-						GROUP BY a.MedoidIDX")
+		sqlstr <- paste0("SELECT ROW_NUMBER() OVER(ORDER BY a.MedoidIDX) AS MedoidID, \n ", 
+							"	CASE WHEN (SUM(CASE WHEN a.diameter<b.separation",
+							" \n  THEN 0 ELSE 1 END)>0) THEN 0 ELSE 1 END AS isLstar  \n ",
+						" FROM(SELECT a.MedoidIDX , FLMax(a.Dist) AS diameter \n ", 
+							" FROM ",temptbl1," a \n ",
+							" GROUP BY 1) as a, \n ",
+							" (SELECT a.MedoidIDX , FLMin(a.Dist) AS separation \n ",  
+							" FROM ",temptbl2," a \n ",
+						" GROUP BY 1) as b \n ",
+						" WHERE  a.MedoidIDX=b.MedoidIDX \n ",
+						" GROUP BY a.MedoidIDX")
 
 		isLstar <- sqlQuery(connection,sqlstr)[["isLstar"]]
 
@@ -625,28 +644,40 @@ clusinfo.FLKMedoids <- function(object){
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["temptbl4"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",e," as (SELECT a.",obs_id_colname," AS ObsID,a.",var_id_colname," AS VarID,a.",cell_val_colname," AS Num_Val,b.MedoidID 
-									  FROM ",deeptablename," a,fzzlKMedoidsCluster b WHERE a.",obs_id_colname,"=b.ObsID and b.AnalysisID='",object@AnalysisID,"' )WITH DATA"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",e,
+									" \n  as (SELECT a.",obs_id_colname," AS ObsID, \n a.",
+										var_id_colname," AS VarID,a.",cell_val_colname,
+										" \n  AS Num_Val,b.MedoidID  \n ",
+									"  FROM ",deeptablename," a, \n fzzlKMedoidsCluster b  \n ",
+									" WHERE a.",obs_id_colname,"=b.ObsID and b.AnalysisID='",
+									object@AnalysisID,"' )WITH DATA"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl4=e))
 		}
 		if(is.null(object@temptables[["temptbl1"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",c," as (SELECT a.MedoidID as MedoidIDX,b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX,
-										b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist
-								  FROM ",object@temptables[["temptbl4"]]," a,",object@temptables[["temptbl4"]]," b 
-								  WHERE a.VarID = b.VarID and a.MedoidID = b.MedoidID
-								  GROUP BY 1,2,3,4) with data"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",c,
+								" \n  as (SELECT a.MedoidID as MedoidIDX, \n ",
+									" b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX, \n ",
+									" b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
+								" FROM ",object@temptables[["temptbl4"]]," a, \n ",
+										object@temptables[["temptbl4"]]," b \n ",
+								" WHERE a.VarID = b.VarID and  \n ",
+									" a.MedoidID = b.MedoidID \n ",
+								" GROUP BY 1,2,3,4) with data"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl1=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",d," as (SELECT a.MedoidID as MedoidIDX,b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX,
-										b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist
-								  FROM ",object@temptables[["temptbl4"]]," a,",object@temptables[["temptbl4"]]," b 
-								  WHERE a.VarID = b.VarID and a.MedoidID <> b.MedoidID
-								  GROUP BY 1,2,3,4) with data"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",d,
+								" \n as (SELECT a.MedoidID as MedoidIDX, \n ",
+											" b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX, \n ",
+										" b.ObsID AS ObsIDY, \n FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
+								" FROM ",object@temptables[["temptbl4"]]," a, \n ",
+										object@temptables[["temptbl4"]]," b \n ",
+								" WHERE a.VarID = b.VarID  \n and a.MedoidID <> b.MedoidID \n ",
+								" GROUP BY 1,2,3,4) with data"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl2=d))
 		}
@@ -654,24 +685,33 @@ clusinfo.FLKMedoids <- function(object){
 		temptbl1 <- object@temptables[["temptbl1"]]
 		temptbl2 <- object@temptables[["temptbl2"]]
 
-		sqlstr<-paste0("SELECT ROW_NUMBER() OVER(ORDER BY a.MedoidIDX) as MedoidID,c.sizes as sizes, 
-								d.maxDiss as max_Diss , d.avgDiss as avg_Diss, a.diameter as diameter, b.separation as separation 
-						FROM (SELECT a.MedoidIDX , FLMax(a.Dist) as diameter 
-							 FROM ",temptbl1," a
-							 GROUP BY 1) as a,
-							(SELECT a.MedoidIDX , FLMin(a.Dist) as separation  
-							FROM ",temptbl2," a
-							GROUP BY 1) as b,
-							(SELECT a.MedoidID as MedoidIDX, COUNT(a.ObsID) as sizes from fzzlKMedoidsCluster a 
-							 WHERE a.AnalysisID='",object@AnalysisID,"' GROUP BY a.MedoidID) as c,
-							(SELECT a.MedoidID as MedoidIDX, FLMax(a.Dist) as maxDiss, FLMean(a.Dist) as avgDiss 
-							FROM(SELECT b.MedoidID,a.",obs_id_colname," AS ObsIDX,c.",obs_id_colname," AS ObsIDY,FLEuclideanDist(a.",cell_val_colname,", c.",cell_val_colname,") AS Dist
-									  FROM ",deeptablename," a,fzzlKMedoidsCluster b,",deeptablename," c
-									  WHERE a.",var_id_colname," = c.",var_id_colname," and  b.MedoidID=c.",obs_id_colname,
-									  		" and b.ObsID=a.",obs_id_colname," and b.AnalysisID='",object@AnalysisID,"' 
-							GROUP BY 1,2,3) AS a
-							GROUP BY 1) as d
-						WHERE  a.MedoidIDX=b.MedoidIDX and a.MedoidIDX=c.MedoidIDX and a.MedoidIDX=d.MedoidIDX")
+		sqlstr<-paste0("SELECT ROW_NUMBER() OVER(ORDER BY a.MedoidIDX) as MedoidID, \n c.sizes as sizes, \n ", 
+							" d.maxDiss as max_Diss , \n  d.avgDiss as avg_Diss, \n ",
+							" a.diameter as diameter, \n b.separation as separation \n ", 
+						" FROM (SELECT a.MedoidIDX , FLMax(a.Dist) as diameter \n ", 
+							" FROM ",temptbl1," a \n ",
+							" GROUP BY 1) as a, \n ",
+							" (SELECT a.MedoidIDX , FLMin(a.Dist) as separation \n ",  
+							" FROM ",temptbl2," a \n ",
+							" GROUP BY 1) as b, \n ",
+							" (SELECT a.MedoidID as MedoidIDX, \n ",
+								" COUNT(a.ObsID) as sizes from fzzlKMedoidsCluster a \n ", 
+							" WHERE a.AnalysisID='",object@AnalysisID,"' \n GROUP BY a.MedoidID) as c, \n ",
+							" (SELECT a.MedoidID as MedoidIDX, \n FLMax(a.Dist) as maxDiss, \n ",
+							" FLMean(a.Dist) as avgDiss  \n ",
+							" FROM(SELECT b.MedoidID, \n a.",obs_id_colname," AS ObsIDX, \n c.",
+										obs_id_colname," AS ObsIDY, \n FLEuclideanDist(a.",cell_val_colname,
+											", \n  c.",cell_val_colname,") AS Dist \n ",
+									" FROM ",deeptablename," a, fzzlKMedoidsCluster b,",deeptablename," c \n ",
+									" WHERE a.",var_id_colname," = c.",var_id_colname,
+											" \n  and  b.MedoidID=c.",obs_id_colname,
+									  		" \n  and b.ObsID=a.",obs_id_colname,
+									  		" \n  and b.AnalysisID='",object@AnalysisID,"' \n ", 
+							" GROUP BY 1,2,3) AS a \n ",
+							" GROUP BY 1) as d \n ",
+						" WHERE  a.MedoidIDX=b.MedoidIDX and \n ",
+								" a.MedoidIDX=c.MedoidIDX and  \n ",
+								" a.MedoidIDX=d.MedoidIDX")
 
 		clusinfoDataFrame <- sqlQuery(connection,sqlstr)
 		clusinfoDataFrame$MedoidID <- NULL
@@ -721,28 +761,38 @@ silinfo.FLKMedoids <- function(object){
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["temptbl4"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",e," as (SELECT a.",obs_id_colname," AS ObsID,a.",var_id_colname," AS VarID,a.",cell_val_colname," AS Num_Val,b.MedoidID 
-									  FROM ",deeptablename," a,fzzlKMedoidsCluster b WHERE a.",obs_id_colname,"=b.ObsID and b.AnalysisID='",object@AnalysisID,"' )WITH DATA"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",e,
+									" as  \n (SELECT a.",obs_id_colname," AS ObsID, \n a.",
+										var_id_colname," AS VarID, \n a.",cell_val_colname,
+										" AS Num_Val, \n b.MedoidID \n ", 
+									  " FROM ",deeptablename," a,fzzlKMedoidsCluster b  \n ",
+									  " WHERE a.",obs_id_colname,"=b.ObsID  \n and b.AnalysisID='",
+									  object@AnalysisID,"' )WITH DATA"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl4=e))
 		}
 		if(is.null(object@temptables[["temptbl3"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",c," as (SELECT a.MedoidID as MedoidIDX,a.ObsID AS ObsIDX,
-											b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist
-									FROM ",object@temptables[["temptbl4"]]," a,",object@temptables[["temptbl4"]]," b 
-									WHERE a.VarID = b.VarID and a.MedoidID = b.MedoidID
-									GROUP BY 1,2,3) with data"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",c,
+											" as (SELECT a.MedoidID as MedoidIDX, \n a.ObsID AS ObsIDX, \n ",
+											" b.ObsID AS ObsIDY, \n FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
+									" FROM ",object@temptables[["temptbl4"]]," a, \n ",
+											object@temptables[["temptbl4"]]," b \n ",
+									" WHERE a.VarID = b.VarID  \n and a.MedoidID = b.MedoidID \n ",
+									" GROUP BY 1,2,3) with data"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl3=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",d," as (SELECT a.MedoidID as MedoidIDX,b.MedoidID as MedoidIDY,a.ObsID AS ObsIDX,
-										b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist
-								  FROM ",object@temptables[["temptbl4"]]," a,",object@temptables[["temptbl4"]]," b 
-								  WHERE a.VarID = b.VarID and a.MedoidID <> b.MedoidID
-								  GROUP BY 1,2,3,4) with data"))
+			t <- sqlSendUpdate(connection,paste0(" create table ",d,
+									" as  \n (SELECT a.MedoidID as MedoidIDX, \n ",
+												" b.MedoidID as MedoidIDY, \n a.ObsID AS ObsIDX, \n ",
+										" b.ObsID AS ObsIDY, \n FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
+								  " FROM ",object@temptables[["temptbl4"]]," a, \n ",
+								  			object@temptables[["temptbl4"]]," b \n ", 
+								  " WHERE a.VarID = b.VarID  \n and a.MedoidID <> b.MedoidID \n ",
+								  " GROUP BY 1,2,3,4) with data"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(temptbl2=d))
 		}
@@ -750,23 +800,28 @@ silinfo.FLKMedoids <- function(object){
 		temptbl2 <- object@temptables[["temptbl2"]]
 		temptbl3 <- object@temptables[["temptbl3"]]
 
-		sqlstr<-paste0("select a.ObsIDX as obs_id_colname,a.MedoidIDX AS MedoidID,a.MedoidIDY AS neighbor,(a.num/a.den) as sil_width 
-						from(select a.MedoidIDX ,b.MedoidIDY,a.ObsIDX ,((b.bi-a.ai)) as num, 
-									Case when a.ai>b.bi then a.ai else  b.bi end as den 
-							from(select a.MedoidIDX , a.ObsIDX, FLMean(a.Dist) as ai 
-								from ",temptbl3," a
-								group by 1,2) as a,
-								(select b.ObsIDX,b.MedoidIDX,c.MedoidIDY,b.bi  
-								from(select a.MedoidIDX, a.ObsIDX,min(a.di) as bi 
-									from(select a.MedoidIDX , a.MedoidIDY,a.ObsIDX, cast(FLMean(a.Dist) as decimal(38,7)) as di  
-										from ",temptbl2," a
-										group by 1,2,3) as a
-									group by 1,2) as b,
-								(select a.MedoidIDX , a.MedoidIDY,a.ObsIDX, cast(FLMean(a.Dist)as decimal(38,7)) as di  
-								from ",temptbl2," a
-								group by 1,2,3) as c
-							where c.ObsIDX=b.ObsIDX and c.MedoidIDX=b.MedoidIDX and b.bi=c.di) as b
-						where a.ObsIDX=b.ObsIDX and a.MedoidIDX=b.MedoidIDX) as a")
+		sqlstr<-paste0("select a.ObsIDX as obs_id_colname, \n a.MedoidIDX AS MedoidID, \n ",
+							" a.MedoidIDY AS neighbor, \n (a.num/a.den) as sil_width \n ", 
+						" from(select a.MedoidIDX , \n b.MedoidIDY,a.ObsIDX ,((b.bi-a.ai)) as num, \n ",
+								"	Case when a.ai>b.bi then a.ai else  b.bi end as den \n ", 
+							" from(select a.MedoidIDX , a.ObsIDX, FLMean(a.Dist) as ai \n ", 
+								" from ",temptbl3," a \n ",
+								" group by 1,2) as a, \n ",
+								" (select b.ObsIDX,b.MedoidIDX,c.MedoidIDY,b.bi \n ",  
+								" from(select a.MedoidIDX, a.ObsIDX,min(a.di) as bi  \n ",
+									" from(select a.MedoidIDX , a.MedoidIDY, \n ",
+										"a.ObsIDX, cast(FLMean(a.Dist) as decimal(38,7)) as di \n ",  
+										" from ",temptbl2," a \n ",
+										" group by 1,2,3) as a \n ",
+									" group by 1,2) as b, \n ",
+								" (select a.MedoidIDX ,  \n a.MedoidIDY, \n a.ObsIDX, \n ",
+									" cast(FLMean(a.Dist)as decimal(38,7)) as di \n ",  
+								" from ",temptbl2," a \n ",
+								" group by 1,2,3) as c \n ",
+							" where c.ObsIDX=b.ObsIDX  \n ",
+									" and c.MedoidIDX=b.MedoidIDX  \n ",
+									" and b.bi=c.di) as b \n ",
+						" where a.ObsIDX=b.ObsIDX \n  and a.MedoidIDX=b.MedoidIDX) as a")
 		
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
@@ -797,19 +852,23 @@ silinfo.FLKMedoids <- function(object){
 		}
 		else widthsmatrix <- widthsFLTable
 
-		sqlstr <- paste0("select '%insertIDhere%' AS vectorIdColumn, ROW_NUMBER() OVER(ORDER BY a.MedoidID) as vectorIndexColumn, FLMean(a.sil_width) as vectorValueColumn  
-						from(select a.MedoidIDX as MedoidID, a.ObsIDX as ObsID,(a.num/a.den) as sil_width 
-							from(select a.MedoidIDX ,a.ObsIDX ,((b.bi-a.ai)) as num, Case when a.ai>b.bi then a.ai else  b.bi end as den 
-								from(select a.MedoidIDX , a.ObsIDX, FLMean(a.Dist) as ai 
-									from ",temptbl3," a
-									group by 1,2) as a,
-								(select a.MedoidIDX, a.ObsIDX,FLMin(a.di) as bi 
-								from(select a.MedoidIDX , a.MedoidIDY,a.ObsIDX, FLMean(a.Dist) as di  
-									from ",temptbl2," a
-									group by 1,2,3) as a
-								group by 1,2) as b
-							where a.ObsIDX=b.ObsIDX and a.MedoidIDX=b.MedoidIDX) as a) as a
-							group by a.MedoidID")
+		sqlstr <- paste0("select '%insertIDhere%' AS vectorIdColumn, \n ",
+						" ROW_NUMBER() OVER(ORDER BY a.MedoidID) as vectorIndexColumn, \n ",
+						" FLMean(a.sil_width) as vectorValueColumn \n ",
+						" from(select a.MedoidIDX as MedoidID, \n ",
+						" a.ObsIDX as ObsID,(a.num/a.den) as sil_width \n ", 
+							"from(select a.MedoidIDX , \n a.ObsIDX , \n ((b.bi-a.ai)) as num, \n ",
+							" Case when a.ai>b.bi then a.ai else  b.bi end as den \n ", 
+								"from(select a.MedoidIDX , a.ObsIDX, FLMean(a.Dist) as ai \n ", 
+									" from ",temptbl3," a \n ",
+									" group by 1,2) as a, \n ",
+								"(select a.MedoidIDX, a.ObsIDX,FLMin(a.di) as bi \n ", 
+								"from(select a.MedoidIDX , a.MedoidIDY,a.ObsIDX, FLMean(a.Dist) as di \n ",  
+									"from ",temptbl2," a \n ",
+									" group by 1,2,3) as a \n ",
+								" group by 1,2) as b \n ",
+						" where a.ObsIDX=b.ObsIDX  \n and a.MedoidIDX=b.MedoidIDX) as a) as a \n ",
+						" group by a.MedoidID")
 		
 		clus.avg.widthsvector <- tryCatch(sqlQuery(connection,sqlstr)[["vectorValueColumn"]],
 										 error=function(e){
@@ -832,18 +891,21 @@ silinfo.FLKMedoids <- function(object){
 
 		if(class(widthsmatrix)=="FLTable")
 		{
-			sqlstr <- paste0("select FLMean(a.sil_width) as avg_sil_width 
-							from(select a.MedoidIDX as MedoidID, a.ObsIDX as ObsID,(a.num/a.den) as sil_width 
-								from(select a.MedoidIDX ,a.ObsIDX ,((b.bi-a.ai)) as num, Case when a.ai>b.bi then a.ai else  b.bi end as den 
-									from(select a.MedoidIDX , a.ObsIDX, FLMean(a.Dist) as ai 
-										from ",temptbl3," a
-										group by 1,2) as a,
-										(select a.MedoidIDX, a.ObsIDX,FLMin(a.di) as bi 
-										from(select a.MedoidIDX , a.MedoidIDY,a.ObsIDX, FLMean(a.Dist) as di  
-											from ",temptbl2," a
-											group by 1,2,3) as a
-										group by 1,2) as b
-									where a.ObsIDX=b.ObsIDX and a.MedoidIDX=b.MedoidIDX) as a) as a")
+			sqlstr <- paste0("select FLMean(a.sil_width) as avg_sil_width \n ",
+							" from(select a.MedoidIDX as MedoidID, \n ",
+									" a.ObsIDX as ObsID,(a.num/a.den) as sil_width \n ",
+								"from(select a.MedoidIDX , \n ",
+									"a.ObsIDX ,((b.bi-a.ai)) as num, \n ",
+									" Case when a.ai>b.bi then a.ai else  b.bi end as den \n ", 
+									" from(select a.MedoidIDX , a.ObsIDX, FLMean(a.Dist) as ai \n ", 
+										" from ",temptbl3," a \n ",
+										" group by 1,2) as a, \n ",
+										" (select a.MedoidIDX, a.ObsIDX,FLMin(a.di) as bi \n ",
+										" from(select a.MedoidIDX , a.MedoidIDY,a.ObsIDX, FLMean(a.Dist) as di \n ",  
+											" from ",temptbl2," a \n ",
+											" group by 1,2,3) as a \n ",
+										" group by 1,2) as b \n ",
+							" where a.ObsIDX=b.ObsIDX  \n and a.MedoidIDX=b.MedoidIDX) as a) as a")
 			
 			avg.widthvector <- sqlQuery(connection,sqlstr)[["avg_sil_width"]]
 		}
@@ -893,22 +955,24 @@ diss.FLKMedoids<-function(object)
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		if(object@diss && object@distTable!="NULL")
 		{
-			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID,",
-									"a.ObsIDX AS rowIdColumn,",
-									"a.ObsIDY AS colIdColumn,",
-									"a.Dist AS valueColumn",
+			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID, \n ",
+									"a.ObsIDX AS rowIdColumn, \n ",
+									"a.ObsIDY AS colIdColumn, \n ",
+									"a.Dist AS valueColumn \n ",
 							" FROM ",object@distTable," a")
 		}
 		else
 		{
 
-			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID, 
-									a.",obs_id_colname," AS rowIdColumn,
-									b.",obs_id_colname," AS colIdColumn,
-									FLEuclideanDist(a.",cell_val_colname,", b.",cell_val_colname,") AS valueColumn
-							FROM ",deeptablename," a,",deeptablename," b
-							WHERE a.",var_id_colname," = b.",var_id_colname," and a.",obs_id_colname,">b.",obs_id_colname," 
-							GROUP BY a.",obs_id_colname,",b.",obs_id_colname)
+			sqlstr<-paste0("SELECT '%insertIDhere%' as MATRIX_ID, \n ", 
+									"a.",obs_id_colname," AS rowIdColumn, \n ",
+									"b.",obs_id_colname," AS colIdColumn, \n ",
+									"FLEuclideanDist(a.",cell_val_colname,
+												", b.",cell_val_colname,") AS valueColumn \n ",
+							" FROM ",deeptablename," a, \n ",deeptablename," b \n ",
+							" WHERE a.",var_id_colname," = b.",var_id_colname,
+								" \n  and a.",obs_id_colname,">b.",obs_id_colname, 
+							"  \n GROUP BY a.",obs_id_colname,",b.",obs_id_colname)
 
 		}
 
@@ -1097,7 +1161,8 @@ pam.FLMatrix <- function(x,
 						)
 {
 	x <- as.FLTable(x)
-	return(pam (x=x,
+	vcall <- match.call()
+	pamobj <- (pam (x=x,
 				k=k,
 				diss=diss,
 				metric=metric,##notUsed
@@ -1114,5 +1179,7 @@ pam.FLMatrix <- function(x,
 				classSpec = classSpec,
 				whereconditions = whereconditions,
 				distTable=distTable))
+	pamobj@results$call <- vcall
+	return(pamobj)
 }
 

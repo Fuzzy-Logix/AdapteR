@@ -5,28 +5,27 @@ NULL
 setGeneric("FLStringDist", function(functionName,
                                     xsource,
                                     targets,
-                                    caseFlag=0,
                                     vlength=3,
                                     matchWeight=1,
                                     mismatchWeight=-1,
                                     gapPenalty=-1,
-                                    asMatrix=FALSE,...)
+                                    caseFlag=0,
+                                    asMatrix=FALSE)
     standardGeneric("FLStringDist"))
 
 ## move to file stringdist.R
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="character",
-            targets="FLVector",
-            caseFlag="ANY"),
+            targets="FLVector"),
           function(functionName,
                   xsource,
                   targets,
-                  caseFlag=0,
                   vlength=3,
                   matchWeight=1,
                   mismatchWeight=-1,
                   gapPenalty=-1,
+                  caseFlag=0,
                   asMatrix=FALSE)
           {
             if(length(xsource)>1 || asMatrix==TRUE)
@@ -35,11 +34,11 @@ setMethod("FLStringDist",
               return(FLStringDist(functionName=functionName,
                                   xsource=xsource,
                                   targets=targets,
-                                  caseFlag=caseFlag,
                                   vlength=vlength,
                                   matchWeight=matchWeight,
                                   mismatchWeight=mismatchWeight,
                                   gapPenalty=gapPenalty,
+                                  caseFlag=caseFlag,
                                   asMatrix=asMatrix))
             }
             xsource <- xsource[1]
@@ -67,6 +66,12 @@ setMethod("FLStringDist",
                                 caseFlag,",",vlength,") AS vectorValueColumn ",
                              " FROM(",constructSelect(targets),") AS ",a)
 
+            else if(functionName %in% c("FLJaroDist","FLJaccardIndex","FLJaroWinklerDist"))
+            sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+                             a,".vectorIndexColumn AS vectorIndexColumn, 1-(",
+                             functionName,"('",xsource,"',",a,".vectorValueColumn,",
+                             caseFlag,")) AS vectorValueColumn ",
+                             " FROM(",constructSelect(targets),") AS ",a)
             else
             sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
                              a,".vectorIndexColumn AS vectorIndexColumn,",
@@ -95,19 +100,19 @@ setMethod("FLStringDist",
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="FLVector",
-            targets="FLVector",
-            caseFlag="ANY"),
+            targets="FLVector"),
           function(functionName,
                   xsource,
                   targets,
-                  caseFlag=0,
                   vlength=3,
                   matchWeight=1,
                   mismatchWeight=-1,
                   gapPenalty=-1,
+                  caseFlag=0,
                   asMatrix=FALSE)
           {
             # if(length(xsource)>1)
+            #browser()
             # xsource <- xsource[1]
             a <- genRandVarName()
             b <- genRandVarName()
@@ -122,33 +127,37 @@ setMethod("FLStringDist",
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
 
-            if(functionName=="FLNeedleManWunschDist")
-            sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                             a,".vectorIndexColumn AS rowIdColumn,",
-                             b,".vectorIndexColumn AS colIdColumn,",
-                              functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",
-                                matchWeight,",",mismatchWeight,",",
-                                gapPenalty,",",caseFlag,") AS valueColumn ",
-                             " FROM(",constructSelect(xsource),") AS ",a,",(",
-                                      constructSelect(targets),") AS ",b)
+            matchWeightFlag <- mismatchWeightFlag <- gapPenaltyFlag <- vlengthFlag <- ""
+            caseFlag <- paste0(",",caseFlag)
+            if(functionName=="FLNeedleManWunschDist"){
+              matchWeightFlag <- paste0(",",matchWeight)
+              mismatchWeightFlag <- paste0(",",mismatchWeight)
+              gapPenaltyFlag <- paste0(",",gapPenalty)
+            }
+            if(functionName=="FLHammingDist")
+            vlengthFlag <- paste0(",",vlength)
 
-            else if(functionName=="FLHammingDist")
-            sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                             a,".vectorIndexColumn AS rowIdColumn,",
-                             b,".vectorIndexColumn AS colIdColumn,",
-                              functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",caseFlag,",",vlength,") AS valueColumn ",
-                             " FROM(",constructSelect(xsource),") AS ",a,",(",
-                                      constructSelect(targets),") AS ",b)
+            if(asMatrix){
+              if(functionName %in% c("FLJaroDist","FLJaccardIndex","FLJaroWinklerDist"))
+              sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+                              "a.vectorIndexColumn AS rowIdColumn, \n ",
+                              "b.vectorIndexColumn AS colIdColumn, 1-( \n ",
+                              functionName,"(a.vectorValueColumn,b.vectorValueColumn ",
+                                matchWeightFlag,mismatchWeightFlag,
+                                gapPenaltyFlag,caseFlag,vlengthFlag,")) AS valueColumn \n ",
+                             " FROM(",constructSelect(xsource),") AS a, \n (",
+                                      constructSelect(targets),") AS b ")
+              else
+              sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+                              "a.vectorIndexColumn AS rowIdColumn, \n ",
+                              "b.vectorIndexColumn AS colIdColumn, \n ",
+                              functionName,"(a.vectorValueColumn,b.vectorValueColumn ",
+                                matchWeightFlag,mismatchWeightFlag,
+                                gapPenaltyFlag,caseFlag,vlengthFlag,") AS valueColumn \n ",
+                             " FROM(",constructSelect(xsource),") AS a, \n (",
+                                      constructSelect(targets),") AS b ")
 
-            else
-            sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                             a,".vectorIndexColumn AS rowIdColumn,",
-                             b,".vectorIndexColumn AS colIdColumn,",
-                              functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",caseFlag,") AS valueColumn ",
-                             " FROM(",constructSelect(xsource),") AS ",a,",(",
-                                      constructSelect(targets),") AS ",b)
-
-            tblfunqueryobj <- new("FLTableFunctionQuery",
+              tblfunqueryobj <- new("FLTableFunctionQuery",
                     connection = getOption("connectionFL"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
@@ -158,14 +167,98 @@ setMethod("FLStringDist",
                     order = "",
                     SQLquery=sqlstr)
 
-            flm <- new("FLMatrix",
-                             select= tblfunqueryobj,
-                             dim=c(length(xsource@dimnames[[1]]),
-                                  length(targets@dimnames[[1]])),
-                             dimnames = list(
-                                 xsource@dimnames[[1]],
-                                 targets@dimnames[[1]]))
-            return(flm)
+              flm <- new("FLMatrix",
+                               select= tblfunqueryobj,
+                               dim=c(length(xsource@dimnames[[1]]),
+                                    length(targets@dimnames[[1]])),
+                               dimnames = list(
+                                   xsource@dimnames[[1]],
+                                   targets@dimnames[[1]]))
+              return(flm)
+            }
+            else{
+
+                ifelse(length(xsource)>length(targets),{
+                vmaxlen <- length(xsource);
+                vminlen <- length(targets);
+                vmaxref <- "a";
+                ifelse(xsource@isDeep && length(colnames(xsource))>1,
+                vmaxrownames <- colnames(xsource),
+                vmaxrownames <- rownames(xsource))
+                },{
+                    vmaxlen <- length(targets);
+                    vmaxref <- "b";
+                    vminlen <- length(xsource);
+                    ifelse(targets@isDeep && length(colnames(targets))>1,
+                    vmaxrownames <- colnames(targets),
+                    vmaxrownames <- rownames(targets))
+                })
+               if(functionName %in% c("FLJaroDist","FLJaccardIndex","FLJaroWinklerDist"))
+               sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+                              vmaxref,".vectorIndexColumn AS vectorIndexColumn, 1-( \n ",
+                              functionName,"(a.vectorValueColumn,b.vectorValueColumn ",
+                                matchWeightFlag,mismatchWeightFlag,
+                                gapPenaltyFlag,caseFlag,vlengthFlag,")) AS vectorValueColumn \n ",
+                             " FROM(",constructSelect(xsource),") AS a, \n (",
+                                      constructSelect(targets),") AS b \n ",
+                             " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                                      vminlen,") AS INT) = ",
+                                    "CAST(FLMOD(b.vectorIndexColumn,",
+                                    vminlen,") AS INT)")
+               else
+               sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+                              vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
+                              functionName,"(a.vectorValueColumn,b.vectorValueColumn ",
+                                matchWeightFlag,mismatchWeightFlag,
+                                gapPenaltyFlag,caseFlag,vlengthFlag,") AS vectorValueColumn \n ",
+                             " FROM(",constructSelect(xsource),") AS a, \n (",
+                                      constructSelect(targets),") AS b \n ",
+                             " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                                      vminlen,") AS INT) = ",
+                                    "CAST(FLMOD(b.vectorIndexColumn,",
+                                    vminlen,") AS INT)")
+               tblfunqueryobj <- new("FLTableFunctionQuery",
+                      connection = getOption("connectionFL"),
+                      variables = list(
+                      obs_id_colname = "vectorIndexColumn",
+                      cell_val_colname = "vectorValueColumn"),
+                      whereconditions="",
+                      order = "",
+                      SQLquery=sqlstr)
+
+                return(new("FLVector",
+                          select = tblfunqueryobj,
+                          dimnames =list(vmaxrownames,"vectorValueColumn"),
+                          isDeep = FALSE))
+            }
+
+            # if(functionName=="FLNeedleManWunschDist"){}
+            # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+            #                  a,".vectorIndexColumn AS rowIdColumn,",
+            #                  b,".vectorIndexColumn AS colIdColumn,",
+            #                   functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",
+            #                     matchWeight,",",mismatchWeight,",",
+            #                     gapPenalty,",",caseFlag,") AS valueColumn ",
+            #                  " FROM(",constructSelect(xsource),") AS ",a,",(",
+            #                           constructSelect(targets),") AS ",b)
+
+            # else if(functionName=="FLHammingDist")
+            # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+            #                  a,".vectorIndexColumn AS rowIdColumn,",
+            #                  b,".vectorIndexColumn AS colIdColumn,",
+            #                   functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",caseFlag,",",vlength,") AS valueColumn ",
+            #                  " FROM(",constructSelect(xsource),") AS ",a,",(",
+            #                           constructSelect(targets),") AS ",b)
+
+            # else
+            # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+            #                  a,".vectorIndexColumn AS rowIdColumn,",
+            #                  b,".vectorIndexColumn AS colIdColumn,",
+            #                   functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",caseFlag,") AS valueColumn ",
+            #                  " FROM(",constructSelect(xsource),") AS ",a,",(",
+            #                           constructSelect(targets),") AS ",b)
+
+            
           })
 
 ## move to file stringdist.R
@@ -173,16 +266,15 @@ setMethod("FLStringDist",
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="FLVector",
-            targets="character",
-            caseFlag="ANY"),
+            targets="character"),
           function(functionName,
                   xsource,
                   targets,
-                  caseFlag=0,
                   vlength=3,
                   matchWeight=1,
                   mismatchWeight=-1,
                   gapPenalty=-1,
+                  caseFlag=0,
                   asMatrix=FALSE)
           {
             if(length(targets)>1 || asMatrix==TRUE)
@@ -191,22 +283,22 @@ setMethod("FLStringDist",
               return(FLStringDist(functionName=functionName,
                                   xsource=xsource,
                                   targets=targets,
-                                  caseFlag=caseFlag,
                                   vlength=vlength,
                                   matchWeight=matchWeight,
                                   mismatchWeight=mismatchWeight,
                                   gapPenalty=gapPenalty,
+                                  caseFlag=caseFlag,
                                   asMatrix=asMatrix))
             }
             else if(length(targets)==1)
             FLStringDist(functionName=functionName,
                                   xsource=targets,
                                   targets=xsource,
-                                  caseFlag=caseFlag,
                                   vlength=vlength,
                                   matchWeight=matchWeight,
                                   mismatchWeight=mismatchWeight,
                                   gapPenalty=gapPenalty,
+                                  caseFlag=caseFlag,
                                   asMatrix=asMatrix)
           })
 
@@ -214,16 +306,16 @@ setMethod("FLStringDist",
 setMethod("FLStringDist",
           signature(functionName="character",
             xsource="character",
-            targets="character",
-            caseFlag="ANY"),
+            targets="character"),
           function(functionName,
                   xsource,
                   targets,
-                  caseFlag=0,
                   vlength=3,
                   matchWeight=1,
                   mismatchWeight=-1,
-                  gapPenalty=-1)
+                  gapPenalty=-1,
+                  caseFlag=0,
+                  asMatrix=FALSE)
           {
             if(length(xsource)>1)
             xsource <- xsource[1]
@@ -252,161 +344,6 @@ setMethod("FLStringDist",
             return(resultvec)
           })
 
-## move to file vwr.R
-#' levenshtein.damerau.distance
-#'
-#' computes the levenshtein-damerau distance between strings.
-#'
-#' The DB Lytix function called is FLDLevenshteinDist.
-#' This function computes the levenshtein-damerau distance between the 
-#' two char string arguments (the minimal number of insertions, deletions 
-#' replacements,or transpositions required to transform one string into the other).
-#' 
-#' @seealso \code{\link[vwr]{levenshtein.damerau.distance}} for R function reference
-#' implementation.
-#'
-#' @param xsource character or FLVector of characters
-#' @param targets character or FLVector of characters
-#' @param caseFLag logical or 0/1 indicating 
-#' if comparision should be case sensitive
-#' @return FLVector if any \code{xsource} or \code{targets}
-#' is R character of length 1. Otherwise returns a FLMatrix.
-#' @section Constraints:
-#' row vectors are not supported currently.
-#' Output is slightly different from vwr::levenshtein.damerau.distance.
-#' Refer to \code{@return} section.
-#' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
-#' flv <- widetable[1:10,"Species"]
-#' resultflvector <- levenshtein.damerau.distance("xyz",flv)
-#' resultflmatrix <- levenshtein.damerau.distance(flv,flv,caseFLag=1)
-#' resultflmatrix <- levenshtein.damerau.distance(flv,c("xyz","bghy"),caseFLag=1)
-#' @export
-setGeneric("levenshtein.damerau.distance", function(xsource,targets,caseFlag=0,...)
-    standardGeneric("levenshtein.damerau.distance"))
-
-setMethod("levenshtein.damerau.distance",
-          signature(xsource="character",
-            targets="character"),
-          function(xsource,targets,caseFlag=0)
-          vwr::levenshtein.damerau.distance(xsource, targets)
-          )
-
-setMethod("levenshtein.damerau.distance",
-          signature(xsource="ANY",
-            targets="ANY"),
-          function(xsource,targets,caseFlag=0,...)
-          {
-            FLStringDistFunctionsClassCheck(xsource,targets)
-            FLStringDist("FLDLevenshteinDist",
-                      xsource,targets,caseFlag)
-          })
-
-## move to file vwr.R
-#' levenshtein.distance
-#'
-#' computes the levenshtein distance between strings.
-#' 
-#' The DB Lytix function called is FLLevenshteinDist.
-#' This function computes the levenshtein distance between the 
-#' first two char string arguments(the minimal number of insertions, deletions  
-#' or replacements required to transform one string into the other). 
-#'
-#' @seealso \code{\link[vwr]{levenshtein.distance}} for R function reference
-#' implementation.
-#'
-#' @param xsource character or FLVector of characters
-#' @param targets character or FLVector of characters
-#' @param caseFLag logical or 0/1 indicating 
-#' if comparision should be case sensitive
-#' @return FLVector if any \code{xsource} or \code{targets}
-#' is R character of length 1. Otherwise returns a FLMatrix.
-#' @section Constraints:
-#' row vectors are not supported currently.
-#' Output is slightly different from vwr::levenshtein.distance.
-#' Refer to \code{@return} section.
-#' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
-#' flv <- widetable[1:10,"Species"]
-#' resultflvector <- levenshtein.distance("xyz",flv)
-#' resultflmatrix <- levenshtein.distance(flv,flv,caseFLag=1)
-#' resultflmatrix <- levenshtein.distance(flv,c("xyz","poli"),caseFLag=1)
-#' @export
-setGeneric("levenshtein.distance", function(xsource,targets,caseFlag=0,...)
-    standardGeneric("levenshtein.distance"))
-
-setMethod("levenshtein.distance",
-          signature(xsource="character",
-            targets="character"),
-          function(xsource,targets,caseFlag=0,...)
-          vwr::levenshtein.distance(xsource, targets)
-          )
-
-setMethod("levenshtein.distance",
-          signature(xsource="ANY",
-            targets="ANY"),
-          function(xsource,targets,caseFlag=0,...)
-          {
-            FLStringDistFunctionsClassCheck(xsource,targets)
-            FLStringDist("FLLevenshteinDist",
-                      xsource,targets,caseFlag)
-          })
-
-## move to file vwr.R
-#' hamming.distance
-#'
-#' computes the hamming distance between strings.
-#'
-#' The DB Lytix function called is FLHammingDist.
-#' This function computes the hamming distance between the 
-#' two char string arguments(the number of non-overlapping characters). 
-#' The DB Lytix function called is FLHammingDist.
-#'
-#' @seealso \code{\link[vwr]{hamming.distance}} for R function reference
-#' implementation.
-#'
-#' @param xsource character or FLVector of characters
-#' @param targets character or FLVector of characters
-#' @param caseFLag logical or 0/1 indicating
-#' if comparision should be case sensitive
-#' @param vlength optional, length of strings to compare
-#' @return FLVector if any \code{xsource} or \code{targets}
-#' is R character of length 1. Otherwise returns a FLMatrix.
-#' @section Constraints:
-#' row vectors are not supported currently.
-#' Output is slightly different from vwr::hamming.
-#' Refer to \code{@return} section.
-#' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
-#' flv <- widetable[1:10,"Species"]
-#' resultflvector <- hamming.distance("xyz",flv)
-#' resultflmatrix <- hamming.distance(flv,flv,caseFLag=1)
-#' resultflmatrix <- hamming.distance(flv,c("xyz","poli"),caseFLag=1)
-#' @export
-setGeneric("hamming.distance", function(xsource,targets,caseFlag=0,vlength=3,...)
-    standardGeneric("hamming.distance"))
-
-setMethod("hamming.distance",
-          signature(xsource="character",
-            targets="character"),
-          function(xsource,targets,caseFlag,vlength=3,...)
-          vwr::hamming.distance(xsource, targets)
-          )
-
-setMethod("hamming.distance",
-          signature(xsource="ANY",
-            targets="ANY"),
-          function(xsource,targets,caseFlag=0,vlength=3,...)
-          {
-            FLStringDistFunctionsClassCheck(xsource,targets)
-            if(!is.numeric(vlength))
-            stop("vlength should be numeric")
-            else
-            vlength <- as.integer(vlength)
-            FLStringDist("FLHammingDist",
-                      xsource,targets,caseFlag,vlength=vlength)
-          })
-
 ## move to file stringdist.R
 #' stringdist
 #'
@@ -433,9 +370,9 @@ setMethod("hamming.distance",
 #' where lv - Levenshtein, dl - Levenshtein-Damerau,
 #' jw - Jaro-Winkler, nmw - NeedleManWunsch. Default is "lv"
 #' @param weight for method=nmw, weights and penalties for match, mismatch and gaps,
-#' integer weights for matching sequential, nonmatching non-sequential characters 
-#' between the strings, and integer penality for gaps (ideally negative).
-#' @param caseFLag logical or 0/1 indicating
+#' integer weights for matching sequential(d), nonmatching non-sequential characters(i)
+#' between the strings, and integer penality for gaps(s) (ideally negative).
+#' @param caseFlag logical or 0/1 indicating
 #' if comparision should be case sensitive
 #' @param p penality factor for jaro-winkler
 #' if p==0 jaro distance is computed
@@ -452,16 +389,20 @@ setMethod("hamming.distance",
 #' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 #' flv <- widetable[1:10,"Species"]
 #' resultflvector <- stringdist("xyz",flv)
-#' resultflvector <- stringdist("xyz",flv,method="lv",caseFLag=1)
+#' resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)
 #' resultflvector <- stringdist("xyz",flv,method="hamming",vlength=4)
 #' resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
 #' resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")
 #' @export
 setGeneric("stringdist", function(a,b,
-                                  method=c("lv","dl","hamming","jaccard","jw","nmw"),
-                                  weight=c(match=1, mismatch=1, gap=-1),
+                                  method="osa",
+                                  useBytes=FALSE,
+                                  weight = c(d = 1, i = 1, s = 1, t = 1),
+                                  maxDist = Inf, 
+                                  q = 1, 
+                                  p = 0, 
+                                  nthread = getOption("sd_num_thread"),
                                   caseFlag=0,
-                                  p=0,
                                   vlength=3,
                                   ...)
     standardGeneric("stringdist"))
@@ -470,125 +411,90 @@ setGeneric("stringdist", function(a,b,
 setMethod("stringdist",
           signature(a="character",
                     b="character"),
-          function(a,b,method="osa",...)
-          stringdist::stringdist(a, b,method,...)
-          )
+          function(a,b,
+                  method="osa",
+                  useBytes=FALSE,
+                  weight=c(d = 1, i = 1, s = 1, t = 1),
+                  maxDist = Inf, 
+                  q = 1, 
+                  p = 0, 
+                  nthread = getOption("sd_num_thread"),
+                  caseFlag=0,
+                  vlength=3,...){
+            return(stringdist::stringdist(a,b,method=method,
+                        useBytes=useBytes,
+                        weight=weight,
+                        maxDist = maxDist, 
+                        q = q, 
+                        p = p, 
+                        nthread = nthread,
+                        ...))
+          })
 
 ## move to file stringdist.R
 setMethod("stringdist",
           signature(a="ANY", b="ANY"),
           function(a,b,
-                   method=c("lv","dl","hamming","jaccard","jw","nmw"),
-                   weight=c(match=1, mismatch=1, gap=-1),
-                   caseFlag=0,
-                   p=0,
-                   vlength=3,
-                   ...){
-            method <- match.arg(method)
+                  method=c("osa"),
+                  useBytes=FALSE,
+                  weight=c(d = 1, i = 1, s = 1, t = 1),
+                  maxDist = Inf, 
+                  q = 1, 
+                  p = 0, 
+                  nthread = getOption("sd_num_thread"),
+                  caseFlag=0,
+                  vlength=3,...){
+            
+            if(!is.FL(a) && !is.FL(b))
+            return(stringdist::stringdist(a,b,method=method,
+                    useBytes=useBytes,
+                    weight=weight,
+                    maxDist = maxDist, 
+                    q = q, 
+                    p = p, 
+                    nthread = nthread,
+                    ...))
+
             FLStringDistFunctionsClassCheck(a,b)
             
-            if(!(method %in% c("lv","dl","hamming","jaccard","jw")))
-              stop(" method not supported ")
+            if(!(method %in% c("lv","dl","hamming","jaccard","jw","nmw")))
+            if(method == "osa"){
+              cat("osa not supported for FLTypes...Using dl instead \n ")
+              method <- "dl"
+            }
+            else{
+              stop("method not supported for FLTypes \n ")
+            }
+
             if(method=="lv")
               return(FLStringDist("FLLevenshteinDist",
-                                  a,b,caseFlag))
+                                  a,b,caseFlag=caseFlag))
             else if(method=="dl")
               return(FLStringDist("FLDLevenshteinDist",
-                                  a,b,caseFlag))
+                                  a,b,caseFlag=caseFlag))
             else if(method=="hamming")
               return(FLStringDist("FLHammingDist",
-                                  a,b,caseFlag,vlength=vlength))
+                                  a,b,caseFlag=caseFlag,
+                                  vlength=vlength))
             else if(method=="jaccard")
               return(FLStringDist("FLJaccardIndex",
-                                  a,b,caseFlag))
+                                  a,b,caseFlag=caseFlag))
             else if(method=="jw"){
               if(p==0)
                 return(FLStringDist("FLJaroDist",
-                                    a,b,caseFlag))
+                                    a,b,caseFlag=caseFlag))
               else
               return(FLStringDist("FLJaroWinklerDist",
-                      a,b,caseFlag))
-
-            ###RV:Should nmw be included in stringdist? It is not as much a distance metric method as a sequence/alignment operation.
-
-        ##  else if(method=="nmw")
-           ## return(FLStringDist("FLNeedleManWunschDist",
-            ##                      a,b,
-            ##                      matchWeight=weight$match,
-            ##                      mismatchWeight=weight$mismatch,
-            ##                      gapPenalty=weight$gap,...)) 
+                      a,b,caseFlag=caseFlag))
             }
+            else if(method=="nmw")
+            return(FLStringDist("FLNeedleManWunschDist",
+                                 a,b,
+                                 matchWeight=ifelse(is.na(weight["d"]),1,weight[["d"]]),
+                                 mismatchWeight=ifelse(is.na(weight["i"]),-1,weight[["i"]]),
+                                 gapPenalty=ifelse(is.na(weight["s"]),-1,weight[["s"]]),
+                                 caseFlag=caseFlag))
           })
-
-## move to file FLNeedleManWunschDist.R
-#' FLNeedleManWunschDist
-#'
-#' compute NeedleManWunsch distance between strings.
-#'
-#' The DB Lytix function called is FLNeedlemanWunschDist.
-#' This function performs global sequence alignment between two
-#' sequences and finds out structural and functional similarity between them
-#' and returns a score which indicates the best alignment between two  
-#' sequences by searching the highest scores in the similarity matrix.
-#'
-#' @seealso \code{\link[Biostrings]{pairwiseAlignment}} for R function 
-#' reference implementation in BioConductor.
-#' 
-#' @param a character or FLVector of characters
-#' @param b character or FLVector of characters
-#' @param matchWeight integer weight for having
-#' matching sequential characters between
-#' the strings
-#' @param mismatchWeight integer Weight
-#' for having nonmatching or non-sequential characters
-#' between the strings
-#' @param gapPenalty integer penality for gaps
-#' @param caseFLag logical or 0/1 indicating 
-#' if comparision should be case sensitive
-#' @return FLVector if any \code{a} or \code{b}
-#' is R character of length 1. Otherwise returns a FLMatrix.
-#' @section Constraints:
-#' row vectors are not supported currently.
-#' Refer to \code{@return} section.
-#' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
-#' flv <- widetable[1:10,"Species"]
-#' resultflvector <- FLNeedleManWunschDist("xyz",flv)
-#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="lv",caseFLag=1)
-#' resultflvector <- FLNeedleManWunschDist("xyz",flv,method="hamming",vlength=4)
-#' resultflmatrix <- FLNeedleManWunschDist(flv,flv,method="jw",p=1)
-#' resultflmatrix <- FLNeedleManWunschDist(c("xyz","juio"),flv,method="jw")
-#' @export
-setGeneric("FLNeedleManWunschDist", function(a,b,matchWeight=1,
-                                          mismatchWeight=-1,
-                                          gapPenalty=-1,
-                                          caseFlag=0,...)
-    standardGeneric("FLNeedleManWunschDist"))
-
-## move to file FLNeedleManWunschDist.R
-setMethod("FLNeedleManWunschDist",
-          signature(a="character",
-            b="character"),
-          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
-          FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
-                      mismatchWeight=mismatchWeight,
-                      gapPenalty=gapPenalty,
-                      caseFlag=caseFlag))
-
- ## move to file FLNeedleManWunschDist.R               
-setMethod("FLNeedleManWunschDist",
-          signature(a="ANY",
-            b="ANY"),
-          function(a,b,matchWeight=1,mismatchWeight=-1,gapPenalty=-1,caseFlag=0,...)
-          {
-          FLStringDistFunctionsClassCheck(a,b)
-          FLStringDist("FLNeedleManWunschDist",a,b,matchWeight=matchWeight,
-                      mismatchWeight=mismatchWeight,
-                      gapPenalty=gapPenalty,
-                      caseFlag=caseFlag)
-                               
-          })
-
 
 ## move to file stringdist.R
 #' stringdistmatrix
@@ -606,7 +512,7 @@ setMethod("FLNeedleManWunschDist",
 #' @param method can be \code{c("lv","dl","hamming","jaccard","jw")}
 #' where lv - levenshtein, dl - levenshtein.damerau
 #' jw - jaro-winkler. Default is "lv"
-#' @param caseFLag logical or 0/1 indicating
+#' @param caseFlag logical or 0/1 indicating
 #' if comparision should be case sensitive
 #' @param p penality factor for jaro-winkler
 #' if p==0 jaro distance is computed
@@ -619,33 +525,105 @@ setMethod("FLNeedleManWunschDist",
 #' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 #' flv <- widetable[1:10,"Species"]
 #' resultflmatrix <- stringdistmatrix("xyz",flv)
-#' resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFLag=1)
+#' resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFlag=1)
 #' resultflmatrix <- stringdistmatrix("xyz",flv,method="hamming",vlength=4)
 #' resultflmatrix <- stringdistmatrix(flv,flv,method="jw",p=1)
 #' resultflmatrix <- stringdistmatrix(flv,c("xyz","abc"),method="jw")
 #' @export
-setGeneric("stringdistmatrix", function(a,b,method="dl",caseFlag=0,p=0,vlength=3,asMatrix=TRUE,...)
+setGeneric("stringdistmatrix", 
+          function(a,b,method="osa",
+                  useBytes=FALSE,
+                  weight = c(d = 1, i = 1, s = 1, t = 1),
+                  maxDist = Inf, 
+                  q = 1, 
+                  p = 0,
+                  useNames = c("none", "strings", "names"),
+                  ncores = 1,
+                  cluster = NULL,
+                  nthread = getOption("sd_num_thread"),
+                  caseFlag=0,
+                  vlength=3,
+                  asMatrix=TRUE,
+                  ...)
     standardGeneric("stringdistmatrix"))
 
 ## move to file stringdist.R
 setMethod("stringdistmatrix",
           signature(a="character",
             b="character"),
-          function(a,b,method="osa",caseFlag=0,p=0,vlength=3,asMatrix=TRUE,...)
-          stringdist::stringdistmatrix(a, b,method,...)
+          function(a,b,method="osa",
+                  useBytes=FALSE,
+                  weight = c(d = 1, i = 1, s = 1, t = 1),
+                  maxDist = Inf, 
+                  q = 1, 
+                  p = 0,
+                  useNames = c("none", "strings", "names"),
+                  ncores = 1,
+                  cluster = NULL,
+                  nthread = getOption("sd_num_thread"),
+                  caseFlag=0,
+                  vlength=3,
+                  asMatrix=TRUE,
+                  ...)
+          stringdist::stringdistmatrix(a, b,
+                            method=method,
+                            useBytes=useBytes,
+                            weight=weight,
+                            maxDist = maxDist, 
+                            q = q, 
+                            p = p,
+                            useNames = useNames,
+                            ncores = ncores,
+                            cluster = cluster,
+                            nthread = nthread,
+                            ...)
           )
 
 ## move to file stringdist.R
 setMethod("stringdistmatrix",
           signature(a="ANY",
             b="ANY"),
-          function(a,b,method="dl",caseFlag=0,p=0,
-                  vlength=3,asMatrix=TRUE,...)
+          function(a,b,
+                  method="osa",
+                  useBytes=FALSE,
+                  weight = c(d = 1, i = 1, s = 1, t = 1),
+                  maxDist = Inf, 
+                  q = 1, 
+                  p = 0,
+                  useNames = c("none", "strings", "names"),
+                  ncores = 1,
+                  cluster = NULL,
+                  nthread = getOption("sd_num_thread"),
+                  caseFlag=0,
+                  vlength=3,
+                  asMatrix=TRUE,
+                  ...)
           {
+            if((!is.FL(a) && missing(b)) || (!is.FL(a) && !is.FL(b)))
+            return(stringdist::stringdistmatrix(a,b,method=method,
+                            useBytes=useBytes,
+                            weight=weight,
+                            maxDist = maxDist, 
+                            q = q, 
+                            p = p,
+                            useNames = useNames,
+                            ncores = ncores,
+                            cluster = cluster,
+                            nthread = nthread,
+                            ...))
+            if(missing(b))
+            b <- a
             FLStringDistFunctionsClassCheck(a,b)
 
-            if(!(method %in% c("lv","dl","hamming","jaccard","jw")))
-            stop(" method not supported ")
+            if(!(method %in% c("lv","dl","hamming","jaccard","jw","nmw")))
+            if(method == "osa"){
+              cat("osa not supported for FLTypes...Using dl instead \n ")
+              method <- "dl"
+            }
+            else{
+              stop("method not supported for FLTypes \n ")
+            }
+
             if(method=="lv")
             return(FLStringDist("FLLevenshteinDist",
                       a,b,caseFlag=caseFlag,
@@ -674,10 +652,18 @@ setMethod("stringdistmatrix",
                       a,b,caseFlag=caseFlag,
                       asMatrix=TRUE))
             }
+             else if(method=="nmw")
+            return(FLStringDist("FLNeedleManWunschDist",
+                                 a,b,
+                                 matchWeight=ifelse(is.na(weight["d"]),1,weight[["d"]]),
+                                 mismatchWeight=ifelse(is.na(weight["i"]),-1,weight[["i"]]),
+                                 gapPenalty=ifelse(is.na(weight["s"]),-1,weight[["s"]]),
+                                 caseFlag=caseFlag,
+                                 asMatrix=TRUE))
           })
 
 ## move to file stringdist.R
-FLStringDistFunctionsClassCheck <- function(a,b,...)
+FLStringDistFunctionsClassCheck <- function(a,b)
 {
   if(!(class(a)=="FLVector" || is.character(a)))
   stop(" a should be FLVector or character ")
@@ -712,7 +698,8 @@ setMethod("FLStrCommon",
           {
             sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
                              a,".vectorIndexColumn AS vectorIndexColumn,",
-                              functionName,"(",a,".vectorValueColumn,",fquote(delimiter),",",stringpos,") AS vectorValueColumn ",
+                              functionName,"(",a,".vectorValueColumn,",
+                                fquote(delimiter),",",stringpos,") AS vectorValueColumn ",
                              " FROM(",constructSelect(object),") AS ",a)
           }
           else if(functionName=="FLInstr")
@@ -720,7 +707,8 @@ setMethod("FLStrCommon",
             vfun <- paste0(functionName,"(0,",a,".vectorValueColumn,",fquote(delimiter),")")
             sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
                              a,".vectorIndexColumn AS vectorIndexColumn,",
-                              "CASE WHEN ",vfun,"= -1 THEN -1 ELSE ",vfun," + 1 END AS vectorValueColumn ",
+                              "CASE WHEN ",vfun,"= -1 THEN -1 ELSE ",
+                              vfun," + 1 END AS vectorValueColumn ",
                              " FROM(",constructSelect(object),") AS ",a)
           }
           else if(functionName=="FLIsHex" || functionName=="FLIsNumeric"
@@ -792,7 +780,8 @@ setMethod("FLConcatString",
 
             sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
                                       "1 AS vectorIndexColumn,",
-                                  "FLConcatString(",b,".vectorValueColumn,",fquote(delimiter),") AS vectorValueColumn ",
+                                  "FLConcatString(",b,".vectorValueColumn,",
+                                    fquote(delimiter),") AS vectorValueColumn ",
                              " FROM(",
                                   " SELECT ROW_NUMBER()OVER(ORDER BY ",a,".vectorIndexColumn) AS vectorIndexColumn,",
                                                 a,".vectorValueColumn AS vectorValueColumn ",

@@ -50,6 +50,7 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
                     		"OutputColNum","OutUVal","OutSVal","OutVVal"),
                     	whereClause=") WITH DATA;")
                    )
+    sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object,nu,nv),

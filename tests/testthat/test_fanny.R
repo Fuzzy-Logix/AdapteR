@@ -6,15 +6,18 @@ Renv$x <- rbind(cbind(rnorm(10, 0, 0.5), rnorm(10, 0, 0.5)),
 FLenv <- as.FL(Renv)
 
 
-test_that("FLFKMeans",eval_expect_equal({
+test_that("FLFKMeans dimension check for components ",{
+eval_expect_equal({
   fannyx <- fanny(x, 2)
-  memb_exp <- fannyx$memb.exp
+  memb_exp <- length(fannyx$memb.exp)
   clust <- length(fannyx$clustering)
-  k_crisp <- fannyx$k.crisp
+  k_crisp <- length(fannyx$k.crisp)
+  coeff <- length(fannyx$coeff)
   silinfo_width <- dim(fannyx$silinfo$widths)
-  diss <- fannyx$diss
+  silinfo_width1 <- length(fannyx$silinfo$clus.avg.widths)
+  silinfo_width2 <- length(fannyx$silinfo$avg.width)
 },Renv,FLenv,
-expectation=c("memb_exp","clust","k_crisp",
-            "silinfo_width","diss"),
-noexpectation = c("fannyx")
-))
+noexpectation = c("fannyx"))
+FLexpect_equal(dim(FLenv$fannyx$diss),
+                c(nrow(FLenv$x),nrow(FLenv$x)))
+})

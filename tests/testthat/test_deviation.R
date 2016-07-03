@@ -1,9 +1,10 @@
 #Data objects initialisation.
 Renv = new.env(parent = globalenv())
-Renv$vector1 = sample(1:1000,600,replace = TRUE)
-Renv$matrix1 = matrix(sample(1:1000,600,replace = TRUE), nrow = 200, ncol = 300, byrow = TRUE)
-Renv$dataframe1 = data.frame(x=sample(1:1000,600,replace = TRUE),
-                             y=sample(1:1000,600,replace = TRUE))
+
+Renv$vector1 = sample(1:1000,60,replace = TRUE)
+Renv$matrix1 = matrix(sample(1:1000,60,replace = TRUE), nrow = 20, ncol = 3, byrow = TRUE)
+Renv$dataframe1 = data.frame(sample(1:1000,10,replace = TRUE),
+                             sample(1:1000,10,replace = TRUE))
 
 FLenv = as.FL(Renv)
 

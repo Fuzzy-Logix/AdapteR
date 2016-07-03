@@ -2,8 +2,8 @@
 NULL
 
 #' @export
-hclust <- function (x,...) {
-  UseMethod("hclust", x)
+hclust <- function (d,...) {
+  UseMethod("hclust", d)
 }
 
 #' @export
@@ -89,8 +89,8 @@ hclust.FLMatrix <- function(d,
 						...
 						)
 {
-	x <- as.FLTable(x)
-	return(hclust(x=d,
+	d <- as.FLTable(d)
+	return(hclust(d=d,
 				method=method,
 				maxit = maxit,
 				excludeCols = excludeCols,

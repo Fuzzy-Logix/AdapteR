@@ -1,14 +1,15 @@
 library(testthat)
 Renv <- new.env(parent = globalenv())
-Renv$data <- votes.repub
-rownames(Renv$data) <- 1:nrow(Renv$data)
-# Renv$animals <- animals
-# colnames(Renv$animals)[colnames(Renv$animals)=="end"] <- "endCol"
-# rownames(Renv$animals) <- 1:nrow(Renv$animals)
-FLenv <- as.FL(Renv)
 
-## For Loop gives error!
-#for(vmethod in c("average","complete"))
+Renv$data <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
+                 matrix(rnorm(100, mean = 10, sd = 0.3), ncol = 2))
+
+# Renv$votesdat <- votes.repub
+# rownames(Renv$votesdat) <- 1:nrow(Renv$votesdat)
+# Renv$animalsdat <- animals
+# colnames(Renv$animalsdat)[colnames(Renv$animalsdat)=="end"] <- "endCol"
+# rownames(Renv$animalsdat) <- 1:nrow(Renv$animalsdat)
+FLenv <- as.FL(Renv)
 
 test_that("agnes components dimensions for average method ",{
   eval_expect_equal({
@@ -52,6 +53,7 @@ test_that("agnes components dimensions for single method ",{
                 c(nrow(FLenv$data),nrow(FLenv$data)))
 })
 
+## No centroid method in R
 test_that("check working for centroid method ",{
   FLenv$agn4 <- agnes(FLenv$data,method="centroid")
   FLexpect_equal(length(FLenv$agn4$height),
@@ -64,16 +66,32 @@ test_that("check working for centroid method ",{
                 c(nrow(FLenv$data),nrow(FLenv$data)))
 })
 
-## This dataset fails
- # test_that("agnes gaverage",{
- #  eval_expect_equal({
- #    aa.ga <- agnes(animals, method = "complete")
- #    orderGa <- length(aa.ga$order)
- #    heightGa <- length(aa.ga$height)
- #    mergeGa <- dim(aa.ga$merge)
- #  },Renv,FLenv,
- # noexpectation=c("aa.ga")
- # )
- # FLexpect_equal(dim(FLenv$aa.ga$diss),
- #                as.vector(c(nrow(FLenv$animals),nrow(FLenv$animals))))
- # })
+# # This dataset fails from jdbc
+# test_that("agnes on votes.repub dataset ",{
+# eval_expect_equal({
+#   aa.ga <- agnes(votesdat)
+#   orderGa <- length(aa.ga$order)
+#   heightGa <- length(aa.ga$height)
+#   mergeGa <- dim(aa.ga$merge)
+# },Renv,FLenv,
+# noexpectation=c("aa.ga")
+# )
+# FLexpect_equal(dim(FLenv$aa.ga$diss),
+#               as.vector(c(nrow(FLenv$votesdat),
+#                 nrow(FLenv$votesdat))))
+# })
+
+# # This dataset fails
+# test_that("agnes on animals dataset ",{
+# eval_expect_equal({
+#   aa.ga <- agnes(animalsdat)
+#   orderGa <- length(aa.ga$order)
+#   heightGa <- length(aa.ga$height)
+#   mergeGa <- dim(aa.ga$merge)
+# },Renv,FLenv,
+# noexpectation=c("aa.ga")
+# )
+# FLexpect_equal(dim(FLenv$aa.ga$diss),
+#               as.vector(c(nrow(FLenv$animalsdat),
+#                 nrow(FLenv$animalsdat))))
+# })
