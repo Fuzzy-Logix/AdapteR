@@ -271,12 +271,12 @@ cluster.FLHKMeans<-function(object)
 		connection <- getConnection(object@table)
 		flag3Check(connection)
 		AnalysisID <- object@AnalysisID
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, 
-						         ObsID AS vectorIndexColumn,
-						         DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorValueColumn 
-						FROM fzzlKMeansClusterID 
-						WHERE AnalysisID = '",AnalysisID,"' AND
-						HypothesisID = ",object@nstart,
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+						    "     ObsID AS vectorIndexColumn, \n ",
+						    "    DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorValueColumn \n ",
+						" FROM fzzlKMeansClusterID \n ",
+						" WHERE AnalysisID = '",AnalysisID,"' \n AND ",
+						" HypothesisID = ",object@nstart," \n ",
 						" ORDER BY ObsID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -315,13 +315,13 @@ centers.FLHKMeans<-function(object)
 		connection <- getConnection(object@table)
 		flag1Check(connection)
 		AnalysisID <- object@AnalysisID
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID,
-						       DENSE_RANK()OVER(ORDER BY ClusterID) AS rowIdColumn,
-						       VarID AS colIdColumn,
-						       Centroid AS valueColumn 
-						FROM fzzlKMeansDendrogram 
-						WHERE AnalysisID = '",AnalysisID,"' 
-						AND HypothesisID = ",object@nstart,
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+						    "  DENSE_RANK()OVER(ORDER BY ClusterID) AS rowIdColumn, \n ",
+						    "  VarID AS colIdColumn, \n ",
+						    "   Centroid AS valueColumn \n ",
+						" FROM fzzlKMeansDendrogram \n ",
+						" WHERE AnalysisID = '",AnalysisID,"' \n ",
+						" AND HypothesisID = ",object@nstart," \n ",
 						" AND Level = ",object@levels)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -606,24 +606,52 @@ plot.FLHKMeans <- function(object)
 	var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 	cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 	widetable <- gen_wide_table_name("new")
-	#widetable <- "tempuniquewide12345678"
-	# if(!object@table@isDeep)
-	# {
-	# 	widex <- deepToWide(object@deeptable,
-	# 						whereconditions="",
-	# 						mapTable= object@mapTable,
-	# 						mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-	# 						outWideTableDatabase=getOption("ResultDatabaseFL"),
- #                    		outWideTableName=widetable)
-	# 	x <- widex$table
-	# }
-	# else
 	x <- object@deeptable
 	x <- as.data.frame(x)
 	x$obs_id_colname <- NULL
-	#print(x[1:20,])
-	plot(x,col=as.vector(object$cluster))
+	plot(x,col=as.vector(object$cluster),main="kmeans using DB-Lytix")
 	points(as.matrix(object$centers),col=1:object@centers,pch=8,cex=2)
+}
+
+#' @export
+fitted.FLHKMeans <- function(object,method="centers",...){
+	AnalysisID <- object@AnalysisID
+	
+	if(!method %in% c("centers","classes"))
+	stop(" method in fitted for kmeans should be c(centers,classes) \n ")
+	if(method == "classes")
+	return(object$cluster)
+
+	sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+					    " b.ObsID AS rowIdColumn, \n ",
+					    " a.VarID AS colIdColumn, \n ",
+					    " a.Centroid AS valueColumn \n ",
+					" FROM fzzlKMeansDendrogram a, \n ",
+							"fzzlkmeansclusterid b \n ",
+					" WHERE a.AnalysisID = '",AnalysisID,"' \n ",
+					" AND a.HypothesisID = ",object@nstart," \n ",
+					" AND a.Level = ",object@levels," \n ",
+					" AND a.HypothesisID = b.HypothesisID \n ",
+					" AND a.AnalysisID = b.AnalysisID \n ",
+					" AND a.ClusterID = b.ClusterID ")
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                    connection = connection,
+                    variables=list(
+                        rowIdColumn="rowIdColumn",
+                        colIdColumn="colIdColumn",
+                        valueColumn="valueColumn"),
+                    whereconditions="",
+                    order = "",
+                    SQLquery=sqlstr)
+
+  	centersmatrix <- new("FLMatrix",
+			            select= tblfunqueryobj,
+			            dim=c(nrow(object@deeptable),
+			            	ncol(object@deeptable)),
+			            dimnames=list(object$cluster,
+			            			object@deeptable@dimnames[[2]]))
+  	return(centersmatrix)
 }
 
 #' @export

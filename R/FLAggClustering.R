@@ -152,25 +152,27 @@ agnes.FLTable <- function(x,
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
 
-		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( 
-			    	     SELECT a.Final_VarID AS VarID,
-			    	     	    a.COLUMN_NAME AS ColumnName,
-			    	     	    a.FROM_TABLE AS MapName 
-			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
-			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
+		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( \n ",
+			    	    " SELECT a.Final_VarID AS VarID, \n ",
+			    	     	"    a.COLUMN_NAME AS ColumnName, \n ",
+			    	     	"    a.FROM_TABLE AS MapName \n ",
+			    	    " FROM fzzlRegrDataPrepMap a \n ",
+			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
+			    	    " AND a.Final_VarID IS NOT NULL) WITH DATA")
 		
 		sqlSendUpdate(connection,sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name()
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+						deeptablename," AS \n ",constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
 
 		deeptablename1 <- gen_deep_table_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-			" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
+						" AS \n SELECT * FROM ",getOption("ResultDatabaseFL"),".",
+						deeptablename,constructWhere(whereconditions))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
@@ -188,7 +190,8 @@ agnes.FLTable <- function(x,
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
 		deeptablename <- gen_deep_table_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+						deeptablename," AS \n ",constructSelect(x))
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
@@ -215,14 +218,14 @@ agnes.FLTable <- function(x,
 	}
 
 	vnote <- genNote("agnes")
-    sqlstr <- paste0("CALL FLAggClustering( '",deeptable,"',
-					 					   '",getVariables(deepx)[["obs_id_colname"]],"',
-					 					   '",getVariables(deepx)[["var_id_colname"]],"',
-					 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
-					 					   whereClause,",",
-					 					   methodID,",",
-					 					   maxit,",",
-					 					   fquote(vnote),",AnalysisID );")
+    sqlstr <- paste0("CALL FLAggClustering(",fquote(deeptable),", \n ",
+					 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
+					 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
+					 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
+					 					   whereClause,", \n ",
+					 					   methodID,", \n ",
+					 					   maxit,", \n ",
+					 					   fquote(vnote),", \n AnalysisID );")
 	
 	retobj <- sqlQuery(connection,sqlstr,
 						AnalysisIDQuery=genAnalysisIDQuery("fzzlKMeansInfo",vnote))
@@ -355,15 +358,15 @@ height.FLAggClust <- function(object)
 		if(is.null(object@temptables[["agnesCentroid"]]))
 		{
 			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",a,
-							" AS (SELECT a.HypothesisID AS LevelID,",
-										" a.ClusterID,",
-										" b.",var_id_colname," AS VarID,
-										 AVERAGE(b.",cell_val_colname,") AS Centroid ",
-								" FROM fzzlKMeansClusterID a,",
-									deeptablename," AS b ",
+							" \n AS (SELECT a.HypothesisID AS LevelID, \n ",
+										" a.ClusterID, \n ",
+										" b.",var_id_colname," AS VarID, \n ",
+										" AVERAGE(b.",cell_val_colname,") AS Centroid  \n ",
+								" FROM fzzlKMeansClusterID a, \n ",
+									deeptablename," AS b  \n ",
 								" WHERE a.ObsID=b.",obs_id_colname,
-								" AND a.AnalysisID='",AnalysisID,"' ",
-								" GROUP BY a.HypothesisID,a.ClusterID,",
+								" AND a.AnalysisID=",fquote(AnalysisID)," \n ",
+								" GROUP BY a.HypothesisID,a.ClusterID, \n ",
 									" b.",var_id_colname,")WITH DATA"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesCentroid=a))
@@ -371,17 +374,17 @@ height.FLAggClust <- function(object)
 		
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",b," AS ",
-						"(SELECT a.HypothesisID AS OldLevel,",
-								"a.ClusterID AS OldClusterID,",
-								"b.HypothesisID AS NewLevel,",
-								"b.ClusterID AS NewClusterID,",
-								"a.ObsID ",
-						" FROM fzzlKMeansClusterID a,fzzlKMeansClusterID b ",
-						" WHERE a.AnalysisID = b.AnalysisID ",
-						" AND a.ObsID = b.ObsID ",
-						" AND a.AnalysisID = '",AnalysisID,"'",
-						" AND a.HypothesisID = b.HypothesisID - 1",
+			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",b," AS  \n ",
+						"(SELECT a.HypothesisID AS OldLevel, \n ",
+								"a.ClusterID AS OldClusterID, \n ",
+								"b.HypothesisID AS NewLevel, \n ",
+								"b.ClusterID AS NewClusterID, \n ",
+								"a.ObsID  \n ",
+						" FROM fzzlKMeansClusterID a,fzzlKMeansClusterID b \n  ",
+						" WHERE a.AnalysisID = b.AnalysisID  \n ",
+						" AND a.ObsID = b.ObsID  \n ",
+						" AND a.AnalysisID = '",AnalysisID,"' \n ",
+						" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 						" AND a.ClusterID <> b.ClusterID) WITH DATA"))
 
 			if(length(t)>1) stop(t)
@@ -391,14 +394,14 @@ height.FLAggClust <- function(object)
 		agnes <- object@temptables[["agnesMembership"]]
 		agnesCentroid <- object@temptables[["agnesCentroid"]]
 
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-							"a.LevelID+1 as vectorIndexColumn,",
-							"FLEuclideanDist(a.Centroid, b.Centroid) AS vectorValueColumn ",
-						" FROM ",agnesCentroid," a, ",agnesCentroid," b, ",
-							"(SELECT DISTINCT OldLevel,OldCLusterID,NewClusterID FROM ",agnes,") c ",
-						" WHERE a.LevelID=c.OldLevel AND a.ClusterID=c.OldClusterID ",
-							" AND b.LevelID=c.OldLevel AND b.ClusterID=c.NewClusterID ",
-							" AND a.varID=b.VarID ",
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+							"a.LevelID+1 as vectorIndexColumn, \n ",
+							"FLEuclideanDist(a.Centroid, b.Centroid) AS vectorValueColumn  \n ",
+						" FROM ",agnesCentroid," a, ",agnesCentroid," b,  \n ",
+							"(SELECT DISTINCT OldLevel,OldCLusterID,NewClusterID FROM ",agnes,") c  \n ",
+						" WHERE a.LevelID=c.OldLevel AND a.ClusterID=c.OldClusterID  \n ",
+							" AND b.LevelID=c.OldLevel AND b.ClusterID=c.NewClusterID  \n ",
+							" AND a.varID=b.VarID  \n ",
 						" GROUP BY a.ClusterID,b.ClusterID,a.LevelID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -457,15 +460,15 @@ ac.FLAggClust <- function(object){
 		if(is.null(object@temptables[["agnesCentroid"]]))
 		{
 			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",a,
-							" AS (SELECT a.HypothesisID AS LevelID,",
-										" a.ClusterID,",
-										" b.",var_id_colname," AS VarID,
-										AVERAGE(b.",cell_val_colname,") AS Centroid ",
-								" FROM fzzlKMeansClusterID a,",
-									deeptablename," AS b ",
+							" \n AS (SELECT a.HypothesisID AS LevelID, \n ",
+										" a.ClusterID, \n ",
+										" b.",var_id_colname," AS VarID, \n ",
+										" AVERAGE(b.",cell_val_colname,") AS Centroid  \n ",
+								" FROM fzzlKMeansClusterID a, \n ",
+									deeptablename," AS b \n ",
 								" WHERE a.ObsID=b.",obs_id_colname,
-								" AND a.AnalysisID='",AnalysisID,"' ",
-								" GROUP BY a.HypothesisID,a.ClusterID,",
+								" AND a.AnalysisID='",AnalysisID,"' \n ",
+								" GROUP BY a.HypothesisID,a.ClusterID, \n ",
 									" b.",var_id_colname,")WITH DATA"))
 			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesCentroid=a))
@@ -473,17 +476,17 @@ ac.FLAggClust <- function(object){
 		
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",b," AS ",
-						"(SELECT a.HypothesisID AS OldLevel,",
-								"a.ClusterID AS OldClusterID,",
-								"b.HypothesisID AS NewLevel,",
-								"b.ClusterID AS NewClusterID,",
-								"a.ObsID ",
-						" FROM fzzlKMeansClusterID a,fzzlKMeansClusterID b ",
-						" WHERE a.AnalysisID = b.AnalysisID ",
-						" AND a.ObsID = b.ObsID ",
-						" AND a.AnalysisID = '",AnalysisID,"'",
-						" AND a.HypothesisID = b.HypothesisID - 1",
+			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",b," AS  \n ",
+						"(SELECT a.HypothesisID AS OldLevel, \n ",
+								"a.ClusterID AS OldClusterID, \n ",
+								"b.HypothesisID AS NewLevel, \n ",
+								"b.ClusterID AS NewClusterID, \n ",
+								"a.ObsID  \n ",
+						" FROM fzzlKMeansClusterID a,fzzlKMeansClusterID b  \n ",
+						" WHERE a.AnalysisID = b.AnalysisID  \n ",
+						" AND a.ObsID = b.ObsID  \n ",
+						" AND a.AnalysisID = '",AnalysisID,"' \n ",
+						" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 						" AND a.ClusterID <> b.ClusterID) WITH DATA"))
 
 			if(length(t)>1) stop(t)
@@ -493,34 +496,34 @@ ac.FLAggClust <- function(object){
 		agnes <- object@temptables[["agnesMembership"]]
 		agnesCentroid <- object@temptables[["agnesCentroid"]]
 
-		sqlstr <- paste0("SELECT FLMean(1-(a.mi/b.Dist)) AS ac FROM ",
-							"(SELECT a.ClusterID AS ObsIDX,",
-								"b.ClusterID AS ObsIDY,",
-								"FLEuclideanDist(a.Centroid, b.Centroid) AS mi ",
-							" FROM ",agnesCentroid," a,",agnesCentroid," b,",
-								"(SELECT ObsID,min(res1) AS oldlevel FROM ",
-									"(SELECT a.ObsID,min(a.OldLevel) AS res1 ",
-										" FROM ",agnes," a ",
-										" GROUP BY a.ObsID ",
-									" UNION ALL ",
-									"SELECT CAST(a.NewClusterID AS INT) AS ObsID,",
-											"min(a.OldLevel) AS res1 FROM ",agnes," a ",
-										" GROUP BY a.NewClusterID) a ",
-								" GROUP BY 1) AS c,",
-								"fzzlKMeansClusterID AS d ",
-								" WHERE a.VarID = b.VarID AND d.AnalysisID='",AnalysisID,"' ",
-								" AND c.oldlevel=a.LevelID AND d.HypothesisID=c.oldlevel+1 ",
-								" AND b.LevelID=d.HypothesisID AND b.ClusterID=d.ClusterID ",
-								" AND d.ObsID=c.ObsID AND CAST(a.ClusterID AS int)=c.ObsID ",
-							" GROUP BY 1,2) as a,",
-							"(SELECT a.ClusterID AS ObsIDX, b.ClusterID AS ObsIDY,",
-								"FLEuclideanDist(a.Centroid, b.Centroid) AS Dist ",
-								" FROM ",agnesCentroid," a,",agnesCentroid," b, ",
+		sqlstr <- paste0("SELECT FLMean(1-(a.mi/b.Dist)) AS ac FROM  \n ",
+							"(SELECT a.ClusterID AS ObsIDX, \n ",
+								"b.ClusterID AS ObsIDY, \n ",
+								"FLEuclideanDist(a.Centroid, b.Centroid) AS mi  \n ",
+							" FROM ",agnesCentroid," a,",agnesCentroid," b, \n ",
+								"(SELECT ObsID,min(res1) AS oldlevel FROM  \n ",
+									"(SELECT a.ObsID,min(a.OldLevel) AS res1  \n ",
+										" FROM ",agnes," a  \n ",
+										" GROUP BY a.ObsID  \n ",
+									" UNION ALL  \n ",
+									"SELECT CAST(a.NewClusterID AS INT) AS ObsID, \n ",
+											"min(a.OldLevel) AS res1 FROM ",agnes," a  \n ",
+										" GROUP BY a.NewClusterID) a  \n ",
+								" GROUP BY 1) AS c, \n ",
+								"fzzlKMeansClusterID AS d  \n ",
+								" WHERE a.VarID = b.VarID AND d.AnalysisID='",AnalysisID,"' \n ",
+								" AND c.oldlevel=a.LevelID AND d.HypothesisID=c.oldlevel+1  \n ",
+								" AND b.LevelID=d.HypothesisID AND b.ClusterID=d.ClusterID  \n ",
+								" AND d.ObsID=c.ObsID AND CAST(a.ClusterID AS int)=c.ObsID  \n ",
+							" GROUP BY 1,2) as a, \n ",
+							"(SELECT a.ClusterID AS ObsIDX, b.ClusterID AS ObsIDY, \n ",
+								"FLEuclideanDist(a.Centroid, b.Centroid) AS Dist  \n ",
+								" FROM ",agnesCentroid," a,",agnesCentroid," b, \n ",
 									"(SELECT * FROM ",agnes,
-									" WHERE NewLevel=(SELECT max(NewLevel) FROM ",agnes,")) AS c ",
-							" WHERE a.LevelID=c.OldLevel AND a.ClusterID=c.OldClusterID ",
-							" AND b.LevelID=c.NewLevel AND b.ClusterID=c.NewClusterID ",
-							" AND a.varID=b.VarID ",
+									" WHERE NewLevel=(SELECT max(NewLevel) FROM ",agnes,")) AS c \n ",
+							" WHERE a.LevelID=c.OldLevel AND a.ClusterID=c.OldClusterID  \n ",
+							" AND b.LevelID=c.NewLevel AND b.ClusterID=c.NewClusterID  \n ",
+							" AND a.varID=b.VarID  \n ",
 							" GROUP BY 1,2) AS b")
 
 		ac <- sqlQuery(connection,sqlstr)[["ac"]]
@@ -560,17 +563,17 @@ merge.FLAggClust <- function(object){
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",b," AS ",
-						"(SELECT a.HypothesisID AS OldLevel,",
-								"a.ClusterID AS OldClusterID,",
-								"b.HypothesisID AS NewLevel,",
-								"b.ClusterID AS NewClusterID,",
-								"a.ObsID ",
-						" FROM fzzlKMeansClusterID a,fzzlKMeansClusterID b ",
-						" WHERE a.AnalysisID = b.AnalysisID ",
-						" AND a.ObsID = b.ObsID ",
-						" AND a.AnalysisID = '",AnalysisID,"'",
-						" AND a.HypothesisID = b.HypothesisID - 1",
+			t <- sqlSendUpdate(connection,paste0(" CREATE TABLE ",b," AS  \n ",
+						"(SELECT a.HypothesisID AS OldLevel, \n ",
+								"a.ClusterID AS OldClusterID, \n ",
+								"b.HypothesisID AS NewLevel, \n ",
+								"b.ClusterID AS NewClusterID, \n ",
+								"a.ObsID  \n ",
+						" FROM fzzlKMeansClusterID a,fzzlKMeansClusterID b  \n ",
+						" WHERE a.AnalysisID = b.AnalysisID  \n ",
+						" AND a.ObsID = b.ObsID  \n ",
+						" AND a.AnalysisID = '",AnalysisID,"' \n ",
+						" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 						" AND a.ClusterID <> b.ClusterID) WITH DATA"))
 
 			if(length(t)>1) stop(t)
@@ -579,20 +582,20 @@ merge.FLAggClust <- function(object){
 
 		agnes <- object@temptables[["agnesMembership"]]
 
-		sqlstr <- paste0(" SELECT a.NewLevel,CAST(max(res1) AS int),max(res2)",
-						" FROM ",
-							"(SELECT a.NewLevel,",
-								" CASE WHEN a.NewClusterID=b.NewClusterID OR ",
-								" a.NewClusterID=CAST(b.ObsID AS int) ",
-								" THEN b.NewLevel ELSE (-1*a.NewClusterID) END AS res1,",
-								" CASE WHEN a.ObsID=CAST(b.NewClusterID AS float) OR ",
-								" a.ObsID= b.ObsID THEN b.NewLevel ELSE (-1*a.ObsID) END AS res2",
-							" FROM ",agnes," a,",agnes," b",
-							" WHERE b.NewLevel < a.NewLevel AND res1 IS NOT NULL ",
-							" AND res2 IS NOT NULL) AS a ",
-						" GROUP BY 1 ",
-						" UNION ALL ",
-						" SELECT a.NewLevel, (-1*a.NewClusterID), (-1*a.ObsID)",
+		sqlstr <- paste0(" SELECT a.NewLevel,CAST(max(res1) AS int),max(res2) \n ",
+						" FROM  \n ",
+							"(SELECT a.NewLevel, \n ",
+								" CASE WHEN a.NewClusterID=b.NewClusterID OR  \n ",
+								" a.NewClusterID=CAST(b.ObsID AS int)  \n ",
+								" THEN b.NewLevel ELSE (-1*a.NewClusterID) END AS res1, \n ",
+								" CASE WHEN a.ObsID=CAST(b.NewClusterID AS float) OR  \n ",
+								" a.ObsID= b.ObsID THEN b.NewLevel ELSE (-1*a.ObsID) END AS res2 \n ",
+							" FROM ",agnes," a, \n ",agnes," b \n ",
+							" WHERE b.NewLevel < a.NewLevel AND res1 IS NOT NULL  \n ",
+							" AND res2 IS NOT NULL) AS a  \n ",
+						" GROUP BY 1  \n ",
+						" UNION ALL  \n ",
+						" SELECT a.NewLevel, (-1*a.NewClusterID), (-1*a.ObsID) \n ",
 						" FROM ",agnes," a WHERE a.OldLevel=0 ORDER BY 1")
 
 		tryCatch(mergematrix <- sqlQuery(connection,sqlstr),
@@ -697,7 +700,8 @@ agnes.FLMatrix <- function(x,
 						)
 {
 	x <- as.FLTable(x)
-	return(agnes(x=x,
+	vcall <- match.call()
+	agnobj <- (agnes(x=x,
 				diss=diss,
 				metric=metric,##notUsed
 				Stand=Stand,##notUsed
@@ -712,4 +716,6 @@ agnes.FLMatrix <- function(x,
 				whereconditions = whereconditions,
 				distTable=distTable
 			))
+	agnobj@results$call <- vcall
+	return(agnobj)
 }
