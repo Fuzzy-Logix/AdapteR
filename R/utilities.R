@@ -95,11 +95,12 @@ sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...)
             error=function(e) cat(paste0(sqlError(e))))
         else
             tryCatch({
-                DBI::dbSendQuery(connection, query, ...)
+                res <- DBI::dbSendQuery(connection, query, ...)
                 resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
                 return(resd)
             },
-            error=function(e) cat(paste0(sqlError(e))))
+            error=function(e) cat(paste0(sqlError(e))),
+            finally=dbClearResult(res))
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
