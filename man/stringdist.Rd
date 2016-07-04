@@ -4,9 +4,9 @@
 \alias{stringdist}
 \title{stringdist}
 \usage{
-stringdist(a, b, method = c("lv", "dl", "hamming", "jaccard", "jw", "nmw"),
-  weight = c(match = 1, mismatch = 1, gap = -1), caseFlag = 0, p = 0,
-  vlength = 3, ...)
+stringdist(a, b, method = "osa", useBytes = FALSE, weight = c(d = 1, i =
+  1, s = 1, t = 1), maxDist = Inf, q = 1, p = 0,
+  nthread = getOption("sd_num_thread"), caseFlag = 0, vlength = 3, ...)
 }
 \arguments{
 \item{a}{character or FLVector of characters}
@@ -18,19 +18,19 @@ where lv - Levenshtein, dl - Levenshtein-Damerau,
 jw - Jaro-Winkler, nmw - NeedleManWunsch. Default is "lv"}
 
 \item{weight}{for method=nmw, weights and penalties for match, mismatch and gaps,
-integer weights for matching sequential, nonmatching non-sequential characters 
-between the strings, and integer penality for gaps (ideally negative).}
+integer weights for matching sequential(d), nonmatching non-sequential characters(i)
+between the strings, and integer penality for gaps(s) (ideally negative).}
 
 \item{p}{penality factor for jaro-winkler
 if p==0 jaro distance is computed}
+
+\item{caseFlag}{logical or 0/1 indicating
+if comparision should be case sensitive}
 
 \item{vlength}{optional, length of strings to compare
 used for hamming}
 
 \item{...}{}
-
-\item{caseFLag}{logical or 0/1 indicating
-if comparision should be case sensitive}
 }
 \value{
 FLVector if any \code{a} or \code{b}
@@ -62,7 +62,7 @@ Refer to \code{@return} section.
 widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 flv <- widetable[1:10,"Species"]
 resultflvector <- stringdist("xyz",flv)
-resultflvector <- stringdist("xyz",flv,method="lv",caseFLag=1)
+resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)
 resultflvector <- stringdist("xyz",flv,method="hamming",vlength=4)
 resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
 resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")

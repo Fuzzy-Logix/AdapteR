@@ -1,8 +1,40 @@
 #' @include FLMatrix.R
 NULL
 
-
+## move to file FLKMedoids.R
 #' An S4 class to represent FLKMedoids
+#'
+#' @slot centers A numeric vector containing the number of clusters, say k
+#' @slot AnalysisID A character output used to retrieve the results of analysis
+#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' during widetable to deeptable conversion.
+#' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{pam}
+#' @slot table FLTable object given as input on which analysis is performed
+#' @slot results A list of all fetched components
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
+#' @slot temptables A list of temporary table names used across the results
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
+#' @slot distTable Name of the distance matrix. DistTable should
+#' contain a N x N distance matrix between all ObsID in an input FLTable.
+#' @slot maxit maximal number of iterations for the FANNY algorithm.
+#' @method cluster FLKMeans
+#' @param object retrieves the cluster vector
+#' @method centers FLKMeans
+#' @param object retrieves the coordinates of the centroids
+#' @method print FLKMeans
+#' @param object overloads the print function
+#' @method tot.withinss FLKMeans
+#' @param object total within sum of squares
+#' @method withinss FLKMeans
+#' @param object within sum of squares
+#' @method betweenss FLKMeans
+#' @param object between sum of squares
+#' @method totss FLKMeans
+#' @param object total sum of squares
+#' @method size FLKMeans
+#' @param object size vector
+
 setClass(
 	"FLKMedoids",
 	slots=list(
@@ -15,26 +47,19 @@ setClass(
 		deeptable="FLTable",
 		temptables="list",
 		mapTable="character",
-		distTable="character"
+		distTable="character" ,
+		maxit="numeric"
 	)
 )
-
-#' @export
-pam <- function (x,k,...) {
-  UseMethod("pam", x)
-}
-
-#' @export
-pam.data.frame<-cluster::pam
-#' @export
-pam.matrix <- cluster::pam
-#' @export
-pam.default <- cluster::pam
-
+## move to file pam.R
 #' K-Medoids Clustering.
 #'
 #' \code{pam} performs k-medoids clustering on FLTable objects.
 #'
+#' The DB Lytix function called is FLKMedoids. K-Medoids clusters the training data. 
+#' The algorithm used is PAM (Partitioning Around Medoids).
+#'
+#' @seealso \code{\link[cluster]{pam}} for R function reference implementation.
 #' @param x an object of class FLTable, can be wide or deep table
 #' @param k the number of clusters
 #' @param diss logical if \code{x} is dissimilarity matrix
@@ -82,6 +107,19 @@ pam.default <- cluster::pam
 #' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
 #' pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(pamobjectnew)
+#' @export
+pam <- function (x,k,...) {
+  UseMethod("pam", x)
+}
+
+#' @export
+pam.data.frame<-cluster::pam
+#' @export
+pam.matrix <- cluster::pam
+#' @export
+pam.default <- cluster::pam
+
+## move to file pam.R
 #' @export
 pam.FLTable <- function(x,
 						k,
@@ -253,6 +291,7 @@ pam.FLTable <- function(x,
 	else return(FLKMedoidsobject)
 }
 
+## move to file FLKMedoids.R
 #' @export
 `$.FLKMedoids`<-function(object,property)
 {
@@ -329,7 +368,7 @@ pam.FLTable <- function(x,
 	else stop(property," is not a valid property")
 }
 
-
+## move to file FLKMedoids.R
 clustering.FLKMedoids <- function(object)
 {
 	if(!is.null(object@results[["clustering"]]))
@@ -375,7 +414,7 @@ clustering.FLKMedoids <- function(object)
 	}
 }
 
-
+## move to file FLKMedoids.R
 medoids.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["medoids"]]))
@@ -437,6 +476,7 @@ medoids.FLKMedoids<-function(object)
 	}
 }
 
+## move to file FLKMedoids.R
 id.med.FLKMedoids<-function(object){
 	if(!is.null(object@results[["id.med"]]))
 	return(object@results[["id.med"]])
@@ -476,7 +516,7 @@ id.med.FLKMedoids<-function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 objective.FLKMedoids <- function(object){
 	if(!is.null(object@results[["objective"]]))
 	return(object@results[["objective"]])
@@ -508,7 +548,7 @@ objective.FLKMedoids <- function(object){
 	
 }
 
-
+## move to file FLKMedoids.R
 isolation.FLKMedoids <- function(object){
 	if(!is.null(object@results[["isolation"]]))
 	return(object@results[["isolation"]])
@@ -623,7 +663,7 @@ isolation.FLKMedoids <- function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 clusinfo.FLKMedoids <- function(object){
 	if(!is.null(object@results[["clusinfo"]]))
 	return(object@results[["clusinfo"]])
@@ -740,7 +780,7 @@ clusinfo.FLKMedoids <- function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 silinfo.FLKMedoids <- function(object){
 	if(!is.null(object@results[["silinfo"]]))
 	return(object@results[["silinfo"]])
@@ -939,7 +979,7 @@ silinfo.FLKMedoids <- function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 diss.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["diss"]]))
@@ -1007,6 +1047,7 @@ diss.FLKMedoids<-function(object)
 	}
 }
 
+## move to file FLKMedoids.R
 call.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["call"]]))
@@ -1022,6 +1063,7 @@ call.FLKMedoids<-function(object)
 	}
 }
 
+## move to file FLKMedoids.R
 data.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["data"]]))
@@ -1057,6 +1099,7 @@ data.FLKMedoids<-function(object)
 	return(dataframe)
 }
 
+## move to file FLKMedoids.R
 #' @export
 print.FLKMedoids <- function(object)
 {
@@ -1078,6 +1121,7 @@ print.FLKMedoids <- function(object)
 	print(results)
 }
 
+## move to file FLKMedoids.R
 #' @export
 setMethod("show","FLKMedoids",
 			function(object)
@@ -1088,6 +1132,7 @@ setMethod("show","FLKMedoids",
 			}
 		 )
 
+## move to file FLKMedoids.R
 #' @export
 plot.FLKMedoids <- function(object)
 {
@@ -1115,6 +1160,7 @@ plot.FLKMedoids <- function(object)
 	plot(results)
 }
 
+## move to file FLKMedoids.R
 FLMapping.FLKMedoids <- function(object)
 {
 	if(!is.null(object@results[["mapping"]]))
@@ -1139,7 +1185,7 @@ FLMapping.FLKMedoids <- function(object)
 	}
 }
 
-
+## move to file pam.R
 #' @export
 pam.FLMatrix <- function(x,
 						k,

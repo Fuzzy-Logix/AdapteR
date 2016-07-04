@@ -4,7 +4,50 @@
 \name{FLHKMeans-class}
 \alias{FLHKMeans-class}
 \title{An S4 class to represent FLHKMeans}
+\arguments{
+\item{object}{retrieves the cluster vector}
+
+\item{object}{retrieves the coordinates of the centroids}
+
+\item{object}{overloads the print function}
+
+\item{object}{total within sum of squares}
+
+\item{object}{within sum of squares}
+
+\item{object}{between sum of squares}
+
+\item{object}{total sum of squares}
+
+\item{object}{size vector}
+}
 \description{
 An S4 class to represent FLHKMeans
 }
+\section{Slots}{
+
+\describe{
+\item{\code{centers}}{A numeric vector containing the number of clusters, say k which
+should be greater than zero(centers > 0)}
+
+\item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
+
+\item{\code{wideToDeepAnalysisId}}{A character string denoting the intermediate identifier
+during widetable to deeptable conversion.}
+
+\item{\code{table}}{FLTable object given as input on which analysis is performed}
+
+\item{\code{results}}{A list of all fetched components}
+
+\item{\code{deeptable}}{A character vector containing a deeptable(either conversion from a 
+widetable or input deeptable)}
+
+\item{\code{nstart}}{the initial number of random sets (nstart > 0)}
+
+\item{\code{mapTable}}{A character string name for the mapping table in-database if input is wide-table.}
+
+\item{\code{levels}}{A numeric for the number of hierarchical levels which should be greater than zero.}
+
+\item{\code{maxit}}{maximal number of iterations for the hkmeans algorithm (maxit > 0).}
+}}
 

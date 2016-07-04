@@ -1,8 +1,39 @@
 #' @include FLMatrix.R
 NULL
 
-
+## move to file FLHKMeans.R
 #' An S4 class to represent FLHKMeans
+#'
+#' @slot centers A numeric vector containing the number of clusters, say k which
+#' should be greater than zero(centers > 0)
+#' @slot AnalysisID A character output used to retrieve the results of analysis
+#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' during widetable to deeptable conversion.
+#' @slot table FLTable object given as input on which analysis is performed
+#' @slot results A list of all fetched components
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
+#' @slot nstart the initial number of random sets (nstart > 0)
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
+#' @slot levels A numeric for the number of hierarchical levels which should be greater than zero.
+#' @slot maxit maximal number of iterations for the hkmeans algorithm (maxit > 0).
+#' @method cluster FLKMeans
+#' @param object retrieves the cluster vector
+#' @method centers FLKMeans
+#' @param object retrieves the coordinates of the centroids
+#' @method print FLKMeans
+#' @param object overloads the print function
+#' @method tot.withinss FLKMeans
+#' @param object total within sum of squares
+#' @method withinss FLKMeans
+#' @param object within sum of squares
+#' @method betweenss FLKMeans
+#' @param object between sum of squares
+#' @method totss FLKMeans
+#' @param object total sum of squares
+#' @method size FLKMeans
+#' @param object size vector
+
 setClass(
 	"FLHKMeans",
 	slots=list(
@@ -14,19 +45,20 @@ setClass(
 		deeptable="FLTable",
 		nstart="numeric",
 		mapTable="character",
-		levels="numeric"
+		levels="numeric" ,
+		maxit="numeric"
 	)
 )
-#' @export
-hkmeans <- function (x, ...) {
-  UseMethod("hkmeans", x)
-}
 
 
+## move to file hkmeans.R
 #' Hierarchial K-Means Clustering.
 #'
 #' \code{hkmeans} performs Hierarchial k-means clustering on FLTable objects.
 #'
+#' The DB Lytix function called is FLHKMeans.Hierarchical K-Means clusters the training data.  
+#' The relationship of observations to clusters has hard edges. It re-clusters the training data in 
+#' each cluster until the desired hierarchical level is reached.
 #' @method hkmeans FLTable
 #' @param x an object of class FLTable, wide or deep
 #' @param centers the number of clusters
@@ -55,6 +87,12 @@ hkmeans <- function (x, ...) {
 #' hkmeansobjectnew <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' plot(hkmeansobjectnew)
 #' @export
+hkmeans <- function (x, ...) {
+  UseMethod("hkmeans", x)
+}
+
+## move to file hkmeans.R
+#' @export
 hkmeans.FLTable<-function(x,
 						centers,
 						levels = 1,
@@ -62,7 +100,8 @@ hkmeans.FLTable<-function(x,
 						nstart = 1,
 						excludeCols = as.character(c()),
 						classSpec = list(),
-						whereconditions = ""
+						whereconditions = "", 
+						maxit = 500
 						)
 {
 
@@ -204,6 +243,7 @@ hkmeans.FLTable<-function(x,
 	)
 }
 
+## move to file FLHKMeans.R
 #' @export
 `$.FLHKMeans`<-function(object,property)
 {
@@ -261,7 +301,7 @@ hkmeans.FLTable<-function(x,
 	else stop(property," is not a valid property")
 }
 
-
+## move to file FLHKMeans.R
 cluster.FLHKMeans<-function(object)
 {
 	if(!is.null(object@results[["cluster"]]))
@@ -305,7 +345,7 @@ cluster.FLHKMeans<-function(object)
 	}
 }
 
-
+## move to file FLHKMeans.R
 centers.FLHKMeans<-function(object)
 {
 	if(!is.null(object@results[["centers"]]))
@@ -350,7 +390,7 @@ centers.FLHKMeans<-function(object)
 	}
 }
 
-
+## move to file FLHKMeans.R
 tot.withinss.FLHKMeans<-function(object){
 	if(!is.null(object@results[["tot.withinss"]]))
 	return(object@results[["tot.withinss"]])
@@ -387,7 +427,7 @@ tot.withinss.FLHKMeans<-function(object){
 	}
 }
 
-
+## move to file FLHKMeans.R
 withinss.FLHKMeans<-function(object){
 	if(!is.null(object@results[["withinss"]]))
 	return(object@results[["withinss"]])
@@ -442,7 +482,7 @@ withinss.FLHKMeans<-function(object){
 	
 }
 
-
+## move to file FLHKMeans.R
 betweenss.FLHKMeans<-function(object){
 	if(!is.null(object@results[["betweenss"]]))
 	return(object@results[["betweenss"]])
@@ -484,7 +524,7 @@ betweenss.FLHKMeans<-function(object){
 	}
 }
 
-
+## move to file FLHKMeans.R
 totss.FLHKMeans<-function(object){
 	if(!is.null(object@results[["totss"]]))
 	return(object@results[["totss"]])
@@ -520,7 +560,7 @@ totss.FLHKMeans<-function(object){
 	}
 }
 
-
+## move to file FLHKMeans.R
 size.FLHKMeans<-function(object)
 {
 	if(!is.null(object@results[["size"]]))
@@ -561,7 +601,11 @@ size.FLHKMeans<-function(object)
 	}
 }
 
+
+
 # Prints the KMeans values
+
+## move to file FLHKMeans.R
 #' @export
 print.FLHKMeans<-function(object)
 {
@@ -588,6 +632,7 @@ print.FLHKMeans<-function(object)
 	assign(parentObject,object,envir=parent.frame())
 }
 
+## move to file FLHKMeans.R
 #' @export
 setMethod("show","FLHKMeans",
 			function(object)
@@ -598,6 +643,7 @@ setMethod("show","FLHKMeans",
 			}
 		 )
 
+## move to file FLHKMeans.R
 #' @export
 plot.FLHKMeans <- function(object)
 {
@@ -613,6 +659,7 @@ plot.FLHKMeans <- function(object)
 	points(as.matrix(object$centers),col=1:object@centers,pch=8,cex=2)
 }
 
+## move to file FLHKMeans.R
 #' @export
 fitted.FLHKMeans <- function(object,method="centers",...){
 	AnalysisID <- object@AnalysisID
@@ -654,6 +701,7 @@ fitted.FLHKMeans <- function(object,method="centers",...){
   	return(centersmatrix)
 }
 
+## move to file hkmeans.R
 #' @export
 hkmeans.FLMatrix <- function(x,
 						centers,
