@@ -1,4 +1,4 @@
-# Created 2016-07-04 Mo 17:47
+# Created 2016-07-04 Mo 17:49
 #+TITLE: AdapteR README
 #+DATE: <2016-06-14 Di>
 #+AUTHOR: Gregor Kappler
@@ -38,10 +38,11 @@ install_github("Fuzzy-Logix/AdapteR")
 
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts:
-#+BEGIN_SRC R :session r_fl :results output
+#+BEGIN_SRC R :session r_fl :results output :exports both
 require(AdapteR)
 demo(package="AdapteR")
-##demo("matrix.correlation",package="AdapteR")
+## run a demo:
+## demo("matrix.correlation",package="AdapteR")
 #+END_SRC
 
 
