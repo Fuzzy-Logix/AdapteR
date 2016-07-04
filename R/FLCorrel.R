@@ -335,10 +335,12 @@ return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 
 
 ## Generic function to cover FLCorrel,FLCovar,FLCovarP
+#' @export
 FLCorGeneric <- function (x,y=NULL,functionName,method="pearson",...) {
 	UseMethod("FLCorGeneric", x)
 }
 
+#' @export
 FLCorGeneric.default <- function(x,y=NULL,
 								functionName,
 								method,...){
@@ -354,6 +356,7 @@ FLCorGeneric.default <- function(x,y=NULL,
 		}
 }
 
+#' @export
 FLCorGeneric.FLMatrix <- function(x,y=NULL,
 								functionName,
 								method,...)
@@ -1010,7 +1013,6 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
 #' @export
-
 cov.wtGeneric <- function(x,
 			    		wt = rep(1/nrow(x), nrow(x)),
 			    		cor = FALSE, 
@@ -1127,6 +1129,7 @@ setMethod("cov.wt",signature(x="FLTable"),
     				colIdColumn="var_id_colname",
     				valueColumn="cell_val_colname"))})
 
+#' @export
 setGeneric("genCorrelUDTSql", function(object1,
 									object2,
 									functionName,
@@ -1196,6 +1199,7 @@ setMethod("genCorrelUDTSql", signature(object1 = "ANY",
     return(sqlstr)
 })
 
+#' @export
 setGeneric("getObsIDColAliasName", function(object,alias="") {
     standardGeneric("getObsIDColAliasName")
 })
@@ -1209,6 +1213,7 @@ setMethod("getObsIDColAliasName", signature(object = "FLTable"),
 function(object,alias) 
 return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"obs_id_colname")))
 
+#' @export
 setGeneric("getVarIDColAliasName", function(object,alias="") {
     standardGeneric("getVarIDColAliasName")
 })
@@ -1222,6 +1227,7 @@ setMethod("getVarIDColAliasName", signature(object = "FLTable"),
 function(object,alias) 
 return(paste0(ifelse(alias=="",paste0(""),paste0(alias,".")),"var_id_colname")))
 
+#' @export
 setGeneric("getCellValColAliasName", function(object,alias="") {
     standardGeneric("getCellValColAliasName")
 })

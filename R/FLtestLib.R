@@ -97,8 +97,8 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
 ##' @param noexpectation You can exclude names from
 ##' @param ... arguments passed to FLexpect_equal, e.g.  check.attributes = FALSE
 ##' @return a data frame with the description
-#' @export
 ##' @author  Gregor Kappler <gregor.kappler@@fuzzylogix.com>
+#' @export
 eval_expect_equal <- function(e, Renv, FLenv,
                               description=NULL,
                               runs=1,
