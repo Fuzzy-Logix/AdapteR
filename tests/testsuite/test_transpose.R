@@ -8,7 +8,7 @@ test_that( "Testing transpose ",
   #for(j in seq(ncol(a)))
   #if(! all(a[, j] == test1[j, ])) stop("wrong transpose")
   },Renv,FLenv)
-  print(result1)
+  ##  print(result1)
   })
 
 

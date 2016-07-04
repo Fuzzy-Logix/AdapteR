@@ -4,7 +4,7 @@ Renv$mat1 <- cbind(1, 0, 1:3)
 
 test_that("Check for rankMatrix function",{
     result = eval_expect_equal({test1 = rankMatrix(mat1)},Renv)
-    print(result)
+    ##    print(result)
     })
 
 #dpoMatrix
@@ -24,7 +24,7 @@ Renv$mat1 =  Hilbert(12)
 
 test_that("Check for rankMatrix function",{
     result = eval_expect_equal({test2 = rankMatrix(mat1,tol =1e-20)},Renv)
-    print(result)
+    ##    print(result)
     })
 
 #No inherited method for signature function in as.FL function.
@@ -36,7 +36,7 @@ test_that("sapply using custom functions for rank Matrix: https://app.asana.com/
         test4 = sapply(5:15, rMQR, M = mat1)
         test5 = sapply(5:15, rMQR, M = 1000 * mat1)
     },Renv)
-    print(result)
+    ##    print(result)
 })
 
 
@@ -58,7 +58,7 @@ test_that("Check for rankMatrix function",{
         test10 = rankMatrix(mat1,method = "maybeGrad")
         test11 = rankMatrix(mat1,method = "tolNorm2")
     },Renv)
-    print(result)
+    ##    print(result)
 })
 
 #Large sparse matrix
@@ -74,7 +74,7 @@ test_that("Check for rankMatrix function",{
         test12 = rankMatrix(mat1)
         test13 = rankMatrix(mat1,method =qr)
     },Renv)
-    print(result)
+    ##    print(result)
 })
 
 
@@ -94,5 +94,5 @@ test_that("Check for rankMatrix function",{
         expect_equal(rankMatrix(mat1,method='qr'),148)
         expect_equal(rankMatrix(crossprod(mat1),method='qr'),148)
     },Renv,FLenv)
-    print(result)
+    ##    print(result)
 })

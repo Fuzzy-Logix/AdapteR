@@ -13,7 +13,7 @@ test_that("Check for quantile function",{
                    test10 = quantile(var1)
                    test11 = quantile(var1,probs = prob1)
             },Renv,FLenv)
-          print(result)
+          ##          print(result)
     })
 
 #Test failed 

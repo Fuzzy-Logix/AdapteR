@@ -10,5 +10,5 @@ test_that("Check for weighted mean function",{
                    test1 = percent(var1)
                    test2 = percent(var2)
             },Renv,FLenv)
-          print(result)
+          ##          print(result)
     })

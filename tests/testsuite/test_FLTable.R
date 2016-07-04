@@ -10,7 +10,7 @@ Renv$testdf <- data.frame(mylogic=c(TRUE,FALSE,TRUE),
 colnames(Renv$irisdata) <- gsub("\\.","",colnames(Renv$irisdata),fixed = FALSE)
 FLenv <- as.FL(Renv)
 
-options(debugSQL=TRUE)
+##options(debugSQL=TRUE)
 test_that("FLTable in-database transformations work -- ALTER TABLE and UPDATE",{
     result = eval_expect_equal({ 
         irisdata$SepalArea <- irisdata$SepalLength * irisdata$SepalWidth
@@ -24,10 +24,10 @@ test_that("FLTable in-database transformations work -- ALTER TABLE and UPDATE",{
     ##print(result)
 })
 
-options(debugSQL=TRUE)
+##options(debugSQL=TRUE)
 test_that("FLTable supports different types",{
     FLexpect_equal(FLenv$testdf,Renv$testdf)
-    print(result)
+    ##print(result)
 })
 
 

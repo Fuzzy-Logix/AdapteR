@@ -6,9 +6,9 @@
 test_that("Check for FLCleanStr function",{
          widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
          flv <- widetable[1:6,"string"]
-         print(flv)
+         ##         print(flv)
          resultflvector <- FLIsHex(flv)
-         print(resultflvector)
+         ##         print(resultflvector)
        })
 
 #Not in R .
@@ -17,7 +17,7 @@ test_that("Check for FLCleanStr function",{
 test_that("Check for FLCleanStr function",{
          widetable  <- FLTable("fuzzylogix", "tblAutoMpg", "ObsID")
          flv <- widetable[1:6,"CarName"]
-         print(flv)
+         ##         print(flv)
          resultflvector <- FLIsHex(flv)
-         print(resultflvector)
+         ##         print(resultflvector)
        })

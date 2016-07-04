@@ -19,22 +19,22 @@ Renv$M <- as.array(Renv$M)
 
 test_that("Check1 for colSums function",{
   result = eval_expect_equal({colSums(M) },Renv)
-  print(result)
+  ##  print(result)
 })
 
 test_that("Check2 for rowSums function",{
   result = eval_expect_equal({rowSums(M) },Renv,)
-  print(result)
+  ##  print(result)
 })
 
 test_that("Check3 for colMeans function",{
   result = eval_expect_equal({colMeans(M) },Renv)
-  print(result)
+  ##  print(result)
 })
 
 test_that("Check4 for rowMeans function",{
   result = eval_expect_equal({rowMeans(M) },Renv)
-  print(result)
+  ##  print(result)
 })
 
 #Creating a digaonal numeric matrix MM: a result of kronecker product

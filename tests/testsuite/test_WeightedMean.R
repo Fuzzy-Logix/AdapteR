@@ -12,6 +12,6 @@ test_that("Check for weighted mean function",{
           result = eval_expect_equal({
                    test1 = weighted.mean(var1, weight1)
             },Renv,FLenv)
-          print(result)
+          ##          print(result)
     })
 

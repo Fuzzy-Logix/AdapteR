@@ -11,5 +11,5 @@ test_that("Check for paste function ",{
     result = eval_expect_equal({
         test1 = paste0(var1)},
         Renv,FLenv)
-    print(result)
+    ##    print(result)
     })

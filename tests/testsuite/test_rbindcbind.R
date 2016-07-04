@@ -34,50 +34,50 @@ Renv$m6b <- (df.1 <- rbind(df., new))
 #test1
 test_that("Check1 for cbind function",{
     result = eval_expect_equal({m1},Renv)
-     print(result)
+    ##     print(result)
  })
 
 #test2
 test_that("Check2 for cbind function",{
   result = eval_expect_equal({m2},Renv)
-  print(result)
+  ##  print(result)
 })
 
 #test3
 test_that("Check3 for cbind function",{
   result = eval_expect_equal({m3},Renv)
-  print(result)
+  ##  print(result)
 })
 
 #test4
 test_that("Check4 for cbind function",{
   result = eval_expect_equal({m4},Renv)
-  print(result)
+  ##  print(result)
 })
 
 #test5a
 test_that("Check5a for rbind function",{
   result = eval_expect_equal({m5a},Renv)
-  print(result)
+  ##  print(result)
 })
 #test5b
 test_that("Check5b for rbind function",{
   result = eval_expect_equal({m5b},Renv)
-  print(result)
+  ##  print(result)
 })
 #test5c
 test_that("Check5c for rbind function",{
   result = eval_expect_equal({m5c},Renv)
-  print(result)
+  ##  print(result)
 })
 
 #test6a
 test_that("Check6a for rbind function",{
   result = eval_expect_equal({m6a},Renv)
-  print(result)
+  ##  print(result)
 })
 #test6b
 test_that("Check6b for rbind function",{
   result = eval_expect_equal({m6b},Renv)
-  print(result)
+  ##  print(result)
 })

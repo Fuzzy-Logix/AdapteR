@@ -13,9 +13,9 @@ FLenv = as.FL(Renv)
 test_that("Check for FLNtile function of AdapteR",{
     n = 10
     result1 = FLNtile(FLenv$vector1,n)
-    print(result1)
+    ##    print(result1)
     result2 = FLNtile(FLenv$matrix1,n)
-    print(result2)
+    ##    print(result2)
     result3 = FLNtile(FLenv$dataframe1,n)
-    print(result3)
+    ##    print(result3)
     })
