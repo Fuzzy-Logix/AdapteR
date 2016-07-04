@@ -65,9 +65,10 @@ test_that("Check for rankMatrix function",{
 #No inherited method for dgCMatrix in as.Fl
 #Asana Ticket - https://app.asana.com/0/143316600934101/144942913968285
 #resolved
-n <- 250000; p <- 33; nnz <- 10000
+n <- 250000; p <- 33; nnz <- 1000
 Renv$mat1 = sparseMatrix(i = sample.int(n, nnz, replace=TRUE),
-                  j = sample.int(p, nnz, replace=TRUE), x = rnorm(nnz))
+                         j = sample.int(p, nnz, replace=TRUE),
+                         x = rnorm(nnz))
 
 test_that("Check for rankMatrix function",{
     result = eval_expect_equal({

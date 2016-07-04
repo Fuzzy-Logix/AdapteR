@@ -1,9 +1,10 @@
 
 ## Data objects initialisation.
 Renv = new.env(parent = globalenv())
-Renv$vector1 = sample(1:1000,600,replace = TRUE)
-Renv$matrix1 = matrix(sample(1:1000,600,replace = TRUE), nrow = 200, ncol = 300, byrow = TRUE)
-Renv$dataframe1 = data.frame(sample(1:1000,600,replace = TRUE), sample(1:1000,600,replace = TRUE))
+Renv$vector1 = sample(1:100,60,replace = TRUE)
+Renv$matrix1 = matrix(sample(1:100,60,replace = TRUE), nrow = 20, byrow = TRUE)
+Renv$dataframe1 = data.frame(a=sample(1:100,60,replace = TRUE),
+                             b=sample(1:100,60,replace = TRUE))
 FLenv = as.FL(Renv)
 
 ## Checks equality between mode of FL vector and R vector.
