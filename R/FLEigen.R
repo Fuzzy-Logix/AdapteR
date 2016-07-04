@@ -21,26 +21,28 @@ NULL
 #' resultList$values
 #' resultList$vectors
 #' @export
-eigen<-function(object, ...)
+eigen<-function(x,symmetric=FALSE,
+                only.values = FALSE, 
+                EISPACK = FALSE)
 {
-	UseMethod("eigen", object)
+	UseMethod("eigen", x)
 }
 
 #' @export
 eigen.default<-base::eigen
 #' @export
-eigen.FLMatrix<-function(object,...)
+eigen.FLMatrix<-function(x,symmetric=FALSE,
+                only.values = FALSE, 
+                EISPACK = FALSE)
 {
-	# if(nrow(object) != ncol(object)) 
-	# { 
-	# 	stop("eigen function applicable on square matrix only") 
-	# }
-	# checkSquare(object)
-	# checkSingular(object)
-    connection<-getConnection(object)
-    retobj <- list(values = FLEigenValues(object),
-                   vectors = FLEigenVectors(object))
-    retobj
+    connection<-getConnection(x)
+    if(only.values)
+    retobj <- list(values = FLEigenValues(x),
+                   vectors = NULL)
+    else
+    retobj <- list(values = FLEigenValues(x),
+                   vectors = FLEigenVectors(x))
+    return(retobj)
 }
 
 #' @export

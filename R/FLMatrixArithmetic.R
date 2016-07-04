@@ -12,6 +12,8 @@ FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 {
 	if(pOperator=="**") pOperator <- "^"
 	op <- .Primitive(pOperator)
+	if(missing(pObj2))
+	return(op(pObj1))
 	op(pObj1,pObj2)
 }
 

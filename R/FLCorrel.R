@@ -343,7 +343,7 @@ FLCorGeneric <- function (x,y=NULL,functionName,method="pearson",...) {
 #' @export
 FLCorGeneric.default <- function(x,y=NULL,
 								functionName,
-								method,...){
+								method="pearson",...){
 	if(functionName=="FLCorrel")
 	return(stats::cor(x,y,...))
 	else if(functionName=="FLCovar")
@@ -359,7 +359,7 @@ FLCorGeneric.default <- function(x,y=NULL,
 #' @export
 FLCorGeneric.FLMatrix <- function(x,y=NULL,
 								functionName,
-								method,...)
+								method="pearson",...)
 {
 	if(is.null(y))
 	y <- x
@@ -511,7 +511,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 #' @export
 FLCorGeneric.numeric <- function(x,y=NULL,
 								functionName,
-								method,...)
+								method="pearson",...)
 {
 	if(is.null(y))
 	y <- x
@@ -549,7 +549,7 @@ FLCorGeneric.numeric <- function(x,y=NULL,
 #' @export
 FLCorGeneric.matrix <- function(x,y=NULL,
 								functionName,
-								method,...)
+								method="pearson",...)
 {
 	if(is.null(y))
 	y <- x
@@ -587,7 +587,7 @@ FLCorGeneric.matrix <- function(x,y=NULL,
 #' @export
 FLCorGeneric.data.frame <- function(x,y=NULL,
 									functionName,
-									method,...)
+									method="pearson",...)
 {
 	if(is.null(y))
 	y <- x
@@ -626,7 +626,7 @@ FLCorGeneric.data.frame <- function(x,y=NULL,
 #' @export
 FLCorGeneric.FLVector <- function(x,y=NULL,
 								functionName,
-								method,...)
+								method="pearson",...)
 {	
 	if(is.null(y))
 	y <- x
@@ -710,7 +710,7 @@ FLCorGeneric.FLVector <- function(x,y=NULL,
 #' @export
 FLCorGeneric.FLTable <- function(x,y=NULL,
 								functionName,
-								method,...)
+								method="pearson",...)
 {
 	if(is.null(y)){
 		vnullFlag <- 1
@@ -1133,7 +1133,7 @@ setMethod("cov.wt",signature(x="FLTable"),
 setGeneric("genCorrelUDTSql", function(object1,
 									object2,
 									functionName,
-									method) {
+									method="pearson") {
     standardGeneric("genCorrelUDTSql")
 })
 
@@ -1142,7 +1142,7 @@ setMethod("genCorrelUDTSql", signature(object1 = "ANY",
 		function(object1,
 				object2,
 				functionName,
-				method) {
+				method="pearson") {
 	rows=ncol(object1)
 	cols=ncol(object2)
 
