@@ -6,7 +6,8 @@ Renv$testdf <- data.frame(mylogic=c(TRUE,FALSE,TRUE),
                           myfloat=1:3/3,
                           myfact=as.factor(c("a","b","a")),
                           mychar=c("one","two","three"))
-                          
+
+rownames(Renv$irisdata) <- 1:nrow(Renv$irisdata)
 colnames(Renv$irisdata) <- gsub("\\.","",colnames(Renv$irisdata),fixed = FALSE)
 FLenv <- as.FL(Renv)
 
@@ -29,6 +30,3 @@ test_that("FLTable supports different types",{
     FLexpect_equal(FLenv$testdf,Renv$testdf)
     ##print(result)
 })
-
-
-FLenv$testdf

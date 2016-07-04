@@ -2,7 +2,7 @@ library(testthat)
 Renv <- new.env(parent = globalenv())
 
 Renv$data <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
-                 matrix(rnorm(100, mean = 10, sd = 0.3), ncol = 2))
+                   matrix(rnorm(100, mean = 10, sd = 0.3), ncol = 2))
 
 # Renv$votesdat <- votes.repub
 # rownames(Renv$votesdat) <- 1:nrow(Renv$votesdat)
