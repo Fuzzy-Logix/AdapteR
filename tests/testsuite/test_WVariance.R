@@ -5,7 +5,7 @@ FLenv <- as.FL(Renv)
 test_that("Testing weighted variance",
 {
     result1<-eval_expect_equal({test1<-wt.var(a,b)},Renv,FLenv)
-    print(result1)
+    ##    print(result1)
     
 })
 

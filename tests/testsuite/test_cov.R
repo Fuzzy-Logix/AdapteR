@@ -7,7 +7,6 @@ colnames(Renv$df1) <- gsub("[^a-zA-Z]","",colnames(Renv$df1))
 ## https://app.asana.com/0/143316600934101/147523528458761
 rownames(Renv$df1) <- 1:nrow(swiss)
 
-options(debugSQL=TRUE)
 FLenv <- as.FL(Renv)
 
 

@@ -4,7 +4,10 @@
 \alias{stringdistmatrix}
 \title{stringdistmatrix}
 \usage{
-stringdistmatrix(a, b, method = "dl", caseFlag = 0, p = 0, vlength = 3,
+stringdistmatrix(a, b, method = "osa", useBytes = FALSE, weight = c(d = 1,
+  i = 1, s = 1, t = 1), maxDist = Inf, q = 1, p = 0,
+  useNames = c("none", "strings", "names"), ncores = 1, cluster = NULL,
+  nthread = getOption("sd_num_thread"), caseFlag = 0, vlength = 3,
   asMatrix = TRUE, ...)
 }
 \arguments{
@@ -19,11 +22,11 @@ jw - jaro-winkler. Default is "lv"}
 \item{p}{penality factor for jaro-winkler
 if p==0 jaro distance is computed}
 
+\item{caseFlag}{logical or 0/1 indicating
+if comparision should be case sensitive}
+
 \item{vlength}{optional, length of strings to compare
 used for hamming}
-
-\item{caseFLag}{logical or 0/1 indicating
-if comparision should be case sensitive}
 }
 \value{
 FLMatrix of string distances
@@ -43,7 +46,7 @@ row vectors are not supported currently.
 widetable  <- FLTable("FL_DEMO", "iris", "rownames")
 flv <- widetable[1:10,"Species"]
 resultflmatrix <- stringdistmatrix("xyz",flv)
-resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFLag=1)
+resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFlag=1)
 resultflmatrix <- stringdistmatrix("xyz",flv,method="hamming",vlength=4)
 resultflmatrix <- stringdistmatrix(flv,flv,method="jw",p=1)
 resultflmatrix <- stringdistmatrix(flv,c("xyz","abc"),method="jw")

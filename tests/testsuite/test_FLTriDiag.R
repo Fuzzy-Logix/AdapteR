@@ -6,7 +6,7 @@ testmatrix <- FLMatrix(getOption("ResultDatabaseFL"),
 #Outputs the class of result and result.
 test_that("Check for FLTriDiag function which calculates Hessenberg upper diagnol matrix",{
     result <- FLTriDiag(testmatrix)
-    print(result)
+    ##    print(result)
     print(paste0("Class of result is :",class(result)))
 
     })

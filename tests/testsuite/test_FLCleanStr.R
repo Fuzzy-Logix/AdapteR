@@ -1,22 +1,21 @@
-
-
-#Not in R .
-#For ODBC Connection with FL_DEMO database.
+## Function FLCleanStr has no equivalent in R .
+## these tests are just testing non-changes
+## todo: add a test for correct removal of a character
 
 test_that("Check for FLCleanStr function",{
          widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
          flv <- widetable[1:6,"string"]
-         print(flv)
          resultflvector <- FLCleanStr(flv)
-         print(resultflvector)
-       })
+         expect_equal(as.R(flv),as.R(resultflvector))
 
-#Not in R .
-#For JDBC Connection with fuzzylogix database.
-test_that("Check for FLCleanStr function",{
          widetable  <- FLTable("fuzzylogix", "tblAutoMpg", "ObsID")
          flv <- widetable[1:6,"CarName"]
-         print(flv)
          resultflvector <- FLCleanStr(flv)
-         print(resultflvector)
+         expect_equal(as.R(flv),as.R(resultflvector))
+       })
+
+test_that("Check for FLCleanStr function",{
+         flv  <- as.FL(c("let", "us", "test for non-äöü-printable","characters"))
+         resultflvector <- FLCleanStr(flv)
+         expect_equal(as.R(flv),as.R(resultflvector))
        })

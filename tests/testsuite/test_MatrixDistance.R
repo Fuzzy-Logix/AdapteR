@@ -14,7 +14,7 @@ test_that("Check for matrix distance with different arguments",{
                                test10 = dist(mat1, method="manhattan")
                                test11 = dist(mat1,diag=T,upper=T,method="euclidean")
                                },Renv,FLenv,check.attributes=FALSE)
-           print(result)
+           ##           print(result)
     })
 
 

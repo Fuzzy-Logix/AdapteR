@@ -29,7 +29,7 @@ test_that("deviation matrix",{
         devmedianabs = deviation(matrix1,method = "median-abs")
     },Renv,FLenv,
     expectation = c("devmeansquare","devmeanabs","devmedianabs"))
-    print(result)
+    ##    print(result)
 })
 
 test_that("deviation data.frame",{
