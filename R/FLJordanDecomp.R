@@ -42,6 +42,7 @@ FLJordan.FLMatrix<-function(object,...)
                                                              "OutputColNum","OutPVal","OutJVal","OutPInvVal"),
                                             whereClause=") WITH DATA;")
                    )
+        sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object),

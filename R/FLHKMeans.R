@@ -107,20 +107,22 @@ hkmeans.FLTable<-function(x,
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
 
-		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( 
-			    	     SELECT a.Final_VarID AS VarID,
-			    	     	    a.COLUMN_NAME AS ColumnName,
-			    	     	    a.FROM_TABLE AS MapName 
-			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
-			    	     AND a.Final_VarID IS NOT NULL) WITH DATA")
+		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( \n ",
+			    	    " SELECT a.Final_VarID AS VarID, \n ",
+			    	     	" a.COLUMN_NAME AS ColumnName, \n ",
+			    	     	"  a.FROM_TABLE AS MapName \n ",
+			    	    " FROM fzzlRegrDataPrepMap a \n ",
+			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
+			    	    " AND a.Final_VarID IS NOT NULL) WITH DATA ")
 		
 		sqlSendUpdate(connection,sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name(x@select@table_name)
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+						".",deeptablename," AS \n ",
+						constructSelect(x))
 		sqlSendUpdate(connection,sqlstr)
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -130,13 +132,14 @@ hkmeans.FLTable<-function(x,
                    "cell_val_colname"
                   )
 		deepx <- setAlias(deepx,"")
-		whereconditions <- whereconditions
+		deepx@select@whereconditions <- whereconditions[whereconditions!=""]
 	}
 	else
 	{
 		deepx <- x
 		deepx <- setAlias(deepx,"")
 		whereconditions <- c(deepx@select@whereconditions,whereconditions)
+		deepx@select@whereconditions <- whereconditions[whereconditions!=""]
 	}
 
 	whereconditions <- whereconditions[whereconditions!=""]
@@ -160,18 +163,18 @@ hkmeans.FLTable<-function(x,
 	retobj <- sqlQuery(connection,sqlstr,AnalysisIDQuery=
 						genAnalysisIDQuery("fzzlKMeansInfo",genNote("hkmeans")))
 	AnalysisID <- as.character(retobj[1,1])
-	sqlstr<-paste0("SELECT DISTINCT ObsID AS vectorIndexColumn 
-						FROM fzzlKMeansClusterID 
-						WHERE AnalysisID = '",AnalysisID,"' AND
-						HypothesisID = ",nstart,
+	sqlstr<-paste0("SELECT DISTINCT ObsID AS vectorIndexColumn \n ",
+					"	FROM fzzlKMeansClusterID \n ",
+					"	WHERE AnalysisID = '",AnalysisID,"' AND \n ",
+					"	HypothesisID = ",nstart,
 						" ORDER BY ObsID")
 
 	rows <- sqlQuery(connection,sqlstr)[["vectorIndexColumn"]]
 
-	sqlstr<-paste0("SELECT DISTINCT VarID AS vectorIndexColumn 
-						FROM fzzlKMeansDendrogram 
-						WHERE AnalysisID = '",AnalysisID,"' AND
-						HypothesisID = ",nstart,
+	sqlstr<-paste0("SELECT DISTINCT VarID AS vectorIndexColumn \n ",
+					"	FROM fzzlKMeansDendrogram \n ",
+					"	WHERE AnalysisID = '",AnalysisID,"' AND \n ",
+					"	HypothesisID = ",nstart,
 						" ORDER BY VarID")
 
 	cols <- sqlQuery(connection,sqlstr)[["vectorIndexColumn"]]
@@ -180,8 +183,8 @@ hkmeans.FLTable<-function(x,
 
 	if(levels>1)
 	{
-		sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID",
-						" WHERE AnalysisID='",AnalysisID,"'",
+		sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID \n ",
+						" WHERE AnalysisID='",AnalysisID,"' \n ",
 						" AND HypothesisID = ",nstart)
 
 		centers <- sqlQuery(connection,sqlstr)[1,1]
@@ -268,12 +271,12 @@ cluster.FLHKMeans<-function(object)
 		connection <- getConnection(object@table)
 		flag3Check(connection)
 		AnalysisID <- object@AnalysisID
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, 
-						         ObsID AS vectorIndexColumn,
-						         DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorValueColumn 
-						FROM fzzlKMeansClusterID 
-						WHERE AnalysisID = '",AnalysisID,"' AND
-						HypothesisID = ",object@nstart,
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+						    "     ObsID AS vectorIndexColumn, \n ",
+						    "    DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorValueColumn \n ",
+						" FROM fzzlKMeansClusterID \n ",
+						" WHERE AnalysisID = '",AnalysisID,"' \n AND ",
+						" HypothesisID = ",object@nstart," \n ",
 						" ORDER BY ObsID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -312,13 +315,13 @@ centers.FLHKMeans<-function(object)
 		connection <- getConnection(object@table)
 		flag1Check(connection)
 		AnalysisID <- object@AnalysisID
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID,
-						       DENSE_RANK()OVER(ORDER BY ClusterID) AS rowIdColumn,
-						       VarID AS colIdColumn,
-						       Centroid AS valueColumn 
-						FROM fzzlKMeansDendrogram 
-						WHERE AnalysisID = '",AnalysisID,"' 
-						AND HypothesisID = ",object@nstart,
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+						    "  DENSE_RANK()OVER(ORDER BY ClusterID) AS rowIdColumn, \n ",
+						    "  VarID AS colIdColumn, \n ",
+						    "   Centroid AS valueColumn \n ",
+						" FROM fzzlKMeansDendrogram \n ",
+						" WHERE AnalysisID = '",AnalysisID,"' \n ",
+						" AND HypothesisID = ",object@nstart," \n ",
 						" AND Level = ",object@levels)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -359,15 +362,19 @@ tot.withinss.FLHKMeans<-function(object){
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-		sqlstr<-paste0("SELECT CAST(sum(power((",deeptablename,".",cell_val_colname," - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER)",
-						" FROM fzzlKMeansClusterID,",deeptablename,",fzzlKMeansDendrogram",
-						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"'",
-						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"'", 
-						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID",
-						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID", 
-						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname,
-						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart,
-						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart
+		whereconditions <- object@deeptable@select@whereconditions
+
+		sqlstr<-paste0("SELECT CAST(sum(power((",deeptablename,".",
+						cell_val_colname," - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER) \n ",
+						" FROM fzzlKMeansClusterID, \n ",deeptablename,", \n fzzlKMeansDendrogram \n ",
+						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
+						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
+						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ",
+						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
+						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",
+						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
+						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
+						ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
 						)
 
 		tot_withinssvector <- sqlQuery(connection,sqlstr)[1,1]
@@ -392,18 +399,22 @@ withinss.FLHKMeans<-function(object){
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-								" DENSE_RANK()OVER(ORDER BY fzzlKMeansClusterID.ClusterID) AS vectorIndexColumn,",
-								" CAST(sum(power((",deeptablename,".",cell_val_colname," - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER) AS vectorValueColumn",
-						" FROM fzzlKMeansClusterID,",deeptablename,",fzzlKMeansDendrogram",
-						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"'",
-						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"'",
-						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID",
-						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID",
-						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname,
-						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart,
-						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart,  
-						" GROUP BY fzzlKMeansClusterID.ClusterID")
+		whereconditions <- object@deeptable@select@whereconditions
+
+		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+								" DENSE_RANK()OVER(ORDER BY fzzlKMeansClusterID.ClusterID) AS vectorIndexColumn, \n ",
+								" CAST(sum(power((",deeptablename,".",cell_val_colname,
+									" - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER) AS vectorValueColumn \n ",
+						" FROM fzzlKMeansClusterID, \n ",deeptablename,", \n fzzlKMeansDendrogram \n ",
+						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
+						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ",
+						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ",
+						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ",
+						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",
+						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
+						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
+						ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),""), 
+						" GROUP BY fzzlKMeansClusterID.ClusterID ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
@@ -423,7 +434,8 @@ withinss.FLHKMeans<-function(object){
 		withinssvector <- tryCatch(as.vector(withinssvector),
       						error=function(e){withinssvector})
 		object@results <- c(object@results,list(withinss = withinssvector))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+						"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(withinssvector)
 	}
@@ -442,27 +454,31 @@ betweenss.FLHKMeans<-function(object){
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+		whereconditions <- object@deeptable@select@whereconditions
 
-		sqlstr<-paste0("SELECT CAST(sum(power((a.valavg - fzzlKMeansDendrogram.Centroid),2)) AS NUMBER)",
-						" FROM (SELECT ",var_id_colname,",average(",cell_val_colname,") AS valavg",
-							 " FROM ",deeptablename, 
-							 " GROUP BY ",var_id_colname,") AS a,",
-							 "fzzlKMeansClusterID,",
-							 "fzzlKMeansDendrogram",
-						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"'",
-						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"'", 
-						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID", 
-						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID", 
-						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname,  
-						" AND a.",var_id_colname," = ",deeptablename,".",var_id_colname,
-						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart,
-						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart)
+		sqlstr<-paste0("SELECT CAST(sum(power((a.valavg - fzzlKMeansDendrogram.Centroid),2)) AS NUMBER) \n ",
+						" FROM (SELECT ",var_id_colname,",average(",cell_val_colname,") AS valavg \n ",
+							 " FROM ",deeptablename," \n ",
+							 " GROUP BY ",var_id_colname,") AS a, \n ",
+							 "fzzlKMeansClusterID, \n ",
+							 "fzzlKMeansDendrogram \n ",
+						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
+						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
+						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ", 
+						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
+						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",  
+						" AND a.",var_id_colname," = ",deeptablename,".",var_id_colname," \n ",
+						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
+						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
+						ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
+						)
 
 		betweenssvector <- sqlQuery(connection,sqlstr)[1,1]
 
 		betweenssvector <- as.vector(betweenssvector)
 		object@results <- c(object@results,list(betweenss = betweenssvector))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+						"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(betweenssvector)
 	}
@@ -480,18 +496,25 @@ totss.FLHKMeans<-function(object){
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+		whereconditions <- object@deeptable@select@whereconditions
 
-		sqlstr<-paste0("SELECT CAST(sum(power((",deeptablename,".",cell_val_colname," - a.valavg),2)) AS NUMBER) 
-						FROM (SELECT ",var_id_colname,",average(",cell_val_colname,") AS valavg 
-							  FROM ",deeptablename," GROUP BY ",var_id_colname,") AS a, ",
-							 deeptablename," 
-						WHERE a.",var_id_colname," = ",deeptablename,".",var_id_colname)
+		sqlstr<-paste0("SELECT CAST(sum(power((",deeptablename,".",
+						cell_val_colname," - a.valavg),2)) AS NUMBER) \n ",
+						" FROM (SELECT ",var_id_colname,",average(",cell_val_colname,") AS valavg \n ",
+							"  FROM ",deeptablename,
+							  constructWhere(whereconditions)," \n ",
+							  " GROUP BY ",var_id_colname,") AS a, \n ",
+							 deeptablename," \n ",
+						" WHERE a.",var_id_colname," = ",deeptablename,".",var_id_colname,
+						ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
+						)
 		
 		totssvector <- sqlQuery(connection,sqlstr)[1,1]
 
 		totssvector <- as.vector(totssvector)
 		object@results <- c(object@results,list(totss = totssvector))
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+							"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
 		return(totssvector)
 	}
@@ -506,12 +529,12 @@ size.FLHKMeans<-function(object)
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-						         DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorIndexColumn,
-								 COUNT(ObsID) AS vectorValueColumn 
-						  FROM  fzzlKMeansClusterID 
-						  WHERE AnalysisID = '",object@AnalysisID,"'",   
-	                      " AND HypothesisID = ",object@nstart,
+		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+						    "     DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorIndexColumn, \n ",
+							"	 COUNT(ObsID) AS vectorValueColumn \n ",
+						"  FROM  fzzlKMeansClusterID \n ",
+						" WHERE AnalysisID = '",object@AnalysisID,"' \n ",   
+	                      " AND HypothesisID = ",object@nstart," \n ",
 	                      " GROUP BY ClusterID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -583,24 +606,52 @@ plot.FLHKMeans <- function(object)
 	var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 	cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 	widetable <- gen_wide_table_name("new")
-	#widetable <- "tempuniquewide12345678"
-	# if(!object@table@isDeep)
-	# {
-	# 	widex <- deepToWide(object@deeptable,
-	# 						whereconditions="",
-	# 						mapTable= object@mapTable,
-	# 						mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-	# 						outWideTableDatabase=getOption("ResultDatabaseFL"),
- #                    		outWideTableName=widetable)
-	# 	x <- widex$table
-	# }
-	# else
 	x <- object@deeptable
 	x <- as.data.frame(x)
 	x$obs_id_colname <- NULL
-	#print(x[1:20,])
-	plot(x,col=as.vector(object$cluster))
+	plot(x,col=as.vector(object$cluster),main="kmeans using DB-Lytix")
 	points(as.matrix(object$centers),col=1:object@centers,pch=8,cex=2)
+}
+
+#' @export
+fitted.FLHKMeans <- function(object,method="centers",...){
+	AnalysisID <- object@AnalysisID
+	
+	if(!method %in% c("centers","classes"))
+	stop(" method in fitted for kmeans should be c(centers,classes) \n ")
+	if(method == "classes")
+	return(object$cluster)
+
+	sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+					    " b.ObsID AS rowIdColumn, \n ",
+					    " a.VarID AS colIdColumn, \n ",
+					    " a.Centroid AS valueColumn \n ",
+					" FROM fzzlKMeansDendrogram a, \n ",
+							"fzzlkmeansclusterid b \n ",
+					" WHERE a.AnalysisID = '",AnalysisID,"' \n ",
+					" AND a.HypothesisID = ",object@nstart," \n ",
+					" AND a.Level = ",object@levels," \n ",
+					" AND a.HypothesisID = b.HypothesisID \n ",
+					" AND a.AnalysisID = b.AnalysisID \n ",
+					" AND a.ClusterID = b.ClusterID ")
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                    connection = connection,
+                    variables=list(
+                        rowIdColumn="rowIdColumn",
+                        colIdColumn="colIdColumn",
+                        valueColumn="valueColumn"),
+                    whereconditions="",
+                    order = "",
+                    SQLquery=sqlstr)
+
+  	centersmatrix <- new("FLMatrix",
+			            select= tblfunqueryobj,
+			            dim=c(nrow(object@deeptable),
+			            	ncol(object@deeptable)),
+			            dimnames=list(object$cluster,
+			            			object@deeptable@dimnames[[2]]))
+  	return(centersmatrix)
 }
 
 #' @export

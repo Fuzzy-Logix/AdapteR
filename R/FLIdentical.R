@@ -319,8 +319,8 @@ NULL
 										 " THEN 'FALSE' ELSE 'TRUE' END AS vectorValueColumn \n ",
 							" FROM (",constructSelect(pObj1),") AS a, \n ",
 							 	"(",constructSelect(pObj2),") AS b \n ",
-	                        constructWhere(c(paste0(" MOD(a.vectorIndexColumn,",vminlen,
-	                        					") = MOD(b.vectorIndexColumn,",vminlen,")"))))
+	                        constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
+	                        					") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
 
 			dimnames <- list(vmaxrownames,"vectorValueColumn")
 		}
