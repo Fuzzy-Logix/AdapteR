@@ -1010,6 +1010,7 @@ setMethod("FLExtractStr",
 #' resultflvector <- regexpr("A",flv)
 #' @export
 
+
 ## RV: StartPos argument in DB Lytix for FLInStr had not been implemented here in regexpr though it is calling FLInStr. 
 ## TODO: implement passing of startpos argument(default = 1)
 ## RV: StartPos argument need only be included in regexpr since only that is calling DB Lytix FLInStr right?
@@ -1397,6 +1398,7 @@ setMethod("gsub",
             fixed = fixed, useBytes = useBytes)
           )
 
+
 #################################################################################
 
 ## move to file FLParseXML.R
@@ -1444,4 +1446,4 @@ setMethod("FLParseXML",
                               ORDER BY 1,2;")
 
             return(sqlQuery(getOption("connectionFL"),sqlstr))
-            })
+        })
