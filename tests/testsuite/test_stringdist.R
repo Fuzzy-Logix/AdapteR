@@ -1,121 +1,164 @@
 ## gk @richa: please implement tests for the following stringdist::stringdist examples
-
-     ## # Simple example using optimal string alignment
-     ## stringdist("ca","abc")
-     
-     ## # computing a 'dist' object
-     ## d <- stringdistmatrix(c('foo','bar','boo','baz'))
-     ## # try plot(hclust(d))
-     
-     ## # The following gives a matrix
-     ## stringdistmatrix(c("foo","bar","boo"),c("baz","buz"))
-     
-     ## # An example using Damerau-Levenshtein distance (multiple editing of substrings allowed)
-     ## stringdist("ca","abc",method="dl")
-     
-     ## # string distance matching is case sensitive:
-     ## stringdist("ABC","abc")
-     
-     ## # so you may want to normalize a bit:
-     ## stringdist(tolower("ABC"),"abc")
-     
-     ## # stringdist recycles the shortest argument:
-     ## stringdist(c('a','b','c'),c('a','c'))
-     
-     ## # stringdistmatrix gives the distance matrix (by default for optimal string alignment):
-     ## stringdist(c('a','b','c'),c('a','c'))
-     
-     ## # different edit operations may be weighted; e.g. weighted substitution:
-     ## stringdist('ab','ba',weight=c(1,1,1,0.5))
-     
-     ## # Non-unit weights for insertion and deletion makes the distance metric asymetric
-     ## stringdist('ca','abc')
-     ## stringdist('abc','ca')
-     ## stringdist('ca','abc',weight=c(0.5,1,1,1))
-     ## stringdist('abc','ca',weight=c(0.5,1,1,1))
-     
-     ## # Hamming distance is undefined for 
-     ## # strings of unequal lengths so stringdist returns Inf
-     ## stringdist("ab","abc",method="h")
-     ## # For strings of eqal length it counts the number of unequal characters as they occur
-     ## # in the strings from beginning to end
-     ## stringdist("hello","HeLl0",method="h")
-     
-     ## # The lcs (longest common substring) distance returns the number of 
-     ## # characters that are not part of the lcs.
-     ## #
-     ## # Here, the lcs is either 'a' or 'b' and one character cannot be paired:
-     ## stringdist('ab','ba',method="lcs")
-     ## # Here the lcs is 'surey' and 'v', 'g' and one 'r' of 'surgery' are not paired
-     ## stringdist('survey','surgery',method="lcs")
-     
-     
-     ## # q-grams are based on the difference between occurrences of q consecutive characters
-     ## # in string a and string b.
-     ## # Since each character abc occurs in 'abc' and 'cba', the q=1 distance equals 0:
-     ## stringdist('abc','cba',method='qgram',q=1)
-     
-     ## # since the first string consists of 'ab','bc' and the second 
-     ## # of 'cb' and 'ba', the q=2 distance equals 4 (they have no q=2 grams in common):
-     ## stringdist('abc','cba',method='qgram',q=2)
-     
-     ## # Wikipedia has the following example of the Jaro-distance. 
-     ## stringdist('MARTHA','MATHRA',method='jw')
-     ## # Note that stringdist gives a  _distance_ where wikipedia gives the corresponding 
-     ## # _similarity measure_. To get the wikipedia result:
-     ## 1 - stringdist('MARTHA','MATHRA',method='jw')
-     
-     ## # The corresponding Jaro-Winkler distance can be computed by setting p=0.1
-     ## stringdist('MARTHA','MATHRA',method='jw',p=0.1)
-     ## # or, as a similarity measure
-     ## 1 - stringdist('MARTHA','MATHRA',method='jw',p=0.1)
-     
-     ## # This gives distance 1 since Euler and Gauss translate to different soundex codes.
-     ## stringdist('Euler','Gauss',method='soundex')
-     ## # Euler and Ellery translate to the same code and have distance 0
-     ## stringdist('Euler','Ellery',method='soundex')
-     
-
-
+                                        # ASANA: https://app.asana.com/0/143316600934101/150716904120767
 
 ##testing string distance functions
-Renv <- new.env(parent = globalenv())
+Renv<-new.env(parent = globalenv())
+Renv$a<-c('foo','bar','boo','baz')
+Renv$b<-c("foo","bar","boo")
+Renv$c<-c("baz","buz")
+Renv$d<-c('a','b','c')
+Renv$e<-c('a','c')
+Renv$ab <- 'ab'
+Renv$ba <- 'ba'
+Renv$ca <- "ca"
+Renv$abc <- 'abc'
+Renv$cba <- 'cba'
+Renv$hello <- "hello"
+Renv$HeLl0 <- "HeLl0"
+Renv$MARTHA <- 'MARTHA'
+Renv$Euler <- 'Euler'
+Renv$Ellery <- 'Ellery'
+Renv$MATHRA <- 'MATHRA'
+Renv$weight<-c(1,1,1,0.5)
+Renv$weighta<-c(0.5,1,1,1)
 FLenv <- as.FL(Renv)
 
-test_that(
-  "Damerau-Levenshtein distance",
-{
-result1=eval_expect_equal({test1<-stringdist("ca","abc",method="dl")},Renv,FLenv)
-##print(result1)
+## # Simple example using optimal string alignment
+## stringdist(ca,abc)
+test_that("stringdist: string, string, Damerau-Levenshtein",{
+    result1=eval_expect_equal({
+        test1<-stringdist(ca,abc,method="dl")
+    },Renv,FLenv)
 })
 
-test_that("Levenshtein distance",{
-result2= eval_expect_equal({test2<-stringdist("ca","abc",method="lv")},Renv,FLenv)
-##print(result2) 
-})
- 
- 
-test_that("Jaro-distance",{
-result3=eval_expect_equal({test3<-stringdist('MARTHA','MATHRA',method='jw')},Renv,FLenv)
-##print(result3)
+## # computing a 'dist' object
+test_that("stringdistmatrix: vector, Damerau-Levenshtein",{
+    result2=eval_expect_equal({
+        test2<-stringdistmatrix(a,method="dl")
+        print(test2)
+        ##plot(hclust(test2))
+    },Renv,FLenv)
 })
 
-test_that("Jaccard distance" ,{
-result4=eval_expect_equal({test4<-stringdist('MARTHA','MATHRA',method='jaccard')},Renv,FLenv)
-##print(result4)
+## # The following gives a matrix
+## stringdistmatrix(c("foo","bar","boo"),c("baz","buz"))
+test_that("stringdistmatrix: vector, vector, Damerau-Levenshtein",{
+    result3=eval_expect_equal({
+        test3<-stringdistmatrix(b,c,method="dl")
+    },Renv,FLenv)
 })
 
-test_that("Jaro-Winkler distance", {
-result5=eval_expect_equal({test5<-stringdist('MARTHA','MATHRA',method='jw',p=0.1)},Renv,FLenv)
-##print(result5)
+## # string distance matching is case sensitive:
+## stringdist(ABC,abc)
+test_that("stringdist: case sensitive, Damerau-Levenshtein",{
+    result4=eval_expect_equal({
+        test4<-stringdist(ABC,abc, method="dl")
+        testtolower<-stringdist(tolower(ABC),abc,method="dl")
+    },Renv,FLenv)
 })
 
-test_that("hamming distance", {
-result6=eval_expect_equal({test6<-stringdist("ab","abc",method="h")},Renv,FLenv)
-result7=eval_expect_equal({test7<-stringdist("hello","HeLl0",method="h")},Renv,FLenv)
-##print(result6)
-##print(result7)
+## stringdist(c('a','b','c'),c('a','c'))
+test_that("stringdist:  recycles the shortest argument",{
+    result6=eval_expect_equal({
+        test6<-stringdist(d,e,method="dl")
+    },Renv,FLenv)
+})
+
+
+## # stringdistmatrix gives the distance matrix (by default for optimal string alignment):
+## stringdist(c('a','b','c'),c('a','c'))
+test_that("stringdist: string distance",{
+    result7=eval_expect_equal({test7<-stringdist(d,e,method="dl")},Renv,FLenv)
+})
+
+## # different edit operations may be weighted; e.g. weighted substitution:
+## stringdist(ab,ba,weight=c(1,1,1,0.5))
+                                        #ERROR: vector not supported in stringdist
+test_that("stringdist: string distance",{
+    result8=eval_expect_equal({
+        test8<-stringdist(ab,ba,weight)
+    },Renv,FLenv)
+})
+
+## # Non-unit weights for insertion and deletion makes the distance metric asymetric
+## stringdist(ca,abc)
+## stringdist(abc,ca)
+## stringdist(ca,abc,weight=c(0.5,1,1,1))
+## stringdist(abc,ca,weight=c(0.5,1,1,1))
+                                        #ERROR: vector not supported in stringdist
+test_that("stringdist: string distance",{
+    result9=eval_expect_equal({
+        test9<-stringdist(ca,abc,method="dl")
+        test10<-stringdist(abc,ca,method="dl")
+        test11<-stringdist(ca,abc,weighta,method="dl")
+        test12<-stringdist(abc,ca,weighta,method="dl")
+    },Renv,FLenv)
+})
+
+
+test_that("stringdist: Damerau-Levenshtein",{
+    result19=eval_expect_equal({
+        test19<-stringdist(ca,abc,method="dl")},Renv,FLenv)
+})
+
+test_that("stringdist: Levenshtein",{
+    result20= eval_expect_equal({
+        test20<-stringdist(ca,abc,method="lv")},Renv,FLenv)
+})
+
+
+## # Wikipedia has the following example of the Jaro-distance. 
+## stringdist(MARTHA,MATHRA,method='jw')
+## # Note that stringdist gives a  _distance_ where wikipedia gives the corresponding 
+## # _similarity measure_. To get the wikipedia result:
+## 1 - stringdist(MARTHA,MATHRA,method='jw')
+test_that("stringdist: Jaro-distance",{
+    result21=eval_expect_equal({
+        test21<-stringdist(MARTHA,MATHRA,method='jw')
+        test22<-(1 - stringdist(MARTHA,MATHRA,method='jw'))
+    },Renv,FLenv)
+})
+
+test_that("stringdist: Jaccard" ,{
+    result23=eval_expect_equal({
+        test23<-stringdist(MARTHA,MATHRA,method='jaccard')},Renv,FLenv)
+})
+
+## # The corresponding Jaro-Winkler distance can be computed by setting p=0.1
+## stringdist(MARTHA,MATHRA,method='jw',p=0.1)
+## # or, as a similarity measure
+## 1 - stringdist(MARTHA,MATHRA,method='jw',p=0.1)
+test_that("stringdist: Jaro-Winkler distance", {
+    result24=eval_expect_equal({
+        test24<-stringdist(MARTHA,MATHRA,method='jw',p=0.1)
+        test25<-(1 - stringdist(MARTHA,MATHRA,method='jw',p=0.1))
+    },Renv,FLenv)
 })
 
 
 
+
+Renv<-new.env(parent = globalenv())
+Renv$a<-c('foo','bar','boo','baz')
+Renv$b<-c("foo","bar","boo")
+
+FLenv <- as.FL(Renv)
+
+test_that("testing R and FL Results for String Functions for different methods ",{
+  result1=eval_expect_equal({
+    resultflvector1 <- stringdist("xyz",a,method="dl")
+    resultflvector2 <- stringdist("xyz",a,method="lv",caseFlag=1)
+    resultflvector3 <- stringdist(a,"xyz",method="hamming")
+    resultflvector5 <- stringdist(c("xyz","juio"),a,method="jaccard")
+    resultflvector6 <- stringdist(c("xyz","juio"),a,method="jw")
+  },Renv,FLenv)
+})
+
+test_that("stringdistmatrix R and FL results match ",{
+  result2=eval_expect_equal({
+    test1<-stringdistmatrix(a)
+    test3<-stringdist(a,b)
+    test4<-stringdistmatrix(a,b)
+    test5<-stringdistmatrix("baro",b)
+  },Renv,FLenv,check.attributes=FALSE)
+})
