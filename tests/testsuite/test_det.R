@@ -6,13 +6,6 @@ Renv$mat2 =  matrix(1:4, ncol = 2)
 ## In order for examples to work in a chain, FLenv is needed
 FLenv <- as.FL(Renv)
 
-test_that("eigen: with complex values",{
-    result = eval_expect_equal({
-        e1val <- eigen(mat1)$values
-        e1vec <- eigen(mat1)$vectors
-    }, Renv,FLenv)
-})
-
 test_that("Check for determinant function ",{
     result = eval_expect_equal({
         e2 <- det(mat1)
