@@ -6,6 +6,7 @@ Renv = new.env(parent = globalenv())
 ## 1
 Renv$n1 = 3
 Renv$n2 = 1e7
+Renv$x <- 1:10
 
 
 ## Test for <length()> function using additionally classes supported by AdapteR
@@ -32,7 +33,8 @@ test_that("Log and Exp",{
     result = eval_expect_equal({
             len1 <- log(exp(n1))
             ln2 <- log10(n2)
-            1
+            exp1 <- expm1(x)
+            exp1 <- log1p(x)
     }, Renv, FLenv)
     ##print(result)
 })
@@ -40,16 +42,8 @@ test_that("Log and Exp",{
 test_that("power of vector arithmetic",{
     result = eval_expect_equal({
         constVec <- 2*nvector
-        x <- 10^-(1+constVec)
+        y <- 10^-(1+constVec)
         length(nvector)
-    }, Renv, FLenv)
-    ##print(result)
-})
-
-test_that("cbind to a matrix",{
-    result = eval_expect_equal({
-        m <- cbind(x, log(1+x), log1p(x), exp(x)-1, expm1(x))
-        dim(m)
     }, Renv, FLenv)
     ##print(result)
 })

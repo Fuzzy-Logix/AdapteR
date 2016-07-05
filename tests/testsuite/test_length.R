@@ -13,8 +13,6 @@ Renv$cvector <- c("a","b","c")
 Renv$bvector <- c(TRUE,TRUE,FALSE,TRUE)
 Renv$nmatrix <- matrix(1:20,nrow=5)
 ##Renv$cmatrix <- matrix(rep(Renv$cvector,2),nrow=2) ## gk: TODO: support of character matrices
-Renv$df <- data.frame(a=1:5,b=6:10)
-
 ## ommitted from test because not related to AdapteR:
 ## Renv$opt = options()  ##options()is giving error in test_that() 
 ## length(y ~ x1 + x2 + x3)  # 3
@@ -41,13 +39,6 @@ test_that("length of vector",{
         Lnv <- length(nvector)
         Lcv <- length(cvector)
         Lbv <- length(bvector)
-    },Renv,FLenv)
-    ##print(result)
-})
-
-test_that("length of data.frame",{
-    result = eval_expect_equal({
-        Ldf <- length(df)
     },Renv,FLenv)
     ##print(result)
 })

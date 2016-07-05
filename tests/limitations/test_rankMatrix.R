@@ -53,7 +53,7 @@ test_that("t: masking is not breaking Matrix::t",{
     FLenv$mat148 <- as.FL(Renv$mat148)
 })
 
-test_that("Check for rankMatrix function",{
+test_that("rankMatrix: rank 148 example",{
     ## rankMatrix(crossprod(mat148),method='qr') == 148)
     expect_equal(
         rankMatrix(FLenv$mat148,method='qr'),148)
