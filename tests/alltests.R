@@ -1,7 +1,9 @@
 library(testthat)
 library(AdapteR)
 
-runMyTestFile <- function(f, ask=TRUE){
+runMyTestFile <- function(f, ask=TRUE, skip=NULL){
+    if(!is.null(skip))
+        if(grepl(skip,f)) return()
     cat(paste0("testing ",f,"\n"))
     if(ask)
         run <- readline("start (y or n)")=="y"

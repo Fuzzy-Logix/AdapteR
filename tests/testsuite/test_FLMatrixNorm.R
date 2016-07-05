@@ -9,9 +9,9 @@ testmatrix <- FLMatrix(getOption("ResultDatabaseFL"),
 #Class of every result would also be printed.
 
 test_that("Check for FLMatrixNorm with different norm methods",{
-     lapply(as.list(1:4),function(x){
+    lapply(as.list(1:4),function(x){
         result = FLMatrixNorm(testmatrix,x)
-        print(paste0("Result with norm method to be ",x,": ",result))
-        print(paste0("Class of the result is : ",class(result)))
-        })
+        ##print(paste0("Result with norm method to be ",x,": ",result))
+        ##print(paste0("Class of the result is : ",class(result)))
     })
+})

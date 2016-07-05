@@ -24,3 +24,36 @@ test_that("Check3 for colMeans function",{
 test_that("Check4 for rowMeans function",{
   result = eval_expect_equal({rowMeans(M) },Renv,FLenv)
 })
+
+
+
+## Testing FLRowMeans
+test_that("check rowMeans",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowMeans,
+                      base::rowMeans,
+                      n=5)
+})
+
+## Testing FLRowSums
+test_that("check rowSums",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rowSums,
+                      base::rowSums,
+                      n=5)
+})
+
+
+## Testing FLColMeans
+test_that("check colMeans",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colMeans,base::colMeans,n=5)
+})
+
+## Testing FLColSums
+test_that("check colSums",
+{
+    expect_eval_equal(initF.FLMatrix,AdapteR::colSums,base::colSums,n=5)
+})

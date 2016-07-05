@@ -28,6 +28,15 @@ test_that("rankMatrix: tol argument",{
 
 
 
+# Testing rankMatrix
+test_that("check rankMatrix result",{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rankMatrix,
+                      Matrix::rankMatrix,
+                      n=5)
+})
+
+
 ## does not apply, rankMatrix does not require tol Argument
 ## test_that("rankMatrix: tol argument",{
 ##     result = eval_expect_equal({   

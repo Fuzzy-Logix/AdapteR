@@ -91,3 +91,16 @@ test_that("Swiss dataset, ...",{
     }, Renv, FLenv,
     "correlations in R only -- need pulling data out to above setup")
 })
+
+
+
+## Testing FLCorrel
+##Failing because of precision errors.
+test_that("check FLCorrel result",
+{
+    fltDeep <- FLTable(getOption("ResultDatabaseFL"),"tblUSArrests",
+                       "ObsID","VarID","Num_Val", whereconditions = "OBsID<21")
+    m <- initF.FLMatrix(20)
+    flm <- m$FL
+    FLexpect_equal(cor(flm,fltDeep),cor(Rm,RtDeep),check.attributes=FALSE)
+})

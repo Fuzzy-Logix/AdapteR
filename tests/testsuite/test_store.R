@@ -1,13 +1,10 @@
-##No store for R objects
-
-
-test_that("check casting and store for integer,character types",{
-    x <- as.FLMatrix(matrix(9:1,3,3))
-    y <- as.FLVector(5:1)
-    z <- as.FLVector(c("a","b"))
-    FLexpect_equal(x,store(x),check.attributes=FALSE)
-    FLexpect_equal(y,store(y),check.attributes=FALSE)
-    FLexpect_equal(z,store(z),check.attributes=FALSE)
+test_that("cast: numeric types",{
+    rx <- matrix(9:1,3,3)
+    x <- as.FLMatrix(rx)
+    ry <- 5:1
+    y <- as.FLVector(ry)
+    FLexpect_equal(x,rx,check.attributes=FALSE)
+    FLexpect_equal(y,ry,check.attributes=FALSE)
 })
 
 test_that("check cross database name mapping",{

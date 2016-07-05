@@ -38,6 +38,19 @@ test_that("stringdist: Jaro-Winkler distance", {
     },Renv,FLenv)
 })
 
+
+## # Wikipedia has the following example of the Jaro-distance. 
+## stringdist(MARTHA,MATHRA,method='jw')
+## # Note that stringdist gives a  _distance_ where wikipedia gives the corresponding
+## # _similarity measure_. To get the wikipedia result:
+## 1 - stringdist(MARTHA,MATHRA,method='jw')
+test_that("stringdist: Jaro-distance",{
+    result21=eval_expect_equal({
+        test21<-stringdist(MARTHA,MATHRA,method='jw')
+        test22<-(1 - stringdist(MARTHA,MATHRA,method='jw'))
+    },Renv,FLenv)
+})
+
 ## Not supported methods in DB-Lytix...................
 
 

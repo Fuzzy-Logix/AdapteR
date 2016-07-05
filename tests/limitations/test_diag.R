@@ -14,3 +14,29 @@ test_that(
       },Renv,FLenv)
     ##print(result4)
   })
+
+
+##Testing FLDiag
+test_that("check the result of the diag of matrix",
+{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=5,isRowVec=TRUE)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=1)
+    expect_eval_equal(initF.FLVector,
+                      AdapteR::diag,
+                      base::diag,
+                      n=1,isRowVec=TRUE)
+})

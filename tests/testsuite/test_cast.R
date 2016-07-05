@@ -51,19 +51,3 @@ test_that("Testing acast & dcast",
 
 
 
-
-
-
-
-
-
-            
-            
-            
-            
- 
-            
-                       
-          
-
-

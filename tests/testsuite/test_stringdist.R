@@ -1,6 +1,3 @@
-## gk @richa: please implement tests for the following stringdist::stringdist examples
-                                        # ASANA: https://app.asana.com/0/143316600934101/150716904120767
-
 ##testing string distance functions
 Renv<-new.env(parent = globalenv())
 Renv$a<-c('foo','bar','boo','baz')
@@ -12,6 +9,7 @@ Renv$ab <- 'ab'
 Renv$ba <- 'ba'
 Renv$ca <- "ca"
 Renv$abc <- 'abc'
+Renv$ABC <- 'ABC'
 Renv$cba <- 'cba'
 Renv$hello <- "hello"
 Renv$HeLl0 <- "HeLl0"
@@ -55,7 +53,7 @@ test_that("stringdistmatrix: vector, vector, Damerau-Levenshtein",{
 ## stringdist(ABC,abc)
 test_that("stringdist: case sensitive, Damerau-Levenshtein",{
     result4=eval_expect_equal({
-        test4<-stringdist(ABC,abc, method="dl")
+        test4<-stringdist(ABC,abc, method="dl",caseFlag = 1)
         testtolower<-stringdist(tolower(ABC),abc,method="dl")
     },Renv,FLenv)
 })
@@ -103,30 +101,10 @@ test_that("stringdist: Levenshtein",{
 })
 
 
-## # Wikipedia has the following example of the Jaro-distance. 
-## stringdist(MARTHA,MATHRA,method='jw')
-## # Note that stringdist gives a  _distance_ where wikipedia gives the corresponding 
-## # _similarity measure_. To get the wikipedia result:
-## 1 - stringdist(MARTHA,MATHRA,method='jw')
-test_that("stringdist: Jaro-distance",{
-    result21=eval_expect_equal({
-        test21<-stringdist(MARTHA,MATHRA,method='jw')
-        test22<-(1 - stringdist(MARTHA,MATHRA,method='jw'))
-    },Renv,FLenv)
-})
-
 test_that("stringdist: Jaccard" ,{
     result23=eval_expect_equal({
         test23<-stringdist(MARTHA,MATHRA,method='jaccard')},Renv,FLenv)
 })
-
-
-
-Renv<-new.env(parent = globalenv())
-Renv$a<-c('foo','bar','boo','baz')
-Renv$b<-c("foo","bar","boo")
-
-FLenv <- as.FL(Renv)
 
 test_that("testing R and FL Results for String Functions for different methods ",{
   result1=eval_expect_equal({
