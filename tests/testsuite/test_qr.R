@@ -122,10 +122,10 @@ test_that("Check R is upper-triangular ",{
     },Renv,FLenv)
 })
 
-test_that("qr.coef",{
+test_that("qr.coef: low precision tolerance=1e-6",{
     result = eval_expect_equal({
         qrcoefff = qr.coef(qrmat7,mat8)
     }, Renv,FLenv,
-    verbose=T,
-    tolerance=1e-8)
+    verbose=F,
+    tolerance=1e-6)
 })
