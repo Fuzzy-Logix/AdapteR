@@ -6,7 +6,7 @@
 the FL session tables.}
 \usage{
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
-  dir.jdbcjars = NULL, odbcSource = NULL, ...)
+  jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL, ...)
 }
 \arguments{
 \item{host}{}
@@ -17,7 +17,7 @@ flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
 
 \item{passwd}{}
 
-\item{dir.jdbcjars}{if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.}
+\item{jdbc.jarsDir}{if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.}
 
 \item{odbcSource}{}
 
