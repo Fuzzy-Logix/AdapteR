@@ -1007,6 +1007,7 @@ NULL
 #'
 #' \code{**} does the Element-wise power of in-database objects.
 #'
+#' 
 #' All combinations of operands are possible just like in R and the result is an in-database object.
 #' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector
