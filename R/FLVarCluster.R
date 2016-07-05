@@ -132,20 +132,21 @@ FLVarCluster.FLTable<-function(x,
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
-
+    #browser()
     retobj <- sqlStoredProc(
         connection,
         "FLVarCluster",
+        outputParameter=c(ResultTable="a"),
         TableName=deeptable,
         ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
         VarIDColName=getVariables(deepx)[["var_id_colname"]],
         ValueIDColName=getVariables(deepx)[["cell_val_colname"]],
         WhereClause= whereClause,
-        GroupBy=NULL,
+        GroupBy=groupBy,
         MatrixType=matrixType,
         Contrib=contrib,
-        TableOutput=1,
-        outputParameter=c(ResultTable="a"))
+        TableOutput=1
+        )
 	outputTable <- as.character(retobj[1,1])
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

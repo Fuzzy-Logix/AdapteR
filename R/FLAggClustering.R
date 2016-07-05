@@ -218,17 +218,20 @@ agnes.FLTable <- function(x,
 	}
 
 	vnote <- genNote("agnes")
-    sqlstr <- paste0("CALL FLAggClustering(",fquote(deeptable),", \n ",
-					 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
-					 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
-					 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
-					 					   whereClause,", \n ",
-					 					   methodID,", \n ",
-					 					   maxit,", \n ",
-					 					   fquote(vnote),", \n AnalysisID );")
+	retobj <- sqlStoredProc(
+        connection,
+        "FLAggClustering",
+        outputParameter=c(AnalysisID="a"),
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        MethodID=methodID,
+        MaxIterations=maxit,
+        Note=vnote
+        )
 	
-	retobj <- sqlQuery(connection,sqlstr,
-                           AnalysisIDQuery=genAnalysisIDQuery("fzzlKMeansInfo",vnote))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	

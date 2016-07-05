@@ -244,8 +244,7 @@ fanny.FLTable <- function(x,
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
-	else whereClause <- "NULL"
+	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
 	{
@@ -253,19 +252,22 @@ fanny.FLTable <- function(x,
 		diss <- FALSE
 	}
 
-    sqlstr <- paste0("CALL FLFKMeans(",fquote(deeptable),", \n ",
-			 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
-			 					   whereClause,", \n ",
-			 					   k,", \n ",
-			 					   maxit,", \n ",
-			 					   memb.exp,", \n 1, \n ",
-			 					   fquote(genNote("fkmeans")),
-			 					   ", \n AnalysisID );")
-	
-	retobj <- sqlQuery(connection,sqlstr,AnalysisIDQuery=
-						genAnalysisIDQuery("fzzlKMeansInfo",genNote("fkmeans")))
+	retobj <- sqlStoredProc(
+        connection,
+        "FLFKMeans",
+        outputParameter=c(AnalysisID="a"),
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        Clusters=k,
+        Iterations=maxit,
+        Fuzzy=memb.exp,
+        Hypothesis=1,
+        Note=genNote("fkmeans")
+        )
+
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	

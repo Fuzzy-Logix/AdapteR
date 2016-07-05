@@ -184,23 +184,24 @@ hkmeans.FLTable<-function(x,
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-	if(whereClause!="") whereClause <- paste0("'",whereClause,"'")
-	else whereClause <- "NULL"
+	if(whereClause=="") whereClause <- "NULL"
 
-    sqlstr <- paste0("CALL FLHKMeans( '",deeptable,"',
-			 					   '",getVariables(deepx)[["obs_id_colname"]],"',
-			 					   '",getVariables(deepx)[["var_id_colname"]],"',
-			 					   '",getVariables(deepx)[["cell_val_colname"]],"',",
-			 					   whereClause,",",
-			 					   levels,",",
-			 					   centers,",",
-			 					   iter.max,",",
-			 					   nstart,",",
-			 					   fquote(genNote("hkmeans")),
-			 					   ",AnalysisID );")
-	
-	retobj <- sqlQuery(connection,sqlstr,AnalysisIDQuery=
-						genAnalysisIDQuery("fzzlKMeansInfo",genNote("hkmeans")))
+	retobj <- sqlStoredProc(
+        connection,
+        "FLHKMeans",
+        outputParameter=c(AnalysisID="a"),
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        Levels=levels,
+        Clusters=centers,
+        Iterations=iter.max,
+        Hypothesis=nstart,
+        Note=genNote("hkmeans")
+        )
+
 	AnalysisID <- as.character(retobj[1,1])
 	sqlstr<-paste0("SELECT DISTINCT ObsID AS vectorIndexColumn \n ",
 					"	FROM fzzlKMeansClusterID \n ",
