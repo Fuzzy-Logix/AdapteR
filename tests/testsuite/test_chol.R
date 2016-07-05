@@ -1,4 +1,4 @@
-
+Renv = new.env(parent = globalenv())
 Renv$mat1 = matrix(c(5,1,1,3),2,2)
 
 FLenv <- as.FL(Renv)
