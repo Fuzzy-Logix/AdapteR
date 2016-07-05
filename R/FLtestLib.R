@@ -158,8 +158,6 @@ eval_expect_equal <- function(e, Renv, FLenv,
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,...)
 {
   I <- initF(...)
-  if(!is.list(I$FL))
-  I <- list(FL=list(I$FL),R=list(I$R))
    FLexpect_equal(FLcomputationF(I$FL),
                  RcomputationF(I$R),
                  check.attributes=FALSE)

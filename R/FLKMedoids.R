@@ -241,30 +241,31 @@ pam.FLTable <- function(x,
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
-	else whereClause <- "NULL"
+	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
 	{
 		if(distTable=="") 
 		stop("Since diss=TRUE, provide distTable input in the form of database.table")
-		distTableCopy <- paste0("'",distTable,"'")
+		distTableCopy <- distTable
 	}
 	else distTableCopy <- "NULL"
 
-    sqlstr <- paste0("CALL FLKMedoids(",fquote(deeptable),", \n ",
-			 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
-			 					   whereClause,", \n ",
-			 					   k,", \n ",
-			 					   iter.max,", \n ",
-			 					   distTableCopy,", \n ",
-			 					   fquote(genNote("kmedoids")),
-			 					   ", \n AnalysisID );")
-	
-	retobj <- sqlQuery(connection,sqlstr,
-				AnalysisIDQuery=genAnalysisIDQuery("fzzlKMedoidsInfo",genNote("kmedoids")))
+	retobj <- sqlStoredProc(
+        connection,
+        "FLKMedoids",
+        outputParameter=c(AnalysisID="a"),
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        Medoids=k,
+        Iterations=iter.max,
+        DistTable=distTableCopy,
+        Note=genNote("kmedoids")
+        )
+
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 
@@ -1076,18 +1077,7 @@ data.FLKMedoids<-function(object)
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		widetable <- gen_wide_table_name("new")
-		#widetable <- "tempuniquewide12345678"
-		# if(!object@table@isDeep)
-		# {
-		# 	widex <- deepToWide(object@deeptable,
-		# 						whereconditions="",
-		# 						mapTable= object@mapTable,
-		# 						mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-		# 						outWideTableDatabase=getOption("ResultDatabaseFL"),
-	 #                    		outWideTableName=widetable)
-		# 	x <- widex$table
-		# }
-		# else
+		
 		x <- object@deeptable
 		x <- as.data.frame(x)
 		x$obs_id_colname <- NULL
@@ -1174,7 +1164,7 @@ FLMapping.FLKMedoids <- function(object)
 			if((is.vector(mapdataframe) && length(mapdataframe)==2) || is.null(mapdataframe))
 			mapdataframe <- paste0("The mapping table in database is",object@mapTable)
 			else if(is.data.frame(mapdataframe))
-			t <- sqlQuery(getOption("connectionFL"),paste0(" DROP TABLE ",object@mapTable))
+			t <- sqlSendUpdate(getOption("connectionFL"),paste0(" DROP TABLE ",object@mapTable))
 		}
 		else mapdataframe <- ""
 		

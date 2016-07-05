@@ -132,7 +132,7 @@ FLVarCluster.FLTable<-function(x,
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
-
+    #browser()
     retobj <- sqlStoredProc(
         connection,
         "FLVarCluster",
@@ -141,11 +141,12 @@ FLVarCluster.FLTable<-function(x,
         VarIDColName=getVariables(deepx)[["var_id_colname"]],
         ValueIDColName=getVariables(deepx)[["cell_val_colname"]],
         WhereClause= whereClause,
-        GroupBy=NULL,
+        GroupBy=groupBy,
         MatrixType=matrixType,
         Contrib=contrib,
         TableOutput=1,
-        outputParameter=c(ResultTable="a"))
+        outputParameter=c(ResultTable="a")
+        )
 	outputTable <- as.character(retobj[1,1])
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -186,7 +187,7 @@ FLVarCluster.FLTable<-function(x,
                             " FROM ",mapTable," a,",outputTable," b \n ",
                             " WHERE a.vectorIndexColumn=b.vectorIndexColumn ")
 			names(clustervector) <- sqlQuery(getOption("connectionFL"),sqlstr)[["vcolnames"]]
-			t <- sqlQuery(" DROP TABLE ",mapTable)
+			t <- sqlSendUpdate(" DROP TABLE ",mapTable)
 		}
 	return(clustervector)
 }

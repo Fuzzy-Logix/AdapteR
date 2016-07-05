@@ -98,23 +98,26 @@ sqlSendUpdate.RODBC <- function(connection,query) {
 sqlStoredProc.RODBC <- function(connection, query, 
                                 outputParameter,
                                 ...) {
+    #browser()
     args <- list(...)
     ## Setting up input parameter value
     pars <- character()
+    ai <- 1L
     for(a in args){
         if(is.character(a)){
             if(a=="NULL")
-                a[[ai]] <- "NULL"
+                pars[ai] <- "NULL"
             else
-                a[[ai]] <- paste0("'","NULL","'")
+                pars[ai] <- fquote(a)
         } else
-            a[[ai]] <- as.character(a)
+            pars[ai] <- a
         ai <- ai+1L
     }
     sqlstr <- paste0("CALL ",query,"(",
-                     paste0(pars, collapse=","),
+                     paste0(pars, collapse=", \n "),
                      ",",
-                     paste0(names(outputParameter), collapse=","))
+                     paste0(names(outputParameter), collapse=", \n "),
+                     ")")
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }

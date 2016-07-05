@@ -201,9 +201,11 @@ setMethod("FLStringDist",
                                 gapPenaltyFlag,caseFlag,vlengthFlag,")) AS vectorValueColumn \n ",
                              " FROM(",constructSelect(xsource),") AS a, \n (",
                                       constructSelect(targets),") AS b \n ",
-                             " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                             ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                             " WHERE CAST((a.vectorIndexColumn MOD ",
                                       vminlen,") AS INT) = ",
-                                    "CAST(FLMOD(b.vectorIndexColumn,",
+                             ## "CAST(FLMOD(b.vectorIndexColumn,",
+                                    "CAST((b.vectorIndexColumn MOD ",
                                     vminlen,") AS INT)")
                else
                sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -213,9 +215,11 @@ setMethod("FLStringDist",
                                 gapPenaltyFlag,caseFlag,vlengthFlag,") AS vectorValueColumn \n ",
                              " FROM(",constructSelect(xsource),") AS a, \n (",
                                       constructSelect(targets),") AS b \n ",
-                             " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                             ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                             " WHERE CAST((a.vectorIndexColumn MOD ",
                                       vminlen,") AS INT) = ",
-                                    "CAST(FLMOD(b.vectorIndexColumn,",
+                             ## "CAST(FLMOD(b.vectorIndexColumn,",
+                                    "CAST((b.vectorIndexColumn MOD ",
                                     vminlen,") AS INT)")
                tblfunqueryobj <- new("FLTableFunctionQuery",
                       connection = getOption("connectionFL"),
@@ -231,34 +235,6 @@ setMethod("FLStringDist",
                           dimnames =list(vmaxrownames,"vectorValueColumn"),
                           isDeep = FALSE))
             }
-
-            # if(functionName=="FLNeedleManWunschDist"){}
-            # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-            #                  a,".vectorIndexColumn AS rowIdColumn,",
-            #                  b,".vectorIndexColumn AS colIdColumn,",
-            #                   functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",
-            #                     matchWeight,",",mismatchWeight,",",
-            #                     gapPenalty,",",caseFlag,") AS valueColumn ",
-            #                  " FROM(",constructSelect(xsource),") AS ",a,",(",
-            #                           constructSelect(targets),") AS ",b)
-
-            # else if(functionName=="FLHammingDist")
-            # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-            #                  a,".vectorIndexColumn AS rowIdColumn,",
-            #                  b,".vectorIndexColumn AS colIdColumn,",
-            #                   functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",caseFlag,",",vlength,") AS valueColumn ",
-            #                  " FROM(",constructSelect(xsource),") AS ",a,",(",
-            #                           constructSelect(targets),") AS ",b)
-
-            # else
-            # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-            #                  a,".vectorIndexColumn AS rowIdColumn,",
-            #                  b,".vectorIndexColumn AS colIdColumn,",
-            #                   functionName,"(",a,".vectorValueColumn,",b,".vectorValueColumn,",caseFlag,") AS valueColumn ",
-            #                  " FROM(",constructSelect(xsource),") AS ",a,",(",
-            #                           constructSelect(targets),") AS ",b)
-
-            
           })
 
 ## move to file stringdist.R
