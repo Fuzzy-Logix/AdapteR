@@ -1047,29 +1047,29 @@ setMethod("FLNtile",signature(x="FLVector"),
                 ))
         })
 
-setMethod("FLNtile",signature(x="FLMatrix"),
-    function(x,n,...){
+# setMethod("FLNtile",signature(x="FLMatrix"),
+#     function(x,n,...){
 
-        return(getDescStatsUDTjoin(object=x,
-                functionName="FLNtileUDT",
-                outCol=c(
-                        vectorValueColumn="oNTile"),
-                viewCols=c(pGroupID=1,
-                    pValue="valueColumn",
-                    pRequiredNtile=n,
-                    pObsID="ROW_NUMBER()OVER(ORDER BY colIdColumn,rowIdColumn)")
-                ))
-        })
+#         return(getDescStatsUDTjoin(object=x,
+#                 functionName="FLNtileUDT",
+#                 outCol=c(
+#                         vectorValueColumn="oNTile"),
+#                 viewCols=c(pGroupID=1,
+#                     pValue="valueColumn",
+#                     pRequiredNtile=n,
+#                     pObsID="ROW_NUMBER()OVER(ORDER BY colIdColumn,rowIdColumn)")
+#                 ))
+#         })
 
-setMethod("FLNtile",signature(x="FLTable"),
-    function(x,n,...){
-        return(getDescStatsUDTjoin(object=x,
-                functionName="FLNtileUDT",
-                outCol=c(
-                        vectorValueColumn="oNTile"),
-                viewCols=c(pGroupID=1,
-                    pValue="cell_val_colname",
-                    pRequiredNtile=n,
-                    pObsID="ROW_NUMBER()OVER(ORDER BY var_id_colname,obs_id_colname)")
-                ))
-        })
+# setMethod("FLNtile",signature(x="FLTable"),
+#     function(x,n,...){
+#         return(getDescStatsUDTjoin(object=x,
+#                 functionName="FLNtileUDT",
+#                 outCol=c(
+#                         vectorValueColumn="oNTile"),
+#                 viewCols=c(pGroupID=1,
+#                     pValue="cell_val_colname",
+#                     pRequiredNtile=n,
+#                     pObsID="ROW_NUMBER()OVER(ORDER BY var_id_colname,obs_id_colname)")
+#                 ))
+#         })
