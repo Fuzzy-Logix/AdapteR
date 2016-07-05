@@ -32,6 +32,7 @@ sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
+
 ## gk: this made packaging fail here, as I cannot install RODBC, and
 ## then it is unknown. Can we do a package check? We need to discuss
 ## this.

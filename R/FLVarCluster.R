@@ -96,7 +96,7 @@ FLVarCluster.FLTable<-function(x,
 		deeptablename1 <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 			" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
@@ -114,7 +114,7 @@ FLVarCluster.FLTable<-function(x,
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
 		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -133,7 +133,7 @@ FLVarCluster.FLTable<-function(x,
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
 
-    sqlstr <- paste0("CALL FLVarCluster( '",deeptable,"',
+    sqlstr <- paste0("CALL FLVarCluster('",deeptable,"',
 			 					   '",getVariables(deepx)[["obs_id_colname"]],"',
 			 					   '",getVariables(deepx)[["var_id_colname"]],"',
 			 					   '",getVariables(deepx)[["cell_val_colname"]],"',",

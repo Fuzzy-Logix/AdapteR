@@ -209,7 +209,7 @@ fanny.FLTable <- function(x,
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
 						".",deeptablename,constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
@@ -228,7 +228,7 @@ fanny.FLTable <- function(x,
 		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 						deeptablename," AS  \n ",constructSelect(x))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),

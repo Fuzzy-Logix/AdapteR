@@ -727,7 +727,8 @@ setMethod("FLRegrDataPrep",
                                               whereClause,",\n      ",
                                               inAnalysisID,",\n      ",
                                               "AnalysisID);")
-            t <- sqlQuery(connection,sqlstr,AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
+            t <- sqlQuery(connection,sqlstr,
+                          AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
             dataprepID <- as.vector(t[1,1])
 
