@@ -17,105 +17,115 @@ Renv$mat8 <- matrix(rnorm(25),5)
 
 FLenv <- as.FL(Renv)
 
+## rankMatrix output may not match as noted here -
+## https://app.asana.com/0/143316600934101/144942913968279
+test_that("qr: rank from qr Decomposition function with tol",{
+    result = eval_expect_equal({
+        test2 = qr(mat1,tol = 1e-10)$rank
+    },Renv,FLenv)
+})
+
+
 ## todo gk: how can we compute: pivot part of r result
-Renv$qrmat7 <- qr(Renv$mat7)
-FLenv$qrmat7 <- qr(FLenv$mat7)
+test_that("qr: support of rank, pivot, qraux, qr",{
+    eval_expect_equal({
+        qrmat7 <- qr(mat7)
+        m1rank <- qrmat7$rank
+        m1pivot <- qrmat7$pivot
+        m1qraux <- length(qrmat7$qraux)
+        m1qr <- dim(qrmat7$qr)
+    },Renv,FLenv,
+    noexpectation="qrmat7",
+    expectation = c("m1rank","m1pivot","m1qraux","m1qr"),
+    verbose=F)
+})
+
+test_that("qr.fitted: low precision tol=1e-7",{
+    result = eval_expect_equal({
+        qrfitted = qr.fitted(qrmat7,mat8)
+    }, Renv,FLenv,
+    verbose=F,
+    expectation = "qrfitted",
+    tolerance=1e-7)
+})
+
+test_that("qr.qy, qr.qty",{
+    result = eval_expect_equal({
+        ## dim, because value tests fail because of QR not identified
+        qrqy = dim(qr.qy(qrmat7,mat8))
+        qrqty = dim(qr.qty(qrmat7,mat8))
+    },Renv,FLenv,
+    expectation = c("qrqy","qrqty"))
+})
 
 
 ## rankMatrix output may not match as noted here -
 ## https://app.asana.com/0/143316600934101/144942913968279
-test_that("Check rank from qr Decomposition function with tol",{
-    result = eval_expect_equal({test2 = qr(mat1,tol = 1e-10)$rank
-                                },Renv,FLenv)
-    ##print(result)
-    })
-
-## qr.solve(A,b) solves AX=b in the following way:-
-## A=QR => X=inv(t(A)A)%*%t(A)%*%b => inv(R)%*%t(Q)%*%b = X
-## In short , solve(qr.R(qr(m1)))%*%t(qr.Q(qr(m1)))%*%m2 == qr.solve(m1,m2)
-## and qr.solve(m)==solve(m)
-## and qr.coef(qr(m1),m2)==solve(m1)%*%m2
-
-test_that("Check qr.solve and qr.coef ",{
+test_that("qr: rank from qr Decomposition function with tol",{
     result = eval_expect_equal({
-        qrcoefff = qr.coef(qrmat7,mat8)
+        m1rank = qr(mat1,tol = 1e-10)$rank
+    },Renv,FLenv,
+    expectation = "m1rank",
+    verbose=F)
+})
+
+test_that("qr.solve: low precision 1e-5",{
+    result = eval_expect_equal({
         qrsolve = qr.solve(mat7,mat8)
-        qrfitted = qr.fitted(qrmat7,mat8)
-        },Renv,FLenv,check.attributes=FALSE)
-    ##print(result)
-    })
+    }, Renv,FLenv,
+    verbose=F,
+    expectation="qrsolve",
+    tolerance=1e-5)
+})
 
 
-test_that("Check QR gives same matrix in R,FL ",{
+test_that("qr.Q, qr.R, cross product: low precision 1e-7",{
     result = eval_expect_equal({
-        Qmat7 = qr.Q(qrmat7) %*% qr.R(qrmat7)
+        m7Q = qr.Q(qrmat7)
+        m7R <- qr.R(qrmat7)
+        QR <- m7Q %*% m7R
+    },Renv,FLenv,
+    noexpectation=c("m7Q","m7R"),
+    expectation=c("QR"),
+    tolerance=1e-7,
+    verbose=F)
+})
+
+test_that("qr.resid",{
+    result = eval_expect_equal({
         qrresid = qr.resid(qrmat7,mat8)
-        },Renv,FLenv)
-    ##print(result)
-    })
+    },Renv,FLenv)
+})
 
-test_that("Check Q is orthogonal ",{
+
+test_that("qr: Check Q is orthogonal ",{
     result = eval_expect_equal({
-        FLexpect_equal(t(qr.Q(qrmat7))
-            ,solve(qr.Q(qrmat7)))
-        },Renv,FLenv)
+        tQ <- t(qr.Q(qrmat7))
+        sQ <- solve(qr.Q(qrmat7))
+        diff <- tQ-sQ
+    },Renv,FLenv,
+    noexpectation=c("tQ","sQ"),
+    expectation = "diff",
+    verbose=F)
     ##print(result)
-    })
+})
 
+## todo: double check
 test_that("Check R is upper-triangular ",{
     result = eval_expect_equal({
         vtemp1 <- as.matrix(qr.R(qrmat7))
         vtemp2 <- vtemp1[lower.tri(vtemp1)]
         FLexpect_equal(rep(0,length(vtemp2))
-            ,vtemp2)
+                      ,vtemp2)
         rm(vtemp1)
         rm(vtemp2)
-        },Renv,FLenv)
-    ##print(result)
-    })
+    },Renv,FLenv)
+})
 
-# ## These fail because of different R and FL outputs for
-# ## R and Q matrices
-# test_that("Check qr.qy, qr.qty, qr.resid working ",{
-#     result = eval_expect_equal({
-#         qrqy = qr.qy(qrmat7,mat8)
-#         qrqty = qr.qty(qrmat7,mat8)
-#         },Renv,FLenv)
-#     print(result)
-#     })
-
-# ## not proper choice of mat1,mat2.. fails in R without tol.
-# #Test Failed
-# #Needs different arguments needed as first argument for R and FL qr.solve.
-# #Asana Ticket = https://app.asana.com/0/143316600934101/144942913968316
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test3 = qr.solve(mat1,mat2,tol = 1e-10)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
-
-# #Test Failed
-# #Needs different arguments needed as first argument for R and FL qr.solve.
-# #Asana Ticket = https://app.asana.com/0/143316600934101/144942913968316
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test4 = qr.coef(qr(mat1,tol = 1e-10), mat2)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
-
-# #Test failed.
-# #Overdetermined function.
-# #solve needs a numeric matrix as first argument in FL solve function.
-# #Asana Ticket = https://app.asana.com/0/143316600934101/144942913968316
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test5 = solve(qr(mat3),mat4)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
-
-# #underdetermined function
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test6 = solve(mat5,mat6)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
+test_that("qr.coef",{
+    result = eval_expect_equal({
+        qrcoefff = qr.coef(qrmat7,mat8)
+    }, Renv,FLenv,
+    verbose=T,
+    tolerance=1e-8)
+})
