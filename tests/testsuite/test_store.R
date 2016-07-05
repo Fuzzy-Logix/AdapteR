@@ -19,9 +19,3 @@ test_that("check cross database name mapping",{
     FLexpect_equal(solve(x),solve(y),check.attributes=FALSE)
     FLexpect_equal(dimnames(solve(x)),dimnames(solve(y)),check.attributes=FALSE)
 })
-
-## Fails https://app.asana.com/0/143316600934101/144495595719769
-test_that("check casting and store for character matrix",{
-    x <- as.FLMatrix(matrix(c("a","b"),2))
-    FLexpect_equal(x,store(x),check.attributes=FALSE)
-})

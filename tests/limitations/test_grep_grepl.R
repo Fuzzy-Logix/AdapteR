@@ -1,7 +1,5 @@
-
 Renv <- new.env(parent=globalenv())
-Renv$txt <- c("arm","foot","lefroo", "bafoobar")
-
+Renv$l <- letters
 Renv$txt2 <- c("The", "licenses", "for", "most", "software", "are",
          "designed", "to", "take", "away", "your", "freedom",
          "to", "share", "and", "change", "it.",
@@ -14,14 +12,18 @@ Renv$txt2 <- c("The", "licenses", "for", "most", "software", "are",
 FLenv <- as.FL(Renv)
 
 
+## regular expressions not supported
+## https://app.asana.com/0/136555696724848/144952239565760
 test_that("String functions",{
-          eval_expect_equal({
-            #txt <- c("arm","foot","lefroo", "bafoobar")
-            if(length(i <- grep("foo", txt)))
-              
-              #txt converted to character to print in cat()
-              cat("'foo' appears at least once in\n\t", as.character(txt), "\n")  
-            
-          },
-          Renv,FLenv)
+    eval_expect_equal({
+        test1 <- grep("[a-z]", l)},
+        Renv,FLenv)
+})
+
+test_that("String functions",{
+    eval_expect_equal({
+        ( i <- grep("[gu]", txt2) ) # indices
+        stopifnot( txt2[i] == grep("[gu]", txt2, value = TRUE) )
+    },
+    Renv,FLenv)
 })

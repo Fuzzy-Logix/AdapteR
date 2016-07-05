@@ -22,10 +22,3 @@ test_that("order: by multiple vectors, support of decreasing argument vector",{
     },Renv,FLenv)
 })
 
-
-
-
-
-
-
-

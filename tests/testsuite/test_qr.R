@@ -48,9 +48,11 @@ test_that("Check qr.solve and qr.coef ",{
 
 test_that("Check QR gives same matrix in R,FL ",{
     result = eval_expect_equal({
-        Qmat7 = qr.Q(qrmat7) %*% qr.R(qrmat7)
-        qrresid = qr.resid(qrmat7,mat8)
-        },Renv,FLenv)
+        Qmat7 = as.vector(qr.Q(qrmat7) %*% qr.R(qrmat7))
+        qrresid = as.vector(qr.resid(qrmat7,mat8))
+        },Renv,FLenv,
+        expectation=c("Qmat7","qrresid"),
+        tolerance=0.00001)
     ##print(result)
     })
 
@@ -73,49 +75,3 @@ test_that("Check R is upper-triangular ",{
         },Renv,FLenv)
     ##print(result)
     })
-
-# ## These fail because of different R and FL outputs for
-# ## R and Q matrices
-# test_that("Check qr.qy, qr.qty, qr.resid working ",{
-#     result = eval_expect_equal({
-#         qrqy = qr.qy(qrmat7,mat8)
-#         qrqty = qr.qty(qrmat7,mat8)
-#         },Renv,FLenv)
-#     print(result)
-#     })
-
-# ## not proper choice of mat1,mat2.. fails in R without tol.
-# #Test Failed
-# #Needs different arguments needed as first argument for R and FL qr.solve.
-# #Asana Ticket = https://app.asana.com/0/143316600934101/144942913968316
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test3 = qr.solve(mat1,mat2,tol = 1e-10)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
-
-# #Test Failed
-# #Needs different arguments needed as first argument for R and FL qr.solve.
-# #Asana Ticket = https://app.asana.com/0/143316600934101/144942913968316
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test4 = qr.coef(qr(mat1,tol = 1e-10), mat2)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
-
-# #Test failed.
-# #Overdetermined function.
-# #solve needs a numeric matrix as first argument in FL solve function.
-# #Asana Ticket = https://app.asana.com/0/143316600934101/144942913968316
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test5 = solve(qr(mat3),mat4)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })
-
-# #underdetermined function
-# test_that("Check for qr Decomposition function ",{
-#     result = eval_expect_equal({test6 = solve(mat5,mat6)
-#                                 },Renv,FLenv)
-#     print(result)
-#     })

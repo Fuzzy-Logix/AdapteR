@@ -25,12 +25,15 @@ test_that("Head/Tail of a vector with negative n",
             tl2 <- tail(l, n = -6L)
             hl2 <- head(l, n = -6L)
           }, Renv, FLenv))
-            
+
+## R's rownames for tail are no proper
 test_that("Head/Tail of a matrix",
           eval_expect_equal({
             hx <- head(fx, n = 10L)
             tx <- tail(fx)
             ##tail(library) ## does not apply to AdapteR
             ##htT <- head(tT)
-          }, Renv, FLenv))
+          }, Renv, FLenv,
+          expectation=c("hx","tx"),
+          check.attributes=FALSE))
 

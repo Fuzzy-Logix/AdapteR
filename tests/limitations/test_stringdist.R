@@ -20,6 +20,27 @@ Renv$weight<-c(1,1,1,0.5)
 Renv$weighta<-c(0.5,1,1,1)
 FLenv <- as.FL(Renv)
 
+## Weight behaves differently in AdapteR and R.
+## Refer documentation of stringdist function
+test_that("stringdist: string distance",{
+    result8=eval_expect_equal({
+        test8<-stringdist(ab,ba,weight)
+    },Renv,FLenv,
+    expectation=c("test8"))
+})
+
+## https://app.asana.com/0/143316600934101/151568642664570
+## jaro winkler with penality not supported
+test_that("stringdist: Jaro-Winkler distance", {
+    result24=eval_expect_equal({
+        test24<-stringdist(MARTHA,MATHRA,method='jw',p=0.1)
+        test25<-(1 - stringdist(MARTHA,MATHRA,method='jw',p=0.1))
+    },Renv,FLenv)
+})
+
+## Not supported methods in DB-Lytix...................
+
+
 ## # The lcs (longest common substring) distance returns the number of 
 ## # characters that are not part of the lcs.
 ## #
