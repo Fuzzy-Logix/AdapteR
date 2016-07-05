@@ -24,7 +24,7 @@ sqlError <- function(e){
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
+sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
 #' Result is returned as data.frame
@@ -54,7 +54,7 @@ sqlStoredProc <- function(connection, query,
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.JDBCConnection <- function(connection,query) {
+sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
     sapply(query, function(q){
         ##browser()
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
@@ -73,7 +73,7 @@ sqlSendUpdate.JDBCConnection <- function(connection,query) {
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.RODBC <- function(connection,query) {
+sqlSendUpdate.RODBC <- function(connection,query,...) {
     RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
     sapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))

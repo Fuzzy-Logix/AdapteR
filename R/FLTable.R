@@ -663,7 +663,6 @@ setMethod("FLRegrDataPrep",
                   whereconditions,
                   inAnalysisID)
           {
-            browser()
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
             object <- setAlias(object,"")

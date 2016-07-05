@@ -4,7 +4,7 @@
 \alias{sqlSendUpdate}
 \title{Send a query to database}
 \usage{
-sqlSendUpdate(connection, query)
+sqlSendUpdate(connection, query, ...)
 }
 \arguments{
 \item{query}{SQLQuery to be sent}
