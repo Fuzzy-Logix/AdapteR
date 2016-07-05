@@ -21,15 +21,17 @@ as input.Otherwise, the default behavior of R is preserved
 Element-wise Logarithms and Exponentials of in-database objects.
 }
 \details{
-The \code{exp} computes the exponential function
-The \code{log} computes the logrithm to base as specified(default e)
-The \code{logb} computes the logrithm to base as specified(default e)
-The \code{log1p} computes the log10(1+x)
-The \code{log10} computes the logarithm to base 10
-The \code{log2} computes the logarithm to base 2
-The \code{expm1} computes exp(x)-1
 All types of operands are possible just like in R 
 and the result is an in-database object.
+\code{exp} computes the exponential function.
+\code{log} computes the logarithm to base as specified(default e).
+\code{logb} computes the logarithm to base as specified(default e).
+\code{log1p} computes the log10(1+x) accurately (also for |x| << 1).
+\code{log10} computes the logarithm to base 10.
+\code{log2} computes the logarithm to base 2.
+\code{expm1} computes exp(x)-1 accurately (also for |x| << 1).
+\code{sqrt} computes the (principal) square root of x, √{x}. The naming follows
+the standard for computer languages such as C or Fortran.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
@@ -45,5 +47,10 @@ deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 flvector <- deeptable[1:5,1]
 resultFLVector <- exp(flvector)
 resultFLVector <- log(flvector,4)
+}
+\seealso{
+\code{\link[base]{log}} , \code{\link[base]{exp}} for Base R
+implementation. \code{\link[base]{sqrt}}, \code{\link[grDevices]{sqrt}} 
+for sqrt base reference.
 }
 
