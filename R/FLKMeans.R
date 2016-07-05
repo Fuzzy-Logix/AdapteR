@@ -1,21 +1,16 @@
 #' @include FLMatrix.R
 NULL
-
-#' @export
-kmeans <- function (x, ...) {
-  UseMethod("kmeans", x)
-}
-
-#' @export
-kmeans.data.frame<-stats::kmeans
-#' @export
-kmeans.matrix <- stats::kmeans
-#' @export
-kmeans.default <- stats::kmeans
-
+## move to file kmeans.R
 #' K-Means Clustering.
-#'
+#	
 #' \code{kmeans} performs k-means clustering on FLTable objects.
+#'
+#' The DB Lytix function called is FLKMeans.K-Means clusters the training data. 
+#' The relationship of observations to clusters has hard edges. In general, k-means has 
+#' two steps: assigning data points to the nearest cluster and then moving
+#' each cluster’s centroid to the center of the members of the cluster.
+#'
+#' @seealso \code{\link[stats]{kmeans}} for R reference function implementation.
 #'
 #' @method kmeans FLTable
 #' @param x an object of class FLTable, wide or deep
@@ -44,6 +39,19 @@ kmeans.default <- stats::kmeans
 #' kmeansobjectnew <- kmeans(widetable,3,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' plot(kmeansobjectnew)
 #' @export
+kmeans <- function (x, ...) {
+  UseMethod("kmeans", x)
+}
+
+#' @export
+kmeans.data.frame<-stats::kmeans
+#' @export
+kmeans.matrix <- stats::kmeans
+#' @export
+kmeans.default <- stats::kmeans
+
+## move to file kmeans.R
+#' @export
 kmeans.FLTable<-function(x,
 						centers,
 						iter.max =10,
@@ -65,7 +73,7 @@ kmeans.FLTable<-function(x,
 	return(hkmeansobject)
 }
 
-
+## move to file kmeans.R
 #' @export
 kmeans.FLMatrix <- function(x,
 						centers,

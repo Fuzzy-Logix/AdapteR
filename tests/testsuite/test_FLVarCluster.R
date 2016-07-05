@@ -1,5 +1,3 @@
-library(testthat)
-
 test_that("FLVarCluster works ",{
     deeptable  <- FLTable( getOption("ResultDatabaseFL"), 
                     "tblLogRegr", 

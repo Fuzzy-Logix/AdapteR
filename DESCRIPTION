@@ -1,5 +1,5 @@
 Package: AdapteR
-Title: Beta 1: This package wraps around Fuzzy Logix's DBLytix functions.
+Title: This package wraps around Fuzzy Logix's DBLytix functions.
 Version: 2.1
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),

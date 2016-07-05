@@ -31,14 +31,25 @@ An S4 class to represent FLFKMeans
 
 \item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
 
-\item{\code{connection}}{ODBC connectivity for R}
+\item{\code{wideToDeepAnalysisId}}{A character string denoting the intermediate identifier
+during widetable to deeptable conversion.}
+
+\item{\code{diss}}{logical TRUE if dissimilarity matrix is supplied to \code{fanny}}
 
 \item{\code{table}}{FLTable object given as input on which analysis is performed}
 
-\item{\code{resultsfetched}}{A logical vector describing what components are fetched}
-
 \item{\code{results}}{A list of all fetched components}
 
-\item{\code{deeptablename}}{A character vector containing a deeptable(either conversion from a widetable or input deeptable)}
+\item{\code{deeptable}}{A character vector containing a deeptable(either conversion from a 
+widetable or input deeptable)}
+
+\item{\code{temptables}}{A list of temporary table names used across the results}
+
+\item{\code{mapTable}}{A character string name for the mapping table in-database if input is wide-table.}
+
+\item{\code{memb.exp}}{A number r strictly larger than 1 specifying the membership exponent 
+used in the fit criterion.Default: 2 which is hardwired inside FANNY.}
+
+\item{\code{maxit}}{maximal number of iterations for the FANNY algorithm.}
 }}
 

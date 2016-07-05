@@ -4,6 +4,7 @@ library(AdapteR)
 llply(find_test_scripts("AdapteR/tests/testsuite"),
       function(f){
         cat(paste0("testing ",f,"\n"))
+        if(readline("start")=="y")
         tryCatch({
           options(debugSQL=FALSE)
           test_file(f)

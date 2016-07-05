@@ -7,13 +7,19 @@ Renv$cy <- as.character(Renv$y)
 Renv$x1 <- c(5:1, 6:8, 12:9)
 
 FLenv <- as.FL(Renv)
-test_that("order",{eval_expect_equal({
-                       test1 <- order(x , y , z)
-                       test2 <- order(x1)
-                                        #test2 <- rbind(x, y, z)[, order(x, -xtfrm(cy), z)]     xtfrm and rbind(all in comments) not for FL
-                       test3 <- order(x, cy, z, decreasing = c(FALSE, TRUE, FALSE))
+test_that("order: by one or multiple vectors",{
+    eval_expect_equal({
+        test2 <- order(x1)
+        test1 <- order(x , y , z)
+    },Renv,FLenv)
+})
+
+
+test_that("order: by multiple vectors, support of decreasing argument vector",{
+    eval_expect_equal({
+        test3 <- order(x, cy, z, decreasing = c(FALSE, TRUE, FALSE))
                                         #method="radix")] not supported
-                   },Renv,FLenv)
+    },Renv,FLenv)
 })
 
 

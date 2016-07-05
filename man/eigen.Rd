@@ -4,7 +4,7 @@
 \alias{eigen}
 \title{Spectral Decomposition of a Matrix.}
 \usage{
-eigen(object, ...)
+eigen(x, symmetric = FALSE, only.values = FALSE, EISPACK = FALSE)
 }
 \arguments{
 \item{object}{is of class FLMatrix}
