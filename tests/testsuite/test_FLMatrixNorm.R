@@ -15,3 +15,10 @@ test_that("Check for FLMatrixNorm with different norm methods",{
         ##print(paste0("Class of the result is : ",class(result)))
     })
 })
+
+## Testing FLMatrixNorm
+test_that("check FLMatrixNorm working",
+{
+  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+  FLMatrixNorm(M,3)
+})

@@ -10,14 +10,13 @@ test_that("eigen values",{
     result = eval_expect_equal({
         e1 <- eigen(mat1)
     }, Renv, FLenv)
-    ##print(result)
 })
 
 test_that("eigen, option only.values",{
     result = eval_expect_equal({
         e2 <- eigen(mat2, only.values = TRUE)
-    },Renv,FLenv)
-    #print(result)
+    },Renv,FLenv,
+    tolerance=1e-6)
 })
 
 ##Different signs for R and FL.

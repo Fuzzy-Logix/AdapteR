@@ -1,60 +1,51 @@
-test_that("Internationalization: Upload of German umlauts",{
-    rv <- c("let", "us", "test for non-äöü-printable","characters")
-    flv  <- as.FL(rv)
-    expect_equal(as.R(flv),rv)
-})
 
 
-
-## Testing FLCastFunctions
-## gk: these need reviewiing and commenting.
-## todo phani, kumar:
-## what you cannot comment, please remove
-test_that("cast: repeated testing sometimes results in precision errors -- investigate",
+##testing cast function
+#Use acast or dcast depending on vector/matrix/matrix/data frame output
+Renv <- new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
+test_that( "Testing acast",
 {
-  M1 <- initF.FLMatrix(n=5)
-  V1 <- as.FLVector(sample(1:100,5))
-  V1R <- as.vector(V1)
-  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
-  T1 <- initF.FLTable(rows=5,cols=5)
-  FLexpect_equal(as.vector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
-  FLexpect_equal(as.vector(P1$FL),as.vector(P1$R),check.attributes=FALSE)
-  FLexpect_equal(as.data.frame(M1$FL),as.data.frame(M1$R),check.attributes=FALSE)
-  testthat::expect_equal(as.matrix(P1$FL),as.matrix(P1$R),check.attributes=FALSE)
-  testthat::expect_equal(as.matrix(V1),as.matrix(V1R),check.attributes=FALSE)
-  FLexpect_equal(as.FLMatrix(M1$R),M1$FL,check.attributes=FALSE)
-  FLexpect_equal(P1$FL,as.FLVector(P1$R),check.attributes=FALSE)
-  FLexpect_equal(as.matrix(as.FLMatrix(V1)),as.matrix(V1R),check.attributes=FALSE)
-  FLexpect_equal(as.matrix(as.FLMatrix(P1$R)),as.matrix(P1$R),check.attributes=FALSE)
-  FLexpect_equal(as.vector(as.FLVector(M1$R)),as.vector(M1$R),check.attributes=FALSE)
-  FLexpect_equal(as.FLVector(M1$FL),as.vector(M1$R),check.attributes=FALSE)
-})
+  result1=eval_expect_equal({
+  names(airquality) <- tolower(names(airquality))
+  aqm <- melt(airquality, id=c("month", "day"), na.rm=TRUE)
+  test1<-acast(aqm, day ~ month ~ variable)
+  test2<-acast(aqm, month ~ variable, mean)
+  test3<-acast(aqm, month ~ variable, mean)
+  test4<-acast(aqm, month ~ variable, mean)
+  test5<-acast(aqm, variable ~ month, mean, subset = .(variable == "ozone"))
+  test6<-acast(aqm, variable ~ month, mean, subset = .(month == 5))
+              },Renv,FLenv)
+} )
 
+test_that("Testing acast & dcast",
+          {
+          result2=eval_expect_equal({
+          names(ChickWeight) <- tolower(names(ChickWeight))
+          chick_m <- melt(ChickWeight, id=2:4, na.rm=TRUE)
+          test1<-dcast(chick_m, time ~ variable, mean) 
+          test2<-dcast(chick_m, diet ~ variable, mean) 
+          test3<-acast(chick_m, diet ~ time, mean)
+          test4<-acast(chick_m, time ~ diet, length)
+          test5<-acast(chick_m, chick ~ time, mean)
+          test6<-acast(chick_m, chick ~ time, mean, subset = .(time < 10 & chick < 20))
+          test7<-acast(chick_m, time ~ diet, length)
+          test8<-dcast(chick_m, diet + chick ~ time)
+          test9<-acast(chick_m, diet + chick ~ time)
+          test10<-acast(chick_m, chick ~ time ~ diet)
+          test11<-acast(chick_m, diet + chick ~ time, length, margins="diet")
+          test12<-acast(chick_m, diet + chick ~ time, length, drop = FALSE)
+          },Renv,FLenv)
+  })
 
-
-## Testing Equality
-test_that("check result for M_Equality",
+test_that("Testing acast & dcast",
 {
-  M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
-  M3 <- as.FLMatrix(as.matrix(M2))
-  M3R <- as.matrix(M2)
-  M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10))
-  V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
-  V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
-  ##
-  FLexpect_equal(M1$FL==M2,(M1$R==M2R),check.attributes=FALSE)
-  FLexpect_equal(M1$FL==M1$FL,M1$R==M1$R,check.attributes=FALSE)
-  FLexpect_equal(M2==M3,M2R==M3R,check.attributes=FALSE)
-  FLexpect_equal(V1==V1R,V1R==V1R,check.attributes=FALSE)
-  FLexpect_equal(P1$FL==P1$FL,P1$R==P1$R,check.attributes=FALSE)
-  FLexpect_equal(V1==P1$FL,V1R==P1$R,check.attributes=FALSE)
-  FLexpect_equal(P1$FL==P1$R,P1$R==P1$R,check.attributes=FALSE)
-  ##FLexpect_equal(M1$FL==V2,M1$R==V2R,check.attributes=FALSE)
-  ##FLexpect_equal(M1$FL==P1$FL,M1$R==P1$R,check.attributes=FALSE)
-  FLexpect_equal(V1==V1,V1R==V1R,check.attributes=FALSE)
-  ##FLexpect_equal(P1$FL==M2,P1$R==M2R,check.attributes=FALSE)
+    result2=eval_expect_equal({
+        test1<-dcast(melt(tips), sex ~ smoker, mean, subset = .(variable == "total_bill"))
+        ff_d <- melt(french_fries, id=1:4, na.rm=TRUE)
+        test2<-acast(ff_d, subject ~ time, length)
+        test3<-acast(ff_d, subject ~ time, length, fill=0)
+        test4<-dcast(ff_d, treatment ~ variable, mean, margins = TRUE)
+        test5<-dcast(ff_d, treatment + subject ~ variable, mean, margins="treatment")
+    },Renv,FLenv)
 })

@@ -29,5 +29,6 @@ test_that("quantile: FLVector probs",{
     result = eval_expect_equal({
         prob2 = c(0.1, 0.5, 1, 2, 5, 10, 50, NA)/100
         test12 = quantile(var1,probs = prob2)
-    },Renv,FLenv)
+    },Renv,FLenv,
+    tolerance=1e-2/length(Renv$var1))
 })
