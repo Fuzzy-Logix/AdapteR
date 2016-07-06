@@ -1,7 +1,36 @@
 #' @include FLMatrix.R
 NULL
 
+## move to file FLAggClustering.R
 #' An S4 class to represent FLAggClustering
+#'
+#' @slot AnalysisID A character output used to retrieve the results of analysis
+#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' during widetable to deeptable conversion.
+#' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{fanny}
+#' @slot table FLTable object given as input on which analysis is performed
+#' @slot results A list of all fetched components
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
+#' @slot temptables A list of temporary table names used across the results
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
+#' @slot whereconditions takes the where_clause as a string 
+#' @slot maxit maximal number of iterations for the FANNY algorithm.
+#' @method order FLAggClust
+#' @param object  returns a vector giving a permutation of the original observations to allow for plotting, 
+#' in the sense that the branches of a clustering tree will not cross.
+#' @method height FLAggClust
+#' @param object  returns a vector with the distances between merging clusters at the successive stages.
+#' @method ac FLAggClust
+#' @param object the agglomerative coefficient, measuring the clustering structure of the dataset.
+#' @method merge FLAggClust
+#' @param object returns an (n-1) by 2 matrix, where n is the number of observations. Row i of merge describes 
+#' the merging of clusters at step i of the clustering.
+#' @method print FLAggClust
+#' @param object prints the results of agglomerative clustering on FLTable objects.
+#' @method plot FLAggClust
+#' @param object plots the results of agglomerative clustering on FLtable objects.
+#' Creates plots for visualizing an agnes object.
 setClass(
 	"FLAggClust",
 	slots=list(
@@ -28,10 +57,18 @@ agnes.matrix <- cluster::agnes
 #' @export
 agnes.default <- cluster::agnes
 
+## move to file agnes.R
 #' Agglomerative Nesting
 #'
 #' \code{agnes} computes agglomeraive hierarchial 
 #' clustering on FLTable objects.
+#'
+#' The DB Lytix function called is FLAggClustering. In the initialization, each observation in the dataset
+#' belongs to its own cluster. In each iteration, agglomerative clustering would aggregate the two clusters that 
+#' are nearest to each other, for which the distance is measured by the linkage method. This would continue until 
+#' either the entire dataset belongs to one cluster or until the maximum number of iterations has been reached
+#'
+#' @seealso \code{\link[cluster]{agnes}} for R reference implementation.
 #'
 #' @method agnes FLTable
 #' @param x an object of class FLTable, can be wide or deep table
