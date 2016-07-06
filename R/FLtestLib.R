@@ -537,8 +537,8 @@ test_Matrix_Subsetting <- function(a,b, desc=""){
 }
 
 ##' @export
-expect_equal_Matrix <- function(a,b,desc="",debug=TRUE){
-    if(debug==TRUE){
+expect_equal_Matrix <- function(a,b,desc="",verbose=FALSE){
+    if(verbose==TRUE){
         cat("\n-------------- ",desc,"\nR Matrix Object:\n")
         print(a)
         cat("\nFL Matrix Object:\n")

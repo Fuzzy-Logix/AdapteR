@@ -7,7 +7,7 @@ FLenv = as.FL(Renv)
 
 
 
-test_that("Check for weighted mean function",{
+test_that("check median result ",{
           result = eval_expect_equal({
                    test1 = median(var1)
                    test2 = median(var2)

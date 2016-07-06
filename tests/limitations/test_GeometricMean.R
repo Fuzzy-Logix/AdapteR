@@ -9,7 +9,7 @@ Renv$var5 = data.frame(Renv$var1,Renv$var4)
 
 FLenv=as.FL(Renv)
 #test failed . Not running for class FLTable.
-## Currently wideTable inputs and na.rm are not supported for desc Stats functions
+## We want to do this columnwise.
 #Asana Ticket - https://app.asana.com/0/143316600934101/146934264360538
 test_that("Check for geometric mean function with NA value in one column",{
           result = eval_expect_equal({

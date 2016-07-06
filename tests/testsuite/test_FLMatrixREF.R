@@ -11,5 +11,11 @@ test_that("testing the example written in FLMatrixREF",{
                         "CELL_VAL")
   resultFLMatrix <- FLMatrixREF(flmatrix)
   ##  print(resultFLMatrix)
-  
- })
+})
+
+
+## Testing FLMatrixREF
+test_that("check FLMatrixREF",
+{
+    FLMatrixREF(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
+})

@@ -251,15 +251,21 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
                         return(x)
                         else return(as.FLVector(x)))
 
+    if(length(vlist)>1)
+        whereclause <- paste0(
+            " WHERE ",paste0("a",2:vlength,
+                             ".vectorIndexColumn = a1.vectorIndexColumn ",
+                             collapse=" AND "))
+    else
+        whereclause <- ""
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                         " ROW_NUMBER() OVER(ORDER BY ",
-                                paste0("a",1:vlength,".vectorValueColumn ",vdesc,collapse=","),
-                                ",a1.vectorIndexColumn ) AS vectorIndexColumn, \n ",
-                        "a1.vectorIndexColumn AS vectorValueColumn \n ",
-                    " FROM ",paste0("(",sapply(vlist,constructSelect),
-                    			") AS a",1:vlength,collapse=","),
-                    " WHERE ",paste0("a",2:vlength,".vectorIndexColumn = a1.vectorIndexColumn ",
-                    				collapse=" AND "))
+                      paste0("a",1:vlength,".vectorValueColumn ",vdesc,collapse=","),
+                      ",a1.vectorIndexColumn ) AS vectorIndexColumn, \n ",
+                      "a1.vectorIndexColumn AS vectorValueColumn \n ",
+                      " FROM ",paste0("(",sapply(vlist,constructSelect),
+                                      ") AS a",1:vlength,collapse=","),
+                      whereclause)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = getOption("connectionFL"),

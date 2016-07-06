@@ -9,12 +9,8 @@ rownames(Renv$df1) <- 1:nrow(swiss)
 
 FLenv <- as.FL(Renv)
 
-
-test_that("Check for covariance with use = pairwise",{
+test_that("cov(FLTable): use = pairwise",{
   result = eval_expect_equal({
-    test4 = cov(df1,use ="pairwise")
+      test4 = cov(df1,use ="pairwise")
   }, Renv,FLenv)
-  ## print(result)
-  ## print(Renv$test4)
-  ## print(FLenv$test4)
 })

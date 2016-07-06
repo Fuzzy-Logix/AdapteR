@@ -37,9 +37,3 @@ test_that("rank(FLVector): ",{
     expect_equal(as.vector(rank(test4,ties.method = "duplicate")),
                  as.vector(test4))
 })
-
-
-  
-   
- 
-

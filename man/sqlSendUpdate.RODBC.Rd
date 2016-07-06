@@ -4,7 +4,7 @@
 \alias{sqlSendUpdate.RODBC}
 \title{Send a query to database}
 \usage{
-\method{sqlSendUpdate}{RODBC}(connection, query)
+\method{sqlSendUpdate}{RODBC}(connection, query, ...)
 }
 \arguments{
 \item{query}{SQLQuery to be sent}

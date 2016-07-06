@@ -1,5 +1,4 @@
 
-options(debugSQL=FALSE)
 ## a in-memory matrix in R
 (m <- rMatrix <- matrix(1:25,5))
 
@@ -90,9 +89,9 @@ matrixNullChar[3:5,3:5]
 flm[3:5,3:5]
 ## A technical note on joining the names of rows and columns in SQL:
 ## constructSelect by default does join the rownames
-cat(constructSelect(flm))
+##cat(constructSelect(flm))
 ## constructSelect by default does join the rownames
-cat(constructSelect(flm,joinNames=FALSE))
+##cat(constructSelect(flm,joinNames=FALSE))
 
 
 ########################################
@@ -149,32 +148,25 @@ rEqnRtn <- as.matrix(subEqnRtn)
 dim(eqnRtn)
 dim(subEqnRtn)
 
-## only dimension names are in local memory:
-cat(paste0("Total client memory size for remote equity return table\n"))
-print(object.size(eqnRtn),units = "Kb")
-cat(paste0("dimnames client memory size for remote equity return table\n"))
-print(object.size(eqnRtn@dimnames),units = "Kb")
-cat(paste0("total client memory size for subset of remote equity return table\n"))
-print(object.size(subEqnRtn),units = "Kb")
-cat(paste0("dimnames client memory size for subset of remote equity return table\n"))
-print(object.size(subEqnRtn@dimnames),units = "Kb")
+## ## only dimension names are in local memory:
+## cat(paste0("Total client memory size for remote equity return table\n"))
+## print(object.size(eqnRtn),units = "Kb")
+## cat(paste0("dimnames client memory size for remote equity return table\n"))
+## print(object.size(eqnRtn@dimnames),units = "Kb")
+## cat(paste0("total client memory size for subset of remote equity return table\n"))
+## print(object.size(subEqnRtn),units = "Kb")
+## cat(paste0("dimnames client memory size for subset of remote equity return table\n"))
+## print(object.size(subEqnRtn@dimnames),units = "Kb")
 
-## Download a subset of the remote Table into R Memory
-## rEqnRtn <- as.matrix(subEqnRtn)
+## ## Download a subset of the remote Table into R Memory
+## ## rEqnRtn <- as.matrix(subEqnRtn)
 
-## compare memory consumption:
-cat(paste0("dimnames client memory size for r matrix with subset of equity return table\n"))
-print(object.size(rEqnRtn),units = "Kb")
-
-
+## ## compare memory consumption:
+## cat(paste0("dimnames client memory size for r matrix with subset of equity return table\n"))
+## print(object.size(rEqnRtn),units = "Kb")
 
 
-## BTW:
-E <- subEqnRtn
-## where clauses are dynamically constructed
-cat(constructWhere(constraintsSQL(E)))
-## dynamic where clauses support local names
-## so that SQL can be constructed flexibly
+
 
 
 test_that("Casting base R matrix <---> in-database Matrices",{

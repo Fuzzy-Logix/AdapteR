@@ -604,13 +604,24 @@ setMethod("deepToWide",
 #' analysisID <- resultList$AnalysisID
 #' @export
 
-setGeneric("FLRegrDataPrep", function(object,depCol,
-                                  outDeepTableName,outDeepTableDatabase,
-                                  outObsIDCol,outVarIDCol,outValueCol,
-                                  catToDummy,performNorm,performVarReduc,
-                                  makeDataSparse,minStdDev,maxCorrel,
-                                  trainOrTest,excludeCols,classSpec,
-                                  whereconditions,inAnalysisID) {
+setGeneric("FLRegrDataPrep", function(object,
+                                  depCol,
+                                  outDeepTableName,
+                                  outDeepTableDatabase,
+                                  outObsIDCol,
+                                  outVarIDCol,
+                                  outValueCol,
+                                  catToDummy,
+                                  performNorm,
+                                  performVarReduc,
+                                  makeDataSparse,
+                                  minStdDev,
+                                  maxCorrel,
+                                  trainOrTest,
+                                  excludeCols,
+                                  classSpec,
+                                  whereconditions,
+                                  inAnalysisID) {
     standardGeneric("FLRegrDataPrep")
 })
 setMethod("FLRegrDataPrep",
@@ -633,13 +644,24 @@ setMethod("FLRegrDataPrep",
                     whereconditions="character",
                     inAnalysisID="character"
                     ),
-          function(object,depCol,
-                  outDeepTableName,outDeepTableDatabase,
-                  outObsIDCol,outVarIDCol,outValueCol,
-                  catToDummy,performNorm,performVarReduc,
-                  makeDataSparse,minStdDev,maxCorrel,
-                  trainOrTest,excludeCols,classSpec,
-                  whereconditions,inAnalysisID)
+          function(object,
+                  depCol,
+                  outDeepTableName,
+                  outDeepTableDatabase,
+                  outObsIDCol,
+                  outVarIDCol,
+                  outValueCol,
+                  catToDummy,
+                  performNorm,
+                  performVarReduc,
+                  makeDataSparse,
+                  minStdDev,
+                  maxCorrel,
+                  trainOrTest,
+                  excludeCols,
+                  classSpec,
+                  whereconditions,
+                  inAnalysisID)
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)

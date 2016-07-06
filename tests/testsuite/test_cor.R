@@ -36,3 +36,40 @@ test_that("Correlation examples -- data needs pulling out!",{
         cor(1:10, 2:11) # == 1
     }, Renv, FLenv)
 })
+
+
+
+## Testing FLCorrel
+##Failing because of precision errors.
+test_that("check FLCorrel result",
+{
+    fltDeep <- FLTable(getOption("ResultDatabaseFL"),"tblUSArrests",
+                       "ObsID","VarID","Num_Val", whereconditions = "OBsID<21")
+    RtDeep <- as.data.frame(fltDeep)
+    fltWide <- FLTable(getOption("ResultDatabaseFL"),"tblUSArrests",
+                       "ObsID",whereconditions = "OBsID<21")
+    RtWide <- as.data.frame(fltWide)
+    vRow <- initF.FLVector(20,TRUE)
+    flvRow <- vRow$FL
+    RvRow <- vRow$R
+    RvCol <- rnorm(20)
+    flvCol <- as.FLVector(RvCol)
+    m <- initF.FLMatrix(20)
+    flm <- m$FL
+    Rm <- m$R
+    FLexpect_equal(cor(flm,flm),cor(Rm,Rm),check.attributes=FALSE)
+    FLexpect_equal(cor(flvRow,flvRow),cor(RvRow,RvRow),check.attributes=FALSE)
+    FLexpect_equal(cor(flvCol,flvCol),cor(RvCol,RvCol),check.attributes=FALSE)
+    FLexpect_equal(cor(fltDeep,fltDeep),cor(RtDeep,RtDeep),check.attributes=FALSE)
+    FLexpect_equal(cor(flm,flvRow),cor(Rm,RvRow),check.attributes=FALSE)
+    FLexpect_equal(cor(flm,flvCol),cor(Rm,RvCol),check.attributes=FALSE, tolerance = 1e-7)
+    FLexpect_equal(cor(flvCol,flvRow),cor(RvCol,RvRow),check.attributes=FALSE)
+    FLexpect_equal(cor(flvRow,fltDeep),cor(RvRow,RtDeep),check.attributes=FALSE)
+    FLexpect_equal(cor(flvCol,fltDeep),cor(RvCol,RtDeep),check.attributes=FALSE, tolerance = 1e-7)
+    cor(fltDeep,fltWide)
+    cor(fltWide,fltWide)
+    cor(fltWide,fltDeep)
+    cor(flm,fltWide)
+    cor(flvRow,fltWide)
+    cor(flvCol,fltWide)
+})

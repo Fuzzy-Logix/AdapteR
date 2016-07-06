@@ -42,30 +42,12 @@ test_that("Check L,U triangulairty ",{
   ##print(result)
 })
 
-# ## fails.. different results in R and FL
-# test_that("exapnd LU on dense square matrix https://app.asana.com/0/143316600934101/145318689357916 ",
-# eval_expect_equal({
-#   result2 <- expand(result1)
-#   print(result2)
-# },Renv,FLenv,check.attributes=FALSE))
 
-# ## fails..No round available yet
-# test_that("LU on dense non-square matrix",
-#           eval_expect_equal({
-#             result3 <- round(10 * x[,-3])
-#             result4 <- dim(result3)
-#             result5 <- lu(result3)
-#             result6 <- expand(result5)
-#           },Renv,FLenv,check.attributes=FALSE))
 
-# ## fails..No drop0 function available yet
-# test_that("Sparse LU",
-#         eval_expect_equal({
-#             pmLU <- lu(pm)
-#             str(pmLU)
-#             ppm <- pm[pmLU@p + 1L, pmLU@q + 1L]
-#             pLU <- drop0(pmLU@L %*% pmLU@U) # L %*% U -- dropping extra zeros
-#             #pLU <- pmLU@L %*% pmLU@U # L %*% U -- dropping extra zeros
-#             result7 <- ppm[1:14, 1:5]
-#             result8 <- pLU[1:14, 1:5]
-#         },Renv,FLenv,check.attributes=FALSE))
+# Testing FLLUDecomp
+test_that("check LU Decomposition",
+{
+  m <- initF.FLMatrix(n=5)
+  expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
+               Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
+})
