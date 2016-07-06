@@ -59,9 +59,9 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
         ##browser()
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
         tryCatch({
-            R <- RJDBC::dbSendUpdate(connection,q)
+            res <- DBI::dbSendQuery(connection, q, ...)
             ##dbCommit(connection)
-            return(R)
+            dbClearResult(res)
         },
         error=function(e) sqlError(e))
     })
@@ -181,6 +181,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
             a <- .jcall(cStmt,"F","getFloat",argOffset+ai)
         result[[names(outputParameter)[[ai]]]] <- a
     }
+    .jcall(cStmt,"V","close")
     return(as.data.frame(result))
 }
 
@@ -198,19 +199,14 @@ sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...)
             tryCatch({
                 warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
                 res <- DBI::dbSendQuery(connection, query, ...)
-                resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
-                return(resd)
+                dbClearResult(res)
             },
-            error=function(e) cat(paste0(sqlError(e))),
-            finally=dbClearResult(res))
+            error=function(e) cat(paste0(sqlError(e))))
+        resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
+        return(resd)
     }
     lapply(query, function(q){
-        if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
-        tryCatch({
-            resd <- DBI::dbGetQuery(connection, q, ...)
-            return(resd)
-        },
-        error=function(e) cat(paste0(sqlError(e))))
+        sqlQuery(connection, q, AnalysisIDQuery,...)
     })
 }
 
@@ -514,7 +510,8 @@ FLStartSession <- function(connection,
             sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
         if(length(getOption("FLTempViews"))>0)
             sqlstr <- c(sqlstr,paste0("DROP VIEW ",getOption("FLTempViews"),";"))
-
+        options(FLTempViews=character())
+        options(FLTempTables=character())
         sqlSendUpdate(connection,sqlstr)
     }
 
@@ -791,10 +788,10 @@ flag1Check <- function(connection)
 
         if(temp!="No Data" || length(temp)!=1)
         {
-            sqlQuery(connection,
+            sqlSendUpdate(connection,
                      paste0("DROP TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL"))))
 
-            sqlQuery(connection,
+            sqlSendUpdate(connection,
                      paste0("CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,
