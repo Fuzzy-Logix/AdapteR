@@ -97,13 +97,14 @@ setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
 ##' @param noexpectation You can exclude names from
 ##' @param ... arguments passed to FLexpect_equal, e.g.  check.attributes = FALSE
 ##' @return a data frame with the description
-#' @export
 ##' @author  Gregor Kappler <gregor.kappler@@fuzzylogix.com>
+#' @export
 eval_expect_equal <- function(e, Renv, FLenv,
                               description=NULL,
                               runs=1,
                               expectation=c(),
                               noexpectation=c(),
+                              verbose=FALSE,
                               ...){
     if(runs>=1)
         e <- substitute(e)
@@ -120,6 +121,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
         eval(expr = e, envir=Renv)
         NULL
     }, error=function(err) {
+        print(err)
         err
     })
     rEndT <- Sys.time()
@@ -128,6 +130,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
         eval(expr = e, envir=FLenv)
         NULL
     }, error=function(err) {
+        print(err)
         err
     })
     flEndT <- Sys.time()
@@ -141,8 +144,17 @@ eval_expect_equal <- function(e, Renv, FLenv,
     if(length(expectation)>0)
     vToCheckNames <- c(expectation,vToCheckNames)
 
-    for(n in unique(vToCheckNames))
-        FLexpect_equal(get(n,envir = Renv), get(n,envir = FLenv),label=n,...)
+    for(n in unique(vToCheckNames)){
+        rObject <- get(n,envir = Renv)
+        flObject <- get(n,envir = FLenv)
+        if(verbose) {
+            cat(paste0("---------\n Testing for equality: ",n,"\n R:\n"))
+            str(rObject)
+            cat(paste0(" FL:\n"))
+            str(flObject)
+        }
+        FLexpect_equal(rObject, flObject,label=n,...)
+    }
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
@@ -158,8 +170,6 @@ eval_expect_equal <- function(e, Renv, FLenv,
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,...)
 {
   I <- initF(...)
-  if(!is.list(I$FL))
-  I <- list(FL=list(I$FL),R=list(I$R))
    FLexpect_equal(FLcomputationF(I$FL),
                  RcomputationF(I$R),
                  check.attributes=FALSE)
@@ -527,8 +537,8 @@ test_Matrix_Subsetting <- function(a,b, desc=""){
 }
 
 ##' @export
-expect_equal_Matrix <- function(a,b,desc="",debug=TRUE){
-    if(debug==TRUE){
+expect_equal_Matrix <- function(a,b,desc="",verbose=FALSE){
+    if(verbose==TRUE){
         cat("\n-------------- ",desc,"\nR Matrix Object:\n")
         print(a)
         cat("\nFL Matrix Object:\n")

@@ -1,6 +1,7 @@
                                         #Not in R .
+## Table does not exist in FL_TRAIN
 test_that("FLSqueezeSpace",{
-    widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+    widetable  <- FLTable(getOption("ResultDatabaseFL"), "tblstringID", "stringID")
     flv <- widetable[1:6,"string"]
     resultflvector <- FLSqueezeSpace(flv)
     expect_equal(as.R(flv),as.R(resultflvector))
@@ -8,7 +9,6 @@ test_that("FLSqueezeSpace",{
     singleSpace <- c("DU ANE", "Home Depot", "MARH TA", "WAL MA RT", "WALMART", "WARTHA")
     multiSpace <- gsub(" ","   ",singleSpace)
     flv <- as.FL(multiSpace)
-    expect_equal(singleSpace,as.R(resultflvector))
     resultflvector <- FLSqueezeSpace(flv)
     expect_equal(singleSpace,as.R(resultflvector))
 })

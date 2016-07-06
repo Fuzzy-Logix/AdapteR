@@ -5,7 +5,7 @@
 \title{Evaluates the expression e in an R and an FL environment, tests assignment for equality.}
 \usage{
 eval_expect_equal(e, Renv, FLenv, description = NULL, runs = 1,
-  expectation = c(), noexpectation = c(), ...)
+  expectation = c(), noexpectation = c(), verbose = FALSE, ...)
 }
 \arguments{
 \item{e}{the expression that will be evaluated in both environments}

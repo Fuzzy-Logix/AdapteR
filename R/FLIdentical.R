@@ -318,9 +318,13 @@ NULL
 									" WHEN (a.vectorValueColumn - b.vectorValueColumn) <> 0 \n ",
 										 " THEN 'FALSE' ELSE 'TRUE' END AS vectorValueColumn \n ",
 							" FROM (",constructSelect(pObj1),") AS a, \n ",
-							 	"(",constructSelect(pObj2),") AS b \n ",
-	                        constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
-	                        					") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
+                            "(",constructSelect(pObj2),") AS b \n ",
+                            ## gk: todo: revert to using FLMOD after FLTable redesign of rownames handling
+                            ##constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
+	                        ## ") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
+
+	                        constructWhere(c(paste0("(a.vectorIndexColumn MOD ",vminlen,
+	                        					") = (b.vectorIndexColumn MOD ",vminlen,")"))))
 
 			dimnames <- list(vmaxrownames,"vectorValueColumn")
 		}

@@ -3,7 +3,7 @@ library(moments)
 
 Renv <- new.env(parent=globalenv())
 set.seed(1234)
-Renv$x <- rnorm(100)
+Renv$x <- rnorm(10)
 
 FLenv <- as.FL(Renv)
 

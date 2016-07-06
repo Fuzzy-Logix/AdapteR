@@ -173,7 +173,7 @@ agnes.FLTable <- function(x,
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS \n SELECT * FROM ",getOption("ResultDatabaseFL"),".",
 						deeptablename,constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
@@ -192,7 +192,7 @@ agnes.FLTable <- function(x,
 		deeptablename <- gen_deep_table_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 						deeptablename," AS \n ",constructSelect(x))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -218,17 +218,19 @@ agnes.FLTable <- function(x,
 	}
 
 	vnote <- genNote("agnes")
-    sqlstr <- paste0("CALL FLAggClustering(",fquote(deeptable),", \n ",
-					 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
-					 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
-					 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
-					 					   whereClause,", \n ",
-					 					   methodID,", \n ",
-					 					   maxit,", \n ",
-					 					   fquote(vnote),", \n AnalysisID );")
+	retobj <- sqlStoredProc(
+        connection,
+        "FLAggClustering",
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        MethodID=methodID,
+        MaxIterations=maxit,
+        Note=vnote,
+        outputParameter=c(AnalysisID="a"))
 	
-	retobj <- sqlQuery(connection,sqlstr,
-						AnalysisIDQuery=genAnalysisIDQuery("fzzlKMeansInfo",vnote))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	

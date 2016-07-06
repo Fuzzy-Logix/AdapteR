@@ -4,7 +4,52 @@
 \name{FLKMedoids-class}
 \alias{FLKMedoids-class}
 \title{An S4 class to represent FLKMedoids}
+\arguments{
+\item{object}{retrieves the cluster vector}
+
+\item{object}{retrieves the coordinates of the centroids}
+
+\item{object}{overloads the print function}
+
+\item{object}{total within sum of squares}
+
+\item{object}{within sum of squares}
+
+\item{object}{between sum of squares}
+
+\item{object}{total sum of squares}
+
+\item{object}{size vector}
+}
 \description{
 An S4 class to represent FLKMedoids
 }
+\section{Slots}{
+
+\describe{
+\item{\code{centers}}{A numeric vector containing the number of clusters, say k}
+
+\item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
+
+\item{\code{wideToDeepAnalysisId}}{A character string denoting the intermediate identifier
+during widetable to deeptable conversion.}
+
+\item{\code{diss}}{logical TRUE if dissimilarity matrix is supplied to \code{pam}}
+
+\item{\code{table}}{FLTable object given as input on which analysis is performed}
+
+\item{\code{results}}{A list of all fetched components}
+
+\item{\code{deeptable}}{A character vector containing a deeptable(either conversion from a 
+widetable or input deeptable)}
+
+\item{\code{temptables}}{A list of temporary table names used across the results}
+
+\item{\code{mapTable}}{A character string name for the mapping table in-database if input is wide-table.}
+
+\item{\code{distTable}}{Name of the distance matrix. DistTable should
+contain a N x N distance matrix between all ObsID in an input FLTable.}
+
+\item{\code{maxit}}{maximal number of iterations for the FANNY algorithm.}
+}}
 

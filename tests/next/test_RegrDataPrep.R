@@ -10,11 +10,11 @@ deep_table<-FLTable(database = getOption("ResultDatabaseFL"),
                     var_id_colname = "VarID",
                     cell_val_colname ="Num_Val")
 
-test_that("check for FL Regr Data Prep",FLRegrDataPrep
-                    (object = wide_table,
+test_that("check for FL Regr Data Prep",
+     FLRegrDataPrep(object = wide_table,
                     depCol="HorsePower",
                     outDeepTableName="tblAutoMpgdeep1",
-                    outDeepTableDatabase="fuzzylogix",
+                    outDeepTableDatabase=getOption("ResultDatabaseFL"),
                     outObsIDCol="ObsID",
                     outVarIDCol="",
                     outValueCol="",
@@ -34,8 +34,8 @@ test_that("check for FL Regr Data Prep",FLRegrDataPrep
 
 #Some stack usage was upto limit.
 #Takes time to get executed.
-test_that("check for FL Regr Data Prep",FLRegrDataPrep
-                    (object = wide_table,
+test_that("check for FL Regr Data Prep",
+     FLRegrDataPrep(object = wide_table,
                     depCol="",
                     outDeepTableName="",
                     outDeepTableDatabase="",
@@ -57,8 +57,8 @@ test_that("check for FL Regr Data Prep",FLRegrDataPrep
           )
 
 #Takee time to get executed.
-test_that("check for FL Regr Data Prep",FLRegrDataPrep
-                    (object = deep_table,
+test_that("check for FL Regr Data Prep",
+     FLRegrDataPrep(object = deep_table,
                     depCol="",
                     outDeepTableName="",
                     outDeepTableDatabase="",

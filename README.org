@@ -1,5 +1,6 @@
-# Created 2016-06-14 Di 01:23
+# Created 2016-07-04 Mo 17:49
 #+TITLE: AdapteR README
+#+DATE: <2016-06-14 Di>
 #+AUTHOR: Gregor Kappler
 Fuzzy Logix's new R package AdapteR enables the R syntax to consume DB Lytix™ in-database analytics by generating SQL transparently, and replacing R matrix and data frame data structures with remote table objects.
 
@@ -11,6 +12,8 @@ Fuzzy Logix's new R package AdapteR enables the R syntax to consume DB Lytix™ 
 seamlessly leverage in-database analytics, without requiring complicated R server installations or writing
 custom SQL. 
 AdapteR can be used to build interactive analytics at scale with just a few lines of R code!
+
+You can download the full manual here: [[https://securisync.intermedia.net/web/s/LtQNzab68gL5jwSzQERIiV][AdapteR package manual]].
 
 * Requirements
 - AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
@@ -33,9 +36,21 @@ install_github("Fuzzy-Logix/AdapteR")
 #+END_SRC
 (The package does not depend on either JDBC or ODBC but uses either you provide at runtime.  You savely can ignore warnings about xDBC.)
 
-* WIEDER AdapteR Demos and Training
-Please let us show you:
-#+BEGIN_SRC R :session r_fl
+* AdapteR Demos and Training
+The package includes some demos to get you started and to explain the most important concepts:
+#+BEGIN_SRC R :session r_fl :results output :exports both
 require(AdapteR)
-demo("matrix.correlation")
+demo(package="AdapteR")
+## run a demo:
+## demo("matrix.correlation",package="AdapteR")
 #+END_SRC
+
+
+#+RESULTS: 
+#+BEGIN_EXAMPLE
+Demos in package ‘AdapteR’:
+
+connecting              
+matrix.algebra          
+matrix.correlation
+#+END_EXAMPLE

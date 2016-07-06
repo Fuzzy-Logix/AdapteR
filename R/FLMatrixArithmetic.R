@@ -12,6 +12,8 @@ FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 {
 	if(pOperator=="**") pOperator <- "^"
 	op <- .Primitive(pOperator)
+	if(missing(pObj2))
+	return(op(pObj1))
 	op(pObj1,pObj2)
 }
 
@@ -356,9 +358,11 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 										"END AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
-								" WHERE CAST(FLMOD(a.vectorIndexColumn,",
+								## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+								" WHERE CAST((a.vectorIndexColumn MOD ",
 														vminlen,") AS INT) = ",
-										"CAST(FLMOD(b.vectorIndexColumn,",
+                                ## "CAST(FLMOD(b.vectorIndexColumn,",
+										"CAST((b.vectorIndexColumn MOD ",
 														vminlen,") AS INT)")
 
 				else if(pOperator %in% c("+","-","%%","*","**"))
@@ -370,9 +374,11 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 											"b.vectorValueColumn AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
-								" WHERE CAST(FLMOD(a.vectorIndexColumn,",
+								##" WHERE CAST(FLMOD(a.vectorIndexColumn,",
+								" WHERE CAST((a.vectorIndexColumn MOD ",
 														vminlen,") AS INT) = ",
-										"CAST(FLMOD(b.vectorIndexColumn,",
+                                ##"CAST(FLMOD(b.vectorIndexColumn,",
+                                "CAST((b.vectorIndexColumn MOD ",
 														vminlen,") AS INT)")
 
 				else if(pOperator %in% c("/"))
@@ -383,9 +389,11 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 											"b.vectorValueColumn AS vectorValueColumn \n ",
 								" FROM (",constructSelect(pObj1),") AS a, \n ",
 									    "(",constructSelect(pObj2),") AS b \n ",
-								" WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                                ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
+								" WHERE CAST((a.vectorIndexColumn MOD ",
 														vminlen,") AS INT) = ",
-										"CAST(FLMOD(b.vectorIndexColumn,",
+                                ##"CAST(FLMOD(b.vectorIndexColumn,",
+										"CAST((b.vectorIndexColumn MOD ",
 														vminlen,") AS INT)")
 
 				else if(pOperator %in% vcompvector)
@@ -397,8 +405,10 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 									" THEN 'TRUE' ELSE 'FALSE' END AS vectorValueColumn \n ",
 							" FROM (",constructSelect(pObj1),") AS a, \n ",
 							 	"(",constructSelect(pObj2),") AS b \n ",
-	                        constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
-	                        					") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
+                            ## constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
+                            ## ") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
+	                        constructWhere(c(paste0(" (a.vectorIndexColumn MOD ",vminlen,
+	                        					") = (b.vectorIndexColumn MOD ",vminlen,")"))))
 
 	            dimnames <- list(vmaxrownames,"vectorValueColumn")
 	        }
@@ -997,6 +1007,7 @@ NULL
 #'
 #' \code{**} does the Element-wise power of in-database objects.
 #'
+#' 
 #' All combinations of operands are possible just like in R and the result is an in-database object.
 #' @param pObj1 can be an in-database object like FLMatrix,FLSparseMatrix,FLVector or
 #' a normal R object like matrix,sparseMatrix,vector

@@ -24,7 +24,7 @@ sqlError <- function(e){
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
+sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
 
 #' Send a query to database
 #' Result is returned as data.frame
@@ -32,6 +32,17 @@ sqlSendUpdate <- function(connection,query) UseMethod("sqlSendUpdate")
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
+
+#' Send a query to database
+#' Result is returned as data.frame
+#' @param channel ODBC/JDBC connection object
+#' @param query SQLQuery to be sent
+#' @export
+sqlStoredProc <- function(connection, query, 
+                          outputParameter,
+                          ...)
+    UseMethod("sqlStoredProc")
+
 ## gk: this made packaging fail here, as I cannot install RODBC, and
 ## then it is unknown. Can we do a package check? We need to discuss
 ## this.
@@ -43,14 +54,14 @@ sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.JDBCConnection <- function(connection,query) {
+sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
     sapply(query, function(q){
         ##browser()
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
         tryCatch({
-            R <- RJDBC::dbSendUpdate(connection,q)
+            res <- DBI::dbSendQuery(connection, q, ...)
             ##dbCommit(connection)
-            return(R)
+            dbClearResult(res)
         },
         error=function(e) sqlError(e))
     })
@@ -62,7 +73,7 @@ sqlSendUpdate.JDBCConnection <- function(connection,query) {
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.RODBC <- function(connection,query) {
+sqlSendUpdate.RODBC <- function(connection,query,...) {
     RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
     sapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
@@ -84,6 +95,97 @@ sqlSendUpdate.RODBC <- function(connection,query) {
 }
 
 #' @export
+sqlStoredProc.RODBC <- function(connection, query, 
+                                outputParameter,
+                                ...) {
+    #browser()
+    args <- list(...)
+    ## Setting up input parameter value
+    pars <- character()
+    ai <- 1L
+    for(a in args){
+        if(is.character(a)){
+            if(a=="NULL")
+                pars[ai] <- "NULL"
+            else
+                pars[ai] <- fquote(a)
+        } else
+            pars[ai] <- a
+        ai <- ai+1L
+    }
+    sqlstr <- paste0("CALL ",query,"(",
+                     paste0(pars, collapse=", \n "),
+                     ",",
+                     paste0(names(outputParameter), collapse=", \n "),
+                     ")")
+    retobj <- sqlQuery(connection,sqlstr)
+    return(retobj)
+}
+
+#' @export
+sqlStoredProc.JDBCConnection <- function(connection, query, 
+                                         outputParameter,
+                                         ...) {
+    ## http://developer.teradata.com/doc/connectivity/jdbc/reference/current/jdbcug_chapter_2.html
+    ## Creating a CallableStatement object, representing
+    ## a precompiled SQL statement and preparing the callable
+    ## statement for execution.
+    args <- list(...)
+    query <- paste0("CALL ",query, "(",
+                    paste0(rep("?", length(args)+length(outputParameter)),
+                           collapse=","),
+                     ")")
+    cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
+    ##CallableStatement cStmt = con.prepareCall(sCall);
+
+    ## Setting up input parameter value
+    ai <- 1L
+    for(a in args){
+        if(is.character(a)){
+            if(a=="NULL")
+                .jcall(cStmt,"V","setNull",ai,.jfield("java/sql/Types",,"VARCHAR"))
+            else
+                .jcall(cStmt,"V","setString",ai,a)
+        } else if(is.integer(a))
+            .jcall(cStmt,"V","setInt",ai,as.integer(a))
+        else if(is.numeric(a))
+            .jcall(cStmt,"V","setFloat",ai,.jfloat(a))
+        else if(is.null(a))
+            .jcall(cStmt,"V","setNull",ai,.jfield("java/sql/Types",,"VARCHAR"))
+        ai <- ai+1L
+    }
+    ##browser()
+    ## Setting up output parameters for data retrieval by
+    ## declaring parameter types.
+    for(a in outputParameter){
+        if(is.character(a))
+            a <- .jfield("java/sql/Types",,"VARCHAR")
+        else if(is.integer(a))
+            a <- .jfield("java/sql/Types",,"BIGINT")
+        else if(is.numeric(a))
+            a <- .jfield("java/sql/Types",,"FLOAT")
+        .jcall(cStmt,"V","registerOutParameter",ai,a)
+        ai <- ai+1
+    }
+    ## Making a procedure call
+    exR <- .jcall(cStmt,"I","executeUpdate")
+    argOffset <- length(args)
+    ai <- 1L
+    result <- list()
+    for(a in outputParameter){
+        if(is.character(a))
+            a <- .jcall(cStmt,"S","getString",argOffset+ai)
+        else if(is.integer(a))
+            a <- .jcall(cStmt,"I","getInt",argOffset+ai)
+        else if(is.numeric(a))
+            a <- .jcall(cStmt,"F","getFloat",argOffset+ai)
+        result[[names(outputParameter)[[ai]]]] <- a
+    }
+    .jcall(cStmt,"V","close")
+    return(as.data.frame(result))
+}
+
+#' @export
 sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...) {
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
@@ -95,25 +197,23 @@ sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...)
             error=function(e) cat(paste0(sqlError(e))))
         else
             tryCatch({
+                warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
                 res <- DBI::dbSendQuery(connection, query, ...)
-                resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
-                return(resd)
+                dbClearResult(res)
             },
-            error=function(e) cat(paste0(sqlError(e))),
-            finally=dbClearResult(res))
+            error=function(e) cat(paste0(sqlError(e))))
+        resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
+        return(resd)
     }
     lapply(query, function(q){
-        if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
-        tryCatch({
-            resd <- DBI::dbGetQuery(connection, q, ...)
-            return(resd)
-        },
-        error=function(e) cat(paste0(sqlError(e))))
+        sqlQuery(connection, q, AnalysisIDQuery,...)
     })
 }
 
 #' @export
 sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
+    if(!is.null(AnalysisIDQuery))
+        warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
             resd <- RODBC::sqlQuery(connection, query, ...)
@@ -294,12 +394,13 @@ gen_table_name <- function(prefix,suffix){
 ##' @param database 
 ##' @param user 
 ##' @param passwd 
-##' @param dir.jdbcjars if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.
+##' @param jdbc.jarsDir if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.
 ##' @param ... 
 ##' @return either an ODBC connection or an JDBC connection
 ##' @export
 flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
-                      dir.jdbcjars=NULL,
+                      jdbc.jarsDir=NULL,
+                      jdbc.options="",# "TMODE=TERA,CHARSET=ASCII",
                       odbcSource=NULL,
                       ...){
     connection <- NULL
@@ -310,15 +411,24 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
             require(RJDBC)
-            if(!is.null(dir.jdbcjars)){
-                cat(paste0("adding classpath ",dir.jdbcjars,"/terajdbc4.jar and ",
-                           dir.jdbcjars,"/tdgssconfig.jar\n"))
-                .jaddClassPath(paste0(dir.jdbcjars,"/terajdbc4.jar"))
-                .jaddClassPath(paste0(dir.jdbcjars,"/tdgssconfig.jar"))
+            if(!is.null(jdbc.jarsDir)){
+                cat(paste0("adding classpath ",jdbc.jarsDir,"/terajdbc4.jar and ",
+                           jdbc.jarsDir,"/tdgssconfig.jar\n"))
+                .jaddClassPath(paste0(jdbc.jarsDir,"/terajdbc4.jar"))
+                .jaddClassPath(paste0(jdbc.jarsDir,"/tdgssconfig.jar"))
             }
             Sys.sleep(1)
-            require(teradataR)
-            tdConnect(dsn=host,uid=user,pwd=passwd,database=database,dType="jdbc")
+            ##browser()
+            ## code adapted from teradataR::tdconnect
+            require(RJDBC)
+            drv <- JDBC("com.teradata.jdbc.TeraDriver")
+            st <- paste("jdbc:teradata://", host, sep = "")
+            if (nchar(database)) 
+                st <- paste(st, "/database=", database, ",",jdbc.options, sep = "")
+            else
+                st <- paste0(st,"/",jdbc.options)
+            connection <- dbConnect(drv, st, user = user, password = passwd)
+            invisible(connection)
         }
 
         ## following connection code takes care of this bug:
@@ -328,8 +438,8 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             connection <- myConnect()
         },error=function(e)e,
         finally = {
-            if(is.null(dir.jdbcjars))
-                dir.jdbcjars <- readline("Directory of teradata jdbc jar files:")
+            if(is.null(jdbc.jarsDir))
+                jdbc.jarsDir <- readline("Directory of teradata jdbc jar files:")
             ##Sys.sleep(3)
             connection <- myConnect()
         })
@@ -337,7 +447,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         require(RODBC)
         tryCatch({
             connection <- odbcConnect(odbcSource)
-            },error=function(e)e)
+        },error=function(e)e)
     }
     if(is.null(connection))
         stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")
@@ -347,6 +457,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
       cat(" setting FL_DEMO as ResultDatabaseFL ")
       database <- "FL_DEMO"
     }
+    assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
 }
@@ -399,7 +510,8 @@ FLStartSession <- function(connection,
             sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
         if(length(getOption("FLTempViews"))>0)
             sqlstr <- c(sqlstr,paste0("DROP VIEW ",getOption("FLTempViews"),";"))
-
+        options(FLTempViews=character())
+        options(FLTempTables=character())
         sqlSendUpdate(connection,sqlstr)
     }
 
@@ -676,10 +788,10 @@ flag1Check <- function(connection)
 
         if(temp!="No Data" || length(temp)!=1)
         {
-            sqlQuery(connection,
+            sqlSendUpdate(connection,
                      paste0("DROP TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL"))))
 
-            sqlQuery(connection,
+            sqlSendUpdate(connection,
                      paste0("CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
 						     NO BEFORE JOURNAL,
 						     NO AFTER JOURNAL,

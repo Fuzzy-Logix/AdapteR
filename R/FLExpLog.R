@@ -1,9 +1,11 @@
 #' @include FLMatrix.R
 NULL
 
+## move to file FLExpLog.R
 setGeneric("FLExpLog", function(functionName,x,m1=0,p1=0,lnb=1,...)
     standardGeneric("FLExpLog"))
 
+## move to file FLExpLog.R
 setMethod("FLExpLog",signature(x="FLMatrix"),
     function(functionName, x,m1=0,p1=0,lnb=1,...){
         a <- genRandVarName()
@@ -49,6 +51,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
                         pOperator="FLExpLog"))
         })
 
+## move to file FLExpLog.R
 setMethod("FLExpLog",signature(x="FLVector"),
     function(functionName, x,m1=0,p1=0,lnb=1,...){
         a <- genRandVarName()
@@ -96,19 +99,28 @@ setMethod("FLExpLog",signature(x="FLVector"),
                             pOperator="FLExpLog"))
         })
 
+## move to file FLExpLog.R
 #' Logarithms and Exponentials of in-database objects.
 #'
 #' Element-wise Logarithms and Exponentials of in-database objects.
 #'
-#' The \code{exp} computes the exponential function
-#' The \code{log} computes the logrithm to base as specified(default e)
-#' The \code{logb} computes the logrithm to base as specified(default e)
-#' The \code{log1p} computes the log10(1+x)
-#' The \code{log10} computes the logarithm to base 10
-#' The \code{log2} computes the logarithm to base 2
-#' The \code{expm1} computes exp(x)-1
 #' All types of operands are possible just like in R 
 #' and the result is an in-database object.
+#' \code{exp} computes the exponential function.
+#' \code{log} computes the logarithm to base as specified(default e).
+#' \code{logb} computes the logarithm to base as specified(default e).
+#' \code{log1p} computes the log10(1+x) accurately (also for |x| << 1).
+#' \code{log10} computes the logarithm to base 10.
+#' \code{log2} computes the logarithm to base 2.
+#' \code{expm1} computes exp(x)-1 accurately (also for |x| << 1).
+#' \code{sqrt} computes the (principal) square root of x, √{x}. The naming follows
+#' the standard for computer languages such as C or Fortran.
+#'
+#' @seealso \code{\link[base]{log}} , \code{\link[base]{exp}} for Base R
+#' implementation. \code{\link[base]{sqrt}}, \code{\link[grDevices]{sqrt}} 
+#' for sqrt base reference.
+#'
+#' 
 #' @param x can be an in-database object like FLMatrix,FLVector or
 #' a normal R object
 #' @param base a positive number with respect to which logs are computed
@@ -128,75 +140,99 @@ setMethod("FLExpLog",signature(x="FLVector"),
 #' flvector <- deeptable[1:5,1]
 #' resultFLVector <- exp(flvector)
 #' resultFLVector <- log(flvector,4)
-
-# setGeneric("exp",function(x,...)
-#   standardGeneric("exp"),
-#   useAsDefault = function(x,...) base::exp(x))
-
+#' @export
 setMethod("exp",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="exp",
                             x=x))
+
+## move to file FLExpLog.R
 setMethod("exp",signature(x="FLVector"),
     function(x) FLExpLog(functionName="exp",
                             x=x))
 
+## move to file FLExpLog.R
 setMethod("expm1",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="exp",
                             x=x,
                             m1=1))
+
+## move to file FLExpLog.R
 setMethod("expm1",signature(x="FLVector"),
     function(x) FLExpLog(functionName="exp",
                             x=x,
                             m1=1))
 
+## move to file FLExpLog.R
 setMethod("log10",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="log",
                             x=x))
+
+## move to file FLExpLog.R
 setMethod("log10",signature(x="FLVector"),
     function(x) FLExpLog(functionName="log",
                             x=x))
 
+## move to file FLExpLog.R
 setMethod("log1p",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             p1=1, lnb=base::logb(exp(1),10)))
+
+## move to file FLExpLog.R
 setMethod("log1p",signature(x="FLVector"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             p1=1, lnb=base::logb(exp(1),10)))
 
+
+## move to file FLExpLog.R
 setMethod("log",signature(x="FLMatrix"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
+
+## move to file FLExpLog.R
 setMethod("log",signature(x="FLVector"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
 
+## move to file FLExpLog.R
 setMethod("logb",signature(x="FLMatrix"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
+
+## move to file FLExpLog.R
 setMethod("logb",signature(x="FLVector"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
 
+
+## move to file FLExpLog.R
 setMethod("log2",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(2,10)))
+
+## move to file FLExpLog.R
 setMethod("log2",signature(x="FLVector"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(2,10)))
+
+## move to file FLExpLog.R
 setMethod("sqrt", signature(x="FLVector"), 
     function(x)FLExpLog(functionName="sqrt",
                                    x=x))
+
+## move to file FLExpLog.R
 setMethod("sqrt", signature(x="FLMatrix"), 
     function(x)FLExpLog(functionName="sqrt",
                                    x=x))
+
+## move to file order.R
 #' @export
 order <- function(...,na.last=TRUE,decreasing=FALSE)
 {
@@ -215,15 +251,21 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
                         return(x)
                         else return(as.FLVector(x)))
 
+    if(length(vlist)>1)
+        whereclause <- paste0(
+            " WHERE ",paste0("a",2:vlength,
+                             ".vectorIndexColumn = a1.vectorIndexColumn ",
+                             collapse=" AND "))
+    else
+        whereclause <- ""
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                         " ROW_NUMBER() OVER(ORDER BY ",
-                                paste0("a",1:vlength,".vectorValueColumn ",vdesc,collapse=","),
-                                ",a1.vectorIndexColumn ) AS vectorIndexColumn, \n ",
-                        "a1.vectorIndexColumn AS vectorValueColumn \n ",
-                    " FROM ",paste0("(",sapply(vlist,constructSelect),
-                    			") AS a",1:vlength,collapse=","),
-                    " WHERE ",paste0("a",2:vlength,".vectorIndexColumn = a1.vectorIndexColumn ",
-                    				collapse=" AND "))
+                      paste0("a",1:vlength,".vectorValueColumn ",vdesc,collapse=","),
+                      ",a1.vectorIndexColumn ) AS vectorIndexColumn, \n ",
+                      "a1.vectorIndexColumn AS vectorValueColumn \n ",
+                      " FROM ",paste0("(",sapply(vlist,constructSelect),
+                                      ") AS a",1:vlength,collapse=","),
+                      whereclause)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = getOption("connectionFL"),
@@ -247,6 +289,7 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
                         pOperator="order"))
 }
 
+## move to file sort.R
 #' @export
 sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
 {
@@ -289,6 +332,7 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
     else return(flv)
 }
 
+## move to file sort.R
 #' @export
 sort.FLMatrix <- function(x,decreasing=FALSE,index.return=FALSE,...)
 {

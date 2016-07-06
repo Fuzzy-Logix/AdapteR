@@ -334,36 +334,47 @@ setMethod("wideToDeep",
               #object <- store(object)
             }
 
-            if(length(classSpec)==0) classSpec <- "NULL"
+            if(length(classSpec)==0) 
+            classSpec <- "NULL"
             else
-            classSpec <- paste0("'",list_to_class_spec(classSpec),"'")
+            classSpec <- list_to_class_spec(classSpec)
             whereconditions <- c(whereconditions,object@select@whereconditions)
             whereClause <- constructWhere(whereconditions)
             if(whereClause=="") whereClause <- "NULL"
-            else
-            whereClause <- paste0("'",whereClause,"'")
-            if(excludeCols=="" || length(excludeCols)==0) excludeCols <- "NULL"
-            else
-            excludeCols <- paste0("'",excludeCols,"'")
-
+            if(excludeCols=="" || length(excludeCols)==0) 
+            excludeCols <- "NULL"
             if(outObsIDCol=="") outObsIDCol <- "obs_id_colname"
             if(outVarIDCol=="") outVarIDCol <- "var_id_colname"
             if(outValueCol=="") outValueCol <- "cell_val_colname"
 
-            sqlstr<-paste0("CALL FLWideToDeep('",object@select@database,".",object@select@table_name,"','",
-                                              getVariables(object)[["obs_id_colname"]],"','",
-                                              outDeepTableDatabase,".",deeptablename,
-                                              "','",outObsIDCol,"',
-                                              '",outVarIDCol,"',
-                                              '",outValueCol,"',",
-                                              excludeCols,",",
-                                              classSpec,",",
-                                              whereClause,
-                                              ",AnalysisID);")
-            t <- sqlQuery(connection,sqlstr,
-                AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
+            retobj <- sqlStoredProc(
+                              connection,
+                              "FLWideToDeep",
+                              outputParameter=c(AnalysisID="a"),
+                              InWideTable=paste0(object@select@database,
+                                          ".",object@select@table_name),
+                              ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                              OutDeepTable=paste0(outDeepTableDatabase,".",deeptablename),
+                              OutObsIDCol=outObsIDCol,
+                              outVarIDCol=outVarIDCol,
+                              outValueCol=outValueCol,
+                              excludeCols=excludeCols,
+                              classSpec=classSpec,
+                              whereClause=whereClause)
+            # sqlstr<-paste0("CALL FLWideToDeep('",object@select@database,".",object@select@table_name,"','",
+            #                                   getVariables(object)[["obs_id_colname"]],"','",
+            #                                   outDeepTableDatabase,".",deeptablename,
+            #                                   "','",outObsIDCol,"',
+            #                                   '",outVarIDCol,"',
+            #                                   '",outValueCol,"',",
+            #                                   excludeCols,",",
+            #                                   classSpec,",",
+            #                                   whereClause,
+            #                                   ",AnalysisID);")
+            # t <- sqlQuery(connection,sqlstr,
+            #     AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
-            dataprepID <- as.vector(t[1,1])
+            dataprepID <- as.vector(retobj[1,1])
 
             table <- FLTable(outDeepTableDatabase,
                            deeptablename,
@@ -520,15 +531,29 @@ setMethod("deepToWide",
             outWideTableName <- gen_wide_table_name(object@select@table_name)
             #outWideTableName <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
 
-            sqlstr<-paste0("CALL FLDeepToWide('",object@select@database,".",object@select@table_name,"',
-                                              'obs_id_colname',
-                                              'var_id_colname',
-                                              'cell_val_colname',",
-                                              ifelse(mapTable=="NULL",mapTable,paste0("'",mapTable,"'")),",",
-                                              ifelse(mapName=="NULL",mapName,paste0("'",mapName,"'")),",'",
-                                              paste0(outWideTableDatabase,".",outWideTableName),
-                                              "',MESSAGE);")
-            message <- sqlQuery(connection,sqlstr)
+            message <- sqlStoredProc(
+                              connection,
+                              "FLDeepToWide",
+                              outputParameter=c(MESSAGE="a"),
+                              InDeepTable=paste0(object@select@database,
+                                          ".",object@select@table_name),
+                              ObsIDCol="obs_id_colname",
+                              VarIDCol="var_id_colname",
+                              ValueCol="cell_val_colname",
+                              MapTable=mapTable,
+                              MapName=mapName,
+                              WideTable=paste0(outWideTableDatabase,
+                                      ".",outWideTableName))
+
+            # sqlstr<-paste0("CALL FLDeepToWide('",object@select@database,".",object@select@table_name,"',
+            #                                   'obs_id_colname',
+            #                                   'var_id_colname',
+            #                                   'cell_val_colname',",
+            #                                   ifelse(mapTable=="NULL",mapTable,paste0("'",mapTable,"'")),",",
+            #                                   ifelse(mapName=="NULL",mapName,paste0("'",mapName,"'")),",'",
+            #                                   paste0(outWideTableDatabase,".",outWideTableName),
+            #                                   "',MESSAGE);")
+            # message <- sqlQuery(connection,sqlstr)
             message <- checkSqlQueryOutput(message)
             table <- FLTable(
                            outWideTableDatabase,
@@ -579,13 +604,24 @@ setMethod("deepToWide",
 #' analysisID <- resultList$AnalysisID
 #' @export
 
-setGeneric("FLRegrDataPrep", function(object,depCol,
-                                  outDeepTableName,outDeepTableDatabase,
-                                  outObsIDCol,outVarIDCol,outValueCol,
-                                  catToDummy,performNorm,performVarReduc,
-                                  makeDataSparse,minStdDev,maxCorrel,
-                                  trainOrTest,excludeCols,classSpec,
-                                  whereconditions,inAnalysisID) {
+setGeneric("FLRegrDataPrep", function(object,
+                                  depCol,
+                                  outDeepTableName,
+                                  outDeepTableDatabase,
+                                  outObsIDCol,
+                                  outVarIDCol,
+                                  outValueCol,
+                                  catToDummy,
+                                  performNorm,
+                                  performVarReduc,
+                                  makeDataSparse,
+                                  minStdDev,
+                                  maxCorrel,
+                                  trainOrTest,
+                                  excludeCols,
+                                  classSpec,
+                                  whereconditions,
+                                  inAnalysisID) {
     standardGeneric("FLRegrDataPrep")
 })
 setMethod("FLRegrDataPrep",
@@ -608,13 +644,24 @@ setMethod("FLRegrDataPrep",
                     whereconditions="character",
                     inAnalysisID="character"
                     ),
-          function(object,depCol,
-                  outDeepTableName,outDeepTableDatabase,
-                  outObsIDCol,outVarIDCol,outValueCol,
-                  catToDummy,performNorm,performVarReduc,
-                  makeDataSparse,minStdDev,maxCorrel,
-                  trainOrTest,excludeCols,classSpec,
-                  whereconditions,inAnalysisID)
+          function(object,
+                  depCol,
+                  outDeepTableName,
+                  outDeepTableDatabase,
+                  outObsIDCol,
+                  outVarIDCol,
+                  outValueCol,
+                  catToDummy,
+                  performNorm,
+                  performVarReduc,
+                  makeDataSparse,
+                  minStdDev,
+                  maxCorrel,
+                  trainOrTest,
+                  excludeCols,
+                  classSpec,
+                  whereconditions,
+                  inAnalysisID)
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
@@ -727,7 +774,8 @@ setMethod("FLRegrDataPrep",
                                               whereClause,",\n      ",
                                               inAnalysisID,",\n      ",
                                               "AnalysisID);")
-            t <- sqlQuery(connection,sqlstr,AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
+            t <- sqlQuery(connection,sqlstr,
+                          AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
             dataprepID <- as.vector(t[1,1])
 

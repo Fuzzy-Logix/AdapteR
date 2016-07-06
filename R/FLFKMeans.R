@@ -1,16 +1,23 @@
 #' @include FLMatrix.R
 NULL
 
-
+## move to file FLFKMeans.R
 #' An S4 class to represent FLFKMeans
 #'
 #' @slot centers A numeric vector containing the number of clusters, say k
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot connection ODBC connectivity for R
+#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' during widetable to deeptable conversion.
+#' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{fanny}
 #' @slot table FLTable object given as input on which analysis is performed
-#' @slot resultsfetched A logical vector describing what components are fetched
 #' @slot results A list of all fetched components
-#' @slot deeptablename A character vector containing a deeptable(either conversion from a widetable or input deeptable)
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
+#' @slot temptables A list of temporary table names used across the results
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
+#' @slot memb.exp A number r strictly larger than 1 specifying the membership exponent 
+#' used in the fit criterion.Default: 2 which is hardwired inside FANNY.
+#' @slot maxit maximal number of iterations for the FANNY algorithm.
 #' @method cluster FLKMeans
 #' @param object retrieves the cluster vector
 #' @method centers FLKMeans
@@ -44,25 +51,21 @@ setClass(
 	)
 )
 
-#' @export
-fanny <- function (x,k,...) {
-  UseMethod("fanny", x)
-}
-#' @export
-fanny.data.frame<-cluster::fanny
-#' @export
-fanny.matrix <- cluster::fanny
-#' @export
-fanny.default <- cluster::fanny
-
+## move to file fanny.R
 #' FuzzyKMeans Clustering.
 #'
 #' \code{fanny} performs fuzzy analysis on FLTable objects.
 #'
+#' The DB Lytix function called is FLFKMeans.Fuzzy K-Means clusters the training data. 
+#' The relationship of observations to clusters are weighted by the
+#' membership matrix, which is controlled by the degree of fuzziness.
+#'
+#' @seealso \code{\link[cluster]{fanny}} for R function reference implementation.
 #' @method fanny FLTable
 #' @param x an object of class FLTable, can be wide or deep table
-#' @param k the number of clusters
-#' @param diss logical if \code{x} is dissimilarity matrix.
+#' @param k the number of clusters. t is required that 0 < k < n/2 where n is
+#' the number of observations.
+#' @param diss logical TRUE if \code{x} is dissimilarity matrix.
 #' currently not used.
 #' @param memb.exp degree of fuzziness or membership coefficient
 #' @param metric only "euclidean" distance supported currently
@@ -105,6 +108,18 @@ fanny.default <- cluster::fanny
 #' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
 #' fannyobjectnew <- fanny(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(fannyobjectnew)
+#' @export
+fanny <- function (x,k,...) {
+  UseMethod("fanny", x)
+}
+#' @export
+fanny.data.frame<-cluster::fanny
+#' @export
+fanny.matrix <- cluster::fanny
+#' @export
+fanny.default <- cluster::fanny
+
+## move to file fanny.R
 #' @export
 fanny.FLTable <- function(x,
 						k,
@@ -194,7 +209,7 @@ fanny.FLTable <- function(x,
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
 						".",deeptablename,constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
@@ -213,7 +228,7 @@ fanny.FLTable <- function(x,
 		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 						deeptablename," AS  \n ",constructSelect(x))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -229,8 +244,7 @@ fanny.FLTable <- function(x,
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
-	else whereClause <- "NULL"
+	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
 	{
@@ -238,19 +252,22 @@ fanny.FLTable <- function(x,
 		diss <- FALSE
 	}
 
-    sqlstr <- paste0("CALL FLFKMeans(",fquote(deeptable),", \n ",
-			 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
-			 					   whereClause,", \n ",
-			 					   k,", \n ",
-			 					   maxit,", \n ",
-			 					   memb.exp,", \n 1, \n ",
-			 					   fquote(genNote("fkmeans")),
-			 					   ", \n AnalysisID );")
-	
-	retobj <- sqlQuery(connection,sqlstr,AnalysisIDQuery=
-						genAnalysisIDQuery("fzzlKMeansInfo",genNote("fkmeans")))
+	retobj <- sqlStoredProc(
+        connection,
+        "FLFKMeans",
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        Clusters=k,
+        Iterations=maxit,
+        Fuzzy=memb.exp,
+        Hypothesis=1,
+        Note=genNote("fkmeans"),
+        outputParameter=c(AnalysisID="a")
+        )
+
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
@@ -271,6 +288,7 @@ fanny.FLTable <- function(x,
 	else return(FLFKMeansobject)
 }
 
+## move to file FLFKMeans.R
 #' @export
 `$.FLFKMeans`<-function(object,property)
 {
@@ -352,7 +370,7 @@ fanny.FLTable <- function(x,
 	else stop(property," is not a valid property")
 }
 
-
+## move to file FLFKMeans.R
 clustering.FLFKMeans <- function(object)
 {
 	if(!is.null(object@results[["clustering"]]))
@@ -394,7 +412,7 @@ clustering.FLFKMeans <- function(object)
 	}
 }
 
-
+## move to file FLFKMeans.R
 membership.FLFKMeans<-function(object)
 {
 	if(!is.null(object@results[["membership"]]))
@@ -441,7 +459,7 @@ membership.FLFKMeans<-function(object)
 	}
 }
 
-
+## move to file FLFKMeans.R
 coeff.FLFKMeans<-function(object){
 	if(!is.null(object@results[["coeff"]]))
 	return(object@results[["coeff"]])
@@ -469,7 +487,7 @@ coeff.FLFKMeans<-function(object){
 	}
 }
 
-
+## move to file FLFKMeans.R
 objective.FLFKMeans <- function(object){
 	if(!is.null(object@results[["objective"]]))
 	return(object@results[["objective"]])
@@ -512,7 +530,7 @@ objective.FLFKMeans <- function(object){
 	
 }
 
-
+## move to file FLFKMeans.R
 k.crisp.FLFKMeans<-function(object){
 	if(!is.null(object@results[["k.crisp"]]))
 	return(object@results[["k.crisp"]])
@@ -542,7 +560,7 @@ k.crisp.FLFKMeans<-function(object){
 	}
 }
 ## Number of iterations to convergence is not avalilable from DBLytix
-
+## move to file FLFKMeans.R
 convergence.FLFKMeans <- function(object){
 	if(!is.null(object@results[["convergence"]]))
 	return(object@results[["convergence"]])
@@ -556,7 +574,7 @@ convergence.FLFKMeans <- function(object){
 	}
 }
 
-
+## move to file FLFKMeans.R
 silinfo.FLFKMeans <- function(object){
 	if(!is.null(object@results[["silinfo"]]))
 	return(object@results[["silinfo"]])
@@ -753,7 +771,7 @@ silinfo.FLFKMeans <- function(object){
 	}
 }
 
-
+## move to file FLFKMeans.R
 call.FLFKMeans<-function(object)
 {
 	if(!is.null(object@results[["call"]]))
@@ -769,7 +787,7 @@ call.FLFKMeans<-function(object)
 	}
 }
 
-
+## move to file FLFKMeans.R
 #' @export
 print.FLFKMeans <- function(object)
 {
@@ -792,6 +810,7 @@ print.FLFKMeans <- function(object)
 	print(results)
 }
 
+## move to file FLFKMeans.R
 #' @export
 setMethod("show","FLFKMeans",
 			function(object)
@@ -802,6 +821,7 @@ setMethod("show","FLFKMeans",
 			}
 		 )
 
+## move to file FLFKMeans.R
 #' @export
 plot.FLFKMeans <- function(object)
 {
@@ -825,6 +845,7 @@ plot.FLFKMeans <- function(object)
 	plot(results)
 }
 
+## move to file fanny.R
 #' @export
 fanny.FLMatrix <- function(x,
 						k,

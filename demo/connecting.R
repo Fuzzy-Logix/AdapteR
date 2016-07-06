@@ -33,11 +33,11 @@ if(!exists("connection")){
             database = "Fl_demo",
             user = yourUser,
             passwd = yourPassword,
-            ## set dir.jdbcjars to add jdbc driver
+            ## set jdbc.jarsDir to add jdbc driver
             ## and security jars to classpath:
             ##    terajdbc4.jar tdgssconfig.jar
             ## CAVE: fully qualified PATH required
-            dir.jdbcjars = yourJarDir)
+            jdbc.jarsDir = yourJarDir)
     if(!exists("connection")) stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
 

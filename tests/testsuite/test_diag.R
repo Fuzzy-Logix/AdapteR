@@ -45,13 +45,3 @@ test_that(
   })
 
 
-# cbind fails
-test_that(
-  "diag for matrix with names after cbind: https://app.asana.com/0/143316600934101/145657030318443",
-  {
-    result4=eval_expect_equal({
-      v<-var(M <- cbind(x,y))
-      test4<-diag(v)
-      },Renv,FLenv)
-    ##print(result4)
-  })

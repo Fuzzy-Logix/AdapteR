@@ -1,8 +1,40 @@
 #' @include FLMatrix.R
 NULL
 
-
+## move to file FLKMedoids.R
 #' An S4 class to represent FLKMedoids
+#'
+#' @slot centers A numeric vector containing the number of clusters, say k
+#' @slot AnalysisID A character output used to retrieve the results of analysis
+#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' during widetable to deeptable conversion.
+#' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{pam}
+#' @slot table FLTable object given as input on which analysis is performed
+#' @slot results A list of all fetched components
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
+#' @slot temptables A list of temporary table names used across the results
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
+#' @slot distTable Name of the distance matrix. DistTable should
+#' contain a N x N distance matrix between all ObsID in an input FLTable.
+#' @slot maxit maximal number of iterations for the FANNY algorithm.
+#' @method cluster FLKMeans
+#' @param object retrieves the cluster vector
+#' @method centers FLKMeans
+#' @param object retrieves the coordinates of the centroids
+#' @method print FLKMeans
+#' @param object overloads the print function
+#' @method tot.withinss FLKMeans
+#' @param object total within sum of squares
+#' @method withinss FLKMeans
+#' @param object within sum of squares
+#' @method betweenss FLKMeans
+#' @param object between sum of squares
+#' @method totss FLKMeans
+#' @param object total sum of squares
+#' @method size FLKMeans
+#' @param object size vector
+
 setClass(
 	"FLKMedoids",
 	slots=list(
@@ -15,26 +47,19 @@ setClass(
 		deeptable="FLTable",
 		temptables="list",
 		mapTable="character",
-		distTable="character"
+		distTable="character" ,
+		maxit="numeric"
 	)
 )
-
-#' @export
-pam <- function (x,k,...) {
-  UseMethod("pam", x)
-}
-
-#' @export
-pam.data.frame<-cluster::pam
-#' @export
-pam.matrix <- cluster::pam
-#' @export
-pam.default <- cluster::pam
-
+## move to file pam.R
 #' K-Medoids Clustering.
 #'
 #' \code{pam} performs k-medoids clustering on FLTable objects.
 #'
+#' The DB Lytix function called is FLKMedoids. K-Medoids clusters the training data. 
+#' The algorithm used is PAM (Partitioning Around Medoids).
+#'
+#' @seealso \code{\link[cluster]{pam}} for R function reference implementation.
 #' @param x an object of class FLTable, can be wide or deep table
 #' @param k the number of clusters
 #' @param diss logical if \code{x} is dissimilarity matrix
@@ -82,6 +107,19 @@ pam.default <- cluster::pam
 #' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
 #' pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(pamobjectnew)
+#' @export
+pam <- function (x,k,...) {
+  UseMethod("pam", x)
+}
+
+#' @export
+pam.data.frame<-cluster::pam
+#' @export
+pam.matrix <- cluster::pam
+#' @export
+pam.default <- cluster::pam
+
+## move to file pam.R
 #' @export
 pam.FLTable <- function(x,
 						k,
@@ -168,7 +206,7 @@ pam.FLTable <- function(x,
 						".",deeptablename1,
 						" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
 						".",deeptablename,constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
@@ -187,7 +225,7 @@ pam.FLTable <- function(x,
 		deeptablename <- gen_view_name("New")
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 						".",deeptablename," AS \n  ",constructSelect(x))
-		t <- sqlQuery(connection,sqlstr)
+		t <- sqlSendUpdate(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -203,30 +241,31 @@ pam.FLTable <- function(x,
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
 	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
-	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
-	else whereClause <- "NULL"
+	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
 	{
 		if(distTable=="") 
 		stop("Since diss=TRUE, provide distTable input in the form of database.table")
-		distTableCopy <- paste0("'",distTable,"'")
+		distTableCopy <- distTable
 	}
 	else distTableCopy <- "NULL"
 
-    sqlstr <- paste0("CALL FLKMedoids(",fquote(deeptable),", \n ",
-			 					   fquote(getVariables(deepx)[["obs_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["var_id_colname"]]),", \n ",
-			 					   fquote(getVariables(deepx)[["cell_val_colname"]]),", \n ",
-			 					   whereClause,", \n ",
-			 					   k,", \n ",
-			 					   iter.max,", \n ",
-			 					   distTableCopy,", \n ",
-			 					   fquote(genNote("kmedoids")),
-			 					   ", \n AnalysisID );")
-	
-	retobj <- sqlQuery(connection,sqlstr,
-				AnalysisIDQuery=genAnalysisIDQuery("fzzlKMedoidsInfo",genNote("kmedoids")))
+	retobj <- sqlStoredProc(
+        connection,
+        "FLKMedoids",
+        outputParameter=c(AnalysisID="a"),
+        TableName=deeptable,
+        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
+        VarIDColName=getVariables(deepx)[["var_id_colname"]],
+        ValueColName=getVariables(deepx)[["cell_val_colname"]],
+        WhereClause= whereClause,
+        Medoids=k,
+        Iterations=iter.max,
+        DistTable=distTableCopy,
+        Note=genNote("kmedoids")
+        )
+
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 
@@ -253,6 +292,7 @@ pam.FLTable <- function(x,
 	else return(FLKMedoidsobject)
 }
 
+## move to file FLKMedoids.R
 #' @export
 `$.FLKMedoids`<-function(object,property)
 {
@@ -329,7 +369,7 @@ pam.FLTable <- function(x,
 	else stop(property," is not a valid property")
 }
 
-
+## move to file FLKMedoids.R
 clustering.FLKMedoids <- function(object)
 {
 	if(!is.null(object@results[["clustering"]]))
@@ -375,7 +415,7 @@ clustering.FLKMedoids <- function(object)
 	}
 }
 
-
+## move to file FLKMedoids.R
 medoids.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["medoids"]]))
@@ -437,6 +477,7 @@ medoids.FLKMedoids<-function(object)
 	}
 }
 
+## move to file FLKMedoids.R
 id.med.FLKMedoids<-function(object){
 	if(!is.null(object@results[["id.med"]]))
 	return(object@results[["id.med"]])
@@ -476,7 +517,7 @@ id.med.FLKMedoids<-function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 objective.FLKMedoids <- function(object){
 	if(!is.null(object@results[["objective"]]))
 	return(object@results[["objective"]])
@@ -508,7 +549,7 @@ objective.FLKMedoids <- function(object){
 	
 }
 
-
+## move to file FLKMedoids.R
 isolation.FLKMedoids <- function(object){
 	if(!is.null(object@results[["isolation"]]))
 	return(object@results[["isolation"]])
@@ -623,7 +664,7 @@ isolation.FLKMedoids <- function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 clusinfo.FLKMedoids <- function(object){
 	if(!is.null(object@results[["clusinfo"]]))
 	return(object@results[["clusinfo"]])
@@ -740,7 +781,7 @@ clusinfo.FLKMedoids <- function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 silinfo.FLKMedoids <- function(object){
 	if(!is.null(object@results[["silinfo"]]))
 	return(object@results[["silinfo"]])
@@ -939,7 +980,7 @@ silinfo.FLKMedoids <- function(object){
 	}
 }
 
-
+## move to file FLKMedoids.R
 diss.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["diss"]]))
@@ -1007,6 +1048,7 @@ diss.FLKMedoids<-function(object)
 	}
 }
 
+## move to file FLKMedoids.R
 call.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["call"]]))
@@ -1022,6 +1064,7 @@ call.FLKMedoids<-function(object)
 	}
 }
 
+## move to file FLKMedoids.R
 data.FLKMedoids<-function(object)
 {
 	if(!is.null(object@results[["data"]]))
@@ -1034,18 +1077,7 @@ data.FLKMedoids<-function(object)
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		widetable <- gen_wide_table_name("new")
-		#widetable <- "tempuniquewide12345678"
-		# if(!object@table@isDeep)
-		# {
-		# 	widex <- deepToWide(object@deeptable,
-		# 						whereconditions="",
-		# 						mapTable= object@mapTable,
-		# 						mapName = paste0(object@table@select@database,".",object@table@select@table_name),
-		# 						outWideTableDatabase=getOption("ResultDatabaseFL"),
-	 #                    		outWideTableName=widetable)
-		# 	x <- widex$table
-		# }
-		# else
+		
 		x <- object@deeptable
 		x <- as.data.frame(x)
 		x$obs_id_colname <- NULL
@@ -1057,6 +1089,7 @@ data.FLKMedoids<-function(object)
 	return(dataframe)
 }
 
+## move to file FLKMedoids.R
 #' @export
 print.FLKMedoids <- function(object)
 {
@@ -1078,6 +1111,7 @@ print.FLKMedoids <- function(object)
 	print(results)
 }
 
+## move to file FLKMedoids.R
 #' @export
 setMethod("show","FLKMedoids",
 			function(object)
@@ -1088,6 +1122,7 @@ setMethod("show","FLKMedoids",
 			}
 		 )
 
+## move to file FLKMedoids.R
 #' @export
 plot.FLKMedoids <- function(object)
 {
@@ -1115,6 +1150,7 @@ plot.FLKMedoids <- function(object)
 	plot(results)
 }
 
+## move to file FLKMedoids.R
 FLMapping.FLKMedoids <- function(object)
 {
 	if(!is.null(object@results[["mapping"]]))
@@ -1128,7 +1164,7 @@ FLMapping.FLKMedoids <- function(object)
 			if((is.vector(mapdataframe) && length(mapdataframe)==2) || is.null(mapdataframe))
 			mapdataframe <- paste0("The mapping table in database is",object@mapTable)
 			else if(is.data.frame(mapdataframe))
-			t <- sqlQuery(getOption("connectionFL"),paste0(" DROP TABLE ",object@mapTable))
+			t <- sqlSendUpdate(getOption("connectionFL"),paste0(" DROP TABLE ",object@mapTable))
 		}
 		else mapdataframe <- ""
 		
@@ -1139,7 +1175,7 @@ FLMapping.FLKMedoids <- function(object)
 	}
 }
 
-
+## move to file pam.R
 #' @export
 pam.FLMatrix <- function(x,
 						k,
