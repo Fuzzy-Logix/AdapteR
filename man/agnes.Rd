@@ -84,6 +84,6 @@ The below plot throws warnings!
 plot(agnesobjectnew)
 }
 \seealso{
-\code{\link[cluster]{agnes}} for R reference implementation
+\code{\link[cluster]{agnes}} for R reference implementation.
 }
 
