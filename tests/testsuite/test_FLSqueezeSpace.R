@@ -9,7 +9,6 @@ test_that("FLSqueezeSpace",{
     singleSpace <- c("DU ANE", "Home Depot", "MARH TA", "WAL MA RT", "WALMART", "WARTHA")
     multiSpace <- gsub(" ","   ",singleSpace)
     flv <- as.FL(multiSpace)
-    expect_equal(singleSpace,as.R(resultflvector))
     resultflvector <- FLSqueezeSpace(flv)
     expect_equal(singleSpace,as.R(resultflvector))
 })

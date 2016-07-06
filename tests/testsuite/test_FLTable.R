@@ -24,9 +24,3 @@ test_that("FLTable in-database transformations work -- ALTER TABLE and UPDATE",{
     Renv,FLenv,check.attributes=FALSE)
     ##print(result)
 })
-
-##options(debugSQL=TRUE)
-test_that("FLTable supports different types",{
-    FLexpect_equal(FLenv$testdf,Renv$testdf)
-    ##print(result)
-})
