@@ -45,18 +45,6 @@ setClass(
 	)
 )
 
-#' @export
-agnes <- function (x,...) {
-  UseMethod("agnes", x)
-}
-
-#' @export
-agnes.data.frame<-cluster::agnes
-#' @export
-agnes.matrix <- cluster::agnes
-#' @export
-agnes.default <- cluster::agnes
-
 ## move to file agnes.R
 #' Agglomerative Nesting
 #'
@@ -118,6 +106,19 @@ agnes.default <- cluster::agnes
 #' agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
 #' The below plot throws warnings!
 #' plot(agnesobjectnew)
+#' @export
+agnes <- function (x,...) {
+  UseMethod("agnes", x)
+}
+
+#' @export
+agnes.data.frame<-cluster::agnes
+#' @export
+agnes.matrix <- cluster::agnes
+#' @export
+agnes.default <- cluster::agnes
+
+## move to file agnes.R
 #' @export
 agnes.FLTable <- function(x,
 						diss=FALSE,
@@ -283,6 +284,8 @@ agnes.FLTable <- function(x,
 	return(FLAggCLustobject)
 }
 
+
+## move to file FLAggClustering.R
 #' @export
 `$.FLAggClust`<-function(object,property)
 {
@@ -341,6 +344,7 @@ agnes.FLTable <- function(x,
 }
 
 
+## move to file FLAggClustering.R
 order.FLAggClust <- function(object)
 {
 	if(!is.null(object@results[["order"]]))
@@ -377,6 +381,8 @@ order.FLAggClust <- function(object)
 	}
 }
 
+
+## move to file FLAggClustering.R
 height.FLAggClust <- function(object)
 {
 	if(!is.null(object@results[["height"]]))
@@ -480,6 +486,8 @@ height.FLAggClust <- function(object)
 	}
 }
 
+
+## move to file FLAggClustering.R
 ac.FLAggClust <- function(object){
 	if(!is.null(object@results[["ac"]]))
 	return(object@results[["ac"]])
@@ -585,6 +593,8 @@ ac.FLAggClust <- function(object){
 	}
 }
 
+
+## move to file FLAggClustering.R
 merge.FLAggClust <- function(object){
 	if(!is.null(object@results[["merge"]]))
 	return(object@results[["merge"]])
@@ -658,6 +668,8 @@ merge.FLAggClust <- function(object){
 	
 }
 
+
+## move to file FLAggClustering.R
 #' @export
 print.FLAggClust <- function(object)
 {
@@ -680,6 +692,8 @@ print.FLAggClust <- function(object)
 	print(results)
 }
 
+
+## move to file FLAggClustering.R
 #' @export
 setMethod("show","FLAggClust",
 			function(object)
@@ -690,6 +704,8 @@ setMethod("show","FLAggClust",
 			}
 		 )
 
+
+## move to file FLAggClustering.R
 #' @export
 plot.FLAggClust <- function(object)
 {
@@ -720,7 +736,7 @@ plot.FLAggClust <- function(object)
 	plot(results)
 }
 
-
+## move to file agnes.R
 #' @export
 agnes.FLMatrix <- function(x,
 						diss=FALSE,
