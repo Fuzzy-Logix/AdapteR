@@ -1,16 +1,17 @@
 #' @include FLMatrix.R
 NULL
 
-#' @export
-FLVarCluster <- function (x, ...) {
-  UseMethod("FLVarCluster", x)
-}
-
-
+## move to file FLVarCluster.R
 #' Variable Clustering.
 #'
 #' \code{FLVarCluster} performs variable clustering on FLTable objects
 #' using Principal Component Analysis
+#'
+#' The DB Lytix function called is FLVarCluster. Uses a principal component analysis for dimensionality 
+#' reduction in order to cluster a given set of input variables into a smaller representative set.
+#' The number of output clusters depend on the contribution level specified.
+#'
+#' @seealso \code{ClustOfVar} package for R reference implementation.
 #'
 #' @method FLVarCluster FLTable
 #' @param x an object of class FLTable, wide or deep
@@ -34,6 +35,12 @@ FLVarCluster <- function (x, ...) {
 #' deeptable  <- FLTable( "FL_DEMO", "tblLogRegr", "ObsID","VarID","Num_Val")
 #' clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 #' print(clustervector)
+#' @export
+FLVarCluster <- function (x, ...) {
+  UseMethod("FLVarCluster", x)
+}
+
+## move to file FLVarCluster.R
 #' @export
 FLVarCluster.FLTable<-function(x,
 							contrib,
@@ -192,7 +199,7 @@ FLVarCluster.FLTable<-function(x,
 	return(clustervector)
 }
 
-
+## move to file FLVarCluster.R
 #' @export
 FLVarCluster.FLMatrix <- function(x,
                             contrib,
