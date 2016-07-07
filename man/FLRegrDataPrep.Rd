@@ -22,18 +22,49 @@ FLRegrDataPrep(object, depCol, outDeepTableName, outDeepTableDatabase,
 
 \item{outValueCol}{name to give to the value column of the output deep table}
 
+\item{catToDummy}{Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.}
+
+\item{performNorm}{Perform standardization of data. Standardization is done if the value of this parameter is 1.}
+
+\item{performVarReduc}{Perform variable reduction.Elimination means that the corresponding column is not transformed from the
+wide format to the deep format. Variables with standard deviation below the specified threshold are eliminated.
+Similarly, if a pair of columns has correlation above the specified threshold, one of the columns is not transformed.}
+
+\item{makeDataSparse}{Make data sparse i.e., only store non-zero values in the deep table for the independent variables. The
+column values for those observations that are zero are not stored in the deep table. However, for the
+dependent variable and the intercept, zero values are stored in the deep table.}
+
+\item{minStdDev}{Minimum acceptable standard deviation for elimination of variables. Any variable that has a
+standard deviation below this threshold is eliminated. This parameter is only consequential if the parameter PerformVarReduc = 1.}
+
+\item{maxCorrel}{Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
+absolute value of the correlation exceeds this threshold, one of the columns is not transformed. Again, this parameter is 
+only consequential if the parameter PerformVarReduc = 1.}
+
+\item{trainOrTest}{if  0 => Create training data set; if 1 => Create test data set using the transformation
+that has already been done for a prior training data set.}
+
 \item{excludeCols}{character vector specifying columns to be excluded from conversion}
 
 \item{classSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
 
 \item{whereconditions}{character vector giving where conditions if any to reference the wide table}
+
+\item{inAnalysisID}{provided in case we want to re-run the transformation of a training data set or run the
+transformation of a testing data set else this value is NULL.}
+
+\item{depcol}{Name of the column in the wide table which represents the dependent variable}
 }
 \value{
 \code{wideToDeep} returns a list containing components 
 \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
-Convert Wide Table to Deep Table in database.
+The DB Lytix function called is FLRegrDataPrep. In DB Lytix, data mining functions such as linear 
+regression, logistic regression, Generalized Linear Model (GLM), etc. are performed using stored procedures on a deep table.
+However, in most situations, the input data is usually stored in wide tables containing multiple columns. The
+stored procedure FLRegrDataPrep facilitates the conversion of contents stored in wide tables or views to
+deep tables and also prepares the data for regression analysis.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")

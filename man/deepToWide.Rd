@@ -25,7 +25,8 @@ deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
 \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
-Convert Deep Table to Wide Table
+The DB Lytix function called is FLWideToDeep.Stored Procedure that transforms the 
+data in a deep table format to a wide table format.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
