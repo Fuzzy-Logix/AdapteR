@@ -1,27 +1,40 @@
 #' @include utilities.R
 #' @include data_prep.R
 #' @include FLTable.R
+
 NULL
+
+## move to file FLLinRegr.R
 #' An S4 class to represent FLLinRegr
 #'
 #' @slot formula an object of class 'formula': Model Formula
-#' @slot deeptable A character vector containing 
-#' the deeptable on conversion from a widetable
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
 #' @slot AnalysisID An output character ID from CALL FLLinRegr
 #' @slot wideToDeepAnalysisID An output character ID from FLRegrDataPrep
-#' @slot mapTable name of the mapping table
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
 #' @slot scoreTable name of the scoring table
 #' @slot modelID id of the model with best fit
 #' @slot table input FLTable object
 #' @slot results cache list of results computed
+#' @slot vfcalls contains names of tables
+#' @slot offset this can be used to specify a priori known component to be included in the 
+#' linear predictor during fitting. This should be NULL or a numeric vector of length equal to the number of cases
 #' @method print FLLinRegr
+#' @param object prints results of FLLinRegr on FL objects
 #' @method coefficients FLLinRegr
+#' @param object returns coefficient vector of the object
 #' @method residuals FLLinRegr
+#' @param object the residuals, that is response minus fitted values.
 #' @method influence FLLinRegr
+#' @param object returns the basic quantities which are used in forming a wide variety of diagnostics for checking the quality of regression fits.
 #' @method lm.influence FLLinRegr
+#' @param object returns the basic quantities which are used in forming a wide variety of diagnostics for checking the quality of regression fits.
 #' @method plot FLLinRegr
+#' @param object plots the results of FLLinRegr on FL objects.
 #' @method summary FLLinRegr
 #' @method predict FLLinRegr
+#' @param object returns prediction results as FLVector.
 setClass(
 	"FLLinRegr",
 	slots=list(formula="formula",
@@ -35,18 +48,15 @@ setClass(
 				offset="character",
 				vfcalls="character"))
 
-#' @export
-lm <- function (formula,data=list(),...) {
-	UseMethod("lm", data)
- }
-
-#' @export
-lm.default <- stats::lm
-
+## move to file lm.R
 #' Linear Regression.
 #'
 #' \code{lm} performs linear regression on FLTable objects.
 #'
+#' The DB Lytix function called is FLLinRegr. Performs Linear Regression and 
+#' stores the results in predefined tables.
+#'
+#' @seealso \code{\link[stats]{lm}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable
 #' @param catToDummy Transform categorical variables to numerical values
@@ -87,6 +97,16 @@ lm.default <- stats::lm
 #' deeptable <- FLTable("FL_DEMO","myLinRegrSmallBroken","ObsID","VarID","Num_Val")
 #' lmfit2 <- lm(NULL,deeptable)
 #' @export
+lm <- function (formula,data=list(),...) {
+	UseMethod("lm", data)
+ }
+
+## move to file lm.R
+#' @export
+lm.default <- stats::lm
+
+## move to file lm.R
+#' @export
 lm.FLTable <- function(formula,data,...)
 {
 	vcallObject <- match.call()
@@ -98,10 +118,13 @@ lm.FLTable <- function(formula,data,...)
 					...))
 }
 
+## move to file step.R
 #' Choose a model.
 #'
 #' \code{steps} performs linear regression on FLTable objects.
 #' Choose a formula based model by p-values and R-Squared Values.
+#'
+#' @seealso \code{\link[stats]{step}} for R reference implementation.
 #'
 #' @param object An object of class FLTable
 #' @param scope A symbolic description of model to be fitted.
@@ -250,9 +273,11 @@ step <- function (object,scope,...) {
 	UseMethod("step", object)
  }
 
+## move to file step.R
 #' @export
 step.default <- stats::step
 
+## move to file step.R
 #' @export
 step.FLTable <- function(object, scope, scale = 0,
      				direction = "forward",
@@ -346,6 +371,8 @@ step.FLTable <- function(object, scope, scale = 0,
 					...))
 
 }
+
+## move to file lmGeneric.R
 lmGeneric <- function(formula,data,
 					specID=list(),
 					direction="",
@@ -597,6 +624,7 @@ lmGeneric <- function(formula,data,
 				offset=as.character(offset)))
 }
 
+## move to file lmGeneric.R
 prepareData.lmGeneric <- function(formula,data,
 								catToDummy=0,
 								performNorm=0,
@@ -869,6 +897,7 @@ prepareData.lmGeneric <- function(formula,data,
 				offset=offset))
 }
 
+## move to file FLLinRegr.R
 #' @export
 `$.FLLinRegr`<-function(object,property){
 	#parentObject <- deparse(substitute(object))
@@ -1069,6 +1098,8 @@ coefficients<-function(table){
 }
 #' @export
 coefficients.default <- stats::coefficients
+
+## move to file FLLinRegr.R
 #' @export
 coefficients.FLLinRegr<-function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
@@ -1083,6 +1114,7 @@ coefficients.FLLinRegr<-function(object){
 	return(coeffVector)
 	}
 
+## move to file lmGeneric.R
 #' @export
 coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 	if(!is.null(object@results[["coefficients"]]))
@@ -1136,6 +1168,8 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 		return(coeffVector1)
 	}
 }
+
+## move to file FLLinRegr.R
 #' @export
 residuals.FLLinRegr<-function(object)
 {
@@ -1165,6 +1199,7 @@ residuals.FLLinRegr<-function(object)
 	}
 }
 
+## move to file FLLinRegr.R
 #' @export
 model.FLLinRegr <- function(object)
 {
@@ -1195,6 +1230,7 @@ model.FLLinRegr <- function(object)
 	}
 }
 
+## move to file FLLinRegr.R
 #' @export
 summary.FLLinRegr<-function(object){
 	ret <- object$FLLinRegrStats
@@ -1268,6 +1304,7 @@ predict<-function(object,newdata,...){
 	UseMethod("predict",object)
 }
 
+## move to file FLLinRegr.R
 #' @export
 predict.FLLinRegr <- function(object,
 							newdata=object@table,
@@ -1276,6 +1313,7 @@ predict.FLLinRegr <- function(object,
 							scoreTable=scoreTable))
 }
 
+## move to file lmGeneric.R
 #' @export
 predict.lmGeneric <- function(object,
 							newdata=object@table,
@@ -1367,6 +1405,8 @@ predict.lmGeneric <- function(object,
 
 	return(flv)
 }
+
+## move to file FLLinRegr.R
 #' @export
 print.FLLinRegr<-function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
@@ -1379,9 +1419,11 @@ print.FLLinRegr<-function(object){
 	print(reqList)
 }
 
+## move to file FLLinRegr.R
 #' @export
 setMethod("show","FLLinRegr",print.FLLinRegr)
 
+## move to file FLLinRegr.R
 #' @export
 plot.FLLinRegr <- function(object)
 {
@@ -1402,6 +1444,7 @@ plot.FLLinRegr <- function(object)
 	plot(reqList)
 }
 
+## move to file FLLinRegr.R
 #' @export
 influence.FLLinRegr <- function(model,...){
 	reqList <- list(residuals=as.vector(model$residuals),
@@ -1427,6 +1470,8 @@ lm.influence <- function(model,do.coef=TRUE,...){
 #' @export
 lm.influence.default <- stats::lm.influence
 #' @export
+
+## move to file FLLinRegr.R
 lm.influence.FLLinRegr <- function(model,do.coef=TRUE,...){
 	reqList <- list(residuals=as.vector(model$residuals),
 					coefficients=model$coefficients,

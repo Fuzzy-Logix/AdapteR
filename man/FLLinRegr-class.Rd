@@ -4,6 +4,21 @@
 \name{FLLinRegr-class}
 \alias{FLLinRegr-class}
 \title{An S4 class to represent FLLinRegr}
+\arguments{
+\item{object}{prints results of FLLinRegr on FL objects}
+
+\item{object}{returns coefficient vector of the object}
+
+\item{object}{the residuals, that is response minus fitted values.}
+
+\item{object}{returns the basic quantities which are used in forming a wide variety of diagnostics for checking the quality of regression fits.}
+
+\item{object}{returns the basic quantities which are used in forming a wide variety of diagnostics for checking the quality of regression fits.}
+
+\item{object}{plots the results of FLLinRegr on FL objects.}
+
+\item{object}{returns prediction results as FLVector.}
+}
 \description{
 An S4 class to represent FLLinRegr
 }
@@ -12,14 +27,14 @@ An S4 class to represent FLLinRegr
 \describe{
 \item{\code{formula}}{an object of class 'formula': Model Formula}
 
-\item{\code{deeptable}}{A character vector containing 
-the deeptable on conversion from a widetable}
+\item{\code{deeptable}}{A character vector containing a deeptable(either conversion from a 
+widetable or input deeptable)}
 
 \item{\code{AnalysisID}}{An output character ID from CALL FLLinRegr}
 
 \item{\code{wideToDeepAnalysisID}}{An output character ID from FLRegrDataPrep}
 
-\item{\code{mapTable}}{name of the mapping table}
+\item{\code{mapTable}}{A character string name for the mapping table in-database if input is wide-table.}
 
 \item{\code{scoreTable}}{name of the scoring table}
 
@@ -28,5 +43,10 @@ the deeptable on conversion from a widetable}
 \item{\code{table}}{input FLTable object}
 
 \item{\code{results}}{cache list of results computed}
+
+\item{\code{vfcalls}}{contains names of tables}
+
+\item{\code{offset}}{this can be used to specify a priori known component to be included in the 
+linear predictor during fitting. This should be NULL or a numeric vector of length equal to the number of cases}
 }}
 
