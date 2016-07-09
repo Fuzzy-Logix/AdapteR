@@ -6,7 +6,7 @@
 ## can the output table colnames same as input table names?
 ##     eg:- matrix_id maintained in output instead of partitionID
 ##     eg:- cell_val kept as cell_val not inverse_val
-##     eg:- Aster is a real khichidi :)
+##     eg:- Aster is a real Mixture :)
 ##         OutputVal,cell_val,matrix_inv
 ## can the output table structure and names be same across platforms?
 ##     eg:- cell_val and inverse_val both exist in hadoop
@@ -193,5 +193,36 @@ constructStoredProcSQL <- function(pConnection,
 #         colIdColumn AS colIdColumn,
 #         pFunc(valueColumn) AS valueColumn
 # FROM (constructSelect(object)) a
+getOutputColumns <- function(pObject,
+                            pFunc){
+    vVariables <- getVariables(pObject)
+    vOutCols <- names(vVariables)
+    names(vOutCols) <- vOutCols
+    vValueCol <- as.FLAbstractCol(pObject)
+    vOutCols[getIdColname(pObject)] <- "'%insertIDhere%'"
+    vOutCols[vValueCol] <- pFunc(vValueCol)
+    return(vOutCols)
+}
 constructScalarSQL <- function(pObject,
-                                )
+                                pFunc,
+                                ){
+    if(is.FLSelectFrom(pObject@select)){
+        vVariables <- getVariables(pObject)
+        vValueCol <- as.FLAbstractCol(pObject)
+        vVariables[[vValueCol]] <- pFunc(vValueCol)
+        pObject@select@variables <- vVariables
+        return(pObject)
+    }
+    else{
+        vVariables <- getOutputColumns(pObject=pObject,
+                                        pFunc=pFunc)
+        vsqlstr <- paste0("SELECT ",
+                        paste0(vVariables," AS ",
+                                names(vVariables),
+                                collapse=","),
+                        " FROM (",constructSelect(pObject),
+                            ") a ")
+        pObject@select@SQLquery <- vsqlstr
+        return(pObject)
+    }
+}
