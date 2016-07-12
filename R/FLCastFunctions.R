@@ -29,8 +29,8 @@ as.vector.FLVector <- function(object,mode="any")
         x <- as.data.frame.FLVector(object)[[1]]
     if(ncol(object)>1)
         x <- as.vector(as.data.frame.FLVector(object)[1,])
-    if(!any(is.na(as.numeric(x))) && !is.logical(x))
-    x <- as.numeric(x)
+    # if(!any(is.na(as.numeric(x))) && !is.logical(x))
+    # x <- as.numeric(x)
 
     if(ncol(object)==1) vnames <- rownames(object)
     else vnames <- colnames(object)
@@ -82,6 +82,7 @@ as.data.frame.FLTable <- function(x, ...){
 as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+    #browser()
 
    tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
       error=function(e){stop(e)})
@@ -681,7 +682,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   if(is.logical(object))
   tablename <- getOption("ResultCharVectorTableFL")
   else if(suppressWarnings(!any(is.na(as.integer(object))) && 
-    all(as.integer(object)==object))){
+    all(as.integer(object)==object) &&
+    !is.character(object))){
     tablename <- getOption("ResultIntVectorTableFL")
     object <- as.integer(object)
   }

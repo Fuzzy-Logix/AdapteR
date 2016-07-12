@@ -553,7 +553,7 @@ setMethod("deepToWide",
             #                                   ifelse(mapName=="NULL",mapName,paste0("'",mapName,"'")),",'",
             #                                   paste0(outWideTableDatabase,".",outWideTableName),
             #                                   "',MESSAGE);")
-            # message <- sqlQuery(connection,sqlstr)
+            #message <- sqlQuery(connection,sqlstr)
             message <- checkSqlQueryOutput(message)
             table <- FLTable(
                            outWideTableDatabase,
@@ -561,7 +561,7 @@ setMethod("deepToWide",
                            "obs_id_colname"
                           )
             return(list(table=table,
-                        message = as.character(message)))
+                        message = as.character(message[1,1])))
           }
         )
 setMethod("deepToWide",

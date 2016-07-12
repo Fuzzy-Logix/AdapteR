@@ -216,13 +216,13 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
         warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
-            resd <- RODBC::sqlQuery(connection, query, ...)
+            resd <- RODBC::sqlQuery(connection, query, as.is=TRUE,...)
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
-            resd <- RODBC::sqlQuery(connection, q, ...)
+            resd <- RODBC::sqlQuery(connection, q, as.is=TRUE,...)
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     })
