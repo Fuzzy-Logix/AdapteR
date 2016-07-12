@@ -53,7 +53,7 @@ constructUDTSQL <- function(pViewColnames,
                             pWhereConditions="",
                             pSelect,
                             pPartitionBy=names(pViewColnames)[1],
-                            pLocalOrderBy=names(pViewColnames)[1]
+                            pLocalOrderBy=names(pViewColnames)[1],
                             ...){
     if(is.TD()){
         return(paste0("WITH z( ",paste0(names(pViewColnames),
@@ -110,7 +110,7 @@ constructUDTSQL <- function(pViewColnames,
                                                         pPartitionBy)),"'",
                                                 collapse=","
                                             )
-                            ,")) a "
+                            ,")) a ",
                         constructWhere(pWhereConditions)
                     )
                 )
@@ -204,7 +204,7 @@ getOutputColumns <- function(pObject,
     return(vOutCols)
 }
 constructScalarSQL <- function(pObject,
-                                pFunc,
+                                pFunc
                                 ){
     if(is.FLSelectFrom(pObject@select)){
         vVariables <- getVariables(pObject)
