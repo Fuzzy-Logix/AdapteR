@@ -687,14 +687,3 @@ setMethod("checkMaxQuerySize",
 setMethod("checkMaxQuerySize",
           signature(pObj1="FLVector"),
           function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
-
-setGeneric("getIdColname",function(object)
-      standardGeneric("getIdColname"))
-setMethod("getIdColname",signature(object="FLMatrix"),
-      function(object){
-        return("MATRIX_ID")
-        })
-setMethod("getIdColname",signature(object="FLVector"),
-      function(object){
-        return("vectorIdColumn")
-        })

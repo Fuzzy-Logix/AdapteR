@@ -721,64 +721,6 @@ checkValidFormula <- function(pObject,pData)
         stop(x," not in colnames of data\n"))
 }
 
-## returns INT for integers or bool,VARCHAR(255)
-## for characters and FLOAT for numeric
-getFLColumnType <- function(x,columnName=NULL){
-    if(is.FL(x)){
-      if(is.null(columnName)){
-        vmapping <- c(valueColumn="FLMatrix",
-                    vectorValueColumn="FLVector",
-                    cell_val_colname="FLTable")
-        columnName <- as.character(names(vmapping)[class(x)==vmapping])
-      }
-      if(!grepl("with",tolower(constructSelect(x)))){
-        vresult <- tolower(sqlQuery(getOption("connectionFL"),
-                            paste0("SELECT TOP 1 TYPE(a.",columnName,
-                                    ") \n FROM (",constructSelect(x),
-                                    ") a"))[1,1])
-        vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
-        vtemp <- as.vector(sapply(c("char","int","float","number"),
-                        function(y)
-                        return(grepl(y,vresult))))
-        vresult <- vmapping[vtemp]
-      }
-      else vresult <- "FLOAT"
-    }
-    else{
-      vmapping <- c(VARCHAR="character",
-                    INT="integer",
-                    FLOAT="numeric",
-                    INT="logical")
-      vresult <- names(vmapping)[vmapping==class(x)]
-    }
-    if(vresult=="VARCHAR") 
-    vresult <- "VARCHAR(255)"
-    return(vresult)
-}
-
-is.FL <- function(x){
-    if(class(x) %in% c("FLMatrix",
-                        "FLVector",
-                        "FLTable",
-                        "FLTableQuery",
-                        "FLSelectFrom",
-                        "FLTableFunctionQuery"))
-    return(TRUE)
-    else return(FALSE)
-}
-
-is.RSparseMatrix <- function(object){
-    vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
-                    "dgTMatrix","dtrMatrix","pMatrix",
-                    "dspMatrix","dtCMatrix","dgRMatrix",
-                    "ddiMatrix","dpoMatrix"
-                    )
-    if(class(object) %in% vsparseClass)
-    return(TRUE)
-    else
-    return(FALSE)
-}
-
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
                                     tableName)
 {

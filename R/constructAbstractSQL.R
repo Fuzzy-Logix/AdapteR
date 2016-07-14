@@ -194,28 +194,59 @@ constructStoredProcSQL <- function(pConnection,
 #         pFunc(valueColumn) AS valueColumn
 # FROM (constructSelect(object)) a
 getOutputColumns <- function(pObject,
-                            pFunc){
-    vVariables <- getVariables(pObject)
-    vOutCols <- names(vVariables)
+                            pFunc,
+                            ...){
+    if(is.FLVector(pObject))
+    vOutCols <- c("vectorIdColumn",
+                "vectorIndexColumn",
+                "vectorValueColumn")
+    else
+    vOutCols <- names(getVariables(pObject))
+
     names(vOutCols) <- vOutCols
     vValueCol <- as.FLAbstractCol(pObject)
     vOutCols[getIdColname(pObject)] <- "'%insertIDhere%'"
-    vOutCols[vValueCol] <- pFunc(vValueCol)
+    vOutCols[vValueCol@columnName] <- pFunc(vValueCol,...)
     return(vOutCols)
 }
 constructScalarSQL <- function(pObject,
-                                pFunc
+                                pFunc,
+                                ...
                                 ){
+    if(is.RowFLVector(pObject))
+        pObject <- store(pObject)
+
+    if(is.wideFLTable(pObject))
+        pObject <- wideToDeep(pObject)[["table"]]
+
     if(is.FLSelectFrom(pObject@select)){
-        vVariables <- getVariables(pObject)
-        vValueCol <- as.FLAbstractCol(pObject)
-        vVariables[[vValueCol]] <- pFunc(vValueCol)
-        pObject@select@variables <- vVariables
-        return(pObject)
+
+        if(is.FLMatrix(pObject) || 
+            ((is.FLVector(pObject) || 
+                is.FLTable(pObject)) && 
+                pObject@isDeep)){
+            vVariables <- getVariables(pObject)
+            vValueCol <- getValueColumn(pObject)
+
+            vVariables[[names(vValueCol)]] <- pFunc(new("FLAbstractColumn",
+                                                         columnName=vValueCol),
+                                                    ...)
+            pObject@select@variables <- vVariables
+            return(pObject)
+        }
+        if(is.FLVector(pObject)){
+            vValueCol <- getValueColumn(pObject)
+            #names(pObject@select@table_name) <- NULL
+            pObject@dimnames[[2]] <- pFunc(new("FLAbstractColumn",
+                                                columnName=vValueCol),
+                                                ...)
+            return(pObject)
+        }
     }
     else{
         vVariables <- getOutputColumns(pObject=pObject,
-                                        pFunc=pFunc)
+                                        pFunc=pFunc,
+                                        ...)
         vsqlstr <- paste0("SELECT ",
                         paste0(vVariables," AS ",
                                 names(vVariables),

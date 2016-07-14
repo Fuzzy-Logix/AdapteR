@@ -36,7 +36,7 @@ as.FLAbstractCol.FLVector <- function(object,indexCol=FALSE){
 
 as.FLAbstractCol.FLMatrix <- function(object,indexCol=FALSE){
 	if(!indexCol)
-		vcolnames <- c(valueColumn="valuecolumn")
+		vcolnames <- c(valueColumn="valueColumn")
 	else vcolnames <- c(indexColumn="ROW_NUMBER()OVER(ORDER BY colIdColumn,rowIdColumn)",
 						valueColumn="valueColumn")
 	return(new("FLAbstractColumn",
@@ -89,8 +89,6 @@ mean.FLMatrix <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 mean.FLTable <- function(x,...){
-	if(!x@isDeep)
-	stop("convert to deep format using wideToDeep \n")
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 
