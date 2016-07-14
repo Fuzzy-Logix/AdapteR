@@ -394,37 +394,61 @@ gen_table_name <- function(prefix,suffix){
 ##' @param database 
 ##' @param user 
 ##' @param passwd 
-##' @param jdbc.jarsDir if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.
+##' @param jdbc.jarsDir if provided, class paths for jars to be loaded.
+##' Issues can occur unless you provide the fully qualified path.
 ##' @param ... 
 ##' @return either an ODBC connection or an JDBC connection
+##' @examples
+##' connection <- flConnect("jdbc:ncluster://10.47.10.30:2406",
+##'                           "fuzzylogix",
+##'                          "mroy","mroy",
+##'                         c("C:/Users/phani/Downloads/noarch-aster-jdbc-driver.jar",
+##'                             "C:/Users/phani/Downloads/noarch-aster-adfs-client.jar"),
+##'                         driverClass="com.asterdata.ncluster.Driver")
+##' connection <- flConnect("jdbc:teradata://10.200.4.116",
+##'                           "FL_DEMO",
+##'                          "psrikar","fzzlpass",
+##'                         c("C:/Users/phani/Downloads/terajdbc4.jar",
+##'                             "C:/Users/phani/Downloads/tdgssconfig.jar"),
+##'                         driverClass="com.teradata.jdbc.TeraDriver")
+##' connection <- flConnect("jdbc:hive2://192.168.2.179:10000",
+##'                          "dblytix",
+##'                          "hive","",
+##'                         c("C:/Users/phani/Downloads/hive-jdbc-1.2.1-standalone.jar",
+##'                             "C:/Users/phani/Downloads/hadoop-common-2.6.0.jar"),
+##'                         driverClass="org.apache.hive.jdbc.HiveDriver")
 ##' @export
 flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       jdbc.jarsDir=NULL,
                       jdbc.options="",# "TMODE=TERA,CHARSET=ASCII",
                       odbcSource=NULL,
+                      driverClass=NULL,
                       ...){
     connection <- NULL
     if(!is.null(host) &
        !is.null(database)){
         if(is.null(user)) user <- readline("Your username:")
         if(is.null(passwd)) passwd <- readline("Your password:")
+        if(is.null(driverClass)) driverClass <- readline("driverClass")
+        if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector \n ")
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
             require(RJDBC)
             if(!is.null(jdbc.jarsDir)){
-                cat(paste0("adding classpath ",jdbc.jarsDir,"/terajdbc4.jar and ",
-                           jdbc.jarsDir,"/tdgssconfig.jar\n"))
-                .jaddClassPath(paste0(jdbc.jarsDir,"/terajdbc4.jar"))
-                .jaddClassPath(paste0(jdbc.jarsDir,"/tdgssconfig.jar"))
+                # cat(paste0("adding classpath ",jdbc.jarsDir,"/terajdbc4.jar and ",
+                #            jdbc.jarsDir,"/tdgssconfig.jar\n"))
+                .jaddClassPath(paste0(jdbc.jarsDir[1]))
+                .jaddClassPath(paste0(jdbc.jarsDir[2]))
             }
             Sys.sleep(1)
-            ##browser()
-            ## code adapted from teradataR::tdconnect
             require(RJDBC)
-            drv <- JDBC("com.teradata.jdbc.TeraDriver")
-            st <- paste("jdbc:teradata://", host, sep = "")
-            if (nchar(database)) 
-                st <- paste(st, "/database=", database, ",",jdbc.options, sep = "")
+            drv <- JDBC(driverClass)
+            st <- paste(host, sep = "")
+            if(!is.null(database))
+                st <- paste0(st, "/",database[1], 
+                        ifelse(jdbc.options=="",
+                                "",
+                                paste0("/",jdbc.options)))
             else
                 st <- paste0(st,"/",jdbc.options)
             connection <- dbConnect(drv, st, user = user, password = passwd)

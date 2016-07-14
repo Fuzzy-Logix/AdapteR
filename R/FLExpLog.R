@@ -336,7 +336,9 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
 
 ## move to file sort.R
 #' @export
-sort.FLMatrix <- function(x,decreasing=FALSE,index.return=FALSE,...)
+sort.FLMatrix <- function(x,decreasing=FALSE,
+                        index.return=FALSE,
+                        ...)
 {
     decreasing <- as.logical(decreasing)
     if(is.na(decreasing) || length(decreasing) < 1 
@@ -368,10 +370,13 @@ sort.FLMatrix <- function(x,decreasing=FALSE,index.return=FALSE,...)
                 isDeep = FALSE)
 
     flv <- ensureQuerySize(pResult=flv,
-                        pInput=list(x,decreasing=decreasing,...),
+                        pInput=list(x,decreasing=decreasing,
+                                    index.return=index.return,
+                                    ...),
                         pOperator="sort")
 
     if(index.return)
-    return(list(x=flv,ix=order(x)))
+    return(list(x=flv,
+                ix=order(x)))
     else return(flv)
 }
