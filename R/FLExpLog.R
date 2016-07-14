@@ -293,7 +293,9 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
 #' @export
 sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
 {
-    #browser()
+    if("method" %in% names(list(...)))
+        warning("method argument has no effect on AdapteR implementation of sort.")
+    
     decreasing <- as.logical(decreasing)
     if(is.na(decreasing) || length(decreasing) < 1 
         || is.null(decreasing))
