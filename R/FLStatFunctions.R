@@ -429,7 +429,7 @@ setMethod("which.max",signature(x="FLTable"),
 #' @export
 setGeneric("which.min",function(x)
                 standardGeneric("which.min"))
-which.max.FLAbstractColumn <- function(x){
+which.min.FLAbstractColumn <- function(x){
     return(paste0(" FLMinAt(",
                 paste0(x@columnName,collapse=","),") "))
 }
