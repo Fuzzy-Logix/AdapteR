@@ -119,7 +119,6 @@ constructUDTSQL <- function(pViewColnames,
 
 
 ############################## Stored Procs ###########################
-## Lot of select * 's  in Aster documentation
 
 constructStoredProcSQL <- function(pConnection,
                                     pFuncName,
@@ -160,15 +159,18 @@ constructStoredProcSQL <- function(pConnection,
                 Hadoop="SELECT ")
     vCall <- vCall[names(vCall)==getOption("platform")]
 
-    if(is.TDAster())
-    return(paste0(vCall," ",pFuncName,
+    if(is.TDAster()){
+        pars <- c(pars,
+                DSN=fquote(getOption("DSN")))
+        return(paste0(vCall," ",pFuncName,
                 "( ON (SELECT 1 ) PARTITION BY 1 ",
-                    paste0(names(pars),"('",
-                            pars,"')",
+                    paste0(names(pars),"(",
+                            pars,")",
                             collapse=" \n "),
                     ")"
                 )
         )
+    }
     else
     return(paste0(vCall," ",pFuncName,
                     "(",

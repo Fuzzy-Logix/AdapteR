@@ -99,25 +99,29 @@ sqlStoredProc.RODBC <- function(connection, query,
                                 outputParameter,
                                 ...) {
     #browser()
-    args <- list(...)
-    ## Setting up input parameter value
-    pars <- character()
-    ai <- 1L
-    for(a in args){
-        if(is.character(a)){
-            if(a=="NULL")
-                pars[ai] <- "NULL"
-            else
-                pars[ai] <- fquote(a)
-        } else
-            pars[ai] <- a
-        ai <- ai+1L
-    }
-    sqlstr <- paste0("CALL ",query,"(",
-                     paste0(pars, collapse=", \n "),
-                     ",",
-                     paste0(names(outputParameter), collapse=", \n "),
-                     ")")
+    sqlstr <- constructStoredProcSQL(pConnection=connection,
+                                    pFuncName=query,
+                                    pOutputParameter=outputParameter,
+                                    ...)
+    # args <- list(...)
+    # ## Setting up input parameter value
+    # pars <- character()
+    # ai <- 1L
+    # for(a in args){
+    #     if(is.character(a)){
+    #         if(a=="NULL")
+    #             pars[ai] <- "NULL"
+    #         else
+    #             pars[ai] <- fquote(a)
+    #     } else
+    #         pars[ai] <- a
+    #     ai <- ai+1L
+    # }
+    # sqlstr <- paste0("CALL ",query,"(",
+    #                  paste0(pars, collapse=", \n "),
+    #                  ",",
+    #                  paste0(names(outputParameter), collapse=", \n "),
+    #                  ")")
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }
@@ -131,10 +135,14 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     ## a precompiled SQL statement and preparing the callable
     ## statement for execution.
     args <- list(...)
-    query <- paste0("CALL ",query, "(",
-                    paste0(rep("?", length(args)+length(outputParameter)),
-                           collapse=","),
-                     ")")
+    # query <- paste0("CALL ",query, "(",
+    #                 paste0(rep("?", length(args)+length(outputParameter)),
+    #                        collapse=","),
+    #                  ")")
+    query <- constructStoredProcSQL(pConnection=connection,
+                                    pFuncName=query,
+                                    pOutputParameter=outputParameter,
+                                    ...)
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
 
@@ -417,6 +425,11 @@ gen_table_name <- function(prefix,suffix){
 ##'                         c("C:/Users/phani/Downloads/hive-jdbc-1.2.1-standalone.jar",
 ##'                             "C:/Users/phani/Downloads/hadoop-common-2.6.0.jar"),
 ##'                         driverClass="org.apache.hive.jdbc.HiveDriver")
+##' connection <- flConnect("jdbc:ncluster://192.168.100.220:2406","fuzzylogix",
+##'                          "db_superuser","db_superuser",
+##'                         c("C:/Users/phani/Downloads/noarch-aster-jdbc-driver.jar",
+##'                           "C:/Users/phani/Downloads/noarch-aster-adfs-client.jar"),
+##'                         driverClass = "com.asterdata.ncluster.Driver")
 ##' @export
 flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       jdbc.jarsDir=NULL,
@@ -433,6 +446,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector \n ")
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
+            #browser()
             require(RJDBC)
             if(!is.null(jdbc.jarsDir)){
                 # cat(paste0("adding classpath ",jdbc.jarsDir,"/terajdbc4.jar and ",
@@ -732,6 +746,13 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
     return(TRUE)
     else return(FALSE)
 }
+
+rearrangeInputCols <- function(pInputCols,
+                                pIndex){
+    return(pInputCols[pIndex])
+}
+
+
 flag1Check <- function(connection)
 {
     return(TRUE)

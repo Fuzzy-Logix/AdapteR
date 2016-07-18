@@ -2,6 +2,20 @@
 #' @include data_prep.R
 #' @include FLTable.R
 NULL
+
+setClass("FLDataMining",
+		slots=list(AnalysisID="character",
+				wideToDeepAnalysisID="character",
+				table="FLTable",
+				results="list",
+				deeptable="FLTable",
+				mapTable="character"))
+
+setClass("FLRegr",
+		contains="FLDataMining",
+		slots=list(formula="formula",
+					scoreTable="character"))
+
 #' An S4 class to represent FLLinRegr
 #'
 #' @slot formula an object of class 'formula': Model Formula
@@ -24,15 +38,8 @@ NULL
 #' @method predict FLLinRegr
 setClass(
 	"FLLinRegr",
-	slots=list(formula="formula",
-				AnalysisID="character",
-				wideToDeepAnalysisId="character",
-				table="FLTable",
-				results="list",
-				deeptable="FLTable",
-				mapTable="character",
-				scoreTable="character",
-				offset="character",
+	contains="FLRegr",
+	slots=list(offset="character",
 				vfcalls="character"))
 
 #' @export
@@ -421,7 +428,7 @@ lmGeneric <- function(formula,data,
 										coefftablename="fzzlLogRegrMNCoeffs",
 										statstablename="fzzlLogRegrMNStats",
 										valcolnamescoretable="Y",
-										scoretablename="FLLogRegrMNScore")
+										scoretablename="FLLogRegrScore")
 
 	functionName <- vfcalls["functionName"]
 	infotableName <- vfcalls["infotableName"]
@@ -429,66 +436,124 @@ lmGeneric <- function(formula,data,
 	coefftablename <- vfcalls["coefftablename"]
 	statstablename <- vfcalls["statstablename"]
 
-	if(direction=="")
-    sqlstr <- paste0("CALL ",functionName,"(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
-					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
-					 				ifelse(base::grepl("logistic",familytype),paste0(pThreshold,",\n"),""),
-					 				ifelse(familytype %in% "logisticwt",paste0(eventweight,",\n"),""),
-					 				ifelse(familytype %in% "logisticwt",paste0(noneventweight,",\n"),""),
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="backward")
-    sqlstr <- paste0("CALL ",paste0(functionName,"BW"),"(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
-					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
-					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
-					 				vspecID,",\n",
-					 				highestpAllow1,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="Fbackward")
-    sqlstr <- paste0("CALL ",paste0(functionName,"FB"),"(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
-					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
-					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
-					 				vspecID,",\n",
-					 				highestpAllow1,",\n",
-					 				highestpAllow2,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="UFbackward")
-    sqlstr <- paste0("CALL ",paste0(functionName,"UFB"),"(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
-					 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
-					 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
-					 				vspecID,",\n",
-					 				highestpAllow1,",\n",
-					 				highestpAllow2,",\n",
-					 				stepWiseDecrease,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
-    else if(direction=="forward")
-    sqlstr <- paste0("CALL ",paste0(functionName,"SW"),"(",fquote(deeptable),",\n",
-					 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
-					 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
-					 				ifelse(!familytype %in% "linear",paste0(pThreshold,",\n"),""),
-					 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
-					 				topN,",\n",
-					 				highestpAllow1,",\n",
-					 				fquote(vnote),",\nAnalysisID );\n")
+	vinputCols <- c()
+	vinputCols <- c(vinputCols,
+						INPUT_TABLE=fquote(deeptable),
+						OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
+						VARID_COL=getVariables(deepx)[["var_id_colname"]],
+						VALUE_COL=etVariables(deepx)[["cell_val_colname"]],
+						)
+	if(familytype %in% "multinomial")
+	vinputCols <- c(vinputCols,
+					THRESHOLD=pThreshold)
+	if(!familytype %in% "linear" && direction!="forward")
+	vinputCols <- c(vinputCols,
+					MAX_ITER=maxiter)
+	if(base::grepl("logistic",familytype) 
+		&& direction!="forward")
+	vinputCols <- c(vinputCols,
+					THRESHOLD=pThreshold)
+	if(direction==""){
+		vfuncName=functionName
+		if(familytype %in% "logisticwt")
+		vinputCols <- c(vinputCols,
+						EVENTWEIGHT=eventweight,
+						NONEVENTWEIGHT=noneventweight)
+	}
+	if(direction %in% c("backward","Fbackward","UFbackward")){
+		vfuncName <- paste0(functionName,"BW")
+		vinputCols <- c(vinputCols,
+						SPECID=vspecID,
+						HIGHESTPALLOW1=highestpAllow1)
+	}
+	if(direction %in% c("Fbackward","UFbackward")){
+		vfuncName <- paste0(functionName,"FB")
+		vinputCols <- c(vinputCols,
+						HIGHESTPALLOW2=highestpAllow2)
+	}
+	if(direction %in% c("UFbackward")){
+		vfuncName <- paste0(functionName,"UFB")
+		vinputCols <- c(vinputCols,
+						STEPWISEDECREASE=stepWiseDecrease)
+	}
+	if(direction %in% c("forward")){
+		vfuncName <- paste0(functionName,"SW")
+		if(!familytype %in% "linear")
+		vinputCols <- c(vinputCols,
+						THRESHOLD=pThreshold)
+		if(familytype %in% "logistic")
+		vinputCols <- c(vinputCols,
+					MAX_ITER=maxiter)
+		vinputCols <- c(vinputCols,
+						TOPN=topN,
+						HIGHESTPALLOW1=highestpAllow1)
+	}
+	vinputCols <- c(vinputCols,
+					NOTE=vnote)
+	retobj <- sqlStoredProc(getOption("connectionFL"),
+							vfuncName,
+							outputParameter=c(AnalysisID="a"),
+							vinputCols
+							)
+    # sqlstr <- paste0("CALL ",functionName,"(",fquote(deeptable),",\n",
+				# 	 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+				# 	 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+				# 	 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
+				# 	 				ifelse(base::grepl("logistic",familytype),paste0(pThreshold,",\n"),""),
+				# 	 				ifelse(familytype %in% "logisticwt",paste0(eventweight,",\n"),""),
+				# 	 				ifelse(familytype %in% "logisticwt",paste0(noneventweight,",\n"),""),
+				# 	 				fquote(vnote),",\nAnalysisID );\n")
+    # else if(direction=="backward")
+    # sqlstr <- paste0("CALL ",paste0(functionName,"BW"),"(",fquote(deeptable),",\n",
+				# 	 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+				# 	 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+				# 	 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
+				# 	 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
+				# 	 				vspecID,",\n",
+				# 	 				highestpAllow1,",\n",
+				# 	 				fquote(vnote),",\nAnalysisID );\n")
+    # else if(direction=="Fbackward")
+    # sqlstr <- paste0("CALL ",paste0(functionName,"FB"),"(",fquote(deeptable),",\n",
+				# 	 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+				# 	 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+				# 	 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
+				# 	 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
+				# 	 				vspecID,",\n",
+				# 	 				highestpAllow1,",\n",
+				# 	 				highestpAllow2,",\n",
+				# 	 				fquote(vnote),",\nAnalysisID );\n")
+    # else if(direction=="UFbackward")
+    # sqlstr <- paste0("CALL ",paste0(functionName,"UFB"),"(",fquote(deeptable),",\n",
+				# 	 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+				# 	 				ifelse(familytype %in% "multinomial",paste0(pThreshold,",\n"),""),
+				# 	 				ifelse(!familytype %in% "linear",paste0(maxiter,",\n"),""),
+				# 	 				ifelse(familytype %in% "logistic",paste0(pThreshold,",\n"),""),
+				# 	 				vspecID,",\n",
+				# 	 				highestpAllow1,",\n",
+				# 	 				highestpAllow2,",\n",
+				# 	 				stepWiseDecrease,",\n",
+				# 	 				fquote(vnote),",\nAnalysisID );\n")
+    # else if(direction=="forward")
+    # sqlstr <- paste0("CALL ",paste0(functionName,"SW"),"(",fquote(deeptable),",\n",
+				# 	 				fquote(getVariables(deepx)[["obs_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["var_id_colname"]]),",\n",
+				# 	 				fquote(getVariables(deepx)[["cell_val_colname"]]),",\n",
+				# 	 				ifelse(!familytype %in% "linear",paste0(pThreshold,",\n"),""),
+				# 	 				ifelse(familytype %in% "logistic",paste0(maxiter,",\n"),""),
+				# 	 				topN,",\n",
+				# 	 				highestpAllow1,",\n",
+				# 	 				fquote(vnote),",\nAnalysisID );\n")
 	
-	retobj <- sqlQuery(connection,sqlstr,
-						genAnalysisIDQuery(infotableName,vnote))
+	# retobj <- sqlQuery(connection,sqlstr,
+	# 					genAnalysisIDQuery(infotableName,vnote))
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 
@@ -1284,7 +1349,8 @@ predict.lmGeneric <- function(object,
 	vinputTable <- paste0(newdata@select@database,".",newdata@select@table_name)
 
 	if(scoreTable=="")
-	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
+						gen_score_table_name(object@table@select@table_name))
 	else if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
 	vfcalls <- object@vfcalls
@@ -1327,22 +1393,47 @@ predict.lmGeneric <- function(object,
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
-	sqlstr <- paste0("CALL ",vfcalls["scoretablename"],
-							" (",fquote(newdata@select@table_name),",\n",
-							 fquote(vobsid),",\n",
-							 fquote(vvarid),",\n",
-							 fquote(vvalue),",\n",
-							 ifelse(object@vfcalls["functionName"]=="FLPoissonRegr",
-							 "",paste0("NULL,\n")),
-							 fquote(object@AnalysisID),",\n",
-							 fquote(scoreTable),",\n",
-							 fquote(genNote(paste0("Scoring ",vfcalls["note"]))),
-							 ",\noAnalysisID);")
 
-	AnalysisID <- sqlQuery(getOption("connectionFL"),
-								sqlstr,
-								genAnalysisIDQuery(vfcalls["infotableName"],
-									genNote(paste0("Scoring ",vfcalls["note"]))))
+
+	## Scoring functions are very messed up in Aster!!
+	## LogRegr and LinRegr score have diff order of i/p within Aster!!
+	vinputCols <- c(INPUT_TABLE=newdata@select@table_name,
+					OBSID_COL=vobsid,
+					VARID_COL=vvarid,
+					VALUE_COL=vvalue
+					)
+	if(!object@vfcalls["functionName"]=="FLPoissonRegr")
+	vinputCols <- c(vinputCols,
+					WHERE_CLAUSE="NULL")
+	vinputCols <- c(vinputCols,
+					ANALYSISID=object@AnalysisID,
+					OUTPUT_TABLE=scoreTable)
+
+	if(!is.Hadoop())
+	vinputCols <- c(vinputCols,
+					NOTE=genNote(paste0("Scoring ",vfcalls["note"])))
+
+	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
+								vfcalls["scoretablename"],
+								outputParameter=c(AnalysisID="a"),
+								vinputCols)
+
+	# sqlstr <- paste0("CALL ",vfcalls["scoretablename"],
+	# 						" (",fquote(newdata@select@table_name),",\n",
+	# 						 fquote(vobsid),",\n",
+	# 						 fquote(vvarid),",\n",
+	# 						 fquote(vvalue),",\n",
+	# 						 ifelse(object@vfcalls["functionName"]=="FLPoissonRegr",
+	# 						 "",paste0("NULL,\n")),
+	# 						 fquote(object@AnalysisID),",\n",
+	# 						 fquote(scoreTable),",\n",
+	# 						 fquote(genNote(paste0("Scoring ",vfcalls["note"]))),
+	# 						 ",\noAnalysisID);")
+
+	# AnalysisID <- sqlQuery(getOption("connectionFL"),
+	# 							sqlstr,
+	# 							genAnalysisIDQuery(vfcalls["infotableName"],
+	# 								genNote(paste0("Scoring ",vfcalls["note"]))))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -1383,7 +1474,7 @@ print.FLLinRegr<-function(object){
 setMethod("show","FLLinRegr",print.FLLinRegr)
 
 #' @export
-plot.FLLinRegr <- function(object)
+plot.FLLinRegr <- function(object,...)
 {
 	reqList <- list(residuals=as.vector(object$residuals),
 					coefficients=object$coefficients,

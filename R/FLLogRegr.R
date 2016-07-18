@@ -25,15 +25,8 @@ NULL
 #' @method predict FLLogRegr
 setClass(
 	"FLLogRegr",
-	slots=list(formula="formula",
-				AnalysisID="character",
-				wideToDeepAnalysisId="character",
-				table="FLTable",
-				results="list",
-				deeptable="FLTable",
-				mapTable="character",
-				scoreTable="character",
-				offset="character",
+	contains="FLRegr",
+	slots=list(offset="character",
 				vfcalls="character"))
 
 #' @export
@@ -134,7 +127,7 @@ glm.FLTable <- function(formula,
 		family <- "poisson"
 		else if(base::identical(family,stats::binomial))
 		family <- "logistic"
-		else stop("only poisson,binomial,multinomial and logisticwt are currently supported in glm\n")
+		else stop("only poisson,binomial,multinomial and logisticwt families are currently supported in glm\n")
 	}
 
 	return(lmGeneric(formula=formula,
@@ -296,7 +289,7 @@ print.FLLogRegr<-function(object){
 setMethod("show","FLLogRegr",print.FLLinRegr)
 
 #' @export
-plot.FLLogRegr <- function(object)
+plot.FLLogRegr <- function(object,...)
 {
 	plot.FLLinRegr(object)
 	parentObject <- unlist(strsplit(unlist(strsplit(
