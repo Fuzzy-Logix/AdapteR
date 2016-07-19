@@ -1,46 +1,49 @@
 Renv = new.env(parent = globalenv())
 
-Renv$var1 = c(18,17,15,20,10,20,25,13,12)
-Renv$var2 = gl(3,1,9)
-Renv$var3 = gl(3,3)
-Renv$var4 = data.frame(variable3 = Renv$var3,variable2 = Renv$var2,variable1 = Renv$var1)
+var1 <- rnorm(2000)
+var2 <- rnorm(2000)
+var3 <- sample( c(0, 1), 2000, replace = TRUE)
+var4 <- data.frame(var1 = var1,var2 =var2, var3 = var3)
+rownames(var4) <- 1:nrow(var4)
+Renv$var4 <- var4
+FLenv = as.FL(Renv)
 
-utils::data(anorexia6, package = "MASS")
-Renv$var5 = anorexia
+fam <- c("poisson","binomial")
+sapply(fam, function(z){
+              
+              Renv$glmobj <- glm(var3 ~ var2 + var1 , data = Renv$var4, family = z , x=TRUE, y=TRUE)
+              FLenv$glmobj <- glm(var3 ~ var2  + var1, data = FLenv$var4, family = z)
+              
+              test_that("Check for glm function its output coefficients",{
+              
+                result = eval_expect_equal({
+                  sapply(c("coefficients","residuals",
+                           "fitted.values","df.residual"
+                          ),
+                            function(i){
+                              assign(i,do.call("$",list(glmobj,i)))
+                            }
+                            )
+                  modelDim <- dim(glmobj$model)
+                  xDim <- dim(glmobj$x)
+                  ylength <- length(glmobj$y)
 
-Renv$var6 = data.frame(
-            u = c(5,10,15,20,30,40,60,80,100),
-            lot1 = c(118,58,42,35,27,25,21,19,18),
-            lot2 = c(69,35,26,21,18,16,13,12,12))
+                            
+                          },Renv,FLenv)
 
-FLenv= as.FL(Renv)
 
-#Incorrect number of dimensions .
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360575
-test_that("Check for glm function with family to be default ( gaussian in R) and (binomial in AdapteR)",{
-          result = eval_expect_equal({
-                   test1 =  glm(variable1 ~ variable2 + variable3,data = var4)
-            },Renv,FLenv)
-          print(result)
-    })
 
-#Incorrect Number of dimensions.
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360575
-test_that("Check for glm function with family to be default",{
-          result = eval_expect_equal({
-                   test2 = glm(Postwt ~ Prewt + Treat + offset(Prewt),
-                               data = var5)
-            },Renv,FLenv)
-          print(result)
-    })
+                FLexpect_equal(ncol(FLenv$glmobj$FLLogRegrStats),16)
 
-#Test for glm with family Gamma.
-#Not supported for gamma family.
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360575
-test_that("Check for glm function with Gamma family",{
-          result = eval_expect_equal({
-                   test3 = glm(lot1 ~ log(u), data = var6, family = Gamma)
-                   test4 = glm(lot2 ~ log(u), data = var6, family = Gamma)
-            },Renv,FLenv)
-          print(result)
-    })
+                sapply(c("FLCoeffStdErr","FLCoeffTChiSq",
+                           "FLCoeffPValue"), 
+                            function(x){
+                              FLexpect_equal(length(Renv$coefficients),
+                                length(do.call("$",list(FLenv$glmobj,x))))
+                            }
+          )
+           
+})
+  })
+
+# Test passes till line 33 or fails after FLLogRegrStats

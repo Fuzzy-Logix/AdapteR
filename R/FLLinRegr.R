@@ -799,8 +799,8 @@ prepareData.lmGeneric <- function(formula,data,
 			deeptablename <- gen_view_name("New")
 			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 							deeptablename," AS ",constructSelect(data))
-			t <- sqlQuery(connection,sqlstr)
-			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			t <- sqlSendUpdate(connection,sqlstr)
+			#if(length(t)>1) stop("Input Table and whereconditions mismatch")
 			deepx <- FLTable(
 	                   getOption("ResultDatabaseFL"),
 	                   deeptablename,
