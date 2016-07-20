@@ -90,7 +90,8 @@ FLTable <- function(database,
 	else
 	{
         
-        R <- sqlQuery(connection,paste0("select top 1 * from ",remoteTable(database,table)))
+        R <- sqlQuery(connection,
+                      limitRowsSQL(paste0("select * from ",remoteTable(database,table)),1))
         cols <- names(R)
         rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",

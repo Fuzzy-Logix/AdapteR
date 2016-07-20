@@ -74,3 +74,21 @@ is.RSparseMatrix <- function(object){
     else
     return(FALSE)
 }
+
+is.TD <- function(){
+    if(getOption("FLPlatform")=="TD")
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.TDAster <- function(){
+    if(getOption("FLPlatform")=="TDAster")
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.Hadoop <- function(){
+    if(getOption("FLPlatform")=="Hadoop")
+    return(TRUE)
+    else return(FALSE)
+}

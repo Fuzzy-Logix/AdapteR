@@ -335,7 +335,7 @@ FLamendDimnames <- function(flm,map_table) {
     ## if there is still no dimnames set,
     ## use unique values as dimnames
     selectUnique <- function(varname)
-        paste0("SELECT unique(",
+        paste0("SELECT DISTINCT(",
                flm@select@variables[[varname]],
                ") as V\n",
                "FROM  ",remoteTable(flm@select),

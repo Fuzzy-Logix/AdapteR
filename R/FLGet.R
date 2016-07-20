@@ -19,9 +19,9 @@ getFLColumnType <- function(x,columnName=NULL){
       }
       if(!grepl("with",tolower(constructSelect(x)))){
         vresult <- tolower(sqlQuery(getOption("connectionFL"),
-                            paste0("SELECT TOP 1 TYPE(a.",columnName,
-                                    ") \n FROM (",constructSelect(x),
-                                    ") a"))[1,1])
+                            limitRowsSQL(paste0("SELECT TYPE(a.",columnName,
+                                              ") \n FROM (",constructSelect(x),
+                                              ") a"),1))[1,1])
         vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
         vtemp <- as.vector(sapply(c("char","int","float","number"),
                         function(y)
@@ -34,7 +34,7 @@ getFLColumnType <- function(x,columnName=NULL){
       vmapping <- c(VARCHAR="character",
                     INT="integer",
                     FLOAT="numeric",
-                    INT="logical")
+                    VARCHAR="logical")
       vresult <- names(vmapping)[vmapping==class(x)]
     }
     if(vresult=="VARCHAR") 
@@ -97,3 +97,7 @@ setMethod("getValueColumn",signature(object="FLTable"),
                         else return(x)
                         }))
         })
+
+getFLPlatform <- function(){
+    return(getOption("FLPlatform"))
+}

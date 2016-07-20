@@ -133,7 +133,7 @@ setMethod("getConnection",
           function(object) getConnection(object@parts[[1]]))
 
 setMethod("store",
-          signature(object = "FLMatrixBind",returnType="missing"),
+          signature(object = "FLMatrixBind"),
           function(object) store.FLMatrix(object))
 
 
