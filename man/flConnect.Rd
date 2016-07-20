@@ -6,7 +6,8 @@
 the FL session tables.}
 \usage{
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
-  jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL, ...)
+  jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL,
+  driverClass = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{host}{}
@@ -17,11 +18,24 @@ flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
 
 \item{passwd}{}
 
-\item{jdbc.jarsDir}{if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.}
+\item{jdbc.jarsDir}{if provided, class paths for jars to be loaded.
+If one element, a directory, all jar files in that directory will be loaded.
+If multiple elements, specific jar files, these will be loaded.
+Issues can occur unless you provide the fully qualified path.}
+
+\item{jdbc.options}{}
 
 \item{odbcSource}{}
 
+\item{driverClass}{}
+
+\item{verbose}{print debugging messages}
+
 \item{...}{}
+
+\item{#"TMODE}{}
+
+\item{CHARSET}{}
 }
 \value{
 either an ODBC connection or an JDBC connection
@@ -29,5 +43,25 @@ either an ODBC connection or an JDBC connection
 \description{
 Creates either an ODBC connection or an JDBC connection and initializes
 the FL session tables.
+}
+\examples{
+connection <- flConnect("jdbc:ncluster://10.47.10.30:2406",
+                          "fuzzylogix",
+                         "mroy","mroy",
+                        c("C:/Users/phani/Downloads/noarch-aster-jdbc-driver.jar",
+                            "C:/Users/phani/Downloads/noarch-aster-adfs-client.jar"),
+                        driverClass="com.asterdata.ncluster.Driver")
+connection <- flConnect("jdbc:teradata://10.200.4.116",
+                          "FL_DEMO",
+                         "psrikar","fzzlpass",
+                        c("C:/Users/phani/Downloads/terajdbc4.jar",
+                            "C:/Users/phani/Downloads/tdgssconfig.jar"),
+                        driverClass="com.teradata.jdbc.TeraDriver")
+connection <- flConnect("jdbc:hive2://192.168.2.179:10000",
+                         "dblytix",
+                         "hive","",
+                        c("C:/Users/phani/Downloads/hive-jdbc-1.2.1-standalone.jar",
+                            "C:/Users/phani/Downloads/hadoop-common-2.6.0.jar"),
+                        driverClass="org.apache.hive.jdbc.HiveDriver")
 }
 

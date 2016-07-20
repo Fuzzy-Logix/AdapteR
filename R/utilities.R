@@ -389,13 +389,20 @@ gen_table_name <- function(prefix,suffix){
 ##' Creates either an ODBC connection or an JDBC connection and initializes
 ##' the FL session tables.
 ##'
-##' @param odbcSource 
 ##' @param host 
 ##' @param database 
 ##' @param user 
 ##' @param passwd 
 ##' @param jdbc.jarsDir if provided, class paths for jars to be loaded.
+##' If one element, a directory, all jar files in that directory will be loaded.
+##' If multiple elements, specific jar files, these will be loaded.
 ##' Issues can occur unless you provide the fully qualified path.
+##' @param jdbc.options 
+##' @param #"TMODE 
+##' @param CHARSET 
+##' @param odbcSource 
+##' @param driverClass 
+##' @param verbose print debugging messages
 ##' @param ... 
 ##' @return either an ODBC connection or an JDBC connection
 ##' @examples
@@ -423,6 +430,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       jdbc.options="",# "TMODE=TERA,CHARSET=ASCII",
                       odbcSource=NULL,
                       driverClass=NULL,
+                      verbose=FALSE,
                       ...){
     connection <- NULL
     if(!is.null(host) &
@@ -430,20 +438,26 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         if(is.null(user)) user <- readline("Your username:")
         if(is.null(passwd)) passwd <- readline("Your password:")
         if(is.null(driverClass)) driverClass <- readline("driverClass")
-        if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector \n ")
+        if(!grepl("^jdbc:(teradata|aster)://",host)) stop(paste0("host needs to start with 'jdbc:teradata://' or 'jdbc:aster://'."))
+        if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector.")
+        if(is.null(driverClass)) stop("You must provide a jdbc driver class, e.g. com.teradata.jdbc.TeraDriver.")
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
             require(RJDBC)
+            ##browser()
             if(!is.null(jdbc.jarsDir)){
-                # cat(paste0("adding classpath ",jdbc.jarsDir,"/terajdbc4.jar and ",
-                #            jdbc.jarsDir,"/tdgssconfig.jar\n"))
-                .jaddClassPath(paste0(jdbc.jarsDir[1]))
-                .jaddClassPath(paste0(jdbc.jarsDir[2]))
+                if(length(jdbc.jarsDir)==1 & dir.exists(jdbc.jarsDir))
+                    jdbc.jarsDir <- list.files(jdbc.jarsDir,".*\\.jar",full.names = TRUE,ignore.case = TRUE)
+                for(jarF in jdbc.jarsDir){
+                    if(verbose)
+                        cat(paste0("adding classpath ",jarF,"\n"))
+                    .jaddClassPath(jarF)
+                }
             }
             Sys.sleep(1)
             require(RJDBC)
             drv <- JDBC(driverClass)
-            st <- paste(host, sep = "")
+            st <- paste0(host)
             if(!is.null(database))
                 st <- paste0(st, "/",database[1], 
                         ifelse(jdbc.options=="",
@@ -454,7 +468,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             connection <- dbConnect(drv, st, user = user, password = passwd)
             invisible(connection)
         }
-
+        
         ## following connection code takes care of this bug:
         ## need to add class path twice (recurring problem in MAC as of:
         ## http://forums.teradata.com/forum/analytics/connecting-to-teradata-in-r-via-the-teradatar-package
