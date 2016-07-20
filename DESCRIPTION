@@ -1,5 +1,6 @@
 Package: AdapteR
-Title: Converts R syntax to SQL to provide fast analytics using in-database C++ library DB Lytix.
+Title: Converts R syntax to SQL to provide fast analytics using in-database C++
+    library DB Lytix.
 Version: 2.1
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
@@ -69,6 +70,10 @@ Collate:
     'FLEigen.R'
     'FLExpLog.R'
     'FLFKMeans.R'
+    'utilities.R'
+    'FLVector.R'
+    'FLTable.R'
+    'FLGAM.R'
     'FLGinv.R'
     'FLHClust.R'
     'FLHKMeans.R'
@@ -81,6 +86,10 @@ Collate:
     'FLKMedoids.R'
     'FLLUDecomp.R'
     'FLLength.R'
+    'data_prep.R'
+    'FLLinRegr.R'
+    'FLLogRegr.R'
+    'FLLogRegrMN.R'
     'FLMatrixArithmetic.R'
     'FLStore.R'
     'FLconstructSQL.R'
@@ -102,17 +111,14 @@ Collate:
     'FLStatFunctions.R'
     'FLStringFunctions.R'
     'FLSubsetting.R'
-    'FLTable.R'
     'FLTrace.R'
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
-    'FLVector.R'
     'FLtestLib.R'
     'apply.R'
+    'constructAbstractSQL.R'
     'crossprod.R'
-    'data_prep.R'
     'experiment_benchmarking.R'
     'tcrossprod.R'
-    'utilities.R'
 RoxygenNote: 5.0.1

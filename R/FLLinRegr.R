@@ -92,10 +92,10 @@ lm.FLTable <- function(formula,data,...)
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
 	return(lmGeneric(formula=formula,
-					data=data,
-					callObject=vcallObject,
-					familytype="linear",
-					...))
+                         data=data,
+                         callObject=vcallObject,
+                         familytype="linear",
+                         ...))
 }
 
 #' Choose a model.
@@ -347,12 +347,12 @@ step.FLTable <- function(object, scope, scale = 0,
 
 }
 lmGeneric <- function(formula,data,
-					specID=list(),
-					direction="",
-					trace=1,
-					callObject=NULL,
-					familytype="linear",
-					...)
+                      specID=list(),
+                      direction="",
+                      trace=1,
+                      callObject=NULL,
+                      familytype="linear",
+                      ...)
 {
 	#browser()
 	prepData <- prepareData.lmGeneric(formula,data,specID=specID,
@@ -620,7 +620,8 @@ prepareData.lmGeneric <- function(formula,data,
 								maxiter=25,
 								familytype="linear",
 								offset="",
-								pRefLevel=NULL){
+								pRefLevel=NULL,
+                                ...){
 	#browser()
 	if(data@isDeep){
 		vallVars <- colnames(data)
@@ -1383,7 +1384,7 @@ print.FLLinRegr<-function(object){
 setMethod("show","FLLinRegr",print.FLLinRegr)
 
 #' @export
-plot.FLLinRegr <- function(object)
+plot.FLLinRegr <- function(object,...)
 {
 	reqList <- list(residuals=as.vector(object$residuals),
 					coefficients=object$coefficients,
@@ -1399,7 +1400,7 @@ plot.FLLinRegr <- function(object)
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	assign(parentObject,object,envir=parent.frame())
-	plot(reqList)
+	plot(reqList,...)
 }
 
 #' @export
