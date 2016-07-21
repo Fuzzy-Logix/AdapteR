@@ -172,10 +172,10 @@ prepareData.coxph <- function(formula,data,
 			vtablename <- paste0(getOption("ResultDatabaseFL"),".",a)
 			vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 
-			sqlstr <- paste0("CREATE TABLE ",vtablename,
-							" AS(SELECT b.",vTimeVal2," - b.",vTimeVal1,
-								" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b)WITH DATA")
-			t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
+			sqlstr <- paste0(" SELECT b.",vTimeVal2," - b.",vTimeVal1,
+								" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+			t <- createTable(pTableName=vtablename,
+							pSelect=sqlstr)
 			data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
 			data@select@database <- getOption("ResultDatabaseFL")
 			data@select@table_name <- a

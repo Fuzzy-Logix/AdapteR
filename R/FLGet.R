@@ -17,26 +17,31 @@ getFLColumnType <- function(x,columnName=NULL){
                     cell_val_colname="FLTable")
         columnName <- as.character(names(vmapping)[class(x)==vmapping])
       }
-      if(!grepl("with",tolower(constructSelect(x)))){
-        vresult <- tolower(sqlQuery(getOption("connectionFL"),
-                            limitRowsSQL(paste0("SELECT TYPE(a.",columnName,
-                                              ") \n FROM (",constructSelect(x),
-                                              ") a"),1))[1,1])
-        vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
-        vtemp <- as.vector(sapply(c("char","int","float","number"),
-                        function(y)
-                        return(grepl(y,vresult))))
-        vresult <- vmapping[vtemp]
-      }
-      else vresult <- "FLOAT"
+    ## Deprecated as no alternative for 'TYPE' in Aster and Hive
+    #   if(!grepl("with",tolower(constructSelect(x)))){
+    #     vresult <- tolower(sqlQuery(getOption("connectionFL"),
+    #                         limitRowsSQL(paste0("SELECT TYPE(a.",columnName,
+    #                                           ") \n FROM (",constructSelect(x),
+    #                                           ") a"),1))[1,1])
+    #     vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
+    #     vtemp <- as.vector(sapply(c("char","int","float","number"),
+    #                     function(y)
+    #                     return(grepl(y,vresult))))
+    #     vresult <- vmapping[vtemp]
+    #   }
+    #   else vresult <- "FLOAT"
+    # }
+    # else{
+      vsqlstr <- limitRowsSQL(constructSelect(x),1)
+      x <- sqlQuery(getConnection(),vsqlstr)
+      colnames(x) <- tolower(colnames(x))
+      x <- x[[tolower(columnName)]]
     }
-    else{
-      vmapping <- c(VARCHAR="character",
-                    INT="integer",
-                    FLOAT="numeric",
-                    VARCHAR="logical")
-      vresult <- names(vmapping)[vmapping==class(x)]
-    }
+    vmapping <- c(VARCHAR="character",
+                  INT="integer",
+                  FLOAT="numeric",
+                  VARCHAR="logical")
+    vresult <- names(vmapping)[vmapping==class(x)]
     if(vresult=="VARCHAR") 
     vresult <- "VARCHAR(255)"
     return(vresult)
@@ -99,5 +104,10 @@ setMethod("getValueColumn",signature(object="FLTable"),
         })
 
 getFLPlatform <- function(){
-    return(getOption("FLPlatform"))
+  return(getOption("FLPlatform"))
 }
+
+setMethod("getConnection",
+          signature(object = "missing"),
+          function(object) 
+            getOption("connectionFL"))

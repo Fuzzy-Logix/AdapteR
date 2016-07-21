@@ -275,7 +275,7 @@ setCurrentDatabase <- function(pDBName){
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 }
 
-## CREATE TABLE
+## CREATE TABLE SQL
 ## covers cases where table is created from other tables
 ## with and without data , temporary and permanent
 createTable <- function(pTableName,

@@ -214,25 +214,19 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
             !getOption("FLTestVectorTable"))
     {
       if(!checkRemoteTableExistence(tableName="ARTestIntVectorTable"))
-      vtemp <- sqlQuery(getOption("connectionFL"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
-                                ".ARTestIntVectorTable AS \n ",
-                                "(SELECT a.serialval AS vectorIndexColumn, \n ",
+      vtemp <- createTable(pTableName="ARTestIntVectorTable",
+                          pSelect=paste0(" SELECT a.serialval AS vectorIndexColumn, \n ",
                                 " CAST(FLSimUniform(a.serialval,-100,100) AS INT) AS vectorValueColumn \n ",
-                                " FROM fzzlserial a) WITH DATA;")
-                        )
+                                " FROM fzzlserial a "))
       if(!checkRemoteTableExistence(tableName="ARTestCharVectorTable"))
-      vtemp <- sqlQuery(getOption("connectionFL"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
-                                ".ARTestCharVectorTable AS \n ",
-                                "(SELECT a.serialval AS vectorIndexColumn, \n ",
-                                " b.string1 AS vectorValueColumn \n ",
-                                " FROM fzzlserial a, \n ",
-                                    "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
-                                      "string1 \n ",
-                                    " FROM tblstring ) AS b \n ",
-                                " WHERE FLMOD(a.serialval,5) + 1 = b.obsid) WITH DATA;")
-                        )
+      vtemp <- createTable(pTableName="ARTestCharVectorTable",
+                          pSelect=paste0(" SELECT a.serialval AS vectorIndexColumn, \n ",
+                                        " b.string1 AS vectorValueColumn \n ",
+                                        " FROM fzzlserial a, \n ",
+                                            "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
+                                              "string1 \n ",
+                                            " FROM tblstring ) AS b \n ",
+                                        " WHERE FLMOD(a.serialval,5) + 1 = b.obsid "))
       if(type=="int") vtableName <- "ARTestIntVectorTable"
       else vtableName <- "ARTestCharVectorTable"
       options(FLTestVectorTable=TRUE)
@@ -298,50 +292,43 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
     {
       vtableName <- "ARTestIntMatrixTable"
       if(!checkRemoteTableExistence(tableName="ARTestIntMatrixTable"))
-      vtemp <- sqlQuery(getOption("connectionFL"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
-                                ".ARTestIntMatrixTable AS \n ",
-                                "(SELECT a.serialval AS rowIdColumn, \n ",
-                                " b.serialval AS colIdColumn, \n ",
-                                " CAST(FLSimUniform(ROW_NUMBER()",
-                                "OVER(ORDER BY a.serialval,b.serialval),",
-                                " -100,100) AS INT) AS valueColumn \n ",
-                                " FROM fzzlserial a,fzzlserial b \n ",
-                                " WHERE a.serialval < 1001",n+1,
-                                " AND b.serialval < 1001) WITH DATA;")
-                        )
+      vtemp <- createTable(pTableName="ARTestIntMatrixTable",
+                          pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
+                                        " b.serialval AS colIdColumn, \n ",
+                                        " CAST(FLSimUniform(ROW_NUMBER()",
+                                        "OVER(ORDER BY a.serialval,b.serialval),",
+                                        " -100,100) AS INT) AS valueColumn \n ",
+                                        " FROM fzzlserial a,fzzlserial b \n ",
+                                        " WHERE a.serialval < 1001",n+1,
+                                        " AND b.serialval < 1001 "))
     }
     else if(type=="character"){
       vtableName <- "ARTestCharMatrixTable"
       if(!checkRemoteTableExistence(tableName="ARTestCharMatrixTable"))
-      vtemp <- sqlQuery(getOption("connectionFL"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
-                                ".ARTestCharMatrixTable AS \n ",
-                                "(SELECT a.serialval AS rowIdColumn, \n ",
-                                " b.serialval AS colIdColumn, \n ",
-                                " c.string1 AS valueColumn \n ",
-                                " FROM fzzlserial a,fzzlserial b, \n ",
-                                "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
-                                  "string1 FROM tblstring) c ",
-                                " WHERE a.serialval < 1001 \n ",
-                                " AND b.serialval < 1001 \n ",
-                                " AND FLMOD(a.serialval,5)+1=c.obsid) WITH DATA;")
+      vtemp <- createTable(pTableName="ARTestCharMatrixTable",
+                          pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
+                                        " b.serialval AS colIdColumn, \n ",
+                                        " c.string1 AS valueColumn \n ",
+                                        " FROM fzzlserial a,fzzlserial b, \n ",
+                                        "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
+                                          "string1 FROM tblstring) c ",
+                                        " WHERE a.serialval < 1001 \n ",
+                                        " AND b.serialval < 1001 \n ",
+                                        " AND FLMOD(a.serialval,5)+1=c.obsid ")
                         )
     }
     else if(type=="float"){
       vtableName <- "ARTestMatrixTable"
       if(!checkRemoteTableExistence(tableName="ARTestMatrixTable"))
-      vtemp <- sqlQuery(getOption("connectionFL"),
-                        paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),
-                                ".ARTestMatrixTable AS \n ",
-                                "(SELECT a.serialval AS rowIdColumn, \n ",
+      vtemp <- createTable(pTableName="ARTestMatrixTable",
+                          pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
                                 " b.serialval AS colIdColumn, \n ",
                                 " FLSimUniform(ROW_NUMBER()",
                                 "OVER(ORDER BY a.serialval,b.serialval),",
                                 " -100,100) AS valueColumn \n ",
                                 " FROM fzzlserial a,fzzlserial b \n ",
                                 " WHERE a.serialval < 1001 \n ",
-                                " AND b.serialval < 1001) WITH DATA;")
+                                " AND b.serialval < 1001 ")
                         )
     }
     else stop("type should be int,float,character")

@@ -187,12 +187,12 @@ pam.FLTable <- function(x,
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
 
-		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( 
-			    	     SELECT a.*  
+		sqlstr <- paste0(" SELECT a.*  
 			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"') WITH DATA")
+			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' ")
 		
-		sqlSendUpdate(connection,sqlstr)
+		createTable(pTableName=mapTable,
+					pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{

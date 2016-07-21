@@ -304,7 +304,7 @@ FLamendDimnames <- function(flm,map_table) {
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
-    connection <- getConnection(flm)
+    connection <- getConnection()
     dimnames <- flm@dimnames
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
@@ -337,15 +337,17 @@ FLamendDimnames <- function(flm,map_table) {
     selectUnique <- function(varname)
         paste0("SELECT DISTINCT(",
                flm@select@variables[[varname]],
-               ") as V\n",
+               ") as v\n",
                "FROM  ",remoteTable(flm@select),
                constructWhere(
                    constraintsSQL(flm@select)),
                "\nORDER BY 1")
+    vrownames <- sqlQuery(connection,selectUnique("rowIdColumn"))
+    vcolnames <- sqlQuery(connection,selectUnique("colIdColumn"))
     if(length(rownames)==0)
-        rownames <- sort(sqlQuery(connection,selectUnique("rowIdColumn"))$V)
+        rownames <- sort(vrownames$v)
     if(length(colnames)==0)
-        colnames <- sort(sqlQuery(connection, selectUnique("colIdColumn"))$V)
+        colnames <- sort(vcolnames$v)
 
         vstringdimnames <- lapply(list(rownames,colnames),
                                   function(x){
