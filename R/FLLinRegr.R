@@ -1184,11 +1184,24 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 		FLCoeffStats  <- lapply(FLCoeffStats,
 								function(x)coeffVector[[x]])
 
-		if(!is.null(coeffVector[["COEFFNAME"]]))
+		if(!is.null(coeffVector[["COEFFNAME"]])){
+
 		names(coeffVector1) <- coeffVector[["COEFFNAME"]]
+
+		renamecoeff<-function(pVector,pNames){
+  
+  		names(pVector)<-pNames
+  		return(pVector)}
+
+		coeffVector1 <- renamecoeff(coeffVector1,c("(Intercept)",names(coeffVector1)[2:length(names(coeffVector1))]))
+                                                                
+		}
+
+
+
 		else{
 			vallVars <- all.vars(genDeepFormula(coeffVector[["COEFFID"]]))
-			names(coeffVector1) <- c("Intercept",vallVars[2:length(vallVars)])
+			names(coeffVector1) <- c("(Intercept)",vallVars[2:length(vallVars)])
 		}
 		
 		vcolnames <- colnames(object@deeptable)
