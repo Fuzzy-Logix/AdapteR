@@ -35,12 +35,12 @@ FLJordan.FLMatrix<-function(object,...)
 	
 	tempResultTable <- gen_unique_table_name("Jordon")
 
-        sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+        sqlstr <- paste0(
                          viewSelectMatrix(object, "a","z"),
                          outputSelectMatrix("FLJordanDecompUdt",viewName="z",localName="a",
                                             outColNames=list("OutputMatrixID","OutputRowNum",
                                                              "OutputColNum","OutPVal","OutJVal","OutPInvVal"),
-                                            whereClause=") WITH DATA;")
+                                            whereClause="")
                    )
         sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
@@ -48,7 +48,8 @@ FLJordan.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="FLJordan")
 
-    sqlSendUpdate(connection,sqlstr)
+    createTable(pTableName=tempResultTable,
+                pSelect=sqlstr)
 
     PMatrix <- FLMatrix(
 				       connection = connection, 

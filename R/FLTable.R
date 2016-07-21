@@ -90,7 +90,8 @@ FLTable <- function(database,
 	else
 	{
         
-        R <- sqlQuery(connection,paste0("select top 1 * from ",remoteTable(database,table)))
+        R <- sqlQuery(connection,
+                      limitRowsSQL(paste0("select * from ",remoteTable(database,table)),1))
         cols <- names(R)
         rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
@@ -626,42 +627,26 @@ setGeneric("FLRegrDataPrep", function(object,
 })
 setMethod("FLRegrDataPrep",
           signature(object = "FLTable",
-                    depCol="character",
-                    outDeepTableName="character",
-                    outDeepTableDatabase="character",
-                    outObsIDCol="character",
-                    outVarIDCol="character",
-                    outValueCol="character",
-                    catToDummy="numeric",
-                    performNorm="numeric",
-                    performVarReduc="numeric",
-                    makeDataSparse="numeric",
-                    minStdDev="numeric",
-                    maxCorrel="numeric",
-                    trainOrTest="numeric",
-                    excludeCols="character",
-                    classSpec="list",
-                    whereconditions="character",
-                    inAnalysisID="character"
+                    depCol="character"
                     ),
           function(object,
                   depCol,
-                  outDeepTableName,
-                  outDeepTableDatabase,
-                  outObsIDCol,
-                  outVarIDCol,
-                  outValueCol,
-                  catToDummy,
-                  performNorm,
-                  performVarReduc,
-                  makeDataSparse,
-                  minStdDev,
-                  maxCorrel,
-                  trainOrTest,
-                  excludeCols,
-                  classSpec,
-                  whereconditions,
-                  inAnalysisID)
+                  outDeepTableName=gen_deep_table_name(object@select@table_name),
+                  outDeepTableDatabase=getOption("ResultDatabaseFL"),
+                  outObsIDCol="obs_id_colname",
+                  outVarIDCol="var_id_colname",
+                  outValueCol="var_id_colname",
+                  catToDummy=0,
+                  performNorm=0,
+                  performVarReduc=0,
+                  makeDataSparse=0,
+                  minStdDev=0,
+                  maxCorrel=0,
+                  trainOrTest=0,
+                  excludeCols="",
+                  classSpec=list(),
+                  whereconditions="",
+                  inAnalysisID="")
           {
             if(object@isDeep) return(list(table=object))
             connection <- getConnection(object)
@@ -738,7 +723,7 @@ setMethod("FLRegrDataPrep",
             else if(inAnalysisID=="" || is.null(inAnalysisID)) inAnalysisID <- "NULL"
             else inAnalysisID <- fquote(inAnalysisID)
 
-            if(length(classSpec)==0) classSpec <- "NULL"
+            if(length(classSpec)==0 || classSpec=="") classSpec <- "NULL"
             else
             classSpec <- paste0("'",list_to_class_spec(classSpec),"'")
             whereconditions <- c(whereconditions,object@select@whereconditions)
@@ -754,30 +739,54 @@ setMethod("FLRegrDataPrep",
             if(outVarIDCol=="") outVarIDCol <- "var_id_colname"
             if(outValueCol=="") outValueCol <- "cell_val_colname"
 
-            sqlstr<-paste0("CALL FLRegrDataPrep('",
-                                              object@select@database,".",object@select@table_name,"',\n      ",
-                                              fquote(getVariables(object)[["obs_id_colname"]]),",\n      ",
-                                              fquote(depCol),",\n      ",
-                                              fquote(paste0(outDeepTableDatabase,".",deeptablename)),",\n      ",
-                                              fquote(outObsIDCol),",\n      ",
-                                              fquote(outVarIDCol),",\n      ",
-                                              fquote(outValueCol),",\n      ",
-                                              catToDummy,",\n      ",
-                                              performNorm,",\n      ",
-                                              performVarReduc,",\n      ",
-                                              makeDataSparse,",\n      ",
-                                              minStdDev,",\n      ",
-                                              maxCorrel,",\n      ",
-                                              trainOrTest,",\n      ",
-                                              excludeCols,",\n      ",
-                                              classSpec,",\n      ",
-                                              whereClause,",\n      ",
-                                              inAnalysisID,",\n      ",
-                                              "AnalysisID);")
-            t <- sqlQuery(connection,sqlstr,
-                          AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
+            retobj <- sqlStoredProc(connection,
+                                    "FLRegrDataPrep",
+                                    outputParameter=c(AnalysisID="a"),
+                                    InWideTable=paste0(object@select@database,
+                                                      ".",object@select@table_name),
+                                    ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                                    DepCol=depCol,
+                                    OutDeepTable=paste0(outDeepTableDatabase,
+                                                        ".",deeptablename),
+                                    OutObsIDCol=outObsIDCol,
+                                    OutVarIDCol=outVarIDCol,
+                                    OutValueCol=outValueCol,
+                                    CatToDummy=catToDummy,
+                                    PerformNorm=performNorm,
+                                    PerformVarReduc=performVarReduc,
+                                    MakeDataSparse=makeDataSparse,
+                                    MinStdDev=minStdDev,
+                                    MaxCorrel=maxCorrel,
+                                    TrainOrtest=trainOrTest,
+                                    ExcludeCols=excludeCols,
+                                    ClassSpec=classSpec,
+                                    WhereClause=whereClause,
+                                    InAnalysisID=inAnalysisID
+                                    )
+            # sqlstr<-paste0("CALL FLRegrDataPrep('",
+            #                                   object@select@database,".",object@select@table_name,"',\n      ",
+            #                                   fquote(getVariables(object)[["obs_id_colname"]]),",\n      ",
+            #                                   fquote(depCol),",\n      ",
+            #                                   fquote(paste0(outDeepTableDatabase,".",deeptablename)),",\n      ",
+            #                                   fquote(outObsIDCol),",\n      ",
+            #                                   fquote(outVarIDCol),",\n      ",
+            #                                   fquote(outValueCol),",\n      ",
+            #                                   catToDummy,",\n      ",
+            #                                   performNorm,",\n      ",
+            #                                   performVarReduc,",\n      ",
+            #                                   makeDataSparse,",\n      ",
+            #                                   minStdDev,",\n      ",
+            #                                   maxCorrel,",\n      ",
+            #                                   trainOrTest,",\n      ",
+            #                                   excludeCols,",\n      ",
+            #                                   classSpec,",\n      ",
+            #                                   whereClause,",\n      ",
+            #                                   inAnalysisID,",\n      ",
+            #                                   "AnalysisID);")
+            # t <- sqlQuery(connection,sqlstr,
+            #               AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
-            dataprepID <- as.vector(t[1,1])
+            dataprepID <- as.vector(retobj[1,1])
 
             table <- FLTable(outDeepTableDatabase,
                            deeptablename,

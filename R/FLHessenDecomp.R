@@ -35,12 +35,12 @@ FLHessen.FLMatrix<-function(object,...)
 
 	tempResultTable <- gen_unique_table_name("Hessen")
 
-    sqlstr <- paste0("CREATE TABLE ",tempResultTable," AS(",
+    sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutputPVal","OutputHVal"),
-                    	whereClause=") WITH DATA;")
+                    	whereClause=" ")
                    )
 
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
@@ -49,7 +49,8 @@ FLHessen.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="FLHessen")
 
-    sqlSendUpdate(connection,sqlstr)
+    createTable(pTableName=tempResultTable,
+                pSelect=sqlstr)
 
 	PMatrix <- FLMatrix(
 				       connection = connection, 

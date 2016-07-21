@@ -41,12 +41,12 @@ qr.FLMatrix<-function(object,...)
 
 	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
 
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+    sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLQRDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutputValQ","OutputValR"),
-                    	whereClause=") WITH DATA;")
+                    	whereClause="")
                    )
 
     sqlstr <- gsub("'%insertIDhere%'",MID1,sqlstr)
@@ -55,7 +55,8 @@ qr.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="qr")
 
-    sqlSendUpdate(connection,sqlstr)
+    createTable(pTableName=tempResultTable,
+                pSelect=sqlstr)
 	
 	#calculating QRMatrix
 

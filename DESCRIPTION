@@ -64,16 +64,27 @@ Collate:
     'FLColMeans.R'
     'FLColSums.R'
     'FLCorrel.R'
+    'FLTable.R'
+    'data_prep.R'
+    'utilities.R'
+    'FLLinRegr.R'
+    'FLCoxph.R'
     'FLDet.R'
     'FLDiag.R'
     'FLDims.R'
     'FLEigen.R'
     'FLExpLog.R'
     'FLFKMeans.R'
+<<<<<<< HEAD
     'utilities.R'
     'FLVector.R'
     'FLTable.R'
     'FLGAM.R'
+=======
+    'FLVector.R'
+    'FLGAM.R'
+    'FLGet.R'
+>>>>>>> b6d90653041f3f6dea900d4a7444ef6125fb7d61
     'FLGinv.R'
     'FLHClust.R'
     'FLHKMeans.R'
@@ -86,8 +97,11 @@ Collate:
     'FLKMedoids.R'
     'FLLUDecomp.R'
     'FLLength.R'
+<<<<<<< HEAD
     'data_prep.R'
     'FLLinRegr.R'
+=======
+>>>>>>> b6d90653041f3f6dea900d4a7444ef6125fb7d61
     'FLLogRegr.R'
     'FLLogRegrMN.R'
     'FLMatrixArithmetic.R'
@@ -106,6 +120,7 @@ Collate:
     'FLRowSums.R'
     'FLSV.R'
     'FLSVDecomp.R'
+    'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
     'FLStatFunctions.R'

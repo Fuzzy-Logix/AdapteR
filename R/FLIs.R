@@ -31,3 +31,64 @@ is.FLAbstractColumn <- function(object){
     return(TRUE)
     else return(FALSE)
 }
+
+is.RowFLVector <- function(pObject){
+    if(is.FLVector(pObject) && 
+        !pObject@isDeep && 
+            ncol(pObject)>1)
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.wideFLTable <- function(pObject){
+    if(!is.FLTable(pObject))
+    return(FALSE)
+    else return(!pObject@isDeep)
+}
+
+is.FLSelectFrom <- function(pObj){
+  if(class(pObj)=="FLSelectFrom")
+  return(TRUE)
+  else return(FALSE)
+}
+
+is.FL <- function(x){
+    if(class(x) %in% c("FLMatrix",
+                        "FLVector",
+                        "FLTable",
+                        "FLTableQuery",
+                        "FLSelectFrom",
+                        "FLTableFunctionQuery"))
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.RSparseMatrix <- function(object){
+    vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
+                    "dgTMatrix","dtrMatrix","pMatrix",
+                    "dspMatrix","dtCMatrix","dgRMatrix",
+                    "ddiMatrix","dpoMatrix"
+                    )
+    if(class(object) %in% vsparseClass)
+    return(TRUE)
+    else
+    return(FALSE)
+}
+
+is.TD <- function(){
+    if(getOption("FLPlatform")=="TD")
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.TDAster <- function(){
+    if(getOption("FLPlatform")=="TDAster")
+    return(TRUE)
+    else return(FALSE)
+}
+
+is.Hadoop <- function(){
+    if(getOption("FLPlatform")=="Hadoop")
+    return(TRUE)
+    else return(FALSE)
+}

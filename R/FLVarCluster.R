@@ -77,15 +77,15 @@ FLVarCluster.FLTable<-function(x,
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
 
-		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( ",
-			    	     " SELECT Final_VarID AS vectorIndexColumn,",
+		sqlstr <- paste0(" SELECT Final_VarID AS vectorIndexColumn,",
 						 " CASE WHEN CatValue IS NOT NULL THEN ",
 						 " CONCAT(COLUMN_NAME,CatValue) else COLUMN_NAME END AS columnName",
 			    	     " FROM fzzlRegrDataPrepMap a ",
 			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"'",
-			    	     " AND a.Final_VarID IS NOT NULL) WITH DATA")
+			    	     " AND a.Final_VarID IS NOT NULL ")
 		
-		sqlSendUpdate(connection,sqlstr)
+		createTable(pTableName=mapTable,
+                    pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{

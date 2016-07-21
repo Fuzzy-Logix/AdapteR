@@ -146,15 +146,15 @@ hkmeans.FLTable<-function(x,
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
 
-		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( \n ",
-			    	    " SELECT a.Final_VarID AS VarID, \n ",
+		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID, \n ",
 			    	     	" a.COLUMN_NAME AS ColumnName, \n ",
 			    	     	"  a.FROM_TABLE AS MapName \n ",
 			    	    " FROM fzzlRegrDataPrepMap a \n ",
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
-			    	    " AND a.Final_VarID IS NOT NULL) WITH DATA ")
+			    	    " AND a.Final_VarID IS NOT NULL ")
 		
-		sqlSendUpdate(connection,sqlstr)
+		createTable(pTableName=mapTable,
+					pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
