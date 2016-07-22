@@ -120,7 +120,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       }
       if(class(object@select)=="FLSelectFrom")
         object@select@variables[["MATRIX_ID"]] <- MID1
-        
+      
       insertIntotbl(pTableName=vtableName1,
                     pSelect=gsub("'%insertIDhere%'",MID1,
                                   constructSelect(object,joinNames=FALSE)))
@@ -261,18 +261,6 @@ store.FLTable <- function(object,pTableName=NULL,...)
   return(table)
 }
 
-separateDBName <- function(vtableName){
-  ## If tablename has database name
-  names(vtableName) <- NULL
-  if(grepl(".",vtableName,fixed=TRUE)){
-    vdatabase <- base::strsplit(vtableName,".",fixed=TRUE)[[1]]
-    vtableName <- vdatabase[2]
-    vdatabase <- vdatabase[1]
-  }
-  else vdatabase <- getOption("ResultDatabaseFL")
-  return(c(vdatabase=vdatabase,
-          vtableName=vtableName))
-}
 # #' @export
 # store.character <- function(object,returnType,connection)
 # {

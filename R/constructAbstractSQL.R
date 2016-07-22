@@ -132,7 +132,7 @@ constructStoredProcSQL <- function(pConnection,
     ## NULL in TD == '' in others
     if(class(pConnection)=="RODBC"){
         ai <- 1L
-        for(a in args){
+        for(a in unlist(args)){
             if(is.character(a)){
                 if(a=="NULL"){
                     if(is.TD())
@@ -177,13 +177,10 @@ constructStoredProcSQL <- function(pConnection,
                     paste0(pars,
                             collapse=", \n "),
                     ifelse(is.TD(),
-                        paste0(",",
-                            paste0(names(pOutputParameter), 
-                                collapse=", \n ")),
-                        ""),
-                    ")",
-                )
-        )
+                        paste0(",",paste0(names(pOutputParameter), 
+                                collapse=", \n ")),""),
+                    ")")
+            )
 }
 
 ############################### Aggregates ############################
@@ -288,7 +285,8 @@ createTable <- function(pTableName,
                         pTemporary=TRUE,
                         pDrop=FALSE,
                         pDatabase=getOption("ResultDatabaseFL"),
-                        pSelect=NULL){
+                        pSelect=NULL,
+                        ...){
 
     # if(missing(pDatabase))
     # pTableName <- getRemoteTableName(pDatabase,pTableName)
@@ -380,6 +378,11 @@ createTable <- function(pTableName,
     }
     vsqlstr <- paste0(vsqlstr,";")
     print(vsqlstr)
+
+    if(usedbSendUpdate %in% names(list(...))){
+        cat("sending:  ",vsqlstr)
+        return(RJDBC::dbSendUpdate(getOption("connectionFL"),vsqlstr))
+    }
 
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 }

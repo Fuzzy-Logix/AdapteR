@@ -5,7 +5,7 @@ NULL
 
 setClass("FLDataMining",
 		slots=list(AnalysisID="character",
-				wideToDeepAnalysisID="character",
+				wideToDeepAnalysisId="character",
 				table="FLTable",
 				results="list",
 				deeptable="FLTable",
@@ -22,7 +22,7 @@ setClass("FLRegr",
 #' @slot deeptable A character vector containing 
 #' the deeptable on conversion from a widetable
 #' @slot AnalysisID An output character ID from CALL FLLinRegr
-#' @slot wideToDeepAnalysisID An output character ID from FLRegrDataPrep
+#' @slot wideToDeepAnalysisId An output character ID from FLRegrDataPrep
 #' @slot mapTable name of the mapping table
 #' @slot scoreTable name of the scoring table
 #' @slot modelID id of the model with best fit
@@ -438,10 +438,10 @@ lmGeneric <- function(formula,data,
 
 	vinputCols <- c()
 	vinputCols <- c(vinputCols,
-						INPUT_TABLE=fquote(deeptable),
+						INPUT_TABLE=deeptable,
 						OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
 						VARID_COL=getVariables(deepx)[["var_id_colname"]],
-						VALUE_COL=etVariables(deepx)[["cell_val_colname"]],
+						VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
 						)
 	if(familytype %in% "multinomial")
 	vinputCols <- c(vinputCols,

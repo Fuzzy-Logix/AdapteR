@@ -49,14 +49,15 @@ FLTable <- function(database,
     names(table) <- "flt"
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-        cols <- sort(sqlQuery(connection,
+    browser()
+        cols <- sort(as.numeric(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 var_id_colnames,") as VarID FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID)
-        rows <- sort(sqlQuery(connection,
+                          " ",constructWhere(whereconditions)))$VarID))
+        rows <- sort(as.numeric(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID)
+                          " ",constructWhere(whereconditions)))$VarID))
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
 
@@ -93,11 +94,11 @@ FLTable <- function(database,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",remoteTable(database,table)),1))
         cols <- names(R)
-        rows <- sort(sqlQuery(connection,
+        rows <- sort(as.numeric(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
 						  FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID)
+                          " ",constructWhere(whereconditions)))$VarID))
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
 
@@ -377,6 +378,8 @@ setMethod("wideToDeep",
                 
             dataprepID <- as.vector(retobj[1,1])
 
+            updateMetaTable(pTableName=paste0(outDeepTableDatabase,".",deeptablename))
+
             table <- FLTable(outDeepTableDatabase,
                            deeptablename,
                            outObsIDCol,
@@ -556,6 +559,10 @@ setMethod("deepToWide",
             #                                   "',MESSAGE);")
             #message <- sqlQuery(connection,sqlstr)
             message <- checkSqlQueryOutput(message)
+
+            updateMetaTable(pTableName=paste0(outWideTableDatabase,
+                                              ".",outWideTableName))
+
             table <- FLTable(
                            outWideTableDatabase,
                            outWideTableName,
@@ -721,7 +728,7 @@ setMethod("FLRegrDataPrep",
             if(trainOrTest==1 && inAnalysisID %in% c("NULL",""))
             stop("inAnalysisID should be valid when trainOrTest=1")
             else if(inAnalysisID=="" || is.null(inAnalysisID)) inAnalysisID <- "NULL"
-            else inAnalysisID <- fquote(inAnalysisID)
+            else inAnalysisID <- inAnalysisID
 
             if(length(classSpec)==0 || classSpec=="") classSpec <- "NULL"
             else
@@ -787,6 +794,9 @@ setMethod("FLRegrDataPrep",
             #               AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
                 
             dataprepID <- as.vector(retobj[1,1])
+
+            updateMetaTable(pTableName=paste0(outDeepTableDatabase,
+                                              ".",deeptablename))
 
             table <- FLTable(outDeepTableDatabase,
                            deeptablename,
