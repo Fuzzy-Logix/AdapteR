@@ -181,7 +181,7 @@ constructStoredProcSQL <- function(pConnection,
                             paste0(names(pOutputParameter), 
                                 collapse=", \n ")),
                         ""),
-                    ")",
+                    ")"
                 )
         )
 }
