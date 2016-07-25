@@ -363,7 +363,7 @@ lmGeneric <- function(formula,data,
                       familytype="linear",
                       ...)
 {
-	browser()
+	#browser()
 	prepData <- prepareData.lmGeneric(formula,data,specID=specID,
 						direction=direction,trace=trace,
 						callObject=callObject,
@@ -689,7 +689,7 @@ prepareData.lmGeneric <- function(formula,data,
 								offset="",
 								pRefLevel=NULL,
                                 ...){
-	browser()
+	#browser()
 	if(data@isDeep){
 		vallVars <- colnames(data)
 		formula <- genDeepFormula(vallVars)

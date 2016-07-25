@@ -478,10 +478,6 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         return(vplatform)
     }
 
-    vplatform <- getPlatform(pdrvClass=driverClass,
-                            pDotsList=list(...))
-
-    options(FLPlatform=vplatform)
     options(ResultDatabaseFL=database)
     options(FLUsername=user)
     connection <- NULL
@@ -489,9 +485,21 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     if(!is.null(host)){
         if(is.null(user)) user <- readline("Your username:  ")
         if(is.null(passwd)) passwd <- readline("Your password:  ")
-        if(is.null(driverClass)) driverClass <- readline("driverClass:  ")
+        # if(is.null(driverClass)) driverClass <- readline("driverClass:  ")
         if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector \n ")
-        if(is.null(driverClass)) stop("You must provide a jdbc driver class, e.g. com.teradata.jdbc.TeraDriver.")
+        if(is.null(driverClass)){
+            getDriverClass <- function(pHost){
+                vdrvClasses <- c(teradata="com.teradata.jdbc.TeraDriver",
+                                ncluster="com.asterdata.ncluster.Driver",
+                                hive2="org.apache.hive.jdbc.HiveDriver")
+                vindex <- sapply(names(vdrvClasses),
+                                function(x) grepl(x,pHost))
+                return(vdrvClasses[vindex])
+            }
+            driverClass <- getDriverClass(host)
+        }
+
+
         if(!grepl("^jdbc:",host)) stop(paste0("host needs to start with 'jdbc:' \n "))
 
         myConnect <- function(){
@@ -500,7 +508,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             require(RJDBC)
             ##browser()
             if(!is.null(jdbc.jarsDir)){
-                if(length(jdbc.jarsDir)==1 & dir.exists(jdbc.jarsDir))
+                if(length(jdbc.jarsDir)==1)
                     jdbc.jarsDir <- list.files(jdbc.jarsDir,".*\\.jar",full.names = TRUE,ignore.case = TRUE)
                 for(jarF in jdbc.jarsDir){
                     if(verbose)
@@ -544,6 +552,10 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     if(is.null(connection))
         stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")
     
+
+    vplatform <- getPlatform(pdrvClass=driverClass,
+                            pDotsList=list(...))
+    options(FLPlatform=vplatform)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
