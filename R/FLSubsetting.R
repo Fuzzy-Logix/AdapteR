@@ -502,18 +502,18 @@ changeAlias <- function(object,newalias,oldalias){
   newalias <- paste0(newalias,".")
   else newalias <- ""
   for(i in oldalias){
-    if(grepl(i,object)){
+    if(any(grepl(i,object))){
       if(i=="") i<- "[^ ]*"
       result <- gsub(paste0(i,"\\."),
-            newalias,
-            object)
+                    newalias,
+                    object)
       break
     }
     else result <- object
   }
   result <- as.vector(sapply(result,function(x){
     if(!grepl(newalias,x))
-    paste0(newalias,x)
+      paste0(newalias,x)
     else x
     }))
   return(result)

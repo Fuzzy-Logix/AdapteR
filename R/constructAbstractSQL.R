@@ -125,26 +125,41 @@ constructStoredProcSQL <- function(pConnection,
                                     pOutputParameter,
                                     ...){
     args <- list(...)
+    if(length(args)==1 && is.list(args[[1]]))
+        args <- args[[1]]
     ## Setting up input parameter value
     pars <- character()
 
     ## Construct input params 
     ## NULL in TD == '' in others
     if(class(pConnection)=="RODBC"){
-        ai <- 1L
-        for(a in unlist(args)){
-            if(is.character(a)){
-                if(a=="NULL"){
-                    if(is.TD())
-                    pars[ai] <- "NULL"
-                    else pars[ai] <- "''"
-                }
-                else
-                    pars[ai] <- fquote(a)
-            } else
-                pars[ai] <- a
-            ai <- ai+1L
-        }
+        pars <- sapply(args,
+                    function(a){
+                        if(is.character(a)){
+                            if(a=="NULL"){
+                                if(is.TD())
+                                    return("NULL")
+                                else return("''")
+                            }
+                            else
+                                return(fquote(a))
+                        } 
+                        else return(a)
+                    })
+        # ai <- 1L
+        # for(a in unlist(args)){
+        #     if(is.character(a)){
+        #         if(a=="NULL"){
+        #             if(is.TD())
+        #             pars[ai] <- "NULL"
+        #             else pars[ai] <- "''"
+        #         }
+        #         else
+        #             pars[ai] <- fquote(a)
+        #     } else
+        #         pars[ai] <- a
+        #     ai <- ai+1L
+        # }
     }
     else{
         pars <- rep("?",length(args))
@@ -264,9 +279,10 @@ setCurrentDatabase <- function(pDBName){
     if(is.Hadoop())
         vsqlstr <- paste0("USE ",pDBName,";")
     else if(is.TD())
-        vsqlstr <- c(paste0("SELECT ",pDBName,";"),
+        vsqlstr <- c(paste0("DATABASE ",pDBName,";"),
                     "SET ROLE ALL;")
-    else if(is.TDAster())
+    else if(is.TDAster() && 
+            tolower(getOption("ResultDatabaseFL"))!=tolower(pDBName))
     stop("use flConnect to set database in Aster \n ")
 
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
@@ -275,6 +291,8 @@ setCurrentDatabase <- function(pDBName){
 ## CREATE TABLE SQL
 ## covers cases where table is created from other tables
 ## with and without data , temporary and permanent
+## if usedbSendUpdate arg is passed in ... that is used
+## in place of dbSendQuery
 createTable <- function(pTableName,
                         pColNames=NULL,
                         pColTypes=NULL,
@@ -342,10 +360,10 @@ createTable <- function(pTableName,
             if(pPrimaryKey!="" && !is.null(pPrimaryKey))
             vsqlstr <- paste0(vsqlstr," PRIMARY INDEX (",
                                 paste0(pPrimaryKey,collapse=","),")")
-            ## Add ON COMMIT PRESERVE ROWS
-            if(pTemporary)
-            vsqlstr <- paste0(vsqlstr," ON COMMIT PRESERVE ROWS ")
         }
+        ## Add ON COMMIT PRESERVE ROWS
+        if(pTemporary)
+        vsqlstr <- paste0(vsqlstr," ON COMMIT PRESERVE ROWS ")
     }
     else if(is.TDAster()){
         if(!is.null(pFromTableName) || !is.null(pSelect))
@@ -379,7 +397,7 @@ createTable <- function(pTableName,
     vsqlstr <- paste0(vsqlstr,";")
     print(vsqlstr)
 
-    if(usedbSendUpdate %in% names(list(...))){
+    if("usedbSendUpdate" %in% names(list(...))){
         cat("sending:  ",vsqlstr)
         return(RJDBC::dbSendUpdate(getOption("connectionFL"),vsqlstr))
     }

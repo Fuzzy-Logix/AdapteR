@@ -90,6 +90,7 @@ coxph.FLTable <- function(formula,data, ...)
 	maxiter <- list(...)$maxiter
 	else maxiter <- 15
 
+	data <- setAlias(data,"")
     deep <- prepareData.coxph(formula,data,...)
     wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
     deepx <- deep[["deeptable"]]
@@ -164,22 +165,13 @@ prepareData.coxph <- function(formula,data,
 		}
 		else if(length(vSurvival)==4)
 		{
-			vTimeVal1 <- vSurvival[2]
-			vTimeVal2 <- vSurvival[3]
-			vStatus <- vSurvival[4]
-			a <- gen_unique_table_name("")
-			vTimeVal <- genRandVarName()
-			vtablename <- paste0(getOption("ResultDatabaseFL"),".",a)
-			vtablename1 <- paste0(data@select@database,".",data@select@table_name)
-
-			sqlstr <- paste0(" SELECT b.",vTimeVal2," - b.",vTimeVal1,
-								" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-			t <- createTable(pTableName=vtablename,
-							pSelect=sqlstr)
-			data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
-			data@select@database <- getOption("ResultDatabaseFL")
-			data@select@table_name <- a
-			vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
+			vtempList <- IncludeTimeVal(data=data,
+										formula=formula)
+			vStatus <- vtempList[["vStatus"]]
+			vtablename <- vtempList[["vtablename"]]
+			vTimeVal <- vtempList[["vTimeVal"]]
+			data <- vtempList[["data"]]
+			vallVars <- vtempList[["vallVars"]]
 			vallVars <- c(vallVars,vTimeVal)
 		}
 		vallVars <- vallVars[vallVars!=vStatus]
@@ -275,6 +267,7 @@ prepareData.coxph <- function(formula,data,
 		}
 		whereconditions <- ""
 	}
+	deepx <- setAlias(deepx,"")
     return(list(deeptable=deepx,
                 wideToDeepAnalysisId=wideToDeepAnalysisId,
                 formula=formula,
@@ -289,17 +282,32 @@ predict.FLCoxPH <-function(object,
 							scoreTable="",
 							survivalCurveTable=""){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
-	vinputTable <- paste0(newdata@select@database,".",newdata@select@table_name)
+
+	newdata <- setAlias(newdata,"")
+	vinputTable <- getRemoteTableName(newdata@select@database,
+									newdata@select@table_name)
 
 	if(scoreTable=="")
-	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
-	else if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+									gen_score_table_name(object@table@select@table_name))
+
+	if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	
 	if(survivalCurveTable=="")
-	survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name("survival"))
-	else if(!grep(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
+	survivalCurveTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+											gen_score_table_name("survival"))
+	if(!grep(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
 
 	if(!newdata@isDeep)
 	{
+		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
+		if(length(vSurvival)==4 && !object@timeValCol %in% colnames(newdata))
+		{
+			vtempList <- IncludeTimeVal(data=newdata,
+										formula=object@formula,
+										vTimeVal=object@timeValCol)
+			newdata <- vtempList[["data"]]
+		}
 		deepx <- FLRegrDataPrep(newdata,depCol="",
 								outDeepTableName="",
 								outDeepTableDatabase="",
@@ -317,7 +325,9 @@ predict.FLCoxPH <-function(object,
 								classSpec=list(),
 								whereconditions="",
 								inAnalysisID=object@wideToDeepAnalysisId)
+
 		newdata <- deepx[["table"]]
+		newdata <- setAlias(newdata,"")
 
 		vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
 		vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
@@ -692,4 +702,35 @@ plot.FLCoxPH <- function(object,nobs=5,...){
 		col=vsurvivaldata[[toupper(obs_id_colname)]],
 		xlab = "Time",ylab = "Survival Probability",
 		title(main = "Survival curve plot FL"))
+}
+
+IncludeTimeVal <- function(data,
+						   formula,
+						   vTimeVal=NULL){
+	vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+	vTimeVal1 <- vSurvival[2]
+	vTimeVal2 <- vSurvival[3]
+	vStatus <- vSurvival[4]
+	vtablename <- gen_unique_table_name("")
+	if(is.null(vTimeVal))
+	vTimeVal <- "TimeValCol"
+	vtablename1 <- paste0(data@select@database,".",data@select@table_name)
+
+	sqlstr <- paste0("CREATE VIEW ",vtablename,
+					" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
+						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+	sqlSendUpdate(getOption("connectionFL"),sqlstr)
+
+	# t <- createTable(pTableName=vtablename,
+	# 				pSelect=sqlstr)
+	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
+	data@select@database <- getOption("ResultDatabaseFL")
+	data@select@table_name <- vtablename
+	vallVars <- base::all.vars(formula)
+	vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
+	return(list(data=data,
+				vTimeVal=vTimeVal,
+				vStatus=vStatus,
+				vtablename=vtablename,
+				vallVars=vallVars))
 }

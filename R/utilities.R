@@ -450,7 +450,6 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       driverClass=NULL,
                       verbose=FALSE,
                       ...){
-
     getPlatform <- function(pdrvClass,pDotsList){
         #browser()
         matchPlatform <- function(pObj1){
@@ -475,7 +474,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                                                     function(x)
                                                         !is.null(x))])
         if(length(vplatform)==0)
-            stop("invalid host or platform argument in flConnect \n ")
+            stop("invalid driverClass or platform argument in flConnect \n ")
         return(vplatform)
     }
 
@@ -566,7 +565,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
 FLStartSession <- function(connection,
                            database=getOption("ResultDatabaseFL"),
                            persistent=FALSE,
-                           drop=TRUE,
+                           drop=FALSE,
                            debug=FALSE,
                            tableoptions=NULL,
                            ...)
@@ -581,7 +580,7 @@ FLStartSession <- function(connection,
         options(FLTempTables=character())
     }
     options(debugSQL=debug)
-    ##    browser()
+    #browser()
     options(connectionFL=connection)
     options(InteractiveFL=TRUE)
     options(ResultVectorTableFL=gen_table_name("tblVectorResult"))
@@ -601,7 +600,7 @@ FLStartSession <- function(connection,
     # sqlSendUpdate(connection, sendqueries)
     if(is.null(database))
         stop("database argument cannot be NULL \n ")
-    if(tolower(getOption("ResultDatabaseFL"))!=tolower(database))
+    #if(tolower(getOption("ResultDatabaseFL"))!=tolower(database))
     setCurrentDatabase(database)
     options(ResultDatabaseFL=database)
 

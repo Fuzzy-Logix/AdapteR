@@ -75,6 +75,8 @@ as.data.frame.FLTable <- function(x, ...){
     if(any(D[[toupper("obs_id_colname")]]!=1:nrow(D)))
         rownames(D) <- D[[toupper("obs_id_colname")]]
     D[[toupper("obs_id_colname")]] <- NULL
+    ## For sparse deep table
+    D[is.na(D)] <- 0
     return(D)
 }
 

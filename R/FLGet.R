@@ -32,7 +32,9 @@ getFLColumnType <- function(x,columnName=NULL){
     #   else vresult <- "FLOAT"
     # }
     # else{
-      vsqlstr <- limitRowsSQL(constructSelect(x),1)
+      vsqlstr <- paste0("SELECT * FROM (",constructSelect(x),
+                        ") AS a ")
+      vsqlstr <- limitRowsSQL(vsqlstr,1)
       x <- sqlQuery(getConnection(),vsqlstr)
       colnames(x) <- tolower(colnames(x))
       x <- x[[tolower(columnName)]]

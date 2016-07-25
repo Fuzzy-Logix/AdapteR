@@ -100,7 +100,7 @@ glm.default <- stats::glm
 #' summary(poissonfit)
 #' plot(poissonfit)
 #' predData <- FLTable("FL_DEV","preddata1","ObsID")
-#' mu <- predict(poissonfit,newdata=predData)
+#' mu <- predict(poissonfit,newdata=predData) ## RegrDataPrep ERROR
 #' deeptable <- FLTable("FL_DEMO","tblLogRegrMN10000","ObsID","VarID","Num_Val",
 #'              whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable,family="multinomial")

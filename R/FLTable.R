@@ -49,17 +49,16 @@ FLTable <- function(database,
     names(table) <- "flt"
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-    browser()
-        cols <- sort(as.numeric(sqlQuery(connection,
+        cols <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 var_id_colnames,") as VarID FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID))
-        rows <- sort(as.numeric(sqlQuery(connection,
+                          " ",constructWhere(whereconditions)))$VarID)
+        rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",remoteTable(database,table),
-                          " ",constructWhere(whereconditions)))$VarID))
-        cols <- gsub("^ +| +$","",cols)
-        rows <- gsub("^ +| +$","",rows)
+                          " ",constructWhere(whereconditions)))$VarID)
+        # cols <- gsub("^ +| +$","",cols)
+        # rows <- gsub("^ +| +$","",rows)
 
         ##change factors to strings
         vstringdimnames <- lapply(list(rows,cols),
@@ -70,6 +69,16 @@ FLTable <- function(database,
                                   })
         rows <- vstringdimnames[[1]]
         cols <- vstringdimnames[[2]]
+
+        ## To account for sparse format
+        vdimnames <- lapply(list(rows),
+                            function(x){
+                              if(is.numeric(x))
+                              return(1:max(x))
+                              else x
+                              })
+        rows <- vdimnames[[1]]
+        #cols <- vdimnames[[2]]
 
         select <- new(
         "FLSelectFrom",
@@ -732,15 +741,15 @@ setMethod("FLRegrDataPrep",
 
             if(length(classSpec)==0 || classSpec=="") classSpec <- "NULL"
             else
-            classSpec <- paste0("'",list_to_class_spec(classSpec),"'")
+            classSpec <- paste0(list_to_class_spec(classSpec))
             whereconditions <- c(whereconditions,object@select@whereconditions)
             whereClause <- constructWhere(whereconditions)
             if(whereClause=="") whereClause <- "NULL"
             else
-            whereClause <- paste0("'",whereClause,"'")
+            whereClause <- paste0(whereClause)
             if(excludeCols=="" || length(excludeCols)==0) excludeCols <- "NULL"
             else
-            excludeCols <- paste0("'",excludeCols,"'")
+            excludeCols <- paste0(excludeCols)
 
             if(outObsIDCol=="") outObsIDCol <- "obs_id_colname"
             if(outVarIDCol=="") outVarIDCol <- "var_id_colname"

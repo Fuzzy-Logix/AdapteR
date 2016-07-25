@@ -12,7 +12,7 @@ NULL
 ##' @param ... Additional arguments like pNote to be included in fzzlAdapteRTablesInfo
 ##' @return in-database object after storing
 ##' @export
-setGeneric("store", function(object,pTableName,...) {
+setGeneric("store", function(object,pTableName=NULL,...) {
     standardGeneric("store")
 })
 setMethod("store",
@@ -49,7 +49,6 @@ storeVarnameMapping <- function(connection,
     names(mynames) <- 1:Ndim
     sqlstatements <- paste0(
         " INSERT INTO ",
-        getOption("ResultDatabaseFL"),".",
         getOption("NameMapTableFL"),
         "(TABLENAME, MATRIX_ID, DIM_ID, ",
         "NAME, NUM_ID",
