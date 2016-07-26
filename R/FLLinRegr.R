@@ -1244,7 +1244,6 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 	return(object@results[["coefficients"]])
 	else
 	{
-		#browser()
 		##Since Currently only 1000 Columns are supported
 		## by FLLinRegr, fetch them.
 		vfcalls <- object@vfcalls
@@ -1275,7 +1274,8 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 
 		if(!is.null(coeffVector[["COEFFNAME"]])){
 		vcoeffnames <- coeffVector[["COEFFNAME"]]
-		names(coeffVector1) <- c("(Intercept)",vcoeffnames[2:length(vcoeffnames)])
+		names(coeffVector1) <- c("(Intercept)",
+								as.character(vcoeffnames)[2:length(vcoeffnames)])
 		}
 		else{
 			vallVars <- all.vars(genDeepFormula(coeffVector[["COEFFID"]]))
@@ -1475,11 +1475,13 @@ predict.lmGeneric <- function(object,
 	if(scoreTable=="")
 	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
 						gen_score_table_name(object@table@select@table_name))
-	else if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	else if(!grep(".",scoreTable)) 
+			scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
 	vfcalls <- object@vfcalls
 	if(!newdata@isDeep)
 	{
+		newdataCopy <- newdata
 		deepx <- FLRegrDataPrep(newdata,depCol="",
 								outDeepTableName="",
 								outDeepTableDatabase="",
@@ -1501,16 +1503,31 @@ predict.lmGeneric <- function(object,
 		newdata <- setAlias(newdata,"")
 
 		if(object@vfcalls["functionName"]=="FLPoissonRegr"){
-			vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
-			vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
+			## Insert dependent and offset varids in deeptable
+			vVaridCols <- c(-2)
+			vcellValCols <- ifelse(object@offset!="",object@offset,0)
+
+			# if(!all.vars(object@formula)[1] %in% colnames(newdataCopy))
+			# 	stop("dependent column ",all.vars(object@formula)[1],
+			# 		" not in newdata \n ")
+			vVaridCols <- c(vVaridCols,-1)
+			vcellValCols <- c(vcellValCols,all.vars(object@formula)[1])
+
+			# vtablename <- paste0(newdataCopy@select@database,
+			# 					".",newdataCopy@select@table_name)
+			vtablename <- paste0(object@table@select@database,
+								".",object@table@select@table_name)
+			vtablename1 <- paste0(newdata@select@database,
+								".",newdata@select@table_name)
+
 			vobsid <- getVariables(object@table)[["obs_id_colname"]]
-			sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
-							" SELECT ",vobsid," AS obs_id_colname,","\n               ",
-							" -2 AS var_id_colname,\n",
-							ifelse(object@offset!="",object@offset,1)," AS cell_val_colname","\n        ",
-							" FROM ",vtablename1)
+			sqlstr <- paste0("INSERT INTO ",vtablename1," \n ",
+							paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+											vVaridCols," AS var_id_colname, \n ",
+											vcellValCols," AS cell_val_colname \n  ",
+									" FROM ",vtablename,collapse=" UNION ALL "))
 			t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
-			newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
+			newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
 		}
 	}
 	vtable <- paste0(newdata@select@database,".",newdata@select@table_name)

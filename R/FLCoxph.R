@@ -281,8 +281,9 @@ predict.FLCoxPH <-function(object,
 							newdata=object@table,
 							scoreTable="",
 							survivalCurveTable=""){
-	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
-
+	if(!is.FLTable(newdata)) 
+		stop("scoring allowed on FLTable only")
+	browser()
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getRemoteTableName(newdata@select@database,
 									newdata@select@table_name)
@@ -301,13 +302,43 @@ predict.FLCoxPH <-function(object,
 	if(!newdata@isDeep)
 	{
 		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
-		if(length(vSurvival)==4 && !object@timeValCol %in% colnames(newdata))
-		{
-			vtempList <- IncludeTimeVal(data=newdata,
-										formula=object@formula,
-										vTimeVal=object@timeValCol)
-			newdata <- vtempList[["data"]]
+		newdataCopy <- newdata
+		vtablename <- paste0(newdataCopy@select@database,
+							".",newdataCopy@select@table_name)
+		vtablename2 <- paste0(object@table@select@database,
+							".",object@table@select@table_name)
+
+		## SQL to Insert the dependent column ans statusColumn
+		vVaridVec <- c(-2)
+		vCellValVec <- c(object@statusCol)
+		vfromtbl <- vtablename
+		if(!object@statusCol %in% colnames(newdata))
+			# stop(object@statusCol," not in newdata \n ")
+			vfromtbl <- vtablename2
+
+		if(length(vSurvival)==3 || object@timeValCol %in% colnames(newdata)){
+			vVaridVec <- c(vVaridVec,-1)
+			vCellValVec <- c(vCellValVec,object@timeValCol)
+			vfromtbl <- c(vfromtbl,vtablename)
+			if(!object@timeValCol %in% colnames(newdata))
+			vfromtbl <- c(vfromtbl,vtablename2)
 		}
+		else if(length(vSurvival)==4)
+		{
+			vTimeVal1 <- vSurvival[2]
+			vTimeVal2 <- vSurvival[3]
+			vVaridVec <- c(vVaridVec,-1)
+			vCellValVec <- c(vCellValVec,
+							paste0(vTimeVal1,"-",vTimeVal2))
+			if(!all(c(vTimeVal1,vTimeVal2) %in% colnames(newdata))){
+				# stop("timeValue columns not found in newdata \n ")
+				vfromtbl <- c(vfromtbl,vtablename2)
+			}
+			else{
+				vfromtbl <- c(vfromtbl,vtablename)
+			}
+		}
+		else stop("newdata is not consistent with formula object for scoring \n ")
 		deepx <- FLRegrDataPrep(newdata,depCol="",
 								outDeepTableName="",
 								outDeepTableDatabase="",
@@ -329,16 +360,16 @@ predict.FLCoxPH <-function(object,
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")
 
-		vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
-		vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename1 <- paste0(newdata@select@database,
+							".",newdata@select@table_name)
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
-						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
-						" -2 AS var_id_colname,","\n               ",
-						object@statusCol," AS cell_val_colname","\n               ",
-						" FROM ",vtablename1)
+		sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
+						paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
+										vVaridVec," AS var_id_colname, \n ",
+										vCellValVec," AS cell_val_colname \n  ",
+								" FROM ",vfromtbl,collapse=" UNION ALL "))
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
-		newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
+		newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
 	}
 	vtable <- paste0(newdata@select@database,".",newdata@select@table_name)
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
@@ -392,7 +423,9 @@ predict.FLCoxPH <-function(object,
 				isDeep = FALSE)
 
 	vScore <- flv
-	sqlstr <- paste0("SELECT TOP 100 * from ",survivalCurveTable," ORDER BY 1")
+	sqlstr <- paste0(limitRowsSQL(paste0("SELECT * from ",
+								survivalCurveTable),100),
+								" ORDER BY 1")
 	vSurvival <- sqlQuery(getOption("connectionFL"),sqlstr)
 	return(list(score=vScore,
 				survival=vSurvival))
@@ -411,36 +444,40 @@ predict.FLCoxPH <-function(object,
 	else if (property=="linear.predictors"){
 		if(!is.null(object@results[["linear.predictors"]]))
 		return(object@results[["linear.predictors"]])
+
 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-			gen_score_table_name(object@table@select@table_name))
+							gen_score_table_name(object@table@select@table_name))
 		survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",
-			gen_score_table_name("surv"))
-		vtemp <- predict(object,scoreTable=scoreTable,
+								gen_score_table_name("surv"))
+
+		vtemp <- predict(object,
+						newdata=object@deeptable,
+						scoreTable=scoreTable,
 						survivalCurveTable=survivalCurveTable)
 		hazardratiovector <- vtemp$score
 		object@results <- c(object@results,
 			list(linear.predictors=hazardratiovector,
+				FLSurvivalData=vtemp$survival,
 				FLSurvivalDataTable=survivalCurveTable))
 		assign(parentObject,object,envir=parent.frame())
 		return(hazardratiovector)
 	}
 	else if (property=="FLSurvivalData"){
-		if(!is.null(object@results[["FLSurvivalDataTable"]]))
-		survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
-		else
+		if(is.null(object@results[["FLSurvivalData"]]))
 		vtemp <- object$linear.predictors
-		survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
+		# survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
 
-		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-		vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable,
-						" \nWHERE ",obs_id_colname," < 6 ORDER BY 1")
-		if(!is.null(getOption("InteractiveFL")) && getOption("InteractiveFL"))
-		{
-			vinput <- readline("Fetching for top 5 observations only.--Recommended Continue? y/n ")
-			if(!checkYorN(vinput))
-			vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable," ORDER BY 1")
-		}
-		vsurvivaldata <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
+		# vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable,
+		# 				" \nWHERE ",obs_id_colname," < 6 ORDER BY 1")
+		# if(!is.null(getOption("InteractiveFL")) && getOption("InteractiveFL"))
+		# {
+		# 	vinput <- readline("Fetching for top 5 observations only.--Recommended Continue? y/n ")
+		# 	if(!checkYorN(vinput))
+		# 	vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable," ORDER BY 1")
+		# }
+		# vsurvivaldata <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		vsurvivaldata <- object@results[["FLSurvivalData"]]
 		assign(parentObject,object,envir=parent.frame())
 		return(vsurvivaldata)
 	}
@@ -617,11 +654,11 @@ model.FLCoxPH <- function(object)
 	return(object@results[["model"]])
 	else
 	{
-		if(interactive())
-		{
-			vinput <- readline("Fetching entire table. Continue? y/n ")
-			if(!checkYorN(vinput)) return(NULL)
-		}
+		# if(interactive())
+		# {
+		# 	vinput <- readline("Fetching entire table. Continue? y/n ")
+		# 	if(!checkYorN(vinput)) return(NULL)
+		# }
 		modelframe <- as.data.frame(object@deeptable)
 		modelframe[["0"]] <- NULL ##Intercept
 		modelframe[["-1"]] <- NULL ##timeValue
@@ -678,10 +715,9 @@ print.FLCoxPH <- function(object){
 	assign(parentObject,object,envir=parent.frame())
 }
 
+## Choose number of observations to fetch and plot
 plot.FLCoxPH <- function(object,nobs=5,...){
-	if(!is.null(object@results[["FLSurvivalDataTable"]]))
-	survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
-	else
+	if(is.null(object@results[["FLSurvivalDataTable"]]))
 	vtemp <- object$linear.predictors
 	survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
 	if(is.na(nobs) || is.null(nobs)) nobs<-5
