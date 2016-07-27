@@ -289,15 +289,17 @@ predict.FLCoxPH <-function(object,
 									newdata@select@table_name)
 
 	if(scoreTable=="")
-	scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-									gen_score_table_name(object@table@select@table_name))
+	# scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+	# 								gen_score_table_name(object@table@select@table_name))
+	scoreTable <- gen_score_table_name(object@table@select@table_name)
 
-	if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	# if(!grepl(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
 	if(survivalCurveTable=="")
-	survivalCurveTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-											gen_score_table_name("survival"))
-	if(!grep(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
+	# survivalCurveTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+	# 										gen_score_table_name("survival"))
+	survivalCurveTable <- gen_score_table_name("survival")
+	# if(!grepl(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
 
 	if(!newdata@isDeep)
 	{

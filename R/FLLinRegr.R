@@ -99,10 +99,10 @@ lm.FLTable <- function(formula,data,...)
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
 	return(lmGeneric(formula=formula,
-                         data=data,
-                         callObject=vcallObject,
-                         familytype="linear",
-                         ...))
+                     data=data,
+                     callObject=vcallObject,
+                     familytype="linear",
+                     ...))
 }
 
 #' Choose a model.
@@ -563,13 +563,17 @@ lmGeneric <- function(formula,data,
 	##For forward find best fit model id.
 	vmaxModelID <- NULL
 	vmaxLevelID <- NULL
-	if(!direction %in% "forward" && familytype!="poisson"){
-	vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
-						ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
-						" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
-	vtemp <- sqlQuery(getOption("connectionFL"),vsqlstr)
-	vmaxModelID <- vtemp[["ModelID"]]
-	vmaxLevelID <- vtemp[["LevelID"]]
+	if(direction=="" && familytype!="poisson"){
+		vmaxModelID <- 1
+		vmaxLevelID <- 1
+	}
+	else if(!direction %in% "forward" && familytype!="poisson"){
+		vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
+							ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
+							" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
+		vtemp <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		vmaxModelID <- vtemp[["ModelID"]]
+		vmaxLevelID <- vtemp[["LevelID"]]
 	}
 	
 	if(trace>0 && !direction %in% c("","forward"))
@@ -839,8 +843,8 @@ prepareData.lmGeneric <- function(formula,data,
 		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 						constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
+		t <- sqlSendUpdate(connection,sqlstr)
+		if(!t) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -863,8 +867,8 @@ prepareData.lmGeneric <- function(formula,data,
 			deeptablename <- gen_view_name("New")
 			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 							deeptablename," AS ",constructSelect(data))
-			t <- sqlQuery(connection,sqlstr)
-			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			t <- sqlSendUpdate(connection,sqlstr)
+			if(!t) stop("Input Table and whereconditions mismatch")
 			deepx <- FLTable(
 	                   getOption("ResultDatabaseFL"),
 	                   deeptablename,
@@ -1535,9 +1539,6 @@ predict.lmGeneric <- function(object,
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-
-	## Scoring functions are very messed up in Aster!!
-	## LogRegr and LinRegr score have diff order of i/p within Aster!!
 	vinputCols <- list()
 	vinputCols <- c(vinputCols,
 					INPUT_TABLE=newdata@select@table_name,

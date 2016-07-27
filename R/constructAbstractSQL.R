@@ -124,6 +124,7 @@ constructStoredProcSQL <- function(pConnection,
                                     pFuncName,
                                     pOutputParameter,
                                     ...){
+    #browser()
     args <- list(...)
     if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
