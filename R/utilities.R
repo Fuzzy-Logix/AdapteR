@@ -56,20 +56,25 @@ sqlStoredProc <- function(connection, query,
 #' @param query SQLQuery to be sent
 #' @export
 sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
-    sapply(query, function(q){
-        ##browser()
-        if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
-        tryCatch({
-            if(is.TDAster())
-                res <- RJDBC::dbSendUpdate(connection,q,...)
-            else{
-                res <- DBI::dbSendQuery(connection, q, ...)
-                ##dbCommit(connection)
-                dbClearResult(res)
-            }
-        },
-        error=function(e) sqlError(e))
-    })
+    verrflag<-sapply(query, function(q){
+                            ##browser()
+                            if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+                            tryCatch({
+                                if(is.TDAster())
+                                    res <- RJDBC::dbSendUpdate(connection,q,...)
+                                else{
+                                    res <- DBI::dbSendQuery(connection, q, ...)
+                                    ##dbCommit(connection)
+                                    dbClearResult(res)
+                                }
+                                return(TRUE)
+                            },
+                            error=function(e){
+                                sqlError(e)
+                                return(FALSE)
+                                })
+                        })
+    return(verrflag)
 }
 
 #' Send a query to database
@@ -78,27 +83,31 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.RODBC <- function(connection,query,...) {
+sqlSendUpdate.RODBC <- function(connection,query,...){
     if(!is.TDAster())
     RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
     else RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
 
-    sapply(query, function(q){
-        if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
-        err<-RODBC::sqlQuery(connection,q,errors=FALSE)
-        errmsg<- RODBC::odbcGetErrMsg(connection)
-        if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
-        {
-            RODBC::odbcEndTran(connection, commit = TRUE)
-        }
-        else
-        {
-            RODBC::odbcEndTran(connection, commit = FALSE)
-            print(errmsg)
-        }
-        RODBC::odbcClearError(connection)
-    })
+    verrflag <- sapply(query, function(q){
+                                if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+                                err<-RODBC::sqlQuery(connection,q,errors=FALSE)
+                                errmsg<- RODBC::odbcGetErrMsg(connection)
+                                if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
+                                {
+                                    RODBC::odbcEndTran(connection, commit = TRUE)
+                                    verrflag <- TRUE
+                                }
+                                else
+                                {
+                                    RODBC::odbcEndTran(connection, commit = FALSE)
+                                    print(errmsg)
+                                    verrflag <- FALSE
+                                }
+                                RODBC::odbcClearError(connection)
+                                return(verrflag)
+                            })
     RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
+    return(verrflag)
     #cat("DONE...\n")
 }
 
