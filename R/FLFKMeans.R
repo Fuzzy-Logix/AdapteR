@@ -201,16 +201,24 @@ fanny.FLTable <- function(x,
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						deeptablename," AS \n ",constructSelect(x))
-		sqlSendUpdate(connection,sqlstr)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+		#				deeptablename," AS \n ",constructSelect(x))
+		#sqlSendUpdate(connection,sqlstr)
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+					pSelect=constructSelect(x))
 
 		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-						" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
-						".",deeptablename,constructWhere(whereconditions))
-		t <- sqlSendUpdate(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#				" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
+		#				".",deeptablename,constructWhere(whereconditions))
+		#t <- sqlSendUpdate(connection,sqlstr)
+		
+		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),
+					".",deeptablename,constructWhere(whereconditions))
+					)
+
+		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -226,10 +234,13 @@ fanny.FLTable <- function(x,
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
 		deeptablename <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						deeptablename," AS  \n ",constructSelect(x))
-		t <- sqlSendUpdate(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch")
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+		#				deeptablename," AS  \n ",constructSelect(x))
+		#t <- sqlSendUpdate(connection,sqlstr)
+		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+					pSelect=constructSelect(x))
+
+		if(!all(t)) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename,
