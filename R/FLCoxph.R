@@ -227,14 +227,23 @@ prepareData.coxph <- function(formula,data,
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
-							".",deeptablename," AS ",constructSelect(data))
-		sqlSendUpdate(connection,sqlstr)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+		#					".",deeptablename," AS ",constructSelect(data))
+		#sqlSendUpdate(connection,sqlstr)
 
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+			pSelect=constructSelect(data)
+			)
 		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
-						constructWhere(whereconditions))
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+		#				constructWhere(whereconditions))
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+					constructWhere(whereconditions)
+						)	
+					)
+
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
@@ -254,10 +263,15 @@ prepareData.coxph <- function(formula,data,
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
 			deeptablename <- gen_view_name("New")
-			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-							deeptablename," AS ",constructSelect(data))
-			t <- sqlQuery(connection,sqlstr)
-			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+			#				deeptablename," AS ",constructSelect(data))
+			#t <- sqlQuery(connection,sqlstr)
+			
+			t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptable),
+						pSelect=constructSelect(data)
+						)
+
+			if(!all(t)) stop("Input Table and whereconditions mismatch")
 			deepx <- FLTable(
 	                   getOption("ResultDatabaseFL"),
 	                   deeptablename,
@@ -768,11 +782,15 @@ IncludeTimeVal <- function(data,
 	vTimeVal <- "TimeValCol"
 	vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 
-	sqlstr <- paste0("CREATE VIEW ",vtablename,
-					" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
-						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-	sqlSendUpdate(getOption("connectionFL"),sqlstr)
+	#sqlstr <- paste0("CREATE VIEW ",vtablename,
+	#				" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
+	#					" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+	#sqlSendUpdate(getOption("connectionFL"),sqlstr)
 
+	createView(pViewName="vtablename",
+				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
+						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+				)
 	# t <- createTable(pTableName=vtablename,
 	# 				pSelect=sqlstr)
 	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)

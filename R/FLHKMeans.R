@@ -159,9 +159,12 @@ hkmeans.FLTable<-function(x,
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name(x@select@table_name)
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
-						".",deeptablename," AS \n ",
-						constructSelect(x))
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+		#				".",deeptablename," AS \n ",
+		#				constructSelect(x))
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+					pSelect=constructSelect(x))
+
 		sqlSendUpdate(connection,sqlstr)
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
