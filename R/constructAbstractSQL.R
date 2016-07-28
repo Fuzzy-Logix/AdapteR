@@ -408,10 +408,18 @@ createTable <- function(pTableName,
 
 ## CREATE VIEW
 createView <- function(pViewName,
-                       pSelect){
+                       pSelect,
+                       ...){
+    if("pStore" %in% names(list(...)))
+        pStore <- list(...)$pStore
+    else pStore <- TRUE
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
                         " AS ",pSelect,";")
-    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    res <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    if(pStore)
+    updateMetaTable(pTableName=pViewName,
+                    pNote="view")
+    res
 }
 
 ## DROP VIEW

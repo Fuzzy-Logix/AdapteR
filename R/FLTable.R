@@ -20,7 +20,7 @@ NULL
 #' in Teradata.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_Deep", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
 #' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
 #' @export
