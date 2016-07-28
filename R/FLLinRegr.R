@@ -1239,6 +1239,7 @@ coefficients.FLLinRegr<-function(object){
 }
 
 #' @export
+
 coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 	if(!is.null(object@results[["coefficients"]]))
 	return(object@results[["coefficients"]])
@@ -1266,6 +1267,12 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 					ifelse(!is.null(object@results[["modelID"]]),
 					paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
 					"\n ORDER BY CoeffID"))
+
+
+		want <- all.vars(object@formula)
+		q <- match(want[2:length(want)],coeffVector[["CoeffName"]][2:length(coeffVector[["CoeffName"]])]) + 1
+		coeffVector <- coeffVector[c(1,q), ]
+
 
 		colnames(coeffVector) <- toupper(colnames(coeffVector))
 		coeffVector1 <- coeffVector[["COEFFVALUE"]]
@@ -1384,72 +1391,41 @@ model.FLLinRegr <- function(object)
 }
 
 #' @export
-summary.FLLinRegr<-function(object){
-	ret <- object$FLLinRegrStats
-	colnames(ret) <- toupper(colnames(ret))
-	vresiduals <- object$residuals
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT FLMin(z.val),FLMax(z.val),q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.25) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q,z
-								   group by 3")
-	vresult1 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.50) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q")
-	vresult2 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.75) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q")
-	vresult3 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	coeffframe <- data.frame(object$coefficients,
-							object$FLCoeffStdErr,
-							object$FLCoeffTStat,
-							object$FLCoeffPValue)
-	colnames(coeffframe)<-c("Estimate","Std. Error","t value","Pr(>|t|)")
 
-	residualframe <- data.frame(vresult1[[1]],
-								vresult1[[3]],
-								vresult2[[1]],
-								vresult3[[1]],
-								vresult1[[2]])
-	colnames(residualframe) <- c("Min","1Q","Median","3Q","Max")
-	parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	assign(parentObject,object,envir=parent.frame())
-	
-	cat("Call:\n")
-	cat(paste0(object$call),"\n")
-	cat("\nResiduals:\n")
-	print(residualframe)
-	cat("\n\nCoefficients:\n")
-	print(coeffframe)
-	cat("\n---\n")
-	cat("Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1\n")
-	cat("Residual standard error: ",ret[["MSRESIDUAL"]]," on ",ret[["DFRESIDUAL"]]," degrees of freedom\n\n")
-	cat("Multiple R-squared: ",ret[["RSQUARED"]]," , Adjusted R-squared: ",ret[["ADJRSQUARED"]],"\n")
-	FStatPVal<-pf(ret[["FSTAT"]],ret[["DFREGRESSION"]],ret[["DFRESIDUAL"]],lower.tail=FALSE)
-	cat("F-statistic: ",ret[["FSTAT"]]," on ",ret[["DFREGRESSION"]]," and ",ret[["DFRESIDUAL"]]
-		,"DF , p-value: ",FStatPVal,"\n")
+summary.FLLinRegr <- function(object){
+  stat <- object$FLLinRegrStats
+  coeffframe <- data.frame(object$coefficients,
+                           object$FLCoeffStdErr,
+                           object$FLCoeffTStat,
+                           object$FLCoeffPValue)
+  colnames(coeffframe)<-c("Estimate","Std. Error","t value","Pr(>|t|)")
 
+  #put rowname
+  rname <- all.vars(object@formula)
+  rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])  
+
+
+
+  
+  reqList <- list(call = as.call(object@formula),
+                  residuals  = as.vector(object$residuals),
+                  coefficients = as.matrix(coeffframe),
+                  sigma = stat$STDERR,
+                  df = as.vector(c((stat$DFREGRESSION + 1),stat$DFRESIDUAL, (stat$DFREGRESSION + 1))),
+                  r.squared = stat$RSQUARED,
+                  adj.r.squared = stat$ADJRSQUARED,
+                  fstatistic = c(stat$FSTAT, stat$DFREGRESSION, stat$DFRESIDUAL ),
+                  aliased = FALSE
+  )
+  
+  
+  class(reqList) <- "summary.lm"
+  reqList
+  
 }
+
+
+
 
 #' @export
 predict<-function(object,newdata,...){
