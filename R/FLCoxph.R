@@ -787,7 +787,7 @@ IncludeTimeVal <- function(data,
 	#					" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
 	#sqlSendUpdate(getOption("connectionFL"),sqlstr)
 
-	createView(pViewName="vtablename",
+	createView(pViewName=vtablename,
 				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
 						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
 				)
