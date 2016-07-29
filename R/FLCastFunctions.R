@@ -75,6 +75,8 @@ as.data.frame.FLTable <- function(x, ...){
     if(any(D[[toupper("obs_id_colname")]]!=1:nrow(D)))
         rownames(D) <- D[[toupper("obs_id_colname")]]
     D[[toupper("obs_id_colname")]] <- NULL
+    ## For sparse deep table
+    D[is.na(D)] <- 0
     return(D)
 }
 
@@ -895,10 +897,15 @@ as.FLTable.data.frame <- function(object,
       t<-sqlSendUpdate(connection,paste0("drop table ",
                     getOption("ResultDatabaseFL"),".",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
-      sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
-      if (getOption("debugSQL")) cat(sql)
-      t<-RJDBC::dbSendUpdate(connection,sql)
+      t <- createTable(pTableName=tableName,
+                      pColNames=names(vcolnamesCopy),
+                      pColTypes=vcolnamesCopy,
+                      pTemporary=FALSE)
+      # sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
+      # if (getOption("debugSQL")) cat(sql)
+      # t<-RJDBC::dbSendUpdate(connection,sql)
       if(!is.null(t)) stop(paste0("colnames unconvenional. Error Mssg is:-",t))
+      updateMetaTable(pTableName=tableName)
     }
     
     .jcall(connection@jc,"V","setAutoCommit",FALSE)

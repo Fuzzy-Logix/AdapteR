@@ -304,7 +304,7 @@ FLamendDimnames <- function(flm,map_table) {
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
-    connection <- getConnection(flm)
+    connection <- getConnection()
     dimnames <- flm@dimnames
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
@@ -335,17 +335,19 @@ FLamendDimnames <- function(flm,map_table) {
     ## if there is still no dimnames set,
     ## use unique values as dimnames
     selectUnique <- function(varname)
-        paste0("SELECT unique(",
+        paste0("SELECT DISTINCT(",
                flm@select@variables[[varname]],
-               ") as V\n",
+               ") as v\n",
                "FROM  ",remoteTable(flm@select),
                constructWhere(
                    constraintsSQL(flm@select)),
                "\nORDER BY 1")
+    vrownames <- sqlQuery(connection,selectUnique("rowIdColumn"))
+    vcolnames <- sqlQuery(connection,selectUnique("colIdColumn"))
     if(length(rownames)==0)
-        rownames <- sort(sqlQuery(connection,selectUnique("rowIdColumn"))$V)
+        rownames <- sort(vrownames$v)
     if(length(colnames)==0)
-        colnames <- sort(sqlQuery(connection, selectUnique("colIdColumn"))$V)
+        colnames <- sort(vcolnames$v)
 
         vstringdimnames <- lapply(list(rownames,colnames),
                                   function(x){
@@ -687,14 +689,3 @@ setMethod("checkMaxQuerySize",
 setMethod("checkMaxQuerySize",
           signature(pObj1="FLVector"),
           function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
-
-setGeneric("getIdColname",function(object)
-      standardGeneric("getIdColname"))
-setMethod("getIdColname",signature(object="FLMatrix"),
-      function(object){
-        return("MATRIX_ID")
-        })
-setMethod("getIdColname",signature(object="FLVector"),
-      function(object){
-        return("vectorIdColumn")
-        })

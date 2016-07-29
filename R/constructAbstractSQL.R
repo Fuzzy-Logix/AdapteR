@@ -119,33 +119,48 @@ constructUDTSQL <- function(pViewColnames,
 
 
 ############################## Stored Procs ###########################
-## Lot of select * 's  in Aster documentation
 
 constructStoredProcSQL <- function(pConnection,
                                     pFuncName,
                                     pOutputParameter,
                                     ...){
+    #browser()
     args <- list(...)
+    if(length(args)==1 && is.list(args[[1]]))
+        args <- args[[1]]
     ## Setting up input parameter value
     pars <- character()
 
     ## Construct input params 
     ## NULL in TD == '' in others
     if(class(pConnection)=="RODBC"){
-        ai <- 1L
-        for(a in args){
-            if(is.character(a)){
-                if(a=="NULL"){
-                    if(is.TD())
-                    pars[ai] <- "NULL"
-                    else pars[ai] <- "''"
-                }
-                else
-                    pars[ai] <- fquote(a)
-            } else
-                pars[ai] <- a
-            ai <- ai+1L
-        }
+        pars <- sapply(args,
+                    function(a){
+                        if(is.character(a)){
+                            if(a=="NULL"){
+                                if(is.TD())
+                                    return("NULL")
+                                else return("''")
+                            }
+                            else
+                                return(fquote(a))
+                        } 
+                        else return(a)
+                    })
+        # ai <- 1L
+        # for(a in unlist(args)){
+        #     if(is.character(a)){
+        #         if(a=="NULL"){
+        #             if(is.TD())
+        #             pars[ai] <- "NULL"
+        #             else pars[ai] <- "''"
+        #         }
+        #         else
+        #             pars[ai] <- fquote(a)
+        #     } else
+        #         pars[ai] <- a
+        #     ai <- ai+1L
+        # }
     }
     else{
         pars <- rep("?",length(args))
@@ -158,30 +173,30 @@ constructStoredProcSQL <- function(pConnection,
     vCall <- c(TD="CALL ",
                 TDAster="SELECT * FROM ",
                 Hadoop="SELECT ")
-    vCall <- vCall[names(vCall)==getOption("platform")]
+    vCall <- vCall[names(vCall)==getOption("FLPlatform")]
 
-    if(is.TDAster())
-    return(paste0(vCall," ",pFuncName,
+    if(is.TDAster()){
+        pars <- c(pars,
+                DSN=fquote(getOption("DSN")))
+        return(paste0(vCall," ",pFuncName,
                 "( ON (SELECT 1 ) PARTITION BY 1 ",
-                    paste0(names(pars),"('",
-                            pars,"')",
+                    paste0(names(pars),"(",
+                            pars,")",
                             collapse=" \n "),
                     ")"
                 )
         )
+    }
     else
     return(paste0(vCall," ",pFuncName,
                     "(",
                     paste0(pars,
                             collapse=", \n "),
                     ifelse(is.TD(),
-                        paste0(",",
-                            paste0(names(pOutputParameter), 
-                                collapse=", \n ")),
-                        ""),
-                    ")",
-                )
-        )
+                        paste0(",",paste0(names(pOutputParameter), 
+                                collapse=", \n ")),""),
+                    ")")
+            )
 }
 
 ############################### Aggregates ############################
@@ -194,28 +209,59 @@ constructStoredProcSQL <- function(pConnection,
 #         pFunc(valueColumn) AS valueColumn
 # FROM (constructSelect(object)) a
 getOutputColumns <- function(pObject,
-                            pFunc){
-    vVariables <- getVariables(pObject)
-    vOutCols <- names(vVariables)
+                            pFunc,
+                            ...){
+    if(is.FLVector(pObject))
+    vOutCols <- c("vectorIdColumn",
+                "vectorIndexColumn",
+                "vectorValueColumn")
+    else
+    vOutCols <- names(getVariables(pObject))
+
     names(vOutCols) <- vOutCols
     vValueCol <- as.FLAbstractCol(pObject)
     vOutCols[getIdColname(pObject)] <- "'%insertIDhere%'"
-    vOutCols[vValueCol] <- pFunc(vValueCol)
+    vOutCols[vValueCol@columnName] <- pFunc(vValueCol,...)
     return(vOutCols)
 }
 constructScalarSQL <- function(pObject,
-                                pFunc
+                                pFunc,
+                                ...
                                 ){
+    if(is.RowFLVector(pObject))
+        pObject <- store(pObject)
+
+    if(is.wideFLTable(pObject))
+        pObject <- wideToDeep(pObject)[["table"]]
+
     if(is.FLSelectFrom(pObject@select)){
-        vVariables <- getVariables(pObject)
-        vValueCol <- as.FLAbstractCol(pObject)
-        vVariables[[vValueCol]] <- pFunc(vValueCol)
-        pObject@select@variables <- vVariables
-        return(pObject)
+
+        if(is.FLMatrix(pObject) || 
+            ((is.FLVector(pObject) || 
+                is.FLTable(pObject)) && 
+                pObject@isDeep)){
+            vVariables <- getVariables(pObject)
+            vValueCol <- getValueColumn(pObject)
+
+            vVariables[[names(vValueCol)]] <- pFunc(new("FLAbstractColumn",
+                                                         columnName=vValueCol),
+                                                    ...)
+            pObject@select@variables <- vVariables
+            return(pObject)
+        }
+        if(is.FLVector(pObject)){
+            vValueCol <- getValueColumn(pObject)
+            #names(pObject@select@table_name) <- NULL
+            pObject@dimnames[[2]] <- pFunc(new("FLAbstractColumn",
+                                                columnName=vValueCol),
+                                                ...)
+            return(pObject)
+        }
     }
     else{
         vVariables <- getOutputColumns(pObject=pObject,
-                                        pFunc=pFunc)
+                                        pFunc=pFunc,
+                                        ...)
         vsqlstr <- paste0("SELECT ",
                         paste0(vVariables," AS ",
                                 names(vVariables),
@@ -225,4 +271,229 @@ constructScalarSQL <- function(pObject,
         pObject@select@SQLquery <- vsqlstr
         return(pObject)
     }
+}
+
+
+############################ DDLs ##########################################
+## Set Database
+setCurrentDatabase <- function(pDBName){
+    if(is.Hadoop())
+        vsqlstr <- paste0("USE ",pDBName,";")
+    else if(is.TD())
+        vsqlstr <- c(paste0("DATABASE ",pDBName,";"),
+                    "SET ROLE ALL;")
+    else if(is.TDAster() && 
+            tolower(getOption("ResultDatabaseFL"))!=tolower(pDBName))
+    stop("use flConnect to set database in Aster \n ")
+
+    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+}
+
+## CREATE TABLE SQL
+## covers cases where table is created from other tables
+## with and without data , temporary and permanent
+## if usedbSendUpdate arg is passed in ... that is used
+## in place of dbSendQuery
+createTable <- function(pTableName,
+                        pColNames=NULL,
+                        pColTypes=NULL,
+                        pTableOptions=NULL,
+                        pPrimaryKey=pColNames[1],
+                        pFromTableName=NULL,
+                        pWithData=TRUE,
+                        pTemporary=TRUE,
+                        pDrop=FALSE,
+                        pDatabase=getOption("ResultDatabaseFL"),
+                        pSelect=NULL,
+                        ...){
+
+    # if(missing(pDatabase))
+    # pTableName <- getRemoteTableName(pDatabase,pTableName)
+    if(pDrop)
+        dropTable(pTableName)
+    vtempKeyword <- c(VOLATILE="TD",
+                    TEMPORARY="Hadoop",
+                    "TDAster")  ##TEMPORARY="TDAster"
+    vtempKeyword <- names(vtempKeyword)[vtempKeyword==getOption("FLPlatform")]
+
+    addColNameType <- function(pColNames,pColTypes){
+        return(paste0(" ( ",
+                    paste0(pColNames," ",pColTypes,collapse=","),
+                    " ) "))
+    }
+    addSelectFromtbl <- function(psqlstr,
+                                pFromTableName,
+                                pWithData,
+                                pSelect){
+        if(is.null(pSelect)){
+            pSelect <- paste0("SELECT * FROM ",pFromTableName)
+            if(is.TDAster() || is.Hadoop())
+            pSelect <- paste0(pSelect,
+                            ifelse(pWithData,
+                                    " WHERE 1=1 ",
+                                    " WHERE 1=0 "))
+        }
+        if(is.TD())
+            paste0(psqlstr," AS ( ",pSelect," ) ",
+                        ifelse(pWithData,
+                            " WITH DATA ",
+                            " WITH NO DATA "))
+        else
+            psqlstr <- paste0(psqlstr," AS ",pSelect)
+        
+    }
+
+    vsqlstr <- paste0("CREATE ",ifelse(pTemporary,vtempKeyword,""),
+                            " TABLE ",pTableName, " ")
+
+    if(is.TD()){
+        if(!is.null(pFromTableName) || !is.null(pSelect))
+        vsqlstr <- addSelectFromtbl(vsqlstr,pFromTableName,pWithData,pSelect)
+        else{
+            ## Add tableOptions
+            vsqlstr <- paste0(vsqlstr,
+                            ifelse(is.null(pTableOptions),"",
+                                paste0(",",paste0(pTableOptions,collapse=","))
+                            ))
+            ## Add columns
+            vsqlstr <- paste0(vsqlstr,addColNameType(pColNames,pColTypes))
+            ## Add primaryKey
+            if(pPrimaryKey!="" && !is.null(pPrimaryKey))
+            vsqlstr <- paste0(vsqlstr," PRIMARY INDEX (",
+                                paste0(pPrimaryKey,collapse=","),")")
+        }
+        ## Add ON COMMIT PRESERVE ROWS
+        if(pTemporary)
+        vsqlstr <- paste0(vsqlstr," ON COMMIT PRESERVE ROWS ")
+    }
+    else if(is.TDAster()){
+        if(!is.null(pFromTableName) || !is.null(pSelect))
+        vsqlstr <- addSelectFromtbl(vsqlstr,pFromTableName,pWithData,pSelect)
+        else{
+            ## Add columns
+            vsqlstr <- paste0(vsqlstr,addColNameType(pColNames,pColTypes))
+            ## Add primaryKey
+            if(pPrimaryKey!="" && !is.null(pPrimaryKey))
+            vsqlstr <- paste0(vsqlstr," DISTRIBUTE BY HASH(",
+                                paste0(pPrimaryKey[1],collapse=","),")")
+        }
+    }
+    else if(is.Hadoop()){
+        if(!is.null(pFromTableName) || !is.null(pSelect))
+        vsqlstr <- addSelectFromtbl(vsqlstr,pFromTableName,pWithData,pSelect)
+        else{
+            ## Add columns
+            vsqlstr <- paste0(vsqlstr,addColNameType(pColNames,pColTypes))
+            ## Add primaryKey
+            if(pPrimaryKey!="" && !is.null(pPrimaryKey))
+            vsqlstr <- paste0(vsqlstr," CLUSTERED BY(",
+                                paste0(pPrimaryKey[1],collapse=","),")",
+                                " INTO 32 BUCKETS ")
+            ## Add tableOptions
+            vsqlstr <- paste0(vsqlstr,
+                            ifelse(is.null(pTableOptions),"",
+                                    paste0(pTableOptions,collapse=" ")))
+        }
+    }
+    vsqlstr <- paste0(vsqlstr,";")
+    print(vsqlstr)
+
+    if("usedbSendUpdate" %in% names(list(...))){
+        cat("sending:  ",vsqlstr)
+        return(RJDBC::dbSendUpdate(getOption("connectionFL"),vsqlstr))
+    }
+
+    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+}
+
+## CREATE VIEW
+createView <- function(pViewName,
+                       pSelect){
+    vsqlstr <- paste0("CREATE VIEW ",pViewName,
+                        " AS ",pSelect,";")
+    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+}
+
+## DROP VIEW
+dropView <- function(pViewName){
+    sqlSendUpdate(getOption("connectionFL"),
+                paste0("DROP VIEW ",pViewName,";"))
+}
+
+## DROP TABLE
+dropTable <- function(pTableName){
+    sqlSendUpdate(getOption("connectionFL"),
+                paste0("DROP TABLE ",pTableName,";"))
+}
+
+## Insert Into Table
+insertIntotbl <- function(pTableName,
+                          pColNames=NULL,
+                          pValues=NULL,
+                          pSelect=NULL){
+
+    # if(!grepl(".",pTableName,fixed=TRUE))
+    # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
+    #                                 pTableName)
+
+    vsqlstr <- paste0("INSERT INTO ",pTableName)
+
+    if(!is.null(pValues)){
+        if(!is.null(pColNames))
+            vsqlstr <- paste0(vsqlstr,"(",
+                        paste0(pColNames,collapse=","),
+                        ") ")
+        pValues <- sapply(pValues,
+                    function(x){
+                        if(is.character(x) && !grepl("'",x))
+                        return(fquote(x))
+                        else return(x)
+                    })
+        vsqlstr <- paste0(vsqlstr," VALUES (",
+                            paste0(pValues,collapse=","),
+                            ");")
+    }
+    else if(!is.null(pSelect)){
+        vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
+    }
+    print(vsqlstr)
+    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+}
+
+updateMetaTable <- function(pTableName,
+                            pElementID=NULL,
+                            ...){
+    vtemp <- separateDBName(pTableName)
+    vdatabase <- vtemp["vdatabase"]
+    pTableName <- vtemp["vtableName"]
+
+    if("pNote" %in% names(list(...)))
+        pNote <- list(...)$pNote
+    else pNote <- "NA"
+
+    if(is.null(pElementID))
+        pElementID <- -1
+
+    insertIntotbl(pTableName="fzzlAdapteRTablesInfo",
+                  pColNames=c("TimeInfo","DateInfo",
+                            "UserName","DatabaseName",
+                            "TableName","ElementID",
+                            "Comments"),
+                  pValues=list(fquote(as.character(as.POSIXlt(Sys.time(),tz="GMT"))),
+                            fquote(as.character(Sys.Date())),
+                            fquote(ifelse(is.null(getOption("FLUsername")),
+                                "default",getOption("FLUsername"))),
+                            fquote(vdatabase),
+                            fquote(pTableName),
+                            as.integer(pElementID),
+                            fquote(pNote)
+                        ))
+}
+
+limitRowsSQL <- function(pSelect,pRows){
+    vlimitKeyword <- c(LIMIT="TDAster",
+                        LIMIT="Hadoop",
+                        SAMPLE="TD")
+    vlimitKeyword <- names(vlimitKeyword)[vlimitKeyword==getFLPlatform()]
+    return(paste0(pSelect," ",vlimitKeyword, " ",pRows))
 }

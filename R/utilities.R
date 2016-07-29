@@ -7,8 +7,9 @@ setOldClass("RODBC")
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName) {
-
-    return(paste0(databaseName,".",tableName))
+    if(is.null(databaseName) || databaseName==getOption("ResultDatabaseFL"))
+        return(tableName)
+    else return(paste0(databaseName,".",tableName))
 }
 
 sqlError <- function(e){
@@ -55,16 +56,25 @@ sqlStoredProc <- function(connection, query,
 #' @param query SQLQuery to be sent
 #' @export
 sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
-    sapply(query, function(q){
-        ##browser()
-        if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
-        tryCatch({
-            res <- DBI::dbSendQuery(connection, q, ...)
-            ##dbCommit(connection)
-            dbClearResult(res)
-        },
-        error=function(e) sqlError(e))
-    })
+    verrflag<-sapply(query, function(q){
+                            ##browser()
+                            if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+                            tryCatch({
+                                if(is.TDAster())
+                                    res <- RJDBC::dbSendUpdate(connection,q,...)
+                                else{
+                                    res <- DBI::dbSendQuery(connection, q, ...)
+                                    ##dbCommit(connection)
+                                    dbClearResult(res)
+                                }
+                                return(TRUE)
+                            },
+                            error=function(e){
+                                sqlError(e)
+                                return(FALSE)
+                                })
+                        })
+    return(verrflag)
 }
 
 #' Send a query to database
@@ -73,24 +83,31 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.RODBC <- function(connection,query,...) {
+sqlSendUpdate.RODBC <- function(connection,query,...){
+    if(!is.TDAster())
     RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
-    sapply(query, function(q){
-        if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
-        err<-RODBC::sqlQuery(connection,q,errors=FALSE)
-        errmsg<- RODBC::odbcGetErrMsg(connection)
-        if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
-        {
-            RODBC::odbcEndTran(connection, commit = TRUE)
-        }
-        else
-        {
-            RODBC::odbcEndTran(connection, commit = FALSE)
-            print(errmsg)
-        }
-        RODBC::odbcClearError(connection)
-    })
+    else RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
+
+    verrflag <- sapply(query, function(q){
+                                if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
+                                err<-RODBC::sqlQuery(connection,q,errors=FALSE)
+                                errmsg<- RODBC::odbcGetErrMsg(connection)
+                                if(length(errmsg) == 0 || as.character(errmsg)=="No Data")
+                                {
+                                    RODBC::odbcEndTran(connection, commit = TRUE)
+                                    verrflag <- TRUE
+                                }
+                                else
+                                {
+                                    RODBC::odbcEndTran(connection, commit = FALSE)
+                                    print(errmsg)
+                                    verrflag <- FALSE
+                                }
+                                RODBC::odbcClearError(connection)
+                                return(verrflag)
+                            })
     RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
+    return(verrflag)
     #cat("DONE...\n")
 }
 
@@ -99,25 +116,29 @@ sqlStoredProc.RODBC <- function(connection, query,
                                 outputParameter,
                                 ...) {
     #browser()
-    args <- list(...)
-    ## Setting up input parameter value
-    pars <- character()
-    ai <- 1L
-    for(a in args){
-        if(is.character(a)){
-            if(a=="NULL")
-                pars[ai] <- "NULL"
-            else
-                pars[ai] <- fquote(a)
-        } else
-            pars[ai] <- a
-        ai <- ai+1L
-    }
-    sqlstr <- paste0("CALL ",query,"(",
-                     paste0(pars, collapse=", \n "),
-                     ",",
-                     paste0(names(outputParameter), collapse=", \n "),
-                     ")")
+    sqlstr <- constructStoredProcSQL(pConnection=connection,
+                                    pFuncName=query,
+                                    pOutputParameter=outputParameter,
+                                    ...)
+    # args <- list(...)
+    # ## Setting up input parameter value
+    # pars <- character()
+    # ai <- 1L
+    # for(a in args){
+    #     if(is.character(a)){
+    #         if(a=="NULL")
+    #             pars[ai] <- "NULL"
+    #         else
+    #             pars[ai] <- fquote(a)
+    #     } else
+    #         pars[ai] <- a
+    #     ai <- ai+1L
+    # }
+    # sqlstr <- paste0("CALL ",query,"(",
+    #                  paste0(pars, collapse=", \n "),
+    #                  ",",
+    #                  paste0(names(outputParameter), collapse=", \n "),
+    #                  ")")
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }
@@ -131,10 +152,16 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     ## a precompiled SQL statement and preparing the callable
     ## statement for execution.
     args <- list(...)
-    query <- paste0("CALL ",query, "(",
-                    paste0(rep("?", length(args)+length(outputParameter)),
-                           collapse=","),
-                     ")")
+    if(length(args)==1 && is.list(args[[1]]))
+        args <- args[[1]]
+    # query <- paste0("CALL ",query, "(",
+    #                 paste0(rep("?", length(args)+length(outputParameter)),
+    #                        collapse=","),
+    #                  ")")
+    query <- constructStoredProcSQL(pConnection=connection,
+                                    pFuncName=query,
+                                    pOutputParameter=outputParameter,
+                                    ...)
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
 
@@ -182,6 +209,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
         result[[names(outputParameter)[[ai]]]] <- a
     }
     .jcall(cStmt,"V","close")
+
     return(as.data.frame(result))
 }
 
@@ -212,17 +240,20 @@ sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...)
 
 #' @export
 sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
+    if(is.TDAster())
+        RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
+
     if(!is.null(AnalysisIDQuery))
         warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
-            resd <- RODBC::sqlQuery(connection, query, as.is=TRUE,...)
+            resd <- RODBC::sqlQuery(connection, query,...)
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
-            resd <- RODBC::sqlQuery(connection, q, as.is=TRUE,...)
+            resd <- RODBC::sqlQuery(connection, q,...)
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     })
@@ -359,14 +390,11 @@ genNote <- function(pFunction){
 #' @export
 FLodbcClose <- function(connection)
 {
-    sqlstr <- c()
-
-    if(length(getOption("FLTempTables"))>0)
-	sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
+   if(length(getOption("FLTempTables"))>0)
+        sapply(getOption("FLTempTables"),dropTable)
     if(length(getOption("FLTempViews"))>0)
-    sqlstr <- c(sqlstr,paste0("DROP VIEW ",getOption("FLTempViews"),";"))
+        sapply(getOption("FLTempViews"),dropView)
 
-    sqlSendUpdate(connection,sqlstr)
     if(class(connection)=="RODBC")
     RODBC::odbcClose(connection)
     else RJDBC::dbDisconnect(connection)
@@ -378,7 +406,7 @@ FLodbcClose <- function(connection)
     options("FLSessionID"=c())
 }
 
-gen_table_name <- function(prefix,suffix){
+gen_table_name <- function(prefix,suffix=NULL){
     vtbl <- ifelse(is.null(suffix),
                    paste0(prefix),
                    paste0(prefix,"_",suffix))
@@ -406,12 +434,6 @@ gen_table_name <- function(prefix,suffix){
 ##' @param ... 
 ##' @return either an ODBC connection or an JDBC connection
 ##' @examples
-##' connection <- flConnect("jdbc:ncluster://10.47.10.30:2406",
-##'                           "fuzzylogix",
-##'                          "mroy","mroy",
-##'                         c("C:/Users/phani/Downloads/noarch-aster-jdbc-driver.jar",
-##'                             "C:/Users/phani/Downloads/noarch-aster-adfs-client.jar"),
-##'                         driverClass="com.asterdata.ncluster.Driver")
 ##' connection <- flConnect("jdbc:teradata://10.200.4.116",
 ##'                           "FL_DEMO",
 ##'                          "psrikar","fzzlpass",
@@ -424,6 +446,13 @@ gen_table_name <- function(prefix,suffix){
 ##'                         c("C:/Users/phani/Downloads/hive-jdbc-1.2.1-standalone.jar",
 ##'                             "C:/Users/phani/Downloads/hadoop-common-2.6.0.jar"),
 ##'                         driverClass="org.apache.hive.jdbc.HiveDriver")
+##' connection <- flConnect("jdbc:ncluster://192.168.100.220:2406","fuzzylogix",
+##'                          "db_superuser","db_superuser",
+##'                         c("C:/Users/phani/Downloads/noarch-aster-jdbc-driver.jar",
+##'                           "C:/Users/phani/Downloads/noarch-aster-adfs-client.jar"),
+##'                         driverClass = "com.asterdata.ncluster.Driver")
+##' connection <- flConnect(odbcSource="Gandalf",database="FL_DEMO",platform="TD")
+##' connection <- flConnect(odbcSource="AsterVM",database="fuzzylogix",platform="TDAster")
 ##' @export
 flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       jdbc.jarsDir=NULL,
@@ -432,21 +461,65 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       driverClass=NULL,
                       verbose=FALSE,
                       ...){
+    getPlatform <- function(pdrvClass,pDotsList){
+        #browser()
+        matchPlatform <- function(pObj1){
+            pObj2 <- list(c("TD","teradata","com.teradata.jdbc.TeraDriver"),
+                          c("TDAster","aster","astertd",
+                            "teradataaster","com.asterdata.ncluster.Driver"),
+                          c("Hadoop","hive","cloudera",
+                            "clouderahive","hive2","org.apache.hive.jdbc.HiveDriver"))
+            return(sapply(pObj2,
+                        function(i){
+                            if(tolower(pObj1) %in% tolower(i))
+                            return(as.vector(i[[1]]))
+                            else return(NULL)
+                            }))
+        }
+        vplatform <- NULL
+        if(!is.null(pdrvClass))
+            vplatform <- matchPlatform(pdrvClass)
+        else if("platform" %in% names(pDotsList))
+            vplatform <- matchPlatform(pDotsList$platform)
+        vplatform <- as.character(vplatform[sapply(vplatform,
+                                                    function(x)
+                                                        !is.null(x))])
+        if(length(vplatform)==0)
+            stop("invalid driverClass or platform argument in flConnect \n ")
+        return(vplatform)
+    }
+
+    options(ResultDatabaseFL=database)
+    options(FLUsername=user)
     connection <- NULL
-    if(!is.null(host) &
-       !is.null(database)){
-        if(is.null(user)) user <- readline("Your username:")
-        if(is.null(passwd)) passwd <- readline("Your password:")
-        if(is.null(driverClass)) driverClass <- readline("driverClass")
-        if(!grepl("^jdbc:(teradata|aster)://",host)) stop(paste0("host needs to start with 'jdbc:teradata://' or 'jdbc:aster://'."))
-        if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector.")
-        if(is.null(driverClass)) stop("You must provide a jdbc driver class, e.g. com.teradata.jdbc.TeraDriver.")
+
+    if(!is.null(host)){
+        if(is.null(user)) user <- readline("Your username:  ")
+        if(is.null(passwd)) passwd <- readline("Your password:  ")
+        # if(is.null(driverClass)) driverClass <- readline("driverClass:  ")
+        if(is.null(jdbc.jarsDir)) stop("provide fully qualified path to jar files vector \n ")
+        if(is.null(driverClass)){
+            getDriverClass <- function(pHost){
+                vdrvClasses <- c(teradata="com.teradata.jdbc.TeraDriver",
+                                ncluster="com.asterdata.ncluster.Driver",
+                                hive2="org.apache.hive.jdbc.HiveDriver")
+                vindex <- sapply(names(vdrvClasses),
+                                function(x) grepl(x,pHost))
+                return(vdrvClasses[vindex])
+            }
+            driverClass <- getDriverClass(host)
+        }
+
+
+        if(!grepl("^jdbc:",host)) stop(paste0("host needs to start with 'jdbc:' \n "))
+
         myConnect <- function(){
             ## add jdbc driver and security jars to classpath
+            #browser()
             require(RJDBC)
             ##browser()
             if(!is.null(jdbc.jarsDir)){
-                if(length(jdbc.jarsDir)==1 & dir.exists(jdbc.jarsDir))
+                if(length(jdbc.jarsDir)==1)
                     jdbc.jarsDir <- list.files(jdbc.jarsDir,".*\\.jar",full.names = TRUE,ignore.case = TRUE)
                 for(jarF in jdbc.jarsDir){
                     if(verbose)
@@ -490,11 +563,10 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     if(is.null(connection))
         stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")
     
-    if(is.null(database))
-    {
-      cat(" setting FL_DEMO as ResultDatabaseFL ")
-      database <- "FL_DEMO"
-    }
+
+    vplatform <- getPlatform(pdrvClass=driverClass,
+                            pDotsList=list(...))
+    options(FLPlatform=vplatform)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
@@ -514,117 +586,194 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
 #' @param tableoptions options used to create result tables
 #' @export
 FLStartSession <- function(connection,
-                           database="FL_DEMO",
-                           persistent="test",
-                           drop=TRUE,
+                           database=getOption("ResultDatabaseFL"),
+                           persistent=FALSE,
+                           drop=FALSE,
                            debug=FALSE,
-                           tableoptions=paste0(", FALLBACK ,NO BEFORE JOURNAL,NO AFTER JOURNAL,CHECKSUM = DEFAULT,DEFAULT MERGEBLOCKRATIO "))
+                           tableoptions=NULL,
+                           ...)
 {
+    ## Drop Any Tables overSplling from previous unclosed Session
+    if(drop){
+        if(length(getOption("FLTempTables"))>0)
+            sapply(getOption("FLTempTables"),dropTable)
+        if(length(getOption("FLTempViews"))>0)
+            sapply(getOption("FLTempViews"),dropView)
+        options(FLTempViews=character())
+        options(FLTempTables=character())
+    }
     options(debugSQL=debug)
-    options(ResultDatabaseFL=database)
-    ##    browser()
+    #browser()
     options(connectionFL=connection)
     options(InteractiveFL=TRUE)
-    options(ResultVectorTableFL=gen_table_name("tblVectorResult",persistent))
-    options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult",persistent))
-    options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult",persistent))
-    options(NameMapTableFL=gen_table_name("tblNameMapping",persistent))
-    options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult",persistent))
-    options(ResultCharMatrixTableFL=gen_table_name("tblCharMatrixMultiResult",persistent))
-    options(ResultIntMatrixTableFL=gen_table_name("tblIntMatrixMultiResult",persistent))
-    options(ResultIntVectorTableFL=gen_table_name("tblIntVectorResult",persistent))
+    options(ResultVectorTableFL=gen_table_name("tblVectorResult"))
+    options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult"))
+    options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult"))
+    options(NameMapTableFL=gen_table_name("tblNameMapping"))
+    options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult"))
+    options(ResultCharMatrixTableFL=gen_table_name("tblCharMatrixMultiResult"))
+    options(ResultIntMatrixTableFL=gen_table_name("tblIntMatrixMultiResult"))
+    options(ResultIntVectorTableFL=gen_table_name("tblIntVectorResult"))
 
     options(scipen=999)
     #options(stringsAsFactors=FALSE)
-    sendqueries <- c(
-        paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
-        paste0("SET ROLE ALL;"))
-    sqlSendUpdate(connection, sendqueries)
+    # sendqueries <- c(
+    #     paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
+    #     paste0("SET ROLE ALL;"))
+    # sqlSendUpdate(connection, sendqueries)
+    if(is.null(database))
+        stop("database argument cannot be NULL \n ")
+    #if(tolower(getOption("ResultDatabaseFL"))!=tolower(database))
+    setCurrentDatabase(database)
+    options(ResultDatabaseFL=database)
 
-    if(drop){
-    	sqlstr <- c()
+    vresultTables <- c("ResultMatrixTableFL","ResultSparseMatrixTableFL",
+                        "ResultCharMatrixTableFL","ResultIntMatrixTableFL",
+                        "ResultVectorTableFL","ResultCharVectorTableFL",
+                        "ResultIntVectorTableFL")
+    sapply(vresultTables,
+        function(x){
+            vtable <- getOption(x)
+            if(grepl("matrix",tolower(vtable)))
+            vclass <- "matrix"
+            else vclass <- "vector"
+            if(grepl("int",tolower(vtable)))
+            vtype <- "INT"
+            else if(grepl("char",tolower(vtable)))
+            vtype <- "VARCHAR(100)"
+            else vtype <- "FLOAT"
+            genCreateResulttbl(tablename=vtable,
+                                persistent=persistent,
+                                tableoptions=tableoptions,
+                                vclass=vclass,
+                                type=vtype,
+                                pDrop=drop)
+        })
 
-    	if(length(getOption("FLTempTables"))>0)
-            sqlstr <- c(sqlstr,paste0("DROP TABLE ",getOption("FLTempTables"),";"))
-        if(length(getOption("FLTempViews"))>0)
-            sqlstr <- c(sqlstr,paste0("DROP VIEW ",getOption("FLTempViews"),";"))
-        options(FLTempViews=character())
-        options(FLTempTables=character())
-        sqlSendUpdate(connection,sqlstr)
-    }
+    ## Create names mapping table
+    createTable(pTableName=getOption("NameMapTableFL"),
+                pColNames=c("TABLENAME","MATRIX_ID",
+                            "DIM_ID","NAME","NUM_ID"),
+                pColTypes=c("VARCHAR(100)","INT",
+                            "INT","VARCHAR(100)",
+                            "INT"),
+                pTableOptions=tableoptions,
+                pPrimaryKey=c("TABLENAME","MATRIX_ID",
+                            "DIM_ID","NAME"),
+                pTemporary=!persistent,
+                pDrop=drop)
 
-    sendqueries <- c(genCreateResulttbl(tablename=getOption("ResultMatrixTableFL"),
-                                        persistent=persistent,
-                                        tableoptions=tableoptions),
-                    genCreateResulttbl(tablename=getOption("ResultSparseMatrixTableFL"),
-                                        persistent=persistent,
-                                        tableoptions=tableoptions),
-                    genCreateResulttbl(tablename=getOption("ResultCharMatrixTableFL"),
-                                        persistent=persistent,
-                                        tableoptions=tableoptions,
-                                        type=" VARCHAR(100) "),
-                    genCreateResulttbl(tablename=getOption("ResultIntMatrixTableFL"),
-                                        persistent=persistent,
-                                        tableoptions=tableoptions,
-                                        type=" INTEGER "),
-                    genCreateResulttbl(tablename=getOption("ResultVectorTableFL"),
-                                        vclass="vector",
-                                        persistent=persistent,
-                                        tableoptions=tableoptions),
-                    genCreateResulttbl(tablename=getOption("ResultCharVectorTableFL"),
-                                        vclass="vector",
-                                        persistent=persistent,
-                                        tableoptions=tableoptions,
-                                        type=" VARCHAR(100) "),
-                    genCreateResulttbl(tablename=getOption("ResultIntVectorTableFL"),
-                                        vclass="vector",
-                                        persistent=persistent,
-                                        tableoptions=tableoptions,
-                                        type=" INTEGER "),
-                    paste0(" CREATE ",ifelse(is.null(persistent),
-                                            "VOLATILE TABLE ",
-                                            "TABLE "),
-                                   getOption("NameMapTableFL"),"\n",
-                                   tableoptions,"\n",
-                                "(TABLENAME VARCHAR(100),\n",
-                                " MATRIX_ID INTEGER,\n",
-                                " DIM_ID INTEGER, -- 1: row, 2: column \n",
-                                " NAME VARCHAR(100),\n",
-                                " NUM_ID INTEGER)\n",
-                                " PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);\n"))
-    sqlSendUpdate(connection, sendqueries)
+    ## Create system table for TablesMetadataInfo
+    createTable(pTableName="fzzlAdapteRTablesInfo",
+                pColNames=c("TimeInfo","DateInfo",
+                            "UserName","DatabaseName",
+                            "TableName","ElementID",
+                            "Comments"),
+                pColTypes=c("VARCHAR(100)","VARCHAR(100)",
+                            "VARCHAR(100)","VARCHAR(100)",
+                            "VARCHAR(100)","INT",
+                            "VARCHAR(100)"),
+                pTableOptions=tableoptions,
+                pPrimaryKey="UserName",
+                pTemporary=FALSE,
+                pDrop=FALSE)
+
+    # sendqueries <- c(genCreateResulttbl(tablename=getOption("ResultMatrixTableFL"),
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions),
+    #                 genCreateResulttbl(tablename=getOption("ResultSparseMatrixTableFL"),
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions),
+    #                 genCreateResulttbl(tablename=getOption("ResultCharMatrixTableFL"),
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions,
+    #                                     type=" VARCHAR(100) "),
+    #                 genCreateResulttbl(tablename=getOption("ResultIntMatrixTableFL"),
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions,
+    #                                     type=" INTEGER "),
+    #                 genCreateResulttbl(tablename=getOption("ResultVectorTableFL"),
+    #                                     vclass="vector",
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions),
+    #                 genCreateResulttbl(tablename=getOption("ResultCharVectorTableFL"),
+    #                                     vclass="vector",
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions,
+    #                                     type=" VARCHAR(100) "),
+    #                 genCreateResulttbl(tablename=getOption("ResultIntVectorTableFL"),
+    #                                     vclass="vector",
+    #                                     persistent=persistent,
+    #                                     tableoptions=tableoptions,
+    #                                     type=" INTEGER "),
+    #                 paste0(" CREATE ",ifelse(is.null(persistent),
+    #                                         "VOLATILE TABLE ",
+    #                                         "TABLE "),
+    #                                getOption("NameMapTableFL"),"\n",
+    #                                tableoptions,"\n",
+    #                             "(TABLENAME VARCHAR(100),\n",
+    #                             " MATRIX_ID INTEGER,\n",
+    #                             " DIM_ID INTEGER, -- 1: row, 2: column \n",
+    #                             " NAME VARCHAR(100),\n",
+    #                             " NUM_ID INTEGER)\n",
+    #                             " PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);\n"))
+    # sqlSendUpdate(connection, sendqueries)
 
     genSessionID()
     cat("Session Started..\n")
 }
 
-genCreateResulttbl <- function(tablename,vclass="matrix",type="FLOAT",
-                            persistent="test",
-                            tableoptions=paste0(", FALLBACK ,NO BEFORE JOURNAL,",
-                                "NO AFTER JOURNAL,CHECKSUM = DEFAULT,",
-                                "DEFAULT MERGEBLOCKRATIO ")){
+genCreateResulttbl <- function(tablename,
+                                persistent=FALSE,
+                                tableoptions=NULL,
+                                vclass,
+                                type,
+                                pDrop){
     if(vclass=="matrix"){
-        return(paste0(" CREATE ",ifelse(is.null(persistent),
-                        "VOLATILE TABLE ","TABLE "),"\n",
-                        tablename,"\n",
-                        tableoptions,
-                        " ( MATRIX_ID INTEGER,\n",
-                        " rowIdColumn INTEGER,\n",
-                        " colIdColumn INTEGER,\n",
-                        " valueColumn ",type,")\n",
-                        " PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );\n"))
+        createTable(pTableName=tablename,
+                    pColNames=c("MATRIX_ID","rowIdColumn",
+                                "colIdColumn","valueColumn"),
+                    pColTypes=c("INT","INT",
+                                "INT",type),
+                    pTableOptions=tableoptions,
+                    pPrimaryKey=c("MATRIX_ID",
+                                "rowIdColumn","colIdColumn"),
+                    pTemporary=!persistent,
+                    pDrop=pDrop)
+        # return(paste0(" CREATE ",ifelse(is.null(persistent),
+        #                 "VOLATILE TABLE ","TABLE "),"\n",
+        #                 tablename,"\n",
+        #                 tableoptions,
+        #                 " ( MATRIX_ID INTEGER,\n",
+        #                 " rowIdColumn INTEGER,\n",
+        #                 " colIdColumn INTEGER,\n",
+        #                 " valueColumn ",type,")\n",
+        #                 " PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );\n"))
     }
     else if(vclass=="vector"){
-        return(paste0(" CREATE ",ifelse(is.null(persistent),
-                        "VOLATILE TABLE ","TABLE "),"\n",
-                        tablename,"\n",
-                        tableoptions,
-                        "( vectorIdColumn INT,\n",
-                        " vectorIndexColumn INT,\n",
-                        " vectorValueColumn ",type," )\n",
-                        " PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);\n"))
+        createTable(pTableName=tablename,
+                    pColNames=c("vectorIdColumn",
+                                "vectorIndexColumn",
+                                "vectorValueColumn"),
+                    pColTypes=c("INT","INT",
+                                type),
+                    pTableOptions=tableoptions,
+                    pPrimaryKey=c("vectorIdColumn",
+                                "vectorIndexColumn"),
+                    pTemporary=!persistent,
+                    pDrop=pDrop)
+        # return(paste0(" CREATE ",ifelse(is.null(persistent),
+        #                 "VOLATILE TABLE ","TABLE "),"\n",
+        #                 tablename,"\n",
+        #                 tableoptions,
+        #                 "( vectorIdColumn INT,\n",
+        #                 " vectorIndexColumn INT,\n",
+        #                 " vectorValueColumn ",type," )\n",
+        #                 " PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);\n"))
     }
 }
+
+
 getMaxId <- function(vdatabase,vtable,vcolName,
                      vconnection=getOption("connectionFL"),...){
     sqlstr <- paste0(" SELECT MAX(",vcolName,
@@ -641,8 +790,9 @@ getMaxId <- function(vdatabase,vtable,vcolName,
 #' @param vconnection ODBC/JDBC connection object
 getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
                             vtable=getOption("ResultMatrixTableFL"),
+                            vdatabase=getOption("ResultDatabaseFL"),
                             ...)
-    getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+    getMaxValue(vdatabase=vdatabase,
                 vtable=vtable,
                 vcolName="MATRIX_ID",
                 vconnection=vconnection)+1
@@ -677,8 +827,10 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
 getMaxVectorId <- function(vconnection = getOption("connectionFL"),
-                           vtable=getOption("ResultVectorTableFL"),...)
-    getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
+                           vtable=getOption("ResultVectorTableFL"),
+                           vdatabase=getOption("ResultDatabaseFL"),
+                           ...)
+    getMaxValue(vdatabase=vdatabase,
                 vtable=vtable,
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
@@ -735,64 +887,6 @@ checkValidFormula <- function(pObject,pData)
         stop(x," not in colnames of data\n"))
 }
 
-## returns INT for integers or bool,VARCHAR(255)
-## for characters and FLOAT for numeric
-getFLColumnType <- function(x,columnName=NULL){
-    if(is.FL(x)){
-      if(is.null(columnName)){
-        vmapping <- c(valueColumn="FLMatrix",
-                    vectorValueColumn="FLVector",
-                    cell_val_colname="FLTable")
-        columnName <- as.character(names(vmapping)[class(x)==vmapping])
-      }
-      if(!grepl("with",tolower(constructSelect(x)))){
-        vresult <- tolower(sqlQuery(getOption("connectionFL"),
-                            paste0("SELECT TOP 1 TYPE(a.",columnName,
-                                    ") \n FROM (",constructSelect(x),
-                                    ") a"))[1,1])
-        vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
-        vtemp <- as.vector(sapply(c("char","int","float","number"),
-                        function(y)
-                        return(grepl(y,vresult))))
-        vresult <- vmapping[vtemp]
-      }
-      else vresult <- "FLOAT"
-    }
-    else{
-      vmapping <- c(VARCHAR="character",
-                    INT="integer",
-                    FLOAT="numeric",
-                    INT="logical")
-      vresult <- names(vmapping)[vmapping==class(x)]
-    }
-    if(vresult=="VARCHAR") 
-    vresult <- "VARCHAR(255)"
-    return(vresult)
-}
-
-is.FL <- function(x){
-    if(class(x) %in% c("FLMatrix",
-                        "FLVector",
-                        "FLTable",
-                        "FLTableQuery",
-                        "FLSelectFrom",
-                        "FLTableFunctionQuery"))
-    return(TRUE)
-    else return(FALSE)
-}
-
-is.RSparseMatrix <- function(object){
-    vsparseClass <- c("dgCMatrix","dgeMatrix","dsCMatrix",
-                    "dgTMatrix","dtrMatrix","pMatrix",
-                    "dspMatrix","dtCMatrix","dgRMatrix",
-                    "ddiMatrix","dpoMatrix"
-                    )
-    if(class(object) %in% vsparseClass)
-    return(TRUE)
-    else
-    return(FALSE)
-}
-
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
                                     tableName)
 {
@@ -804,115 +898,134 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
     return(TRUE)
     else return(FALSE)
 }
+
+rearrangeInputCols <- function(pInputCols,
+                                pIndex){
+    return(pInputCols[pIndex])
+}
+
+separateDBName <- function(vtableName){
+  ## If tablename has database name
+  names(vtableName) <- NULL
+  if(grepl(".",vtableName,fixed=TRUE)){
+    vdatabase <- base::strsplit(vtableName,".",fixed=TRUE)[[1]]
+    vtableName <- vdatabase[2]
+    vdatabase <- vdatabase[1]
+  }
+  else vdatabase <- getOption("ResultDatabaseFL")
+  return(c(vdatabase=vdatabase,
+          vtableName=vtableName))
+}
+
 flag1Check <- function(connection)
 {
     return(TRUE)
-    if(getOption("flag1")==0)
-    {
-        sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
+    # if(getOption("flag1")==0)
+    # {
+    #     sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
-        temp <- sqlQuery(connection,
-                         paste0(" CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
-							     NO BEFORE JOURNAL,
-							     NO AFTER JOURNAL,
-							     CHECKSUM = DEFAULT,
-							     DEFAULT MERGEBLOCKRATIO
-							     (
-							      MATRIX_ID INTEGER,
-							      rowIdColumn INTEGER,
-							      colIdColumn INTEGER,
-							      valueColumn FLOAT)
-				    			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn);"))
+    #     temp <- sqlQuery(connection,
+    #                      paste0(" CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
+				# 			     NO BEFORE JOURNAL,
+				# 			     NO AFTER JOURNAL,
+				# 			     CHECKSUM = DEFAULT,
+				# 			     DEFAULT MERGEBLOCKRATIO
+				# 			     (
+				# 			      MATRIX_ID INTEGER,
+				# 			      rowIdColumn INTEGER,
+				# 			      colIdColumn INTEGER,
+				# 			      valueColumn FLOAT)
+				#     			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn);"))
 
-        if(temp!="No Data" || length(temp)!=1)
-        {
-            sqlSendUpdate(connection,
-                     paste0("DROP TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL"))))
+    #     if(temp!="No Data" || length(temp)!=1)
+    #     {
+    #         sqlSendUpdate(connection,
+    #                  paste0("DROP TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL"))))
 
-            sqlSendUpdate(connection,
-                     paste0("CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
-						     NO BEFORE JOURNAL,
-						     NO AFTER JOURNAL,
-						     CHECKSUM = DEFAULT,
-						     DEFAULT MERGEBLOCKRATIO
-						     (
-						      MATRIX_ID INTEGER,
-						      ROW_ID INTEGER,
-						      COL_ID INTEGER,
-						      CELL_VAL FLOAT)
-			    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
-        }
-        options(flag1=1)
-    }
+    #         sqlSendUpdate(connection,
+    #                  paste0("CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
+				# 		     NO BEFORE JOURNAL,
+				# 		     NO AFTER JOURNAL,
+				# 		     CHECKSUM = DEFAULT,
+				# 		     DEFAULT MERGEBLOCKRATIO
+				# 		     (
+				# 		      MATRIX_ID INTEGER,
+				# 		      ROW_ID INTEGER,
+				# 		      COL_ID INTEGER,
+				# 		      CELL_VAL FLOAT)
+			 #    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+    #     }
+    #     options(flag1=1)
+    # }
 }
 
 flag2Check <- function(connection)
 {
     return(TRUE)
-    if(getOption("flag2")==0)
-    {
-        sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
+    # if(getOption("flag2")==0)
+    # {
+    #     sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
-        temp <- sqlQuery(connection,
-                         paste0(" CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
-							     NO BEFORE JOURNAL,
-							     NO AFTER JOURNAL,
-							     CHECKSUM = DEFAULT,
-							     DEFAULT MERGEBLOCKRATIO
-							     (
-							      MATRIX_ID INTEGER,
-							      ROW_ID INTEGER,
-							      COL_ID INTEGER,
-							      CELL_VAL FLOAT)
-				    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+    #     temp <- sqlQuery(connection,
+    #                      paste0(" CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
+				# 			     NO BEFORE JOURNAL,
+				# 			     NO AFTER JOURNAL,
+				# 			     CHECKSUM = DEFAULT,
+				# 			     DEFAULT MERGEBLOCKRATIO
+				# 			     (
+				# 			      MATRIX_ID INTEGER,
+				# 			      ROW_ID INTEGER,
+				# 			      COL_ID INTEGER,
+				# 			      CELL_VAL FLOAT)
+				#     			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
 
-        if(temp!="No Data" || length(temp)!=1)
-        {
-            sqlQuery(connection,
-                     paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL")))
+    #     if(temp!="No Data" || length(temp)!=1)
+    #     {
+    #         sqlQuery(connection,
+    #                  paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL")))
 
-            sqlQuery(connection,
-                     paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
-						     NO BEFORE JOURNAL,
-						     NO AFTER JOURNAL,
-						     CHECKSUM = DEFAULT,
-						     DEFAULT MERGEBLOCKRATIO
-						     (
-						      MATRIX_ID INTEGER,
-						      ROW_ID INTEGER,
-						      COL_ID INTEGER,
-						      CELL_VAL FLOAT)
-			    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
-        }
-        options(flag2=1)
-    }
+    #         sqlQuery(connection,
+    #                  paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
+				# 		     NO BEFORE JOURNAL,
+				# 		     NO AFTER JOURNAL,
+				# 		     CHECKSUM = DEFAULT,
+				# 		     DEFAULT MERGEBLOCKRATIO
+				# 		     (
+				# 		      MATRIX_ID INTEGER,
+				# 		      ROW_ID INTEGER,
+				# 		      COL_ID INTEGER,
+				# 		      CELL_VAL FLOAT)
+			 #    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+    #     }
+    #     options(flag2=1)
+    # }
 }
 
 flag3Check <- function(connection)
 {
     return(TRUE)
-    if(getOption("flag3")==0)
-    {
-        sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
+    # if(getOption("flag3")==0)
+    # {
+    #     sqlQuery(connection,paste0(" DATABASE ",getOption("ResultDatabaseFL"),"; SET ROLE ALL;"))
 
-        temp <- sqlQuery(connection,
-                         paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"
-	 					 		 ( VECTOR_ID INT,
-	 					 		   VECTOR_INDEX INT,
-	 					 		   VECTOR_VALUE VARCHAR(20) )
-	 					 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
-        if(temp != TRUE || length(temp)!=1)
-        {
-            sqlQuery(connection,
-                     paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")))
+    #     temp <- sqlQuery(connection,
+    #                      paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"
+	 		# 			 		 ( VECTOR_ID INT,
+	 		# 			 		   VECTOR_INDEX INT,
+	 		# 			 		   VECTOR_VALUE VARCHAR(20) )
+	 		# 			 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
+    #     if(temp != TRUE || length(temp)!=1)
+    #     {
+    #         sqlQuery(connection,
+    #                  paste0("DROP TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL")))
 
-            sqlQuery(connection,
-                     paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"
-	 		 		 		( VECTOR_ID INT,
-	 		 		 		  VECTOR_INDEX INT,
-	 		 		 		  VECTOR_VALUE VARCHAR(20) )
-	 		 		 		  PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
-        }
-        options(flag3=1)
-    }
+    #         sqlQuery(connection,
+    #                  paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"
+	 		#  		 		( VECTOR_ID INT,
+	 		#  		 		  VECTOR_INDEX INT,
+	 		#  		 		  VECTOR_VALUE VARCHAR(20) )
+	 		#  		 		  PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
+    #     }
+    #     options(flag3=1)
+    # }
 }

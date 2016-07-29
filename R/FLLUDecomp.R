@@ -93,12 +93,12 @@ lu.FLMatrix<-function(object,...)
 	tempResultTable <- gen_unique_table_name("LU")
     MID1 <- getMaxMatrixId(connection)
 
-    sqlstr <- paste0("CREATE TABLE ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable)," AS(",
+    sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLLUDecompUdt",viewName="z",localName="a",
                     	outColNames=list("OutputMatrixID","OutputRowNum",
                     		"OutputColNum","OutputValL","OutputValU","OutputPermut"),
-                    	whereClause=") WITH DATA;")
+                    	whereClause="")
                    )
     sqlstr <- gsub("'%insertIDhere%'",MID1,sqlstr)
 
@@ -106,7 +106,8 @@ lu.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="lu")
 
-    sqlSendUpdate(connection,sqlstr)
+    createTable(pTableName=tempResultTable,
+                pSelect=sqlstr)
 
 	# calculating LU matrix
 
