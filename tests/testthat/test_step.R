@@ -38,23 +38,3 @@ test_that("test for step", {
 )
 
 
-sqlQuery(connection,"CALL  FLRegrDataPrep('FL_DEMO.tblAbaloneWide', 
-         'ObsID', 
-         'Diameter', 
-         'FL_DEMO.ARBasetblAbaloneWideD1469186546', 
-         'obs_id_colname', 
-         'var_id_colname', 
-         'cell_val_colname', 
-         0, 
-         0, 
-         0, 
-         0, 
-         0, 
-         1, 
-         0, 
-         'Sex,Num_Length,WholeWeight,VisceraWeight,Rings,DummyCat', 
-         NULL, 
-         NULL, 
-         NULL,AnalysisID)")
-
-

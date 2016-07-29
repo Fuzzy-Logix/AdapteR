@@ -376,11 +376,11 @@ gam.FLTable <- function(formula,family=stats::poisson,
 		return(object@results[["data"]])
 		else
 		{
-			if(interactive())
-			{
-				vinput <- readline("Fetching entire table. Continue? y/n ")
-				if(!checkYorN(vinput)) return(NULL)
-			}
+			# if(interactive())
+			# {
+			# 	vinput <- readline("Fetching entire table. Continue? y/n ")
+			# 	if(!checkYorN(vinput)) return(NULL)
+			# }
 			object@results <- c(object@results,list(data=as.data.frame(object@table)))
 			assign(parentObject,object,envir=parent.frame())
 			return(object@results[["data"]])
@@ -508,7 +508,8 @@ fitted.values.FLGAM <- function(object)
 	{
 		browser()
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		}
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
@@ -526,8 +527,9 @@ residuals.FLGAM <- function(object)
 	{
 		
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-			gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
+		# 	gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
@@ -579,7 +581,8 @@ deviance.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
@@ -615,7 +618,8 @@ sig2.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
@@ -646,7 +650,7 @@ model.FLGAM <- function(object)
 	else
 	{
 		vallVars <- all.vars(object@formula)
-		vcolnames <- toupper(vallVars[1:length(vallVars)])
+		vcolnames <- toupper(vallVars)
 		if(!is.null(object@results[["data"]]))
 		{
 			modelframe <- object@results[["data"]]
@@ -655,23 +659,23 @@ model.FLGAM <- function(object)
 		}
 		else
 		{
-			vinput <- ""
-			if(interactive())
-			{
-				vinput <- readline("Fetch top 10 rows only(preferred) y/n ")
-				vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
-				if(checkYorN(vinput)) vinput <- paste0(" TOP 10 ")
-			}
+			# vinput <- ""
+			# if(interactive())
+			# {
+			# 	vinput <- readline("Fetch top 10 rows only(preferred) y/n ")
+			# 	vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			# 	if(checkYorN(vinput)) vinput <- paste0(" TOP 10 ")
+			# }
 			
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
-			vsqlstr <- paste0("SELECT ",vinput," ",paste0(vcolnames,collapse=","),
+			vsqlstr <- paste0("SELECT ",paste0(vcolnames,collapse=","),
 							 " FROM ",vtablename,
 							 " ORDER BY ",obs_id_colname)
 			modelframe <- sqlQuery(getOption("connectionFL"),vsqlstr)
 			modelframe <- checkSqlQueryOutput(modelframe)
 		}
-
+		colnames(modelframe) <- vallVars
 		object@results <- c(object@results,list(model=modelframe))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
