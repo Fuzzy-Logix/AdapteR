@@ -124,6 +124,7 @@ constructStoredProcSQL <- function(pConnection,
                                     pFuncName,
                                     pOutputParameter,
                                     ...){
+    #browser()
     args <- list(...)
     if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
@@ -407,10 +408,18 @@ createTable <- function(pTableName,
 
 ## CREATE VIEW
 createView <- function(pViewName,
-                       pSelect){
+                       pSelect,
+                       ...){
+    if("pStore" %in% names(list(...)))
+        pStore <- list(...)$pStore
+    else pStore <- TRUE
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
                         " AS ",pSelect,";")
-    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    res <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    if(pStore)
+    updateMetaTable(pTableName=pViewName,
+                    pNote="view")
+    res
 }
 
 ## DROP VIEW

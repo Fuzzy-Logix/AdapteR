@@ -1,42 +1,40 @@
+connection <- flConnect(odbcSource = "Gandalf",database = "FL_DEMO",platform="TD")
+devtools::load_all(".")
 Renv = new.env(parent = globalenv())
 
-
-Renv$var1 =  swiss
 FLenv = as.FL(Renv)
 
-#Done the following initialisation as object in R needs to be of glm or lm class
-# And in AdapteR object needs to  be of FLTable class.
-#Asana Ticket - https://app.asana.com/0/143316600934101/147523528458753
-Renv$var1 = lm(Fertility ~ Education+Agriculture, data = swiss)
+## Since both the objects need to be dealt differently, objects have been initialized and 
+## defined outside test_that function
+
+FLenv$widetable <- FLTable("fuzzylogix", "tblAbaloneWide", "ObsID")
+Renv$widetable<-as.data.frame(FLenv$widetable)
+
+## Since FL and R environments have different case structure for column names
+colnames(Renv$widetable)<-colnames(FLenv$widetable)
+
+Renv$stepobj<-lm(Diameter~Height+ShellWeight+ShuckedWeight, data = Renv$widetable)
+FLenv$stepobj<-FLenv$widetable
+
+## step function does not work properly. throws an error
+## asana ticket- https://app.asana.com/0/143316600934101/158092657328842
+
+options(debugSQL = T)
+
+stepobj <- Renv$stepobj
+stepobj <- FLenv$stepobj
 
 
-#Test failed as lm of AdapteR giving an error.
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360575
-test_that("Check for step function",{
-          result = eval_expect_equal({
-                   test1 = step(object = var1,scope = list(lower = Fertility ~ Education+Agriculture,
-                                                           upper =Fertility ~ Education+Agriculture+Examination+Catholic))
-            },Renv,FLenv)
-          print(result)
-    })
+test_that("test for step", {
+  eval_expect_equal({
+    
+    r<-step(stepobj,scope = list(lower=Diameter~Height,upper=Diameter~Height+ShellWeight+ShuckedWeight), direction = "backward")
+    c<-sort(coefficients(r))
+    summary(c)
+  },
+  expectation = "c",
+  noexpectation="r" ,Renv,FLenv)
+}
+)
 
-#Test failed as lm is not working.
-#Asana Ticket - https://app.asana.com/0/143316600934101/146934264360575
-#AdapteR tempers colnames of input dataframe (e.g Infant.Mortality has been changed InfantMortality)
-#Asana ticket - https://app.asana.com/0/143316600934101/147523528458761
-test_that("Check for step function with different direction",{
-          result = eval_expect_equal({
-                   test2 = step(object = var1,scope = list(lower = Fertility ~ Education+Agriculture,
-                                                           upper = Fertility ~ Education+Agriculture+Examination+Catholic),
-                                direction = "backward")
 
-                   test3 = step(object = var1,scope = list(lower = Fertility ~ Education+Agriculture,
-                                                           upper = Fertility ~ Education+Agriculture+Examination+Catholic),
-                                direction = "forward")
-
-                   test4 = step(object = var1,scope = list(lower = Fertility ~ Education+Agriculture,
-                                                           upper = Fertility ~ Education+Agriculture+Examination+Catholic),
-                                direction = "both")
-                   },Renv,FLenv)
-          print(result)
-    })

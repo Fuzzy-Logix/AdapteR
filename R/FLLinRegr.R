@@ -99,10 +99,10 @@ lm.FLTable <- function(formula,data,...)
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
 	return(lmGeneric(formula=formula,
-                         data=data,
-                         callObject=vcallObject,
-                         familytype="linear",
-                         ...))
+                     data=data,
+                     callObject=vcallObject,
+                     familytype="linear",
+                     ...))
 }
 
 #' Choose a model.
@@ -563,13 +563,17 @@ lmGeneric <- function(formula,data,
 	##For forward find best fit model id.
 	vmaxModelID <- NULL
 	vmaxLevelID <- NULL
-	if(!direction %in% "forward" && familytype!="poisson"){
-	vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
-						ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
-						" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
-	vtemp <- sqlQuery(getOption("connectionFL"),vsqlstr)
-	vmaxModelID <- vtemp[["ModelID"]]
-	vmaxLevelID <- vtemp[["LevelID"]]
+	if(direction=="" && familytype!="poisson"){
+		vmaxModelID <- 1
+		vmaxLevelID <- 1
+	}
+	else if(!direction %in% "forward" && familytype!="poisson"){
+		vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
+							ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
+							" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
+		vtemp <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		vmaxModelID <- vtemp[["ModelID"]]
+		vmaxLevelID <- vtemp[["LevelID"]]
 	}
 	
 	if(trace>0 && !direction %in% c("","forward"))
@@ -831,16 +835,22 @@ prepareData.lmGeneric <- function(formula,data,
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
-							".",deeptablename," AS ",constructSelect(data))
-		sqlSendUpdate(connection,sqlstr)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+		#					".",deeptablename," AS ",constructSelect(data))
+		#sqlSendUpdate(connection,sqlstr)
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+					pSelect=constructSelect(data))
 
 		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
-						constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+		#				constructWhere(whereconditions))
+		#t <- sqlSendUpdate(connection,sqlstr)
+		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+										constructWhere(whereconditions)))
+
+		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:")
 
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -861,10 +871,13 @@ prepareData.lmGeneric <- function(formula,data,
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
 			deeptablename <- gen_view_name("New")
-			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-							deeptablename," AS ",constructSelect(data))
-			t <- sqlQuery(connection,sqlstr)
-			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+			#				deeptablename," AS ",constructSelect(data))
+			#t <- sqlSendUpdate(connection,sqlstr)
+			t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+						pSelect=constructSelect(data))			
+
+			if(!all(t)) stop("Input Table and whereconditions mismatch")
 			deepx <- FLTable(
 	                   getOption("ResultDatabaseFL"),
 	                   deeptablename,
@@ -1042,85 +1055,89 @@ prepareData.lmGeneric <- function(formula,data,
 	}
 	else if(property=="x")
 	{
+		if(!is.null(object@results[["x"]]))
+		return(object@results[["x"]])
 		#browser()
-		coeffVector <- object$coefficients
-		vdroppedCols <- object@results[["droppedCols"]]
-		modelframe <- object@deeptable
-		modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
-										paste0("var_id_colname NOT IN ",
-											"(",paste0(c(-1,vdroppedCols),collapse=","),
-											")"))
+		# coeffVector <- object$coefficients
+		# vdroppedCols <- object@results[["droppedCols"]]
+		# modelframe <- object@deeptable
+		# modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
+		# 								paste0("var_id_colname NOT IN ",
+		# 									"(",paste0(c(-1,vdroppedCols),collapse=","),
+		# 									")"))
 
-		## Takes care of cases  when varIds are dropped in step
-		## And when input deeptable is sparse
-		if(length(vdroppedCols)==0){
-			vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-								"obs_id_colname AS rowIdColumn,\n ",
-								"var_id_colname+1 AS colIdColumn, \n ",
-								"cell_val_colname AS valueColumn \n ",
-						  		" FROM (",constructSelect(modelframe),") a \n "
-						   	)
-		}
-		else{
-			if(is.null(object@results[["varidMapTable"]])){
-				vtablename <- gen_unique_table_name("varidMap")
-				object@results <- c(object@results,list(varidMapTable=vtablename))
-				createTable(pTableName=vtablename,
-							pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
-								  		 		" AS varid,var_id_colname AS varidold \n ",
-								  		 " FROM (SELECT DISTINCT var_id_colname \n ",
-								  		 	" FROM (",constructSelect(modelframe),")a)a"))
-			}
-			else vtablename <- object@results[["varidMapTable"]]
+		# ## Takes care of cases  when varIds are dropped in step
+		# ## And when input deeptable is sparse
+		# if(length(vdroppedCols)==0){
+		# 	vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+		# 						"obs_id_colname AS rowIdColumn,\n ",
+		# 						"var_id_colname+1 AS colIdColumn, \n ",
+		# 						"cell_val_colname AS valueColumn \n ",
+		# 				  		" FROM (",constructSelect(modelframe),") a \n "
+		# 				   	)
+		# }
+		# else{
+		# 	if(is.null(object@results[["varidMapTable"]])){
+		# 		vtablename <- gen_unique_table_name("varidMap")
+		# 		object@results <- c(object@results,list(varidMapTable=vtablename))
+		# 		createTable(pTableName=vtablename,
+		# 					pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
+		# 						  		 		" AS varid,var_id_colname AS varidold \n ",
+		# 						  		 " FROM (SELECT DISTINCT var_id_colname \n ",
+		# 						  		 	" FROM (",constructSelect(modelframe),")a)a"))
+		# 	}
+		# 	else vtablename <- object@results[["varidMapTable"]]
 
-			vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-									"a.obs_id_colname AS rowIdColumn,\n ",
-									"b.varid AS colIdColumn, \n ",
-									"a.cell_val_colname AS valueColumn \n ",
-							  " FROM (",constructSelect(modelframe),") a, \n ",
-							  			vtablename," b \n ",
-							" WHERE b.varidold=a.var_id_colname \n "
-							   )
+		# 	vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+		# 							"a.obs_id_colname AS rowIdColumn,\n ",
+		# 							"b.varid AS colIdColumn, \n ",
+		# 							"a.cell_val_colname AS valueColumn \n ",
+		# 					  " FROM (",constructSelect(modelframe),") a, \n ",
+		# 					  			vtablename," b \n ",
+		# 					" WHERE b.varidold=a.var_id_colname \n "
+		# 					   )
 
-			# vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-		# 						"a.obs_id_colname AS rowIdColumn,\n ",
-		# 						"b.varid AS colIdColumn, \n ",
-		# 						"a.cell_val_colname AS valueColumn \n ",
-		# 				  " FROM (",constructSelect(modelframe),") a, \n ",
-		# 				  		" (SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
-		# 				  		 			" AS varid,var_id_colname AS varidold \n ",
-		# 				  		 " FROM (SELECT DISTINCT var_id_colname \n ",
-		# 				  		 	" FROM (",constructSelect(modelframe),")a)a) b \n ",
-		# 				" WHERE b.varidold=a.var_id_colname \n "
-		# 				   )
+		# 	# vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+		# # 						"a.obs_id_colname AS rowIdColumn,\n ",
+		# # 						"b.varid AS colIdColumn, \n ",
+		# # 						"a.cell_val_colname AS valueColumn \n ",
+		# # 				  " FROM (",constructSelect(modelframe),") a, \n ",
+		# # 				  		" (SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
+		# # 				  		 			" AS varid,var_id_colname AS varidold \n ",
+		# # 				  		 " FROM (SELECT DISTINCT var_id_colname \n ",
+		# # 				  		 	" FROM (",constructSelect(modelframe),")a)a) b \n ",
+		# # 				" WHERE b.varidold=a.var_id_colname \n "
+		# # 				   )
 
-		}
-		vselect <- new("FLTableFunctionQuery",
-						connection=getConnection(object),
-						variables=list(MATRIX_ID="MATRIX_ID",
-									  rowIdColumn="rowIdColumn",
-									  colIdColumn="colIdColumn",
-									  valueColumn="valueColumn"),
-						whereconditions="",
-						SQLquery=vsqlstr)
+		# }
+		# vselect <- new("FLTableFunctionQuery",
+		# 				connection=getConnection(object),
+		# 				variables=list(MATRIX_ID="MATRIX_ID",
+		# 							  rowIdColumn="rowIdColumn",
+		# 							  colIdColumn="colIdColumn",
+		# 							  valueColumn="valueColumn"),
+		# 				whereconditions="",
+		# 				SQLquery=vsqlstr)
 
-		vallVars <- all.vars(object@formula)
+		# vallVars <- all.vars(object@formula)
 
-		## For LogRegrMN CoeffVector is Matrix
-		if(is.matrix(coeffVector)){
-			vcolnames <- c("(Intercept)",colnames(coeffVector)[2:ncol(coeffVector)])
-		}
-		else vcolnames <- c("(Intercept)",names(coeffVector)[2:length(coeffVector)])
+		# ## For LogRegrMN CoeffVector is Matrix
+		# if(is.matrix(coeffVector)){
+		# 	vcolnames <- c("(Intercept)",colnames(coeffVector)[2:ncol(coeffVector)])
+		# }
+		# else vcolnames <- c("(Intercept)",names(coeffVector)[2:length(coeffVector)])
 
-		modelframe <- new("FLMatrix",
-						select=vselect,
-						dim=c(nrow(modelframe),length(vcolnames)),
-						dimnames=list(rownames(modelframe),
-									  vcolnames))
+		# modelframe <- new("FLMatrix",
+		# 				select=vselect,
+		# 				dim=c(nrow(modelframe),length(vcolnames)),
+		# 				dimnames=list(rownames(modelframe),
+		# 							  vcolnames))
 		# colnames(modelframe)[1] <- "Intercept"
 		## Do not store. Better to fetch each time as
 		## it saves memory and not much time loss in
 		## Fetching.
+		modelframe <- getXMatrix(object,
+								pDropCols=c(-1))
 		object@results <- c(object@results,list(x=modelframe))
 		assign(parentObject,object,envir=parent.frame())
 		return(modelframe)
@@ -1270,7 +1287,11 @@ coefficients.lmGeneric <-function(object,FLCoeffStats=c()){
 
 
 		want <- all.vars(object@formula)
-		q <- match(want[2:length(want)],coeffVector[["CoeffName"]][2:length(coeffVector[["CoeffName"]])]) + 1
+		
+		q <- match(want[2:length(want)],
+					coeffVector[["CoeffName"]][2:length(coeffVector[["CoeffName"]])]
+					) + 1
+
 		coeffVector <- coeffVector[c(1,q), ]
 
 
@@ -1330,7 +1351,7 @@ residuals.FLLinRegr<-function(object)
 }
 
 #' @export
-model.FLLinRegr <- function(object)
+model.FLLinRegr <- function(object,...)
 {
 	if(!is.null(object@results[["model"]]))
 	return(object@results[["model"]])
@@ -1355,16 +1376,19 @@ model.FLLinRegr <- function(object)
 		# 	vselect <- new("FLSelectFrom",
 		# 					database)
 		# }
+
+		coeffVector <- object$coefficients
+		vallVars <- all.vars(object@formula)
 		vdroppedCols <- object@results[["droppedCols"]]
 		modelframe <- object@deeptable
 		modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
 												paste0("var_id_colname NOT IN ",
-														"(",paste0(c(0,vdroppedCols),collapse=","),
+														"(",paste0(c(0,-2,vdroppedCols),collapse=","),
 														")"))
 
-		coeffVector <- object$coefficients
-		vallVars <- all.vars(object@formula)
-		vcolnames <- c(vallVars[1],names(coeffVector)[2:length(coeffVector)])
+		if("pColnames" %in% names(list(...)))
+			vcolnames <- list(...)[["pColnames"]]
+		else vcolnames <- c(vallVars[1],names(coeffVector)[2:length(coeffVector)])
 
 		## Have to implement names for FLTable
 		# modelframe@dimnames <- list(modelframe@dimnames[[1]],
@@ -1449,10 +1473,11 @@ predict.lmGeneric <- function(object,
 	vinputTable <- paste0(newdata@select@database,".",newdata@select@table_name)
 
 	if(scoreTable=="")
-	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-						gen_score_table_name(object@table@select@table_name))
-	else if(!grep(".",scoreTable)) 
-			scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	# scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
+	# 					gen_score_table_name(object@table@select@table_name))
+	scoreTable <- gen_score_table_name(object@table@select@table_name)
+	# else if(!grep(".",scoreTable)) 
+	# 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
 	vfcalls <- object@vfcalls
 	if(!newdata@isDeep)
@@ -1511,9 +1536,6 @@ predict.lmGeneric <- function(object,
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-
-	## Scoring functions are very messed up in Aster!!
-	## LogRegr and LinRegr score have diff order of i/p within Aster!!
 	vinputCols <- list()
 	vinputCols <- c(vinputCols,
 					INPUT_TABLE=newdata@select@table_name,
@@ -1677,4 +1699,114 @@ genDeepFormula <- function(pColnames)
 	vcolnames <- paste0("var",vcolnames[!vcolnames %in% c(0,-1,-2)],collapse="+")
 	vformula <- paste0("varY~",vcolnames)
 	return(as.formula(vformula))
+}
+
+getXMatrix <- function(object,
+					   pDropCols=c(),
+					   pColnames=NULL,
+					   ...){
+	parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+							"(",fixed=T))[2],",",fixed=T))[1]
+	coeffVector <- object$coefficients
+	vdroppedCols <- object@results[["droppedCols"]]
+	modelframe <- object@deeptable
+
+	pDropCols <- unique(c(pDropCols,vdroppedCols))
+	if(length(pDropCols)>0)
+	modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
+									paste0("var_id_colname NOT IN ",
+										"(",paste0(c(pDropCols,vdroppedCols),collapse=","),
+										")"))
+
+	## Takes care of cases  when varIds are dropped in step
+	## And when input deeptable is sparse
+	if(length(vdroppedCols)==0){
+		vcurrColumns <- setdiff(colnames(modelframe),pDropCols)
+
+		varidoffset <- sapply(-2:0,function(x){
+									if(all(x:0 %in% vcurrColumns))
+										x
+									else NULL
+							})
+		varidoffset <- unlist(varidoffset)
+		if(length(varidoffset)>0)
+			varidoffset <- abs(min(varidoffset))+1
+		else varidoffset <- 0
+
+		vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+							"obs_id_colname AS rowIdColumn,\n ",
+							"var_id_colname ",
+							ifelse(varidoffset==0,"",paste0("+",varidoffset)),
+							" AS colIdColumn, \n ",
+							"cell_val_colname AS valueColumn \n ",
+					  		" FROM (",constructSelect(modelframe),") a \n "
+					   	)
+	}
+	else{
+		if(is.null(object@results[["varidMapTable"]])){
+			vtablename <- gen_unique_table_name("varidMap")
+			object@results <- c(object@results,list(varidMapTable=vtablename))
+			createTable(pTableName=vtablename,
+						pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
+							  		 		" AS varid,var_id_colname AS varidold \n ",
+							  		 " FROM (SELECT DISTINCT var_id_colname \n ",
+							  		 	" FROM (",constructSelect(modelframe),")a)a"))
+		}
+		else vtablename <- object@results[["varidMapTable"]]
+
+		vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+								"a.obs_id_colname AS rowIdColumn,\n ",
+								"b.varid AS colIdColumn, \n ",
+								"a.cell_val_colname AS valueColumn \n ",
+						  " FROM (",constructSelect(modelframe),") a, \n ",
+						  			vtablename," b \n ",
+						" WHERE b.varidold=a.var_id_colname \n "
+						   )
+
+		# vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+	# 						"a.obs_id_colname AS rowIdColumn,\n ",
+	# 						"b.varid AS colIdColumn, \n ",
+	# 						"a.cell_val_colname AS valueColumn \n ",
+	# 				  " FROM (",constructSelect(modelframe),") a, \n ",
+	# 				  		" (SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
+	# 				  		 			" AS varid,var_id_colname AS varidold \n ",
+	# 				  		 " FROM (SELECT DISTINCT var_id_colname \n ",
+	# 				  		 	" FROM (",constructSelect(modelframe),")a)a) b \n ",
+	# 				" WHERE b.varidold=a.var_id_colname \n "
+	# 				   )
+
+	}
+	vselect <- new("FLTableFunctionQuery",
+					connection=getConnection(object),
+					variables=list(MATRIX_ID="MATRIX_ID",
+								  rowIdColumn="rowIdColumn",
+								  colIdColumn="colIdColumn",
+								  valueColumn="valueColumn"),
+					whereconditions="",
+					SQLquery=vsqlstr)
+
+	vallVars <- all.vars(object@formula)
+
+	## For LogRegrMN CoeffVector is Matrix
+	if(!is.null(pColnames))
+		vcolnames <- pColnames
+	else{
+		if(is.matrix(coeffVector)){
+			vcolnames <- c("(Intercept)",colnames(coeffVector)[2:ncol(coeffVector)])
+		}
+		else vcolnames <- c("(Intercept)",names(coeffVector)[2:length(coeffVector)])
+	}
+
+	modelframe <- new("FLMatrix",
+					select=vselect,
+					dim=c(nrow(modelframe),length(vcolnames)),
+					dimnames=list(rownames(modelframe),
+								  vcolnames))
+	# colnames(modelframe)[1] <- "Intercept"
+	## Do not store. Better to fetch each time as
+	## it saves memory and not much time loss in
+	## Fetching.
+	object@results <- c(object@results,list(x=modelframe))
+	assign(parentObject,object,envir=parent.frame())
+	return(modelframe)
 }

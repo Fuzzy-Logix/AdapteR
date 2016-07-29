@@ -227,14 +227,23 @@ prepareData.coxph <- function(formula,data,
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
-							".",deeptablename," AS ",constructSelect(data))
-		sqlSendUpdate(connection,sqlstr)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+		#					".",deeptablename," AS ",constructSelect(data))
+		#sqlSendUpdate(connection,sqlstr)
 
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+			pSelect=constructSelect(data)
+			)
 		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
-						constructWhere(whereconditions))
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+		#				constructWhere(whereconditions))
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+					constructWhere(whereconditions)
+						)	
+					)
+
 		t <- sqlQuery(connection,sqlstr)
 		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
 
@@ -254,10 +263,15 @@ prepareData.coxph <- function(formula,data,
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
 			deeptablename <- gen_view_name("New")
-			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-							deeptablename," AS ",constructSelect(data))
-			t <- sqlQuery(connection,sqlstr)
-			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+			#				deeptablename," AS ",constructSelect(data))
+			#t <- sqlQuery(connection,sqlstr)
+			
+			t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptable),
+						pSelect=constructSelect(data)
+						)
+
+			if(!all(t)) stop("Input Table and whereconditions mismatch")
 			deepx <- FLTable(
 	                   getOption("ResultDatabaseFL"),
 	                   deeptablename,
@@ -283,21 +297,23 @@ predict.FLCoxPH <-function(object,
 							survivalCurveTable=""){
 	if(!is.FLTable(newdata)) 
 		stop("scoring allowed on FLTable only")
-	browser()
+	#browser()
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getRemoteTableName(newdata@select@database,
 									newdata@select@table_name)
 
 	if(scoreTable=="")
-	scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-									gen_score_table_name(object@table@select@table_name))
+	# scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+	# 								gen_score_table_name(object@table@select@table_name))
+	scoreTable <- gen_score_table_name(object@table@select@table_name)
 
-	if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	# if(!grepl(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
 	if(survivalCurveTable=="")
-	survivalCurveTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-											gen_score_table_name("survival"))
-	if(!grep(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
+	# survivalCurveTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+	# 										gen_score_table_name("survival"))
+	survivalCurveTable <- gen_score_table_name("survival")
+	# if(!grepl(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
 
 	if(!newdata@isDeep)
 	{
@@ -538,16 +554,30 @@ predict.FLCoxPH <-function(object,
 	}
 	else if(property=="model")
 	{
-			modelframe <- model.FLCoxPH(object)
+			coeffVector <- object$coefficients
+			modelframe <- model.FLLinRegr(object,
+										pColnames=c(as.character(object@formula)[2],
+													names(coeffVector)))
 			assign(parentObject,object,envir=parent.frame())
 			return(modelframe)
 	}
 	else if(property=="x")
 	{
-		modelframe <- model.FLCoxPH(object)
-		modelframe[[object@statusCol]] <- NULL
+		if(!is.null(object@results[["x"]]))
+		return(object@results[["x"]])
+
+		coeffVector <- object$coefficients
+		modelframe <- getXMatrix(object,
+								pDropCols=c(-1,-2,0),
+								pColnames=names(coeffVector))
+		object@results <- c(object@results,list(x=modelframe))
 		assign(parentObject,object,envir=parent.frame())
 		return(modelframe)
+
+		# modelframe <- object$model
+		# modelframe[[object@statusCol]] <- NULL
+		# assign(parentObject,object,envir=parent.frame())
+		# return(modelframe)
 	}
 	else if(property=="means")
 	{
@@ -648,34 +678,34 @@ coefficients.FLCoxPH <- function(object){
 	}
 }
 
-model.FLCoxPH <- function(object)
-{
-	if(!is.null(object@results[["model"]]))
-	return(object@results[["model"]])
-	else
-	{
-		# if(interactive())
-		# {
-		# 	vinput <- readline("Fetching entire table. Continue? y/n ")
-		# 	if(!checkYorN(vinput)) return(NULL)
-		# }
-		modelframe <- as.data.frame(object@deeptable)
-		modelframe[["0"]] <- NULL ##Intercept
-		modelframe[["-1"]] <- NULL ##timeValue
-		coeffVector <- object$coefficients
-		vdroppedCols <- object@results[["droppedCols"]]
-		for(i in vdroppedCols)
-		modelframe[[paste0(i)]] <- NULL
-		vallVars <- all.vars(object@formula)
-		vcolnames <- c(object@statusCol,names(coeffVector))
-		colnames(modelframe) <- vcolnames
-		object@results <- c(object@results,list(model=modelframe))
-		parentObject <- unlist(strsplit(unlist(strsplit(
-			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-		assign(parentObject,object,envir=parent.frame())
-		return(modelframe)
-	}
-}
+# model.FLCoxPH <- function(object)
+# {
+# 	if(!is.null(object@results[["model"]]))
+# 	return(object@results[["model"]])
+# 	else
+# 	{
+# 		# if(interactive())
+# 		# {
+# 		# 	vinput <- readline("Fetching entire table. Continue? y/n ")
+# 		# 	if(!checkYorN(vinput)) return(NULL)
+# 		# }
+# 		modelframe <- as.data.frame(object@deeptable)
+# 		modelframe[["0"]] <- NULL ##Intercept
+# 		modelframe[["-1"]] <- NULL ##timeValue
+# 		coeffVector <- object$coefficients
+# 		vdroppedCols <- object@results[["droppedCols"]]
+# 		for(i in vdroppedCols)
+# 		modelframe[[paste0(i)]] <- NULL
+# 		vallVars <- all.vars(object@formula)
+# 		vcolnames <- c(object@statusCol,names(coeffVector))
+# 		colnames(modelframe) <- vcolnames
+# 		object@results <- c(object@results,list(model=modelframe))
+# 		parentObject <- unlist(strsplit(unlist(strsplit(
+# 			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+# 		assign(parentObject,object,envir=parent.frame())
+# 		return(modelframe)
+# 	}
+# }
 
 summary.FLCoxPH <- function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
@@ -752,11 +782,15 @@ IncludeTimeVal <- function(data,
 	vTimeVal <- "TimeValCol"
 	vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 
-	sqlstr <- paste0("CREATE VIEW ",vtablename,
-					" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
-						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-	sqlSendUpdate(getOption("connectionFL"),sqlstr)
+	#sqlstr <- paste0("CREATE VIEW ",vtablename,
+	#				" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
+	#					" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+	#sqlSendUpdate(getOption("connectionFL"),sqlstr)
 
+	createView(pViewName=vtablename,
+				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
+						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+				)
 	# t <- createTable(pTableName=vtablename,
 	# 				pSelect=sqlstr)
 	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)

@@ -20,7 +20,7 @@ NULL
 #' in Teradata.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_Deep", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
 #' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
 #' @export
@@ -327,8 +327,11 @@ setMethod("wideToDeep",
             {
               ## Views are not working  in FLDeepToWide and FLWideToDeep
               widetable <- gen_view_name(object@select@table_name)
-              sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
-              sqlSendUpdate(connection,sqlstr)
+              # sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
+              # sqlSendUpdate(connection,sqlstr)
+              createView(pViewName=getRemoteTableName(outDeepTableDatabase,
+                                                      widetable),
+                        pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connection = connection, 
                         database = outDeepTableDatabase, 
@@ -520,8 +523,11 @@ setMethod("deepToWide",
             
               deeptable <- gen_view_name(object@select@table_name)
               #deeptable <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
-              sqlstr <- paste0("CREATE VIEW ",outWideTableDatabase,".",deeptable," AS ",constructSelect(object))
-              sqlSendUpdate(connection,sqlstr)
+              # sqlstr <- paste0("CREATE VIEW ",outWideTableDatabase,".",deeptable," AS ",constructSelect(object))
+              # sqlSendUpdate(connection,sqlstr)
+              createView(pViewName=getRemoteTableName(outWideTableDatabase,
+                                                      deeptable),
+                        pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connection = connection, 
                         database = outWideTableDatabase, 
@@ -677,8 +683,11 @@ setMethod("FLRegrDataPrep",
             {
               ## Views are not working  in FLDeepToWide and FLWideToDeep
               widetable <- gen_view_name(object@select@table_name)
-              sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
-              sqlSendUpdate(connection,sqlstr)
+              # sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
+              # sqlSendUpdate(connection,sqlstr)
+              createView(pViewName=getRemoteTableName(outDeepTableDatabase,
+                                                      widetable),
+                        pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connection = connection, 
                         database = outDeepTableDatabase, 
