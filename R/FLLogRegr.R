@@ -180,6 +180,12 @@ glm.FLTable <- function(formula,
 		assign(parentObject,object,envir=parent.frame())
 		return(df.residualsvector)
 	}
+	else if(property=="linear.predictors")
+	{
+		vlinPred <- calcLinearPred(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(vlinPred)
+	}
 	else stop("That's not a valid property")
 }
 
@@ -193,14 +199,15 @@ coefficients.FLLogRegr<-function(object){
 							FLCoeffChiSq="CHISQ"))
 	assign(parentObject,object,envir=parent.frame())
 	return(coeffVector)
-	}
+}
 
 #' @export
 residuals.FLLogRegr<-function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	residualsvector <- residuals.FLLinRegr(object)
+	residualsvector <- calcResiduals(object,"working")
+	object@results <- c(object@results,list(residuals=residualsvector))
 	assign(parentObject,object,envir=parent.frame())
 	return(residualsvector)
 }

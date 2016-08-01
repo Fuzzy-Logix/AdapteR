@@ -506,7 +506,6 @@ fitted.values.FLGAM <- function(object)
 	return(object@results[["fitted.values"]])
 	else
 	{
-		browser()
 		if(object@scoreTable==""){
 		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
 		object@scoreTable <- gen_score_table_name(object@table@select@table_name)

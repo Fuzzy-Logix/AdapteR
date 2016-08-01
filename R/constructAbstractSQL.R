@@ -418,7 +418,8 @@ createView <- function(pViewName,
     res <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
     if(pStore)
     updateMetaTable(pTableName=pViewName,
-                    pNote="view")
+                    pType="view",
+                    ...)
     res
 }
 
@@ -470,6 +471,7 @@ insertIntotbl <- function(pTableName,
 
 updateMetaTable <- function(pTableName,
                             pElementID=NULL,
+                            pType="NA",
                             ...){
     vtemp <- separateDBName(pTableName)
     vdatabase <- vtemp["vdatabase"]
@@ -486,7 +488,7 @@ updateMetaTable <- function(pTableName,
                   pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
-                            "Comments"),
+                            "ObjType","Comments"),
                   pValues=list(fquote(as.character(as.POSIXlt(Sys.time(),tz="GMT"))),
                             fquote(as.character(Sys.Date())),
                             fquote(ifelse(is.null(getOption("FLUsername")),
@@ -494,6 +496,7 @@ updateMetaTable <- function(pTableName,
                             fquote(vdatabase),
                             fquote(pTableName),
                             as.integer(pElementID),
+                            as.character(pType),
                             fquote(pNote)
                         ))
 }

@@ -92,3 +92,21 @@ is.Hadoop <- function(){
     return(TRUE)
     else return(FALSE)
 }
+
+isDotFormula <- function(pFormula){
+    if(!is.formula(pFormula))
+        return(FALSE)
+    vallVars <- all.vars(pFormula)
+    if("."==vallVars[1])
+        stop(". supported on RHS of formula currently \n ")
+    else if("." %in% vallVars)
+        return(TRUE)
+    else return(FALSE)
+}
+
+is.formula <- function(pObject){
+    return(class(pObject)=="formula")
+}
+
+is.FLTableFunctionQuery <- function(pObject)
+    return(class(pObject)=="FLTableFunctionQuery")

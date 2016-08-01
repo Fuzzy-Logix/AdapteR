@@ -390,7 +390,8 @@ setMethod("wideToDeep",
                 
             dataprepID <- as.vector(retobj[1,1])
 
-            updateMetaTable(pTableName=paste0(outDeepTableDatabase,".",deeptablename))
+            updateMetaTable(pTableName=paste0(outDeepTableDatabase,".",deeptablename),
+                            pType="deepTable")
 
             table <- FLTable(outDeepTableDatabase,
                            deeptablename,
@@ -576,7 +577,8 @@ setMethod("deepToWide",
             message <- checkSqlQueryOutput(message)
 
             updateMetaTable(pTableName=paste0(outWideTableDatabase,
-                                              ".",outWideTableName))
+                                              ".",outWideTableName),
+                            pType="wideTable")
 
             table <- FLTable(
                            outWideTableDatabase,
@@ -749,8 +751,10 @@ setMethod("FLRegrDataPrep",
             else inAnalysisID <- inAnalysisID
 
             if(length(classSpec)==0 || classSpec=="") classSpec <- "NULL"
-            else
-            classSpec <- paste0(list_to_class_spec(classSpec))
+            else{
+              classSpec <- paste0(list_to_class_spec(classSpec))
+              catToDummy <- 1
+            }
             whereconditions <- c(whereconditions,object@select@whereconditions)
             whereClause <- constructWhere(whereconditions)
             if(whereClause=="") whereClause <- "NULL"
@@ -814,7 +818,8 @@ setMethod("FLRegrDataPrep",
             dataprepID <- as.vector(retobj[1,1])
 
             updateMetaTable(pTableName=paste0(outDeepTableDatabase,
-                                              ".",deeptablename))
+                                              ".",deeptablename),
+                            pType="deepTable")
 
             table <- FLTable(outDeepTableDatabase,
                            deeptablename,

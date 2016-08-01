@@ -79,7 +79,7 @@ coxph.default <- survival::coxph
 #' fitT$coefficients
 #' summary(fitT)
 #' plot(fitT)
-## Failed
+## Failed due to numeric overflow in FLCoxPH
 #fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
 # fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
 # fitT <- coxph(Surv(age,event)~meanTemp,widetable)
@@ -151,6 +151,9 @@ prepareData.coxph <- function(formula,data,
 	}
 	if(!data@isDeep)
 	{
+		if(isDotFormula(formula))
+			formula <- genDeepFormula(pColnames=colnames(data),
+									pDepColumn=all.vars(formula)[1])
 		vallVars <- base::all.vars(formula)
 		checkValidFormula(formula,data)
 		vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
@@ -555,9 +558,9 @@ predict.FLCoxPH <-function(object,
 	else if(property=="model")
 	{
 			coeffVector <- object$coefficients
-			modelframe <- model.FLLinRegr(object,
-										pColnames=c(as.character(object@formula)[2],
-													names(coeffVector)))
+			object@results[["modelColnames"]] <- c(as.character(object@formula)[2],
+													names(coeffVector))
+			modelframe <- model.FLLinRegr(object)
 			assign(parentObject,object,envir=parent.frame())
 			return(modelframe)
 	}
@@ -567,9 +570,9 @@ predict.FLCoxPH <-function(object,
 		return(object@results[["x"]])
 
 		coeffVector <- object$coefficients
+		object@results[["XMatrixColnames"]] <- names(coeffVector)
 		modelframe <- getXMatrix(object,
-								pDropCols=c(-1,-2,0),
-								pColnames=names(coeffVector))
+								pDropCols=c(-1,-2,0))
 		object@results <- c(object@results,list(x=modelframe))
 		assign(parentObject,object,envir=parent.frame())
 		return(modelframe)

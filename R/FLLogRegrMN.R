@@ -12,19 +12,11 @@ NULL
 # glmfit$FLCoeffStdErr
 # summary(glmfit)
 # print(glmfit)
-
 setClass(
-	"FLLogRegrMN",
-	slots=list(formula="formula",
-				AnalysisID="character",
-				wideToDeepAnalysisId="character",
-				table="FLTable",
-				results="list",
-				deeptable="FLTable",
-				mapTable="character",
-				scoreTable="character",
-				offset="character",
-				vfcalls="character"))
+    "FLLogRegrMN",
+    contains="FLRegr",
+    slots=list(offset="character",
+                vfcalls="character"))
 
 #' @export
 `$.FLLogRegrMN`<-function(object,property){
@@ -140,3 +132,14 @@ print.FLLogRegrMN <- function(object){
 
 #' @export
 setMethod("show","FLLogRegrMN",print.FLLogRegrMN)
+
+#' @export
+residuals.FLLogRegrMN<-function(object)
+{
+    parentObject <- unlist(strsplit(unlist(strsplit(
+        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    residualsvector <- clacResiduals(object,"response")
+    object@results <- c(object@results,list(residuals=residualsvector))
+    assign(parentObject,object,envir=parent.frame())
+    return(residualsvector)
+}
