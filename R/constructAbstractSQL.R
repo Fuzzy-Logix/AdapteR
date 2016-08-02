@@ -126,7 +126,9 @@ constructStoredProcSQL <- function(pConnection,
                                     ...){
     #browser()
     args <- list(...)
-    if(length(args)==1 && is.list(args[[1]]))
+    if("pInputParams" %in% names(args))
+        args <- args[["pInputParams"]]
+    else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
     ## Setting up input parameter value
     pars <- character()

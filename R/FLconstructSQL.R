@@ -268,9 +268,11 @@ setMethod("constructSelect",
 
 ## Phani-- removed \n as it was creating problem in FLCorrel test cases
 constructWhere <- function(conditions) {
+    conditions <- setdiff(conditions,c(NA,""))
+    if(length(conditions)==0)
+      return("")
     if(!is.character(conditions))
         stop("Provide constraints as character vector")
-    conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)>0)
         paste0(" WHERE",paste0("   (",conditions,")",
                                 collapse=" AND "))

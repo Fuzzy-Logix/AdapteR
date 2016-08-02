@@ -5,20 +5,12 @@
 NULL
 setOldClass("family")
 #' An S4 class to represent FLGAM
-
 setClass(
-	"FLGAM",
-	slots=list(
-		formula="formula",
-		AnalysisID="character",
-		table="FLTable",
-		results ="list",
-		specid = "character",
-		scoreTable="character",
-		offset="character",
-		family="family"
-	)
-)
+    "FLGAM",
+    contains="FLRegr",
+    slots=list(specid = "character",
+                offset="character",
+                family="family"))
 
 #' Generalized Additive Models
 #'
@@ -509,7 +501,10 @@ fitted.values.FLGAM <- function(object)
 		if(object@scoreTable==""){
 		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
 		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
-		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
+        if(length(object@deeptable)>0)
+            vtbl <- object@deeptable
+        else vtbl <- object@table
+		fitted.valuesVector <- predict(object,vtbl,scoreTable=object@scoreTable)
 		}
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -884,7 +879,7 @@ predict.FLGAM <- function(object,
 	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
 								"FLGAMScore",
 								outputParameter=c(AnalysisID="a"),
-								vinputCols
+								pInputParams=vinputCols
 								)
 	# sqlstr <- paste0("CALL FLGAMScore(",fquote(object@specid),",",
 	# 									fquote(object@AnalysisID),",",

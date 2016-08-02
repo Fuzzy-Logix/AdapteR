@@ -149,52 +149,53 @@ getXMatrix <- function(object,
   if(length(pDropCols)>0)
   modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
                   paste0("var_id_colname NOT IN ",
-                    "(",paste0(c(pDropCols,vdroppedCols),collapse=","),
+                    "(",paste0(pDropCols,collapse=","),
                     ")"))
 
   ## Takes care of cases  when varIds are dropped in step
   ## And when input deeptable is sparse
-  if(length(vdroppedCols)==0){
-    vcurrColumns <- setdiff(colnames(modelframe),pDropCols)
+  # if(length(vdroppedCols)==0){
+  #   vcurrColumns <- setdiff(colnames(modelframe),pDropCols)
 
-    varidoffset <- sapply(-2:0,function(x){
-                  if(all(x:0 %in% vcurrColumns))
-                    x
-                  else NULL
-              })
-    varidoffset <- unlist(varidoffset)
-    if(length(varidoffset)>0)
-      varidoffset <- abs(min(varidoffset))+1
-    else varidoffset <- 0
+  #   varidoffset <- sapply(-2:0,function(x){
+  #                 if(all(x:0 %in% vcurrColumns))
+  #                   x
+  #                 else NULL
+  #             })
+  #   varidoffset <- unlist(varidoffset)
+  #   if(length(varidoffset)>0)
+  #     varidoffset <- abs(min(varidoffset))+1
+  #   else varidoffset <- 0
 
-    vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-              "obs_id_colname AS rowIdColumn,\n ",
-              "var_id_colname ",
-              ifelse(varidoffset==0,"",paste0("+",varidoffset)),
-              " AS colIdColumn, \n ",
-              "cell_val_colname AS valueColumn \n ",
-                " FROM (",constructSelect(modelframe),") a \n "
-              )
-  }
-  else{
-    if(is.null(object@results[["varidMapTable"]])){
-      vtablename <- gen_unique_table_name("varidMap")
-      object@results <- c(object@results,list(varidMapTable=vtablename))
-      createTable(pTableName=vtablename,
-            pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
-                        " AS varid,var_id_colname AS varidold \n ",
-                     " FROM (SELECT DISTINCT var_id_colname \n ",
-                      " FROM (",constructSelect(modelframe),")a)a"))
-    }
-    else vtablename <- object@results[["varidMapTable"]]
+  #   vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+  #             "obs_id_colname AS rowIdColumn,\n ",
+  #             "var_id_colname ",
+  #             ifelse(varidoffset==0,"",paste0("+",varidoffset)),
+  #             " AS colIdColumn, \n ",
+  #             "cell_val_colname AS valueColumn \n ",
+  #               " FROM (",constructSelect(modelframe),") a \n "
+  #             )
+  # }
+  # else{
+  #   if(is.null(object@results[["varidMapTable"]])){
+  #     vtablename <- gen_unique_table_name("varidMap")
+  #     object@results <- c(object@results,list(varidMapTable=vtablename))
+  #     createTable(pTableName=vtablename,
+  #           pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY var_id_colname)",
+  #                       " AS varid,var_id_colname AS varidold \n ",
+  #                    " FROM (SELECT DISTINCT var_id_colname \n ",
+  #                     " FROM (",constructSelect(modelframe),")a)a"))
+  #   }
+  #   else vtablename <- object@results[["varidMapTable"]]
 
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
                 "a.obs_id_colname AS rowIdColumn,\n ",
-                "b.varid AS colIdColumn, \n ",
+                "ROW_NUMBER()OVER(PARTITION BY a.obs_id_colname ",
+                    "ORDER BY b.vectorIndexColumn) AS colIdColumn, \n ",
                 "a.cell_val_colname AS valueColumn \n ",
               " FROM (",constructSelect(modelframe),") a, \n ",
-                    vtablename," b \n ",
-            " WHERE b.varidold=a.var_id_colname \n "
+                     "(",constructSelect(object@results[["varIDMapping"]]),") b \n ",
+            " WHERE b.vectorValueColumn=a.var_id_colname \n "
                )
 
     # vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
@@ -209,7 +210,7 @@ getXMatrix <- function(object,
   #         " WHERE b.varidold=a.var_id_colname \n "
   #            )
 
-  }
+  # }
   vselect <- new("FLTableFunctionQuery",
           connection=getConnection(object),
           variables=list(MATRIX_ID="MATRIX_ID",
@@ -224,6 +225,8 @@ getXMatrix <- function(object,
   ## For LogRegrMN CoeffVector is Matrix
   if(!is.null(object@results[["XMatrixColnames"]]))
     vcolnames <- object@results[["XMatrixColnames"]]
+  else if(!is.null(pColnames))
+    vcolnames <- pColnames
   else{
     if(is.matrix(coeffVector)){
       vcolnames <- c("(Intercept)",colnames(coeffVector)[2:ncol(coeffVector)])
@@ -243,7 +246,6 @@ getXMatrix <- function(object,
   ## Do not store. Better to fetch each time as
   ## it saves memory and not much time loss in
   ## Fetching.
-  object@results <- c(object@results,list(x=modelframe))
   assign(parentObject,object,envir=parent.frame())
   return(modelframe)
 }
