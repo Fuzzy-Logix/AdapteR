@@ -77,27 +77,32 @@ FLVarCluster.FLTable<-function(x,
 		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
 					gen_wide_table_name("map"))
 
-		sqlstr <- paste0(" CREATE TABLE ",mapTable," AS ( ",
-			    	     " SELECT Final_VarID AS vectorIndexColumn,",
+		sqlstr <- paste0(" SELECT Final_VarID AS vectorIndexColumn,",
 						 " CASE WHEN CatValue IS NOT NULL THEN ",
 						 " CONCAT(COLUMN_NAME,CatValue) else COLUMN_NAME END AS columnName",
 			    	     " FROM fzzlRegrDataPrepMap a ",
 			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"'",
-			    	     " AND a.Final_VarID IS NOT NULL) WITH DATA")
+			    	     " AND a.Final_VarID IS NOT NULL ")
 		
-		sqlSendUpdate(connection,sqlstr)
+		createTable(pTableName=mapTable,
+                    pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
-		sqlSendUpdate(connection,sqlstr)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		#sqlSendUpdate(connection,sqlstr)
+		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+					pSelect=constructSelect(x))
 
 		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-			" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
-		t <- sqlSendUpdate(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#	" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
+		#t <- sqlSendUpdate(connection,sqlstr)
+		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions)))
+
+		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
@@ -113,9 +118,12 @@ FLVarCluster.FLTable<-function(x,
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
 		deeptablename <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
-		t <- sqlSendUpdate(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch")
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
+		#t <- sqlSendUpdate(connection,sqlstr)
+		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+					pSelect=constructSelect(x))
+
+		if(!all(t)) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    getOption("ResultDatabaseFL"),
                    deeptablename,

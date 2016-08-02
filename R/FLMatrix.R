@@ -259,6 +259,8 @@ restrictFLMatrix <-
              conditionDims = c(FALSE,FALSE)){
         ##browser()
         if(is.null(dimnames)) return(object)
+        if(is.FLTableFunctionQuery(object@select))
+          object <- store(object)
         ## if there is a mapping table, use indices instead of dimnames
         vars <- c(object@select@variables$rowIdColumn,
                   object@select@variables$colIdColumn)
@@ -304,7 +306,7 @@ FLamendDimnames <- function(flm,map_table) {
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
-    connection <- getConnection(flm)
+    connection <- getConnection()
     dimnames <- flm@dimnames
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
@@ -335,17 +337,19 @@ FLamendDimnames <- function(flm,map_table) {
     ## if there is still no dimnames set,
     ## use unique values as dimnames
     selectUnique <- function(varname)
-        paste0("SELECT unique(",
+        paste0("SELECT DISTINCT(",
                flm@select@variables[[varname]],
-               ") as V\n",
+               ") as v\n",
                "FROM  ",remoteTable(flm@select),
                constructWhere(
                    constraintsSQL(flm@select)),
                "\nORDER BY 1")
+    vrownames <- sqlQuery(connection,selectUnique("rowIdColumn"))
+    vcolnames <- sqlQuery(connection,selectUnique("colIdColumn"))
     if(length(rownames)==0)
-        rownames <- sort(sqlQuery(connection,selectUnique("rowIdColumn"))$V)
+        rownames <- sort(vrownames$v)
     if(length(colnames)==0)
-        colnames <- sort(sqlQuery(connection, selectUnique("colIdColumn"))$V)
+        colnames <- sort(vcolnames$v)
 
         vstringdimnames <- lapply(list(rownames,colnames),
                                   function(x){
@@ -688,4 +692,49 @@ setMethod("checkMaxQuerySize",
           signature(pObj1="FLVector"),
           function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
 
+`dimnames<-.FLMatrix` <- function(x,value){
+  lapply(1:2,function(i){
+    if(length(value[[i]])!=dim(x)[i] && !is.null(value[[i]])
+      && !is.null(dim(x)[i]))
+      stop("length mismatch between dimnames and dim \n ")
+    })
+  vdimnames <- lapply(value,
+                    function(i){
+                      if(is.null(i))
+                        return(i)
+                      if(all(i==1:length(i)))
+                      return(NULL)
+                      vnames <- i
+                      names(vnames)<-1:length(i)
+                      return(vnames)
+                    })
+  x@dimnames <- vdimnames
+  x@mapSelect <- new("FLSelectFrom")
+  x
+}
 
+`rownames<-.FLMatrix` <- function(x,value){
+  if(length(value)!=dim(x)[1] && !is.null(value)
+    && !is.null(dim(x)[1]))
+    stop("length mismatch between dimnames and dim \n ")
+  if(is.null(value) || all(value==1:length(value)))
+    vnames <- NULL
+  else vnames <- value
+  names(vnames)<-1:length(value)
+  x@dimnames <- list(vnames,x@dimnames[[2]])
+  x@mapSelect <- new("FLSelectFrom")
+  x
+}
+
+`colnames<-.FLMatrix` <- function(x,value){
+  if(length(value)!=dim(x)[2] && !is.null(value)
+    && !is.null(dim(x)[2]))
+    stop("length mismatch between dimnames and dim \n ")
+  if(is.null(value) || all(value==1:length(value)))
+    vnames <- NULL
+  else vnames <- value
+  names(vnames)<-1:length(value)
+  x@dimnames <- list(x@dimnames[[1]],vnames)
+  x@mapSelect <- new("FLSelectFrom")
+  x
+}

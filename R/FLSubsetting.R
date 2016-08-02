@@ -264,7 +264,7 @@ NULL
   else namesvector <- colnames(object)
 
   if(is.FLVector(pSet) 
-    && (isRowVector(pSet) || isRowVector(object)))
+    && (is.RowFLVector(pSet) || is.RowFLVector(object)))
   pSet <- as.vector(pSet)
 
     if(is.FLVector(pSet)){
@@ -328,7 +328,7 @@ NULL
       if((is.numeric(pSet) && (any(pSet>length(object))
           || any(pSet<=0)))) stop("index out of bounds")
       
-      if(isRowVector(object))
+      if(is.RowFLVector(object))
       {
         if(is.numeric(pSet))
         pSet <- object@dimnames[[2]][pSet]
@@ -485,15 +485,14 @@ NULL
                 isDeep=object@isDeep))
 }
 
-isRowVector <- function(object)
-{
-  if(ncol(object)>1 && !object@isDeep)
-  return(TRUE)
-  else return(FALSE)
-}
 appendTableName <- function(object,tablename){
-  if(length(tablename)>0)
-  paste0(tablename,".",object)
+  if(length(tablename)>0 && 
+      tablename!="" )
+  return(sapply(object,function(x){
+    if(!grepl(paste0(tablename,"."),x))
+    paste0(tablename,".",x)
+    else x
+    }))
   else object
 }
 changeAlias <- function(object,newalias,oldalias){
@@ -503,18 +502,18 @@ changeAlias <- function(object,newalias,oldalias){
   newalias <- paste0(newalias,".")
   else newalias <- ""
   for(i in oldalias){
-    if(grepl(i,object)){
+    if(any(grepl(i,object))){
       if(i=="") i<- "[^ ]*"
       result <- gsub(paste0(i,"\\."),
-            newalias,
-            object)
+                    newalias,
+                    object)
       break
     }
     else result <- object
   }
   result <- as.vector(sapply(result,function(x){
     if(!grepl(newalias,x))
-    paste0(newalias,x)
+      paste0(newalias,x)
     else x
     }))
   return(result)
@@ -538,22 +537,4 @@ setAlias <- function(object,newalias){
 isAliasSet <- function(object){
   if(length(names(object@select@table_name))>0)
   return(TRUE) else return(FALSE)
-}
-getAlias <- function(object){
-  return(names(object@select@table_name))
-}
-getObsIdColname <- function(object){
-  if(object@isDeep && ncol(object)>1)
-  return("var_id_colname")
-  else return("obs_id_colname")
-}
-getValueColumn <- function(object){
-  vtemp <- ""
-  if(!is.null(getAlias(object)) && getAlias(object)!="")
-  vtemp <- paste0(getAlias(object),".")
-  if(object@isDeep)
-  return(getVariables(object)[["cell_val_colname"]])
-  else return(sapply(colnames(object),function(x){
-    return(paste0(vtemp,x))
-    }))
 }

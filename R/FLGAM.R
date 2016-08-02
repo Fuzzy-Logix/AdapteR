@@ -97,6 +97,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 {
 	#browser()
 	require("mgcv")
+	data <- setAlias(data,"")
 	if(is.character(family) && base::toupper(family)!="POISSON")
 	stop("only poisson family is supported currently\n")
 	if(is.function(family) && !base::identical(family,stats::poisson))
@@ -114,7 +115,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	else if(!(offset%in%vcolnames)) stop(offset," not in colnames of data\n")
 	else{
 		offsetCopy <- offset
-		offset <- fquote(offset)
+		offset <- offset
 	}
 	if(!is.numeric(maxiter) || any(maxiter<1))
 	stop("maxiter should be numeric and >= 1\n")
@@ -249,16 +250,28 @@ gam.FLTable <- function(formula,family=stats::poisson,
 
 	sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 	
-	vsqlstr <- paste0(" CALL FLGAM(",fquote(data@select@table_name),",",
-								fquote(getVariables(data)[["obs_id_colname"]]),",",
-								fquote(vallVars[1]),",",
-								offset,",",
-								fquote(vspecid),",'POISSON',",
-								maxiter,",",
-								fquote(genNote("gam")),",AnalysisID);")
+	vresult <- sqlStoredProc(getOption("connectionFL"),
+							"FLGAM",
+							outputParameter=c(AnalysisID="a"),
+							TableName=data@select@table_name,
+							ObsID=getVariables(data)[["obs_id_colname"]],
+							DepVar=vallVars[1],
+							OffsetVar=offset,
+							ParamsSpecID=vspecid,
+							DistType="POISSON",
+							MaxIterations=maxiter,
+							Note=genNote("gam")
+							)
+	# vsqlstr <- paste0(" CALL FLGAM(",fquote(data@select@table_name),",",
+	# 							fquote(getVariables(data)[["obs_id_colname"]]),",",
+	# 							fquote(vallVars[1]),",",
+	# 							offset,",",
+	# 							fquote(vspecid),",'POISSON',",
+	# 							maxiter,",",
+	# 							fquote(genNote("gam")),",AnalysisID);")
 
-	vresult <- sqlQuery(getOption("connectionFL"),vsqlstr,
-					AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("gam")))
+	# vresult <- sqlQuery(getOption("connectionFL"),vsqlstr,
+	# 				AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("gam")))
 	vresult <- checkSqlQueryOutput(vresult)
 	vanalysisId <- as.character(vresult[1,1])
 	return(new("FLGAM",
@@ -363,11 +376,11 @@ gam.FLTable <- function(formula,family=stats::poisson,
 		return(object@results[["data"]])
 		else
 		{
-			if(interactive())
-			{
-				vinput <- readline("Fetching entire table. Continue? y/n ")
-				if(!checkYorN(vinput)) return(NULL)
-			}
+			# if(interactive())
+			# {
+			# 	vinput <- readline("Fetching entire table. Continue? y/n ")
+			# 	if(!checkYorN(vinput)) return(NULL)
+			# }
 			object@results <- c(object@results,list(data=as.data.frame(object@table)))
 			assign(parentObject,object,envir=parent.frame())
 			return(object@results[["data"]])
@@ -473,7 +486,9 @@ coefficients.FLGAM <- function(object)
 		chisqVector <- coeffVector[["CHISQ"]]
 		pvalVector <- coeffVector[["PVALUE"]]
 		coeffVector1 <- coeffVector[["COEFFVALUE"]]
-		names(coeffVector1) <- paste0(coeffVector[["COEFFTERM"]],".",coeffVector[["COEFFID"]]+1)
+
+		names(coeffVector1) <- renameDuplicates(as.character(coeffVector[["COEFFTERM"]]))
+		# names(coeffVector1) <- paste0(coeffVector[["COEFFTERM"]],".",coeffVector[["COEFFID"]]+1)
 
 		object@results <- c(object@results,list(coefficients=coeffVector1,
 												FLCoeffStdErr=stderrVector,
@@ -492,7 +507,8 @@ fitted.values.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		}
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
@@ -510,8 +526,9 @@ residuals.FLGAM <- function(object)
 	{
 		
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-			gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
+		# 	gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
@@ -563,7 +580,8 @@ deviance.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
@@ -599,7 +617,8 @@ sig2.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
@@ -630,7 +649,7 @@ model.FLGAM <- function(object)
 	else
 	{
 		vallVars <- all.vars(object@formula)
-		vcolnames <- toupper(vallVars[1:length(vallVars)])
+		vcolnames <- toupper(vallVars)
 		if(!is.null(object@results[["data"]]))
 		{
 			modelframe <- object@results[["data"]]
@@ -639,23 +658,23 @@ model.FLGAM <- function(object)
 		}
 		else
 		{
-			vinput <- ""
-			if(interactive())
-			{
-				vinput <- readline("Fetch top 10 rows only(preferred) y/n ")
-				vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
-				if(checkYorN(vinput)) vinput <- paste0(" TOP 10 ")
-			}
+			# vinput <- ""
+			# if(interactive())
+			# {
+			# 	vinput <- readline("Fetch top 10 rows only(preferred) y/n ")
+			# 	vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			# 	if(checkYorN(vinput)) vinput <- paste0(" TOP 10 ")
+			# }
 			
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
-			vsqlstr <- paste0("SELECT ",vinput," ",paste0(vcolnames,collapse=","),
+			vsqlstr <- paste0("SELECT ",paste0(vcolnames,collapse=","),
 							 " FROM ",vtablename,
 							 " ORDER BY ",obs_id_colname)
 			modelframe <- sqlQuery(getOption("connectionFL"),vsqlstr)
 			modelframe <- checkSqlQueryOutput(modelframe)
 		}
-
+		colnames(modelframe) <- vallVars
 		object@results <- c(object@results,list(model=modelframe))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
@@ -809,29 +828,78 @@ y.FLGAM <- function(object)
 #' @export
 predict.FLGAM <- function(object,
 						newdata=object@table,
-						scoreTable="")
+						scoreTable="",
+						...)
 {
-	if(newdata@isDeep) stop("input wide table for scoring\n")
+	newdata <- setAlias(newdata,"")
+	args <- list(...)
+	names(args) <- tolower(names(args))
+	vinputCols <- list(ModelSpecID=object@specid,
+						InAnalysisID=object@AnalysisID)
+	if(all(c("termidscore","byvarvalscore",
+			"termidparam","varname",
+			"byvarvalparam","varval") %in% names(args))){
+		vspecid <- genRandVarName()
+		vsqlstr <- paste0("INSERT INTO fzzlGAMScoreParams \n ",
+							"VALUES(",fquote(vspecid),",",
+									args[["termidparam"]],",",
+									fquote(args[["varname"]]),",",
+									fquote(args[["varname"]]),",",
+									args[["termidparam"]],",",
+									fquote(args[["varname"]]),
+								")",collapse=";")
+		sqlSendUpdate(getOption(connectionFL),vsqlstr)
+		vinputCols <- c(vinputCols,
+						InTableName="NULL",
+						ObsIDCol="NULL",
+						ScoreSpecID=vspecid,
+						TermID=args[["termidscore"]],
+						ByVarVal=args[["byvarvalscore"]]
+						)
+	}
+	else if(is.FLTable(newdata)){
+		if(newdata@isDeep) stop("input wide table for scoring\n")
+		vinputCols <- c(vinputCols,
+						InTableName=newdata@select@table_name,
+						ObsIDCol=getVariables(newdata)[["obs_id_colname"]],
+						ScoreSpecID="NULL",
+						TermID="NULL",
+						ByVarVal="NULL"
+						)
+	}
+	else stop("provide FLTable as newdata or ",
+			paste0(c("termidscore","byvarvalscore",
+						"termidparam","varname",
+						"byvarvalparam","varval"),collapse=","),
+			" using ... argument \n")
+
 	if(scoreTable=="")
 	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
 	else if(!grep(".",scoreTable)) 
 	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
-	
-	sqlstr <- paste0("CALL FLGAMScore(",fquote(object@specid),",",
-										fquote(object@AnalysisID),",",
-										fquote(newdata@select@table_name),",",
-										fquote(getVariables(newdata)[["obs_id_colname"]]),",",
-										"NULL,",
-										"NULL,",
-										"NULL,",
-										fquote(scoreTable),",",
-										fquote(genNote("Scoring gam")),
-										",AnalysisID);")
+	vinputCols <- c(vinputCols,
+					scoreTable=scoreTable,
+					Note=genNote("Scoring gam"))
+	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
+								"FLGAMScore",
+								outputParameter=c(AnalysisID="a"),
+								vinputCols
+								)
+	# sqlstr <- paste0("CALL FLGAMScore(",fquote(object@specid),",",
+	# 									fquote(object@AnalysisID),",",
+	# 									fquote(newdata@select@table_name),",",
+	# 									fquote(getVariables(newdata)[["obs_id_colname"]]),",",
+	# 									"NULL,",
+	# 									"NULL,",
+	# 									"NULL,",
+	# 									fquote(scoreTable),",",
+	# 									fquote(genNote("Scoring gam")),
+	# 									",AnalysisID);")
 
-	AnalysisID <- sqlQuery(getOption("connectionFL"),
-					sqlstr,
-					AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("Scoring gam")))
+	# AnalysisID <- sqlQuery(getOption("connectionFL"),
+	# 				sqlstr,
+	# 				AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("Scoring gam")))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

@@ -29,8 +29,8 @@ as.vector.FLVector <- function(object,mode="any")
         x <- as.data.frame.FLVector(object)[[1]]
     if(ncol(object)>1)
         x <- as.vector(as.data.frame.FLVector(object)[1,])
-    if(!any(is.na(as.numeric(x))) && !is.logical(x))
-    x <- as.numeric(x)
+    # if(!any(is.na(as.numeric(x))) && !is.logical(x))
+    # x <- as.numeric(x)
 
     if(ncol(object)==1) vnames <- rownames(object)
     else vnames <- colnames(object)
@@ -75,6 +75,8 @@ as.data.frame.FLTable <- function(x, ...){
     if(any(D[[toupper("obs_id_colname")]]!=1:nrow(D)))
         rownames(D) <- D[[toupper("obs_id_colname")]]
     D[[toupper("obs_id_colname")]] <- NULL
+    ## For sparse deep table
+    D[is.na(D)] <- 0
     return(D)
 }
 
@@ -82,6 +84,7 @@ as.data.frame.FLTable <- function(x, ...){
 as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+    #browser()
 
    tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
       error=function(e){stop(e)})
@@ -681,7 +684,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   if(is.logical(object))
   tablename <- getOption("ResultCharVectorTableFL")
   else if(suppressWarnings(!any(is.na(as.integer(object))) && 
-    all(as.integer(object)==object))){
+    all(as.integer(object)==object) &&
+    !is.character(object))){
     tablename <- getOption("ResultIntVectorTableFL")
     object <- as.integer(object)
   }
@@ -893,10 +897,16 @@ as.FLTable.data.frame <- function(object,
       t<-sqlSendUpdate(connection,paste0("drop table ",
                     getOption("ResultDatabaseFL"),".",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
-      sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
-      if (getOption("debugSQL")) cat(sql)
-      t<-RJDBC::dbSendUpdate(connection,sql)
-      if(!is.null(t)) stop(paste0("colnames unconvenional. Error Mssg is:-",t))
+      t <- createTable(pTableName=tableName,
+                      pColNames=names(vcolnamesCopy),
+                      pColTypes=vcolnamesCopy,
+                      pTemporary=FALSE)
+      # sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
+      # if (getOption("debugSQL")) cat(sql)
+      # t<-RJDBC::dbSendUpdate(connection,sql)
+      if(!all(t)) stop(paste0("colnames unconvenional. Error \n"))
+      updateMetaTable(pTableName=tableName,
+                    pType="wideTable")
     }
     
     .jcall(connection@jc,"V","setAutoCommit",FALSE)

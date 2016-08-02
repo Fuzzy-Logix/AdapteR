@@ -25,15 +25,8 @@ NULL
 #' @method predict FLLogRegr
 setClass(
 	"FLLogRegr",
-	slots=list(formula="formula",
-				AnalysisID="character",
-				wideToDeepAnalysisId="character",
-				table="FLTable",
-				results="list",
-				deeptable="FLTable",
-				mapTable="character",
-				scoreTable="character",
-				offset="character",
+	contains="FLRegr",
+	slots=list(offset="character",
 				vfcalls="character"))
 
 #' @export
@@ -107,7 +100,7 @@ glm.default <- stats::glm
 #' summary(poissonfit)
 #' plot(poissonfit)
 #' predData <- FLTable("FL_DEV","preddata1","ObsID")
-#' mu <- predict(poissonfit,newdata=predData)
+#' mu <- predict(poissonfit,newdata=predData) ## RegrDataPrep ERROR
 #' deeptable <- FLTable("FL_DEMO","tblLogRegrMN10000","ObsID","VarID","Num_Val",
 #'              whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable,family="multinomial")
@@ -134,7 +127,7 @@ glm.FLTable <- function(formula,
 		family <- "poisson"
 		else if(base::identical(family,stats::binomial))
 		family <- "logistic"
-		else stop("only poisson,binomial,multinomial and logisticwt are currently supported in glm\n")
+		else stop("only poisson,binomial,multinomial and logisticwt families are currently supported in glm\n")
 	}
 
 	return(lmGeneric(formula=formula,
@@ -187,6 +180,12 @@ glm.FLTable <- function(formula,
 		assign(parentObject,object,envir=parent.frame())
 		return(df.residualsvector)
 	}
+	else if(property=="linear.predictors")
+	{
+		vlinPred <- calcLinearPred(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(vlinPred)
+	}
 	else stop("That's not a valid property")
 }
 
@@ -200,14 +199,15 @@ coefficients.FLLogRegr<-function(object){
 							FLCoeffChiSq="CHISQ"))
 	assign(parentObject,object,envir=parent.frame())
 	return(coeffVector)
-	}
+}
 
 #' @export
 residuals.FLLogRegr<-function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	residualsvector <- residuals.FLLinRegr(object)
+	residualsvector <- calcResiduals(object,"working")
+	object@results <- c(object@results,list(residuals=residualsvector))
 	assign(parentObject,object,envir=parent.frame())
 	return(residualsvector)
 }
@@ -296,7 +296,7 @@ print.FLLogRegr<-function(object){
 setMethod("show","FLLogRegr",print.FLLinRegr)
 
 #' @export
-plot.FLLogRegr <- function(object)
+plot.FLLogRegr <- function(object,...)
 {
 	plot.FLLinRegr(object)
 	parentObject <- unlist(strsplit(unlist(strsplit(
