@@ -114,6 +114,7 @@ Collate:
     'FLStatFunctions.R'
     'FLStringFunctions.R'
     'FLSubsetting.R'
+    'FLTableMD.R'
     'FLTrace.R'
     'FLTranspose.R'
     'FLTriDiag.R'

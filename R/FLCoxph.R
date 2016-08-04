@@ -725,35 +725,51 @@ coefficients.FLCoxPH <- function(object){
 # 	}
 # }
 
+
 summary.FLCoxPH <- function(object){
-	parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	cat("CALL:\n")
-	cat(paste0(object$call),"\n\n")
-	cat("   n = ",object$n,",   number of events = ",object$nevent,"\n\n")
-	vcoeffdata <- data.frame(as.vector(object$coefficients),
-		as.vector(object$FLCoeffexp),
-		round(as.vector(object$FLCoeffStdErr),4),
-		round(as.vector(object$FLCoeffZScore),4),
-		round(as.vector(object$FLCoeffPValue),4),
-		as.vector(object$FLCoeffexp),as.vector(object$FLCoeffexpneg),
-		round(as.vector(object$FLCoefflowerlimit),4),
-		round(as.vector(object$FLCoeffupperlimit),4))
-	colnames(vcoeffdata) <- c("coef","exp(coef)","se(coef)","z","Pr(>|z|)",
-		"exp(coef)","exp(-coef)","lower.95","upper.95")
-	rownames(vcoeffdata) <- names(object$coefficients)
-	print(vcoeffdata)
-	cat("\n\n")
-	vstatsdata <- object$FLCoxPHStats
-	assign(parentObject,object,envir=parent.frame())
-	colnames(vstatsdata) <- toupper(colnames(vstatsdata))
-	cat("Likelihood Ration Test = ",vstatsdata[["LIKELIHOODSTATS"]],",\n")
-	cat("Partial Log Likelihood = ",vstatsdata[["PARTIALLL"]],",\n")
-	cat("Likelihood p Value = ",vstatsdata[["LIKELIHOODPVALUE"]],"\n")
-	cat("Wald Test          = ",vstatsdata[["WALDSTATS"]],", p = ",
-		vstatsdata[["WALDPVALUE"]],"\n")
-	cat("Score (log rank) = ",vstatsdata[["LOGRANKSTATS"]],", p = ",
-		vstatsdata[["LOGRANKPVALUE"]],"\n")
+  stat <- object$FLCoxPHStats
+  
+  coefficients <- data.frame(as.vector(object$coefficients),
+                             as.vector(object$FLCoeffexp),
+                             as.vector(object$FLCoeffStdErr),
+                             as.vector(object$FLCoeffZScore),
+                             as.vector(object$FLCoeffPValue))
+  
+  rname <- all.vars(object$formula)
+  colnames(coefficients) <- c("coef","exp(coef)","se(coef)","z","Pr(>|z|)")    
+  rownames(coefficients) <- names(object$coefficients) 
+  
+  
+  conf.int <- data.frame(as.vector(object$FLCoeffexp),
+                         as.vector(object$FLCoeffexpneg),
+                         as.vector(object$FLCoefflowerlimit),
+                         as.vector(object$FLCoeffupperlimit))
+  
+  
+  colnames(conf.int) <- c("exp(coef)","exp(-coef)","lower.95","upper.95")
+  rownames(conf.int) <- names(object$coefficients)
+  
+  
+  
+  
+  
+  reqList <- list(call = as.call(object$call),
+                  n = object$n,
+                  nevent = as.numeric(object$nevent),
+                  coefficients = as.matrix(coefficients),
+                  conf.int = as.matrix(conf.int),
+                  waldtest = c(test = stat$WaldStats,df = length(object$coefficients) , pvalue = stat$WaldPValue),
+                  sctest = c(test = stat$LogRankStats, df = length(`object`$coefficients) , pvalue = stat$LogRankPValue),
+                  rsq = as.numeric(NULL),
+                  logtest = c(test = stat$LikelihoodStats, df = length(`object`$coefficients) , pvalue = stat$LikelihoodPValue),
+                  #concordance = NULL,
+                  used.robust = FALSE
+                  
+  )
+  
+  class(reqList) <- "summary.coxph"
+  reqList
+  
 }
 
 print.FLCoxPH <- function(object){
