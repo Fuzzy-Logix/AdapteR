@@ -145,6 +145,9 @@ setMethod("getVariables",
           signature(object = "FLTable"),
           function(object) getVariables(object@select))
 setMethod("getVariables",
+          signature(object = "FLTableMD"),
+          function(object) getVariables(object@select))
+setMethod("getVariables",
           signature(object = "FLVector"),
           function(object) getVariables(object@select))
 

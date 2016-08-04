@@ -26,6 +26,12 @@ is.FLTable <- function(object)
 	ifelse(class(object)=="FLTable",TRUE,FALSE)
 }
 
+#' @export
+is.FLTableMD <- function(object)
+{
+    ifelse(class(object)=="FLTableMD",TRUE,FALSE)
+}
+
 is.FLAbstractColumn <- function(object){
     if(class(object)=="FLAbstractColumn")
     return(TRUE)
