@@ -4,21 +4,26 @@
 #' @include FLLinRegr.R
 NULL
 
+#' An S4 class to represent output from coxph on in-database Objects
+#'
+#' @slot timeValCol column name representing time variable
+#' @slot statusCol column name representing Status variable
+#' @slot vfcalls information about system tables
+#' and in-database procedures called during execution
+#' @method print FLCoxPH
+#' @method coefficients FLCoxPH
+#' @method residuals FLCoxPH
+#' @method plot FLCoxPH
+#' @method summary FLCoxPH
+#' @method predict FLCoxPH
+#' @export
 setClass(
 	"FLCoxPH",
 	contains="FLRegr",
-	slots=list(modelID="numeric",
+	slots=list(#modelID="numeric",
 				timeValCol="character",
 				statusCol="character",
                 vfcalls="character"))
-
-#' @export
-coxph <- function (formula,data=list(),...) {
-	UseMethod("coxph", data)
- }
-
-#' @export
-coxph.default <- survival::coxph
 
 #' Cox Proportional Hazard Model
 #' 
@@ -55,17 +60,15 @@ coxph.default <- survival::coxph
 #' The formula object should have a \code{Surv} object.
 #' The arguments to \code{Surv} object must strictly be in the order
 #' (\code{time},\code{time2},\code{event}) or (\code{time},\code{event}).
-#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(event)}
+#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(SurvColumn)}
 #' inside \code{Surv} is not supported.
 #' Only \code{coefficients},\code{linear.predictors},\code{FLSurvivalData},
 #' \code{FLCoxPHStats},\code{loglik},\code{wald.test},\code{n},\code{nevent},
 #' \code{rscore},\code{call},\code{formula},\code{call},\code{model},\code{x},
 #' \code{means},\code{terms} can be called on fitted object using $.
 #' coefficients,plot,print,summary methods are available for fitted object.
-#' @return \code{coxph} performs linear regression and replicates equivalent R output.
+#' @return \code{coxph} returns a \code{FLCoxPH} object
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
 #' widetable  <- FLTable("FL_DEMO", "siemenswideARDemoCoxPH", "ObsID")
 #' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
 #' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
@@ -75,7 +78,7 @@ coxph.default <- survival::coxph
 #' summary(fitT)
 #' plot(fitT)
 #' deeptable <- FLTable("FL_DEMO","siemensdeepARDemoCoxPH","obs_id_colname",
-#'						"var_id_colname","cell_val_colname")
+#'                      "var_id_colname","cell_val_colname")
 #' fitT <- coxph("",deeptable)
 #' fitT$coefficients
 #' summary(fitT)
@@ -84,6 +87,14 @@ coxph.default <- survival::coxph
 #fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
 # fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
 # fitT <- coxph(Surv(age,event)~meanTemp,widetable)
+#' @export
+coxph <- function (formula,data=list(),...) {
+	UseMethod("coxph", data)
+ }
+
+#' @export
+coxph.default <- survival::coxph
+
 #' @export
 coxph.FLTable <- function(formula,data, ...)
 {
@@ -725,6 +736,7 @@ coefficients.FLCoxPH <- function(object){
 # 	}
 # }
 
+#' @export
 summary.FLCoxPH <- function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -756,6 +768,7 @@ summary.FLCoxPH <- function(object){
 		vstatsdata[["LOGRANKPVALUE"]],"\n")
 }
 
+#' @export
 print.FLCoxPH <- function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -764,6 +777,7 @@ print.FLCoxPH <- function(object){
 }
 
 ## Choose number of observations to fetch and plot
+#' @export
 plot.FLCoxPH <- function(object,nobs=5,...){
 	if(is.null(object@results[["FLSurvivalDataTable"]]))
 	vtemp <- object$linear.predictors
@@ -800,17 +814,11 @@ IncludeTimeVal <- function(data,
 	vTimeVal <- "FLTimeValCol"
 	vtablename1 <- paste0(data@select@database,".",data@select@table_name)
 
-	#sqlstr <- paste0("CREATE VIEW ",vtablename,
-	#				" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
-	#					" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-	#sqlSendUpdate(getOption("connectionFL"),sqlstr)
-
 	createView(pViewName=vtablename,
 				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
 						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
 				)
-	# t <- createTable(pTableName=vtablename,
-	# 				pSelect=sqlstr)
+    
 	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
 	data@select@database <- getOption("ResultDatabaseFL")
 	data@select@table_name <- vtablename

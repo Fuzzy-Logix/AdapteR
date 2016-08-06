@@ -1,3 +1,13 @@
+#' @include FLMatrix.R
+NULL
+
+#' An S4 class to represent FLTableMD, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @slot mapSelect \code{FLSelectFrom} object which contains the 
+#' mapping information if any
 #' @export
 setClass(
     "FLTableMD",
@@ -10,7 +20,37 @@ setClass(
     )
 )
 
-
+#' Constructor function for FLTableMD.
+#'
+#' \code{FLTableMD} constructs an object of class \code{FLTableMD}.
+#'
+#' \code{FLTableMD} refers to an in-database table with multiple data sets.
+#' This object is commonly used as input for some data mining functions
+#' which operate parallelly on all the datasets
+#' @param database name of the database
+#' @param table name of the table
+#' @param group_id_colname column name identifying the datasets
+#' @param obs_id_colname column name set as primary key
+#' @param var_id_colname column name where variable id's are stored if \code{FLTableMD} is deep
+#' @param cell_val_colname column name where cell values are stored if \code{FLTableMD} is deep
+#' @param group_id vector of dataset IDs'to be considered.
+#' Default is all those contained in the table
+#' @return \code{FLTableMD} returns an object of class FLTableMD mapped to a table
+#' in database
+#' @examples
+#' widetableMD <- FLTableMD(database="FL_DEMO",
+#'                       table="tblAutoMPGMD",
+#'                       group_id_colname="GroupID",
+#'                       obs_id_colname="ObsID",
+#'                       group_id = c(2,4))
+#' deeptableMD <- FLTableMD(database="FL_DEMO",
+#'                       table="LinRegrMultiMD",
+#'                       group_id_colname="DatasetID",
+#'                       obs_id_colname="ObsID",
+#'                       var_id_colname="VarID",
+#'                       cell_val_colname="Num_Val")
+#' head(widetableMD)
+#' head(deeptableMD)
 #' @export
 FLTableMD <- function(database, 
                     table,

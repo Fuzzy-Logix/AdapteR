@@ -2,18 +2,10 @@
 #' @include data_prep.R
 #' @include FLTable.R
 NULL
-#' An S4 class to represent FLLinRegr
+
+#' An S4 class to represent output from glm on in-database Objects
 #'
-#' @slot formula an object of class 'formula': Model Formula
-#' @slot deeptable A character vector containing 
-#' the deeptable on conversion from a widetable
-#' @slot AnalysisID An output character ID from CALL FLLogRegr
-#' @slot wideToDeepAnalysisID An output character ID from FLRegrDataPrep
-#' @slot mapTable name of the mapping table
-#' @slot scoreTable name of the scoring table
-#' @slot modelID id of the model with best fit
-#' @slot table input FLTable object
-#' @slot results cache list of results computed
+#' @slot offset column name used as offset
 #' @slot vfcalls contains names of tables
 #' @method print FLLogRegr
 #' @method coefficients FLLogRegr
@@ -23,26 +15,19 @@ NULL
 #' @method plot FLLogRegr
 #' @method summary FLLogRegr
 #' @method predict FLLogRegr
+#' @export
 setClass(
 	"FLLogRegr",
 	contains="FLRegr",
 	slots=list(offset="character",
 				vfcalls="character"))
 
-#' @export
-glm <- function (formula,data=list(),...) {
-	UseMethod("glm", data)
- }
-
-#' @export
-glm.default <- stats::glm
-
 #' Logistic and Poisson Regression.
 #'
 #' \code{glm} performs logistic and poisson regression on FLTable objects.
 #'
 #' @param formula A symbolic description of model to be fitted
-#' @param family Can be one of poisson,binomial,linear or multinomial.
+#' @param family Can be one of poisson,binomial,logisticwt or multinomial characters.
 #' Can be family functions like stats::poisson wherever possible.
 #' @param data An object of class FLTable
 #' @param catToDummy Transform categorical variables to numerical values
@@ -81,15 +66,17 @@ glm.default <- stats::glm
 #' In case of multinomial family, residuals,fitted.values
 #' properties are not available.plot,influence methods are
 #' also not available.
-#' @return \code{glm} performs logistic 
-#' or poisson regression and replicates equivalent R output.
+#' Properties like \code{print(fit$x),model,plot} might take time as they
+#' have to fetch data
+#' @return \code{glm} returns \code{FLLogRegrMN} object for
+#' \code{multinomial} family and \code{FLLogRegr} otherwise
 #' @examples
-#' library(RODBC)
-#' connection <- flConnect("Gandalf")
 #' deeptable <- FLTable("FL_DEMO","tblLogRegr","ObsID","VarID","Num_Val",
 #'                whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable)
+#' coef(glmfit)
 #' summary(glmfit)
+#' head(residuals(glmfit))
 #' plot(glmfit)
 #' glmfit <- glm(NULL,data=deeptable,family="logisticwt",eventweight=0.8,noneventweight=1)
 #' summary(glmfit)
@@ -109,6 +96,14 @@ glm.default <- stats::glm
 #' glmfit$FLCoeffStdErr
 #' summary(glmfit)
 #' print(glmfit)
+#' @export
+glm <- function (formula,data=list(),...) {
+	UseMethod("glm", data)
+ }
+
+#' @export
+glm.default <- stats::glm
+
 #' @export
 glm.FLTable <- function(formula,
 						family="binomial",

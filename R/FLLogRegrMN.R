@@ -2,16 +2,20 @@
 #' @include data_prep.R
 #' @include FLTable.R
 NULL
-# library(RODBC)
-# connection <- flConnect("Gandalf")
-# deeptable <- FLTable("FL_DEMO","tblLogRegrMN10000","ObsID","VarID","Num_Val",
-#                whereconditions="ObsID<7001")
-# glmfit <- glm(NULL,data=deeptable,family="multinomial")
-# glmfit$coefficients
-# glmfit$FLLogRegrStats
-# glmfit$FLCoeffStdErr
-# summary(glmfit)
-# print(glmfit)
+
+#' An S4 class to represent output from glm when family is multinomial
+#'
+#' @slot offset column name used as offset
+#' @slot vfcalls contains names of tables
+#' @method print FLLogRegr
+#' @method coefficients FLLogRegr
+#' @method residuals FLLogRegr
+#' @method influence FLLogRegr
+#' @method lm.influence FLLogRegr
+#' @method plot FLLogRegr
+#' @method summary FLLogRegr
+#' @method predict FLLogRegr
+#' @export
 setClass(
     "FLLogRegrMN",
     contains="FLRegr",
