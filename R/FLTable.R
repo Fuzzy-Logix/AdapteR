@@ -71,13 +71,13 @@ FLTable <- function(database,
         cols <- vstringdimnames[[2]]
 
         ## To account for sparse format
-        vdimnames <- lapply(list(rows),
-                            function(x){
-                              if(is.numeric(x))
-                              return(1:max(x))
-                              else x
-                              })
-        rows <- vdimnames[[1]]
+        # vdimnames <- lapply(list(rows),
+        #                     function(x){
+        #                       if(is.numeric(x))
+        #                       return(1:max(x))
+        #                       else x
+        #                       })
+        # rows <- vdimnames[[1]]
         #cols <- vdimnames[[2]]
 
         select <- new(

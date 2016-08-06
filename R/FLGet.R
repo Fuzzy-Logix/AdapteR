@@ -139,6 +139,7 @@ getXMatrix <- function(object,
              pDropCols=c(),
              pColnames=NULL,
              ...){
+  #browser()
   parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
               "(",fixed=T))[2],",",fixed=T))[1]
   coeffVector <- object$coefficients
@@ -189,7 +190,7 @@ getXMatrix <- function(object,
   #   else vtablename <- object@results[["varidMapTable"]]
 
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                "a.obs_id_colname AS rowIdColumn,\n ",
+                "ROW_NUMBER()OVER(PARTITION BY a.var_id_colname ORDER BY a.obs_id_colname) AS rowIdColumn,\n ",
                 "ROW_NUMBER()OVER(PARTITION BY a.obs_id_colname ",
                     "ORDER BY b.vectorIndexColumn) AS colIdColumn, \n ",
                 "a.cell_val_colname AS valueColumn \n ",
@@ -239,8 +240,8 @@ getXMatrix <- function(object,
   modelframe <- new("FLMatrix",
                   select=vselect,
                   dim=c(nrow(modelframe),length(vcolnames)),
-                  dimnames=list())
-  dimnames(modelframe) <- vdimnames
+                  dimnames=list(NULL,vcolnames))
+  #dimnames(modelframe) <- vdimnames
 
   # colnames(modelframe)[1] <- "Intercept"
   ## Do not store. Better to fetch each time as
@@ -303,7 +304,7 @@ calcResiduals <- function(object,
                             "(",constructSelect(vfit),") b \n ",
                       " WHERE a.vectorIndexColumn=b.vectorIndexColumn ")
   }
-  else if(object@vfcalls["functionName"]=="FLLogRegr"){
+  else if(object@vfcalls["functionName"]%in%c("FLLogRegr","FLLogRegrWt")){
     if(type=="deviance")
       sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                 "a.vectorIndexColumn AS vectorIndexColumn, \n ",

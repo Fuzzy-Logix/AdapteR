@@ -125,3 +125,32 @@ test_that("Check for dimensions of coefficients and summary for DeepTable ",{
             expect_equal(length(x),vlenCoeffs)
             })
 })
+
+
+## Testing lm for non-continuous ObsIDs
+widetable  <- FLTable("FL_DEMO", "tblAbaloneWide",
+                     "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
+object <- lm(Rings~Height+Diameter,widetable)
+test_that("Check for dimensions of x Matrix ",{
+        expect_equal(nrow(object$x),nrow(widetable))
+        expect_equal(colnames(object$x),
+                    c("(Intercept)","Height","Diameter"))
+        expect_equal(dimnames(object$model),
+                    list(rownames(widetable),
+                        c("Rings","Height","Diameter")
+                        ))
+})
+
+deeptable <- FLTable("FL_DEMO","myLinRegrSmall",
+                    "ObsID","VarID","Num_Val",
+                    whereconditions=c("ObsID>10","ObsID<1001"))
+object <- lm(NULL,deeptable)
+test_that("Check for dimensions of x Matrix ",{
+        expect_equal(nrow(object$x),nrow(deeptable))
+        expect_equal(colnames(object$x),
+                    c("(Intercept)",paste0("var",colnames(deeptable)[c(-1,-2)])))
+        expect_equal(dimnames(object$model),
+                    list(as.character(rownames(deeptable)),
+                        c("varY",paste0("var",colnames(deeptable)[c(-1,-2)]))
+                        ))
+})

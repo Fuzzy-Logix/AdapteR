@@ -23,16 +23,29 @@ setClass(
 	#parentObject <- deparse(substitute(object))
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
-	if(property %in% c("coefficients","FLCoeffStdErr",
-		"FLCoeffPValue","call","model","x",
+    if(property %in% c("FLCoeffStdErr",
+        "FLCoeffPValue","FLCoeffChiSq"))
+    {
+        vcoeff <- coefficients.FLLogRegrMN(object)
+        propertyValue <- object@results[[property]]
+        assign(parentObject,object,envir=parent.frame())
+        return(propertyValue)
+    }
+	if(property %in% c("call","model","x",
 		"y","qr","rank","xlevels","terms","assign",
-		"FLCoeffChiSq","FLLogRegrStats","df.residual"))
+		"FLLogRegrStats","df.residual"))
 	{
 		propertyValue <- `$.FLLogRegr`(object,property)
 		assign(parentObject,object,envir=parent.frame())
 		return(propertyValue)
 	}
-	else stop("That's not a valid property")
+	else if(property %in% "coefficients"){
+        vcoeff <- coefficients.FLLogRegrMN(object)
+        assign(parentObject,object,envir=parent.frame())
+        return(vcoeff)
+    }
+    else
+        stop("That's not a valid property")
 }
 
 #' @export

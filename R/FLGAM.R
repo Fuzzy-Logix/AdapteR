@@ -501,7 +501,7 @@ fitted.values.FLGAM <- function(object)
 		if(object@scoreTable==""){
 		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
 		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
-        if(length(object@deeptable)>0)
+        if(length(object@deeptable@select@variables)>0)
             vtbl <- object@deeptable
         else vtbl <- object@table
 		fitted.valuesVector <- predict(object,vtbl,scoreTable=object@scoreTable)

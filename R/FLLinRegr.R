@@ -1372,6 +1372,7 @@ coefficients.lmGeneric <-function(object,
 							unique(as.character(coeffVector[["COLUMN_NAME"]])[-1]))
 		}
 
+		colnames(coeffVector) <- toupper(colnames(coeffVector))
 		coeffVector1 <- coeffVector[["COEFFVALUE"]]
 		vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
 		if(!is.null(vcoeffnames)){
@@ -1445,7 +1446,12 @@ model.FLLinRegr <- function(object,...)
 												paste0("var_id_colname NOT IN ",
 														"(",paste0(c(0,-2,vdroppedCols),collapse=","),
 														")"))
-			vcolnames <- c(vallVars[1],
+
+			if(is.matrix(coeffVector))
+				vcolnames <- c(vallVars[1],
+							colnames(coeffVector)[2:ncol(coeffVector)])
+			else 
+				vcolnames <- c(vallVars[1],
 							names(coeffVector)[2:length(coeffVector)])
 		}
 
@@ -1655,7 +1661,6 @@ setMethod("show","FLLinRegr",print.FLLinRegr)
 #' @export
 plot.FLLinRegr <- function(object,...)
 {
-	#browser()
 	vqr <- object$qr
 	vqr <- list(qr=as.matrix(vqr$qr),
 				rank=as.integer(as.vector(vqr$rank)),
@@ -1690,7 +1695,7 @@ influence.FLLinRegr <- function(model,...){
 					call=model$call,
 					xlevels=model$xlevels,
 					model=model$model,
-					terms=model$terms)
+					termsz=model$terms)
 	class(reqList) <- "lm"
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character
 		(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
