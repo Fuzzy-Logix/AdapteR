@@ -4,21 +4,24 @@
 #' @include utilities.R
 NULL
 setOldClass("family")
-#' An S4 class to represent FLGAM
-
+#' An S4 class to represent output from gam on in-database objects
+#'
+#' @slot offset column name used as offset
+#' @slot specid unique ID from table where specifications are stored
+#' @slot family information about family of fit
+#' @method print FLGAM
+#' @method coefficients FLGAM
+#' @method residuals FLGAM
+#' @method plot FLGAM
+#' @method summary FLGAM
+#' @method predict FLGAM
+#' @export
 setClass(
-	"FLGAM",
-	slots=list(
-		formula="formula",
-		AnalysisID="character",
-		table="FLTable",
-		results ="list",
-		specid = "character",
-		scoreTable="character",
-		offset="character",
-		family="family"
-	)
-)
+    "FLGAM",
+    contains="FLRegr",
+    slots=list(specid = "character",
+                offset="character",
+                family="family"))
 
 #' Generalized Additive Models
 #'
@@ -39,9 +42,8 @@ setClass(
 #' but not currently used
 #' @section Constraints:
 #' Plotting is not available. The result Set may not include all
-#' results as in mgcv::gam. Only print and predict methods are defined.
-#' @return \code{gam} returns a list and replicates equivalent R output
-#' from \code{mgcv::gam}.
+#' results and methods as in mgcv::gam.
+#' @return \code{gam} returns \code{FLGAM} object
 #' @examples
 #' widetable <- FLTable("FL_DEMO","tblGAMSimData","ObsID")
 #' myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)+s(x2Val,x1Val)
@@ -469,6 +471,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	else stop(property," is not a valid property\n")
 }
 
+#' @export
 coefficients.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["coefficients"]]))
@@ -500,17 +503,20 @@ coefficients.FLGAM <- function(object)
 	}
 }
 
+#' @export
 fitted.values.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["fitted.values"]]))
 	return(object@results[["fitted.values"]])
 	else
 	{
-		browser()
 		if(object@scoreTable==""){
 		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
 		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
-		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
+        if(length(object@deeptable@select@variables)>0)
+            vtbl <- object@deeptable
+        else vtbl <- object@table
+		fitted.valuesVector <- predict(object,vtbl,scoreTable=object@scoreTable)
 		}
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -519,6 +525,7 @@ fitted.values.FLGAM <- function(object)
 	}
 }
 
+#' @export
 residuals.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["residuals"]]))
@@ -643,6 +650,7 @@ sig2.FLGAM <- function(object)
 	}
 }
 
+#' @export
 model.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["model"]]))
@@ -683,6 +691,7 @@ model.FLGAM <- function(object)
 	}
 }
 
+#' @export
 terms.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["terms"]]))
@@ -885,7 +894,7 @@ predict.FLGAM <- function(object,
 	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
 								"FLGAMScore",
 								outputParameter=c(AnalysisID="a"),
-								vinputCols
+								pInputParams=vinputCols
 								)
 	# sqlstr <- paste0("CALL FLGAMScore(",fquote(object@specid),",",
 	# 									fquote(object@AnalysisID),",",

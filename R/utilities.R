@@ -152,7 +152,9 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     ## a precompiled SQL statement and preparing the callable
     ## statement for execution.
     args <- list(...)
-    if(length(args)==1 && is.list(args[[1]]))
+    if("pInputParams" %in% names(args))
+        args <- args[["pInputParams"]]
+    else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
     # query <- paste0("CALL ",query, "(",
     #                 paste0(rep("?", length(args)+length(outputParameter)),
@@ -668,10 +670,11 @@ FLStartSession <- function(connection,
                 pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
+                            "ObjType",
                             "Comments"),
                 pColTypes=c("VARCHAR(100)","VARCHAR(100)",
                             "VARCHAR(100)","VARCHAR(100)",
-                            "VARCHAR(100)","INT",
+                            "VARCHAR(100)","INT","VARCHAR(100)",
                             "VARCHAR(100)"),
                 pTableOptions=tableoptions,
                 pPrimaryKey="UserName",

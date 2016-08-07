@@ -4,20 +4,26 @@
 #' @include FLLinRegr.R
 NULL
 
+#' An S4 class to represent output from coxph on in-database Objects
+#'
+#' @slot timeValCol column name representing time variable
+#' @slot statusCol column name representing Status variable
+#' @slot vfcalls information about system tables
+#' and in-database procedures called during execution
+#' @method print FLCoxPH
+#' @method coefficients FLCoxPH
+#' @method residuals FLCoxPH
+#' @method plot FLCoxPH
+#' @method summary FLCoxPH
+#' @method predict FLCoxPH
+#' @export
 setClass(
 	"FLCoxPH",
 	contains="FLRegr",
-	slots=list(modelID="numeric",
+	slots=list(#modelID="numeric",
 				timeValCol="character",
-				statusCol="character"))
-
-#' @export
-coxph <- function (formula,data=list(),...) {
-	UseMethod("coxph", data)
- }
-
-#' @export
-coxph.default <- survival::coxph
+				statusCol="character",
+                vfcalls="character"))
 
 #' Cox Proportional Hazard Model
 #' 
@@ -54,17 +60,15 @@ coxph.default <- survival::coxph
 #' The formula object should have a \code{Surv} object.
 #' The arguments to \code{Surv} object must strictly be in the order
 #' (\code{time},\code{time2},\code{event}) or (\code{time},\code{event}).
-#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(event)}
+#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(SurvColumn)}
 #' inside \code{Surv} is not supported.
 #' Only \code{coefficients},\code{linear.predictors},\code{FLSurvivalData},
 #' \code{FLCoxPHStats},\code{loglik},\code{wald.test},\code{n},\code{nevent},
 #' \code{rscore},\code{call},\code{formula},\code{call},\code{model},\code{x},
 #' \code{means},\code{terms} can be called on fitted object using $.
 #' coefficients,plot,print,summary methods are available for fitted object.
-#' @return \code{coxph} performs linear regression and replicates equivalent R output.
+#' @return \code{coxph} returns a \code{FLCoxPH} object
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
 #' widetable  <- FLTable("FL_DEMO", "siemenswideARDemoCoxPH", "ObsID")
 #' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
 #' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
@@ -74,15 +78,23 @@ coxph.default <- survival::coxph
 #' summary(fitT)
 #' plot(fitT)
 #' deeptable <- FLTable("FL_DEMO","siemensdeepARDemoCoxPH","obs_id_colname",
-#'						"var_id_colname","cell_val_colname")
+#'                      "var_id_colname","cell_val_colname")
 #' fitT <- coxph("",deeptable)
 #' fitT$coefficients
 #' summary(fitT)
 #' plot(fitT)
-## Failed
+## Failed due to numeric overflow in FLCoxPH
 #fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
 # fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
 # fitT <- coxph(Surv(age,event)~meanTemp,widetable)
+#' @export
+coxph <- function (formula,data=list(),...) {
+	UseMethod("coxph", data)
+ }
+
+#' @export
+coxph.default <- survival::coxph
+
 #' @export
 coxph.FLTable <- function(formula,data, ...)
 {
@@ -125,7 +137,7 @@ coxph.FLTable <- function(formula,data, ...)
 				formula=deep[["formula"]],
 				AnalysisID=AnalysisID,
 				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				table=data,
+				table=deep$vdata,
 				results=list(call=vcallObject),
 				deeptable=deepx,
 				mapTable=deep$mapTable,
@@ -151,6 +163,9 @@ prepareData.coxph <- function(formula,data,
 	}
 	if(!data@isDeep)
 	{
+		if(isDotFormula(formula))
+			formula <- genDeepFormula(pColnames=colnames(data),
+									pDepColumn=all.vars(formula)[1])
 		vallVars <- base::all.vars(formula)
 		checkValidFormula(formula,data)
 		vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
@@ -287,7 +302,8 @@ prepareData.coxph <- function(formula,data,
                 formula=formula,
                 mapTable=mapTable,
                 vStatus=vStatus,
-                vTimeVal=vTimeVal))
+                vTimeVal=vTimeVal,
+                vdata=data))
 }
 
 #' @export
@@ -555,9 +571,12 @@ predict.FLCoxPH <-function(object,
 	else if(property=="model")
 	{
 			coeffVector <- object$coefficients
-			modelframe <- model.FLLinRegr(object,
-										pColnames=c(as.character(object@formula)[2],
-													names(coeffVector)))
+			vtemp <- c(object@timeValCol,
+						names(coeffVector))
+            names(vtemp) <- c(as.character(object@formula)[2],
+                            names(coeffVector))
+            object@results[["modelColnames"]] <- vtemp
+			modelframe <- model.FLLinRegr(object)
 			assign(parentObject,object,envir=parent.frame())
 			return(modelframe)
 	}
@@ -567,9 +586,9 @@ predict.FLCoxPH <-function(object,
 		return(object@results[["x"]])
 
 		coeffVector <- object$coefficients
+		object@results[["XMatrixColnames"]] <- names(coeffVector)
 		modelframe <- getXMatrix(object,
-								pDropCols=c(-1,-2,0),
-								pColnames=names(coeffVector))
+								pDropCols=c(-1,-2,0))
 		object@results <- c(object@results,list(x=modelframe))
 		assign(parentObject,object,envir=parent.frame())
 		return(modelframe)
@@ -628,53 +647,63 @@ coefficients.FLCoxPH <- function(object){
 	return(object@results[["coefficients"]])
 	else
 	{
-		if(object@table@isDeep)
-		coeffVector <- sqlQuery(getOption("connectionFL"),
-			paste0("SELECT * FROM fzzlCoxPHCoeffs where AnalysisID=",fquote(object@AnalysisID),
-					" ORDER BY CoeffID"))
-		else
-		coeffVector <- sqlQuery(getOption("connectionFL"),
-			paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
-					"a.COLUMN_NAME || a.Catvalue ELSE \n",
-					"a.Column_name END AS CoeffName,b.* \n",
-				   " FROM fzzlRegrDataPrepMap AS a,fzzlCoxPHCoeffs AS b \n",
-				   " WHERE a.Final_VarID = b.CoeffID \n",
-					" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
-					"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
-					"\n ORDER BY CoeffID"))
+        object@vfcalls <- c(coefftablename="fzzlCoxPHCoeffs")
+        vres <- coefficients.lmGeneric(object,
+                        FLCoeffStats=c(FLCoeffStdErr="STDERR",
+                                    FLCoeffZScore="ZSCORE",
+                                    FLCoeffPValue="PVALUE",
+                                    FLCoeffexpneg="EXPNEGCOEFF",
+                                    FLCoeffexp="EXPCOEFF",
+                                    FLCoefflowerlimit="LOWERLIMIT",
+                                    FLCoeffupperlimit="UPPERLIMIT"),
+                        pIntercept=FALSE)
+		# if(object@table@isDeep)
+		# coeffVector <- sqlQuery(getOption("connectionFL"),
+		# 	paste0("SELECT * FROM fzzlCoxPHCoeffs where AnalysisID=",fquote(object@AnalysisID),
+		# 			" ORDER BY CoeffID"))
+		# else
+		# coeffVector <- sqlQuery(getOption("connectionFL"),
+		# 	paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
+		# 			"a.COLUMN_NAME || a.Catvalue ELSE \n",
+		# 			"a.Column_name END AS CoeffName,b.* \n",
+		# 		   " FROM fzzlRegrDataPrepMap AS a,fzzlCoxPHCoeffs AS b \n",
+		# 		   " WHERE a.Final_VarID = b.CoeffID \n",
+		# 			" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
+		# 			"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
+		# 			"\n ORDER BY CoeffID"))
 
-		colnames(coeffVector) <- toupper(colnames(coeffVector))
-		stderrVector <- coeffVector[["STDERR"]]
-		zscoreVector <- coeffVector[["ZSCORE"]]
-		pvalVector <- coeffVector[["PVALUE"]]
-		lowerlimitVector <- coeffVector[["LOWERLIMIT"]]
-		expnegcoeffVector <- coeffVector[["EXPNEGCOEFF"]]
-		upperlimitVector <- coeffVector[["UPPERLIMIT"]]
-		coeffVector1 <- coeffVector[["COEFFVALUE"]]
-		expcoeffVector <- coeffVector[["EXPCOEFF"]]
+		# colnames(coeffVector) <- toupper(colnames(coeffVector))
+		# stderrVector <- coeffVector[["STDERR"]]
+		# zscoreVector <- coeffVector[["ZSCORE"]]
+		# pvalVector <- coeffVector[["PVALUE"]]
+		# lowerlimitVector <- coeffVector[["LOWERLIMIT"]]
+		# expnegcoeffVector <- coeffVector[["EXPNEGCOEFF"]]
+		# upperlimitVector <- coeffVector[["UPPERLIMIT"]]
+		# coeffVector1 <- coeffVector[["COEFFVALUE"]]
+		# expcoeffVector <- coeffVector[["EXPCOEFF"]]
 
-		if(!is.null(coeffVector[["COEFFNAME"]]))
-		names(coeffVector1) <- coeffVector[["COEFFNAME"]]
-		else{
-			vallVars <- all.vars(genDeepFormula(coeffVector[["COEFFID"]]))
-			names(coeffVector1) <- vallVars[2:length(vallVars)]
-		}
+		# if(!is.null(coeffVector[["COEFFNAME"]]))
+		# names(coeffVector1) <- coeffVector[["COEFFNAME"]]
+		# else{
+		# 	vallVars <- all.vars(genDeepFormula(coeffVector[["COEFFID"]]))
+		# 	names(coeffVector1) <- vallVars[2:length(vallVars)]
+		# }
 		
-		vcolnames <- colnames(object@deeptable)
-		droppedCols <- vcolnames[!vcolnames %in% c("-1","0","-2",coeffVector[["COEFFID"]])]
-		object@results <- c(object@results,list(coefficients=coeffVector1,
-												FLCoeffStdErr=stderrVector,
-												FLCoeffZScore=zscoreVector,
-												FLCoeffPValue=pvalVector,
-												FLCoeffexpneg=expnegcoeffVector,
-												FLCoeffexp=expcoeffVector,
-												FLCoefflowerlimit=lowerlimitVector,
-												FLCoeffupperlimit=upperlimitVector,
-												droppedCols=droppedCols))
+		# vcolnames <- colnames(object@deeptable)
+		# droppedCols <- vcolnames[!vcolnames %in% c("-1","0","-2",coeffVector[["COEFFID"]])]
+		# object@results <- c(object@results,list(coefficients=coeffVector1,
+		# 										FLCoeffStdErr=stderrVector,
+		# 										FLCoeffZScore=zscoreVector,
+		# 										FLCoeffPValue=pvalVector,
+		# 										FLCoeffexpneg=expnegcoeffVector,
+		# 										FLCoeffexp=expcoeffVector,
+		# 										FLCoefflowerlimit=lowerlimitVector,
+		# 										FLCoeffupperlimit=upperlimitVector,
+		# 										droppedCols=droppedCols))
 		parentObject <- unlist(strsplit(unlist(strsplit
 			(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
-		return(coeffVector1)
+		return(vres)
 	}
 }
 
@@ -707,6 +736,7 @@ coefficients.FLCoxPH <- function(object){
 # 	}
 # }
 
+#' @export
 summary.FLCoxPH <- function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -738,6 +768,7 @@ summary.FLCoxPH <- function(object){
 		vstatsdata[["LOGRANKPVALUE"]],"\n")
 }
 
+#' @export
 print.FLCoxPH <- function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -746,6 +777,7 @@ print.FLCoxPH <- function(object){
 }
 
 ## Choose number of observations to fetch and plot
+#' @export
 plot.FLCoxPH <- function(object,nobs=5,...){
 	if(is.null(object@results[["FLSurvivalDataTable"]]))
 	vtemp <- object$linear.predictors
@@ -779,20 +811,14 @@ IncludeTimeVal <- function(data,
 	vStatus <- vSurvival[4]
 	vtablename <- gen_unique_table_name("")
 	if(is.null(vTimeVal))
-	vTimeVal <- "TimeValCol"
+	vTimeVal <- "FLTimeValCol"
 	vtablename1 <- paste0(data@select@database,".",data@select@table_name)
-
-	#sqlstr <- paste0("CREATE VIEW ",vtablename,
-	#				" AS SELECT b.",vTimeVal2," - b.",vTimeVal1,
-	#					" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-	#sqlSendUpdate(getOption("connectionFL"),sqlstr)
 
 	createView(pViewName=vtablename,
 				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
 						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
 				)
-	# t <- createTable(pTableName=vtablename,
-	# 				pSelect=sqlstr)
+    
 	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
 	data@select@database <- getOption("ResultDatabaseFL")
 	data@select@table_name <- vtablename

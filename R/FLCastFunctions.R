@@ -905,7 +905,8 @@ as.FLTable.data.frame <- function(object,
       # if (getOption("debugSQL")) cat(sql)
       # t<-RJDBC::dbSendUpdate(connection,sql)
       if(!all(t)) stop(paste0("colnames unconvenional. Error \n"))
-      updateMetaTable(pTableName=tableName)
+      updateMetaTable(pTableName=tableName,
+                    pType="wideTable")
     }
     
     .jcall(connection@jc,"V","setAutoCommit",FALSE)

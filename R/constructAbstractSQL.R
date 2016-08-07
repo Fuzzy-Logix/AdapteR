@@ -126,7 +126,9 @@ constructStoredProcSQL <- function(pConnection,
                                     ...){
     #browser()
     args <- list(...)
-    if(length(args)==1 && is.list(args[[1]]))
+    if("pInputParams" %in% names(args))
+        args <- args[["pInputParams"]]
+    else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
     ## Setting up input parameter value
     pars <- character()
@@ -418,7 +420,8 @@ createView <- function(pViewName,
     res <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
     if(pStore)
     updateMetaTable(pTableName=pViewName,
-                    pNote="view")
+                    pType="view",
+                    ...)
     res
 }
 
@@ -470,6 +473,7 @@ insertIntotbl <- function(pTableName,
 
 updateMetaTable <- function(pTableName,
                             pElementID=NULL,
+                            pType="NA",
                             ...){
     vtemp <- separateDBName(pTableName)
     vdatabase <- vtemp["vdatabase"]
@@ -486,7 +490,7 @@ updateMetaTable <- function(pTableName,
                   pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
-                            "Comments"),
+                            "ObjType","Comments"),
                   pValues=list(fquote(as.character(as.POSIXlt(Sys.time(),tz="GMT"))),
                             fquote(as.character(Sys.Date())),
                             fquote(ifelse(is.null(getOption("FLUsername")),
@@ -494,6 +498,7 @@ updateMetaTable <- function(pTableName,
                             fquote(vdatabase),
                             fquote(pTableName),
                             as.integer(pElementID),
+                            as.character(pType),
                             fquote(pNote)
                         ))
 }

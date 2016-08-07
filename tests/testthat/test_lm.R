@@ -76,3 +76,81 @@ if(FALSE){
   plot(Renv$lmobj,las= 1)
   plot(FLenv$lmobj)
 }
+
+
+## MD Testing
+flMDObject <- FLTableMD(database="FL_DEMO",
+                        table="tblAutoMPGMD",
+                        group_id_colname="GroupID",
+                        obs_id_colname="ObsID",group_id = c(2,4))
+
+flMDObjectDeep <- FLTableMD(database="FL_DEMO",
+                        table="LinRegrMultiMD",
+                        group_id_colname="DatasetID",
+                        obs_id_colname="ObsID",
+                        var_id_colname="VarID",
+                        cell_val_colname="Num_Val")
+
+vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
+
+lmfit <- lm(vformula,
+            data=flMDObject)
+coeffList <- coef(lmfit)
+summaryList <- summary(lmfit)
+test_that("Check for dimensions of coefficients and summary for wideTable ",{
+         expect_equal(names(coeffList),
+                    paste0("Model",flMDObject@dimnames[[3]]))
+         expect_equal(names(coeffList),
+                    names(summaryList))
+         vcoeffnames <- all.vars(vformula)
+         vcoeffnames <- c("(Intercept)",
+                        vcoeffnames[2:length(vcoeffnames)])
+         lapply(coeffList,function(x){
+            expect_equal(names(x),vcoeffnames)
+            })
+})
+
+lmfit <- lm(vformula,
+            data=flMDObjectDeep)
+coeffList <- coef(lmfit)
+summaryList <- summary(lmfit)
+test_that("Check for dimensions of coefficients and summary for DeepTable ",{
+         expect_equal(names(coeffList),
+                    paste0("Model",flMDObjectDeep@dimnames[[3]]))
+         expect_equal(names(coeffList),
+                    names(summaryList))
+         vlenCoeffs <- colnames(flMDObjectDeep)[[1]]
+         vlenCoeffs <- length(setdiff(vlenCoeffs[1]:vlenCoeffs[2],-1))
+         lapply(coeffList,function(x){
+            expect_equal(length(x),vlenCoeffs)
+            })
+})
+
+
+## Testing lm for non-continuous ObsIDs
+widetable  <- FLTable("FL_DEMO", "tblAbaloneWide",
+                     "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
+object <- lm(Rings~Height+Diameter,widetable)
+test_that("Check for dimensions of x Matrix ",{
+        expect_equal(nrow(object$x),nrow(widetable))
+        expect_equal(colnames(object$x),
+                    c("(Intercept)","Height","Diameter"))
+        expect_equal(dimnames(object$model),
+                    list(rownames(widetable),
+                        c("Rings","Height","Diameter")
+                        ))
+})
+
+deeptable <- FLTable("FL_DEMO","myLinRegrSmall",
+                    "ObsID","VarID","Num_Val",
+                    whereconditions=c("ObsID>10","ObsID<1001"))
+object <- lm(NULL,deeptable)
+test_that("Check for dimensions of x Matrix ",{
+        expect_equal(nrow(object$x),nrow(deeptable))
+        expect_equal(colnames(object$x),
+                    c("(Intercept)",paste0("var",colnames(deeptable)[c(-1,-2)])))
+        expect_equal(dimnames(object$model),
+                    list(as.character(rownames(deeptable)),
+                        c("varY",paste0("var",colnames(deeptable)[c(-1,-2)]))
+                        ))
+})
