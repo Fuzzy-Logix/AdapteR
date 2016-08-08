@@ -40,12 +40,12 @@ diag.FLMatrix<-function(object,...)
     table <- FLTable(table=object@select@table_name,
                      obs_id_colname = getVariables(object)[[object@dimColumns[[1]]]],
                      whereconditions=c(object@select@whereconditions,
-                                       paste0(getVariables(object)$rowIdColumn,
-                                              "=",getVariables(object)$colIdColumn)))
+                                       paste0(getVariables(object)[[object@dimColumns[[1]]]],
+                                              "=",getVariables(object)[[object@dimColumns[[2]]]])))
 
     valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
 
-    flv <- table[,valueColumn]
+    flv <- table[,"valueColumn"]
     vlength <- min(dim(object))
     if(all(rownames(object)[1:vlength]==colnames(object)[1:vlength]))
     names(flv) <- rownames(object)[1:vlength]

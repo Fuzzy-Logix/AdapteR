@@ -23,18 +23,10 @@ t<-function(object, ...){
 
 #' @export
 t.FLMatrix<-function(object,...){
-    if(class(object@select)=="FLTableFunctionQuery")
-        object <- store(object)
-    swapRowCol <- function(select){
-        newrc <- select@variables$rowIdColumn
-        select@variables$rowIdColumn <- select@variables$colIdColumn
-        select@variables$colIdColumn <- newrc
-        return(select)
-    }
-    object@select <- swapRowCol(object@select)
-    object@mapSelect <- swapRowCol(object@mapSelect)
+    object@dimColumns <- rev(object@dimColumns)
     object@dim <- rev(object@dim)
-    object@dimnames <- rev(object@dimnames)
+    if(!is.null(object@dimnames))
+        object@dimnames <- rev(object@dimnames)
     return(object)
 }
 

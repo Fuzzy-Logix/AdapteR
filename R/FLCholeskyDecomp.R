@@ -21,41 +21,38 @@ NULL
 #' resultFLMatrix <- chol(flmatrix)
 #' @export
 chol <- function (object, ...){
-  UseMethod("chol", object)
+    UseMethod("chol", object)
 }
 
-# chol.default <- base::chol
+                                        # chol.default <- base::chol
 #' @export
 chol.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
-	flag1Check(connection)
+    connection<-getConnection(object)
+    flag1Check(connection)
 
-	sqlstr<-paste0(
-					viewSelectMatrix(object,"a",withName="z"),
-					outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",
-							localName="a",includeMID=TRUE,vconnection=connection)
-                   )
+    sqlstr<-paste0(
+        viewSelectMatrix(object,"a",withName="z"),
+        outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",
+                           localName="a",includeMID=TRUE,vconnection=connection)
+    )
+    cat(sqlstr)
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
-                        variables=list(
-                            rowIdColumn="OutputColNum",
-                            colIdColumn="OutputRowNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connection = connection,
+                          variables=list(
+                              rowIdColumn="OutputColNum",
+                              colIdColumn="OutputRowNum",
+                              valueColumn="OutputVal"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
 
-	flm <- new("FLMatrix",
-	            select= tblfunqueryobj,
-	            dimnames=dimnames(object))
+    flm <- new("FLMatrix",
+               select= tblfunqueryobj,
+               dim=dim(object),
+               dimnames=dimnames(object))
 
-	vResult <- (ensureQuerySize(pResult=flm,
-            pInput=list(object),
-            pOperator="chol",
-            pStoreResult=TRUE))
-	vResult <- store(vResult)
-
-	return(t(vResult))
+    ## gk: todo: a JIRA ticket should investigate, because A %*% t(A) is definition of A=chol(object), not t(A) %*% A
+    return(t(flm))
 }

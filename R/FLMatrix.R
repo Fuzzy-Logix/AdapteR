@@ -65,15 +65,15 @@ setClass("FLTableFunctionQuery",
 ##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
 ##' @slot dim list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R
 ##' @export
-setClass(
-    "FLMatrix",
-    slots = list(
-        select = "FLTableQuery",
-        mapSelect  = "FLSelectFrom",
-        dim = "ANY",
-        dimnames = "ANY"
-    )
-)
+setClass("FLMatrix",
+         slots = list(
+             select = "FLTableQuery",
+             mapSelect  = "FLSelectFrom",
+             dimColumns = "character",
+             dim = "ANY",
+             dimnames = "ANY"
+         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn"))
+         )
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
@@ -83,27 +83,24 @@ setClass(
 #' @method names FLTable
 #' @param object retrieves the column names of FLTable object
 #' @export
-setClass(
-    "FLTable",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
+setClass("FLTable",
+         slots = list(
+             select = "FLTableQuery",
+             dimnames = "list",
+             isDeep = "logical",
+             mapSelect = "FLSelectFrom"
+         ))
 
 #' An S4 class to represent FLVector
 #'
 #' @export
-setClass(
-    "FLVector",
-    slots = list(
-      select = "FLTableQuery",
-      dimnames = "list",
-      isDeep= "logical",
-      mapSelect = "FLSelectFrom"
-    ))
+setClass("FLVector",
+         slots = list(
+             select = "FLTableQuery",
+             dimnames = "list",
+             isDeep= "logical",
+             mapSelect = "FLSelectFrom"
+         ))
 
 ##' drop a table
 ##' 
@@ -261,8 +258,7 @@ restrictFLMatrix <-
         if(is.FLTableFunctionQuery(object@select))
           object <- store(object)
         ## if there is a mapping table, use indices instead of dimnames
-        vars <- c(object@select@variables$rowIdColumn,
-                  object@select@variables$colIdColumn)
+        vars <- object@select@variables[object@dimColumns]
         for(i in 1:2)
             if(conditionDims[[i]])
                 whereconditions <-
@@ -378,7 +374,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","rnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables$rowIdColumn),
+                      paste0(flm@select@variables[[flm@dimColumns[[1]]]]),
                       "rnmap.NUM_ID"),
                   equalityConstraint("rnmap.DIM_ID","1"))
         }

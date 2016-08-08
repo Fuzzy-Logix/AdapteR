@@ -445,8 +445,8 @@ as.sparseMatrix.FLMatrix <- function(object) {
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
       error=function(e){stop(e)})
-    i <- valuedf$rowIdColumn
-    j <- valuedf$colIdColumn
+    i <- valuedf[[object@dimColumns[[1]]]]
+    j <- valuedf[[object@dimColumns[[2]]]]
     i <- FLIndexOf(i,rownames(object))
     j <- FLIndexOf(j,colnames(object))
 
@@ -926,7 +926,7 @@ as.FLTable.data.frame <- function(object,
       if(batchSize>10000)
       {
         batchSize <- 10000
-        cat("using max batchSize=10000")
+        warning("using max batchSize=10000")
       }
       k <- 1
       vnrow <- nrow(object)
@@ -937,7 +937,7 @@ as.FLTable.data.frame <- function(object,
         vsubset <- object[k:j,]
         apply(vsubset,1,function(x) myinsert(vcolnamesCopy,x))
         tryCatch(.jcall(ps,"[I","executeBatch"),
-          error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
+                 error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
         RJDBC::dbCommit(connection)
         k <- k + batchSize
       }
