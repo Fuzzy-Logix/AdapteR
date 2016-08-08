@@ -5,12 +5,6 @@ NULL
 
 setOldClass("RODBC")
 
-getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
-                               tableName) {
-    if(is.null(databaseName) || databaseName==getOption("ResultDatabaseFL"))
-        return(tableName)
-    else return(paste0(databaseName,".",tableName))
-}
 
 sqlError <- function(e){
     print(e)
@@ -164,6 +158,8 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
                                     pFuncName=query,
                                     pOutputParameter=outputParameter,
                                     ...)
+
+    if(getOption("debugSQL")) cat(paste0("CALLING Stored Pro: \n",gsub(" +"," ",query),"\n"))
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
 
@@ -225,16 +221,17 @@ sqlQuery.JDBCConnection <- function(connection,query, AnalysisIDQuery=NULL, ...)
                 return(resd)
             },
             error=function(e) cat(paste0(sqlError(e))))
-        else
+        else {
             tryCatch({
                 warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
                 res <- DBI::dbSendQuery(connection, query, ...)
                 dbClearResult(res)
             },
             error=function(e) cat(paste0(sqlError(e))))
-        resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
-        return(resd)
-    }
+            resd <- DBI::dbGetQuery(connection,AnalysisIDQuery,...)
+            return(resd)
+        }
+    } else
     lapply(query, function(q){
         sqlQuery(connection, q, AnalysisIDQuery,...)
     })
@@ -569,12 +566,20 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     vplatform <- getPlatform(pdrvClass=driverClass,
                             pDotsList=list(...))
     options(FLPlatform=vplatform)
+    options(connectionFL              = connection)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
 }
 
-    
+
+getTablename <- function(x) gsub("^[^.]*\\.","",x)
+getDatabase <- function(x) {
+    db <- gsub("\\.[^.]*$","",x)
+    if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
+    db
+}
+
 #' Starts Session and Creates temp Tables for result storage
 #'
 #' Strongly recommended to run before beginning a new R session
@@ -583,18 +588,25 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
 #' NameMapTableFL, ResultSparseMatrixTableFL
 #' @param connection ODBC/JDBC connection object
 #' @param database name of current database
-#' @param persistent NULL if result tables are to be created as volatile tables
+#' @param temporaryTables TRUE if result tables are to be created as volatile tables
 #' @param drop logical to specify to drop result tables if already existing
 #' @param tableoptions options used to create result tables
 #' @export
 FLStartSession <- function(connection,
                            database=getOption("ResultDatabaseFL"),
-                           persistent=FALSE,
+                           temporaryTables=TRUE,
                            drop=FALSE,
                            debug=FALSE,
                            tableoptions=NULL,
                            ...)
 {
+    options(debugSQL=debug)
+    if(is.null(database))
+        stop("database argument cannot be NULL \n ")
+    #if(tolower(getOption("ResultDatabaseFL"))!=tolower(database))
+    setCurrentDatabase(database)
+    options(ResultDatabaseFL=database)
+
     ## Drop Any Tables overSplling from previous unclosed Session
     if(drop){
         if(length(getOption("FLTempTables"))>0)
@@ -604,30 +616,20 @@ FLStartSession <- function(connection,
         options(FLTempViews=character())
         options(FLTempTables=character())
     }
-    options(debugSQL=debug)
     #browser()
-    options(connectionFL=connection)
-    options(InteractiveFL=TRUE)
-    options(ResultVectorTableFL=gen_table_name("tblVectorResult"))
-    options(ResultMatrixTableFL=gen_table_name("tblMatrixMultiResult"))
-    options(ResultSparseMatrixTableFL=gen_table_name("tblMatrixMultiSparseResult"))
-    options(NameMapTableFL=gen_table_name("tblNameMapping"))
-    options(ResultCharVectorTableFL=gen_table_name("tblCharVectorResult"))
-    options(ResultCharMatrixTableFL=gen_table_name("tblCharMatrixMultiResult"))
-    options(ResultIntMatrixTableFL=gen_table_name("tblIntMatrixMultiResult"))
-    options(ResultIntVectorTableFL=gen_table_name("tblIntVectorResult"))
+    options(InteractiveFL             = TRUE)
+    options(temporaryTablesFL         = temporaryTables)
+    options(ResultVectorTableFL       = gen_table_name("tblVectorResult"))
+    options(ResultMatrixTableFL       = gen_table_name("tblMatrixMultiResult"))
+    options(ResultSparseMatrixTableFL = gen_table_name("tblMatrixMultiSparseResult"))
+    options(NameMapTableFL            = gen_table_name("tblNameMapping"))
+    options(ResultCharVectorTableFL   = gen_table_name("tblCharVectorResult"))
+    options(ResultCharMatrixTableFL   = gen_table_name("tblCharMatrixMultiResult"))
+    options(ResultIntMatrixTableFL    = gen_table_name("tblIntMatrixMultiResult"))
+    options(ResultIntVectorTableFL    = gen_table_name("tblIntVectorResult"))
 
     options(scipen=999)
     #options(stringsAsFactors=FALSE)
-    # sendqueries <- c(
-    #     paste0("DATABASE ",getOption("ResultDatabaseFL"),";"),
-    #     paste0("SET ROLE ALL;"))
-    # sqlSendUpdate(connection, sendqueries)
-    if(is.null(database))
-        stop("database argument cannot be NULL \n ")
-    #if(tolower(getOption("ResultDatabaseFL"))!=tolower(database))
-    setCurrentDatabase(database)
-    options(ResultDatabaseFL=database)
 
     vresultTables <- c("ResultMatrixTableFL","ResultSparseMatrixTableFL",
                         "ResultCharMatrixTableFL","ResultIntMatrixTableFL",
@@ -645,7 +647,7 @@ FLStartSession <- function(connection,
             vtype <- "VARCHAR(100)"
             else vtype <- "FLOAT"
             genCreateResulttbl(tablename=vtable,
-                                persistent=persistent,
+                                temporaryTable=temporaryTables,
                                 tableoptions=tableoptions,
                                 vclass=vclass,
                                 type=vtype,
@@ -662,7 +664,7 @@ FLStartSession <- function(connection,
                 pTableOptions=tableoptions,
                 pPrimaryKey=c("TABLENAME","MATRIX_ID",
                             "DIM_ID","NAME"),
-                pTemporary=!persistent,
+                pTemporary=temporaryTables,
                 pDrop=drop)
 
     ## Create system table for TablesMetadataInfo
@@ -682,34 +684,34 @@ FLStartSession <- function(connection,
                 pDrop=FALSE)
 
     # sendqueries <- c(genCreateResulttbl(tablename=getOption("ResultMatrixTableFL"),
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions),
     #                 genCreateResulttbl(tablename=getOption("ResultSparseMatrixTableFL"),
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions),
     #                 genCreateResulttbl(tablename=getOption("ResultCharMatrixTableFL"),
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions,
     #                                     type=" VARCHAR(100) "),
     #                 genCreateResulttbl(tablename=getOption("ResultIntMatrixTableFL"),
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions,
     #                                     type=" INTEGER "),
     #                 genCreateResulttbl(tablename=getOption("ResultVectorTableFL"),
     #                                     vclass="vector",
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions),
     #                 genCreateResulttbl(tablename=getOption("ResultCharVectorTableFL"),
     #                                     vclass="vector",
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions,
     #                                     type=" VARCHAR(100) "),
     #                 genCreateResulttbl(tablename=getOption("ResultIntVectorTableFL"),
     #                                     vclass="vector",
-    #                                     persistent=persistent,
+    #                                     temporaryTable=temporaryTables,
     #                                     tableoptions=tableoptions,
     #                                     type=" INTEGER "),
-    #                 paste0(" CREATE ",ifelse(is.null(persistent),
+    #                 paste0(" CREATE ",ifelse(is.null(temporaryTables),
     #                                         "VOLATILE TABLE ",
     #                                         "TABLE "),
     #                                getOption("NameMapTableFL"),"\n",
@@ -727,11 +729,11 @@ FLStartSession <- function(connection,
 }
 
 genCreateResulttbl <- function(tablename,
-                                persistent=FALSE,
-                                tableoptions=NULL,
-                                vclass,
-                                type,
-                                pDrop){
+                               temporaryTable=TRUE,
+                               tableoptions=NULL,
+                               vclass,
+                               type,
+                               pDrop){
     if(vclass=="matrix"){
         createTable(pTableName=tablename,
                     pColNames=c("MATRIX_ID","rowIdColumn",
@@ -741,17 +743,8 @@ genCreateResulttbl <- function(tablename,
                     pTableOptions=tableoptions,
                     pPrimaryKey=c("MATRIX_ID",
                                 "rowIdColumn","colIdColumn"),
-                    pTemporary=!persistent,
+                    pTemporary=temporaryTable,
                     pDrop=pDrop)
-        # return(paste0(" CREATE ",ifelse(is.null(persistent),
-        #                 "VOLATILE TABLE ","TABLE "),"\n",
-        #                 tablename,"\n",
-        #                 tableoptions,
-        #                 " ( MATRIX_ID INTEGER,\n",
-        #                 " rowIdColumn INTEGER,\n",
-        #                 " colIdColumn INTEGER,\n",
-        #                 " valueColumn ",type,")\n",
-        #                 " PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn );\n"))
     }
     else if(vclass=="vector"){
         createTable(pTableName=tablename,
@@ -763,16 +756,8 @@ genCreateResulttbl <- function(tablename,
                     pTableOptions=tableoptions,
                     pPrimaryKey=c("vectorIdColumn",
                                 "vectorIndexColumn"),
-                    pTemporary=!persistent,
+                    pTemporary=temporaryTable,
                     pDrop=pDrop)
-        # return(paste0(" CREATE ",ifelse(is.null(persistent),
-        #                 "VOLATILE TABLE ","TABLE "),"\n",
-        #                 tablename,"\n",
-        #                 tableoptions,
-        #                 "( vectorIdColumn INT,\n",
-        #                 " vectorIndexColumn INT,\n",
-        #                 " vectorValueColumn ",type," )\n",
-        #                 " PRIMARY INDEX (vectorIdColumn,vectorIndexColumn);\n"))
     }
 }
 

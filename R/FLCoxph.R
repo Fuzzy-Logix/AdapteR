@@ -824,12 +824,11 @@ IncludeTimeVal <- function(data,
 	vTimeVal1 <- vSurvival[2]
 	vTimeVal2 <- vSurvival[3]
 	vStatus <- vSurvival[4]
-	vtablename <- gen_unique_table_name("")
 	if(is.null(vTimeVal))
 	vTimeVal <- "FLTimeValCol"
-	vtablename1 <- paste0(data@select@database,".",data@select@table_name)
+	vtablename1 <- data@select@table_name
 
-	createView(pViewName=vtablename,
+	vtablename <- createView(pViewName=gen_unique_table_name(""),
 				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
 						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
 				)

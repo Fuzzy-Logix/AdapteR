@@ -294,11 +294,34 @@ setCurrentDatabase <- function(pDBName){
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 }
 
-## CREATE TABLE SQL
-## covers cases where table is created from other tables
-## with and without data , temporary and permanent
-## if usedbSendUpdate arg is passed in ... that is used
-## in place of dbSendQuery
+getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
+                               tableName,
+                               temporaryTable=getOption("temporaryTablesFL")) {
+    if(is.null(databaseName) || temporaryTable)
+        return(tableName)
+    else return(paste0(databaseName,".",tableName))
+}
+
+##' Create table sql.
+##' 
+##' covers cases where table is created from other tables
+##' with and without data , temporary and permanent
+##' if usedbSendUpdate arg is passed in ... that is used
+##'  in place of dbSendQuery
+##' @title 
+##' @param pTableName 
+##' @param pColNames 
+##' @param pColTypes 
+##' @param pTableOptions 
+##' @param pPrimaryKey 
+##' @param pFromTableName 
+##' @param pWithData 
+##' @param pTemporary 
+##' @param pDrop 
+##' @param pDatabase 
+##' @param pSelect 
+##' @param ... 
+##' @return The fully qualified table name for referring to this table.
 createTable <- function(pTableName,
                         pColNames=NULL,
                         pColTypes=NULL,
@@ -306,14 +329,21 @@ createTable <- function(pTableName,
                         pPrimaryKey=pColNames[1],
                         pFromTableName=NULL,
                         pWithData=TRUE,
-                        pTemporary=TRUE,
+                        pTemporary=getOption("temporaryTablesFL"),
                         pDrop=FALSE,
                         pDatabase=getOption("ResultDatabaseFL"),
                         pSelect=NULL,
                         ...){
+    if(gsub("^[^.]*\\.","",pTableName)!=pTableName){
+        if(gsub("\\.[^.]*$","",pTableName)!=pDatabase)
+            stop(paste0("pTableName specified conflicting database: ", pTableName," =/= ",pDatabase,""))
+        warning(paste0("pTableName should not specify database: ", pTableName," -- was automatically removed"))
+        pTableName <- gsub("^[^.]*\\.","",pTableName)
+    }
+    pTableName <- getRemoteTableName(databaseName = pDatabase,
+                                     tableName = pTableName,
+                                     temporaryTable = pTemporary)
 
-    # if(missing(pDatabase))
-    # pTableName <- getRemoteTableName(pDatabase,pTableName)
     if(pDrop)
         dropTable(pTableName)
     vtempKeyword <- c(VOLATILE="TD",
@@ -347,9 +377,11 @@ createTable <- function(pTableName,
             psqlstr <- paste0(psqlstr," AS ",pSelect)
         
     }
-
-    vsqlstr <- paste0("CREATE ",ifelse(pTemporary,vtempKeyword,""),
-                            " TABLE ",pTableName, " ")
+    if(pTemporary){
+        vsqlstr <- paste0("CREATE ",vtempKeyword,
+                          " TABLE ",pTableName, " ")
+    } else 
+        vsqlstr <- paste0("CREATE ", " TABLE ",pTableName, " ")
 
     if(is.TD()){
         if(!is.null(pFromTableName) || !is.null(pSelect))
@@ -403,18 +435,30 @@ createTable <- function(pTableName,
     vsqlstr <- paste0(vsqlstr,";")
     print(vsqlstr)
 
+    ## gk @ phani: what will this be used for? It never is used actually...
     if("usedbSendUpdate" %in% names(list(...))){
         cat("sending:  ",vsqlstr)
         return(RJDBC::dbSendUpdate(getOption("connectionFL"),vsqlstr))
     }
 
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    return(pTableName)
 }
 
 ## CREATE VIEW
 createView <- function(pViewName,
                        pSelect,
+                       pDatabase=getOption("ResultDatabaseFL"),
                        ...){
+    if(gsub("^[^.]*\\.","",pViewName)!=pViewName){
+        if(gsub("\\.[^.]*$","",pViewName)!=pDatabase)
+            stop(paste0("pViewName specified conflicting database: ", pViewName," =/= ",pDatabase,""))
+        warning(paste0("pViewName should not specify database: ", pViewName," -- was automatically removed"))
+        pViewName <- gsub("^[^.]*\\.","",pViewName)
+    }
+    pViewName <- getRemoteTableName(databaseName = pDatabase,
+                                    tableName = pViewName,
+                                    temporaryTable = FALSE)
     if("pStore" %in% names(list(...)))
         pStore <- list(...)$pStore
     else pStore <- TRUE
@@ -425,7 +469,9 @@ createView <- function(pViewName,
     updateMetaTable(pTableName=pViewName,
                     pType="view",
                     ...)
-    res
+    if(!all(res)) stop("View could not be created") ##gk @ phani: what was this for?  I moved it into creatView
+
+    return(pViewName) ## previously res was returned
 }
 
 ## DROP VIEW

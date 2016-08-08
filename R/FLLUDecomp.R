@@ -106,7 +106,7 @@ lu.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="lu")
 
-    createTable(pTableName=tempResultTable,
+    rtn <- createTable(pTableName=tempResultTable,
                 pSelect=sqlstr)
 
 	# calculating LU matrix
@@ -123,7 +123,7 @@ lu.FLMatrix<-function(object,...)
 					          " OutputRowNum AS rowIdColumn, \n ",
 					          " OutputColNum AS colIdColumn, \n ",
 					          " CAST(OutputValU AS NUMBER) AS valueColumn \n ", 
-					  	" FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
+					  	" FROM ",rtn,
 					 	" WHERE OutputRowNum <= OutputColNum \n ",
 				   		" AND OutputValU IS NOT NULL ")
 

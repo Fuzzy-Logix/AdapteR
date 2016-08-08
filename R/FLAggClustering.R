@@ -149,9 +149,6 @@ agnes.FLTable <- function(x,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					gen_wide_table_name("map"))
-
 		sqlstr <- paste0(
 			    	    " SELECT a.Final_VarID AS VarID, \n ",
 			    	     	"    a.COLUMN_NAME AS ColumnName, \n ",
@@ -159,18 +156,14 @@ agnes.FLTable <- function(x,
 			    	    " FROM fzzlRegrDataPrepMap a \n ",
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
-		createTable(pTableName=mapTable,
-					pSelect=sqlstr)
+        mapTable <- createTable(pTableName=gen_wide_table_name("map"),
+                                pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
 		deeptablename <- gen_view_name()
-		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						#deeptablename," AS \n ",constructSelect(x))
-		#sqlSendUpdate(cnonnection,sqlstr)
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
-			pSelect=constructSelect(x)
-			)	
+		deeptablename <- createView(pViewName=deeptablename,
+                                    pSelect=constructSelect(x))	
 
 		deeptablename1 <- gen_deep_table_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
@@ -178,10 +171,8 @@ agnes.FLTable <- function(x,
 		#deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
 
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
-
+		t<-createView(pViewName=deeptablename1,
 			pSelect=paste0("SELECT * FROM ",
-			getOption("ResultDatabaseFL"),".",
 			deeptablename,constructWhere(whereconditions)
 				)
 			)
@@ -206,7 +197,7 @@ agnes.FLTable <- function(x,
 		#				deeptablename," AS \n ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
 
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
+		t<-createView(pViewName=deeptablename,
 			pSelect=constructSelect(x)
 			)
 
@@ -248,7 +239,7 @@ agnes.FLTable <- function(x,
         Note=vnote,
         outputParameter=c(AnalysisID="a"))
 	
-	retobj <- checkSqlQueryOutput(retobj)
+    retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
 	FLAggCLustobject <- new("FLAggClust",
@@ -370,13 +361,11 @@ height.FLAggClust <- function(object)
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		a <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
-		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesCentroid"]]))
 		{
-			t <- createTable(pTableName=a,
+			a <- createTable(pTableName=gen_unique_table_name("3"),
 							pSelect=paste0(" SELECT a.HypothesisID AS LevelID, \n ",
 										" a.ClusterID, \n ",
 										" b.",var_id_colname," AS VarID, \n ",
@@ -387,13 +376,12 @@ height.FLAggClust <- function(object)
 										" AND a.AnalysisID=",fquote(AnalysisID)," \n ",
 										" GROUP BY a.HypothesisID,a.ClusterID, \n ",
 											" b.",var_id_colname," "))
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesCentroid=a))
 		}
 		
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- createTable(pTableName=b,
+			b <- createTable(pTableName=gen_unique_table_name("4"),
 							pSelect=paste0(" SELECT a.HypothesisID AS OldLevel, \n ",
 												"a.ClusterID AS OldClusterID, \n ",
 												"b.HypothesisID AS NewLevel, \n ",
@@ -406,7 +394,6 @@ height.FLAggClust <- function(object)
 											" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 											" AND a.ClusterID <> b.ClusterID "))
 
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesMembership=b))
 		}
 
@@ -472,13 +459,10 @@ ac.FLAggClust <- function(object){
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		a <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
-		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
-
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesCentroid"]]))
 		{
-			t <- createTable(pTableName=a,
+			a <- createTable(pTableName=gen_unique_table_name("3"),
 							pSelect=paste0(" SELECT a.HypothesisID AS LevelID, \n ",
 												" a.ClusterID, \n ",
 												" b.",var_id_colname," AS VarID, \n ",
@@ -489,13 +473,12 @@ ac.FLAggClust <- function(object){
 											" AND a.AnalysisID='",AnalysisID,"' \n ",
 											" GROUP BY a.HypothesisID,a.ClusterID, \n ",
 												" b.",var_id_colname," "))
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesCentroid=a))
 		}
 		
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- createTable(pTableName=b,
+			b <- createTable(pTableName=gen_unique_table_name("4"),
 							pSelect=paste0(" SELECT a.HypothesisID AS OldLevel, \n ",
 													"a.ClusterID AS OldClusterID, \n ",
 													"b.HypothesisID AS NewLevel, \n ",
@@ -508,7 +491,6 @@ ac.FLAggClust <- function(object){
 											" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 											" AND a.ClusterID <> b.ClusterID "))
 
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesMembership=b))
 		}
 
@@ -577,12 +559,10 @@ merge.FLAggClust <- function(object){
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
-
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- createTable(pTableName=b,
+			b <- createTable(pTableName=gen_unique_table_name("4"),
 							pSelect=paste0(" SELECT a.HypothesisID AS OldLevel, \n ",
 												"a.ClusterID AS OldClusterID, \n ",
 												"b.HypothesisID AS NewLevel, \n ",
