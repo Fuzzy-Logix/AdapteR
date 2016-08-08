@@ -79,7 +79,7 @@ setMethod("constructSelect",
                 #                    variables," AS ",
                 #                    names(variables),
                 #                    collapse = ",\n"),
-                #             "\n FROM ",remoteTable(object),
+                #             "\n FROM ",tableAndAlias(object),
                 #             constructWhere(c(constraintsSQL(object))),
                 #             "\n"))
               }
@@ -103,7 +103,7 @@ setMethod("constructSelect",
                 #                  variables," AS ",
                 #                  names(variables),
                 #                  collapse = ",\n"),
-                #           "\n FROM ",remoteTable(object),
+                #           "\n FROM ",tableAndAlias(object),
                 #           constructWhere(c(constraintsSQL(object))),
                 #           "\n"))
               }
@@ -160,7 +160,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
               #                    variables," AS ",
               #                    names(variables),
               #                    collapse = ",\n"),
-              #             "\n FROM ",remoteTable(object),mapTable,
+              #             "\n FROM ",tableAndAlias(object),mapTable,
               #             constructWhere(c(constraintsSQL(object),addWhereClause)),
               #             "\n"))
             } else {
@@ -190,7 +190,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
                 #                  variables," AS ",
                 #                  names(variables),
                 #                  collapse = ",\n"),
-                #           "\n FROM ",remoteTable(object),mapTable,
+                #           "\n FROM ",tableAndAlias(object),mapTable,
                 #           constructWhere(c(constraintsSQL(object),addWhereClause)),
                 #           "\n"))
             }
@@ -237,7 +237,7 @@ setMethod("constructSelect",
         return(paste0(
             "SELECT\n",
             constructVariables(variables),
-            "\n FROM ",remoteTable(object),
+            "\n FROM ",tableAndAlias(object),
             constructWhere(c(constraintsSQL(object))),
             ordering,
             "\n"))

@@ -41,21 +41,19 @@ FLTable <- function(database,
     obs_id_colname <- changeAlias(obs_id_colname,"flt",oldalias)
     cell_val_colname <- changeAlias(cell_val_colname,"flt",oldalias)
     whereconditions <- changeAlias(whereconditions,
-                                  "flt",
-                                  c(paste0(database,".",table),
-                                    paste0(table),
-                                    paste0(database,".",oldalias),
-                                    oldalias))
+                                   "flt",
+                                   c(getTablename(table),
+                                     oldalias))
     names(table) <- "flt"
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
-                                var_id_colnames,") as VarID FROM ",remoteTable(database,table),
+                                var_id_colnames,") as VarID FROM ",tableAndAlias(table),
                           " ",constructWhere(whereconditions)))$VarID)
         rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
-                                obs_id_colname,") as VarID FROM ",remoteTable(database,table),
+                                obs_id_colname,") as VarID FROM ",tableAndAlias(table),
                           " ",constructWhere(whereconditions)))$VarID)
         # cols <- gsub("^ +| +$","",cols)
         # rows <- gsub("^ +| +$","",rows)

@@ -37,7 +37,7 @@ tr.FLMatrix<-function(object,...){
 					  FLMatrixTrace(",getVariables(object)$rowId,
 			         			   ",",getVariables(object)$colId,
 			              		   ",",getVariables(object)$value,")",
-				    " FROM ",remoteTable(object),
+				    " FROM ",tableAndAlias(object),
 				    constructWhere(c(constraintsSQL(object),
 				    	paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
 				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))

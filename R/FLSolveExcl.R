@@ -43,7 +43,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 								   ",getVariables(object)$colId,", 
 								   ",getVariables(object)$value,",",
 								   ExclIdx, 
-							" FROM  ",remoteTable(object),
+							" FROM  ",tableAndAlias(object),
 							constructWhere(c(constraintsSQL(object))),") 
 					SELECT ",MID,
 					       ",a.OutputRowNum,

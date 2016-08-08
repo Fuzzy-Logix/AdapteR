@@ -197,7 +197,7 @@ lu.FLMatrix<-function(object,...)
                                 getVariables(LUMatrix)$colId,",",
                                 getVariables(LUMatrix)$rowId,") AS vectorIndexColumn
 	                   		, ",getVariables(LUMatrix)$value," AS vectorValueColumn 
-					  FROM ",remoteTable(LUMatrix),
+					  FROM ",tableAndAlias(LUMatrix),
 					 constructWhere(constraintsSQL(LUMatrix)))
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",

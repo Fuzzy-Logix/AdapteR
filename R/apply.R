@@ -121,7 +121,7 @@ setMethod("ddply",
 		sqlstr <- paste0("SELECT ",paste0(.variables,collapse=","),",",
 						paste0(vfunCalls," AS ",names(vfunCalls),
 							 collapse=","),"\n",
-						" FROM  ",remoteTable(.data),"\n",
+						" FROM  ",tableAndAlias(.data),"\n",
 						constructWhere(constraintsSQL(.data)),"\n",
 						" GROUP BY ",paste0(.variables,collapse=","))
 		return(sqlQuery(getOption("connectionFL"),sqlstr))
@@ -193,7 +193,7 @@ setMethod("apply",
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
 								vgroupCol," AS vectorIndexColumn,\n",
 								vfunCalls," AS vectorValueColumn \n",
-						" FROM  ",remoteTable(X),"\n",
+						" FROM  ",tableAndAlias(X),"\n",
 						constructWhere(constraintsSQL(X)),"\n",
 						" GROUP BY ",vgroupCol)
 

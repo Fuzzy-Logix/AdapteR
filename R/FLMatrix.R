@@ -112,10 +112,8 @@ setClass(
 ##' @export
 drop.FLTable <- function(object)
 {
-    names(object@table_name) <- NULL
-    vSqlStr <- paste0(" DROP TABLE ",remoteTable(object))
-    sqlSendUpdate(getConnection(object),
-                  vSqlStr)
+    vSqlStr <- paste0(" DROP TABLE ",object@tablename)
+    sqlSendUpdate(getConnection(object), vSqlStr)
     return(paste0(object@select@table_name," DROPPED"))
 }
 
@@ -341,7 +339,7 @@ FLamendDimnames <- function(flm,map_table) {
         paste0("SELECT DISTINCT(",
                flm@select@variables[[varname]],
                ") as v\n",
-               "FROM  ",remoteTable(flm@select),
+               "FROM  ",tableAndAlias(flm@select),
                constructWhere(
                    constraintsSQL(flm@select)),
                "\nORDER BY 1")
@@ -594,41 +592,36 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
 #' @param object in-database object
 #' @param table table name. Applicable only if object is the database name.
 #' @return character vector giving reference to in-database object
-setGeneric("remoteTable", function(object, table) {
-    standardGeneric("remoteTable")
+setGeneric("tableAndAlias", function(object) {
+    standardGeneric("tableAndAlias")
 })
-setMethod("remoteTable", signature(object = "FLMatrix", table="missing"),
+setMethod("tableAndAlias", signature(object = "FLMatrix"),
           function(object)
-              remoteTable(object@select))
-setMethod("remoteTable", signature(object = "FLTable", table="missing"),
+              tableAndAlias(object@select))
+setMethod("tableAndAlias", signature(object = "FLTable"),
           function(object)
-              remoteTable(object@select))
-setMethod("remoteTable", signature(object = "FLVector", table="missing"),
+              tableAndAlias(object@select))
+setMethod("tableAndAlias", signature(object = "FLVector"),
           function(object)
-              remoteTable(object@select))
-setMethod("remoteTable", signature(object = "character", table="character"),
-          function(object,table){
-            vtemp <- getRemoteTableName(object,table)
-            if(length(names(table))>0)
-            vtemp <- paste0(vtemp," AS ",names(table))
-            return(vtemp)
-          })
-setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
+              tableAndAlias(object@select))
+setMethod("tableAndAlias", signature(object = "character"),
           function(object){
-              if(is.null(names(object@table_name))||
-                names(object@table_name)=="")
-                return(paste0(sapply(1:length(object@table_name),
+             if(is.null(names(object))||
+                names(object)=="")
+                return(paste0(sapply(1:length(object),
                             function(x)
-                            paste0(getRemoteTableName(databaseName=object@database[x],
-                                                      tableName=object@table_name[x]))),
+                            paste0(object[x])),
                                   collapse=",\n  "))
               else
-                return(paste0(sapply(1:length(object@table_name),
+                return(paste0(sapply(1:length(object),
                             function(x)
-                            paste0(getRemoteTableName(databaseName=object@database[x],
-                                                      tableName=object@table_name[x]),
-                                  " AS ",names(object@table_name)[x])),
-                                  collapse=",\n  "))
+                            paste0(object[x],
+                                  " AS ",names(object)[x])),
+                            collapse=",\n  "))
+          })
+setMethod("tableAndAlias", signature(object = "FLSelectFrom"),
+          function(object){
+    return(tableAndAlias(object@table_name))
           })
 
 #' Compare Matrix Dimensions

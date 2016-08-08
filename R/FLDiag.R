@@ -117,14 +117,13 @@ diag.FLVector <- function(object,...)
                            i,",",
                            i,",",
                            paste0(vpatch,object@dimnames[[2]][i]),
-                           " FROM ",remoteTable(object),
+                           " FROM ",tableAndAlias(object),
                            constructWhere(constraintsSQL(object)))
                     }),collapse=";")
 
                 sqlSendUpdate(connection,sqlstr)
 
                 return(FLMatrix( 
-                    database = getOption("ResultDatabaseFL"), 
                     table_name = getOption("ResultMatrixTableFL"), 
                     matrix_id_value = MID,
                     matrix_id_colname = "MATRIX_ID", 

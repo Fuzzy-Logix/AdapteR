@@ -418,7 +418,7 @@ NULL
                                 getVariables(object)[[vobsidcolumn]],
                                 " ",vflag1,") AS vectorIndexColumn,\n",
                             vvaluecolumn," AS vectorValueColumn\n",
-                          " FROM ",remoteTable(object),
+                          " FROM ",tableAndAlias(object),
                           constructWhere(constraintsSQL(object)))
         tblfunqueryobj <- new("FLTableFunctionQuery",
                           connection = connection,
