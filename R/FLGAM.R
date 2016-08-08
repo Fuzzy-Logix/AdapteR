@@ -540,7 +540,7 @@ residuals.FLGAM <- function(object)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename <- object@table@select@table_name
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		y <- "fPred"
@@ -593,7 +593,7 @@ deviance.FLGAM <- function(object)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename <- object@table@select@table_name
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		y <- paste0(vtablename,".",all.vars(object@formula)[1])
@@ -630,7 +630,7 @@ sig2.FLGAM <- function(object)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename <- object@table@select@table_name
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		df.residualsvector <- object$df.residual
@@ -719,7 +719,7 @@ offset.FLGAM <- function(object)
 		offsetvector <- rep(0,nrow(object@table))
 		else
 		{
-			vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vtablename <- object@table@select@table_name
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -767,7 +767,7 @@ var.summary.FLGAM <- function(object)
 		}
 		else
 		{
-			vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vtablename <- object@table@select@table_name
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			vsqlstr <- paste0("SELECT FLMean(",vcolnames,") AS mean1,",
@@ -804,7 +804,7 @@ y.FLGAM <- function(object)
 		}
 		else
 		{
-			vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vtablename <- object@table@select@table_name
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",

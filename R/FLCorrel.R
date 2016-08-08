@@ -381,8 +381,8 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 								a,".colIdColumn AS rowIdColumn,",
 								b,".colIdColumn AS colIdColumn,",
-							 x@select@database,".",functionName,"(",a,".valueColumn,",
-							 					  b,".valueColumn) AS valueColumn 
+                                 functionName,"(",a,".valueColumn,",
+                                 b,".valueColumn) AS valueColumn 
 						FROM ( ",constructSelect(x),") AS ",a,
 		                  ",( ",constructSelect(y),") AS ",b,
             			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"))),
@@ -468,8 +468,8 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 									a,".colIdColumn AS rowIdColumn,
 									 1 AS colIdColumn,",
-								 x@select@database,".",functionName,"(",a,".valueColumn,",
-								 					  b,".vectorValueColumn) AS valueColumn 
+                                        functionName,"(",a,".valueColumn,",
+                                         b,".vectorValueColumn) AS valueColumn 
 							FROM ( ",constructSelect(x),") AS ",a,
 			                  ",( ",constructSelect(y),") AS ",b,
 	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".vectorIndexColumn"))),
@@ -648,11 +648,11 @@ FLCorGeneric.FLVector <- function(x,y=NULL,
 			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT ",
-									 x@select@database,".",functionName,"(",a,".vectorValueColumn,",
-									 					  b,".vectorValueColumn) AS valueColumn 
+                                         functionName,"(",a,".vectorValueColumn,",
+                                         b,".vectorValueColumn) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
-				                  ",( ",constructSelect(y),") AS ",b,
-		            			constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"))))
+                                         ",( ",constructSelect(y),") AS ",b,
+                                         constructWhere(c(paste0(a,".vectorIndexColumn = ",b,".vectorIndexColumn"))))
 
 
 			return(sqlQuery(connection,sqlstr)[["valueColumn"]])
@@ -734,14 +734,14 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-										a,".var_id_colname AS rowIdColumn,",
-										b,".var_id_colname AS colIdColumn,",
-									 x@select@database,".",functionName,"(",a,".cell_val_colname,",
-									 					  b,".cell_val_colname) AS valueColumn 
+                                         a,".var_id_colname AS rowIdColumn,",
+                                         b,".var_id_colname AS colIdColumn,",
+                                         functionName,"(",a,".cell_val_colname,",
+                                         b,".cell_val_colname) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
-				                  ",( ",constructSelect(y),") AS ",b,
-		            			constructWhere(c(paste0(a,".obs_id_colname = ",b,".obs_id_colname"))),
-		            			" GROUP BY ",a,".var_id_colname,",b,".var_id_colname")
+                                         ",( ",constructSelect(y),") AS ",b,
+                                         constructWhere(c(paste0(a,".obs_id_colname = ",b,".obs_id_colname"))),
+                                         " GROUP BY ",a,".var_id_colname,",b,".var_id_colname")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     connection = connection,
@@ -837,14 +837,14 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-										a,".var_id_colname AS rowIdColumn,",
-										b,".colIdColumn AS colIdColumn,",
-									 x@select@database,".",functionName,"(",a,".cell_val_colname,",
-									 					  b,".valueColumn) AS valueColumn 
+                                         a,".var_id_colname AS rowIdColumn,",
+                                         b,".colIdColumn AS colIdColumn,",
+                                         functionName,"(",a,".cell_val_colname,",
+                                         b,".valueColumn) AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
-				                  ",( ",constructSelect(y),") AS ",b,
-		            			constructWhere(c(paste0(a,".obs_id_colname = ",b,".rowIdColumn"))),
-		            			" GROUP BY ",a,".var_id_colname,",b,".colIdColumn")
+                                         ",( ",constructSelect(y),") AS ",b,
+                                         constructWhere(c(paste0(a,".obs_id_colname = ",b,".rowIdColumn"))),
+                                         " GROUP BY ",a,".var_id_colname,",b,".colIdColumn")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     connection = connection,
@@ -923,7 +923,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
 									a,".var_id_colname AS rowIdColumn,
 									 1 AS colIdColumn,",
-								 x@select@database,".",functionName,"(",a,".cell_val_colname,",
+                                         functionName,"(",a,".cell_val_colname,",
 								 					  b,".vectorValueColumn) AS valueColumn 
 							FROM ( ",constructSelect(x),") AS ",a,
 			                  ",( ",constructSelect(y),") AS ",b,

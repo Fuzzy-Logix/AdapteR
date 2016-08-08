@@ -186,7 +186,7 @@ hkmeans.FLTable<-function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 	if(whereClause=="") whereClause <- "NULL"
 
 	retobj <- sqlStoredProc(
@@ -402,7 +402,7 @@ tot.withinss.FLHKMeans<-function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -439,7 +439,7 @@ withinss.FLHKMeans<-function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -494,7 +494,7 @@ betweenss.FLHKMeans<-function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -536,7 +536,7 @@ totss.FLHKMeans<-function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -651,7 +651,7 @@ setMethod("show","FLHKMeans",
 #' @export
 plot.FLHKMeans <- function(object)
 {
-	deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+	deeptablename <- object@deeptable@select@table_name
 	obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 	var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 	cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]

@@ -54,7 +54,6 @@ FLHessen.FLMatrix<-function(object,...)
 
 	PMatrix <- FLMatrix(
 				       connection = connection, 
-				       database = getOption("ResultDatabaseFL"), 
 				       table_name = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
@@ -66,7 +65,6 @@ FLHessen.FLMatrix<-function(object,...)
 
 	HMatrix <- FLMatrix(
 				       connection = connection, 
-				       database = getOption("ResultDatabaseFL"), 
 				       table_name = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 

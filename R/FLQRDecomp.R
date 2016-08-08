@@ -107,7 +107,6 @@ qr.FLMatrix<-function(object,...)
 	# calculating Q FLmatrix
     Q<-FLMatrix( 
            connection = connection, 
-           database = getOption("ResultDatabaseFL"), 
            table_name = tempResultTable, 
            matrix_id_value = "",
            matrix_id_colname = "", 
@@ -120,7 +119,6 @@ qr.FLMatrix<-function(object,...)
     # calculating U FLmatrix
     R<-FLMatrix( 
            connection = connection, 
-           database = getOption("ResultDatabaseFL"), 
            table_name = tempResultTable, 
            matrix_id_value = "",
            matrix_id_colname = "", 

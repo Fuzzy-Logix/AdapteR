@@ -80,19 +80,17 @@ FLTable <- function(database,
         # rows <- vdimnames[[1]]
         #cols <- vdimnames[[2]]
 
-        select <- new(
-        "FLSelectFrom",
-        connection = connection, 
-        database = database, 
-        table_name = table, 
-        variables = list(
-                obs_id_colname = obs_id_colname,
-                var_id_colname = var_id_colnames,
-                cell_val_colname = cell_val_colname),
-        whereconditions=whereconditions,
-        order = "")
-
-		new("FLTable",
+        select <- new("FLSelectFrom",
+                      connection = connection, 
+                      table_name = table, 
+                      variables = list(
+                          obs_id_colname = obs_id_colname,
+                          var_id_colname = var_id_colnames,
+                          cell_val_colname = cell_val_colname),
+                      whereconditions=whereconditions,
+                      order = "")
+        
+        new("FLTable",
             select = select,
             dimnames = list(rows,cols),
             isDeep = TRUE)
@@ -101,12 +99,12 @@ FLTable <- function(database,
 	{
         
         R <- sqlQuery(connection,
-                      limitRowsSQL(paste0("select * from ",remoteTable(database,table)),1))
+                      limitRowsSQL(paste0("select * from ",table),1))
         cols <- names(R)
         rows <- sort(as.numeric(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
-						  FROM ",remoteTable(database,table),
+						  FROM ",table,
                           " ",constructWhere(whereconditions)))$VarID))
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
@@ -126,19 +124,17 @@ FLTable <- function(database,
         if(length(setdiff(var_id_colnames,cols)))
             stop(paste0("columns do not exist: "))
 
-        select <- new(
-        "FLSelectFrom",
-        connection = connection, 
-        database = database, 
-        table_name = table, 
-        variables = list(
-                obs_id_colname = obs_id_colname,
-                #var_id_colname = var_id_colnames,
-                cell_val_colname = cell_val_colname),
-        whereconditions=whereconditions,
-        order = "")
+        select <- new("FLSelectFrom",
+                      connection = connection, 
+                      table_name = table, 
+                      variables = list(
+                          obs_id_colname = obs_id_colname,
+                                        #var_id_colname = var_id_colnames,
+                          cell_val_colname = cell_val_colname),
+                      whereconditions=whereconditions,
+                      order = "")
 
-		T <- new("FLTable", 
+        T <- new("FLTable", 
                  select = select,
                  dimnames = list(rows,var_id_colnames),
                  isDeep = FALSE)
@@ -205,8 +201,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 `$<-.FLTable` <- function(x,name,value){
   #browser()
   vcolnames <- x@dimnames[[2]]
-  vtablename <- getRemoteTableName(databaseName=x@select@database,
-                tableName=x@select@table_name)
+  vtablename <- x@select@table_name
   name <- gsub("\\.","",name,fixed=TRUE)
   xcopy <- x
   x <- setAlias(x,"")
@@ -334,7 +329,6 @@ setMethod("wideToDeep",
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connection = connection, 
-                        database = outDeepTableDatabase, 
                         table_name = widetable, 
                         variables = list(
                                 obs_id_colname = obs_id_colname),
@@ -365,8 +359,7 @@ setMethod("wideToDeep",
                               connection,
                               "FLWideToDeep",
                               outputParameter=c(AnalysisID="a"),
-                              InWideTable=paste0(object@select@database,
-                                          ".",object@select@table_name),
+                              InWideTable=object@select@table_name,
                               ObsIDCol=getVariables(object)[["obs_id_colname"]],
                               OutDeepTable=paste0(outDeepTableDatabase,".",deeptablename),
                               OutObsIDCol=outObsIDCol,
@@ -531,7 +524,6 @@ setMethod("deepToWide",
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connection = connection, 
-                        database = outWideTableDatabase, 
                         table_name = deeptable, 
                         variables = list(
                                 obs_id_colname = "obs_id_colname",
@@ -555,8 +547,7 @@ setMethod("deepToWide",
                               connection,
                               "FLDeepToWide",
                               outputParameter=c(MESSAGE="a"),
-                              InDeepTable=paste0(object@select@database,
-                                          ".",object@select@table_name),
+                              InDeepTable=object@select@table_name,
                               ObsIDCol="obs_id_colname",
                               VarIDCol="var_id_colname",
                               ValueCol="cell_val_colname",
@@ -697,7 +688,7 @@ setMethod("FLRegrDataPrep",
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connection = connection, 
-                        database = outDeepTableDatabase, 
+                        ##database = outDeepTableDatabase, 
                         table_name = widetable, 
                         variables = list(
                                 obs_id_colname = obs_id_colname),
@@ -775,8 +766,7 @@ setMethod("FLRegrDataPrep",
             if(outGroupIDCol=="") outGroupIDCol <- "group_id_colname"
 
             if(is.FLTable(object)){
-              vinputParams <- list(InWideTable=paste0(object@select@database,
-                                                      ".",object@select@table_name),
+              vinputParams <- list(InWideTable=object@select@table_name,
                                 ObsIDCol=getVariables(object)[["obs_id_colname"]],
                                 DepCol=depCol,
                                 OutDeepTable=paste0(outDeepTableDatabase,
@@ -798,8 +788,7 @@ setMethod("FLRegrDataPrep",
               vfunName <- "FLRegrDataPrep"
             }
             if(is.FLTableMD(object)){
-              vinputParams <- list(InWideTable=paste0(object@select@database,
-                                                      ".",object@select@table_name),
+              vinputParams <- list(InWideTable=object@select@table_name,
                                     GroupID=getVariables(object)[["group_id_colname"]],
                                     ObsIDCol=getVariables(object)[["obs_id_colname"]],
                                     DepCol=depCol,

@@ -104,8 +104,7 @@ setClass(
 #' deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
 #' lmfit <- lm(NULL,deeptable)
 #' summary(lmfit)
-#' flMDObject <- FLTableMD(database="FL_DEMO",
-#'                       table="tblAutoMPGMD",
+#' flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",group_id = c(2,4))
 #' vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
@@ -439,7 +438,7 @@ lmGeneric <- function(formula,data,
 	# maxiter <- prepData[["maxiter"]]
 	# offset <- prepData[["offset"]]
 
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 
 	if(familytype=="linear") vfcalls <- c(functionName=ifelse(is.FLTableMD(data),
 															"FLLinRegrMultiDataset",
@@ -892,8 +891,8 @@ prepareData.lmGeneric <- function(formula,data,
 					"fzzlRegrDataPrepMap")
 		if(familytype=="poisson")
 		{
-			vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
-			vtablename1 <- paste0(data@select@database,".",data@select@table_name)
+			vtablename <- deepx@select@table_name
+			vtablename1 <- data@select@table_name
 			vobsid <- getVariables(data)[["obs_id_colname"]]
 			sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
 							" SELECT ",vobsid," AS obs_id_colname,","\n               ",
@@ -1163,8 +1162,7 @@ prepareData.lmGeneric <- function(formula,data,
 		return(object@results[["y"]])
 		else
 		{
-			vtablename <- paste0(object@deeptable@select@database,".",
-							object@deeptable@select@table_name)
+			vtablename <- object@deeptable@select@table_name
 			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -1490,7 +1488,7 @@ predict.lmGeneric <- function(object,
 							scoreTable=""){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
-	vinputTable <- paste0(newdata@select@database,".",newdata@select@table_name)
+	vinputTable <- newdata@select@table_name
 
 	if(scoreTable=="")
 	# scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
@@ -1534,12 +1532,9 @@ predict.lmGeneric <- function(object,
 			vVaridCols <- c(vVaridCols,-1)
 			vcellValCols <- c(vcellValCols,all.vars(object@formula)[1])
 
-			# vtablename <- paste0(newdataCopy@select@database,
-			# 					".",newdataCopy@select@table_name)
-			vtablename <- paste0(object@table@select@database,
-								".",object@table@select@table_name)
-			vtablename1 <- paste0(newdata@select@database,
-								".",newdata@select@table_name)
+			# vtablename <- newdataCopy@select@table_name
+			vtablename <- table@select@table_name
+			vtablename1 <- newdata@select@table_name
 
 			vobsid <- getVariables(object@table)[["obs_id_colname"]]
 			sqlstr <- paste0("INSERT INTO ",vtablename1," \n ",
@@ -1551,7 +1546,7 @@ predict.lmGeneric <- function(object,
 			newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
 		}
 	}
-	vtable <- paste0(newdata@select@database,".",newdata@select@table_name)
+	vtable <- newdata@select@table_name
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]

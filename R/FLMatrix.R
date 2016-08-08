@@ -25,13 +25,11 @@ setClass("FLTableQuery",
 
 ##' A selectFrom models a select from a table.
 ##'
-##' @slot database character the database of the table
-##' @slot table_name character the name oth the table to select from
+##' @slot table_name character the name of the table to select from (possibly fully qualified, i.e. with database)
 ##' @export
 setClass("FLSelectFrom",
          contains="FLTableQuery",
          slots=list(
-             database = "character",
              table_name = "character"
          ))
 
@@ -395,18 +393,16 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","cnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables$colIdColumn),
+                      paste0(flm@select@variables[[flm@dimColumns[[2]]]]),
                       "cnmap.NUM_ID"),
                   equalityConstraint("cnmap.DIM_ID","2"))
         }
-        flm@mapSelect <- new(
-            "FLSelectFrom",
-            connection = connection,
-            database = getOption("ResultDatabaseFL"),
-            table_name = tablenames,
-            variables=variables,
-            whereconditions=mConstraint,
-            order = "")
+        flm@mapSelect <- new("FLSelectFrom",
+                             connection = connection,
+                             table_name = tablenames,
+                             variables=variables,
+                             whereconditions=mConstraint,
+                             order = "")
     }
 
     return(flm)
@@ -439,7 +435,7 @@ FLamendDimnames <- function(flm,map_table) {
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
-FLMatrix <- function(database=getOption("ResultDatabaseFL"),
+FLMatrix <- function(database=NULL,
                      table_name,
                      matrix_id_value = "",
                      matrix_id_colname = "",
@@ -452,7 +448,8 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
                      whereconditions=c(""),
                      map_table=NULL,
                      connection=getOption("connectionFL")){
-
+    if(!is.null(database))
+        table_name <- getRemoteTableName(databaseName = database, tableName = table_name)
   ## If alias already exists, change it to flt.
     if(length(names(table_name))>0)
     oldalias <- names(table_name)[1]
@@ -463,9 +460,8 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
     cell_val_colname <- changeAlias(cell_val_colname,"mtrx",oldalias)
     whereconditions <- changeAlias(whereconditions,
                                   "mtrx",
-                                  c(paste0(database,".",table_name),
-                                    paste0(table_name),
-                                    paste0(database,".",oldalias),
+                                  c(getTablename(table_name),
+                                    table_name,
                                     oldalias))
     names(table_name) <- "mtrx"
 
@@ -508,14 +504,12 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
         }
 
     ##browser()
-    select <- new(
-        "FLSelectFrom",
-        connection = connection,
-        database = database,
-        table_name = tablenames,
-        variables=variables,
-        whereconditions=c(whereconditions, mConstraint),
-        order = "")
+    select <- new("FLSelectFrom",
+                  connection = connection,
+                  table_name = tablenames,
+                  variables=variables,
+                  whereconditions=c(whereconditions, mConstraint),
+                  order = "")
     
     RESULT <- new("FLMatrix",
                   select = select,

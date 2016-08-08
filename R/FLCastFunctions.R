@@ -290,7 +290,6 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
 
         return(FLMatrix(
             connection = connection,
-            database = getOption("ResultDatabaseFL"),
             table_name = tablename,
             map_table = mapTable,
             matrix_id_value = MID,
@@ -544,9 +543,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
     else
     {
       sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-      vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(getOption("ResultDatabaseFL"),
-                                      getOption("ResultMatrixTableFL")),
+      vSqlStr <- paste0(" INSERT INTO ", getOption("ResultMatrixTableFL"),
                     "\n",
                    gsub("'%insertIDhere%'",MID,sqlstr),
                     "\n")
@@ -559,7 +556,6 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
     MID <- getMaxMatrixId(connection)
     batchStore(sqlstr,MID)
     return(FLMatrix(
-            database = getOption("ResultDatabaseFL"),
             table_name = getOption("ResultMatrixTableFL"),
             map_table = NULL,
             matrix_id_value = MID,
@@ -622,8 +618,7 @@ as.FLMatrix.FLTable <- function(object,
                       return(NULL)
                       else return(x)
                   })
-  return(FLMatrix(database=object@select@database,
-                  table_name=object@select@table_name,
+  return(FLMatrix(table_name=object@select@table_name,
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
@@ -722,10 +717,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                             vectorValueColumn=as.vector(object))
     t <- as.FLTable.data.frame(vdataframe,connection,tablename,1,drop=FALSE)
   }
-  select <- new(
-                "FLSelectFrom",
+  select <- new("FLSelectFrom",
                 connection = connection, 
-                database = getOption("ResultDatabaseFL"), 
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
@@ -826,8 +819,7 @@ setMethod("as.FLTable",signature(object="FLMatrix"),
 
 as.FLTable.FLMatrix <- function(object=object,...){
   object <- setAlias(object,"")
-  return(FLTable(database=object@select@database,
-                table=object@select@table_name,
+  return(FLTable(table=object@select@table_name,
                 obs_id_colname=getVariables(object)[["rowIdColumn"]],
                 var_id_colnames=getVariables(object)[["colIdColumn"]],
                 cell_val_colname=getVariables(object)[["valueColumn"]],
@@ -910,7 +902,7 @@ as.FLTable.data.frame <- function(object,
     }
     
     .jcall(connection@jc,"V","setAutoCommit",FALSE)
-    sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",
+    sqlstr <- paste0("INSERT INTO ",
                 tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
     ps = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
     myinsert <- function(namedvector,x){
@@ -954,17 +946,15 @@ as.FLTable.data.frame <- function(object,
     vcolnames <- names(vcolnames)
   }
 
-  select <- new(
-          "FLSelectFrom",
-          connection = getOption("connectionFL"), 
-          database = getOption("ResultDatabaseFL"), 
-          table_name = tableName, 
-          variables = list(
-                  obs_id_colname = obsIdColname),
-                  #var_id_colname = var_id_colnames,
-                  #cell_val_colname = cell_val_colname),
-          whereconditions=character(0),
-          order = "")
+  select <- new("FLSelectFrom",
+                connection = getOption("connectionFL"), 
+                table_name = tableName, 
+                variables = list(
+                    obs_id_colname = obsIdColname),
+                ## var_id_colname = var_id_colnames,
+                ## cell_val_colname = cell_val_colname),
+                whereconditions=character(0),
+                order = "")
 
   return(new("FLTable", 
               select = select,

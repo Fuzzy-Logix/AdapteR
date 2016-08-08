@@ -53,7 +53,6 @@ FLJordan.FLMatrix<-function(object,...)
 
     PMatrix <- FLMatrix(
 				       connection = connection, 
-				       database = getOption("ResultDatabaseFL"), 
 				       table_name = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
@@ -65,7 +64,6 @@ FLJordan.FLMatrix<-function(object,...)
 
     PInvMatrix <- FLMatrix(
 			            connection = connection, 
-			            database = getOption("ResultDatabaseFL"), 
 			            table_name = tempResultTable, 
 			            matrix_id_value = "",
 			            matrix_id_colname = "", 

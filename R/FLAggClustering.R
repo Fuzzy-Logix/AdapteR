@@ -179,13 +179,10 @@ agnes.FLTable <- function(x,
 
 		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
 
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename1,
+		deepx <- FLTable(table=t,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
-                  )
+                   "cell_val_colname")
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
@@ -201,10 +198,8 @@ agnes.FLTable <- function(x,
 			pSelect=constructSelect(x)
 			)
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename,
+		## if(!all(t)) stop("Input Table and whereconditions mismatch") ##gk @ phani: what was this for?  I moved it into creatView
+		deepx <- FLTable(table=t,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
@@ -215,7 +210,7 @@ agnes.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
 
@@ -356,7 +351,7 @@ height.FLAggClust <- function(object)
 	{
 		connection <- getConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -454,7 +449,7 @@ ac.FLAggClust <- function(object){
 	{
 		connection <- getConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -554,7 +549,7 @@ merge.FLAggClust <- function(object){
 	{
 		connection <- getConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]

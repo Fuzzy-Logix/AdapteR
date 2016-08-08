@@ -61,7 +61,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
 	UMatrix <- FLMatrix( 
             connection = connection, 
-            database = getOption("ResultDatabaseFL"), 
             table_name = tempResultTable, 
             matrix_id_value = "",
             matrix_id_colname = "", 
@@ -73,7 +72,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 
 	VMatrix <- FLMatrix( 
             connection = connection, 
-            database = getOption("ResultDatabaseFL"), 
             table_name = tempResultTable, 
             matrix_id_value = "",
             matrix_id_colname = "", 

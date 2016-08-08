@@ -185,18 +185,16 @@ NULL
       {
         if(!isAliasSet(object))
         object <- setAlias(object,"flt")
-        mapselect <- new(
-                  "FLSelectFrom",
-                  connection = getOption("connectionFL"), 
-                  database = getOption("ResultDatabaseFL"), 
-                  table_name = c(nameflt=getOption("NameMapTableFL")),
-                  variables = list(),
-                  whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
-                        paste0("nameflt.DIM_ID=1"),
-                        paste0("nameflt.NAME = CAST(",
-                                getVariables(object)[[vobsidcolumn]],
-                                " AS VARCHAR(100))")),
-                  order = "")
+        mapselect <- new("FLSelectFrom",
+                         connection = getOption("connectionFL"), 
+                         table_name = c(nameflt=getOption("NameMapTableFL")),
+                         variables = list(),
+                         whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
+                                           paste0("nameflt.DIM_ID=1"),
+                                           paste0("nameflt.NAME = CAST(",
+                                                  getVariables(object)[[vobsidcolumn]],
+                                                  " AS VARCHAR(100))")),
+                         order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
 
 
@@ -307,17 +305,15 @@ NULL
             nameIndexColumn <- getVariables(pSet)[["obs_id_colname"]]
             nameValueColumn <- changeAlias(nameValueColumn,"nameflt",oldalias)
             nameIndexColumn <- changeAlias(nameIndexColumn,"nameflt",oldalias)
-            mapselect <- new(
-                      "FLSelectFrom",
-                      connection = getOption("connectionFL"), 
-                      database = pSet@select@database, 
-                      table_name = pSet@select@table_name,
-                      variables = list(),
-                      whereconditions=c(constraintsSQL(pSet),
-                            paste0(nameValueColumn," = CAST(",
-                                    getVariables(object)[[vobsidcolumn]],
-                                    " AS VARCHAR(100))")),
-                      order = "")
+            mapselect <- new("FLSelectFrom",
+                             connection = getOption("connectionFL"), 
+                             table_name = pSet@select@table_name,
+                             variables = list(),
+                             whereconditions=c(constraintsSQL(pSet),
+                                               paste0(nameValueColumn," = CAST(",
+                                                      getVariables(object)[[vobsidcolumn]],
+                                                      " AS VARCHAR(100))")),
+                             order = "")
             object@select@variables[[vobsidcolumn]]<- nameIndexColumn
         }
         newrownames <- as.vector(pSet)
@@ -349,18 +345,16 @@ NULL
                         dimId= 1,
                         mynames=object@dimnames[[1]]
                         )
-          mapselect <- new(
-                    "FLSelectFrom",
-                    connection = getOption("connectionFL"), 
-                    database = getOption("ResultDatabaseFL"), 
-                    table_name = c(nameflt=getOption("NameMapTableFL")),
-                    variables = list(),
-                    whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
-                          paste0("nameflt.DIM_ID=1"),
-                          paste0("nameflt.NAME = CAST(",
-                                  getVariables(object)[[vobsidcolumn]],
-                                  " AS VARCHAR(100))")),
-                    order = "")
+          mapselect <- new("FLSelectFrom",
+                           connection = getOption("connectionFL"), 
+                           table_name = c(nameflt=getOption("NameMapTableFL")),
+                           variables = list(),
+                           whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
+                                             paste0("nameflt.DIM_ID=1"),
+                                             paste0("nameflt.NAME = CAST(",
+                                                    getVariables(object)[[vobsidcolumn]],
+                                                    " AS VARCHAR(100))")),
+                           order = "")
           object@dimnames[[1]] <- 1
           object@mapSelect <- mapselect
           object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
@@ -450,18 +444,16 @@ NULL
                         mynames=newpSet
                         )
 
-        mapselect <- new(
-                      "FLSelectFrom",
-                      connection = getOption("connectionFL"), 
-                      database = getOption("ResultDatabaseFL"), 
-                      table_name = c(nameflt=getOption("NameMapTableFL")),
-                      variables = list(),
-                      whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
-                            paste0("nameflt.DIM_ID=1"),
-                            paste0("nameflt.NAME = CAST(",
-                                    getVariables(object)[[vobsidcolumn]],
-                                    " AS VARCHAR(100))")),
-                      order = "")
+        mapselect <- new("FLSelectFrom",
+                         connection = getOption("connectionFL"), 
+                         table_name = c(nameflt=getOption("NameMapTableFL")),
+                         variables = list(),
+                         whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
+                                           paste0("nameflt.DIM_ID=1"),
+                                           paste0("nameflt.NAME = CAST(",
+                                                  getVariables(object)[[vobsidcolumn]],
+                                                  " AS VARCHAR(100))")),
+                         order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
       }
 

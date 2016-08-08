@@ -37,10 +37,8 @@ diag.FLMatrix<-function(object,...)
     connection<-getConnection(object)
     flag3Check(connection)
 
-    table <- FLTable(
-                     database=object@select@database,
-                     table=object@select@table_name,
-                     obs_id_colname = getVariables(object)$rowIdColumn,
+    table <- FLTable(table=object@select@table_name,
+                     obs_id_colname = getVariables(object)[[object@dimColumns[[1]]]],
                      whereconditions=c(object@select@whereconditions,
                                        paste0(getVariables(object)$rowIdColumn,
                                               "=",getVariables(object)$colIdColumn)))
@@ -79,7 +77,6 @@ diag.FLVector <- function(object,...)
         
 
         return(FLMatrix( 
-            database = getOption("ResultDatabaseFL"), 
             table_name = getOption("ResultMatrixTableFL"), 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
@@ -93,9 +90,7 @@ diag.FLVector <- function(object,...)
     else if(length(object)>1)
     {
         if(object@isDeep)
-            return(FLMatrix( 
-                database = object@select@database, 
-                table_name = object@select@table_name, 
+            return(FLMatrix(table_name = object@select@table_name, 
                 matrix_id_value = "",
                 matrix_id_colname = "", 
                 row_id_colname = getVariables(object)$obs_id_colname, 
@@ -139,10 +134,7 @@ diag.FLVector <- function(object,...)
                     connection = connection
                 ))
             }
-            else return(FLMatrix( 
-                     database = object@select@database, 
-                     table_name = object@select@table_name, 
-                     matrix_id_value = "",
+            else return(FLMatrix(matrix_id_value = "",
                      matrix_id_colname = "", 
                      row_id_colname = getVariables(object)$obs_id_colname, 
                      col_id_colname = getVariables(object)$obs_id_colname, 

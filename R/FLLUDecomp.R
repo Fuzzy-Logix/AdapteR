@@ -115,7 +115,7 @@ lu.FLMatrix<-function(object,...)
 					          "OutputRowNum AS rowIdColumn, \n ",
 					          "OutputColNum AS colIdColumn, \n ",
 					          "CAST(OutputValL AS NUMBER) AS valueColumn \n ",
-					  	" FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
+					  	" FROM ",rtn,
 					 	" WHERE OutputRowNum > OutputColNum \n ",
 				   		" AND OutputValL IS NOT NULL \n ",
 				   		" UNION ALL \n ",
@@ -146,7 +146,6 @@ lu.FLMatrix<-function(object,...)
 	# calculating Permutation FLMatrix
     data_perm <- FLMatrix( 
 			       connection = connection, 
-			       database = getOption("ResultDatabaseFL"), 
 			       table_name = tempResultTable, 
 				   matrix_id_value = "",
 				   matrix_id_colname = "", 
@@ -159,7 +158,6 @@ lu.FLMatrix<-function(object,...)
 	# calculating l FLmatrix
     l<-FLMatrix( 
 	       connection = connection, 
-	       database = getOption("ResultDatabaseFL"), 
 	       table_name = tempResultTable, 
 		   matrix_id_value = "",
 		   matrix_id_colname = "", 
@@ -172,7 +170,6 @@ lu.FLMatrix<-function(object,...)
 	# calculating U FLmatrix
     u<-FLMatrix( 
 	       connection = connection, 
-	       database = getOption("ResultDatabaseFL"), 
 	       table_name = tempResultTable, 
 		   matrix_id_value = "",
 		   matrix_id_colname = "", 

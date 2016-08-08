@@ -78,6 +78,7 @@ storeVarnameMapping <- function(connection,
 #' @export
 store.FLMatrix <- function(object,pTableName=NULL,...)
 {
+    ##browser()
     if(is.FLMatrix(object)){
       if("FLSelectFrom" %in% class(object@select) 
           && is.null(pTableName))
@@ -139,13 +140,13 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       #               vSqlStr)
       return(FLMatrix(
             connection = getConnection(object),
-            database = vdatabase1, 
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
             row_id_colname = "rowIdColumn", 
             col_id_colname = "colIdColumn", 
             cell_val_colname = "valueColumn",
+            dim=dim(object),
             dimnames=dimnames(object)
             ))
     }
@@ -202,10 +203,9 @@ store.FLVector <- function(object,pTableName=NULL,...)
   #                   "\n")
   # sqlSendUpdate(getConnection(object),
   #                 vSqlStr)
-  select <- new(
-                "FLSelectFrom",
+  select <- new("FLSelectFrom",
                 connection = connection, 
-                database = vdatabase1, 
+                ##database = vdatabase1, 
                 table_name = vtableName1,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),

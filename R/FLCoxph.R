@@ -107,7 +107,7 @@ coxph.FLTable <- function(formula,data, ...)
     wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
     deepx <- deep[["deeptable"]]
     
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 
 	retobj <- sqlStoredProc(getOption("connectionFL"),
 							"FLCoxPH",
@@ -225,8 +225,8 @@ prepareData.coxph <- function(formula,data,
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
 
-		vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
-		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
+		vtablename <- deepx@select@table_name
+		vtablename1 <- data@select@table_name
 		vobsid <- getVariables(data)[["obs_id_colname"]]
 		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
 						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
@@ -315,8 +315,7 @@ predict.FLCoxPH <-function(object,
 		stop("scoring allowed on FLTable only")
 	#browser()
 	newdata <- setAlias(newdata,"")
-	vinputTable <- getRemoteTableName(newdata@select@database,
-									newdata@select@table_name)
+	vinputTable <- newdata@select@table_name
 
 	if(scoreTable=="")
 	# scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
@@ -335,10 +334,8 @@ predict.FLCoxPH <-function(object,
 	{
 		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
 		newdataCopy <- newdata
-		vtablename <- paste0(newdataCopy@select@database,
-							".",newdataCopy@select@table_name)
-		vtablename2 <- paste0(object@table@select@database,
-							".",object@table@select@table_name)
+		vtablename <- newdataCopy@select@table_name
+		vtablename2 <- table@select@table_name
 
 		## SQL to Insert the dependent column ans statusColumn
 		vVaridVec <- c(-2)
@@ -392,8 +389,7 @@ predict.FLCoxPH <-function(object,
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")
 
-		vtablename1 <- paste0(newdata@select@database,
-							".",newdata@select@table_name)
+		vtablename1 <- newdata@select@table_name
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
 		sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
 						paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
@@ -403,7 +399,7 @@ predict.FLCoxPH <-function(object,
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
 	}
-	vtable <- paste0(newdata@select@database,".",newdata@select@table_name)
+	vtable <- newdata@select@table_name
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
@@ -606,7 +602,7 @@ predict.FLCoxPH <-function(object,
 		{
 			coeffVector <- object$coefficients
 			vcolnames <- names(coeffVector)
-			deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+			deeptablename <- object@deeptable@select@table_name
 			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -834,13 +830,12 @@ IncludeTimeVal <- function(data,
 				)
     
 	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
-	data@select@database <- getOption("ResultDatabaseFL")
 	data@select@table_name <- vtablename
 	vallVars <- base::all.vars(formula)
 	vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
 	return(list(data=data,
-				vTimeVal=vTimeVal,
-				vStatus=vStatus,
-				vtablename=vtablename,
-				vallVars=vallVars))
+                    vTimeVal=vTimeVal,
+                    vStatus=vStatus,
+                    vtablename=vtablename,
+                    vallVars=vallVars))
 }

@@ -196,15 +196,14 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
   else if(!isRowVec){
     if(type=="float")
     {
-      select <- new(
-                  "FLSelectFrom",
-                  connection = getOption("connectionFL"), 
-                  database = getOption("ResultDatabaseFL"), 
-                  table_name = "fzzlserial",
-                  variables = list(obs_id_colname="SERIALVAL"),
-                  whereconditions=paste0(getOption("ResultDatabaseFL"),
-                                        ".fzzlserial.SERIALVAL < ",n+1),
-                  order = "")
+      select <- new("FLSelectFrom",
+                    connection = getOption("connectionFL"), 
+                    ##database = getOption("ResultDatabaseFL"), 
+                    table_name = "fzzlserial",
+                    variables = list(obs_id_colname="SERIALVAL"),
+                    whereconditions=paste0(getOption("ResultDatabaseFL"),
+                                           ".fzzlserial.SERIALVAL < ",n+1),
+                    order = "")
       flv <- new("FLVector",
                 select=select,
                 dimnames=list(1:n,"RANDVAL"),
@@ -230,10 +229,9 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       if(type=="int") vtableName <- "ARTestIntVectorTable"
       else vtableName <- "ARTestCharVectorTable"
       options(FLTestVectorTable=TRUE)
-      select <- new(
-                    "FLSelectFrom",
+      select <- new("FLSelectFrom",
                     connection = getOption("connectionFL"), 
-                    database = getOption("ResultDatabaseFL"), 
+                    ## database = getOption("ResultDatabaseFL"), 
                     table_name = vtableName,
                     variables = list(obs_id_colname="vectorIndexColumn"),
                     whereconditions=paste0(getOption("ResultDatabaseFL"),
@@ -337,19 +335,18 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
             ARTestCharMatrixTable="character",
             ARTestIntMatrixTable="int")
   vtableName <- names(vtemp)[vtemp==type]
-  select <- new(
-        "FLSelectFrom",
-        connection = getOption("connectionFL"),
-        database = getOption("ResultDatabaseFL"),
-        table_name = c(mtrx=vtableName),
-        variables=list(MATRIX_ID="'%insertIDhere%'",
-                      rowIdColumn=paste0("mtrx.rowIdColumn"),
-                      colIdColumn=paste0("mtrx.colIdColumn"),
-                      valueColumn=paste0("mtrx.valueColumn")),
-        whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),
-                          paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
-        order = "")
-    
+  select <- new("FLSelectFrom",
+                connection = getOption("connectionFL"),
+                ##database = getOption("ResultDatabaseFL"),
+                table_name = c(mtrx=vtableName),
+                variables=list(MATRIX_ID="'%insertIDhere%'",
+                               rowIdColumn=paste0("mtrx.rowIdColumn"),
+                               colIdColumn=paste0("mtrx.colIdColumn"),
+                               valueColumn=paste0("mtrx.valueColumn")),
+                whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),
+                                  paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
+                order = "")
+  
   flm <- new("FLMatrix",
             select = select,
             dim = c(n,ifelse(isSquare,n,n-1)),
