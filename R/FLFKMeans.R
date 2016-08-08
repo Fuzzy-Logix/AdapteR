@@ -204,7 +204,7 @@ fanny.FLTable <- function(x,
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS \n ",constructSelect(x))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
 					pSelect=constructSelect(x))
 
 		deeptablename1 <- gen_view_name("New")
@@ -213,7 +213,7 @@ fanny.FLTable <- function(x,
 		#				".",deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
 		
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
 					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),
 					".",deeptablename,constructWhere(whereconditions))
 					)
@@ -237,7 +237,7 @@ fanny.FLTable <- function(x,
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS  \n ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
 					pSelect=constructSelect(x))
 
 		if(!all(t)) stop("Input Table and whereconditions mismatch")

@@ -246,14 +246,14 @@ prepareData.coxph <- function(formula,data,
 		#					".",deeptablename," AS ",constructSelect(data))
 		#sqlSendUpdate(connection,sqlstr)
 
-		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
 			pSelect=constructSelect(data)
 			)
 		deeptablename1 <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 		#				constructWhere(whereconditions))
-		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
 					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 					constructWhere(whereconditions)
 						)	
@@ -282,7 +282,7 @@ prepareData.coxph <- function(formula,data,
 			#				deeptablename," AS ",constructSelect(data))
 			#t <- sqlQuery(connection,sqlstr)
 			
-			t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptable),
+			t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptable),
 						pSelect=constructSelect(data)
 						)
 

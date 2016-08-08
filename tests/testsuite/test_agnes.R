@@ -1,4 +1,3 @@
-library(testthat)
 Renv <- new.env(parent = globalenv())
 
 Renv$data <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),

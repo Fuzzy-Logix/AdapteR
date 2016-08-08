@@ -927,7 +927,7 @@ prepareData.lmGeneric <- function(formula,data,
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#					".",deeptablename," AS ",constructSelect(data))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
 					pSelect=constructSelect(data))
 
 		deeptablename1 <- gen_view_name("New")
@@ -935,7 +935,7 @@ prepareData.lmGeneric <- function(formula,data,
 		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 		#				constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
 					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 										constructWhere(whereconditions)))
 

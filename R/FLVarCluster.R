@@ -92,14 +92,14 @@ FLVarCluster.FLTable<-function(x,
 		deeptablename <- gen_view_name("")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
 					pSelect=constructSelect(x))
 
 		deeptablename1 <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#	" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
+		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
 					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,constructWhere(whereconditions)))
 
 		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
@@ -120,7 +120,7 @@ FLVarCluster.FLTable<-function(x,
 		deeptablename <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename," AS ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
+		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
 					pSelect=constructSelect(x))
 
 		if(!all(t)) stop("Input Table and whereconditions mismatch")
