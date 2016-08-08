@@ -216,67 +216,37 @@ predict.FLLogRegr <- function(object,
 }
 
 #' @export
-summary.FLLogRegr<-function(object){
-	ret <- object$FLLogRegrStats
-	colnames(ret) <- toupper(colnames(ret))
-	vresiduals <- object$residuals
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT FLMin(z.val),FLMax(z.val),q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.25) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q,z
-								   group by 3")
-	vresult1 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.50) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q")
-	vresult2 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.75) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q")
-	vresult3 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	coeffframe <- data.frame(object$coefficients,
+summary.FLLogRegr <- function(object){
+    stat <- object$FLLogRegrStats
+  	coeffframe <- data.frame(object$coefficients,
 							object$FLCoeffStdErr,
 							object$FLCoeffChiSq,
 							object$FLCoeffPValue)
 	colnames(coeffframe)<-c("Estimate","Std. Error","ChiSquare","Pr(>|t|)")
+  #put rowname
+    rname <- all.vars(object@formula)
+    rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
 
-	residualframe <- data.frame(vresult1[[1]],
-								vresult1[[3]],
-								vresult2[[1]],
-								vresult3[[1]],
-								vresult1[[2]])
-	colnames(residualframe) <- c("Min","1Q","Median","3Q","Max")
-	parentObject <- unlist(strsplit(unlist(strsplit
-		(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	assign(parentObject,object,envir=parent.frame())
-	
-	cat("Call:\n")
-	cat(paste0(object$call),"\n")
-	cat("\nResiduals:\n")
-	print(residualframe)
-	cat("\n\nCoefficients:\n")
-	print(coeffframe)
-	cat("\n---\n")
-	cat("Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1\n")
-	print(ret)
-	cat("\n")
+
+
+    
+
+    reqList <- list(call = as.call(object@formula),
+                    deviance.resid  = as.vector(object$residuals),
+                    coefficients = as.matrix(coeffframe),
+                    df = as.vector(c((stat$NUMOFOBS + 1),(stat$NUMOFOBS-1-stat$NUMOFVARS), (stat$NUMOFOBS + 1))),
+                    aliased = FALSE,
+                    dispersion = 1,
+                    df.residual = (stat$NUMOFOBS-1-stat$NUMOFVARS),
+                    iter = stat$ITERATIONS,
+                    df.null = (stat$NUMOFOBS - 1),
+                    null.deviance = NA
+                )
+  
+  
+    class(reqList) <- "summary.glm"
+    reqList
+  
 }
 
 #' @export
