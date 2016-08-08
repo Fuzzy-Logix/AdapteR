@@ -4,13 +4,16 @@
 \alias{FLRegrDataPrep}
 \title{Convert Wide Table to Deep Table in database.}
 \usage{
-FLRegrDataPrep(object, depCol, outDeepTableName, outDeepTableDatabase,
-  outObsIDCol, outVarIDCol, outValueCol, catToDummy, performNorm,
-  performVarReduc, makeDataSparse, minStdDev, maxCorrel, trainOrTest,
-  excludeCols, classSpec, whereconditions, inAnalysisID)
+FLRegrDataPrep(object, depCol, ...)
 }
 \arguments{
 \item{object}{FLTable object}
+
+\item{excludeCols}{character vector specifying columns to be excluded from conversion}
+
+\item{classSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
+
+\item{whereconditions}{character vector giving where conditions if any to reference the wide table}
 
 \item{outDeepTableName}{name to be given to the output deep table}
 
@@ -21,12 +24,6 @@ FLRegrDataPrep(object, depCol, outDeepTableName, outDeepTableDatabase,
 \item{outVarIDCol}{name to give to the varibales name column of the output deep table}
 
 \item{outValueCol}{name to give to the value column of the output deep table}
-
-\item{excludeCols}{character vector specifying columns to be excluded from conversion}
-
-\item{classSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
-
-\item{whereconditions}{character vector giving where conditions if any to reference the wide table}
 }
 \value{
 \code{wideToDeep} returns a list containing components 

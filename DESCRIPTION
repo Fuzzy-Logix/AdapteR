@@ -124,5 +124,6 @@ Collate:
     'constructAbstractSQL.R'
     'crossprod.R'
     'experiment_benchmarking.R'
+    'platforms.R'
     'tcrossprod.R'
 RoxygenNote: 5.0.1

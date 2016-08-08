@@ -4,9 +4,9 @@
 \alias{FLStartSession}
 \title{Starts Session and Creates temp Tables for result storage}
 \usage{
-FLStartSession(connection, database = "FL_DEMO", persistent = "test",
-  drop = TRUE, debug = FALSE,
-  tableoptions = paste0(", FALLBACK ,NO BEFORE JOURNAL,NO AFTER JOURNAL,CHECKSUM = DEFAULT,DEFAULT MERGEBLOCKRATIO "))
+FLStartSession(connection, database = getOption("ResultDatabaseFL"),
+  persistent = FALSE, drop = FALSE, debug = FALSE, tableoptions = NULL,
+  ...)
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection object}

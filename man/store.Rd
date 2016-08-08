@@ -4,14 +4,16 @@
 \alias{store}
 \title{stores an object in database.}
 \usage{
-store(object, returnType, ...)
+store(object, pTableName = NULL, ...)
 }
 \arguments{
 \item{object}{the object to store. Can be FLMatrix, FLVector, FLTable, character}
 
-\item{returnType}{return type of the stored data. Applicable only when object is a character representing a SQL Query}
+\item{pTableName}{If provided, the object is inserted into this table and 
+this storage information is writen into fzzlAdapteRTablesInfo. This allows 
+for selective storage of objects}
 
-\item{connection}{ODBC/JDBC connection  object. Applicable only when object is a character representing a SQL Query}
+\item{...}{Additional arguments like pNote to be included in fzzlAdapteRTablesInfo}
 }
 \value{
 in-database object after storing
