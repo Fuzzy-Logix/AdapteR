@@ -1,4 +1,4 @@
-connection <- flConnect(odbcSource = "Gandalf",database = "FL_DEMO",platform="TD")
+connection <- flConnect(odbcSource = "TDVM",database = "fuzzylogix",platform="TD")
 devtools::load_all(".")
 Renv = new.env(parent = globalenv())
 
@@ -13,28 +13,39 @@ Renv$widetable<-as.data.frame(FLenv$widetable)
 ## Since FL and R environments have different case structure for column names
 colnames(Renv$widetable)<-colnames(FLenv$widetable)
 
-Renv$stepobj<-lm(Diameter~Height+ShellWeight+ShuckedWeight, data = Renv$widetable)
+formula<-Diameter~ShellWeight+Height+Rings+WholeWeight
+
+
+
 FLenv$stepobj<-FLenv$widetable
+Renv$stepobj<-lm(formula, data = Renv$widetable)
 
-## step function does not work properly. throws an error
-## asana ticket- https://app.asana.com/0/143316600934101/158092657328842
-
-options(debugSQL = T)
-
-stepobj <- Renv$stepobj
-stepobj <- FLenv$stepobj
-
-
-test_that("test for step", {
-  eval_expect_equal({
-    
-    r<-step(stepobj,scope = list(lower=Diameter~Height,upper=Diameter~Height+ShellWeight+ShuckedWeight), direction = "backward")
+test_that("test for step function", {
+  result=eval_expect_equal({
+     r<-step(stepobj,scope = list(lower=Diameter~Height+Rings,upper=formula, direction = "backward"))
     c<-sort(coefficients(r))
-    summary(c)
   },
-  expectation = "c",
-  noexpectation="r" ,Renv,FLenv)
+  Renv,FLenv,
+  expectation="c",
+  noexpectation=c("obj","r")
+  
+  )
 }
 )
+parts <- c("coefficients","residuals","df.residual",
+           "rank","terms")
 
 
+test_that("lm: equality of coefficients, residuals, rank and terms",{
+  result = eval_expect_equal({
+    sapply(parts,
+           function(i){
+             assign(i,do.call("$",list(r,i)))
+           })
+    modelDim <- dim(r$model)
+  },Renv,FLenv,
+  noexpectation = "r",
+  expectation = c(parts,"modelDim"),
+  check.attributes=F)
+}
+)
