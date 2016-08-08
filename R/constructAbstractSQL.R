@@ -195,10 +195,13 @@ constructStoredProcSQL <- function(pConnection,
                     paste0(pars,
                             collapse=", \n "),
                     ifelse(is.TD(),
-                        paste0(",",paste0(names(pOutputParameter), 
-                                collapse=", \n ")),""),
-                    ")")
-            )
+                        paste0(",",
+                            paste0(names(pOutputParameter), 
+                                collapse=", \n ")),
+                        ""),
+                    ")"
+                )
+        )
 }
 
 ############################### Aggregates ############################
