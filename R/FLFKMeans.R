@@ -18,22 +18,32 @@ NULL
 #' @slot memb.exp A number r strictly larger than 1 specifying the membership exponent 
 #' used in the fit criterion.Default: 2 which is hardwired inside FANNY.
 #' @slot maxit maximal number of iterations for the FANNY algorithm.
-#' @method cluster FLKMeans
-#' @param object retrieves the cluster vector
-#' @method centers FLKMeans
-#' @param object retrieves the coordinates of the centroids
-#' @method print FLKMeans
-#' @param object overloads the print function
-#' @method tot.withinss FLKMeans
-#' @param object total within sum of squares
-#' @method withinss FLKMeans
-#' @param object within sum of squares
-#' @method betweenss FLKMeans
-#' @param object between sum of squares
-#' @method totss FLKMeans
-#' @param object total sum of squares
-#' @method size FLKMeans
-#' @param object size vector
+#' @method clustering FLFKMeans
+#' @param object returns the clustering vector of the nearest crisp clustering.
+#' @method membership FLFKMeans
+#' @param object returns matrix containing the memberships for each pair consisting of an observation and a cluster.
+#' @method coeff FLFKMeans
+#' @param object returns vector with Dunn's partition coefficient F(k) of the clustering, where k is the number of clusters. F(k) is
+#' the sum of all squared membership coefficients, divided by the number of observations. Its value is between 1/k and 1.
+#' The normalized form of the coefficient is also given. It is defined as (F(k) - 1/k) / (1 - 1/k), and ranges between 0 and 1.
+#' A low value of Dunn's coefficient indicates a very fuzzy clustering, whereas a value close to 1 indicates a near-crisp clustering.
+#' @method objective FLFKMeans
+#' @param object returns named vector containing the minimal value of the objective function reached by the FANNY algorithm and 
+#' the relative convergence tolerance tol used.
+#' @method k.crisp FLFKMeans
+#' @param object returns integer (<= k) giving the number of crisp clusters; can be less than k, where it's 
+#' recommended to decrease memb.exp.
+#' @method convergence FLFKMeans
+#' @param object returns named vector with iterations, the number of iterations needed and converged indicating if the algorithm 
+#' converged (in maxit iterations within convergence tolerance tol).
+#' @method silinfo FLFKMeans
+#' @param object returns list with silhouette information of the nearest crisp clustering.
+#' @method call FLFKMeans
+#' @param object generating call
+#' @method print FLFKMeans
+#' @param object prints results of agglomerative clustering.
+#' @method plot FLFKMeans
+#' @param object plots results of agglomerative clustering.
 setClass(
 	"FLFKMeans",
 	slots=list(

@@ -29,7 +29,8 @@ wideToDeep(object, excludeCols, classSpec, whereconditions, outDeepTableName,
 \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
-Convert Wide Table to Deep Table in database.
+The DB Lytix function called is FLWideToDeep.  FLWideToDeep is similar to FLRegrDataPrep , except that 
+FLWideToDeep does not require dependent variable or intercept, thus it creates deep tables without them.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")

@@ -1,8 +1,7 @@
 #' @include FLMatrix.R
 NULL
 
-
-
+## move to file FLTable.R
 #' Constructor function for FLTable.
 #'
 #' \code{FLTable} constructs an object of class \code{FLTable}.
@@ -267,7 +266,11 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
   return(xcopy)
 }
 
+## move to file FLWidetoDeep.R
 #' Convert Wide Table to Deep Table in database.
+#'
+#' The DB Lytix function called is FLWideToDeep.  FLWideToDeep is similar to FLRegrDataPrep , except that 
+#' FLWideToDeep does not require dependent variable or intercept, thus it creates deep tables without them.
 #'
 #' @param object FLTable object
 #' @param excludeCols character vector specifying columns to be excluded from conversion
@@ -286,12 +289,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-
 setGeneric("wideToDeep", function(object,excludeCols,classSpec,whereconditions,
                                   outDeepTableName,
                                   outObsIDCol,outVarIDCol,outValueCol) {
     standardGeneric("wideToDeep")
 })
+
+## move to file FLWidetoDeep.R
 setMethod("wideToDeep",
           signature(object = "FLTable",
                     excludeCols="character",
@@ -393,6 +397,8 @@ setMethod("wideToDeep",
 
           }
         )
+
+## move to file FLWidetoDeep.R
 setMethod("wideToDeep",
           signature(object = "FLTable",
                     excludeCols="missing",
@@ -412,6 +418,7 @@ setMethod("wideToDeep",
                     outVarIDCol="",
                     outValueCol=""))
 
+## move to file FLWidetoDeep.R
 setMethod("wideToDeep",
           signature(object = "FLTable",
                     excludeCols="character",
@@ -431,8 +438,12 @@ setMethod("wideToDeep",
                     outVarIDCol="",
                     outValueCol=""))
 
-
+## move to file FLDeepToWide.R
 #' Convert Deep Table to Wide Table
+#'
+#' The DB Lytix function called is FLWideToDeep.Stored Procedure that transforms the 
+#' data in a deep table format to a wide table format.
+#'
 #' @param object FLTable object to convert to wide table
 #' @param whereconditions character vector specifying whereconditions if any to reference the input deep table
 #' @param mapTable name of the in-database table containing mapping information to be used in conversion if any
@@ -456,6 +467,8 @@ setGeneric("deepToWide", function(object,
                                   ) {
     standardGeneric("deepToWide")
 })
+
+## move to file FLDeepToWide.R
 setMethod("deepToWide",
           signature(object = "FLTable",
                     whereconditions="character",
@@ -562,6 +575,8 @@ setMethod("deepToWide",
                         message = as.character(message[1,1])))
           }
         )
+
+## move to file FLDeepToWide.R
 setMethod("deepToWide",
           signature(object = "FLTable",
                     whereconditions="missing",
@@ -579,9 +594,35 @@ setMethod("deepToWide",
                     Analysisid = ""
                     ))
 
+
+## move to file FLRegrDataPrep.R
 #' Convert Wide Table to Deep Table in database.
 #'
+#' The DB Lytix function called is FLRegrDataPrep. In DB Lytix, data mining functions such as linear 
+#' regression, logistic regression, Generalized Linear Model (GLM), etc. are performed using stored procedures on a deep table.
+#' However, in most situations, the input data is usually stored in wide tables containing multiple columns. The
+#' stored procedure FLRegrDataPrep facilitates the conversion of contents stored in wide tables or views to
+#' deep tables and also prepares the data for regression analysis.
+#'
 #' @param object FLTable object
+#' @param depcol Name of the column in the wide table which represents the dependent variable
+#' @param catToDummy Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.
+#' @param performNorm Perform standardization of data. Standardization is done if the value of this parameter is 1.
+#' @param performVarReduc Perform variable reduction.Elimination means that the corresponding column is not transformed from the
+#' wide format to the deep format. Variables with standard deviation below the specified threshold are eliminated.
+#' Similarly, if a pair of columns has correlation above the specified threshold, one of the columns is not transformed.
+#' @param makeDataSparse Make data sparse i.e., only store non-zero values in the deep table for the independent variables. The
+#' column values for those observations that are zero are not stored in the deep table. However, for the
+#' dependent variable and the intercept, zero values are stored in the deep table. 
+#' @param minStdDev Minimum acceptable standard deviation for elimination of variables. Any variable that has a
+#' standard deviation below this threshold is eliminated. This parameter is only consequential if the parameter PerformVarReduc = 1.
+#' @param maxCorrel Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
+#' absolute value of the correlation exceeds this threshold, one of the columns is not transformed. Again, this parameter is 
+#' only consequential if the parameter PerformVarReduc = 1.
+#' @param trainOrTest if  0 => Create training data set; if 1 => Create test data set using the transformation
+#' that has already been done for a prior training data set.
+#' @param inAnalysisID provided in case we want to re-run the transformation of a training data set or run the
+#' transformation of a testing data set else this value is NULL.
 #' @param excludeCols character vector specifying columns to be excluded from conversion
 #' @param classSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
 #' @param whereconditions character vector giving where conditions if any to reference the wide table
@@ -620,6 +661,8 @@ setGeneric("FLRegrDataPrep", function(object,
                                   ...) {
     standardGeneric("FLRegrDataPrep")
 })
+
+## move to file FLRegrDataPrep.R
 setMethod("FLRegrDataPrep",
           signature(object = "ANY",
                     depCol="character"
