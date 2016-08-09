@@ -35,8 +35,7 @@ chol.FLMatrix<-function(object,...)
         outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",
                            localName="a",includeMID=TRUE,vconnection=connection)
     )
-    cat(sqlstr)
-
+    
     tblfunqueryobj <- new("FLTableFunctionQuery",
                           connection = connection,
                           variables=list(

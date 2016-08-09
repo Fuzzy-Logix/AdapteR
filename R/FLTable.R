@@ -29,11 +29,6 @@ FLTable <- function(table,
                     whereconditions=character(0),
                     connection=NULL)
 {
-    if(gsub("^[^.]*\\.","",table)!=table){
-        database <- getDatabase(table)
-    } else {
-        warning(paste0("table should specify database: ", table,""))
-    }
     if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
