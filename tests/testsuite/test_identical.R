@@ -1,7 +1,7 @@
 test_that("check result for identical",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix(getOption("ResultDatabaseFL"),"tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix("tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M3 <- as.FLMatrix(as.matrix(M2))
   M3R <- as.matrix(M2)
   M2R <- as.matrix(M2)

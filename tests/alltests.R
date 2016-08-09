@@ -8,7 +8,7 @@ library(AdapteR)
 ##' @param skip a regexp on the filename whether the test should be skipped
 ##' @param ... passed on to test_file
 ##' @return the test_file report
-runMyTestFile <- function(f, ask=TRUE, skip=NULL,...){
+runMyTestFile <- function(f, ask=FALSE, skip=NULL,...){
     if(!is.null(skip))
         if(grepl(skip,f)) {
             cat(paste0("skipped ",f,"\n"))
@@ -27,12 +27,18 @@ runMyTestFile <- function(f, ask=TRUE, skip=NULL,...){
         error=function(e) print(e))
 }
 
-Results <- llply(
+drop3ok <- "stringdist|t_r$|_trace$|_transpose|_var$|MatrixRepres|WeightedMean|clustering|"
+results <- list()
+results$testsuite <- llply(
     find_test_scripts("AdapteR/tests/testsuite"),
     runMyTestFile,
-    ask=FALSE,
-    skip="agnes|clustering|chol|cor|det|diag|dim|hclust|ginv|head|icMean|_hkmeans|_kmeans|length|_log|_lu.R|_mean|_MatrixDistance|multiplication|_median|_mode|_operators|_pam|_percent|_qr.R|_sd.R|_rowcolsum|_sort|_solve|_store|_rankMatrix|_rank.R|subset|_sum.R|_tr.R|_trace|_transpose|_var|_WeightedMean|_eigen|_cov.R|fanny|identical|quantile|MatrixRepr")
+    ask=FALSE)
 
+results$testthat <- llply(
+    find_test_scripts("AdapteR/tests/testthat"),
+    runMyTestFile,
+    ask=FALSE)
 
-llply(find_test_scripts("AdapteR/tests/limitations"),
+results$limitations <- llply(find_test_scripts("AdapteR/tests/limitations"),
       runMyTestFile)
+

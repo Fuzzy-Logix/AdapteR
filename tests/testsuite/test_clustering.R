@@ -2,7 +2,7 @@ Renv <- new.env(parent = globalenv())
 ## a 2-dimensional example with distinct clusters
 Renv$x <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
                  matrix(rnorm(100, mean = 10, sd = 0.3), ncol = 2))
-options(debugSQL=FALSE)
+options(debugSQL=F)
 
 FLenv <- as.FL(Renv)
 

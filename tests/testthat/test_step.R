@@ -10,7 +10,7 @@
 
 options(debugSQL=T)
 test_that("test for step", {
-    flData <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
+    flData <- FLTable("FL_DEMO.tblAbaloneWide", "ObsID")
     rData<-as.data.frame(flData)
     colnames(rData)<-colnames(flData)
     scope <- list(lower=Diameter~Height+ShellWeight,upper=Diameter~Height+ShellWeight+ShuckedWeight)

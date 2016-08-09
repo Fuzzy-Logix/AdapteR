@@ -11,9 +11,11 @@ Renv$b <- c(4, NA, 2, 7, 1)
 #Renv$z1 <- cbind(Renv$a, Renv$b)
 Renv$dd <- data.frame(Renv$x, Renv$y, Renv$z)
 Renv$d4 <- data.frame(x = round(rnorm(100)), y = round(10*runif(100)),
-##z = round( 8*rnorm(100)), u = round(50*runif(100)))
+                      z = round( 8*rnorm(100)), u = round(50*runif(100)))
 
 FLenv <- as.FL(Renv)
+
+as.FL(Renv$dd)
 
 test_that("order: Sorting data frames with specified columns",{
     eval_expect_equal({

@@ -1,6 +1,6 @@
 ##Testing FLExpLog.R
 test_that("Check FLExpLog.R. Sort, sqrt and Order also.",{
-    flm <- FLMatrix("fuzzylogix", "tblMatrixMulti",5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+    flm <- FLMatrix("tblMatrixMulti",5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
     flv <- as.FLVector((flm))
     rv <- as.vector(flm)
                                         #matricesLog
@@ -36,8 +36,8 @@ test_that("Check FLExpLog.R. Sort, sqrt and Order also.",{
 
 ##Testing FLHeadTail.R
 test_that("Check FLHeadTail.R",{
-    flt <- FLTable(getOption("ResultDatabaseFL"),"tblUSArrests", "ObsID","VarID","Num_Val", whereconditions = "ObsID<21")
-    flm <- FLMatrix("fuzzylogix", "tblMatrixMulti",5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+    flt <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val", whereconditions = "ObsID<21")
+    flm <- FLMatrix("tblMatrixMulti",5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
     flv <- as.FLVector((flm))
     rv <- as.vector(flm)
                                         #head

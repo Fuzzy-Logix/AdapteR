@@ -1,5 +1,4 @@
-eqnRtn <- FLMatrix(database          = "FL_DEMO",
-                   table_name        = "finEquityReturns",
+eqnRtn <- FLMatrix(table_name        = "FL_DEMO.finEquityReturns",
                    row_id_colname    = "TxnDate",
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
