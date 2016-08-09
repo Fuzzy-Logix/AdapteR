@@ -929,16 +929,16 @@ flag1Check <- function(connection)
 
     #     temp <- sqlQuery(connection,
     #                      paste0(" CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
-				# 			     NO BEFORE JOURNAL,
-				# 			     NO AFTER JOURNAL,
-				# 			     CHECKSUM = DEFAULT,
-				# 			     DEFAULT MERGEBLOCKRATIO
-				# 			     (
-				# 			      MATRIX_ID INTEGER,
-				# 			      rowIdColumn INTEGER,
-				# 			      colIdColumn INTEGER,
-				# 			      valueColumn FLOAT)
-				#     			 PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn);"))
+                #                NO BEFORE JOURNAL,
+                #                NO AFTER JOURNAL,
+                #                CHECKSUM = DEFAULT,
+                #                DEFAULT MERGEBLOCKRATIO
+                #                (
+                #                 MATRIX_ID INTEGER,
+                #                 rowIdColumn INTEGER,
+                #                 colIdColumn INTEGER,
+                #                 valueColumn FLOAT)
+                #                PRIMARY INDEX ( MATRIX_ID, rowIdColumn, colIdColumn);"))
 
     #     if(temp!="No Data" || length(temp)!=1)
     #     {
@@ -947,16 +947,16 @@ flag1Check <- function(connection)
 
     #         sqlSendUpdate(connection,
     #                  paste0("CREATE TABLE ",getRemoteTableName(tableName=getOption("ResultMatrixTableFL")),", FALLBACK ,
-				# 		     NO BEFORE JOURNAL,
-				# 		     NO AFTER JOURNAL,
-				# 		     CHECKSUM = DEFAULT,
-				# 		     DEFAULT MERGEBLOCKRATIO
-				# 		     (
-				# 		      MATRIX_ID INTEGER,
-				# 		      ROW_ID INTEGER,
-				# 		      COL_ID INTEGER,
-				# 		      CELL_VAL FLOAT)
-			 #    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+                #            NO BEFORE JOURNAL,
+                #            NO AFTER JOURNAL,
+                #            CHECKSUM = DEFAULT,
+                #            DEFAULT MERGEBLOCKRATIO
+                #            (
+                #             MATRIX_ID INTEGER,
+                #             ROW_ID INTEGER,
+                #             COL_ID INTEGER,
+                #             CELL_VAL FLOAT)
+             #               PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
     #     }
     #     options(flag1=1)
     # }
@@ -971,16 +971,16 @@ flag2Check <- function(connection)
 
     #     temp <- sqlQuery(connection,
     #                      paste0(" CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
-				# 			     NO BEFORE JOURNAL,
-				# 			     NO AFTER JOURNAL,
-				# 			     CHECKSUM = DEFAULT,
-				# 			     DEFAULT MERGEBLOCKRATIO
-				# 			     (
-				# 			      MATRIX_ID INTEGER,
-				# 			      ROW_ID INTEGER,
-				# 			      COL_ID INTEGER,
-				# 			      CELL_VAL FLOAT)
-				#     			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+                #                NO BEFORE JOURNAL,
+                #                NO AFTER JOURNAL,
+                #                CHECKSUM = DEFAULT,
+                #                DEFAULT MERGEBLOCKRATIO
+                #                (
+                #                 MATRIX_ID INTEGER,
+                #                 ROW_ID INTEGER,
+                #                 COL_ID INTEGER,
+                #                 CELL_VAL FLOAT)
+                #                PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
 
     #     if(temp!="No Data" || length(temp)!=1)
     #     {
@@ -989,16 +989,16 @@ flag2Check <- function(connection)
 
     #         sqlQuery(connection,
     #                  paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultSparseMatrixTableFL"),", FALLBACK ,
-				# 		     NO BEFORE JOURNAL,
-				# 		     NO AFTER JOURNAL,
-				# 		     CHECKSUM = DEFAULT,
-				# 		     DEFAULT MERGEBLOCKRATIO
-				# 		     (
-				# 		      MATRIX_ID INTEGER,
-				# 		      ROW_ID INTEGER,
-				# 		      COL_ID INTEGER,
-				# 		      CELL_VAL FLOAT)
-			 #    			 PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
+                #            NO BEFORE JOURNAL,
+                #            NO AFTER JOURNAL,
+                #            CHECKSUM = DEFAULT,
+                #            DEFAULT MERGEBLOCKRATIO
+                #            (
+                #             MATRIX_ID INTEGER,
+                #             ROW_ID INTEGER,
+                #             COL_ID INTEGER,
+                #             CELL_VAL FLOAT)
+             #               PRIMARY INDEX ( MATRIX_ID, ROW_ID, COL_ID );"))
     #     }
     #     options(flag2=1)
     # }
@@ -1013,10 +1013,10 @@ flag3Check <- function(connection)
 
     #     temp <- sqlQuery(connection,
     #                      paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"
-	 		# 			 		 ( VECTOR_ID INT,
-	 		# 			 		   VECTOR_INDEX INT,
-	 		# 			 		   VECTOR_VALUE VARCHAR(20) )
-	 		# 			 		   PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
+            #                    ( VECTOR_ID INT,
+            #                      VECTOR_INDEX INT,
+            #                      VECTOR_VALUE VARCHAR(20) )
+            #                      PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
     #     if(temp != TRUE || length(temp)!=1)
     #     {
     #         sqlQuery(connection,
@@ -1024,10 +1024,10 @@ flag3Check <- function(connection)
 
     #         sqlQuery(connection,
     #                  paste0("CREATE TABLE ",getOption("ResultDatabaseFL"),".",getOption("ResultVectorTableFL"),"
-	 		#  		 		( VECTOR_ID INT,
-	 		#  		 		  VECTOR_INDEX INT,
-	 		#  		 		  VECTOR_VALUE VARCHAR(20) )
-	 		#  		 		  PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
+            #               ( VECTOR_ID INT,
+            #                 VECTOR_INDEX INT,
+            #                 VECTOR_VALUE VARCHAR(20) )
+            #                 PRIMARY INDEX (VECTOR_ID, VECTOR_INDEX);" ))
     #     }
     #     options(flag3=1)
     # }
