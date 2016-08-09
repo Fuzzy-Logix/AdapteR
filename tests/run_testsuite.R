@@ -2,8 +2,8 @@ library("optparse")
 
 option_list = list(
     make_option(c("-d", "--directory"),
-                default="/Users/gregor/fuzzylogix/AdapteR/AdapteR", 
-                help="subdirectory to test [default= %default]",
+                default=".", 
+                help="subdirectory to test, if '.', assumes to be run from tests directory [default= %default]",
                 type="character"),
     make_option(c("-H", "--host"),
                 default="jdbc:teradata://10.200.4.116", 
@@ -31,9 +31,14 @@ option_list = list(
 opt_parser = OptionParser(option_list=option_list)
 opt = parse_args(opt_parser)
 
-packagedir <- gsub("^.*/","",opt$directory)
-basedir <- gsub("/[^/]*$","",opt$directory)
 
+if(opt$directory=="."){
+    packagedir <- "."
+    basedir <- ".."
+} else {
+    packagedir <- gsub("^.*/","",opt$directory)
+    basedir <- gsub("/[^/]*$","",opt$directory)
+}
 cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 setwd(basedir)
 devtools::document(packagedir)
