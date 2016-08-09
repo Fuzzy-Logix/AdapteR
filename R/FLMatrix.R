@@ -70,9 +70,11 @@ setClass("FLMatrix",
              select = "FLTableQuery",
              mapSelect  = "FLSelectFrom",
              dimColumns = "character",
+             type       = "character",
              dim = "ANY",
              dimnames = "ANY"
-         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn","valueColumn"))
+         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
+                                 type="double")
          )
 
 #' An S4 class to represent FLTable, an in-database data.frame.
