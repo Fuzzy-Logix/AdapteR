@@ -125,7 +125,6 @@ FLVarCluster.FLTable<-function(x,
 
 		if(!all(t)) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
                    deeptablename,
                    "obs_id_colname",
                    "var_id_colname",

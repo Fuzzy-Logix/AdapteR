@@ -201,8 +201,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     ##database = getOption("ResultDatabaseFL"), 
                     table_name = "fzzlserial",
                     variables = list(obs_id_colname="SERIALVAL"),
-                    whereconditions=paste0(getOption("ResultDatabaseFL"),
-                                           ".fzzlserial.SERIALVAL < ",n+1),
+                    whereconditions=paste0(getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE),".SERIALVAL < ",n+1),
                     order = "")
       flv <- new("FLVector",
                 select=select,
@@ -231,11 +230,9 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       options(FLTestVectorTable=TRUE)
       select <- new("FLSelectFrom",
                     connection = getOption("connectionFL"), 
-                    ## database = getOption("ResultDatabaseFL"), 
                     table_name = vtableName,
                     variables = list(obs_id_colname="vectorIndexColumn"),
-                    whereconditions=paste0(getOption("ResultDatabaseFL"),
-                                          ".",vtableName,".vectorIndexColumn < ",n+1),
+                    whereconditions=paste0(vtableName,".vectorIndexColumn < ",n+1),
                     order = "")
       flv <- new("FLVector",
                   select=select,
@@ -245,25 +242,21 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
   }
   else{
     if(type == "character"){
-      widetable<-FLTable(getOption("ResultDatabaseFL"),"tblAutoMpg","ObsID")
+      widetable<-FLTable(getRemoteTableName(tableName = "tblAutoMpg",temporaryTable = FALSE),"ObsID")
       flv <- widetable[1,rep("CarName",n)]
     }
     else{
       vmaxId <- getMaxVectorId()
       sqlSendUpdate(getOption("connectionFL"),
-                          c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
-                                                ".",getOption("ResultVectorTableFL")," \n ",
+                          c(paste0("INSERT INTO ",getOption("ResultVectorTableFL")," \n ",
                               " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                                 CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                              FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
+                              FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a 
                               WHERE a.serialval < 2 ")))
 
-      table <- FLTable(connection=getOption("connectionFL"),
-                     getOption("ResultDatabaseFL"),
-                     getOption("ResultVectorTableFL"),
-                     "vectorIndexColumn",
-                     whereconditions=paste0(getOption("ResultDatabaseFL"),".",
-                                      getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
+      table <- FLTable(getOption("ResultVectorTableFL"),
+                       "vectorIndexColumn",
+                       whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
                      )
       flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
     }
@@ -337,7 +330,6 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   vtableName <- names(vtemp)[vtemp==type]
   select <- new("FLSelectFrom",
                 connection = getOption("connectionFL"),
-                ##database = getOption("ResultDatabaseFL"),
                 table_name = c(mtrx=vtableName),
                 variables=list(MATRIX_ID="'%insertIDhere%'",
                                rowIdColumn=paste0("mtrx.rowIdColumn"),
@@ -358,11 +350,9 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
 #' @export
 initF.FLTable <- function(rows,cols,...)
 {
-  WideTable <- FLTable(connection=getOption("connectionFL"),
-                      getOption("ResultDatabaseFL"),
-                      "fzzlserial",
-                      "serialval",
-                      whereconditions=paste0(getOption("ResultDatabaseFL"),".fzzlserial.serialval < ",rows+1))
+  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE)),
+                       "serialval",
+                       whereconditions=paste0("serialval < ",rows+1))
   return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
 }
 

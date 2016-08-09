@@ -778,10 +778,8 @@ getMaxId <- function(vdatabase,vtable,vcolName,
 #' @param vconnection ODBC/JDBC connection object
 getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
                             vtable=getOption("ResultMatrixTableFL"),
-                            vdatabase=getOption("ResultDatabaseFL"),
                             ...)
-    getMaxValue(vdatabase=vdatabase,
-                vtable=vtable,
+    getMaxValue(vtable=vtable,
                 vcolName="MATRIX_ID",
                 vconnection=vconnection)+1
 
@@ -794,8 +792,7 @@ getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
 #' @param vdatabase name of the database of table
 #' @param vcolName name of the primary index column in table
 
-getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
-                        vtable=getOption("ResultVectorTableFL"),
+getMaxValue <- function(vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
                         vconnection=getOption("connectionFL"))
 {
@@ -803,8 +800,7 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
                     paste0("SELECT max(",
                            vcolName,")",
                            " FROM ",
-                           getRemoteTableName(vdatabase,
-                                              vtable)))[1,1]
+                           vtable))[1,1]
     if(is.na(R)) return(0)
     else return(R)
 
@@ -816,10 +812,8 @@ getMaxValue <- function(vdatabase=getOption("ResultDatabaseFL"),
 #' @param vconnection ODBC/JDBC connection object
 getMaxVectorId <- function(vconnection = getOption("connectionFL"),
                            vtable=getOption("ResultVectorTableFL"),
-                           vdatabase=getOption("ResultDatabaseFL"),
                            ...)
-    getMaxValue(vdatabase=vdatabase,
-                vtable=vtable,
+    getMaxValue(vtable=vtable,
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
 
