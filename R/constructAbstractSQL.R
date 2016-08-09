@@ -334,11 +334,10 @@ createTable <- function(pTableName,
                         pDatabase=getOption("ResultDatabaseFL"),
                         pSelect=NULL,
                         ...){
-    if(gsub("^[^.]*\\.","",pTableName)!=pTableName){
-        if(gsub("\\.[^.]*$","",pTableName)!=pDatabase)
+    if(getTablename(pTableName)!=pTableName){
+        if(getDatabase(pTableName)!=pDatabase)
             stop(paste0("pTableName specified conflicting database: ", pTableName," =/= ",pDatabase,""))
-        warning(paste0("pTableName should not specify database: ", pTableName," -- was automatically removed"))
-        pTableName <- gsub("^[^.]*\\.","",pTableName)
+        pTableName <- getTablename(pTableName)
     }
     pTableName <- getRemoteTableName(databaseName = pDatabase,
                                      tableName = pTableName,
@@ -450,11 +449,10 @@ createView <- function(pViewName,
                        pSelect,
                        pDatabase=getOption("ResultDatabaseFL"),
                        ...){
-    if(gsub("^[^.]*\\.","",pViewName)!=pViewName){
-        if(gsub("\\.[^.]*$","",pViewName)!=pDatabase)
+    if(getTablename(pViewName)!=pViewName){
+        if(getDatabase(pViewName)!=pDatabase)
             stop(paste0("pViewName specified conflicting database: ", pViewName," =/= ",pDatabase,""))
-        warning(paste0("pViewName should not specify database: ", pViewName," -- was automatically removed"))
-        pViewName <- gsub("^[^.]*\\.","",pViewName)
+        pViewName <- getTablename(pViewName)
     }
     pViewName <- getRemoteTableName(databaseName = pDatabase,
                                     tableName = pViewName,
@@ -516,7 +514,7 @@ insertIntotbl <- function(pTableName,
     else if(!is.null(pSelect)){
         vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
     }
-    print(vsqlstr)
+    ##print(vsqlstr)
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 }
 

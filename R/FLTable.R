@@ -9,7 +9,6 @@ NULL
 #' \code{FLTable} refers to an in-database table. This is equivalent to data.frame object. 
 #' This object is commonly used as input for data mining functions.
 #' @param connection ODBC/JDBC connection object
-#' @param database name of the database
 #' @param table name of the table
 #' @param obs_id_colname column name set as primary key
 #' @param var_id_colname column name where variable id's are stored if \code{FLTable} is deep
@@ -31,12 +30,9 @@ FLTable <- function(table,
                     connection=NULL)
 {
     if(gsub("^[^.]*\\.","",table)!=table){
-        if(gsub("\\.[^.]*$","",table)!=database)
-            warning(paste0("table specified conflicting database: ", table," =/= ",database,""))
-        database <- gsub("\\.[^.]*$","",table)
+        database <- getDatabase(table)
     } else {
         warning(paste0("table should specify database: ", table,""))
-        ##table <- getRemoteTableName(databaseName = database, tableName = table, temporaryTable = FALSE)
     }
     if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
