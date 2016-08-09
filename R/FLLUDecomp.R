@@ -136,7 +136,8 @@ lu.FLMatrix<-function(object,...)
                         SQLquery=sqlstrLU)
 
 	flm <- new("FLMatrix",
-	            select= tblfunqueryobj,
+               select= tblfunqueryobj,
+               dim=dim(object),
 	            dimnames=dimnames(object))
 
   	LUMatrix <- store(object=flm)

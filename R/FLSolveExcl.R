@@ -63,9 +63,11 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
                         SQLquery=sqlstr)
 
   	flm <- new("FLMatrix",
-            select= tblfunqueryobj,
-            dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
-            			  dimnames(object)[[2]][(-1*ExclIdx)]))
+               select= tblfunqueryobj,
+               dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
+                             dimnames(object)[[2]][(-1*ExclIdx)]),
+               dim=dim(object)-1,
+               dimColumns=c("OutputRowNum","OutputColNum","OutputVal"))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object,ExclIdx),

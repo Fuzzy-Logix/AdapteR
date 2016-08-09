@@ -72,7 +72,7 @@ setClass("FLMatrix",
              dimColumns = "character",
              dim = "ANY",
              dimnames = "ANY"
-         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn"))
+         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn","valueColumn"))
          )
 
 #' An S4 class to represent FLTable, an in-database data.frame.

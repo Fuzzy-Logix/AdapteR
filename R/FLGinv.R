@@ -46,7 +46,8 @@ ginv.FLMatrix<-function(object,...)
                         SQLquery=sqlstr)
 
   flm <- new("FLMatrix",
-            select= tblfunqueryobj,
+             select= tblfunqueryobj,
+             dim=dim(object),
             dimnames=dimnames(object))
 
   return(ensureQuerySize(pResult=flm,

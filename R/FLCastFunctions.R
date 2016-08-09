@@ -451,7 +451,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
     dn <- dimnames(object)
     if(any(is.na(c(i,j))))
         browser()
-    values <- valuedf$valueColumn
+    values <- valuedf[[object@dimColumns[[3]]]]
 
   if(is.factor(values))
   return(matrix(values,dim(object),
