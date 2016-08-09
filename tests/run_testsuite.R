@@ -7,23 +7,23 @@ option_list = list(
                 type="character"),
     make_option(c("-H", "--host"),
                 default="jdbc:teradata://10.200.4.116", 
-                help="subdirectory to test [default= %default]",
+                help="Host to connect to or odbj connection name [default= %default]",
                 type="character"),
     make_option(c("-u", "--user"),
                 default="", 
-                help="subdirectory to test [default= %default]",
+                help="credentials, user name [default= %default]",
                 type="character"),
     make_option(c("-p", "--password"),
                 default="", 
-                help="subdirectory to test [default= %default]",
+                help="password [default= %default]",
                 type="character"),
     make_option(c("-D", "--database"),
                 default="Fl_demo", 
-                help="subdirectory to test [default= %default]",
+                help="database [default= %default]",
                 type="character"),
     make_option(c("-J", "--jarDir"),
                 default="/Users/gregor/fuzzylogix/Teradata/jdbc", 
-                help="subdirectory to test [default= %default]",
+                help="directory with jar files to load [default= %default]",
                 type="character")
 )
 
@@ -41,30 +41,34 @@ if(opt$directory=="."){
 }
 cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 setwd(basedir)
-devtools::document(packagedir)
 devtools::load_all(packagedir)
 
-connection <-
-    flConnect(
-        host     = opt$host,
-        database = opt$database,
-        user = opt$user,
-        passwd = opt$password,
-        ## set jdbc.jarsDir to add jdbc driver
-        ## and security jars to classpath:
-        ##    terajdbc4.jar tdgssconfig.jar
-        ## CAVE: fully qualified PATH required
-        jdbc.jarsDir = opt$jarDir,
-        driverClass = "com.teradata.jdbc.TeraDriver",
-        debug=T,
-        verbose=TRUE)
-require(testthat)
+if(grepl("^jdbc",opt$host)){
+    connection <-
+        flConnect(
+            host     = opt$host,
+            database = opt$database,
+            user = opt$user,
+            passwd = opt$password,
+            ## set jdbc.jarsDir to add jdbc driver
+            ## and security jars to classpath:
+            ##    terajdbc4.jar tdgssconfig.jar
+            ## CAVE: fully qualified PATH required
+            jdbc.jarsDir = opt$jarDir,
+            driverClass = "com.teradata.jdbc.TeraDriver",
+            debug=T,
+            verbose=TRUE)
+} else {
+    connection <- flConnect(odbcSource=opt$host,
+              database=opt$database,
+              platform="TD")
+}
 
 setupls <- ls()
+setwd(paste0(packagedir,"/tests"))
+cat(paste0("Running tests from tests directory",getwd(),"\n"))
 
-source(paste0(opt$directory,"/tests/alltests.R"))
-
-setwd(opt$directory)
+source("alltests.R")
 rm(list=setupls)
 ls()
 sha <- system2("git", c("log", "--pretty=format:'%h'", "-n","1"),stdout = TRUE)

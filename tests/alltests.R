@@ -30,15 +30,15 @@ runMyTestFile <- function(f, ask=FALSE, skip=NULL,...){
 drop3ok <- "stringdist|t_r$|_trace$|_transpose|_var$|MatrixRepres|WeightedMean|clustering|"
 results <- list()
 results$testsuite <- llply(
-    find_test_scripts("AdapteR/tests/testsuite"),
+    find_test_scripts("testsuite"),
     runMyTestFile,
     ask=FALSE)
 
 results$testthat <- llply(
-    find_test_scripts("AdapteR/tests/testthat"),
+    find_test_scripts("testthat"),
     runMyTestFile,
     ask=FALSE)
 
-results$limitations <- llply(find_test_scripts("AdapteR/tests/limitations"),
+results$limitations <- llply(find_test_scripts("limitations"),
       runMyTestFile)
 
