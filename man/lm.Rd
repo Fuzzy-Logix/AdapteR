@@ -50,6 +50,10 @@ parameter PerformVarReduc = 1. Must be >0 and <=1.}
 \description{
 \code{lm} performs linear regression on FLTable objects.
 }
+\details{
+The DB Lytix function called is FLLinRegr. Performs Linear Regression and 
+stores the results in predefined tables.
+}
 \section{Constraints}{
 
 The anova method is not yet available for FLLinRegr
@@ -81,5 +85,8 @@ lmfit <- lm(vformula,
            data=flMDObject)
 coeffList <- coef(lmfit)
 summaryList <- summary(lmfit)
+}
+\seealso{
+\code{\link[stats]{lm}} for R reference implementation.
 }
 

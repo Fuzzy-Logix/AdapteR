@@ -12,7 +12,6 @@ An S4 class to represent output from Linear Regression(lm) on in-database Object
 \describe{
 \item{\code{offset}}{column name used as offset}
 
-\item{\code{vfcalls}}{information about system tables
-and in-database procedures called during execution}
+\item{\code{vfcalls}}{information about system tables}
 }}
 

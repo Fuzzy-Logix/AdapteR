@@ -163,4 +163,7 @@ s <- step(deeptable2,
          direction = "UFbackward",familytype = "multinomial",pRefLevel=1)
 summary(s)
 }
+\seealso{
+\code{\link[stats]{step}} for R reference implementation.
+}
 
