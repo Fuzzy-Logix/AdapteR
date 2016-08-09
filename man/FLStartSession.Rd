@@ -5,15 +5,15 @@
 \title{Starts Session and Creates temp Tables for result storage}
 \usage{
 FLStartSession(connection, database = getOption("ResultDatabaseFL"),
-  persistent = FALSE, drop = FALSE, debug = FALSE, tableoptions = NULL,
-  ...)
+  temporaryTables = TRUE, drop = FALSE, debug = FALSE,
+  tableoptions = NULL, ...)
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection object}
 
 \item{database}{name of current database}
 
-\item{persistent}{NULL if result tables are to be created as volatile tables}
+\item{temporaryTables}{TRUE if result tables are to be created as volatile tables}
 
 \item{drop}{logical to specify to drop result tables if already existing}
 

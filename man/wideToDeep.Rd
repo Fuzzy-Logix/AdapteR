@@ -5,7 +5,7 @@
 \title{Convert Wide Table to Deep Table in database.}
 \usage{
 wideToDeep(object, excludeCols, classSpec, whereconditions, outDeepTableName,
-  outDeepTableDatabase, outObsIDCol, outVarIDCol, outValueCol)
+  outObsIDCol, outVarIDCol, outValueCol)
 }
 \arguments{
 \item{object}{FLTable object}
@@ -16,9 +16,7 @@ wideToDeep(object, excludeCols, classSpec, whereconditions, outDeepTableName,
 
 \item{whereconditions}{character vector giving where conditions if any to reference the wide table}
 
-\item{outDeepTableName}{name to be given to the output deep table}
-
-\item{outDeepTableDatabase}{name of database to store the output deep table}
+\item{outDeepTableName}{name to be given to the output deep table, possibly with database}
 
 \item{outObsIDCol}{name to give to the primary key column name of the output deep table}
 

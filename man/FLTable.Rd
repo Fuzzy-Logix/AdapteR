@@ -4,13 +4,11 @@
 \alias{FLTable}
 \title{Constructor function for FLTable.}
 \usage{
-FLTable(database, table, obs_id_colname, var_id_colnames = character(0),
+FLTable(table, obs_id_colname, var_id_colnames = character(0),
   cell_val_colname = character(0), whereconditions = character(0),
   connection = NULL)
 }
 \arguments{
-\item{database}{name of the database}
-
 \item{table}{name of the table}
 
 \item{obs_id_colname}{column name set as primary key}
@@ -20,6 +18,8 @@ FLTable(database, table, obs_id_colname, var_id_colnames = character(0),
 \item{whereconditions}{whereconditions if any to reference the table}
 
 \item{connection}{ODBC/JDBC connection object}
+
+\item{database}{name of the database}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTable} is deep}
 }

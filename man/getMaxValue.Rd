@@ -4,18 +4,17 @@
 \alias{getMaxValue}
 \title{Get Max ID from given table}
 \usage{
-getMaxValue(vdatabase = getOption("ResultDatabaseFL"),
-  vtable = getOption("ResultVectorTableFL"), vcolName = "vectorIdColumn",
-  vconnection = getOption("connectionFL"))
+getMaxValue(vtable = getOption("ResultVectorTableFL"),
+  vcolName = "vectorIdColumn", vconnection = getOption("connectionFL"))
 }
 \arguments{
-\item{vdatabase}{name of the database of table}
-
 \item{vtable}{name of the table}
 
 \item{vcolName}{name of the primary index column in table}
 
 \item{vconnection}{ODBC/JDBC connection object}
+
+\item{vdatabase}{name of the database of table}
 }
 \description{
 used to know ID of last entry in table

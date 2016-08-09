@@ -26,8 +26,7 @@ Complex Eigen values and vectors are not Supported.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO", 
-"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- eigen(flmatrix)
 resultList$values
 resultList$vectors

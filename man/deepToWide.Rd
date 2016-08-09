@@ -4,8 +4,8 @@
 \alias{deepToWide}
 \title{Convert Deep Table to Wide Table}
 \usage{
-deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
-  outWideTableName, Analysisid)
+deepToWide(object, whereconditions, mapTable, mapName, outWideTableName,
+  Analysisid)
 }
 \arguments{
 \item{object}{FLTable object to convert to wide table}
@@ -15,8 +15,6 @@ deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
 \item{mapTable}{name of the in-database table containing mapping information to be used in conversion if any}
 
 \item{mapName}{unique identifier for the mapping information in mapping table if any}
-
-\item{outWideTableDatabase}{name of database where output wide table is to be stored}
 
 \item{outWideTableName}{name to give to the output wide table}
 }

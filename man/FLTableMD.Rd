@@ -4,13 +4,11 @@
 \alias{FLTableMD}
 \title{Constructor function for FLTableMD.}
 \usage{
-FLTableMD(database, table, group_id_colname, obs_id_colname,
+FLTableMD(table, group_id_colname, obs_id_colname,
   var_id_colnames = character(0), cell_val_colname = character(0),
   connection = NULL, group_id = c())
 }
 \arguments{
-\item{database}{name of the database}
-
 \item{table}{name of the table}
 
 \item{group_id_colname}{column name identifying the datasets}
@@ -21,6 +19,8 @@ FLTableMD(database, table, group_id_colname, obs_id_colname,
 
 \item{group_id}{vector of dataset IDs'to be considered.
 Default is all those contained in the table}
+
+\item{database}{name of the database}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTableMD} is deep}
 }
@@ -37,13 +37,11 @@ This object is commonly used as input for some data mining functions
 which operate parallelly on all the datasets
 }
 \examples{
-widetableMD <- FLTableMD(database="FL_DEMO",
-                      table="tblAutoMPGMD",
+widetableMD <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
                       group_id_colname="GroupID",
                       obs_id_colname="ObsID",
                       group_id = c(2,4))
-deeptableMD <- FLTableMD(database="FL_DEMO",
-                      table="LinRegrMultiMD",
+deeptableMD <- FLTableMD(table="FL_DEMO.LinRegrMultiMD",
                       group_id_colname="DatasetID",
                       obs_id_colname="ObsID",
                       var_id_colname="VarID",
