@@ -31,6 +31,14 @@ FLTable <- function(table,
                     whereconditions=character(0),
                     connection=NULL)
 {
+    if(gsub("^[^.]*\\.","",table)!=table){
+        if(gsub("\\.[^.]*$","",table)!=database)
+            warning(paste0("table specified conflicting database: ", table," =/= ",database,""))
+        database <- gsub("\\.[^.]*$","",table)
+    } else {
+        warning(paste0("table should specify database: ", table,""))
+        ##table <- getRemoteTableName(databaseName = database, tableName = table, temporaryTable = FALSE)
+    }
     if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
@@ -96,12 +104,12 @@ FLTable <- function(table,
 	{
         
         R <- sqlQuery(connection,
-                      limitRowsSQL(paste0("select * from ",table),1))
+                      limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
         rows <- sort(as.numeric(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID
-						  FROM ",table,
+						  FROM ",tableAndAlias(table),
                           " ",constructWhere(whereconditions)))$VarID))
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
