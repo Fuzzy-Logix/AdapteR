@@ -888,8 +888,7 @@ as.FLTable.data.frame <- function(object,
       # sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
       # if (getOption("debugSQL")) cat(sql)
       # t<-RJDBC::dbSendUpdate(connection,sql)
-      if(!all(t)) stop(paste0("colnames unconvenional. Error \n"))
-      updateMetaTable(pTableName=tableName,
+      updateMetaTable(pTableName=t,
                     pType="wideTable")
     }
     

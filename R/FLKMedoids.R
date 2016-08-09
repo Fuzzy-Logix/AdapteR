@@ -209,7 +209,6 @@ pam.FLTable <- function(x,
 		deeptablename1 <- createView(pViewName=gen_view_name("New"),
                                      pSelect=paste0("SELECT * FROM ", deeptablename,constructWhere(whereconditions)))	
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
                    deeptablename1,

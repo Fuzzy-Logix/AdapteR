@@ -110,7 +110,6 @@ FLVarCluster.FLTable<-function(x,
 		deeptablename <- createView(pViewName=gen_view_name("New"),
                                             pSelect=constructSelect(x))
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
                    deeptablename,
                    "obs_id_colname",

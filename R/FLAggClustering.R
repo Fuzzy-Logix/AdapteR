@@ -195,7 +195,7 @@ agnes.FLTable <- function(x,
 			)
 
 		## if(!all(t)) stop("Input Table and whereconditions mismatch") ##gk @ phani: what was this for?  I moved it into creatView
-		deepx <- FLTable(table=t,
+		deepx <- FLTable(table=deeptablename,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
