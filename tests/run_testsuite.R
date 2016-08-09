@@ -34,7 +34,7 @@ opt = parse_args(opt_parser)
 packagedir <- gsub("^.*/","",opt$directory)
 basedir <- gsub("/[^/]*$","",opt$directory)
 
-cat(paste0("Trying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
+cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 setwd(basedir)
 devtools::document(packagedir)
 devtools::load_all(packagedir)
