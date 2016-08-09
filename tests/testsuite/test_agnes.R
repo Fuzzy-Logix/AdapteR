@@ -5,6 +5,8 @@ Renv$x <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
 
 FLenv <- as.FL(Renv)
 
+x <- FLenv$x
+
 test_that("agnes components dimensions for average method ",{
   eval_expect_equal({
       agn1 <- agnes(x)

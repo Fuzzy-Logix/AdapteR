@@ -32,7 +32,8 @@ results <- list()
 results$testsuite <- llply(
     find_test_scripts("testsuite"),
     runMyTestFile,
-    ask=FALSE)
+    ask=FALSE,
+    skip="agnes")
 
 results$testthat <- llply(
     find_test_scripts("testthat"),
