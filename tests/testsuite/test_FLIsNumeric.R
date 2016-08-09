@@ -17,7 +17,7 @@ test_that("Check correct result for FLIsNumeric ",{
 
 
 test_that("Check for FLIsNumeric function",{
-         widetable  <- FLTable(getOption("ResultDatabaseFL"), "tblAutoMpg", "ObsID")
+         widetable  <- FLTable(getRemoteTableName(tableName="tblAutoMpg", temporaryTable=FALSE), "ObsID")
          flv <- widetable[1:6,"CarName"]
          resultflvector <- FLIsNumeric(flv)
        })

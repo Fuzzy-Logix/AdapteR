@@ -161,23 +161,20 @@ agnes.FLTable <- function(x,
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name()
-		deeptablename <- createView(pViewName=deeptablename,
+		deeptablename <- createView(pViewName=gen_view_name(),
                                     pSelect=constructSelect(x))	
 
-		deeptablename1 <- gen_deep_table_name("New")
+		 
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#" AS \n SELECT * FROM ",getOption("ResultDatabaseFL"),".",
 		#deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
 
-		t<-createView(pViewName=deeptablename1,
+		deeptablename1<-createView(pViewName=gen_deep_table_name("New"),
 			pSelect=paste0("SELECT * FROM ",
 			deeptablename,constructWhere(whereconditions)
 				)
 			)
-
-		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(table=t,
                    "obs_id_colname",
@@ -189,12 +186,11 @@ agnes.FLTable <- function(x,
 	else
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
-		deeptablename <- gen_deep_table_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS \n ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
 
-		t<-createView(pViewName=deeptablename,
+		deeptablename <- createView(pViewName=gen_deep_table_name("New"),
 			pSelect=constructSelect(x)
 			)
 

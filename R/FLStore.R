@@ -91,7 +91,6 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
                             getOption("ResultIntMatrixTableFL"),
                             getOption("ResultCharMatrixTableFL"))
         vtableName1 <- as.character(names(vmapping)[vtemp==vmapping])
-        vdatabase1 <- getOption("ResultDatabaseFL")
         MID1 <- getMaxMatrixId(vtable=vtableName1,vdatabase=NULL)
 
         object <- orderVariables(object,
@@ -170,7 +169,6 @@ store.FLVector <- function(object,pTableName=NULL,...)
                         getOption("ResultIntVectorTableFL"),
                         getOption("ResultCharVectorTableFL"))
     vtableName1 <- as.character(names(vmapping)[vtemp==vmapping])
-    vdatabase1 <- getOption("ResultDatabaseFL")
     VID1 <- getMaxVectorId(vtable=vtableName1,vdatabase=NULL)
 
   if(!is.null(pTableName)){
@@ -205,7 +203,6 @@ store.FLVector <- function(object,pTableName=NULL,...)
   #                 vSqlStr)
   select <- new("FLSelectFrom",
                 connection = connection, 
-                ##database = vdatabase1, 
                 table_name = vtableName1,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),

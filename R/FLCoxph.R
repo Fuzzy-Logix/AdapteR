@@ -236,35 +236,26 @@ prepareData.coxph <- function(formula,data,
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					"fzzlRegrDataPrepMap")
+		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name("")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#					".",deeptablename," AS ",constructSelect(data))
 		#sqlSendUpdate(connection,sqlstr)
 
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
-			pSelect=constructSelect(data)
+		deeptablename <- createView(pViewName=gen_view_name(""),
+                                    pSelect=constructSelect(data)
 			)
-		deeptablename1 <- gen_view_name("New")
+		
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 		#				constructWhere(whereconditions))
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
-					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
-					constructWhere(whereconditions)
-						)	
-					)
+		deeptablename1 <- createView(pViewName=gen_view_name("New"),
+                                     pSelect=paste0("SELECT * FROM ",deeptablename,
+                                                    constructWhere(whereconditions)))
 
-		t <- sqlQuery(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
-
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename1,
+		deepx <- FLTable(deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
@@ -277,22 +268,19 @@ prepareData.coxph <- function(formula,data,
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
-			deeptablename <- gen_view_name("New")
+			
 			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 			#				deeptablename," AS ",constructSelect(data))
 			#t <- sqlQuery(connection,sqlstr)
 			
-			t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptable),
-						pSelect=constructSelect(data)
-						)
+			deeptablename <- createView(pViewName=gen_view_name("New"),
+                                        pSelect=constructSelect(data))
 
-			if(!all(t)) stop("Input Table and whereconditions mismatch")
 			deepx <- FLTable(
-	                   getOption("ResultDatabaseFL"),
-	                   deeptablename,
-	                   "obs_id_colname",
-	                   "var_id_colname",
-	                   "cell_val_colname")
+	                   table=deeptablename,
+	                   obs_id_colname="obs_id_colname",
+	                   var_id_colname="var_id_colname",
+	                   cell_val_colname="cell_val_colname")
 		}
 		whereconditions <- ""
 	}
@@ -473,10 +461,8 @@ predict.FLCoxPH <-function(object,
 		if(!is.null(object@results[["linear.predictors"]]))
 		return(object@results[["linear.predictors"]])
 
-		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-							gen_score_table_name(object@table@select@table_name))
-		survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",
-								gen_score_table_name("surv"))
+		scoreTable <- getRemoteTableName(tableName = gen_score_table_name(object@table@select@table_name), temporaryTable = FALSE)
+		survivalCurveTable <- getRemoteTableName(tableName = gen_score_table_name("surv"), temporaryTable = FALSE)
 
 		vtemp <- predict(object,
 						newdata=object@deeptable,

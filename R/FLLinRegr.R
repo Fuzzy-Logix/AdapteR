@@ -887,8 +887,7 @@ prepareData.lmGeneric <- function(formula,data,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					"fzzlRegrDataPrepMap")
+		mapTable <- getRemoteTableName(tableName="fzzlRegrDataPrepMap", temporaryTable=FALSE)
 		if(familytype=="poisson")
 		{
 			vtablename <- deepx@select@table_name
@@ -922,27 +921,22 @@ prepareData.lmGeneric <- function(formula,data,
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name("")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#					".",deeptablename," AS ",constructSelect(data))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
-					pSelect=constructSelect(data))
+		deeptablename <- createView(pViewName=gen_view_name(""),
+                                    pSelect=constructSelect(data))
 
-		deeptablename1 <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
 		#				constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
-					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+		deeptablename1<-createView(pViewName=gen_view_name("New"),
+					pSelect=paste0("SELECT * FROM ",deeptablename,
 										constructWhere(whereconditions)))
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:")
 
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename1,
+		deepx <- FLTable(deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
@@ -958,19 +952,14 @@ prepareData.lmGeneric <- function(formula,data,
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
-			deeptablename <- gen_view_name("New")
 
 			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 			#				deeptablename," AS ",constructSelect(data))
 			#t <- sqlSendUpdate(connection,sqlstr)
-			t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),
-														deeptablename),
-						pSelect=constructSelect(data))			
+			deeptablename<-createView(pViewName=gen_view_name("New"),
+                                      pSelect=constructSelect(data))			
 
-			if(!all(t)) stop("Input Table and whereconditions mismatch")
-			deepx <- FLTable(
-	                   getOption("ResultDatabaseFL"),
-	                   deeptablename,
+			deepx <- FLTable(deeptablename,
 	                   "obs_id_colname",
 	                   "var_id_colname",
 	                   "cell_val_colname")
@@ -1002,8 +991,8 @@ prepareData.lmGeneric <- function(formula,data,
 	{
 		vspecID <- genRandVarName()
 		sqlstr <- c()
-		vspecIDTable <- ifelse(familytype=="linear","fzzlLinRegrModelVarSpec",
-									"fzzlLogRegrModelVarSpec")
+		vspecIDTable <- getRemoteTableName(tableName=ifelse(familytype=="linear","fzzlLinRegrModelVarSpec",
+                                                            "fzzlLogRegrModelVarSpec"),temporaryTable=FALSE)
 		if(!is.null(specID[["include"]]))
 		{
 			#browser()
@@ -1012,8 +1001,7 @@ prepareData.lmGeneric <- function(formula,data,
 			if(is.null(vinclude) || length(vinclude) < 1)
 			stop("columns in lower are not in deeptable.",
 				" Might be due to variable reduction during data preparation")
-			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
-						".",vspecIDTable," VALUES(",fquote(vspecID),",",
+			sqlstr <- c(sqlstr,paste0("INSERT INTO ", vspecIDTable," VALUES(",fquote(vspecID),",",
 							vinclude,",","'I')"))
 		}
 		if(!is.null(specID[["exclude"]]))
@@ -1021,12 +1009,11 @@ prepareData.lmGeneric <- function(formula,data,
 			vexclude <- vmapping[charmatch(specID[["exclude"]],names(vmapping))]
 			vexclude <- vexclude[!is.na(vexclude)]
 			if(length(vexclude)>0 && vexclude!="")
-			sqlstr <- c(sqlstr,paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
-						".",vspecIDTable," VALUES(",fquote(vspecID),",",
+			sqlstr <- c(sqlstr,paste0("INSERT INTO ",vspecIDTable," VALUES(",fquote(vspecID),",",
 							vexclude,",","'X')"))
 		}
 		if(!is.null(sqlstr))
-		t <- sqlQuery(getOption("connectionFL"),paste0(sqlstr,collapse=";"))
+                    t <- sqlSendUpdate(getOption("connectionFL"),paste0(sqlstr,collapse=";"))
 	}
 
 	return(list(deepx=deepx,

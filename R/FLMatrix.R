@@ -425,12 +425,11 @@ FLamendDimnames <- function(flm,map_table) {
 #' to an in-database matrix.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", "tblMatrixMulti",
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti",
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
-FLMatrix <- function(database=NULL,
-                     table_name,
+FLMatrix <- function(table_name,
                      matrix_id_value = "",
                      matrix_id_colname = "",
                      row_id_colname = "rowIdColumn",
@@ -442,8 +441,6 @@ FLMatrix <- function(database=NULL,
                      whereconditions=c(""),
                      map_table=NULL,
                      connection=getOption("connectionFL")){
-    if(!is.null(database))
-        table_name <- getRemoteTableName(databaseName = database, tableName = table_name)
   ## If alias already exists, change it to flt.
     if(length(names(table_name))>0)
     oldalias <- names(table_name)[1]
@@ -474,9 +471,7 @@ FLMatrix <- function(database=NULL,
         length(dimnames[[2]])>0 )&& 
         length(map_table)==0)
       {
-        remoteTable <- getRemoteTableName(
-                getOption("ResultDatabaseFL"),
-                getOption("NameMapTableFL"))
+        remoteTable <- getOption("NameMapTableFL")
 
         t<-sqlSendUpdate(connection,
                       paste0(" DELETE FROM ",remoteTable,

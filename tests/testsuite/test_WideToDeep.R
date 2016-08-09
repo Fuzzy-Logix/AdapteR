@@ -1,14 +1,13 @@
 table1<-initF.FLTable(rows = 100,col = 2)
 
-table2<-FLTable(database = getOption("ResultDatabaseFL"),
-                table= "tblAutoMpg",
+
+table2<-FLTable(table= "tblAutoMpg",
                 obs_id_colname = "ObsID")
 
-table3<-FLTable(database = getOption("ResultDatabaseFL"),
-               table= "tblUSArrests",
-                 obs_id_colname = "OBSID",
-                  var_id_colname = "VarID",
-                  cell_val_colname ="Num_Val")
+table3<-FLTable(table= "tblUSArrests",
+                obs_id_colname = "OBSID",
+                var_id_colname = "VarID",
+                cell_val_colname ="Num_Val")
 
 
 #Test Failed.

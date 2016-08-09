@@ -575,8 +575,7 @@ NULL
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
 #' @export
@@ -637,8 +636,7 @@ NULL
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
 #' @export
@@ -699,8 +697,7 @@ NULL
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
 #' @export

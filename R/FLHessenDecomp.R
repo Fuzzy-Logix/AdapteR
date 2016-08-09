@@ -16,8 +16,7 @@ NULL
 #'       \item{H}{FLMatrix representing H matrix obtained from Hessenberg decomposition}
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
@@ -33,7 +32,6 @@ FLHessen.FLMatrix<-function(object,...)
 	connection<-getConnection(object)
 	flag1Check(connection)
 
-	tempResultTable <- gen_unique_table_name("Hessen")
 
     sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),
@@ -44,34 +42,32 @@ FLHessen.FLMatrix<-function(object,...)
                    )
 
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-
+	
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object),
 	            pOperator="FLHessen")
 
-    createTable(pTableName=tempResultTable,
-                pSelect=sqlstr)
+    tempResultTable <- createTable(pTableName=gen_unique_table_name("Hessen"),
+                                   pSelect=sqlstr)
 
-	PMatrix <- FLMatrix(
-				       connection = connection, 
+	PMatrix <- FLMatrix(connection = connection, 
 				       table_name = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
 					   row_id_colname = "OutputRowNum", 
 					   col_id_colname = "OutputColNum", 
 					   cell_val_colname = "OutputPVal",
-					   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputPVal IS NOT NULL ")
+					   whereconditions=paste0(tempResultTable,".OutputPVal IS NOT NULL ")
 					   )
 
-	HMatrix <- FLMatrix(
-				       connection = connection, 
+	HMatrix <- FLMatrix(connection = connection, 
 				       table_name = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
 					   row_id_colname = "OutputRowNum", 
 					   col_id_colname = "OutputColNum", 
 					   cell_val_colname = "OutputHVal",
-					   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputHVal IS NOT NULL ")
+					   whereconditions=paste0(tempResultTable,".OutputHVal IS NOT NULL ")
 		             )
 
 		result<-list(P = PMatrix,

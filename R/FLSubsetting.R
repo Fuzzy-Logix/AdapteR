@@ -17,8 +17,7 @@ NULL
 #' may result in error
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
@@ -148,8 +147,7 @@ NULL
       if(ncol(object)==1 && 
         (!all(vrownames==(1:nrow(object)))))
       {
-        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("NameMapTableFL"),
+        MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newrownames <- storeVarnameMapping(connection=getOption("connectionFL"),
@@ -166,8 +164,7 @@ NULL
       else if(object@isDeep && nrow(object)==1 &&
         (!all(vcolnames==(1:ncol(object)))))
       {
-        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("NameMapTableFL"),
+        MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newcolnames <- storeVarnameMapping(connection=getOption("connectionFL"),
@@ -334,8 +331,7 @@ NULL
 
         if(length(pSet)==1 && object@dimnames[[1]]!=1)
         {
-          MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-              vtable=getOption("NameMapTableFL"),
+          MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
@@ -432,8 +428,7 @@ NULL
         mapselect <- NULL
       }
       else{
-        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-              vtable=getOption("NameMapTableFL"),
+        MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 

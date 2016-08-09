@@ -19,8 +19,7 @@ NULL
 #' are supported.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' Result <- identical(flmatrix,flmatrix)
 #' Result <- identical(Rvector,as.FLVector(Rvector,connection))
@@ -174,8 +173,7 @@ NULL
 #' RVector==FLVector
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' flvector <- as.FLVector(1:5)
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector

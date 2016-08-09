@@ -17,7 +17,7 @@ rbind.default <- base::rbind
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix("FL_TRAIN.tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export
 rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)

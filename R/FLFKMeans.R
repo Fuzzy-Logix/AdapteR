@@ -185,8 +185,6 @@ fanny.FLTable <- function(x,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					gen_wide_table_name("map"))
 
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID,
 			    	     	    a.COLUMN_NAME AS ColumnName,
@@ -195,33 +193,28 @@ fanny.FLTable <- function(x,
 			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
 			    	     AND a.Final_VarID IS NOT NULL ")
 		
-		createTable(pTableName=mapTable,
-					pSelect=sqlstr)
+		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
+                                pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name("")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS \n ",constructSelect(x))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
-					pSelect=constructSelect(x))
+		deeptablename <- createView(pViewName=gen_view_name(""),
+                                    pSelect=constructSelect(x))
 
-		deeptablename1 <- gen_view_name("New")
+		
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#				" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
 		
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
-					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),
-					".",deeptablename,constructWhere(whereconditions))
+		deeptablename1<-createView(pViewName=gen_view_name("New"),
+					pSelect=paste0("SELECT * FROM ", deeptablename,constructWhere(whereconditions))
 					)
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
-
 		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
                    deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
@@ -233,16 +226,13 @@ fanny.FLTable <- function(x,
 	else
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
-		deeptablename <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS  \n ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
-					pSelect=constructSelect(x))
+		deeptablename<-createView(pViewName=gen_view_name("New"),
+                                  pSelect=constructSelect(x))
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
                    deeptablename,
                    "obs_id_colname",
                    "var_id_colname",
@@ -599,7 +589,7 @@ silinfo.FLFKMeans <- function(object){
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		a <- paste0(genRandVarName(),"1")
 		b <- paste0(genRandVarName(),"2")
-		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
+		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3")) ## gk: refactor!
 		d <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 		e <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("5"))
 

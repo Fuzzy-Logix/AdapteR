@@ -244,9 +244,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         #                      x=0))
         MID <- getMaxMatrixId(vconnection=connection,
                               vtable=tablename)
-        remoteTable <- getRemoteTableName(
-            getOption("ResultDatabaseFL"),
-            tablename)
+        remoteTable <- tablename
 
         #analysisID <- paste0("AdapteR",remoteTable,MID)
         if(class(connection)=="RODBC")
@@ -450,10 +448,10 @@ as.sparseMatrix.FLMatrix <- function(object) {
     i <- FLIndexOf(i,rownames(object))
     j <- FLIndexOf(j,colnames(object))
 
-  dn <- dimnames(object)
+    dn <- dimnames(object)
     if(any(is.na(c(i,j))))
         browser()
-  values <- valuedf$valueColumn
+    values <- valuedf$valueColumn
 
   if(is.factor(values))
   return(matrix(values,dim(object),
@@ -697,7 +695,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   if(class(connection)=="RODBC")
   {
     sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
-           getRemoteTableName(getOption("ResultDatabaseFL"),tablename),
+           tablename,
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
                      ifelse(tablename==getOption("ResultCharVectorTableFL"),
@@ -722,8 +720,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
-                whereconditions=paste0(getOption("ResultDatabaseFL"),".",
-                  tablename,".vectorIdColumn = ",VID),
+                whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
                 order = "")
 
   return(new("FLVector",
@@ -743,9 +740,7 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   {
     sqlstr <- sqlstr[sqlstr!=""]
     sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-    vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(getOption("ResultDatabaseFL"),
-                                     getOption("ResultVectorTableFL")),
+    vSqlStr <- paste0(" INSERT INTO ",getOption("ResultVectorTableFL"),
                     "\n",
                    gsub("'%insertIDhere%'",VID,sqlstr),
                     "\n")
@@ -786,12 +781,10 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
     batchStore(sqlstr)
     sqlstr <- ""
     table <- FLTable(connection = getConnection(object),
-                   getOption("ResultDatabaseFL"),
-                   getOption("ResultVectorTableFL"),
-                   "vectorIndexColumn",
-                   whereconditions=paste0(getOption("ResultDatabaseFL"),
-                    ".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
-                  )
+                     table=getOption("ResultVectorTableFL"),
+                     obs_id_colname="vectorIndexColumn",
+                     whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
+                     )
 
     return(table[,"vectorValueColumn"])
 }
@@ -886,8 +879,7 @@ as.FLTable.data.frame <- function(object,
     if(drop)
     {
       if(RJDBC::dbExistsTable(connection,tableName))
-      t<-sqlSendUpdate(connection,paste0("drop table ",
-                    getOption("ResultDatabaseFL"),".",tableName,";"))
+      t<-sqlSendUpdate(connection,paste0("drop table ",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       t <- createTable(pTableName=tableName,
                       pColNames=names(vcolnamesCopy),

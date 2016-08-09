@@ -16,8 +16,7 @@ NULL
 #' upper triangular factor of the Cholesky decomposition
 #' @examples
 #' connection<-RODBC::odbcConnect("Gandalf")
-#' flmatrix<-FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix<-FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- chol(flmatrix)
 #' @export
 chol <- function (object, ...){

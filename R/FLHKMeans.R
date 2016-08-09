@@ -143,8 +143,6 @@ hkmeans.FLTable<-function(x,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					gen_wide_table_name("map"))
 
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID, \n ",
 			    	     	" a.COLUMN_NAME AS ColumnName, \n ",
@@ -153,22 +151,18 @@ hkmeans.FLTable<-function(x,
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
 		
-		createTable(pTableName=mapTable,
-					pSelect=sqlstr)
+		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
+                                pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name(x@select@table_name)
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename," AS \n ",
 		#				constructSelect(x))
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
-					pSelect=constructSelect(x))
+		deeptablename <- createView(pViewName=gen_view_name(x@select@table_name),
+                                    pSelect=constructSelect(x))
 
-		sqlSendUpdate(connection,sqlstr)
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename,
+		deepx <- FLTable(deeptablename,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"

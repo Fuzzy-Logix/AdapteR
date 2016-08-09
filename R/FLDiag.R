@@ -14,8 +14,7 @@ NULL
 #'   If x is FLVector, the value is a diagonal square FLMatrix with diagonal elements as given in FLVector.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- diag(flmatrix)
 #' DeepTable <- FLTable( "FL_DEMO", "tblUSArrests","ObsID")
 #' flvectorDeep <- DeepTable[1:5,1]
@@ -66,8 +65,7 @@ diag.FLVector <- function(object,...)
 
         sqlstr <- paste(sapply(1:value,FUN=function(i)
             paste0(" INSERT INTO ",
-                   getRemoteTableName(getOption("ResultDatabaseFL"),
-                    getOption("ResultMatrixTableFL")),
+                   getOption("ResultMatrixTableFL"),
                    " SELECT ",MID,",",
                    i,",",
                    i,",",
@@ -111,8 +109,7 @@ diag.FLVector <- function(object,...)
                     vpatch <- paste0(getAlias(object),".")
                     else vpatch <- ""
                     paste0(" INSERT INTO ",
-                           getRemoteTableName(getOption("ResultDatabaseFL"),
-                            getOption("ResultMatrixTableFL")),
+                           getOption("ResultMatrixTableFL"),
                            " SELECT ",MID,",",
                            i,",",
                            i,",",
