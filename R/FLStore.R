@@ -146,7 +146,8 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
             col_id_colname = "colIdColumn", 
             cell_val_colname = "valueColumn",
             dim=dim(object),
-            dimnames=dimnames(object)
+            dimnames=dimnames(object),
+            type=typeof(object)
             ))
     }
 }
@@ -215,7 +216,8 @@ store.FLVector <- function(object,pTableName=NULL,...)
   return(new("FLVector",
                 select=select,
                 dimnames=list(vindex,"vectorValueColumn"),
-                isDeep=FALSE))
+                isDeep=FALSE,
+                type=typeof(object)))
 }
 
 #' @export
@@ -252,13 +254,15 @@ store.FLTable <- function(object,pTableName=NULL,...)
                    vtableName,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
+                   "cell_val_colname",
+                   type=typeof(object)
                   )
   else
   table <- FLTable(
                    vdatabase,
                    vtableName,
-                   "obs_id_colname"
+                   "obs_id_colname",
+                   type=typeof(object)
                   )
   return(table)
 }

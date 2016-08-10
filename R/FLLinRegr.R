@@ -106,7 +106,7 @@ setClass(
 #' @return \code{lm} returns an object of class \code{FLLinRegr}
 #' @examples
 #' library(RODBC)
-#' widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' lmfit <- lm(Rings~Height+Diameter,widetable)
 #' lmfit$coefficients
 #' lmfit$fitted.values
@@ -888,7 +888,6 @@ prepareData.lmGeneric <- function(formula,data,
 	{
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								outDeepTableName="",
-								outDeepTableDatabase="",
 								outObsIDCol="",
 								outVarIDCol="",
 								outValueCol="",

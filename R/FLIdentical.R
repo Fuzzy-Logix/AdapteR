@@ -266,9 +266,9 @@ NULL
 	if(is.FLVector(pObj2))
 	{
 		connection <- getOption("connectionFL")
-		if(checkMaxQuerySize(pObj1))
+		if(checkQueryLimits(pObj1))
 		pObj1 <- store(pObj1)
-		if(checkMaxQuerySize(pObj2))
+		if(checkQueryLimits(pObj2))
 		pObj2 <- store(pObj2)
 
 		ifelse(length(pObj1)>length(pObj2),{

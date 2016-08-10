@@ -322,7 +322,8 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
                 select = tblfunqueryobj,
                 dimnames = list(1:length(x),
                                 "vectorValueColumn"),
-                isDeep = FALSE)
+                isDeep = FALSE,
+                type=typeof(x))
 
     flv <- ensureQuerySize(pResult=flv,
                         pInput=list(x,decreasing=decreasing,
@@ -366,7 +367,8 @@ sort.FLMatrix <- function(x,decreasing=FALSE,
                 select = tblfunqueryobj,
                 dimnames = list(1:length(x),
                                 "vectorValueColumn"),
-                isDeep = FALSE)
+                isDeep = FALSE,
+                type=typeof(x))
 
     flv <- ensureQuerySize(pResult=flv,
                         pInput=list(x,decreasing=decreasing,

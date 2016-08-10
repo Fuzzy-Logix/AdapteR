@@ -20,6 +20,7 @@ FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 {
+    vtype <- getArtihmeticType(pObj1,pObj2,pOperator)
 	vcompvector <- c("==",">","<",">=","<=","!=")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)
@@ -145,9 +146,10 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                         order = "",
                         SQLquery=sqlstr)
 		flm <- new("FLMatrix",
-                           select= tblfunqueryobj,
-                           dim=dims,
-                           dimnames=dimnames)
+                   select= tblfunqueryobj,
+                   dim=dims,
+                   dimnames=dimnames,
+                   type=vtype)
 
 		return(ensureQuerySize(pResult=flm,
 						pInput=list(pObj1,pObj2),
@@ -206,6 +208,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 {
+    vtype <- getArtihmeticType(pObj1,pObj2,pOperator)
 	vcompvector <- c("==",">","<",">=","<=","<>")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)
@@ -261,9 +264,9 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 		}
 		else if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
 		{
-        if(checkMaxQuerySize(pObj1))
+        if(checkQueryLimits(pObj1))
         pObj1 <- store(pObj1)
-        if(checkMaxQuerySize(pObj2))
+        if(checkQueryLimits(pObj2))
         pObj2 <- store(pObj2)
 
 
@@ -426,7 +429,8 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 			flv <- new("FLVector",
 						select = tblfunqueryobj,
 						dimnames = dimnames,
-						isDeep = FALSE)
+						isDeep = FALSE,
+                        type=vtype)
 
 			return(ensureQuerySize(pResult=flv,
 								pInput=list(pObj1,pObj2),

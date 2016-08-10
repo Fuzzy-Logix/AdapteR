@@ -209,7 +209,8 @@ setMethod("apply",
 		flv <- new("FLVector",
 					select = tblfunqueryobj,
 					dimnames = list(vrownames,"vectorValueColumn"),
-					isDeep = FALSE)
+					isDeep = FALSE,
+                    type=typeof(X))
 		if(!all(vrownames == 1:length(vrownames)))
 		names(flv) <- vrownames
 		return(flv)

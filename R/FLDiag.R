@@ -100,7 +100,6 @@ diag.FLVector <- function(object,...)
 
         else
         {
-            
             if(length(object@dimnames[[1]])==1)
             {
                 MID <- getMaxMatrixId(connection)
@@ -130,7 +129,9 @@ diag.FLVector <- function(object,...)
                     connection = connection
                 ))
             }
-            else return(FLMatrix(matrix_id_value = "",
+            else return(FLMatrix(
+                     table_name= object@select@table_name,
+                     matrix_id_value = "",
                      matrix_id_colname = "", 
                      row_id_colname = getVariables(object)$obs_id_colname, 
                      col_id_colname = getVariables(object)$obs_id_colname, 

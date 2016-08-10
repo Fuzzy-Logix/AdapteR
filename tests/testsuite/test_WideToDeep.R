@@ -28,11 +28,14 @@ test_that("check for wide to deep",{
 
 #SQL error - OutWideTable already exists.
 #Asana Ticket - https://app.asana.com/0/143316600934101/149535659543490
-test_that("check for deep",
-          deepToWide(object = table3,
-                     whereconditions="",
-                     mapTable="",
-                     mapName="",
-                     outWideTableName="tblUSArrestswide1",
-                     Analysisid = ""
-                     ))
+test_that("check for deep",{
+    sqlstr<- "DROP TABLE tblUSArrestswide1;"
+    sqlSendUpdate(getOption("connectionFL"),sqlstr)
+    deepToWide(object = table3,
+                 whereconditions="",
+                 mapTable="",
+                 mapName="",
+                 outWideTableName="tblUSArrestswide1",
+                 Analysisid = ""
+                 )
+})

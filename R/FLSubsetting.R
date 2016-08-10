@@ -209,17 +209,22 @@ NULL
         #           paste0(vtableref,".DIM_ID=1")),
         #     order = "")
         
-        return(new("FLVector",
+        vres <- new("FLVector",
                   select=object@select,
                   dimnames=list(newrownames,newcolnames),
                   isDeep=object@isDeep,
-                  mapSelect=mapselect))
+                  mapSelect=mapselect)
       }
       else
-      return(new("FLVector",
+      vres <- new("FLVector",
                 select=object@select,
                 dimnames=list(vrownames,vcolnames),
-                isDeep=object@isDeep))
+                isDeep=object@isDeep)
+      vvaluecolumn <- getValueColumn(vres)
+      vvaluecolumn <- changeAlias(vvaluecolumn,"","")
+      vtype <- typeof(object)[vvaluecolumn]
+      vres@type <- vtype
+      return(vres)
     }
     else return(object)
 }
@@ -465,11 +470,13 @@ NULL
                 select=select,
                 dimnames=list(newrownames,newcolnames),
                 isDeep=object@isDeep,
-                mapSelect=mapselect))
+                mapSelect=mapselect,
+                type=typeof(object)))
     else return(new("FLVector",
                 select=select,
                 dimnames=list(newrownames,newcolnames),
-                isDeep=object@isDeep))
+                isDeep=object@isDeep,
+                type=typeof(object)))
 }
 
 appendTableName <- function(object,tablename){

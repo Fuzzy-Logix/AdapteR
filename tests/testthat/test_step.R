@@ -7,8 +7,6 @@
 
 ## step function does not work properly. throws an error
 ## asana ticket- https://app.asana.com/0/143316600934101/158092657328842
-
-options(debugSQL=T)
 test_that("test for step", {
     flData <- FLTable("FL_DEMO.tblAbaloneWide", "ObsID")
     rData<-as.data.frame(flData)

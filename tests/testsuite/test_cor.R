@@ -47,7 +47,7 @@ test_that("check FLCorrel result",
                        "ObsID","VarID","Num_Val", whereconditions = "OBsID<21")
     RtDeep <- as.data.frame(fltDeep)
     fltWide <- FLTable("tblUSArrests",
-                       "ObsID",whereconditions = "OBsID<21")
+                       "ObsID",whereconditions = c("VarID=2","OBsID<21"))
     RtWide <- as.data.frame(fltWide)
     vRow <- initF.FLVector(20,TRUE)
     flvRow <- vRow$FL

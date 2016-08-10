@@ -40,6 +40,6 @@ results$testthat <- llply(
     runMyTestFile,
     ask=FALSE)
 
-results$limitations <- llply(find_test_scripts("limitations"),
-      runMyTestFile)
+# results$limitations <- llply(find_test_scripts("limitations"),
+#       runMyTestFile)
 
