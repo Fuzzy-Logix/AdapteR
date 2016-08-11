@@ -91,6 +91,7 @@ setMethod("typeof",signature(x="FLTable"),
           if(is.null(names(vtype)))
             names(vtype) <- colnames(x)
         }
+        return(vtype)
       })
 
 setGeneric("getIdColname",function(object)

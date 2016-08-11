@@ -343,9 +343,9 @@ test_that("check result for identical",
 ## testing M_Subtraction with different length vectors
 test_that("check FLVector subtraction",
 {
-  flt <- FLTable("FL_DEMO.finequityreturns","txndate")
-  flv1 <- flt[1:8,"equityreturn"]
-  flv <- flt[1:10,"equityreturn"]
+  flt <- FLTable("FL_DEMO.fzzlSerial","SerialVal")
+  flv1 <- flt[1:8,"RandVal"]
+  flv <- flt[1:10,"RandVal"]
   flv1R <- as.vector(flv1)
   flvR <- as.vector(flv)
   FLexpect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)

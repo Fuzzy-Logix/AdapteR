@@ -298,7 +298,7 @@ restrictFLMatrix <-
 ##' @return the FLMatrix object, with slot dimnames re set 
 #' @export
 FLamendDimnames <- function(flm,map_table) {
-    #browser()
+    ##browser()
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -474,6 +474,15 @@ FLMatrix <- function(table_name,
         colIdColumn=paste0(col_id_colname),
         valueColumn=paste0(cell_val_colname))
     
+    checkNames <- function(colnames){
+        if(is.numeric(colnames) && colnames==1:length(colnames))
+          return(NULL)
+        else return(colnames)
+    }
+
+    dimnames <- list(checkNames(dimnames[[1]]),
+                    checkNames(dimnames[[2]]))
+
       if((length(dimnames[[1]])>0 || 
         length(dimnames[[2]])>0 )&& 
         length(map_table)==0)
