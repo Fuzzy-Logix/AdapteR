@@ -20,7 +20,7 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 #' @export
 as.vector.FLVector <- function(object,mode="any")
 {
-  #browser()
+    #browser()
     vprev1 <- getOption("stringsAsFactors")
     vprev2 <- getOption("warn")
     options(stringsAsFactors=FALSE)
@@ -32,6 +32,14 @@ as.vector.FLVector <- function(object,mode="any")
     # if(!any(is.na(as.numeric(x))) && !is.logical(x))
     # x <- as.numeric(x)
 
+    ## Adjust Return Type:
+    vTypeMapping <- c(as.logical="logical",
+                    as.character="character",
+                    as.integer="integer")
+    vfunc <- names(vTypeMapping)[vTypeMapping==typeof(object)]
+    if(length(vfunc)>0)
+    x <- do.call(vfunc,list(x))
+    
     if(ncol(object)==1) vnames <- rownames(object)
     else vnames <- colnames(object)
     if(is.character(vnames) && !all(vnames==1:length(vnames)))

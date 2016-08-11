@@ -82,13 +82,13 @@ setClass(
 #' summary(glmfit)
 #' plot(glmfit)
 #' connection <- flConnect(odbcSource = "Gandalf",database = "FL_DEV")
-#' widetable  <- FLTable("FL_DEV", "siemenswidetoday1", "ObsID")
+#' widetable  <- FLTable("siemenswidetoday1", "ObsID")
 #' poissonfit <- glm(event ~ meanTemp, family=poisson, data=widetable,offset="age")
 #' summary(poissonfit)
 #' plot(poissonfit)
-#' predData <- FLTable("FL_DEV","preddata1","ObsID")
+#' predData <- FLTable("preddata1","ObsID")
 #' mu <- predict(poissonfit,newdata=predData)
-#' deeptable <- FLTable("FL_DEMO","tblLogRegrMN10000","ObsID","VarID","Num_Val",
+#' deeptable <- FLTable("tblLogRegrMN10000","ObsID","VarID","Num_Val",
 #'              whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable,family="multinomial")
 #' glmfit$coefficients

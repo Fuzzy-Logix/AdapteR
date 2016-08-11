@@ -98,18 +98,23 @@ FLTable <- function(table,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
-        rows <- sort(as.numeric(sqlQuery(connection,
+        # rows <- sort(as.numeric(sqlQuery(connection,
+        #                     paste0("SELECT DISTINCT(",
+        #                                 obs_id_colname,") as VarID
+						  #                       FROM ",tableAndAlias(table),
+        #                             " ",constructWhere(whereconditions)))$VarID))
+        rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
-                                obs_id_colname,") as VarID
-						  FROM ",tableAndAlias(table),
-                          " ",constructWhere(whereconditions)))$VarID))
+                                        obs_id_colname,") as VarID
+                                    FROM ",tableAndAlias(table),
+                                    " ",constructWhere(whereconditions)))$VarID)
         cols <- gsub("^ +| +$","",cols)
         rows <- gsub("^ +| +$","",rows)
 
         ##change factors to strings
         vstringdimnames <- lapply(list(rows,cols),
                                   function(x){
-                                      if(is.factor(x))
+                                      if(is.factor(x) || class(x)=="Date")
                                       as.character(x)
                                       else x
                                   })

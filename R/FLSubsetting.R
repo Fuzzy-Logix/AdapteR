@@ -83,9 +83,10 @@ NULL
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
   #browser()
+    vtype <- typeof(object)
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
-	connection<-getConnection(object)
+	  connection<-getConnection(object)
     if(is.FLVector(rows)) rows <- as.vector(rows)
     if(is.FLVector(cols)) cols <- as.vector(cols)
     if(is.numeric(rows))
@@ -222,11 +223,22 @@ NULL
                       isDeep=object@isDeep)
       vvaluecolumn <- getValueColumn(vres)
       vvaluecolumn <- changeAlias(vvaluecolumn,"","")
-      vtype <- typeof(object)[vvaluecolumn]
-      vres@type <- vtype
+      vtype1 <- vtype[vvaluecolumn]
+      if(is.null(vtype1))
+        vtype1 <- vtype[1]
+      names(vtype1) <- NULL
+      vres@type <- vtype1
       return(vres)
     }
-    else return(object)
+    else{
+      vvaluecolumn <- getValueColumn(object)
+      vvaluecolumn <- changeAlias(vvaluecolumn,"","")
+      vtype1 <- vtype[vvaluecolumn]
+      if(is.null(vtype1))
+        vtype1 <- vtype[1]
+      object@type <- vtype1
+      return(object)
+    }
 }
 
 

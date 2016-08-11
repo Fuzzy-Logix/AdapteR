@@ -1,24 +1,29 @@
 
 
-## Testing M_Multiplication
+## Testing typeof
 test_that("typeof: matrix, vector and expressions",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
   M2 <- FLMatrix("tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   expect_equal(typeof(M2),"double")
   expect_equal(typeof(M1$FL),"double")
-  M2R <- as.matrix(M2)
   V1 <- as.FLVector(sample(1:100,10))
-  expect_equal(typeof(V2),"integer")
-  V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
-  expect_equal(typeof(V2),"integer")
-  V2R <- as.vector(V2)
+  expect_equal(typeof(V1),"integer")
+
+  widetable  <- FLTable("tblstringID",
+                         "stringID",
+                         type=c("integer","character"))
+  V2 <- widetable[1:6,"string"]
+  expect_equal(typeof(V2),"character")
+  expect_equal(typeof(FLIsHex(V2)),"logical")
+  expect_equal(typeof(regexpr("A",V2)),"integer")
+  expect_equal(typeof(gsub("A","X",V2)),"character")
+  expect_equal(typeof(M2>M2),"logical")
+  expect_equal(typeof(as.R(M2>M2)),"logical")
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
   expect_equal(typeof(P1$FL),"double")
 
   expect_equal(typeof(P1$FL*P1$FL),"double")
-  expect_equal(typeof(V1*V2*M2*P1$FL*M1$FL),"double")
-  expect_equal(typeof(P1$FL*P1$FL*V1*V2*M2*P1$FL*M1$FL),"double")
-  ## gk: please add more tests systematically
+  expect_equal(typeof(V1*M2*P1$FL*M1$FL),"double")
+  expect_equal(typeof(P1$FL*P1$FL*V1*M2*P1$FL*M1$FL),"double")
 })
