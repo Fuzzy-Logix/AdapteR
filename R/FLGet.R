@@ -438,15 +438,16 @@ getArtihmeticType <- function(pObj1,pObj2,pOperator){
     pObj2 <- 1
   vcompvector <- c("==",">","<",">=","<=","!=")
   if(pOperator %in% vcompvector)
-    return("character")
+    return("logical")
   vtype <- c(typeof(pObj1),typeof(pObj2))
-  if("character" %in% vtype
-    || "logical" %in% vtype)
+  if("character" %in% vtype)
     return("character")
   else if("double" %in% vtype)
     return("double")
   else if("integer" %in% vtype)
     return("integer")
+  else if(all(vtype=="logical"))
+    return("logical")
   else return("double")
 }
 
