@@ -92,7 +92,7 @@ FLTableMD <- function(table,
                          paste0("SELECT ",group_id_colname," AS grpID, \n ",
                                         "MIN(",var_id_colnames,") AS MinID, \n ",
                                         "Max(",var_id_colnames,") AS MaxID \n ",
-                                " FROM ",table,
+                                " FROM ",tableAndAlias(table),
                                 constructWhere(whereconditions)," \n ",
                                 " GROUP BY ",group_id_colname,
                                 " ORDER BY ",group_id_colname))
@@ -100,7 +100,7 @@ FLTableMD <- function(table,
         vdims1 <- sqlQuery(connection,
                          paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
                                         obs_id_colname," AS ObsID \n ",
-                                " FROM ",table,
+                                " FROM ",tableAndAlias(table),
                                 constructWhere(whereconditions)," \n ",
                                 " ORDER BY ",group_id_colname,",",obs_id_colname))
         # if(length(unique(vdims[["MinID"]]))!=1 
@@ -160,12 +160,12 @@ FLTableMD <- function(table,
     {
         #browser()
         R <- sqlQuery(connection,
-                      limitRowsSQL(paste0("select * from ",table),1))
+                      limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
         vdims <- sqlQuery(connection,
                          paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
                                         obs_id_colname," AS ObsID \n ",
-                                " FROM ",table,
+                                " FROM ",tableAndAlias(table),
                                 constructWhere(whereconditions)," \n ",
                                 " ORDER BY ",group_id_colname,",",obs_id_colname))
         rows<-dlply(vdims,"grpID",

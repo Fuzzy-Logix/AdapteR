@@ -321,11 +321,16 @@ validate_args <- function (arg_list, type_list, class_list = list())
 is_integer <- function(x) { (x == ceiling(x)||x == floor(x)) }
 is_number  <- function(x) { (x == ceiling(x)||x == floor(x))&&(x>=1) }
 
-gen_deep_table_name <- function(TableName){
-    #random_no <- rnorm(1);
-    vtbl <- paste0("ARBase",TableName,"D",round(as.numeric(Sys.time())))
-    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+FLGenTableName <- function(pTableName,
+                            pCode){
+    pTableName <- removeAlias(pTableName)
+    vtbl <- paste0("ARBase",pTableName,pCode,round(as.numeric(Sys.time())))
+    #options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
     vtbl
+}
+gen_deep_table_name <- function(TableName){
+    return(FLGenTableName(pTableName=TableName,
+                        pCode="D"))
 }
 
 trim <- function( x ) {
@@ -333,31 +338,23 @@ trim <- function( x ) {
 }
 
 gen_score_table_name <- function(TableName){
-    #random_no <- rnorm(1);
-    vtbl <- paste0("ARBase",TableName,"S",round(as.numeric(Sys.time())))
-    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
-    vtbl
+    return(FLGenTableName(pTableName=TableName,
+                        pCode="S"))
 }
 
 gen_wide_table_name <- function(TableName){
-    #random_no <- rnorm(1);
-    vtbl <- paste0("ARBase",TableName,"W",round(as.numeric(Sys.time())))
-    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
-    vtbl
+    return(FLGenTableName(pTableName=TableName,
+                        pCode="W"))
 }
 
 gen_unique_table_name <- function(TableName){
-    #random_no <- rnorm(1);
-    vtbl <- paste0("ARBase",TableName,"U",round(as.numeric(Sys.time())))
-    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
-    vtbl
+    return(FLGenTableName(pTableName=TableName,
+                        pCode="U"))
 }
 
 gen_view_name <- function(TableName=""){
-    #random_no <- rnorm(1);
-    vtbl <- paste0("ARBase",TableName,"V",round(as.numeric(Sys.time())))
-    options("FLTempViews"=c(getOption("FLTempViews"),vtbl))
-    vtbl
+   return(FLGenTableName(pTableName=TableName,
+                        pCode="V"))
 }
 
 genRandVarName <- function(){
@@ -389,10 +386,10 @@ genNote <- function(pFunction){
 #' @export
 FLodbcClose <- function(connection)
 {
-   if(length(getOption("FLTempTables"))>0)
-        sapply(getOption("FLTempTables"),dropTable)
-    if(length(getOption("FLTempViews"))>0)
-        sapply(getOption("FLTempViews"),dropView)
+   # if(length(getOption("FLTempTables"))>0)
+   #      sapply(getOption("FLTempTables"),dropTable)
+   #  if(length(getOption("FLTempViews"))>0)
+   #      sapply(getOption("FLTempViews"),dropView)
 
     if(class(connection)=="RODBC")
     RODBC::odbcClose(connection)
@@ -400,8 +397,8 @@ FLodbcClose <- function(connection)
     options(flag1=0)
     options(flag1=0)
     options(flag1=0)
-    options("FLTempTables"=c())
-    options("FLTempViews"=c())
+    #options("FLTempTables"=c())
+    #options("FLTempViews"=c())
     options("FLSessionID"=c())
 }
 
@@ -409,7 +406,7 @@ gen_table_name <- function(prefix,suffix=NULL){
     vtbl <- ifelse(is.null(suffix),
                    paste0(prefix),
                    paste0(prefix,"_",suffix))
-    options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
+    #options("FLTempTables"=c(getOption("FLTempTables"),vtbl))
     vtbl
 }
 
@@ -572,14 +569,6 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     return(connection)
 }
 
-
-getTablename <- function(x) gsub("^[^.]*\\.","",x)
-getDatabase <- function(x) {
-    db <- gsub("\\.[^.]*$","",x)
-    if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
-    db
-}
-
 #' Starts Session and Creates temp Tables for result storage
 #'
 #' Strongly recommended to run before beginning a new R session
@@ -608,14 +597,14 @@ FLStartSession <- function(connection,
     options(ResultDatabaseFL=database)
 
     ## Drop Any Tables overSplling from previous unclosed Session
-    if(drop){
-        if(length(getOption("FLTempTables"))>0)
-            sapply(getOption("FLTempTables"),dropTable)
-        if(length(getOption("FLTempViews"))>0)
-            sapply(getOption("FLTempViews"),dropView)
-        options(FLTempViews=character())
-        options(FLTempTables=character())
-    }
+    # if(drop){
+    #     if(length(getOption("FLTempTables"))>0)
+    #         sapply(getOption("FLTempTables"),dropTable)
+    #     if(length(getOption("FLTempViews"))>0)
+    #         sapply(getOption("FLTempViews"),dropView)
+    #     options(FLTempViews=character())
+    #     options(FLTempTables=character())
+    # }
     #browser()
     options(InteractiveFL             = TRUE)
     options(temporaryTablesFL         = temporaryTables)
@@ -682,47 +671,6 @@ FLStartSession <- function(connection,
                 pPrimaryKey="UserName",
                 pTemporary=FALSE,
                 pDrop=FALSE)
-
-    # sendqueries <- c(genCreateResulttbl(tablename=getOption("ResultMatrixTableFL"),
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions),
-    #                 genCreateResulttbl(tablename=getOption("ResultSparseMatrixTableFL"),
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions),
-    #                 genCreateResulttbl(tablename=getOption("ResultCharMatrixTableFL"),
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions,
-    #                                     type=" VARCHAR(100) "),
-    #                 genCreateResulttbl(tablename=getOption("ResultIntMatrixTableFL"),
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions,
-    #                                     type=" INTEGER "),
-    #                 genCreateResulttbl(tablename=getOption("ResultVectorTableFL"),
-    #                                     vclass="vector",
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions),
-    #                 genCreateResulttbl(tablename=getOption("ResultCharVectorTableFL"),
-    #                                     vclass="vector",
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions,
-    #                                     type=" VARCHAR(100) "),
-    #                 genCreateResulttbl(tablename=getOption("ResultIntVectorTableFL"),
-    #                                     vclass="vector",
-    #                                     temporaryTable=temporaryTables,
-    #                                     tableoptions=tableoptions,
-    #                                     type=" INTEGER "),
-    #                 paste0(" CREATE ",ifelse(is.null(temporaryTables),
-    #                                         "VOLATILE TABLE ",
-    #                                         "TABLE "),
-    #                                getOption("NameMapTableFL"),"\n",
-    #                                tableoptions,"\n",
-    #                             "(TABLENAME VARCHAR(100),\n",
-    #                             " MATRIX_ID INTEGER,\n",
-    #                             " DIM_ID INTEGER, -- 1: row, 2: column \n",
-    #                             " NAME VARCHAR(100),\n",
-    #                             " NUM_ID INTEGER)\n",
-    #                             " PRIMARY INDEX (TABLENAME, MATRIX_ID, DIM_ID, NAME);\n"))
-    # sqlSendUpdate(connection, sendqueries)
 
     genSessionID()
     cat("Session Started..\n")
@@ -817,7 +765,23 @@ getMaxVectorId <- function(vconnection = getOption("connectionFL"),
                 vcolName="vectorIdColumn",
                 vconnection=vconnection)+1
 
-
+#' Ensure sqlQuery constructed meets limits
+#' namely max size and max nestings
+#'
+#' @param pResult object whose constructSelect
+#' needs to be within limits
+#' @param pInput list of input objects
+#' @param pOperator function which generated the pResult
+#' @param pStoreResult Flag whether to store the pResult
+#' @return pResult after storing transparently inputs 
+#' and recomputing the operation
+#' @examples 
+#' flm <- FLMatrix("tblmatrixMulti",3,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+#' flv <- as.FLVector(rnorm(25))
+#' vexpression <- paste0(rep("flm+flv",13),collapse="")
+#' cat("no.of Nested Queries: ",length(gregexpr("FROM",constructSelect(eval(parse(text=vexpression))))[[1]]))
+#' vResult <- eval(parse(text=paste0(vexpression,"+",vexpression)))
+#' cat("no.of Nested Queries in Result: ",length(gregexpr("FROM",constructSelect(vResult))[[1]]))
 ensureQuerySize <- function(pResult,
                             pInput,
                             pOperator,
@@ -825,12 +789,16 @@ ensureQuerySize <- function(pResult,
                             ...)
 {
     ##browser()
-    if(checkMaxQuerySize(pResult))
+    if(checkQueryLimits(pResult))
     {
         vQuerySizes <- sapply(pInput,
                               FUN=function(x)
-                                  object.size(constructSelect(x,...)))
+                                  ifelse(is.FL(x),
+                                        object.size(constructSelect(x,...)),
+                                        0))
         vbulkyInput <- which.max(vQuerySizes)
+        if(vbulkyInput==0)
+            return(pResult)
         pInput[[vbulkyInput]] <- store(pInput[[vbulkyInput]])
         return(do.call(pOperator,pInput))
     }
@@ -897,6 +865,10 @@ separateDBName <- function(vtableName){
   else vdatabase <- getOption("ResultDatabaseFL")
   return(c(vdatabase=vdatabase,
           vtableName=vtableName))
+}
+
+removeAlias <- function(pName){
+    return(changeAlias(pName,"",""))
 }
 
 flag1Check <- function(connection)

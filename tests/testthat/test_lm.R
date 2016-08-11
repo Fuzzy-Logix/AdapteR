@@ -66,7 +66,7 @@ test_that("lm: summary.lm https://app.asana.com/0/143316600934101/15694819281845
   result = eval_expect_equal({
     lmSum <- summary(lmobj)
   },Renv,FLenv,
-  expectation = "lmSum")
+  noexpectation = "lmSum")
 })
 
 ## Check for plot function of Linear Regression.

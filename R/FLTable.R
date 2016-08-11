@@ -27,7 +27,8 @@ FLTable <- function(table,
                     var_id_colnames=character(0), 
                     cell_val_colname=character(0),
                     whereconditions=character(0),
-                    connection=NULL)
+                    connection=NULL,
+                    type="double")
 {
     if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
@@ -88,7 +89,8 @@ FLTable <- function(table,
         new("FLTable",
             select = select,
             dimnames = list(rows,cols),
-            isDeep = TRUE)
+            isDeep = TRUE,
+            type=type)
 	}
 	else
 	{
@@ -132,7 +134,8 @@ FLTable <- function(table,
         T <- new("FLTable", 
                  select = select,
                  dimnames = list(rows,var_id_colnames),
-                 isDeep = FALSE)
+                 isDeep = FALSE,
+                 type=type)
 	}
 }
 

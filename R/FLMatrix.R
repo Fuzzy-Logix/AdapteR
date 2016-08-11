@@ -90,8 +90,10 @@ setClass("FLTable",
              select = "FLTableQuery",
              dimnames = "list",
              isDeep = "logical",
-             mapSelect = "FLSelectFrom"
-         ))
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         ),prototype = prototype(type="double")
+        )
 
 #' An S4 class to represent FLVector
 #'
@@ -101,8 +103,10 @@ setClass("FLVector",
              select = "FLTableQuery",
              dimnames = "list",
              isDeep= "logical",
-             mapSelect = "FLSelectFrom"
-         ))
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         ),prototype = prototype(type="double")
+        )
 
 ##' drop a table
 ##' 
@@ -442,7 +446,8 @@ FLMatrix <- function(table_name,
                      conditionDims=c(FALSE,FALSE),
                      whereconditions=c(""),
                      map_table=NULL,
-                     connection=getOption("connectionFL")){
+                     connection=getOption("connectionFL"),
+                     type="double"){
   ## If alias already exists, change it to flt.
     if(length(names(table_name))>0)
     oldalias <- names(table_name)[1]
@@ -505,7 +510,8 @@ FLMatrix <- function(table_name,
     RESULT <- new("FLMatrix",
                   select = select,
                   dim = dim,
-                  dimnames = dimnames)
+                  dimnames = dimnames,
+                  type=type)
     
     RESULT <- FLamendDimnames(RESULT,map_table)
 
@@ -660,20 +666,34 @@ print.FLMatrix <- function(object)
 #' @export
 setMethod("show","FLMatrix",print.FLMatrix)
 
-setGeneric("checkMaxQuerySize", function(pObj1) {
-    standardGeneric("checkMaxQuerySize")
+#' Check if sql query limits have been violated
+#'
+#' Limits can be on length of query to be parsed
+#' or number of nested queries
+#' @param pObj1 input FL object
+#' @return logical TRUE if limits violated
+setGeneric("checkQueryLimits", function(pObj1) {
+    standardGeneric("checkQueryLimits")
 })
-setMethod("checkMaxQuerySize",
+setMethod("checkQueryLimits",
           signature(pObj1="character"),
           function(pObj1) {
-              return(object.size(pObj1)>999000) # 1Kb tolerance
+              return(object.size(pObj1)>999000 # 1Kb tolerance
+                    ||length(gregexpr("FROM",
+                                      pObj1)[[1]])>120) ## Actual 140
           })
-setMethod("checkMaxQuerySize",
+setMethod("checkQueryLimits",
           signature(pObj1="FLMatrix"),
-          function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
-setMethod("checkMaxQuerySize",
+          function(pObj1) checkQueryLimits(constructSelect(pObj1)))
+setMethod("checkQueryLimits",
           signature(pObj1="FLVector"),
-          function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
+          function(pObj1) checkQueryLimits(constructSelect(pObj1)))
+setMethod("checkQueryLimits",
+          signature(pObj1="FLTable"),
+          function(pObj1) checkQueryLimits(constructSelect(pObj1)))
+setMethod("checkQueryLimits",
+          signature(pObj1="ANY"),
+          function(pObj1) return(FALSE))
 
 `dimnames<-.FLMatrix` <- function(x,value){
   lapply(1:2,function(i){

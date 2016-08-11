@@ -28,7 +28,7 @@ as.vector.FLVector <- function(object,mode="any")
     if(ncol(object)==1)
         x <- as.data.frame.FLVector(object)[[1]]
     if(ncol(object)>1)
-        x <- as.vector(as.data.frame.FLVector(object)[1,])
+        x <- as.vector(as.matrix(as.data.frame.FLVector(object)[1,]))
     # if(!any(is.na(as.numeric(x))) && !is.logical(x))
     # x <- as.numeric(x)
 
@@ -56,6 +56,7 @@ as.data.frame <- function(x, ...)
 
 #' @export
 as.data.frame.FLTable <- function(x, ...){
+    #browser()
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
@@ -579,7 +580,8 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
   flm <- new("FLMatrix",
               select= tblfunqueryobj,
               dim = c(rows,cols),
-              dimnames=list(1:rows,1:cols))
+              dimnames=list(1:rows,1:cols),
+              type=typeof(object))
   return(flm)
 }
 
@@ -726,7 +728,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   return(new("FLVector",
                 select=select,
                 dimnames=list(newnames,"vectorValueColumn"),
-                isDeep=FALSE))
+                isDeep=FALSE,
+                type=typeof(object)))
 }
 
 #' @export
@@ -771,7 +774,7 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
                        " WHERE ",a,".rowIdColumn in ",rownames(object),
                        " AND ",a,".colIdColumn in ",i)
     sqlstr <- c(sqlstr,sqlstr0)
-    if(checkMaxQuerySize(sqlstr) && i!=colnames[length(colnames)])
+    if(checkQueryLimits(sqlstr) && i!=colnames[length(colnames)])
     {
       batchStore(sqlstr)
       sqlstr <- ""
@@ -951,5 +954,6 @@ as.FLTable.data.frame <- function(object,
               select = select,
               dimnames = list(object[,obsIdColname],
                               vcolnames),
-              isDeep = FALSE))
+              isDeep = FALSE,
+              type=sapply(object,typeof)))
 }
