@@ -28,7 +28,7 @@ NULL
 #' from analysis by default.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX")
 #' print(kmeansobject)
 #' plot(kmeansobject)

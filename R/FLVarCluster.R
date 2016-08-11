@@ -32,7 +32,7 @@ NULL
 #' from analysis by default.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable( "FL_DEMO", "tblLogRegr", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblLogRegr", "ObsID","VarID","Num_Val")
 #' clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 #' print(clustervector)
 #' @export

@@ -16,7 +16,7 @@ NULL
 #' connection <- flConnect(odbcSource="Gandalf")
 #' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- diag(flmatrix)
-#' DeepTable <- FLTable( "FL_DEMO", "tblUSArrests","ObsID")
+#' DeepTable <- FLTable("tblUSArrests","ObsID")
 #' flvectorDeep <- DeepTable[1:5,1]
 #' resultFLMatrix <- diag(flvectorDeep)
 #' @export

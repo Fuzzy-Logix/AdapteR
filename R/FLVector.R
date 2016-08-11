@@ -9,7 +9,7 @@ NULL
 #' @seealso \code{\link{FLTable}}
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
+#' WideTable <- FLTable("tblAbaloneWide","ObsID")
 #' flvectorColumn <- WideTable[,"Diameter"]
 #' flvectorRow <- WideTable[3,]
 #' flvectorRow

@@ -94,7 +94,7 @@ setClass(
 #' using \code{object$mapping} if input is wide table.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' agnesobject <- agnes(deeptable,maxit=50)
 #' print(agnesobject)
 #' plot(agnesobject)
@@ -102,7 +102,7 @@ setClass(
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
 #' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
 #' The below plot throws warnings!
 #' plot(agnesobjectnew)

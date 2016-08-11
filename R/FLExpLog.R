@@ -135,7 +135,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
 #' ResultFLmatrix <- log1p(flmatrix)
 #' ResultFLmatrix <- log(flmatrix)
 #' ResultFLmatrix <- log2(flmatrix)
-#' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 #' flvector <- deeptable[1:5,1]
 #' resultFLVector <- exp(flvector)
 #' resultFLVector <- log(flvector,4)

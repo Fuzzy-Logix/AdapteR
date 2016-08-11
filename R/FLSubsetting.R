@@ -77,7 +77,7 @@ NULL
 #' which replicates the equivalent R extraction.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' fltable <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' fltable <- FLTable("tblAbaloneWide", "ObsID")
 #' resultFLtable <- fltable[1:10,4:6]
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
@@ -241,7 +241,7 @@ NULL
 #' which replicates the equivalent R extraction.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
+#' WideTable <- FLTable("tblAbaloneWide","ObsID")
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]
 #' @export

@@ -80,9 +80,9 @@ return(FLCorGeneric(x=x,y=y,
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable( "FL_DEMO", 
+#' deeptable <- FLTable(
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' cov(deeptable,deeptable)
 #' cov(widetable,widetable)
 #' @export
@@ -144,9 +144,9 @@ return(FLCorGeneric(x=x,y=y,
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable( "FL_DEMO", 
+#' deeptable <- FLTable(
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
 #' @export
@@ -208,9 +208,9 @@ return(FLCorGeneric(x=x,y=y,
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable( "FL_DEMO", 
+#' deeptable <- FLTable(
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
 #' @export
@@ -278,9 +278,9 @@ return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable( "FL_DEMO", 
+#' deeptable <- FLTable(
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
 #' @export
@@ -1007,9 +1007,9 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable( "FL_DEMO", 
+#' deeptable <- FLTable(
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
 #' @export
