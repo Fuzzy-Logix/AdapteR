@@ -24,7 +24,13 @@ test_that("FLTable in-database transformations work -- ALTER TABLE and UPDATE",{
     Renv,FLenv,check.attributes=FALSE)
 })
 
-
+test_that("typeof: FLTable and columns]",{
+    result = eval_expect_equal({
+        ts <- typeof(irisdata)
+        tsc <- typeof(irisdata[,"SepalLength"])
+    },
+    Renv,FLenv,check.attributes=FALSE)
+})
 
 test_that("Selection of columns works with $ and with [,name]",{
     ## A remote matrix is easily created by specifying

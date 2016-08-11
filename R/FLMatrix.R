@@ -33,8 +33,7 @@ setClass("FLSelectFrom",
              table_name = "character"
          ))
 
-setClass(
-    "FLAbstractTable",
+setClass("FLAbstractTable",
     slots = list(
         select = "FLTableQuery",
         dimnames = "list",
@@ -43,8 +42,7 @@ setClass(
     )
 )
 
-setClass(
-	"FLAbstractColumn",
+setClass("FLAbstractColumn",
 	slots=list(
             columnName = "character"))
 
