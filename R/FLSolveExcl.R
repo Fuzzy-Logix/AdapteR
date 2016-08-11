@@ -31,10 +31,8 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
     connection<-getConnection(object)
     flag1Check(connection)
 
-    MID <- getMaxMatrixId(connection)
+    MID <- "'%insertIDhere%'"
 
-    
-    
     sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
 						AS (SELECT 1, 
 								   ",
@@ -62,11 +60,15 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
                         order = "",
                         SQLquery=sqlstr)
 
+    ifelse(ExclIdx>nrow(object),
+            vdim <- dim(object),
+            vdim <- dim(object)-1)
+
   	flm <- new("FLMatrix",
                select= tblfunqueryobj,
                dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
                              dimnames(object)[[2]][(-1*ExclIdx)]),
-               dim=dim(object)-1,
+               dim=vdim,
                dimColumns=c("OutputRowNum","OutputColNum","OutputVal"))
 
   	return(ensureQuerySize(pResult=flm,

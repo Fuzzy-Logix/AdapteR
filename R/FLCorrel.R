@@ -15,9 +15,9 @@ NULL
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable( "FL_DEMO", 
+#' deeptable <- FLTable( 
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
-#' widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+#' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)
 #' @export
