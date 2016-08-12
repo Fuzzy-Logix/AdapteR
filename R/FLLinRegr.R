@@ -50,7 +50,6 @@ setClass("FLRegr",
 #' @method summary FLLinRegr
 #' @method predict FLLinRegr
 #' @export
-#' and in-database procedures called during execution
 setClass(
 	"FLLinRegr",
 	contains="FLRegr",
