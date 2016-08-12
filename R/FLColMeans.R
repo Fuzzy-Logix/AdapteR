@@ -29,12 +29,12 @@ colMeans.FLMatrix<-function(object,...)
 	var <- genRandVarName()
 
 	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
-			        ",",var,".colIdColumn AS vectorIndexColumn",
-			        ", AVG(",var,".valueColumn) AS vectorValueColumn 
+			        ",",var,".",object@dimColumns[[2]]," AS vectorIndexColumn",
+			        ", AVG(",var,".",object@dimColumns[[3]],") AS vectorValueColumn 
 					FROM ",
 					"( ",constructSelect(object),
 					" ) AS ",var,
-					" GROUP BY ",var,".colIdColumn")
+					" GROUP BY ",var,".",object@dimColumns[[2]])
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,

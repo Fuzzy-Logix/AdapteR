@@ -6,7 +6,7 @@
 \usage{
 FLTable(table, obs_id_colname, var_id_colnames = character(0),
   cell_val_colname = character(0), whereconditions = character(0),
-  connection = NULL)
+  connection = NULL, type = "double")
 }
 \arguments{
 \item{table}{name of the table}
@@ -18,8 +18,6 @@ FLTable(table, obs_id_colname, var_id_colnames = character(0),
 \item{whereconditions}{whereconditions if any to reference the table}
 
 \item{connection}{ODBC/JDBC connection object}
-
-\item{database}{name of the database}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTable} is deep}
 }

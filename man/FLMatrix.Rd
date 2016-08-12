@@ -8,7 +8,8 @@ FLMatrix(table_name, matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
   cell_val_colname = "valueColumn", dim = 0, dimnames = NULL,
   conditionDims = c(FALSE, FALSE), whereconditions = c(""),
-  map_table = NULL, connection = getOption("connectionFL"))
+  map_table = NULL, connection = getOption("connectionFL"),
+  type = "double")
 }
 \arguments{
 \item{table_name}{name of the matrix table}

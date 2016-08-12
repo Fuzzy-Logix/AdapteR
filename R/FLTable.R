@@ -202,7 +202,6 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 # head(irisFL)
 #' @export
 `$<-.FLTable` <- function(x,name,value){
-  #browser()
   vcolnames <- x@dimnames[[2]]
   vtablename <- x@select@table_name
   name <- gsub("\\.","",name,fixed=TRUE)
@@ -225,18 +224,25 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
       vcolnames <- c(vcolnames,name)
     }
     else{
-      vtableColType <- getFLColumnType(x=as.vector(x[1,vcolnames[tolower(name)==tolower(vcolnames)][1]]))
-      vnewColType <- getFLColumnType(x=value)
-      if(!vtableColType %in% vnewColType){
+        types <- typeof(x)
+        ## gk @ phani: I hacked this for the release, but I think going forward, getFLColumnType can be streamlined with typeof, and this can be simplified ....
+        ##vtableColType <- getFLColumnType(x=as.vector(x[1,vcolnames[tolower(name)==tolower(vcolnames)][1]]))
+        vnewColType <- getFLColumnType(x=value)
+        dropCol <- FALSE
+        if(is.na(types[name])){
+            dropCol <- TRUE ## gk @ phani:  in this case a drop is actually not required, but it works with drop...
+        } else if(typeof(value)!=types[name])
+            dropCol <- TRUE
+        if(dropCol){
         vtemp <- sqlSendUpdate(getOption("connectionFL"),
                                     paste0(" ALTER TABLE ",vtablename," DROP COLUMN ",name))
         vtemp <- addColumnFLQuery(pTable=vtablename,
-                              pName=name,
-                              pValue=value)
+                                  pName=name,
+                                  pValue=value)
       }
     }
     if(!is.FLVector(value))
-    value <- as.FLVector(value)
+        value <- as.FLVector(value)
     sqlstr <- paste0("UPDATE ",vtablename," \n ",
                     " FROM(",constructSelect(value),") a \n ",
                     " SET ",name," = a.vectorValueColumn \n ",

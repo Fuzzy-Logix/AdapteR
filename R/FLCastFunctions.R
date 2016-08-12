@@ -34,11 +34,11 @@ as.vector.FLVector <- function(object,mode="any")
 
     ## Adjust Return Type:
     vTypeMapping <- c(as.logical="logical",
-                    as.character="character",
-                    as.integer="integer")
+                      as.character="character",
+                      as.integer="integer")
     vfunc <- names(vTypeMapping)[vTypeMapping==typeof(object)]
     if(length(vfunc)>0)
-    x <- do.call(vfunc,list(x))
+        x <- do.call(vfunc,list(x))
     
     if(ncol(object)==1) vnames <- rownames(object)
     else vnames <- colnames(object)
@@ -779,8 +779,8 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
                               k:(k+length(rownames(object))-1)," AS vectorIndexColumn,",
                               a,".valueColumn AS vectorValueColumn 
                        FROM(",constructSelect(object),") AS ",a,
-                       " WHERE ",a,".rowIdColumn in ",rownames(object),
-                       " AND ",a,".colIdColumn in ",i)
+                       " WHERE ",a,".",object@dimColumns[[1]]," in ",rownames(object),
+                         " AND ",a,".",object@dimColumns[[2]]," in ",i)
     sqlstr <- c(sqlstr,sqlstr0)
     if(checkQueryLimits(sqlstr) && i!=colnames[length(colnames)])
     {

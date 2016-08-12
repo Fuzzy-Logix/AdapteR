@@ -68,7 +68,7 @@ have to fetch data
 }
 \examples{
 library(RODBC)
-widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
 lmfit$coefficients
 lmfit$fitted.values

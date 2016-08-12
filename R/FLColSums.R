@@ -27,12 +27,12 @@ colSums.FLMatrix<-function(object,...)
 	var <- genRandVarName()
 
 	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
-			        ",",var,".colIdColumn AS vectorIndexColumn",
+			        ",",var,".",object@dimColumns[[2]]," AS vectorIndexColumn",
 			        ", SUM(",var,".valueColumn) AS vectorValueColumn 
 					FROM ",
 					"( ",constructSelect(object),
 					" ) AS ",var,
-					" GROUP BY ",var,".colIdColumn")
+					" GROUP BY ",var,".",object@dimColumns[[2]])
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
