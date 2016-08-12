@@ -1,3 +1,4 @@
+NULL
 ## This should take care of all UDT's in all platforms
 
 ## But pFuncName and outColnames differ which messes up things
