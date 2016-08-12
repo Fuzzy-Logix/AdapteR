@@ -27,6 +27,7 @@ Depends:
 	R (>= 3.1.0),
 	Rcpp,
 	stringr,
+	mnormt,
 	plyr,
 	MASS (>= 7.3-10),
 	Matrix (>= 1.1-5),
@@ -43,6 +44,7 @@ Depends:
 Imports:
 	Rcpp,
 	plyr,
+	mnormt,
 	MASS (>= 7.3-10),
 	Matrix (>= 1.1-5),
 	base,
