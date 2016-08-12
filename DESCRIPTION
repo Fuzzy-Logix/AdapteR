@@ -23,21 +23,39 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     server installations or writing custom SQL. In this session, we will demonstrate
     how AdapteR can be used to build interactive analytics at scale with just a few
     lines of R code!
-Imports:
-    R (>= 3.1.0),
+Depends:
+	R (>= 3.1.0),
 	Rcpp,
-    plyr,
-    MASS (>= 7.3-10),
-    Matrix (>= 1.1-5),
-    base,
-    stats,
-    psych,
-    reshape2,
-    cluster,
-    methods,
-    DBI,
-    survival,
-    mgcv
+	stringr,
+	plyr,
+	MASS (>= 7.3-10),
+	Matrix (>= 1.1-5),
+	base,
+	stats,
+	psych,
+	reshape2,
+	cluster,
+	methods,
+	DBI,
+	survival,
+	mgcv,
+	SDMTools
+Imports:
+	Rcpp,
+	plyr,
+	MASS (>= 7.3-10),
+	Matrix (>= 1.1-5),
+	base,
+	stats,
+	psych,
+	reshape2,
+	cluster,
+	methods,
+	DBI,
+	survival,
+	mgcv,
+	SDMTools,
+	stringr
 Suggests:
     testthat
 License: GPL-2
