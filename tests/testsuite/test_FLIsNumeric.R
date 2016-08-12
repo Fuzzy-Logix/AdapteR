@@ -11,7 +11,7 @@ test_that("Check correct result for FLIsNumeric ",{
         vars <- ls(envir=Renv)
         lapply(vars,function(x){
             FLexpect_equal(FLIsNumeric((get(x,envir=FLenv))),
-                as.integer(!is.na(as.numeric(get(x,envir=Renv)))))
+                !is.na(as.numeric(get(x,envir=Renv))))
             })
        })
 
