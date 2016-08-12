@@ -25,34 +25,9 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     lines of R code!
 Depends:
 	R (>= 3.1.0),
-	stringi,
-	Rcpp,
-	stringr,
-	magrittr,
-	R.oo,
-	mnormt,
-	R.utils,
 	plyr,
 	MASS (>= 7.3-10),
 	Matrix (>= 1.1-5),
-	stats,
-	psych,
-	reshape2,
-	cluster,
-	methods,
-	survival,
-	mgcv,
-	SDMTools
-Imports:
-	Rcpp,
-	plyr,
-	mnormt,
-	magrittr,
-	R.oo,
-	R.utils,
-	MASS (>= 7.3-10),
-	Matrix (>= 1.1-5),
-	base,
 	stats,
 	psych,
 	reshape2,
@@ -61,9 +36,21 @@ Imports:
 	DBI,
 	survival,
 	mgcv,
-	SDMTools,
-	stringi,
-	stringr
+	SDMTools
+Imports:
+	Rcpp,
+	plyr,
+	MASS (>= 7.3-10),
+	Matrix (>= 1.1-5),
+	stats,
+	psych,
+	reshape2,
+	cluster,
+	methods,
+	DBI,
+	survival,
+	mgcv,
+	SDMTools
 Suggests:
     testthat
 License: GPL-2
