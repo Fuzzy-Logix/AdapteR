@@ -158,8 +158,8 @@ setMethod("wt.sd",signature(x="FLVector"),
         return(sd(x))
         else return(FLWtGeneric(x=x,w=wt,functionName="FLWtStdDev"))
         })
-setMethod("wt.sd",signature(x="ANY"),
-        SDMTools::wt.sd)
+# setMethod("wt.sd",signature(x="ANY"),
+#         SDMTools::wt.sd)
 
 #' @export
 setGeneric("wt.var",function(x,wt,...)
@@ -171,8 +171,8 @@ setMethod("wt.var",signature(x="FLVector"),
         return(sd(x))
         else return(FLWtGeneric(x=x,w=wt,functionName="FLWtVar"))
         })
-setMethod("wt.var",signature(x="ANY"),
-        SDMTools::wt.var)
+# setMethod("wt.var",signature(x="ANY"),
+#         SDMTools::wt.var)
 
 #' @export
 setGeneric("wt.mean",function(x,wt,...)
@@ -185,7 +185,14 @@ setMethod("wt.mean",signature(x="FLVector"),
         else return(FLWtGeneric(x=x,w=wt,functionName="FLWtAvg"))
         })
 setMethod("wt.mean",signature(x="ANY"),
-        SDMTools::wt.mean)
+        function(x,
+                wt = rep(1/length(x),length(x)),...){
+                    if (!requireNamespace("SDMTools", quietly = TRUE)){
+                        stop("SDMTools needed for wt.mean. Please install it.",
+                        call. = FALSE)
+                        }
+                    else return(SDMTools::wt.mean(x,wt,...))
+        })
 
 
 ######################### sd ###########################################

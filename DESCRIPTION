@@ -35,10 +35,8 @@ Depends:
 	methods,
 	DBI,
 	survival,
-	mgcv,
-	SDMTools
+	mgcv
 Imports:
-	Rcpp,
 	plyr,
 	MASS (>= 7.3-10),
 	Matrix (>= 1.1-5),
@@ -49,10 +47,10 @@ Imports:
 	methods,
 	DBI,
 	survival,
-	mgcv,
-	SDMTools
+	mgcv
 Suggests:
-    testthat
+    testthat,
+	SDMTools
 License: GPL-2
 LazyData: true
 Collate:
