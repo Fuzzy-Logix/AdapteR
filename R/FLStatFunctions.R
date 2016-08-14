@@ -53,8 +53,8 @@ FLStatsDist <- function(x,method="euclidean",
                         pOperator="FLStatsDist"))
     }
 
-
-#' computes distance between
+NULL
+#' Distance Matrix Computation
 #'
 #' @section Constraints:
 #' only manhattan and euclidean are supported currently.
@@ -66,6 +66,7 @@ FLStatsDist <- function(x,method="euclidean",
 #' dist(flmatrix,upper=TRUE)
 #' dist(flmatrix,diag=TRUE,upper=TRUE)
 #' dist(flmatrix,"manhattan",TRUE,TRUE)
+#' @export
 setMethod("dist",signature(x="FLMatrix"),
     function(x,method="euclidean",
             diag=TRUE,
@@ -87,6 +88,7 @@ setMethod("dist",signature(x="FLMatrix"),
                         functionName=functionName))
         })
 
+#' @export
 setMethod("dist",signature(x="FLVector"),
     function(x,method="euclidean",
             diag=TRUE,
@@ -107,6 +109,7 @@ setMethod("dist",signature(x="FLVector"),
                         functionName=functionName))
         })
 
+#' @export
 setMethod("dist",signature(x="FLTable"),
     function(x,method="euclidean",
             diag=TRUE,
@@ -142,6 +145,8 @@ FLWtGeneric <- function(x,w,functionName){
                         " WHERE a.vectorIndexColumn = b.vectorIndexColumn")
     return(sqlQuery(getOption("connectionFL"),sqlstr)[[1]])
 }
+
+#' @export
 weighted.mean.FLVector <- function(x,w=rep(1/length(x),length(x)),...){
     if(missing(w))
         return(mean(x))
@@ -158,8 +163,15 @@ setMethod("wt.sd",signature(x="FLVector"),
         return(sd(x))
         else return(FLWtGeneric(x=x,w=wt,functionName="FLWtStdDev"))
         })
-# setMethod("wt.sd",signature(x="ANY"),
-#         SDMTools::wt.sd)
+setMethod("wt.sd",signature(x="ANY"),
+        function(x,
+                wt = rep(1/length(x),length(x)),...){
+                    if (!requireNamespace("SDMTools", quietly = TRUE)){
+                        stop("SDMTools needed for wt.sd. Please install it.",
+                        call. = FALSE)
+                        }
+                    else return(SDMTools::wt.sd(x,wt,...))
+        })
 
 #' @export
 setGeneric("wt.var",function(x,wt,...)
@@ -171,8 +183,15 @@ setMethod("wt.var",signature(x="FLVector"),
         return(sd(x))
         else return(FLWtGeneric(x=x,w=wt,functionName="FLWtVar"))
         })
-# setMethod("wt.var",signature(x="ANY"),
-#         SDMTools::wt.var)
+setMethod("wt.var",signature(x="ANY"),
+        function(x,
+                wt = rep(1/length(x),length(x)),...){
+                    if (!requireNamespace("SDMTools", quietly = TRUE)){
+                        stop("SDMTools needed for wt.var. Please install it.",
+                        call. = FALSE)
+                        }
+                    else return(SDMTools::wt.var(x,wt,...))
+        })
 
 #' @export
 setGeneric("wt.mean",function(x,wt,...)
@@ -194,8 +213,10 @@ setMethod("wt.mean",signature(x="ANY"),
                     else return(SDMTools::wt.mean(x,wt,...))
         })
 
-
 ######################### sd ###########################################
+#' @export
+setGeneric("sd",function(x,na.rm=TRUE)
+                standardGeneric("sd"))
 sd.FLAbstractColumn <- function(x,na.rm=TRUE){
     return(paste0(" FLStdDev(",
                 paste0(x@columnName,collapse=","),") "))
@@ -484,7 +505,12 @@ setMethod("geometric.mean",signature(x="FLTable"),
                                 func=geometric.mean.FLAbstractColumn))})
 setMethod("geometric.mean",signature(x="ANY"),
     function(x,na.rm=FALSE){
-        return(psych::geometric.mean(x=x,na.rm=na.rm))})
+        if (!requireNamespace("psych", quietly = TRUE)){
+            stop("psych package needed for geometric.mean. Please install it.",
+            call. = FALSE)
+            }
+        else return(psych::geometric.mean(x=x,na.rm=na.rm))
+    })
 
 ############################## harmonic.mean #####################################
 #' @export
@@ -511,7 +537,12 @@ setMethod("harmonic.mean",signature(x="FLTable"),
                                 func=harmonic.mean.FLAbstractColumn))})
 setMethod("harmonic.mean",signature(x="ANY"),
     function(x,na.rm=FALSE){
-        return(psych::harmonic.mean(x=x,na.rm=na.rm))})
+        if (!requireNamespace("psych", quietly = TRUE)){
+            stop("psych package needed for harmonic.mean. Please install it.",
+            call. = FALSE)
+            }
+        else return(psych::harmonic.mean(x=x,na.rm=na.rm))
+    })
 
 ###################### UDT ##########################################################
 getDescStatsUDT <- function(object,

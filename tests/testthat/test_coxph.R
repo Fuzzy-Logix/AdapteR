@@ -1,4 +1,4 @@
-
+require(survival)
 parts <- c("nevent", "n", "wald.test", "means", "loglik")
 data(lung)
 lung1 <- lung
@@ -90,19 +90,5 @@ test_that("cox linear.predictors  https://app.asana.com/0/136555696724838/163682
   
   )
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #summary, plot??

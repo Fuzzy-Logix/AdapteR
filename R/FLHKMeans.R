@@ -33,7 +33,7 @@ NULL
 #' @param object total sum of squares
 #' @method size FLKMeans
 #' @param object size vector
-
+#' @export
 setClass(
 	"FLHKMeans",
 	slots=list(
@@ -59,7 +59,6 @@ setClass(
 #' The DB Lytix function called is FLHKMeans.Hierarchical K-Means clusters the training data.  
 #' The relationship of observations to clusters has hard edges. It re-clusters the training data in 
 #' each cluster until the desired hierarchical level is reached.
-#' @method hkmeans FLTable
 #' @param x an object of class FLTable, wide or deep
 #' @param centers the number of clusters
 #' @param levels no.of.levels in the hierarchy

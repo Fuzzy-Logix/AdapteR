@@ -4,7 +4,7 @@
 \alias{fanny}
 \title{FuzzyKMeans Clustering.}
 \usage{
-\method{fanny}{FLTable}(x, k, ...)
+fanny(x, k, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, can be wide or deep table}

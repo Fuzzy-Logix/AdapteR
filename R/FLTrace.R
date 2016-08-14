@@ -24,7 +24,13 @@ tr<-function(object, ...){
 }
 
 #' @export
-tr.default <- psych::tr
+tr.default <- function(object,...){
+    if (!requireNamespace("psych", quietly = TRUE)){
+            stop("psych package needed for tr. Please install it.",
+            call. = FALSE)
+            }
+    else return(psych::tr(object,...))
+}
 
 #' @export
 tr.FLMatrix<-function(object,...){

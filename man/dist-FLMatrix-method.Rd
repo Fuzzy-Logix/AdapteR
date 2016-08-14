@@ -3,13 +3,13 @@
 \docType{methods}
 \name{dist,FLMatrix-method}
 \alias{dist,FLMatrix-method}
-\title{computes distance between}
+\title{Distance Matrix Computation}
 \usage{
 \S4method{dist}{FLMatrix}(x, method = "euclidean", diag = TRUE,
   upper = TRUE, p = 2)
 }
 \description{
-computes distance between
+Distance Matrix Computation
 }
 \section{Constraints}{
 

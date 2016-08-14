@@ -51,6 +51,7 @@ NULL
 #' @param object plots the results of pam on FL objects.
 #' @method FLMapping FLKMedoids
 #' @param object gives the mapping data.frame which is used in execution.
+#' @export
 setClass(
 	"FLKMedoids",
 	slots=list(
@@ -129,11 +130,13 @@ pam <- function (x,k,...) {
 }
 
 #' @export
-pam.data.frame<-cluster::pam
-#' @export
-pam.matrix <- cluster::pam
-#' @export
-pam.default <- cluster::pam
+pam.default <- function(x,k,...){
+    if (!requireNamespace("cluster", quietly = TRUE)){
+            stop("cluster package needed for pam. Please install it.",
+            call. = FALSE)
+        }
+    else return(cluster::pam(x,k,...))
+}
 
 ## move to file pam.R
 #' @export

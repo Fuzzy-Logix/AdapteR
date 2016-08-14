@@ -26,31 +26,26 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
 Depends:
 	R (>= 3.1.0),
 	plyr,
-	MASS (>= 7.3-10),
 	Matrix (>= 1.1-5),
 	stats,
-	psych,
 	reshape2,
-	cluster,
 	methods,
-	DBI,
-	survival,
-	mgcv
+	DBI
 Imports:
 	plyr,
-	MASS (>= 7.3-10),
 	Matrix (>= 1.1-5),
 	stats,
-	psych,
 	reshape2,
-	cluster,
 	methods,
-	DBI,
-	survival,
-	mgcv
+	DBI
 Suggests:
     testthat,
-	SDMTools
+	SDMTools,
+	MASS,
+	psych,
+	cluster,
+	survival,
+	mgcv
 License: GPL-2
 LazyData: true
 Collate:

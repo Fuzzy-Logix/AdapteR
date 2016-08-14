@@ -188,6 +188,7 @@ expect_flequal <- function(a,b,...){
 ## gk: refactor such that initF code is used for one-time creation of huge testing tables (on demand)
 ## gk: and that all actual testing is done by creating references to that permanent table
 ## type should be in c("float","int","character")
+#' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
   #browser()

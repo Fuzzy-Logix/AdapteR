@@ -22,6 +22,7 @@ getFLColumnType <- function(x,columnName=NULL){
     return(vresult)
 }
 
+#' @export
 setGeneric("typeof",function(x)
       standardGeneric("typeof"))
 setMethod("typeof",signature(x="ANY"),
