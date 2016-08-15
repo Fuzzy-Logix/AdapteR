@@ -103,6 +103,10 @@ coxph.default <- function(formula,data=list(),...){
                                 ...))
 }
 
+
+#' @export
+Surv <- survival::Surv
+
 #' @export
 coxph.FLTable <- function(formula,data, ...)
 {
@@ -534,8 +538,9 @@ predict.FLCoxPH <-function(object,
 		vproperty <- names(vtemp)[property==vtemp]
 		statsdataframe <- object$FLCoxPHStats
 		colnames(statsdataframe) <- toupper(colnames(statsdataframe))
-		resultvector <- statsdataframe[[vproperty]]
-		names(resultvector) <- vproperty
+		resultvector <- as.vector(statsdataframe[[vproperty]])
+        names(resultvector) <- NULL
+		##names(resultvector) <- vproperty
 		assign(parentObject,object,envir=parent.frame())
 		return(resultvector)
 	}
