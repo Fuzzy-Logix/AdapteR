@@ -1,24 +1,6 @@
 #' @include FLMatrix.R
 NULL
 
-#' An S4 class to represent FLTableMD, an in-database data.frame.
-#'
-#' @slot select FLTableQuery the select statement for the table.
-#' @slot dimnames the observation id and column names
-#' @slot isDeep logical (currently ignored)
-#' @slot mapSelect \code{FLSelectFrom} object which contains the 
-#' mapping information if any
-#' @export
-setClass(
-    "FLTableMD",
-    contains="FLTable",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
 
 #' Constructor function for FLTableMD.
 #'
