@@ -59,7 +59,7 @@ Output is slightly different from stringdist::stringdist.
 Refer to \code{@return} section.
 }
 \examples{
-widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+widetable  <- FLTable("iris", "rownames")
 flv <- widetable[1:10,"Species"]
 resultflvector <- stringdist("xyz",flv)
 resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)

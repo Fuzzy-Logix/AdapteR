@@ -38,8 +38,7 @@ Input can only be with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-connection<- RODBC::odbcConnect("Gandalf")
-flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 FLLUobject <- lu(flmatrix)
 listresult <- expand(FLLUobject)
 listresult$L

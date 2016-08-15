@@ -42,8 +42,7 @@ If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 hclustobject <- hclust(deeptable,maxit=50)
 print(hclustobject)
 plot(hclustobject)

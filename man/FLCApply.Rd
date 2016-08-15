@@ -22,8 +22,7 @@ Partition data based on given column
 and apply given function on each partition
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf",database="FL_DEMO",platform="TD")
-irisfl <- FLTable("FL_DEMO","iris","rownames")
+irisfl <- FLTable("iris","rownames")
 resultList <- FLCApply(irisfl,function(x)kmeans(x,3),"Species")
 print(resultList$setosa)
 plot(resultList$virginica)

@@ -70,8 +70,7 @@ If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+widetable  <- FLTable("iris", "rownames")
 kmedoidsobject <- pam(widetable,3)
 print(kmedoidsobject)
 plot(kmedoidsobject)
@@ -79,7 +78,7 @@ One can specify ClassSpec and transform categorical variables
 before clustering. This increases the number of variables in the plot
 because categorical variable is split into binary numerical variables.
 The clusters may not be well-defined as is observed in the case below:-
-widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+widetable  <- FLTable("iris", "rownames")
 pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
 plot(pamobjectnew)
 }

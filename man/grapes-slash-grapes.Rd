@@ -29,9 +29,7 @@ All combinations of operands are possible just like in R and the result is an in
 in-database objects
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO", 
-"tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 ResultFLmatrix <- flmatrix \%/\% Rvector
 }

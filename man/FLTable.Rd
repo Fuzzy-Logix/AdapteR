@@ -33,9 +33,8 @@ in Teradata.
 This object is commonly used as input for data mining functions.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
-deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
+deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
 }
 
