@@ -106,6 +106,20 @@ setClass("FLVector",
          ),prototype = prototype(type="double")
         )
 
+setMethod("str",signature(object="FLVector"),
+          function(object) cat(paste0("FLVector [",length(object),"] ", object@type, "\n   ",str(object@select),"\n")))
+setMethod("str",signature(object="FLMatrix"),
+          function(object) cat(paste0("FLMatrix [",nrow(object),",",ncol(object),"] ",
+                                      object@type, "\n   ",object@type, str(object@select),"\n")))
+setMethod("str",signature(object="FLTable"),
+          function(object) cat(paste0("'FLTable': ",nrow(object)," obs. of ",ncol(object)," variables:",
+                                      paste0(" $ ",names(object@type)," : ",object@type, collapse="\n "),
+                                      "\n  ", str(object@select),
+                                      "\n"
+                                      )))
+setMethod("str",signature(object="FLTableQuery"),
+          function(object) gsub("[ \n]+"," ",constructSelect(object)))
+
 ##' drop a table
 ##' 
 ##' @param object FLTable object 
