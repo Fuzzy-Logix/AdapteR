@@ -19,8 +19,7 @@ which replicates the equivalent R extraction.
 \code{[]} acts on FLVector objects and extracts parts of them.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
+WideTable <- FLTable("tblAbaloneWide","ObsID")
 flvector <- FLVector[,"Diameter"]
 resultFLVector <- flvector[10:1]
 }

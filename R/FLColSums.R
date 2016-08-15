@@ -8,8 +8,7 @@ NULL
 #' @param object is of class FLMatrix.
 #' @return \code{colSums} returns a FLVector object representing the col-wise sums.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- colSums(flmatrix)
 #' @export
 colSums <- function (object, ...){

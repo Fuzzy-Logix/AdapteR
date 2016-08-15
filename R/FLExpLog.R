@@ -127,15 +127,14 @@ setMethod("FLExpLog",signature(x="FLVector"),
 #' @return returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' ResultFLmatrix <- exp(flmatrix)
 #' ResultFLmatrix <- logb(flmatrix,3)
 #' ResultFLmatrix <- log10(flmatrix)
 #' ResultFLmatrix <- log1p(flmatrix)
 #' ResultFLmatrix <- log(flmatrix)
 #' ResultFLmatrix <- log2(flmatrix)
-#' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 #' flvector <- deeptable[1:5,1]
 #' resultFLVector <- exp(flvector)
 #' resultFLVector <- log(flvector,4)

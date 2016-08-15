@@ -583,8 +583,7 @@ NULL
 #' @return \code{+} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
 #' @export
@@ -644,8 +643,7 @@ NULL
 #' @return \code{-} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
 #' @export
@@ -705,8 +703,7 @@ NULL
 #' @return \code{\%*\%} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
 #' @export
@@ -770,9 +767,7 @@ NULL
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %% Rvector
 #' @export
@@ -832,9 +827,7 @@ NULL
 #' @return \code{*} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix * Rvector
 #' @export
@@ -896,9 +889,7 @@ NULL
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix / Rvector
 #' @export
@@ -960,9 +951,7 @@ NULL
 #' @section Constraints: division by 0 gives inf in R, but is not supported for 
 #' in-database objects
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %/% Rvector
 #' @export
@@ -1022,9 +1011,7 @@ NULL
 #' @return \code{**} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix ** Rvector
 #' @export
@@ -1083,9 +1070,7 @@ NULL
 #' @return \code{^} returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix ** Rvector
 #' @export
@@ -1384,8 +1369,7 @@ NULL
 #' RVector==FLVector
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' flvector <- as.FLVector(1:5)
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector

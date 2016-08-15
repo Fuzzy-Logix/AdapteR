@@ -2,7 +2,7 @@
 NULL
 
 ##Apply functions
-# widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+# widetable  <- FLTable("iris", "rownames")
 # ddply(widetable,c("PetalWidth","PetalLength"),
 #       function(d)c(meanx=mean(d$SepalWidth),
 #                    meany=mean(d$SepalLength)))

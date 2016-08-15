@@ -25,8 +25,7 @@ Input matrices, FLMatrices and data frames should have same number of columns.
 }
 \examples{
 library(RODBC)
-connection <- odbcConnect("Gandalf")
-flmatrix <- FLMatrix("FL_TRAIN.tblMatrixMulti", 5)
+flmatrix <- FLMatrix("tblMatrixMulti", 5)
 resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 }
 

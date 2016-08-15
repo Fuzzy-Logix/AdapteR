@@ -30,9 +30,8 @@ If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-deeptable <- FLTable( "FL_DEMO", 
-"tblUSArrests", "ObsID","VarID","Num_Val")
-widetable <- FLTable("FL_DEMO","tblAbaloneWide","ObsID")
+deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
+widetable <- FLTable("tblAbaloneWide","ObsID")
 cor(deeptable,deeptable)
 cor(widetable,widetable)
 }

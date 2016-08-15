@@ -442,8 +442,7 @@ FLamendDimnames <- function(flm,map_table) {
 #' @return \code{FLMatrix} returns an object of class FLMatrix mapped
 #' to an in-database matrix.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti",
+#' flmatrix <- FLMatrix("tblMatrixMulti",
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
