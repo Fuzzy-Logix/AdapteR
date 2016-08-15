@@ -1,5 +1,5 @@
 library(testthat)
-
+library(plyr)
 library(AdapteR)
 
 ##' runs a test file.
