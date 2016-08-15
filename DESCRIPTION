@@ -25,9 +25,9 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     lines of R code!
 Depends:
 	R (>= 3.2.0),
+	plyr,
 	Matrix (>= 1.1-5)
 Imports:
-	plyr,
 	stats,
 	reshape2,
 	methods,
