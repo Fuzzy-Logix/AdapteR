@@ -9,8 +9,7 @@ NULL
 #' @param ... any additional arguments
 #' @return \code{rowMeans} returns a FLVector object representing the row-wise Means.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- rowMeans(flmatrix)
 #' @export
 rowMeans <- function (object, ...){

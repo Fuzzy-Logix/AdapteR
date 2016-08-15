@@ -16,8 +16,7 @@ NULL
 #' Applying UDT functions on subsetted matrices with discontinuous row and col ids' 
 #' may result in error
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
@@ -76,8 +75,7 @@ NULL
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' fltable <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' fltable <- FLTable("tblAbaloneWide", "ObsID")
 #' resultFLtable <- fltable[1:10,4:6]
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
@@ -252,8 +250,7 @@ NULL
 #' @return \code{[]} returns FLVector object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
+#' WideTable <- FLTable("tblAbaloneWide","ObsID")
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]
 #' @export

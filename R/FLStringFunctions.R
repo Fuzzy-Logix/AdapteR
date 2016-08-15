@@ -362,7 +362,7 @@ setMethod("FLStringDist",
 #' Output is slightly different from stringdist::stringdist.
 #' Refer to \code{@return} section.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' flv <- widetable[1:10,"Species"]
 #' resultflvector <- stringdist("xyz",flv)
 #' resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)
@@ -498,7 +498,7 @@ setMethod("stringdist",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' flv <- widetable[1:10,"Species"]
 #' resultflmatrix <- stringdistmatrix("xyz",flv)
 #' resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFlag=1)
@@ -742,7 +742,7 @@ setMethod("FLStrCommon",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLConcatString(flv,",")
 #' @export
@@ -803,7 +803,7 @@ setMethod("FLConcatString",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLCleanStr(flv)
 #' @export
@@ -833,7 +833,7 @@ setMethod("FLCleanStr",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLIsHex(flv)
 #' @export
@@ -864,7 +864,7 @@ setMethod("FLIsHex",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLIsNumeric(flv)
 #' @export
@@ -898,7 +898,7 @@ setMethod("FLIsNumeric",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLSqueezeSpace(flv)
 #' @export
@@ -941,7 +941,7 @@ setMethod("FLSqueezeSpace",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLExtractStr(flv,"A",1)
 #' @export
@@ -1050,7 +1050,7 @@ setMethod("regexpr",
 #' @section Constraints:
 #' row FLVectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- gregexpr("A",flv)
 #' @export
@@ -1093,7 +1093,7 @@ setMethod("gregexpr",
 #' @section Constraints:
 #' row FLVectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- grep("A",flv,value=TRUE)
 #' flvector <- grep("A",flv,invert=TRUE)
@@ -1193,7 +1193,7 @@ setMethod("grep",
 #' row FLVectors are not supported currently.
 #' Output slightly differs from base::grepl. See \code{return}
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- grepl("A",flv)
 #' @export
@@ -1283,7 +1283,7 @@ setMethod("grepl",
 #' row FLVectors are not supported currently.
 #' Currently only one character is used for replacement.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- sub("A","X",flv)
 #' @export
@@ -1347,7 +1347,7 @@ setMethod("sub",
 #' row FLVectors are not supported currently.
 #' Currently only one character is used for replacement.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- gsub("A","X",flv)
 #' @export
@@ -1404,7 +1404,7 @@ setMethod("gsub",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' wtd <- FLTable("FL_DEMO","tblXMLTest","GroupID")
+#' wtd <- FLTable("tblXMLTest","GroupID")
 #' flv <- wtd[,"pXML"]
 #' resultdataframe <- FLParseXML(flv)
 #' @export

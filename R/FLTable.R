@@ -17,9 +17,8 @@ NULL
 #' @return \code{FLTable} returns an object of class FLTable mapped to a table
 #' in Teradata.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
-#' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
 #' @export
 FLTable <- function(table,
@@ -288,8 +287,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -457,8 +455,7 @@ setMethod("wideToDeep",
 #' @return \code{deepToWide} returns a list containing components 
 #' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable( "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -638,8 +635,7 @@ setMethod("deepToWide",
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID

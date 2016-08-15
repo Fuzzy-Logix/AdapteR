@@ -18,8 +18,7 @@ NULL
 #' \item{QMatrix}{the resulting Q Matrix stored in-database as FLMatrix}
 #' \item{RMatrix}{the resulting R Matrix stored in-database as FLMatrix}
 #' @examples
-#' connection<-RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- qr(flmatrix)
 #' resultList$qr
 #' resultList$qraux

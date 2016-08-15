@@ -105,8 +105,7 @@ setClass(
 #' from \code{fanny} in cluster package.The mapping table can be viewed
 #' using \code{object$mapping} if input is wide table.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' fkmeansobject <- fanny(widetable,2,memb.exp=2)
 #' print(fkmeansobject)
 #' plot(fkmeansobject)
@@ -114,7 +113,7 @@ setClass(
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
 #' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' fannyobjectnew <- fanny(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(fannyobjectnew)
 #' @export

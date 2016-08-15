@@ -38,11 +38,11 @@ setClass(
 #' @return \code{FLTableMD} returns an object of class FLTableMD mapped to a table
 #' in database
 #' @examples
-#' widetableMD <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
+#' widetableMD <- FLTableMD(table="tblAutoMPGMD",
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",
 #'                       group_id = c(2,4))
-#' deeptableMD <- FLTableMD(table="FL_DEMO.LinRegrMultiMD",
+#' deeptableMD <- FLTableMD(table="LinRegrMultiMD",
 #'                       group_id_colname="DatasetID",
 #'                       obs_id_colname="ObsID",
 #'                       var_id_colname="VarID",
