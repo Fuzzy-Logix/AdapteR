@@ -45,9 +45,9 @@ if(opt$directory=="."){
 }
 cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 setwd(basedir)
-if(opt$AdapteR=="require")
+if(opt$AdapteR=="require"){
     require("AdapteR")
-else
+} else
     devtools::load_all(packagedir)
 
 if(grepl("^jdbc",opt$host)){
