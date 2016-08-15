@@ -2,6 +2,7 @@
 % Please edit documentation in R/FLLinRegr.R
 \name{print.FLLinRegr}
 \alias{print.FLLinRegr}
+\title{Print FLLinRegr output Info}
 \usage{
 \method{print}{FLLinRegr}(object)
 }
@@ -17,5 +18,11 @@
 \item{object}{returns the basic quantities which are used in forming a wide variety of diagnostics for checking the quality of regression fits.}
 
 \item{object}{plots the results of FLLinRegr on FL objects.}
+}
+\description{
+Print FLLinRegr Object
+}
+\details{
+Printing of output from Linear Regression
 }
 

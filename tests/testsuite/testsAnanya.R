@@ -27,8 +27,8 @@ test_that("Check FLExpLog.R. Sort, sqrt and Order also.",{
     FLexpect_equal(sqrt(flv),sqrt(rv),check.attributes=FALSE)
     FLexpect_equal(sqrt(flm),sqrt(as.matrix(flm)),check.attributes=FALSE)
                                         #sort
-    FLexpect_equal(sort.FLVector(flv),sort.int(rv),check.attributes=FALSE)
-    FLexpect_equal(sort.FLMatrix(flm),sort.int(as.matrix(flm)),check.attributes=FALSE)
+    FLexpect_equal(sort(flv),sort.int(rv),check.attributes=FALSE)
+    FLexpect_equal(sort(flm),sort.int(as.matrix(flm)),check.attributes=FALSE)
                                         #order
     FLexpect_equal(order(flv), order(rv), check.attributes = FALSE)
     FLexpect_equal(order(flm), order(as.matrix(flm)), check.attributes = FALSE)

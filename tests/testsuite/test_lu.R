@@ -44,10 +44,10 @@ test_that("Check L,U triangulairty ",{
 
 
 
-# Testing FLLUDecomp
-test_that("check LU Decomposition",
-{
-  m <- initF.FLMatrix(n=5)
-  expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
-               Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
-})
+# # Testing FLLUDecomp
+# test_that("check LU Decomposition",
+# {
+#   m <- initF.FLMatrix(n=5)
+#   expect_equal(AdapteR::expand(AdapteR::lu(m$FL)),
+#                Matrix::expand(Matrix::lu(m$R)),check.attributes=FALSE)
+# })

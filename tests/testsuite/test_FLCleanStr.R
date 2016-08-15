@@ -3,12 +3,12 @@
 ## todo: add a test for correct removal of a character
 
 test_that("Check for FLCleanStr function",{
-    widetable  <- FLTable(getRemoteTableName(tableName="tblstringID", temporaryTable=FALSE), "stringID")
+    widetable  <- FLTable("tblstringID","stringID")
     flv <- widetable[1:6,"string"]
     resultflvector <- FLCleanStr(flv)
     expect_equal(as.R(flv),as.R(resultflvector))
     ##
-    widetable  <- FLTable(getRemoteTableName(tableName="tblAutoMpg", temporaryTable=FALSE), "ObsID")
+    widetable  <- FLTable("tblAutoMpg","ObsID")
     flv <- widetable[1:6,"CarName"]
     resultflvector <- FLCleanStr(flv)
     expect_equal(as.R(flv),as.R(resultflvector))

@@ -57,12 +57,7 @@ You can either use ODBC or JDBC to connect to the warehouse
   #+END_SRC
 
 ** JDBC
-:PROPERTIES:
 :ID:       B21CA873-0591-46AF-9191-3C0CEEE90D51
-:END:
-:LOGBOOK:
-CLOCK: [2016-08-12 Fr 01:30]
-:END:
   #+BEGIN_SRC R :eval no
   install.packages("rJava") ## Required for RJDBC
   install.packages("RJDBC") ## Required for JDBC connection

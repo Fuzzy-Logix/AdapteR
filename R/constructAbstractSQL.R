@@ -1,3 +1,4 @@
+NULL
 ## This should take care of all UDT's in all platforms
 
 ## But pFuncName and outColnames differ which messes up things
@@ -302,13 +303,15 @@ getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
     else return(paste0(databaseName,".",tableName))
 }
 
+NULL
+
 ##' Create table sql.
 ##' 
 ##' covers cases where table is created from other tables
 ##' with and without data , temporary and permanent
 ##' if usedbSendUpdate arg is passed in ... that is used
-##'  in place of dbSendQuery
-##' @title 
+##' in place of dbSendQuery
+##' @title Create Table
 ##' @param pTableName 
 ##' @param pColNames 
 ##' @param pColTypes 

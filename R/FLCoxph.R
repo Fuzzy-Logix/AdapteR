@@ -93,7 +93,15 @@ coxph <- function (formula,data=list(),...) {
  }
 
 #' @export
-coxph.default <- survival::coxph
+coxph.default <- function(formula,data=list(),...){
+    if (!requireNamespace("survival", quietly = TRUE)){
+            stop("survival package needed for coxph. Please install it.",
+            call. = FALSE)
+        }
+    else return(survival::coxph(formula=formula,
+                                data=data,
+                                ...))
+}
 
 #' @export
 coxph.FLTable <- function(formula,data, ...)
