@@ -1,7 +1,6 @@
 Renv <- new.env(parent = globalenv())
 Renv$x <- Matrix(rnorm(9),3,3)
 Renv$result3 <- round(10 * Renv$x[,-3])
-library(Matrix)
 Renv$pm <- as(readMM(system.file("external/pores_1.mtx",
                                  package = "Matrix")),
               "CsparseMatrix")

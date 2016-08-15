@@ -1,4 +1,5 @@
 library(testthat)
+
 library(AdapteR)
 
 ##' runs a test file.
@@ -35,11 +36,7 @@ runMyTestFile <- function(f, ask=FALSE, runonly=NULL, skip=NULL,...){
 
 checkagain <- ".*"
 results <- list()
-results$testsuite <- llply(
-    find_test_scripts("testsuite"),
-    runMyTestFile,
-    ask=FALSE,
-    runonly=checkagain)
+
 
 results$testthat <- llply(
     find_test_scripts("testthat"),
@@ -47,6 +44,12 @@ results$testthat <- llply(
     ask=FALSE,
     runonly=checkagain)
 
-# results$limitations <- llply(find_test_scripts("limitations"),
-#       runMyTestFile)
+results$testsuite <- llply(
+    find_test_scripts("testsuite"),
+    runMyTestFile,
+    ask=FALSE,
+    runonly=checkagain)
+
+results$limitations <- llply(find_test_scripts("limitations"),
+      runMyTestFile)
 
