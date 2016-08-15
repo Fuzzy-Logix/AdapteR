@@ -4,7 +4,7 @@
 \alias{FLVarCluster}
 \title{Variable Clustering.}
 \usage{
-\method{FLVarCluster}{FLTable}(x, ...)
+FLVarCluster(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, wide or deep}

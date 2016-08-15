@@ -13,7 +13,6 @@ NULL
 #'
 #' @seealso \code{ClustOfVar} package for R reference implementation.
 #'
-#' @method FLVarCluster FLTable
 #' @param x an object of class FLTable, wide or deep
 #' @param contrib Level of contribution expected in the
 #' output clusters. Value between 0 and 1

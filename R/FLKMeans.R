@@ -12,7 +12,6 @@ NULL
 #'
 #' @seealso \code{\link[stats]{kmeans}} for R reference function implementation.
 #'
-#' @method kmeans FLTable
 #' @param x an object of class FLTable, wide or deep
 #' @param centers the number of clusters
 #' @param iter.max the maximum number of iterations allowed

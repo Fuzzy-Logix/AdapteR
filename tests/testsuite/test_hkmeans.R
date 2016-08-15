@@ -1,7 +1,7 @@
 library(testthat)
 FLenv <- new.env(parent = globalenv())
 
-FLenv$data  <- FLTable(getRemoteTableName(tableName="tblAutoMpg", temporaryTable=FALSE), "ObsID")
+FLenv$data  <- FLTable("tblAutoMpg","ObsID")
 test_that("check HKMeans output dimensions ",{
     centers=3
     levels=2

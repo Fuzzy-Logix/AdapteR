@@ -21,7 +21,13 @@ ginv <- function (object, ...){
 }
 
 #' @export
-ginv.default <- MASS::ginv
+ginv.default <- function(object,...){
+    if (!requireNamespace("MASS", quietly = TRUE)){
+            stop("MASS package needed for ginv. Please install it.",
+            call. = FALSE)
+            }
+    else return(MASS::ginv(object,...))
+}
 
 #' @export
 ginv.FLMatrix<-function(object,...)

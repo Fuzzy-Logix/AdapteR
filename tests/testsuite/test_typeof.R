@@ -33,8 +33,8 @@ test_that("typeof: matrix, vector and expressions",
 test_that("typeof: FLTable fzzlSerial, subsetting vector",
 {
   flt <- FLTable("FL_DEMO.fzzlSerial","SerialVal", whereconditions = "serialval<100")
-  flv1 <- flt[1:8,"RandVal"]
-  flv <- flt[1:10,"RandVal"]
+  flv1 <- flt[1:8,"RANDVAL"]
+  flv <- flt[1:10,"RANDVAL"]
   expect_equal(typeof(flv1),"double")
   expect_equal(typeof(flv),"double")
   expect_equal(flv1@type,"double")

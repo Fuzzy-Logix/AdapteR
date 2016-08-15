@@ -5,7 +5,7 @@
 \title{K-Means Clustering.
 \code{kmeans} performs k-means clustering on FLTable objects.}
 \usage{
-\method{kmeans}{FLTable}(x, ...)
+kmeans(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, wide or deep}

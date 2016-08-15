@@ -22,6 +22,7 @@ getFLColumnType <- function(x,columnName=NULL){
     return(vresult)
 }
 
+#' @export
 setGeneric("typeof",function(x)
       standardGeneric("typeof"))
 setMethod("typeof",signature(x="ANY"),
@@ -420,7 +421,8 @@ getArtihmeticType <- function(pObj1,pObj2,pOperator){
     return("character")
   else if("double" %in% vtype)
     return("double")
-  else if("integer" %in% vtype)
+  else if("integer" %in% vtype 
+        && pOperator %in% c("+","-","*","%*%"))
     return("integer")
   else if(all(vtype=="logical"))
     return("logical")

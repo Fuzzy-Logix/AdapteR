@@ -50,7 +50,6 @@ setClass("FLRegr",
 #' @method summary FLLinRegr
 #' @method predict FLLinRegr
 #' @export
-#' and in-database procedures called during execution
 setClass(
 	"FLLinRegr",
 	contains="FLRegr",
@@ -1616,6 +1615,13 @@ predict.lmGeneric <- function(object,
 }
 
 ## move to file lm.R
+NULL
+
+#' Print FLLinRegr Object
+#'
+#' Printing of output from Linear Regression
+#' 
+#' @title Print FLLinRegr output Info
 #' @method print FLLinRegr
 #' @param object prints results of FLLinRegr on FL objects
 #' @method coefficients FLLinRegr
