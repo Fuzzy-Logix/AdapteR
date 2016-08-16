@@ -37,7 +37,7 @@ Imports:
 	reshape2,
 	stringr,
 	stringi,
-	magritts,
+	magrittr,
 	methods,
 	DBI
 Suggests:
