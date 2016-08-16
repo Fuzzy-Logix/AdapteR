@@ -28,8 +28,16 @@ Depends:
 	Matrix (>= 1.1-5)
 Imports:
 	plyr,
+	Rcpp,
+	utils,
+	graphics,
+	lattice,
+	grid,
 	stats,
 	reshape2,
+	stringr,
+	stringi,
+	magritts,
 	methods,
 	DBI
 Suggests:

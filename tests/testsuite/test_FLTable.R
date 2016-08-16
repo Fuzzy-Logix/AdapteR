@@ -44,6 +44,16 @@ test_that("typeof: FLTable and columns]",{
     Renv,FLenv,check.attributes=FALSE)
 })
 
+test_that("as.dta.frame: download (part) of a remote table",{
+    ## A remote matrix is easily created by specifying
+    ## table, row id, column id and value columns
+    DfilmF <- FLTable(table        = "FL_DEMO.actressldist",
+                      obs_id_colname    = "ObsID")
+    DfilmR <- as.data.frame(DfilmF)
+    expect_equal(nrow(DfilmF), nrow(DfilmR))
+})
+
+
 test_that("Selection of columns works with $ and with [,name]",{
     ## A remote matrix is easily created by specifying
     ## table, row id, column id and value columns
@@ -52,3 +62,4 @@ test_that("Selection of columns works with $ and with [,name]",{
     expect_equal(as.vector(head(DfilmF$Actor)),
                  as.vector(head(DfilmF[,"Actor"])))
 })
+
