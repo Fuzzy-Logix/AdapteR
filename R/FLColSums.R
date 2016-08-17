@@ -28,7 +28,7 @@ colSums.FLMatrix<-function(object,...)
 
 	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
 			        ",",var,".",object@dimColumns[[2]]," AS vectorIndexColumn",
-			        ", SUM(",var,".valueColumn) AS vectorValueColumn 
+			        ", SUM(",var,".",object@dimColumns[[3]],") AS vectorValueColumn 
 					FROM ",
 					"( ",constructSelect(object),
 					" ) AS ",var,
