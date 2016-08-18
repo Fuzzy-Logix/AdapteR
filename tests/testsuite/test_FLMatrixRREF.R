@@ -7,7 +7,7 @@ flresult <- as.matrix(flresult)
 
 test_that("testing RREF conditions ",{
   vidx <- apply(flresult,1,function(x){
-                vidx1 <- min(which(x==1))
+                vidx1 <- suppressWarnings({min(which(x==1))})
                 if(vidx1 > 1 
                   && !is.infinite(vidx1) 
                   && !all(x[1:vidx1-1]==0))

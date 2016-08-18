@@ -27,19 +27,40 @@ Depends:
 	R (>= 3.2.0),
 	Matrix (>= 1.1-5)
 Imports:
+	testthat,
 	plyr,
+	MASS,
+	Matrix,
+	base,
 	stats,
+	psych,
 	reshape2,
+	cluster,
 	methods,
-	DBI
-Suggests:
-    testthat,
-    SDMTools,
-    MASS,
-    psych,
-    cluster,
-    survival,
-    mgcv
+	DBI, 
+	survival,
+	mgcv,
+	digest,
+	crayon,
+	praise,
+	magrittr,
+	R6,
+	grDevices,
+	utils,
+	Rcpp,
+	graphics,
+	grid,
+	lattice,
+	mnormt,
+	parallel,
+	stringr,
+	stringi,
+	tools,
+	splines,
+	nlme,
+	R.oo,
+	R.utils,
+	R.methodsS3
 License: GPL-2
 LazyData: true
 Collate:
