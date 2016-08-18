@@ -29,8 +29,8 @@ colSums.FLMatrix<-function(object,...)
 			        ",",var,".",object@dimColumns[[2]]," AS vectorIndexColumn",
 			        ", SUM(",var,".valueColumn) AS vectorValueColumn 
 					FROM ",
-					"( ",constructSelect(object),
-					" ) AS ",var,
+                   ## gk: use FLSum here!
+					"( ",constructSelect(object), " ) AS ",var,
 					" GROUP BY ",var,".",object@dimColumns[[2]])
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",

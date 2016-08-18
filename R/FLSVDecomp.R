@@ -35,11 +35,6 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 	flag1Check(connection)
 	flag3Check(connection)
 
-    ## gk:  you are executing the analysis 3 times!
-    ## gk:  we need to store such things more efficiently
-    ### Phani-- done by using temp table
-
-        
     sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),
                      outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",

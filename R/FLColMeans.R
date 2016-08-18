@@ -31,6 +31,7 @@ colMeans.FLMatrix<-function(object,...)
 			        ",",var,".",object@dimColumns[[2]]," AS vectorIndexColumn",
 			        ", AVG(",var,".",object@dimColumns[[3]],") AS vectorValueColumn 
 					FROM ",
+                   ## gk: use FLMEAN here!
 					"( ",constructSelect(object),
 					" ) AS ",var,
 					" GROUP BY ",var,".",object@dimColumns[[2]])
