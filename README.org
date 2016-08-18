@@ -15,13 +15,6 @@ AdapteR can be used to build interactive analytics at scale with just a few line
 
 You can download the full manual here: [[https://securisync.intermedia.net/web/s/LtQNzab68gL5jwSzQERIiV][AdapteR package manual]].
 * Work environments & recommendations
-:PROPERTIES:
-:ID:       28FFD833-3724-400D-8D66-C98275E16F2C
-:CLOCK_LAST: [2016-08-12 Fr 01:30]
-:END:
-:LOGBOOK:
-CLOCK: [2016-08-12 Fr 01:23]--[2016-08-12 Fr 01:28] =>  0:05
-:END:
 Download R and R-Studio.
 - For R:  https://cran.r-project.org/
 
@@ -32,23 +25,10 @@ Download R and R-Studio.
 - Add R and Rcript executables to PATH variable.
 
 * Requirements
-:PROPERTIES:
-:ID:       B714F80B-0C7E-43A4-A496-456CDDF8F753
-:CLOCK_LAST: [2016-08-12 Fr 01:32]
-:END:
-:LOGBOOK:
-CLOCK: [2016-08-12 Fr 01:28]--[2016-08-12 Fr 01:30] =>  0:02
-:END:
-- AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
-
-  Find more information on [[http://www.fuzzylogix.com]].
-
-- Install prerequisites
-  #+BEGIN_SRC R :eval no
-  install.packages("roxygen2") ## Required for devtools
-  install.packages("testthat") ## Required to run test suite
-  #+END_SRC
-
+AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
+Find more information on [[http://www.fuzzylogix.com]].
+  
+AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
 You can either use ODBC or JDBC to connect to the warehouse
 ** ODBC  
   #+BEGIN_SRC R :eval no
@@ -57,34 +37,63 @@ You can either use ODBC or JDBC to connect to the warehouse
   #+END_SRC
 
 ** JDBC
-:ID:       B21CA873-0591-46AF-9191-3C0CEEE90D51
-  #+BEGIN_SRC R :eval no
-  install.packages("rJava") ## Required for RJDBC
-  install.packages("RJDBC") ## Required for JDBC connection
-  library(RJDBC)
-#+END_SRC
-if this throws a JavaSetHome error (known issue in Windows),
-try skipping this step and proceeding with [[id:22E14279-53E2-4737-A582-879158535A40][Installation instructions]] and check whether the demo scripts runs successfully.
-else (re-)install the jdk, and set the path variable
-: Sys.setenv(JAVA_HOME="yourPathTojdk")  
-* Installation instructions
-:PROPERTIES:
-:ID:       22E14279-53E2-4737-A582-879158535A40
-:END:
-Install (or update) the package 
+In order to use jdbc with AdapteR, you need to install rJava
 #+BEGIN_SRC R :eval no
-## install.packages("devtools") ## Required for install_github
+install.packages("rJava") ## Required for RJDBC
+install.packages("RJDBC") ## Required for JDBC connection
+library(RJDBC)            ## check if RJDBC can be loaded
+
+#+END_SRC
+Also, you need to download and use the jdbc connector jar files either in the java load path or provide them when calling =flConnect=
+the java development toolkit (jdbc).
+- Windows: 
+  1. (re-)install the jdk, and set the path variable in R
+  : Sys.setenv(JAVA_HOME="yourPathTojdk")
+- Linux: 
+  1. install jdk and sources
+     Ubuntu:
+     #+begin_src sh
+     sudo apt install default-jdk
+     #+end_src
+
+  2. setup R for using your java installation
+     #+begin_src sh
+     sudo R CMD javareconf
+     #+end_src
+
+** Optional packages
+The following suggested packages are required to run the test suite:
+#+BEGIN_SRC R :eval no
+  install.packages("testthat")   ## Required to run test suite
+  install.packages("optparse")   ## Required to run test suite
+  install.packages("plyr")       ## Required to run test suite
+  install.packages("psych")      ## Required to run test suite
+  install.packages("SDMTools")   ## Required to run test suite
+  install.packages("MASS")       ## Required to run test suite
+  install.packages("psych")      ## Required to run test suite
+  install.packages("cluster")    ## Required to run test suite
+  install.packages("survival")   ## Required to run test suite
+  install.packages("mgcv")       ## Required to run test suite
+  install.packages("moments")    ## Required to run test suite
+  install.packages("stringdist") ## Required to run test suite
+  install.packages("melt")       ## Required to run test suite
+  install.packages("dcast")      ## Required to run test suite
+#+END_SRC
+
+* Installation and Update instructions
+The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
+#+BEGIN_SRC R :eval no
+install.packages("devtools") ## Required for install_github
 require(devtools)
 install_github("Fuzzy-Logix/AdapteR")
 #+END_SRC
-(The package does not depend on either JDBC or ODBC but uses either you provide at runtime.  You savely can ignore warnings about xDBC.)
 
 Remove older Version, if you encounter any issues
 #+begin_src R
 remove.packages("AdapteR")
 #+end_src
 
-  ## If installing from .tar.gz:
+  # If installing from .tar.gz:
   # adptrdir <- "C:/Users/phani/Desktop/AdapteR_2.0.tar.gz" ##where the adapteR source file(tar.gz) is.
   # install.packages(adptrdir,repos = NULL,type = "source")
 
