@@ -14,16 +14,6 @@ custom SQL.
 AdapteR can be used to build interactive analytics at scale with just a few lines of R code!
 
 You can download the full manual here: [[https://securisync.intermedia.net/web/s/LtQNzab68gL5jwSzQERIiV][AdapteR package manual]].
-* Work environments & recommendations
-Download R and R-Studio.
-- For R:  https://cran.r-project.org/
-
-  Install R. While Installing, check 32/64 bit according to system.
-- For R-Studio: https://www.rstudio.com/products/rstudio/download/
-
-  Install R Studio.
-- Add R and Rcript executables to PATH variable.
-
 * Requirements
 AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
 Find more information on [[http://www.fuzzylogix.com]].
@@ -31,16 +21,14 @@ Find more information on [[http://www.fuzzylogix.com]].
 :PROPERTIES:
 :ID:       DF5AB673-2890-4EAF-A9B3-A721F1609BF1
 :END:
-Installation of R on Windows:
-1. Download and install R(>=3.2.0) from https://cran.r-project.org/bin/windows/base/ and R-Studio from  https://www.rstudio.com/products/rstudio/download2/.
+*** Installation of R on Windows:
+1. Download and install R(>=3.2.0) from https://cran.r-project.org/bin/windows/base/
 
-Installation of R on Linux:
+*** Installation of R on Linux:
 1. Install R using 
-
    Ubuntu:
    : apt-get install r-base
-2. Download and Install R-Studio from https://www.rstudio.com/products/rstudio/download2/
-3. Install OS packages required to build R packages
+2. Install OS packages required to build R packages
 
    Ubuntu:
    #+begin_src sh 
@@ -48,11 +36,14 @@ Installation of R on Linux:
     apt-get -y install libcurl4-gnutls-dev
     apt-get install libssl-dev
    #+end_src
+** Work environments & recommendations
+We recommend to
+- add R and Rcript executables to PATH variable.
+- install R-Studio: https://www.rstudio.com/products/rstudio/download/
 * Installation and Update instructions
 :PROPERTIES:
 :ID:       4AD7DBF5-9C7A-4C9C-A714-0735F860E7A4
 :END:
-Installation of AdapteR:
 1. Open R-Studio or an R terminal
 2. The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
    1. Install devtools package using "install.packages("devtools")"
@@ -67,15 +58,15 @@ Installation of AdapteR:
       #+BEGIN_SRC R :eval no
       install_github("Fuzzy-Logix/AdapteR")
       #+END_SRC
-      This should automatically install dependencies. 
-      On failure please install the 
+      This automatically installs dependencies. 
+      # On failure please install the [[id:A7CCAA11-1DCD-482D-8744-88631588B3AF][reference syntax packages]]
 5. Load AdapteR using
       #+BEGIN_SRC R :eval no
       library(AdapteR)
       #+END_SRC
 
 
-Remove older Version, if you encounter any issues
+** Remove older Version, if you encounter any issues
 #+begin_src R
 remove.packages("AdapteR")
 #+end_src
@@ -84,11 +75,16 @@ remove.packages("AdapteR")
 
 
 * Connecting to the Data Warehouse
+:PROPERTIES:
+:ID:       2B55187C-17C1-488C-A980-396426D2DD18
+:END:
+:LOGBOOK:
+CLOCK: [2016-08-18 Do 14:59]
+:END:
 AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
-You can either use ODBC or JDBC to connect to the warehouse
-Setting up connection to Database:
-1. load library RODBC/RJDBC package
-2. Use =flConnect= to connect to a database. Help on this can be found using 
+You can either use ODBC or JDBC to connect to the warehouse, see instructions below.
+
+Use =flConnect= to connect to a database. Help on this can be found using 
    #+begin_src R
    ?flConnect
    #+end_src
@@ -100,15 +96,7 @@ Setting up connection to Database:
   #+END_SRC
 
 ** JDBC
-In order to use jdbc with AdapteR, you need to install rJava
-#+BEGIN_SRC R :eval no
-install.packages("rJava") ## Required for RJDBC
-install.packages("RJDBC") ## Required for JDBC connection
-library(RJDBC)            ## check if RJDBC can be loaded
-
-#+END_SRC
-Also, you need to download and use the jdbc connector jar files either in the java load path or provide them when calling =flConnect=
-the java development toolkit (jdbc).
+*** Java JDK
 - Windows: 
   1. (re-)install the jdk, and set the path variable in R
   : Sys.setenv(JAVA_HOME="yourPathTojdk")
@@ -124,6 +112,18 @@ the java development toolkit (jdbc).
      #+begin_src sh
      sudo R CMD javareconf
      #+end_src
+
+*** RJDBC
+In order to use jdbc with AdapteR, you need to install rJava
+#+BEGIN_SRC R :eval no
+install.packages("rJava") ## Required for RJDBC
+install.packages("RJDBC") ## Required for JDBC connection
+library(RJDBC)            ## check if RJDBC can be loaded
+
+#+END_SRC
+*** JDBC connectors
+Also, you need to download and use the jdbc connector jar files either in the java load path or provide them when calling =flConnect=
+the java development toolkit (jdbc).
 
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts:
@@ -146,10 +146,6 @@ matrix.correlation
 ** Optional packages
 :PROPERTIES:
 :ID:       A7CCAA11-1DCD-482D-8744-88631588B3AF
-:CLOCK_LAST: [2016-08-18 Do 14:53]
-:END:
-:LOGBOOK:
-CLOCK: [2016-08-18 Do 14:46]--[2016-08-18 Do 14:51] =>  0:05
 :END:
 The following suggested packages provide functions that are used if AdapteR functions are called on data.frame, matrix or vectors (not remote representations).
 Functions in these packages provide the reference implementations for 
