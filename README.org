@@ -27,10 +27,38 @@ Download R and R-Studio.
 * Requirements
 AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
 Find more information on [[http://www.fuzzylogix.com]].
-  
+** R
+:PROPERTIES:
+:ID:       DF5AB673-2890-4EAF-A9B3-A721F1609BF1
+:END:
+Installation of R on Windows:
+1. Download and install R(>=3.2.0) from https://cran.r-project.org/bin/windows/base/ and R-Studio from  https://www.rstudio.com/products/rstudio/download2/.
+
+Installation of R on Linux:
+1. Install R using 
+
+   Ubuntu:
+   : apt-get install r-base
+2. Download and Install R-Studio from https://www.rstudio.com/products/rstudio/download2/
+3. Install OS packages required to build R packages
+
+   Ubuntu:
+   #+begin_src sh 
+    apt-get -y build-dep libcurl4-gnutls-dev
+    apt-get -y install libcurl4-gnutls-dev
+    apt-get install libssl-dev
+   #+end_src
+* Connecting to the Data Warehouse
 AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
 You can either use ODBC or JDBC to connect to the warehouse
-** ODBC  
+Setting up connection to Database:
+1. load library RODBC/RJDBC package
+2. Use =flConnect= to connect to a database. Help on this can be found using 
+   #+begin_src R
+   ?flConnect
+   #+end_src
+
+** ODBC
   #+BEGIN_SRC R :eval no
   install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
   library(RODBC)
@@ -49,6 +77,7 @@ the java development toolkit (jdbc).
 - Windows: 
   1. (re-)install the jdk, and set the path variable in R
   : Sys.setenv(JAVA_HOME="yourPathTojdk")
+  (https://docs.oracle.com/cd/E19182-01/820-7851/inst_cli_jdk_javahome_t/)
 - Linux: 
   1. install jdk and sources
      Ubuntu:
@@ -61,41 +90,40 @@ the java development toolkit (jdbc).
      sudo R CMD javareconf
      #+end_src
 
-** Optional packages
-The following suggested packages are required to run the test suite:
-#+BEGIN_SRC R :eval no
-  install.packages("testthat")   ## Required to run test suite
-  install.packages("optparse")   ## Required to run test suite
-  install.packages("plyr")       ## Required to run test suite
-  install.packages("psych")      ## Required to run test suite
-  install.packages("SDMTools")   ## Required to run test suite
-  install.packages("MASS")       ## Required to run test suite
-  install.packages("psych")      ## Required to run test suite
-  install.packages("cluster")    ## Required to run test suite
-  install.packages("survival")   ## Required to run test suite
-  install.packages("mgcv")       ## Required to run test suite
-  install.packages("moments")    ## Required to run test suite
-  install.packages("stringdist") ## Required to run test suite
-  install.packages("melt")       ## Required to run test suite
-  install.packages("dcast")      ## Required to run test suite
-#+END_SRC
-
 * Installation and Update instructions
-The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
-#+BEGIN_SRC R :eval no
-install.packages("devtools") ## Required for install_github
-require(devtools)
-install_github("Fuzzy-Logix/AdapteR")
-#+END_SRC
+:PROPERTIES:
+:ID:       4AD7DBF5-9C7A-4C9C-A714-0735F860E7A4
+:END:
+Installation of AdapteR:
+1. Open R-Studio or an R terminal
+2. The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
+   1. Install devtools package using "install.packages("devtools")"
+      #+BEGIN_SRC R :eval no
+      install.packages("devtools") ## Required for install_github
+      #+END_SRC
+   2. Load devtools using
+      #+BEGIN_SRC R :eval no
+      require(devtools)
+      #+END_SRC
+   3. Install AdapteR from github
+      #+BEGIN_SRC R :eval no
+      install_github("Fuzzy-Logix/AdapteR")
+      #+END_SRC
+      This should automatically install dependencies. 
+      On failure please install the 
+5. Load AdapteR using
+      #+BEGIN_SRC R :eval no
+      library(AdapteR)
+      #+END_SRC
+
 
 Remove older Version, if you encounter any issues
 #+begin_src R
 remove.packages("AdapteR")
 #+end_src
 
-  # If installing from .tar.gz:
-  # adptrdir <- "C:/Users/phani/Desktop/AdapteR_2.0.tar.gz" ##where the adapteR source file(tar.gz) is.
-  # install.packages(adptrdir,repos = NULL,type = "source")
+
+
 
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts:
@@ -115,3 +143,30 @@ connecting
 matrix.algebra          
 matrix.correlation
 #+END_EXAMPLE
+** Optional packages
+:PROPERTIES:
+:ID:       A7CCAA11-1DCD-482D-8744-88631588B3AF
+:CLOCK_LAST: [2016-08-18 Do 14:53]
+:END:
+:LOGBOOK:
+CLOCK: [2016-08-18 Do 14:46]--[2016-08-18 Do 14:51] =>  0:05
+:END:
+The following suggested packages provide functions that are used if AdapteR functions are called on data.frame, matrix or vectors (not remote representations).
+Functions in these packages provide the reference implementations for 
+#+BEGIN_SRC R :eval no
+  install.packages("psych")
+  install.packages("SDMTools")
+  install.packages("MASS")
+  install.packages("psych")
+  install.packages("cluster")
+  install.packages("survival")
+  install.packages("mgcv")
+  install.packages("moments")
+  install.packages("stringdist")
+#+END_SRC
+
+These packages are required to run the test suite:
+#+BEGIN_SRC R :eval no
+  install.packages("testthat")
+  install.packages("optparse")
+#+END_SRC
