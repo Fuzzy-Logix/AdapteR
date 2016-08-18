@@ -1,3 +1,15 @@
+## testing M_Subtraction with different length vectors
+## Cases with dates failing
+test_that("check FLVector subtraction",
+{
+  flt <- FLTable("FL_DEMO.finequityreturns","txndate")
+  flv1 <- flt[1:8,"equityreturn"]
+  flv <- flt[1:10,"equityreturn"]
+  flv1R <- as.vector(flv1)
+  flvR <- as.vector(flv)
+  FLexpect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)
+})
+
 Renv <- new.env(parent = globalenv())
 FLenv <- as.FL(Renv)
 test_that(

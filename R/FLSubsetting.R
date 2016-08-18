@@ -16,9 +16,7 @@ NULL
 #' Applying UDT functions on subsetted matrices with discontinuous row and col ids' 
 #' may result in error
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
@@ -77,18 +75,18 @@ NULL
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' fltable <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' fltable <- FLTable("tblAbaloneWide", "ObsID")
 #' resultFLtable <- fltable[1:10,4:6]
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
   #browser()
-  if(class(object@select)=="FLTableFunctionQuery")
-  object <- store(object)
-	connection<-getConnection(object)
-  if(is.FLVector(rows)) rows <- as.vector(rows)
-  if(is.FLVector(cols)) cols <- as.vector(cols)
+    vtype <- typeof(object)
+    if(class(object@select)=="FLTableFunctionQuery")
+      object <- store(object)
+	  connection<-getConnection(object)
+    if(is.FLVector(rows)) rows <- as.vector(rows)
+    if(is.FLVector(cols)) cols <- as.vector(cols)
     if(is.numeric(rows))
         newrownames <- object@dimnames[[1]][rows]
     else
@@ -148,8 +146,7 @@ NULL
       if(ncol(object)==1 && 
         (!all(vrownames==(1:nrow(object)))))
       {
-        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("NameMapTableFL"),
+        MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newrownames <- storeVarnameMapping(connection=getOption("connectionFL"),
@@ -166,8 +163,7 @@ NULL
       else if(object@isDeep && nrow(object)==1 &&
         (!all(vcolnames==(1:ncol(object)))))
       {
-        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-                vtable=getOption("NameMapTableFL"),
+        MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newcolnames <- storeVarnameMapping(connection=getOption("connectionFL"),
@@ -185,18 +181,16 @@ NULL
       {
         if(!isAliasSet(object))
         object <- setAlias(object,"flt")
-        mapselect <- new(
-                  "FLSelectFrom",
-                  connection = getOption("connectionFL"), 
-                  database = getOption("ResultDatabaseFL"), 
-                  table_name = c(nameflt=getOption("NameMapTableFL")),
-                  variables = list(),
-                  whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
-                        paste0("nameflt.DIM_ID=1"),
-                        paste0("nameflt.NAME = CAST(",
-                                getVariables(object)[[vobsidcolumn]],
-                                " AS VARCHAR(100))")),
-                  order = "")
+        mapselect <- new("FLSelectFrom",
+                         connection = getOption("connectionFL"), 
+                         table_name = c(nameflt=getOption("NameMapTableFL")),
+                         variables = list(),
+                         whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
+                                           paste0("nameflt.DIM_ID=1"),
+                                           paste0("nameflt.NAME = CAST(",
+                                                  getVariables(object)[[vobsidcolumn]],
+                                                  " AS VARCHAR(100))")),
+                         order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
 
 
@@ -214,19 +208,35 @@ NULL
         #           paste0(vtableref,".DIM_ID=1")),
         #     order = "")
         
-        return(new("FLVector",
+        vres <- new("FLVector",
                   select=object@select,
                   dimnames=list(newrownames,newcolnames),
                   isDeep=object@isDeep,
-                  mapSelect=mapselect))
+                  mapSelect=mapselect)
       }
       else
-      return(new("FLVector",
-                select=object@select,
-                dimnames=list(vrownames,vcolnames),
-                isDeep=object@isDeep))
+          vres <- new("FLVector",
+                      select=object@select,
+                      dimnames=list(vrownames,vcolnames),
+                      isDeep=object@isDeep)
+      vvaluecolumn <- getValueColumn(vres)
+      vvaluecolumn <- changeAlias(vvaluecolumn,"","")
+      vtype1 <- vtype[vvaluecolumn]
+      if(is.null(vtype1))
+        vtype1 <- vtype[1]
+      names(vtype1) <- NULL
+      vres@type <- vtype1
+      return(vres)
     }
-    else return(object)
+    else{
+      vvaluecolumn <- getValueColumn(object)
+      vvaluecolumn <- changeAlias(vvaluecolumn,"","")
+      vtype1 <- vtype[vvaluecolumn]
+      if(is.null(vtype1))
+        vtype1 <- vtype[1]
+      object@type <- vtype1
+      return(object)
+    }
 }
 
 
@@ -240,8 +250,7 @@ NULL
 #' @return \code{[]} returns FLVector object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
+#' WideTable <- FLTable("tblAbaloneWide","ObsID")
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]
 #' @export
@@ -307,17 +316,15 @@ NULL
             nameIndexColumn <- getVariables(pSet)[["obs_id_colname"]]
             nameValueColumn <- changeAlias(nameValueColumn,"nameflt",oldalias)
             nameIndexColumn <- changeAlias(nameIndexColumn,"nameflt",oldalias)
-            mapselect <- new(
-                      "FLSelectFrom",
-                      connection = getOption("connectionFL"), 
-                      database = pSet@select@database, 
-                      table_name = pSet@select@table_name,
-                      variables = list(),
-                      whereconditions=c(constraintsSQL(pSet),
-                            paste0(nameValueColumn," = CAST(",
-                                    getVariables(object)[[vobsidcolumn]],
-                                    " AS VARCHAR(100))")),
-                      order = "")
+            mapselect <- new("FLSelectFrom",
+                             connection = getOption("connectionFL"), 
+                             table_name = pSet@select@table_name,
+                             variables = list(),
+                             whereconditions=c(constraintsSQL(pSet),
+                                               paste0(nameValueColumn," = CAST(",
+                                                      getVariables(object)[[vobsidcolumn]],
+                                                      " AS VARCHAR(100))")),
+                             order = "")
             object@select@variables[[vobsidcolumn]]<- nameIndexColumn
         }
         newrownames <- as.vector(pSet)
@@ -338,8 +345,7 @@ NULL
 
         if(length(pSet)==1 && object@dimnames[[1]]!=1)
         {
-          MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-              vtable=getOption("NameMapTableFL"),
+          MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
@@ -349,18 +355,16 @@ NULL
                         dimId= 1,
                         mynames=object@dimnames[[1]]
                         )
-          mapselect <- new(
-                    "FLSelectFrom",
-                    connection = getOption("connectionFL"), 
-                    database = getOption("ResultDatabaseFL"), 
-                    table_name = c(nameflt=getOption("NameMapTableFL")),
-                    variables = list(),
-                    whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
-                          paste0("nameflt.DIM_ID=1"),
-                          paste0("nameflt.NAME = CAST(",
-                                  getVariables(object)[[vobsidcolumn]],
-                                  " AS VARCHAR(100))")),
-                    order = "")
+          mapselect <- new("FLSelectFrom",
+                           connection = getOption("connectionFL"), 
+                           table_name = c(nameflt=getOption("NameMapTableFL")),
+                           variables = list(),
+                           whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
+                                             paste0("nameflt.DIM_ID=1"),
+                                             paste0("nameflt.NAME = CAST(",
+                                                    getVariables(object)[[vobsidcolumn]],
+                                                    " AS VARCHAR(100))")),
+                           order = "")
           object@dimnames[[1]] <- 1
           object@mapSelect <- mapselect
           object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
@@ -424,7 +428,7 @@ NULL
                                 getVariables(object)[[vobsidcolumn]],
                                 " ",vflag1,") AS vectorIndexColumn,\n",
                             vvaluecolumn," AS vectorValueColumn\n",
-                          " FROM ",remoteTable(object),
+                          " FROM ",tableAndAlias(object),
                           constructWhere(constraintsSQL(object)))
         tblfunqueryobj <- new("FLTableFunctionQuery",
                           connection = connection,
@@ -438,8 +442,7 @@ NULL
         mapselect <- NULL
       }
       else{
-        MID <- getMaxValue(vdatabase=getOption("ResultDatabaseFL"),
-              vtable=getOption("NameMapTableFL"),
+        MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
@@ -450,18 +453,16 @@ NULL
                         mynames=newpSet
                         )
 
-        mapselect <- new(
-                      "FLSelectFrom",
-                      connection = getOption("connectionFL"), 
-                      database = getOption("ResultDatabaseFL"), 
-                      table_name = c(nameflt=getOption("NameMapTableFL")),
-                      variables = list(),
-                      whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
-                            paste0("nameflt.DIM_ID=1"),
-                            paste0("nameflt.NAME = CAST(",
-                                    getVariables(object)[[vobsidcolumn]],
-                                    " AS VARCHAR(100))")),
-                      order = "")
+        mapselect <- new("FLSelectFrom",
+                         connection = getOption("connectionFL"), 
+                         table_name = c(nameflt=getOption("NameMapTableFL")),
+                         variables = list(),
+                         whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
+                                           paste0("nameflt.DIM_ID=1"),
+                                           paste0("nameflt.NAME = CAST(",
+                                                  getVariables(object)[[vobsidcolumn]],
+                                                  " AS VARCHAR(100))")),
+                         order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
       }
 
@@ -478,11 +479,13 @@ NULL
                 select=select,
                 dimnames=list(newrownames,newcolnames),
                 isDeep=object@isDeep,
-                mapSelect=mapselect))
+                mapSelect=mapselect,
+                type=typeof(object)))
     else return(new("FLVector",
                 select=select,
                 dimnames=list(newrownames,newcolnames),
-                isDeep=object@isDeep))
+                isDeep=object@isDeep,
+                type=typeof(object)))
 }
 
 appendTableName <- function(object,tablename){

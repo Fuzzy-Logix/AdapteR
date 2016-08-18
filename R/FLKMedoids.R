@@ -18,23 +18,40 @@ NULL
 #' @slot distTable Name of the distance matrix. DistTable should
 #' contain a N x N distance matrix between all ObsID in an input FLTable.
 #' @slot maxit maximal number of iterations for the FANNY algorithm.
-#' @method cluster FLKMeans
-#' @param object retrieves the cluster vector
-#' @method centers FLKMeans
-#' @param object retrieves the coordinates of the centroids
-#' @method print FLKMeans
-#' @param object overloads the print function
-#' @method tot.withinss FLKMeans
-#' @param object total within sum of squares
-#' @method withinss FLKMeans
-#' @param object within sum of squares
-#' @method betweenss FLKMeans
-#' @param object between sum of squares
-#' @method totss FLKMeans
-#' @param object total sum of squares
-#' @method size FLKMeans
-#' @param object size vector
-
+#' @method clustering FLKMedoids
+#' @param object retrieves the clustering vector
+#' @method medoids FLKMedoids
+#' @param object returns matrix of the medoids or representative objects of the clusters. If a dissimilarity matrix was given as 
+#' input to pam, then a vector of numbers or labels of observations is given, else medoids is a matrix with in 
+#' each row the coordinates of one medoid.
+#' @method id.med FLKMedoids
+#' @param object returns integer vector of indices giving the medoid observation numbers.
+#' @method objective FLKMedoids
+#' @param object the objective function after the first and second step of the pam algorithm.
+#' @method isolation FLKMedoids
+#' @param object returns vector with length equal to the number of clusters, specifying which clusters are isolated clusters 
+#' (L- or L*-clusters) and which clusters are not isolated.
+#' @method clusinfo FLKMedoids
+#' @param object returns matrix, each row gives numerical information for one cluster. These are the cardinality of the cluster
+#' (number of observations), the maximal and average dissimilarity between the observations in the cluster and the cluster's
+#' medoid, the diameter of the cluster (maximal dissimilarity between two observations of the cluster), and the separation 
+#' of the cluster (minimal dissimilarity between an observation of the cluster and an observation of another cluster).
+#' @method silinfo FLKMedoids
+#' @param object returns list with silhouette width information.
+#' @method diss FLKMedoids
+#' @param object dissimilarity (maybe NULL).
+#' @method call FLKMedoids
+#' @param object function generating call.
+#' @method data FLKMedoids
+#' @param object returns a matrix containing the original or standardized data. This might be missing to save memory or when a 
+#' dissimilarity matrix was given as input structure to the clustering method.
+#' @method print FLKMedoids
+#' @param object prints the results of pam on FL objects.
+#' @method plot FLKMedoids
+#' @param object plots the results of pam on FL objects.
+#' @method FLMapping FLKMedoids
+#' @param object gives the mapping data.frame which is used in execution.
+#' @export
 setClass(
 	"FLKMedoids",
 	slots=list(
@@ -95,8 +112,7 @@ setClass(
 #' from \code{pam} in cluster package. The mapping table can be viewed
 #' using \code{object$mapping} if input is wide table.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' kmedoidsobject <- pam(widetable,3)
 #' print(kmedoidsobject)
 #' plot(kmedoidsobject)
@@ -104,7 +120,7 @@ setClass(
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
 #' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(pamobjectnew)
 #' @export
@@ -113,11 +129,13 @@ pam <- function (x,k,...) {
 }
 
 #' @export
-pam.data.frame<-cluster::pam
-#' @export
-pam.matrix <- cluster::pam
-#' @export
-pam.default <- cluster::pam
+pam.default <- function(x,k,...){
+    if (!requireNamespace("cluster", quietly = TRUE)){
+            stop("cluster package needed for pam. Please install it.",
+            call. = FALSE)
+        }
+    else return(cluster::pam(x,k,...))
+}
 
 ## move to file pam.R
 #' @export
@@ -184,39 +202,33 @@ pam.FLTable <- function(x,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					gen_wide_table_name("map"))
 
 		sqlstr <- paste0(" SELECT a.*  
 			    	     FROM fzzlRegrDataPrepMap a 
 			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' ")
 		
-		createTable(pTableName=mapTable,
-					pSelect=sqlstr)
+		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
+                                pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name("")
+		
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename," AS  \n ",constructSelect(x))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
+		deeptablename <- createView(pViewName=gen_view_name(""),
 					pSelect=constructSelect(x))
 
-		deeptablename1 <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename1,
 		#				" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename1),
-					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),
-									".",deeptablename,constructWhere(whereconditions)))	
+		deeptablename1 <- createView(pViewName=gen_view_name("New"),
+                                     pSelect=paste0("SELECT * FROM ", deeptablename,constructWhere(whereconditions)))	
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
 
 		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
                    deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
@@ -228,17 +240,14 @@ pam.FLTable <- function(x,
 	else
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
-		deeptablename <- gen_view_name("New")
+		
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename," AS \n  ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(getOption("ResultDatabaseFL"),deeptablename),
+		deeptablename<-createView(pViewName=gen_view_name("New"),
 					pSelect=constructSelect(x))
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename,
+		deepx <- FLTable(deeptablename,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
@@ -249,7 +258,7 @@ pam.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
@@ -438,7 +447,7 @@ medoids.FLKMedoids<-function(object)
 			connection <- getConnection(object@table)
 			flag1Check(connection)
 			AnalysisID <- object@AnalysisID
-			deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+			deeptablename <- object@deeptable@select@table_name
 			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -566,7 +575,7 @@ isolation.FLKMedoids <- function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -681,7 +690,7 @@ clusinfo.FLKMedoids <- function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -798,7 +807,7 @@ silinfo.FLKMedoids <- function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -999,7 +1008,7 @@ diss.FLKMedoids<-function(object)
 		connection <- getConnection(object@table)
 		flag1Check(connection)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -1081,7 +1090,7 @@ data.FLKMedoids<-function(object)
 	else if(object@diss==TRUE) dataframe <- c()
 	else
 	{
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]

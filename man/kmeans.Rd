@@ -5,7 +5,7 @@
 \title{K-Means Clustering.
 \code{kmeans} performs k-means clustering on FLTable objects.}
 \usage{
-\method{kmeans}{FLTable}(x, ...)
+kmeans(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, wide or deep}
@@ -39,8 +39,7 @@ If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX")
 print(kmeansobject)
 plot(kmeansobject)

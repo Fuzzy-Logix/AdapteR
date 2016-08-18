@@ -13,11 +13,9 @@ NULL
 #' @return If x is a FLMatrix then diag(x) returns the diagonal of x as FLVector object.
 #'   If x is FLVector, the value is a diagonal square FLMatrix with diagonal elements as given in FLVector.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- diag(flmatrix)
-#' DeepTable <- FLTable( "FL_DEMO", "tblUSArrests","ObsID")
+#' DeepTable <- FLTable("tblUSArrests","ObsID")
 #' flvectorDeep <- DeepTable[1:5,1]
 #' resultFLMatrix <- diag(flvectorDeep)
 #' @export
@@ -37,17 +35,15 @@ diag.FLMatrix<-function(object,...)
     connection<-getConnection(object)
     flag3Check(connection)
 
-    table <- FLTable(
-                     database=object@select@database,
-                     table=object@select@table_name,
-                     obs_id_colname = getVariables(object)$rowIdColumn,
+    table <- FLTable(table=object@select@table_name,
+                     obs_id_colname = getVariables(object)[[object@dimColumns[[1]]]],
                      whereconditions=c(object@select@whereconditions,
-                                       paste0(getVariables(object)$rowIdColumn,
-                                              "=",getVariables(object)$colIdColumn)))
+                                       paste0(getVariables(object)[[object@dimColumns[[1]]]],
+                                              "=",getVariables(object)[[object@dimColumns[[2]]]])))
 
     valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
 
-    flv <- table[,valueColumn]
+    flv <- table[,"valueColumn"]
     vlength <- min(dim(object))
     if(all(rownames(object)[1:vlength]==colnames(object)[1:vlength]))
     names(flv) <- rownames(object)[1:vlength]
@@ -68,8 +64,7 @@ diag.FLVector <- function(object,...)
 
         sqlstr <- paste(sapply(1:value,FUN=function(i)
             paste0(" INSERT INTO ",
-                   getRemoteTableName(getOption("ResultDatabaseFL"),
-                    getOption("ResultMatrixTableFL")),
+                   getOption("ResultMatrixTableFL"),
                    " SELECT ",MID,",",
                    i,",",
                    i,",",
@@ -79,7 +74,6 @@ diag.FLVector <- function(object,...)
         
 
         return(FLMatrix( 
-            database = getOption("ResultDatabaseFL"), 
             table_name = getOption("ResultMatrixTableFL"), 
             matrix_id_value = MID,
             matrix_id_colname = "MATRIX_ID", 
@@ -93,9 +87,7 @@ diag.FLVector <- function(object,...)
     else if(length(object)>1)
     {
         if(object@isDeep)
-            return(FLMatrix( 
-                database = object@select@database, 
-                table_name = object@select@table_name, 
+            return(FLMatrix(table_name = object@select@table_name, 
                 matrix_id_value = "",
                 matrix_id_colname = "", 
                 row_id_colname = getVariables(object)$obs_id_colname, 
@@ -107,7 +99,6 @@ diag.FLVector <- function(object,...)
 
         else
         {
-            
             if(length(object@dimnames[[1]])==1)
             {
                 MID <- getMaxMatrixId(connection)
@@ -116,20 +107,18 @@ diag.FLVector <- function(object,...)
                     vpatch <- paste0(getAlias(object),".")
                     else vpatch <- ""
                     paste0(" INSERT INTO ",
-                           getRemoteTableName(getOption("ResultDatabaseFL"),
-                            getOption("ResultMatrixTableFL")),
+                           getOption("ResultMatrixTableFL"),
                            " SELECT ",MID,",",
                            i,",",
                            i,",",
                            paste0(vpatch,object@dimnames[[2]][i]),
-                           " FROM ",remoteTable(object),
+                           " FROM ",tableAndAlias(object),
                            constructWhere(constraintsSQL(object)))
                     }),collapse=";")
 
                 sqlSendUpdate(connection,sqlstr)
 
                 return(FLMatrix( 
-                    database = getOption("ResultDatabaseFL"), 
                     table_name = getOption("ResultMatrixTableFL"), 
                     matrix_id_value = MID,
                     matrix_id_colname = "MATRIX_ID", 
@@ -139,9 +128,8 @@ diag.FLVector <- function(object,...)
                     connection = connection
                 ))
             }
-            else return(FLMatrix( 
-                     database = object@select@database, 
-                     table_name = object@select@table_name, 
+            else return(FLMatrix(
+                     table_name= object@select@table_name,
                      matrix_id_value = "",
                      matrix_id_colname = "", 
                      row_id_colname = getVariables(object)$obs_id_colname, 

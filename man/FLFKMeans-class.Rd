@@ -5,21 +5,31 @@
 \alias{FLFKMeans-class}
 \title{An S4 class to represent FLFKMeans}
 \arguments{
-\item{object}{retrieves the cluster vector}
+\item{object}{returns the clustering vector of the nearest crisp clustering.}
 
-\item{object}{retrieves the coordinates of the centroids}
+\item{object}{returns matrix containing the memberships for each pair consisting of an observation and a cluster.}
 
-\item{object}{overloads the print function}
+\item{object}{returns vector with Dunn's partition coefficient F(k) of the clustering, where k is the number of clusters. F(k) is
+the sum of all squared membership coefficients, divided by the number of observations. Its value is between 1/k and 1.
+The normalized form of the coefficient is also given. It is defined as (F(k) - 1/k) / (1 - 1/k), and ranges between 0 and 1.
+A low value of Dunn's coefficient indicates a very fuzzy clustering, whereas a value close to 1 indicates a near-crisp clustering.}
 
-\item{object}{total within sum of squares}
+\item{object}{returns named vector containing the minimal value of the objective function reached by the FANNY algorithm and 
+the relative convergence tolerance tol used.}
 
-\item{object}{within sum of squares}
+\item{object}{returns integer (<= k) giving the number of crisp clusters; can be less than k, where it's 
+recommended to decrease memb.exp.}
 
-\item{object}{between sum of squares}
+\item{object}{returns named vector with iterations, the number of iterations needed and converged indicating if the algorithm 
+converged (in maxit iterations within convergence tolerance tol).}
 
-\item{object}{total sum of squares}
+\item{object}{returns list with silhouette information of the nearest crisp clustering.}
 
-\item{object}{size vector}
+\item{object}{generating call}
+
+\item{object}{prints results of agglomerative clustering.}
+
+\item{object}{plots results of agglomerative clustering.}
 }
 \description{
 An S4 class to represent FLFKMeans

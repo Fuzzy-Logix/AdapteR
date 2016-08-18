@@ -43,7 +43,7 @@ according to a and columns according to b.
 row vectors are not supported currently.
 }
 \examples{
-widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+widetable  <- FLTable("iris", "rownames")
 flv <- widetable[1:10,"Species"]
 resultflmatrix <- stringdistmatrix("xyz",flv)
 resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFlag=1)

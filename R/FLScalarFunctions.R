@@ -2,6 +2,7 @@
 #' @include FLVector.R
 #' @include FLTable.R
 #' @include utilities.R
+NULL
 
 #' Rounding of Numbers
 #'
@@ -12,14 +13,13 @@
 #' less than the corresponding elements of x.
 #' @param x can be an in-database object like FLMatrix,FLVector,FLTable or
 #' a normal R object
+#' @param ub value at which x is to be capped
 #' @return \code{cap} returns an object of same class as input
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' flvector <- as.FLVector(1:5)
-#' Result <- cap(flmatrix)
-#' Result <- cap(flvector)
+#' Result <- cap(flmatrix,1)
+#' Result <- cap(flvector,3)
 #' @export
 setGeneric("cap",function(x,ub)
     standardGeneric("cap"))

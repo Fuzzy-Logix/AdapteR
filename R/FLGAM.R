@@ -45,7 +45,7 @@ setClass(
 #' results and methods as in mgcv::gam.
 #' @return \code{gam} returns \code{FLGAM} object
 #' @examples
-#' widetable <- FLTable("FL_DEMO","tblGAMSimData","ObsID")
+#' widetable <- FLTable("tblGAMSimData","ObsID")
 #' myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)+s(x2Val,x1Val)
 #' gamobject <- gam(myformula,data=widetable,offset="x2Val")
 #' predictedValues <- predict(gamobject,widetable)
@@ -64,34 +64,56 @@ setGeneric("gam",
 setMethod("gam",
 	signature(formula="formula",
 		data="missing"),
-	function(formula,family=stats::gaussian(),data=data,...)
-	mgcv::gam(formula,data=list(),...))
+	function(formula,family=stats::gaussian(),data=data,...){
+        if (!requireNamespace("mgcv", quietly = TRUE)){
+            stop("mgcv package needed for gam. Please install it.",
+            call. = FALSE)
+        }
+        else return(mgcv::gam(formula=formula,
+                              family=family,
+                              data=data,
+                              ...))
+    })
 
 setMethod("gam",
-	signature(formula="formula",
-		data="list"),
-	function(formula,family=stats::gaussian(),data,...)
-	mgcv::gam(formula,family,data,...))
+    signature(formula="formula",
+        data="ANY"),
+    function(formula,family=stats::gaussian(),data=data,...){
+        if (!requireNamespace("mgcv", quietly = TRUE)){
+            stop("mgcv package needed for gam. Please install it.",
+            call. = FALSE)
+        }
+        else return(mgcv::gam(formula=formula,
+                              family=family,
+                              data=data,
+                              ...))
+    })
 
-setMethod("gam",
-	signature(formula="formula",
-		data="data.frame"),
-	function(formula,family=stats::gaussian(),data,...)
-	mgcv::gam(formula,family,data,...))
+# setMethod("gam",
+# 	signature(formula="formula",
+# 		data="data.frame"),
+# 	function(formula,family=stats::gaussian(),data,...)
+# 	mgcv::gam(formula,family,data,...))
 
 setMethod("gam",
 	signature(formula="formula",
 		data="FLTable"),
 	function(formula,family=stats::poisson,
 		data,offset=NULL,
-		model=TRUE,maxiter=500,...)
-	gam.FLTable(formula=formula,
-		family=stats::poisson,
-		data=data,
-		offset=offset,
-		model=model,
-		maxiter=maxiter,...
-		))
+		model=TRUE,maxiter=500,...){
+        if (!requireNamespace("mgcv", quietly = TRUE)){
+            stop("mgcv package needed for gam. Please install it.",
+            call. = FALSE)
+        }
+        else return(gam.FLTable(formula=formula,
+        family=stats::poisson,
+        data=data,
+        offset=offset,
+        model=model,
+        maxiter=maxiter,
+        ...))
+    })
+	
 
 gam.FLTable <- function(formula,family=stats::poisson,
 						data,offset=NULL,
@@ -540,7 +562,7 @@ residuals.FLGAM <- function(object)
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename <- object@table@select@table_name
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		y <- "fPred"
@@ -593,7 +615,7 @@ deviance.FLGAM <- function(object)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename <- object@table@select@table_name
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		y <- paste0(vtablename,".",all.vars(object@formula)[1])
@@ -630,7 +652,7 @@ sig2.FLGAM <- function(object)
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+		vtablename <- object@table@select@table_name
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		df.residualsvector <- object$df.residual
@@ -719,7 +741,7 @@ offset.FLGAM <- function(object)
 		offsetvector <- rep(0,nrow(object@table))
 		else
 		{
-			vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vtablename <- object@table@select@table_name
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -767,7 +789,7 @@ var.summary.FLGAM <- function(object)
 		}
 		else
 		{
-			vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vtablename <- object@table@select@table_name
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			vsqlstr <- paste0("SELECT FLMean(",vcolnames,") AS mean1,",
@@ -804,7 +826,7 @@ y.FLGAM <- function(object)
 		}
 		else
 		{
-			vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			vtablename <- object@table@select@table_name
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",

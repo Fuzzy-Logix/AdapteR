@@ -7,47 +7,69 @@ getObsIdColname <- function(object){
   else return("obs_id_colname")
 }
 
+## gk @ phani:  the vmapping is dangerous for platfrom independence.  Need to discuss this.
 ## returns INT for integers or bool,VARCHAR(255)
 ## for characters and FLOAT for numeric
 getFLColumnType <- function(x,columnName=NULL){
-    if(is.FL(x)){
-      if(is.null(columnName)){
-        vmapping <- c(valueColumn="FLMatrix",
-                    vectorValueColumn="FLVector",
-                    cell_val_colname="FLTable")
-        columnName <- as.character(names(vmapping)[class(x)==vmapping])
-      }
-    ## Deprecated as no alternative for 'TYPE' in Aster and Hive
-    #   if(!grepl("with",tolower(constructSelect(x)))){
-    #     vresult <- tolower(sqlQuery(getOption("connectionFL"),
-    #                         limitRowsSQL(paste0("SELECT TYPE(a.",columnName,
-    #                                           ") \n FROM (",constructSelect(x),
-    #                                           ") a"),1))[1,1])
-    #     vmapping <- c("VARCHAR","INT","FLOAT","FLOAT")
-    #     vtemp <- as.vector(sapply(c("char","int","float","number"),
-    #                     function(y)
-    #                     return(grepl(y,vresult))))
-    #     vresult <- vmapping[vtemp]
-    #   }
-    #   else vresult <- "FLOAT"
-    # }
-    # else{
-      vsqlstr <- paste0("SELECT * FROM (",constructSelect(x),
-                        ") AS a ")
-      vsqlstr <- limitRowsSQL(vsqlstr,1)
-      x <- sqlQuery(getConnection(),vsqlstr)
-      colnames(x) <- tolower(colnames(x))
-      x <- x[[tolower(columnName)]]
-    }
+    if(!is.FL(x)) stop("Input is not FL object. Use typeof. \n ")
     vmapping <- c(VARCHAR="character",
                   INT="integer",
-                  FLOAT="numeric",
+                  FLOAT="double",
                   VARCHAR="logical")
-    vresult <- names(vmapping)[vmapping==class(x)]
+    vresult <- names(vmapping)[vmapping==typeof(x)]
     if(vresult=="VARCHAR") 
     vresult <- "VARCHAR(255)"
     return(vresult)
 }
+
+#' @export
+setGeneric("typeof",function(x)
+      standardGeneric("typeof"))
+setMethod("typeof",signature(x="ANY"),
+      function(x){
+        return (base::typeof(x))
+        })
+setMethod("typeof",signature(x="FLMatrix"),
+      function(x){
+        return(x@type)
+        })
+setMethod("typeof",signature(x="FLVector"),
+      function(x){
+        vtype <- x@type
+        if(is.na(vtype)){
+            warning("type is NA, lost -- setting to double")
+            vtype <- "double"
+        }
+        if(length(vtype)>1){
+          if("character" %in% vtype)
+            vtype <- "character"
+          else if("double" %in% vtype)
+            vtype <- "double"
+          else if("integer" %in% vtype)
+            vtype <- "integer"
+          else vtype <- "logical"
+        }
+        return(vtype)
+      })
+setMethod("typeof",signature(x="FLTable"),
+      function(x){
+        if(x@isDeep){
+          vValCol <- getVariables(x)[["cell_val_colname"]]
+          vValCol <- changeAlias(vValCol,"","")
+          vtype <- x@type[vValCol]
+          if(is.na(vtype) || is.null(vtype))
+            vtype <- x@type[1]
+          names(vtype) <- vValCol
+        }
+        else{
+          if(length(x@type)==1)
+            vtype <- rep(x@type,ncol(x))
+          else vtype <- x@type
+          if(is.null(names(vtype)))
+            names(vtype) <- colnames(x)
+        }
+        return(vtype)
+      })
 
 setGeneric("getIdColname",function(object)
       standardGeneric("getIdColname"))
@@ -386,4 +408,31 @@ calcResiduals <- function(object,
                   as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
   assign(parentObject,object,envir=parent.frame())
   return(vresidVector)
+}
+
+getArtihmeticType <- function(pObj1,pObj2,pOperator){
+  if(missing(pObj2))
+    pObj2 <- 1
+  vcompvector <- c("==",">","<",">=","<=","!=")
+  if(pOperator %in% vcompvector)
+    return("logical")
+  vtype <- c(typeof(pObj1),typeof(pObj2))
+  if("character" %in% vtype)
+    return("character")
+  else if("double" %in% vtype)
+    return("double")
+  else if("integer" %in% vtype 
+        && pOperator %in% c("+","-","*","%*%"))
+    return("integer")
+  else if(all(vtype=="logical"))
+    return("logical")
+  else return("double")
+}
+
+
+getTablename <- function(x) gsub("^[^.]*\\.","",x)
+getDatabase <- function(x) {
+    db <- gsub("\\.[^.]*$","",x)
+    if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
+    db
 }

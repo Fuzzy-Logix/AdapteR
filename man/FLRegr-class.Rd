@@ -10,7 +10,7 @@ An S4 class to represent objects returned by Regression Functions
 \section{Slots}{
 
 \describe{
-\item{\code{formula}}{Formula object given as input}
+\item{\code{formula}}{an object of class 'formula': Model Formula}
 
 \item{\code{scoreTable}}{Name of the in-database table where scoring results are stored}
 }}

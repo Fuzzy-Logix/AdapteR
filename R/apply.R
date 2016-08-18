@@ -2,7 +2,7 @@
 NULL
 
 ##Apply functions
-# widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+# widetable  <- FLTable("iris", "rownames")
 # ddply(widetable,c("PetalWidth","PetalLength"),
 #       function(d)c(meanx=mean(d$SepalWidth),
 #                    meany=mean(d$SepalLength)))
@@ -78,16 +78,21 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 
     return(sqlQuery(getOption("connectionFL"),sqlstr)[1,1])
 }
+
+#' @export
 mean.FLAbstractColumn <- function(object,...){
 	return(paste0(" FLMean(",
 				paste0(object@columnName,collapse=","),") "))
 }
+#' @export
 mean.FLVector <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
+#' @export
 mean.FLMatrix <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
+#' @export
 mean.FLTable <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
@@ -121,7 +126,7 @@ setMethod("ddply",
 		sqlstr <- paste0("SELECT ",paste0(.variables,collapse=","),",",
 						paste0(vfunCalls," AS ",names(vfunCalls),
 							 collapse=","),"\n",
-						" FROM  ",remoteTable(.data),"\n",
+						" FROM  ",tableAndAlias(.data),"\n",
 						constructWhere(constraintsSQL(.data)),"\n",
 						" GROUP BY ",paste0(.variables,collapse=","))
 		return(sqlQuery(getOption("connectionFL"),sqlstr))
@@ -193,7 +198,7 @@ setMethod("apply",
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
 								vgroupCol," AS vectorIndexColumn,\n",
 								vfunCalls," AS vectorValueColumn \n",
-						" FROM  ",remoteTable(X),"\n",
+						" FROM  ",tableAndAlias(X),"\n",
 						constructWhere(constraintsSQL(X)),"\n",
 						" GROUP BY ",vgroupCol)
 
@@ -209,7 +214,8 @@ setMethod("apply",
 		flv <- new("FLVector",
 					select = tblfunqueryobj,
 					dimnames = list(vrownames,"vectorValueColumn"),
-					isDeep = FALSE)
+					isDeep = FALSE,
+                    type=typeof(X))
 		if(!all(vrownames == 1:length(vrownames)))
 		names(flv) <- vrownames
 		return(flv)

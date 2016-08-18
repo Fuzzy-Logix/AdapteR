@@ -1,6 +1,16 @@
 library(testthat)
 library(AdapteR)
 
+## gk @ phani:  the following library statements should not be required.
+library(SDMTools)
+library(MASS)
+library(psych)
+library(survival)
+library(mgcv)
+library(moments)
+library(stringdist)
+library(cluster)
+
 ##' runs a test file.
 ##'
 ##' @param f the test file to run
@@ -8,9 +18,14 @@ library(AdapteR)
 ##' @param skip a regexp on the filename whether the test should be skipped
 ##' @param ... passed on to test_file
 ##' @return the test_file report
-runMyTestFile <- function(f, ask=TRUE, skip=NULL,...){
+runMyTestFile <- function(f, ask=FALSE, runonly=NULL, skip=NULL,...){
     if(!is.null(skip))
         if(grepl(skip,f)) {
+            cat(paste0("skipped ",f,"\n"))
+            return(data.frame())
+        }
+    if(!is.null(runonly))
+        if(!grepl(runonly,f)) {
             cat(paste0("skipped ",f,"\n"))
             return(data.frame())
         }
@@ -27,12 +42,23 @@ runMyTestFile <- function(f, ask=TRUE, skip=NULL,...){
         error=function(e) print(e))
 }
 
-Results <- llply(
-    find_test_scripts("AdapteR/tests/testsuite"),
+
+checkagain <- ".*"
+results <- list()
+
+
+results$testthat <- llply(
+    find_test_scripts("testthat"),
     runMyTestFile,
     ask=FALSE,
-    skip="agnes|clustering|chol|cor|det|diag|dim|hclust|ginv|head|icMean|_hkmeans|_kmeans|length|_log|_lu.R|_mean|_MatrixDistance|multiplication|_median|_mode|_operators|_pam|_percent|_qr.R|_sd.R|_rowcolsum|_sort|_solve|_store|_rankMatrix|_rank.R|subset|_sum.R|_tr.R|_trace|_transpose|_var|_WeightedMean|_eigen|_cov.R|fanny|identical|quantile|MatrixRepr")
+    runonly=checkagain)
 
+results$testsuite <- llply(
+    find_test_scripts("testsuite"),
+    runMyTestFile,
+    ask=FALSE,
+    runonly=checkagain)
 
-llply(find_test_scripts("AdapteR/tests/limitations"),
+results$limitations <- llply(find_test_scripts("limitations"),
       runMyTestFile)
+

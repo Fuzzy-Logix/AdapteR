@@ -14,8 +14,7 @@ FLVector(table, val_col_name = character(), val_row_name = character(),
 Please use subsetting of FLTable to create FLVector object
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-WideTable <- FLTable( "FL_DEMO", "tblAbaloneWide","ObsID")
+WideTable <- FLTable("tblAbaloneWide","ObsID")
 flvectorColumn <- WideTable[,"Diameter"]
 flvectorRow <- WideTable[3,]
 flvectorRow

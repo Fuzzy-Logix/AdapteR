@@ -14,27 +14,88 @@ custom SQL.
 AdapteR can be used to build interactive analytics at scale with just a few lines of R code!
 
 You can download the full manual here: [[https://securisync.intermedia.net/web/s/LtQNzab68gL5jwSzQERIiV][AdapteR package manual]].
+* Work environments & recommendations
+Download R and R-Studio.
+- For R:  https://cran.r-project.org/
+
+  Install R. While Installing, check 32/64 bit according to system.
+- For R-Studio: https://www.rstudio.com/products/rstudio/download/
+
+  Install R Studio.
+- Add R and Rcript executables to PATH variable.
 
 * Requirements
-- AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
-
-  Find more information on [[http://www.fuzzylogix.com]].
-
-- Install prerequisite teradataR
+AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
+Find more information on [[http://www.fuzzylogix.com]].
+  
+AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
+You can either use ODBC or JDBC to connect to the warehouse
+** ODBC  
   #+BEGIN_SRC R :eval no
-  install.packages("devtools")
-  require(devtools)
-  install_github("Teradata/teradataR")
+  install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
+  library(RODBC)
   #+END_SRC
 
-* Installation instructions
-Install (or update) the package 
+** JDBC
+In order to use jdbc with AdapteR, you need to install rJava
 #+BEGIN_SRC R :eval no
-# install.packages("devtools")
-# require(devtools)
+install.packages("rJava") ## Required for RJDBC
+install.packages("RJDBC") ## Required for JDBC connection
+library(RJDBC)            ## check if RJDBC can be loaded
+
+#+END_SRC
+Also, you need to download and use the jdbc connector jar files either in the java load path or provide them when calling =flConnect=
+the java development toolkit (jdbc).
+- Windows: 
+  1. (re-)install the jdk, and set the path variable in R
+  : Sys.setenv(JAVA_HOME="yourPathTojdk")
+- Linux: 
+  1. install jdk and sources
+     Ubuntu:
+     #+begin_src sh
+     sudo apt install default-jdk
+     #+end_src
+
+  2. setup R for using your java installation
+     #+begin_src sh
+     sudo R CMD javareconf
+     #+end_src
+
+** Optional packages
+The following suggested packages are required to run the test suite:
+#+BEGIN_SRC R :eval no
+  install.packages("testthat")   ## Required to run test suite
+  install.packages("optparse")   ## Required to run test suite
+  install.packages("plyr")       ## Required to run test suite
+  install.packages("psych")      ## Required to run test suite
+  install.packages("SDMTools")   ## Required to run test suite
+  install.packages("MASS")       ## Required to run test suite
+  install.packages("psych")      ## Required to run test suite
+  install.packages("cluster")    ## Required to run test suite
+  install.packages("survival")   ## Required to run test suite
+  install.packages("mgcv")       ## Required to run test suite
+  install.packages("moments")    ## Required to run test suite
+  install.packages("stringdist") ## Required to run test suite
+  install.packages("melt")       ## Required to run test suite
+  install.packages("dcast")      ## Required to run test suite
+#+END_SRC
+
+* Installation and Update instructions
+The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
+#+BEGIN_SRC R :eval no
+install.packages("devtools") ## Required for install_github
+require(devtools)
 install_github("Fuzzy-Logix/AdapteR")
 #+END_SRC
-(The package does not depend on either JDBC or ODBC but uses either you provide at runtime.  You savely can ignore warnings about xDBC.)
+
+Remove older Version, if you encounter any issues
+#+begin_src R
+remove.packages("AdapteR")
+#+end_src
+
+  # If installing from .tar.gz:
+  # adptrdir <- "C:/Users/phani/Desktop/AdapteR_2.0.tar.gz" ##where the adapteR source file(tar.gz) is.
+  # install.packages(adptrdir,repos = NULL,type = "source")
 
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts:

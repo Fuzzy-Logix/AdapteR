@@ -22,8 +22,20 @@ test_that("Log and Exp: tolerance=1e-6",{
 
 test_that("power, vector arithmetic",{
     result = eval_expect_equal({
+        constVec <- 2.1*nvector
+        y <- 10.0^-(1+constVec)
+        length(nvector)
+    }, Renv, FLenv,
+    expectation = c("constVec","y"))
+})
+
+
+test_that("power, vector arithmetic, integer types",{
+    result = eval_expect_equal({
         constVec <- 2*nvector
         y <- 10^-(1+constVec)
         length(nvector)
-    }, Renv, FLenv)
+    }, Renv, FLenv,
+    expectation = c("constVec","y"))
 })
+

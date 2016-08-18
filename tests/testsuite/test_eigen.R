@@ -9,7 +9,8 @@ FLenv <- as.FL(Renv)
 test_that("eigen values",{
     result = eval_expect_equal({
         e1 <- eigen(mat1)
-    }, Renv, FLenv)
+    }, Renv, FLenv,
+    expectation="e1")
 })
 
 test_that("eigen, option only.values",{
@@ -25,9 +26,10 @@ test_that("eigen, option only.values",{
 test_that("eigen values are correct:- det(A-vI)=0 ",{
     e4 <- eigen(FLenv$mat4)
     for(i in 1:length(e4$values))
-    FLexpect_equal(det(FLenv$mat4-((e4$values[i])*diag(nrow(FLenv$mat4)))),
-                    0)
+        FLexpect_equal(det(FLenv$mat4-((e4$values[i])*diag(nrow(FLenv$mat4)))),
+                       0)
 })
+
 
 test_that("eigen vectors are correct:- A %*% X = vI %*% X ",{
     e4 <- eigen(FLenv$mat4)

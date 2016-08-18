@@ -50,6 +50,10 @@ parameter PerformVarReduc = 1. Must be >0 and <=1.}
 \description{
 \code{lm} performs linear regression on FLTable objects.
 }
+\details{
+The DB Lytix function called is FLLinRegr. Performs Linear Regression and 
+stores the results in predefined tables.
+}
 \section{Constraints}{
 
 The anova method is not yet available for FLLinRegr
@@ -63,8 +67,7 @@ Properties like \code{print(x),model,plot} might take time as they
 have to fetch data
 }
 \examples{
-library(RODBC)
-widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
 lmfit$coefficients
 lmfit$fitted.values
@@ -73,8 +76,7 @@ mu <- predict(lmfit,newdata=widetable)
 deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
 lmfit <- lm(NULL,deeptable)
 summary(lmfit)
-flMDObject <- FLTableMD(database="FL_DEMO",
-                      table="tblAutoMPGMD",
+flMDObject <- FLTableMD(table="tblAutoMPGMD",
                       group_id_colname="GroupID",
                       obs_id_colname="ObsID",group_id = c(2,4))
 vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
@@ -82,5 +84,8 @@ lmfit <- lm(vformula,
            data=flMDObject)
 coeffList <- coef(lmfit)
 summaryList <- summary(lmfit)
+}
+\seealso{
+\code{\link[stats]{lm}} for R reference implementation.
 }
 
