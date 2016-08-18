@@ -48,6 +48,41 @@ Installation of R on Linux:
     apt-get -y install libcurl4-gnutls-dev
     apt-get install libssl-dev
    #+end_src
+* Installation and Update instructions
+:PROPERTIES:
+:ID:       4AD7DBF5-9C7A-4C9C-A714-0735F860E7A4
+:END:
+Installation of AdapteR:
+1. Open R-Studio or an R terminal
+2. The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
+   1. Install devtools package using "install.packages("devtools")"
+      #+BEGIN_SRC R :eval no
+      install.packages("devtools") ## Required for install_github
+      #+END_SRC
+   2. Load devtools using
+      #+BEGIN_SRC R :eval no
+      require(devtools)
+      #+END_SRC
+   3. Install AdapteR from github
+      #+BEGIN_SRC R :eval no
+      install_github("Fuzzy-Logix/AdapteR")
+      #+END_SRC
+      This should automatically install dependencies. 
+      On failure please install the 
+5. Load AdapteR using
+      #+BEGIN_SRC R :eval no
+      library(AdapteR)
+      #+END_SRC
+
+
+Remove older Version, if you encounter any issues
+#+begin_src R
+remove.packages("AdapteR")
+#+end_src
+
+
+
+
 * Connecting to the Data Warehouse
 AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
 You can either use ODBC or JDBC to connect to the warehouse
@@ -89,41 +124,6 @@ the java development toolkit (jdbc).
      #+begin_src sh
      sudo R CMD javareconf
      #+end_src
-
-* Installation and Update instructions
-:PROPERTIES:
-:ID:       4AD7DBF5-9C7A-4C9C-A714-0735F860E7A4
-:END:
-Installation of AdapteR:
-1. Open R-Studio or an R terminal
-2. The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
-   1. Install devtools package using "install.packages("devtools")"
-      #+BEGIN_SRC R :eval no
-      install.packages("devtools") ## Required for install_github
-      #+END_SRC
-   2. Load devtools using
-      #+BEGIN_SRC R :eval no
-      require(devtools)
-      #+END_SRC
-   3. Install AdapteR from github
-      #+BEGIN_SRC R :eval no
-      install_github("Fuzzy-Logix/AdapteR")
-      #+END_SRC
-      This should automatically install dependencies. 
-      On failure please install the 
-5. Load AdapteR using
-      #+BEGIN_SRC R :eval no
-      library(AdapteR)
-      #+END_SRC
-
-
-Remove older Version, if you encounter any issues
-#+begin_src R
-remove.packages("AdapteR")
-#+end_src
-
-
-
 
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts:
