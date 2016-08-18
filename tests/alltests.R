@@ -1,6 +1,14 @@
 library(testthat)
 library(plyr)
+library(SDMTools)
+library(MASS)
+library(psych)
+library(survival)
+library(mgcv)
+library(moments)
+library(stringdist)
 library(AdapteR)
+library(cluster)
 
 ##' runs a test file.
 ##'
