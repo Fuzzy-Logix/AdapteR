@@ -31,7 +31,8 @@ Issues can occur unless you provide the fully qualified path.}
 
 \item{verbose}{print debugging messages}
 
-\item{...}{}
+\item{...}{include platform here. Use TD for Teradata.
+platform is mandatory for odbc connection}
 
 \item{#"TMODE}{}
 
@@ -46,7 +47,7 @@ the FL session tables.
 }
 \examples{
 connection <- flConnect("jdbc:teradata://xx.xxx.x.xxx",
-                          "FL_DEMO",
+                          "FL_TRAIN",
                          "UserName","PassWord",
                         c("C:/Users/xxx/terajdbc4.jar",
                             "C:/Users/xxx/tdgssconfig.jar"),
@@ -62,7 +63,7 @@ connection <- flConnect("jdbc:ncluster://xx.xxx.x.xxx","fuzzylogix",
                         c("C:/Users/xxx/noarch-aster-jdbc-driver.jar",
                           "C:/Users/xxx/noarch-aster-adfs-client.jar"),
                         driverClass = "com.asterdata.ncluster.Driver")
-connection <- flConnect(odbcSource="sourceName",database="FL_DEMO",platform="TD")
+connection <- flConnect(odbcSource="sourceName",database="FL_TRAIN",platform="TD")
 connection <- flConnect(odbcSource="SorceName",database="fuzzylogix",platform="TDAster")
 }
 
