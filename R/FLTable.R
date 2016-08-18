@@ -215,7 +215,6 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     return(sqlSendUpdate(getOption("connectionFL"),sqlstr))
   }
   if(!x@isDeep){
-    #browser()
     if(!tolower(name) %in% tolower(vcolnames)){
       vtemp <- addColumnFLQuery(pTable=vtablename,
                               pName=name,
@@ -228,9 +227,10 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
         ##vtableColType <- getFLColumnType(x=as.vector(x[1,vcolnames[tolower(name)==tolower(vcolnames)][1]]))
         vnewColType <- getFLColumnType(x=value)
         dropCol <- FALSE
-        if(is.na(types[name])){
-            dropCol <- TRUE ## gk @ phani:  in this case a drop is actually not required, but it works with drop...
-        } else if(typeof(value)!=types[name])
+        # if(is.na(types[name])){
+        #     dropCol <- TRUE ## gk @ phani:  in this case a drop is actually not required, but it works with drop...
+        # } else 
+        if(typeof(value)!=types[name])
             dropCol <- TRUE
         if(dropCol){
         vtemp <- sqlSendUpdate(getOption("connectionFL"),
@@ -238,7 +238,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
         vtemp <- addColumnFLQuery(pTable=vtablename,
                                   pName=name,
                                   pValue=value)
-      }
+        }
     }
     if(!is.FLVector(value))
         value <- as.FLVector(value)
@@ -267,6 +267,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
   }
   sqlSendUpdate(getOption("connectionFL"),sqlstr)
   xcopy@dimnames[[2]] <- vcolnames
+  xcopy@type[name] <- typeof(value)
   return(xcopy)
 }
 
