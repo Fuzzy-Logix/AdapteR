@@ -110,7 +110,7 @@ setClass(
 #' lmfit$fitted.values
 #' plot(lmfit)
 #' mu <- predict(lmfit,newdata=widetable)
-#' deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
 #' lmfit <- lm(NULL,deeptable)
 #' summary(lmfit)
 #' flMDObject <- FLTableMD(table="tblAutoMPGMD",
