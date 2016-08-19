@@ -23,9 +23,11 @@ if(!exists("yourODBCSource") & !exists("yourUser"))
 if(!exists("connection") & exists("yourODBCSource")){
     if(!exists("yourPlatform"))
     stop("Please set the variable \nyourPlatform <- \"...\" for odbc login!\n")
+    
     ### ................###########..........................
     ###..........flConnect called for ODBC connection........
     ### ................##########................
+    
     connection <- flConnect(odbcSource = yourODBCSource,
                             database="FL_TRAIN",
                             platform=yourPlatform)
@@ -37,9 +39,11 @@ if(!exists("connection")){
     if(!exists("yourPassword")) stop("Please set the variable \nyourPassword <- \"...\" for jdbc login!")
     if(!exists("yourJarDir")) yourJarDir <- NULL
     if(!exists("yourHost")) stop("Please set the variable \nyourHost <- \"...\" for jdbc login!")
+    
     ### ................###########..........................
     ###..........flConnect called for JDBC connection........
     ### ................##########................
+
     connection <- flConnect(
                     host     = yourHost,
                     database = "FL_TRAIN",
@@ -57,6 +61,7 @@ if(!exists("connection")){
 options(debugSQL=TRUE)
 
 vtemp <- readline("Checking if the connection is working:")
+
 ## .......................#################..................
 ## ....Trying to Fetch a matrix from FL_TRAIN.tblmatrixmulti using sqlQuery......
 ## .......................#################..................
@@ -64,3 +69,6 @@ vtemp <- readline("Checking if the connection is working:")
 sqlQuery(connection,paste0("SELECT * \n FROM FL_TRAIN.tblmatrixmulti a \n ",
                             "WHERE a.Matrix_ID=1 \n ",
                             "ORDER BY 1,2,3"))
+
+### END ###
+### Thank You ####
