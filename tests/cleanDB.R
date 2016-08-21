@@ -55,7 +55,6 @@ if(grepl("^jdbc",opt$host)){
               platform="TD")
 }
 
-options(debugSQL=TRUE)
 vTables <- sqlQuery(connection,
                     paste0("SELECT databasename as db,\n ",
                            "tableName as name,\n ",
@@ -72,9 +71,7 @@ names(vtbl) <- toupper(vTables[["kind"]])
 vtbl <- vtbl[names(vtbl) %in% c("T","V")]
 vtbl <- gsub("\\s+","",vtbl)
 vReqtbls <- grep("\\.ARBase|\\.[a-z][0-9]",vtbl,value=TRUE)
-print(length(vReqtbls))
 vdf <- data.frame(kind=names(vReqtbls),tablename=vReqtbls)
-print(paste0(opt$directory,"/droptables.csv"))
 write.csv(vdf,paste0(opt$directory,"/droptables.csv"))
 cat("Completed manual checking of tables to be dropped from ",
     opt$directory,"/droptables.csv","?y/n:")
@@ -86,12 +83,10 @@ if(vtemp=="y"){
     vdf <- read.csv(paste0(opt$directory,"/droptables.csv"))
     vReqtbls <- as.character(vdf[["tablename"]])
     names(vReqtbls) <- as.character(vdf[["kind"]])
-    print(length(vReqtbls))
     for(i in 1:length(vreqtbls)){
         vsqlstr <- paste0("DROP ",
                           ifelse(names(vReqtbls)[i]=="T","TABLE","VIEW"),
                           " ",vReqtbls[i],";")
-        cat(vsqlstr)
         vtemp <- sqlSendUpdate(connection,vsqlstr)
     }
 }
