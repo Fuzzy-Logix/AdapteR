@@ -51,8 +51,7 @@ setClass(
 #' \item{data_perm}{FLMatrix representing the permutation matrix}
 #' @examples
 #' connection<- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' FLLUobject <- lu(flmatrix)
 #' listresult <- expand(FLLUobject)
 #' listresult$L
@@ -90,7 +89,6 @@ lu.FLMatrix<-function(object,...)
 	flag3Check(connection)
 	flag1Check(connection)
 	
-	tempResultTable <- gen_unique_table_name("LU")
     MID1 <- getMaxMatrixId(connection)
 
     sqlstr <- paste0(
@@ -106,8 +104,8 @@ lu.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="lu")
 
-    createTable(pTableName=tempResultTable,
-                pSelect=sqlstr)
+	tempResultTable <- createTable(pTableName=gen_unique_table_name("LU"),
+                                   pSelect=sqlstr)
 
 	# calculating LU matrix
 
@@ -115,7 +113,7 @@ lu.FLMatrix<-function(object,...)
 					          "OutputRowNum AS rowIdColumn, \n ",
 					          "OutputColNum AS colIdColumn, \n ",
 					          "CAST(OutputValL AS NUMBER) AS valueColumn \n ",
-					  	" FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
+					  	" FROM ",tempResultTable,
 					 	" WHERE OutputRowNum > OutputColNum \n ",
 				   		" AND OutputValL IS NOT NULL \n ",
 				   		" UNION ALL \n ",
@@ -123,7 +121,7 @@ lu.FLMatrix<-function(object,...)
 					          " OutputRowNum AS rowIdColumn, \n ",
 					          " OutputColNum AS colIdColumn, \n ",
 					          " CAST(OutputValU AS NUMBER) AS valueColumn \n ", 
-					  	" FROM ",remoteTable(getOption("ResultDatabaseFL"),tempResultTable),
+					  	" FROM ",tempResultTable,
 					 	" WHERE OutputRowNum <= OutputColNum \n ",
 				   		" AND OutputValU IS NOT NULL ")
 
@@ -138,15 +136,14 @@ lu.FLMatrix<-function(object,...)
                         SQLquery=sqlstrLU)
 
 	flm <- new("FLMatrix",
-	            select= tblfunqueryobj,
+               select= tblfunqueryobj,
+               dim=dim(object),
 	            dimnames=dimnames(object))
 
   	LUMatrix <- store(object=flm)
 
 	# calculating Permutation FLMatrix
-    data_perm <- FLMatrix( 
-			       connection = connection, 
-			       database = getOption("ResultDatabaseFL"), 
+    data_perm <- FLMatrix(connection = connection, 
 			       table_name = tempResultTable, 
 				   matrix_id_value = "",
 				   matrix_id_colname = "", 
@@ -157,9 +154,7 @@ lu.FLMatrix<-function(object,...)
 
 
 	# calculating l FLmatrix
-    l<-FLMatrix( 
-	       connection = connection, 
-	       database = getOption("ResultDatabaseFL"), 
+    l<-FLMatrix(connection = connection, 
 	       table_name = tempResultTable, 
 		   matrix_id_value = "",
 		   matrix_id_colname = "", 
@@ -170,9 +165,7 @@ lu.FLMatrix<-function(object,...)
 
 
 	# calculating U FLmatrix
-    u<-FLMatrix( 
-	       connection = connection, 
-	       database = getOption("ResultDatabaseFL"), 
+    u<-FLMatrix(connection = connection, 
 	       table_name = tempResultTable, 
 		   matrix_id_value = "",
 		   matrix_id_colname = "", 
@@ -182,12 +175,9 @@ lu.FLMatrix<-function(object,...)
 		   whereconditions=paste0("mtrx.OutputValU IS NOT NULL "))
 
 	# calculating perm FLVector
-	table <- FLTable(
-		             getOption("ResultDatabaseFL"),
-		             tempResultTable,
+	table <- FLTable(tempResultTable,
 		             "OutputColNum",
-		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),
-                                            tempResultTable),".OutputPermut = 1 ")
+		             whereconditions=paste0(tempResultTable,".OutputPermut = 1 ")
 		             )
 
 	perm <- table[,"OutputRowNum"]
@@ -200,7 +190,7 @@ lu.FLMatrix<-function(object,...)
                                 getVariables(LUMatrix)$colId,",",
                                 getVariables(LUMatrix)$rowId,") AS vectorIndexColumn
 	                   		, ",getVariables(LUMatrix)$value," AS vectorValueColumn 
-					  FROM ",remoteTable(LUMatrix),
+					  FROM ",tableAndAlias(LUMatrix),
 					 constructWhere(constraintsSQL(LUMatrix)))
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",

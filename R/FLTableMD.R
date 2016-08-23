@@ -38,13 +38,11 @@ setClass(
 #' @return \code{FLTableMD} returns an object of class FLTableMD mapped to a table
 #' in database
 #' @examples
-#' widetableMD <- FLTableMD(database="FL_DEMO",
-#'                       table="tblAutoMPGMD",
+#' widetableMD <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",
 #'                       group_id = c(2,4))
-#' deeptableMD <- FLTableMD(database="FL_DEMO",
-#'                       table="LinRegrMultiMD",
+#' deeptableMD <- FLTableMD(table="FL_DEMO.LinRegrMultiMD",
 #'                       group_id_colname="DatasetID",
 #'                       obs_id_colname="ObsID",
 #'                       var_id_colname="VarID",
@@ -52,14 +50,13 @@ setClass(
 #' head(widetableMD)
 #' head(deeptableMD)
 #' @export
-FLTableMD <- function(database, 
-                    table,
-                    group_id_colname,
-                    obs_id_colname,
-                    var_id_colnames=character(0), 
-                    cell_val_colname=character(0),
-                    connection=NULL,
-                    group_id=c())
+FLTableMD <- function(table,
+                      group_id_colname,
+                      obs_id_colname,
+                      var_id_colnames=character(0), 
+                      cell_val_colname=character(0),
+                      connection=NULL,
+                      group_id=c())
 {
     whereconditions <- ""
     vgrp <- group_id
@@ -81,9 +78,8 @@ FLTableMD <- function(database,
 
         whereconditions <- changeAlias(whereconditions,
                                       "flt",
-                                      c(paste0(database,".",table),
-                                        paste0(table),
-                                        paste0(database,".",oldalias),
+                                      c(getTablename(table),
+                                        table,
                                         oldalias))
     }
     names(table) <- "flt"
@@ -96,7 +92,7 @@ FLTableMD <- function(database,
                          paste0("SELECT ",group_id_colname," AS grpID, \n ",
                                         "MIN(",var_id_colnames,") AS MinID, \n ",
                                         "Max(",var_id_colnames,") AS MaxID \n ",
-                                " FROM ",remoteTable(database,table),
+                                " FROM ",tableAndAlias(table),
                                 constructWhere(whereconditions)," \n ",
                                 " GROUP BY ",group_id_colname,
                                 " ORDER BY ",group_id_colname))
@@ -104,7 +100,7 @@ FLTableMD <- function(database,
         vdims1 <- sqlQuery(connection,
                          paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
                                         obs_id_colname," AS ObsID \n ",
-                                " FROM ",remoteTable(database,table),
+                                " FROM ",tableAndAlias(table),
                                 constructWhere(whereconditions)," \n ",
                                 " ORDER BY ",group_id_colname,",",obs_id_colname))
         # if(length(unique(vdims[["MinID"]]))!=1 
@@ -144,18 +140,16 @@ FLTableMD <- function(database,
         # if(is.character(rows) || is.character(cols))
         #     stop("obsIDs and varIDs cannot be characters \n ")
 
-        select <- new(
-        "FLSelectFrom",
-        connection = connection, 
-        database = database, 
-        table_name = table, 
-        variables = list(
-                group_id_colname= group_id_colname,
-                obs_id_colname = obs_id_colname,
-                var_id_colname = var_id_colnames,
-                cell_val_colname = cell_val_colname),
-        whereconditions=whereconditions,
-        order = "")
+        select <- new("FLSelectFrom",
+                      connection = connection, 
+                      table_name = table, 
+                      variables = list(
+                          group_id_colname= group_id_colname,
+                          obs_id_colname = obs_id_colname,
+                          var_id_colname = var_id_colnames,
+                          cell_val_colname = cell_val_colname),
+                      whereconditions=whereconditions,
+                      order = "")
 
         new("FLTableMD",
             select = select,
@@ -166,12 +160,12 @@ FLTableMD <- function(database,
     {
         #browser()
         R <- sqlQuery(connection,
-                      limitRowsSQL(paste0("select * from ",remoteTable(database,table)),1))
+                      limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
         vdims <- sqlQuery(connection,
                          paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
                                         obs_id_colname," AS ObsID \n ",
-                                " FROM ",remoteTable(database,table),
+                                " FROM ",tableAndAlias(table),
                                 constructWhere(whereconditions)," \n ",
                                 " ORDER BY ",group_id_colname,",",obs_id_colname))
         rows<-dlply(vdims,"grpID",
@@ -197,18 +191,16 @@ FLTableMD <- function(database,
 
         cols <- setdiff(cols,changeAlias(obs_id_colname,"","flt"))
 
-        select <- new(
-        "FLSelectFrom",
-        connection = connection, 
-        database = database, 
-        table_name = table, 
-        variables = list(
-                group_id_colname=group_id_colname,
-                obs_id_colname = obs_id_colname,
-                #var_id_colname = var_id_colnames,
-                cell_val_colname = cell_val_colname),
-        whereconditions=whereconditions,
-        order = "")
+        select <- new("FLSelectFrom",
+                      connection = connection, 
+                      table_name = table, 
+                      variables = list(
+                          group_id_colname=group_id_colname,
+                          obs_id_colname = obs_id_colname,
+                                        #var_id_colname = var_id_colnames,
+                          cell_val_colname = cell_val_colname),
+                      whereconditions=whereconditions,
+                      order = "")
 
         T <- new("FLTableMD", 
                  select = select,

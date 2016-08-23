@@ -17,7 +17,7 @@ rbind.default <- base::rbind
 #' @examples
 #' library(RODBC)
 #' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix(connection, "FL_TRAIN", "tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix("FL_TRAIN.tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export
 rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)
@@ -64,7 +64,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				              a.",getVariables(object)$rowIdColumn,",
 ## 				              a.",getVariables(object)$colIdColumn,",
 ## 				              a.",getVariables(object)$valueColumn,"
-## 				    FROM   ",remoteTable(object)," a
+## 				    FROM   ",tableAndAlias(object)," a
 ## 				    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
 ## 	    sqlSendUpdate(connection,sqlstr0)
@@ -82,7 +82,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 ## 							              a.",getVariables(object)$colIdColumn,",
 ## 							              a.",getVariables(object)$valueColumn,"
-## 							    FROM   ",remoteTable(object)," a
+## 							    FROM   ",tableAndAlias(object)," a
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
 ## 	            sqlSendUpdate(connection,sqlstr0)
@@ -101,7 +101,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@var_id_name,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								             a.",object@var_id_name,"<",ncol+1)
 
@@ -116,7 +116,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 										             a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -131,7 +131,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@obs_id_colname,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ## 		            sqlSendUpdate(connection,sqlstr0)
@@ -145,7 +145,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 										              a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ## 		                    sqlSendUpdate(connection,sqlstr0)
@@ -268,7 +268,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 						             ",rowCount+1,",
 ## 						             a.",object@var_id_name,",
 ## 						             a.",object@col_name,"
-## 						      FROM   ",remoteTable(object)," a
+## 						      FROM   ",tableAndAlias(object)," a
 ## 						      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 						             a.",object@var_id_name,"<",ncol+1)
 
@@ -283,7 +283,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 								             a.",object@col_name,"
-## 								      FROM ",remoteTable(object)," a
+## 								      FROM ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -298,7 +298,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 						             ",rowCount+1,",
 ## 						             a.",object@obs_id_colname,",
 ## 						             a.",object@col_name,"
-## 						      FROM   ",remoteTable(object)," a
+## 						      FROM   ",tableAndAlias(object)," a
 ## 						      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ##             sqlSendUpdate(connection,sqlstr0)
@@ -312,7 +312,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 								              a.",object@col_name,"
-## 								      FROM ",remoteTable(object)," a
+## 								      FROM ",tableAndAlias(object)," a
 ## 								      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ##                     sqlSendUpdate(connection,sqlstr0)
@@ -345,7 +345,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 						             ",rowCount+1,",
 ## 						             a.",object@var_id_name,",
 ## 						             a.",object@col_name,"
-## 						      FROM   ",remoteTable(object)," a
+## 						      FROM   ",tableAndAlias(object)," a
 ## 						      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 						             a.",object@var_id_name,"<",ncol+1)
 
@@ -360,7 +360,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 								             a.",object@col_name,"
-## 								      FROM ",remoteTable(object)," a
+## 								      FROM ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -375,7 +375,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 						             ",rowCount+1,",
 ## 						             a.",object@obs_id_colname,",
 ## 						             a.",object@col_name,"
-## 						      FROM   ",remoteTable(object)," a
+## 						      FROM   ",tableAndAlias(object)," a
 ## 						      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ##             sqlSendUpdate(connection,sqlstr0)
@@ -389,7 +389,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 								              a.",object@col_name,"
-## 								      FROM ",remoteTable(object)," a
+## 								      FROM ",tableAndAlias(object)," a
 ## 								      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ##                     sqlSendUpdate(connection,sqlstr0)
@@ -414,7 +414,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 ## 							              a.",getVariables(object)$colIdColumn,",
 ## 							              a.",getVariables(object)$valueColumn,"
-## 							    FROM   ",remoteTable(object)," a
+## 							    FROM   ",tableAndAlias(object)," a
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
 ## 	            sqlSendUpdate(connection,sqlstr0)
@@ -433,7 +433,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@var_id_name,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								             a.",object@var_id_name,"<",ncol+1)
 
@@ -448,7 +448,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 										             a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -463,7 +463,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@obs_id_colname,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ## 		            sqlSendUpdate(connection,sqlstr0)
@@ -477,7 +477,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 										              a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ## 		                    sqlSendUpdate(connection,sqlstr0)
@@ -620,7 +620,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 ## 							              a.",getVariables(object)$colIdColumn,",
 ## 							              a.",getVariables(object)$valueColumn,"
-## 							    FROM   ",remoteTable(object)," a
+## 							    FROM   ",tableAndAlias(object)," a
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
 ## 	            sqlSendUpdate(connection,sqlstr0)
@@ -639,7 +639,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@var_id_name,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								             a.",object@var_id_name,"<",ncol+1)
 
@@ -654,7 +654,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 										             a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -669,7 +669,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@obs_id_colname,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ## 		            sqlSendUpdate(connection,sqlstr0)
@@ -683,7 +683,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 										              a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ## 		                    sqlSendUpdate(connection,sqlstr0)
@@ -846,7 +846,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 ## 							              a.",getVariables(object)$colIdColumn,",
 ## 							              a.",getVariables(object)$valueColumn,"
-## 							    FROM   ",remoteTable(object)," a
+## 							    FROM   ",tableAndAlias(object)," a
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
 ## 	            sqlSendUpdate(connection,sqlstr0)
@@ -865,7 +865,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@var_id_name,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								             a.",object@var_id_name,"<",ncol+1)
 
@@ -880,7 +880,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 										             a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -895,7 +895,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@obs_id_colname,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ## 		            sqlSendUpdate(connection,sqlstr0)
@@ -909,7 +909,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 										              a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ## 		                    sqlSendUpdate(connection,sqlstr0)
@@ -1052,7 +1052,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 							              a.",getVariables(object)$rowIdColumn,"+",rowCount,",
 ## 							              a.",getVariables(object)$colIdColumn,",
 ## 							              a.",getVariables(object)$valueColumn,"
-## 							    FROM   ",remoteTable(object)," a
+## 							    FROM   ",tableAndAlias(object)," a
 ## 							    WHERE  a.",object@matrix_id_colname," = ",object@matrix_id_value)
 
 ## 	            sqlSendUpdate(connection,sqlstr0)
@@ -1071,7 +1071,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@var_id_name,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE  a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 								             a.",object@var_id_name,"<",ncol+1)
 
@@ -1086,7 +1086,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@var_id_name,"+(",k,"*",length(object),")),
 ## 										             a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE a.",object@obs_id_colname," = ",object@vector_id_value," AND
 ## 										            (a.",object@var_id_name,"+(",k,"*",length(object),"))<",ncol+1)
 
@@ -1101,7 +1101,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 								             ",rowCount+1,",
 ## 								             a.",object@obs_id_colname,",
 ## 								             a.",object@col_name,"
-## 								      FROM   ",remoteTable(object)," a
+## 								      FROM   ",tableAndAlias(object)," a
 ## 								      WHERE a.",object@obs_id_colname,"<",ncol+1)
 
 ## 		            sqlSendUpdate(connection,sqlstr0)
@@ -1115,7 +1115,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 										             ",rowCount+1,",
 ## 										             (a.",object@obs_id_colname,"+(",k,"*",length(object),")),
 ## 										              a.",object@col_name,"
-## 										      FROM ",remoteTable(object)," a
+## 										      FROM ",tableAndAlias(object)," a
 ## 										      WHERE (a.",object@obs_id_colname,"+(",k,"*",length(object),"))<",ncol+1)
 
 ## 		                    sqlSendUpdate(connection,sqlstr0)

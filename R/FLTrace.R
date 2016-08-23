@@ -15,8 +15,7 @@ NULL
 #' of (1000 x 1000).
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- tr(flmatrix)
 #' @export
 
@@ -37,7 +36,7 @@ tr.FLMatrix<-function(object,...){
 					  FLMatrixTrace(",getVariables(object)$rowId,
 			         			   ",",getVariables(object)$colId,
 			              		   ",",getVariables(object)$value,")",
-				    " FROM ",remoteTable(object),
+				    " FROM ",tableAndAlias(object),
 				    constructWhere(c(constraintsSQL(object),
 				    	paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
 				    	paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))

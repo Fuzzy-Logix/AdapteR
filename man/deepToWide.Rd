@@ -4,8 +4,8 @@
 \alias{deepToWide}
 \title{Convert Deep Table to Wide Table}
 \usage{
-deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
-  outWideTableName, Analysisid)
+deepToWide(object, whereconditions, mapTable, mapName, outWideTableName,
+  Analysisid)
 }
 \arguments{
 \item{object}{FLTable object to convert to wide table}
@@ -16,8 +16,6 @@ deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
 
 \item{mapName}{unique identifier for the mapping information in mapping table if any}
 
-\item{outWideTableDatabase}{name of database where output wide table is to be stored}
-
 \item{outWideTableName}{name to give to the output wide table}
 }
 \value{
@@ -25,7 +23,8 @@ deepToWide(object, whereconditions, mapTable, mapName, outWideTableDatabase,
 \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
-Convert Deep Table to Wide Table
+The DB Lytix function called is FLWideToDeep.Stored Procedure that transforms the 
+data in a deep table format to a wide table format.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")

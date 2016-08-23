@@ -41,7 +41,7 @@ FLCApply <- function(data,FUN,column)
 
 	datalist <- plyr::llply(columnValues,function(x){
 		data@select@whereconditions <- c(data@select@whereconditions,
-			paste0(remoteTable(data),".",column,"=''",x,"''"))
+			paste0(tableAndAlias(data),".",column,"=''",x,"''"))
 		return(data)
 		})
 	names(datalist) <- columnValues

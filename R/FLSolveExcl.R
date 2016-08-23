@@ -16,8 +16,7 @@ NULL
 #' after excluding given dimension.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solveExcl(flmatrix,3)
 #' @export
 
@@ -32,10 +31,8 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
     connection<-getConnection(object)
     flag1Check(connection)
 
-    MID <- getMaxMatrixId(connection)
+    MID <- "'%insertIDhere%'"
 
-    
-    
     sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
 						AS (SELECT 1, 
 								   ",
@@ -43,7 +40,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 								   ",getVariables(object)$colId,", 
 								   ",getVariables(object)$value,",",
 								   ExclIdx, 
-							" FROM  ",remoteTable(object),
+							" FROM  ",tableAndAlias(object),
 							constructWhere(c(constraintsSQL(object))),") 
 					SELECT ",MID,
 					       ",a.OutputRowNum,
@@ -63,10 +60,16 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
                         order = "",
                         SQLquery=sqlstr)
 
+    ifelse(ExclIdx>nrow(object),
+            vdim <- dim(object),
+            vdim <- dim(object)-1)
+
   	flm <- new("FLMatrix",
-            select= tblfunqueryobj,
-            dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
-            			  dimnames(object)[[2]][(-1*ExclIdx)]))
+               select= tblfunqueryobj,
+               dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
+                             dimnames(object)[[2]][(-1*ExclIdx)]),
+               dim=vdim,
+               dimColumns=c("OutputRowNum","OutputColNum","OutputVal"))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object,ExclIdx),

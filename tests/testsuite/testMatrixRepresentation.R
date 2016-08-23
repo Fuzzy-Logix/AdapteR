@@ -134,8 +134,7 @@ test_that(
 ## Create a remote matrix object
 ##
 if(!exists("eqnRtn"))
-    eqnRtn <- FLMatrix(database          = "FL_DEMO",
-                       table_name  = "finEquityReturns",
+    eqnRtn <- FLMatrix(table_name  = "finEquityReturns",
                        matrix_id_value   = "",
                        matrix_id_colname = "",
                        row_id_colname    = "TxnDate",
@@ -298,7 +297,7 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+        a <- FLMatrix("tblmatrixMulti",2,
                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
         list(R=as.matrix(a),
@@ -308,7 +307,7 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+        a <- FLMatrix("tblmatrixMulti",2,
                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
         list(R=as.matrix(a),
@@ -318,7 +317,7 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-      a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+      a <- FLMatrix("tblmatrixMulti",2,
                     "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
 
@@ -329,7 +328,7 @@ test_that("check matrix subsetting",
   )
 
   expect_eval_equal(initF=function(n,isSquare=FALSE) {
-        a <- FLMatrix("FL_DEMO","tblmatrixMulti",2,
+        a <- FLMatrix("tblmatrixMulti",2,
                    "MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",
                     dimnames=list(c("a","b","c"),1:3))
         list(R=as.matrix(a),

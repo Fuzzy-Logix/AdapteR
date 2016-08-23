@@ -18,22 +18,32 @@ NULL
 #' @slot memb.exp A number r strictly larger than 1 specifying the membership exponent 
 #' used in the fit criterion.Default: 2 which is hardwired inside FANNY.
 #' @slot maxit maximal number of iterations for the FANNY algorithm.
-#' @method cluster FLKMeans
-#' @param object retrieves the cluster vector
-#' @method centers FLKMeans
-#' @param object retrieves the coordinates of the centroids
-#' @method print FLKMeans
-#' @param object overloads the print function
-#' @method tot.withinss FLKMeans
-#' @param object total within sum of squares
-#' @method withinss FLKMeans
-#' @param object within sum of squares
-#' @method betweenss FLKMeans
-#' @param object between sum of squares
-#' @method totss FLKMeans
-#' @param object total sum of squares
-#' @method size FLKMeans
-#' @param object size vector
+#' @method clustering FLFKMeans
+#' @param object returns the clustering vector of the nearest crisp clustering.
+#' @method membership FLFKMeans
+#' @param object returns matrix containing the memberships for each pair consisting of an observation and a cluster.
+#' @method coeff FLFKMeans
+#' @param object returns vector with Dunn's partition coefficient F(k) of the clustering, where k is the number of clusters. F(k) is
+#' the sum of all squared membership coefficients, divided by the number of observations. Its value is between 1/k and 1.
+#' The normalized form of the coefficient is also given. It is defined as (F(k) - 1/k) / (1 - 1/k), and ranges between 0 and 1.
+#' A low value of Dunn's coefficient indicates a very fuzzy clustering, whereas a value close to 1 indicates a near-crisp clustering.
+#' @method objective FLFKMeans
+#' @param object returns named vector containing the minimal value of the objective function reached by the FANNY algorithm and 
+#' the relative convergence tolerance tol used.
+#' @method k.crisp FLFKMeans
+#' @param object returns integer (<= k) giving the number of crisp clusters; can be less than k, where it's 
+#' recommended to decrease memb.exp.
+#' @method convergence FLFKMeans
+#' @param object returns named vector with iterations, the number of iterations needed and converged indicating if the algorithm 
+#' converged (in maxit iterations within convergence tolerance tol).
+#' @method silinfo FLFKMeans
+#' @param object returns list with silhouette information of the nearest crisp clustering.
+#' @method call FLFKMeans
+#' @param object generating call
+#' @method print FLFKMeans
+#' @param object prints results of agglomerative clustering.
+#' @method plot FLFKMeans
+#' @param object plots results of agglomerative clustering.
 setClass(
 	"FLFKMeans",
 	slots=list(
@@ -185,8 +195,6 @@ fanny.FLTable <- function(x,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					gen_wide_table_name("map"))
 
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID,
 			    	     	    a.COLUMN_NAME AS ColumnName,
@@ -195,33 +203,28 @@ fanny.FLTable <- function(x,
 			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
 			    	     AND a.Final_VarID IS NOT NULL ")
 		
-		createTable(pTableName=mapTable,
-					pSelect=sqlstr)
+		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
+                                pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name("")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS \n ",constructSelect(x))
 		#sqlSendUpdate(connection,sqlstr)
-		createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
-					pSelect=constructSelect(x))
+		deeptablename <- createView(pViewName=gen_view_name(""),
+                                    pSelect=constructSelect(x))
 
-		deeptablename1 <- gen_view_name("New")
+		
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
 		#				" AS  \n SELECT * FROM ",getOption("ResultDatabaseFL"),
 		#				".",deeptablename,constructWhere(whereconditions))
 		#t <- sqlSendUpdate(connection,sqlstr)
 		
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename1),
-					pSelect=paste0("SELECT * FROM ",getOption("ResultDatabaseFL"),
-					".",deeptablename,constructWhere(whereconditions))
+		deeptablename1<-createView(pViewName=gen_view_name("New"),
+					pSelect=paste0("SELECT * FROM ", deeptablename,constructWhere(whereconditions))
 					)
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch,Error:",t)
-
 		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
                    deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
@@ -233,16 +236,13 @@ fanny.FLTable <- function(x,
 	else
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
-		deeptablename <- gen_view_name("New")
 		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 		#				deeptablename," AS  \n ",constructSelect(x))
 		#t <- sqlSendUpdate(connection,sqlstr)
-		t<-createView(pViewName=getRemoteTableName(ResultDatabaseFL,deeptablename),
-					pSelect=constructSelect(x))
+		deeptablename<-createView(pViewName=gen_view_name("New"),
+                                  pSelect=constructSelect(x))
 
-		if(!all(t)) stop("Input Table and whereconditions mismatch")
 		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
                    deeptablename,
                    "obs_id_colname",
                    "var_id_colname",
@@ -254,7 +254,7 @@ fanny.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
@@ -508,7 +508,7 @@ objective.FLFKMeans <- function(object){
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -593,13 +593,13 @@ silinfo.FLFKMeans <- function(object){
 	{
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		a <- paste0(genRandVarName(),"1")
 		b <- paste0(genRandVarName(),"2")
-		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
+		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3")) ## gk: refactor!
 		d <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 		e <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("5"))
 

@@ -128,8 +128,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' ResultFLmatrix <- exp(flmatrix)
 #' ResultFLmatrix <- logb(flmatrix,3)
 #' ResultFLmatrix <- log10(flmatrix)
@@ -323,7 +322,8 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
                 select = tblfunqueryobj,
                 dimnames = list(1:length(x),
                                 "vectorValueColumn"),
-                isDeep = FALSE)
+                isDeep = FALSE,
+                type=typeof(x))
 
     flv <- ensureQuerySize(pResult=flv,
                         pInput=list(x,decreasing=decreasing,
@@ -367,7 +367,8 @@ sort.FLMatrix <- function(x,decreasing=FALSE,
                 select = tblfunqueryobj,
                 dimnames = list(1:length(x),
                                 "vectorValueColumn"),
-                isDeep = FALSE)
+                isDeep = FALSE,
+                type=typeof(x))
 
     flv <- ensureQuerySize(pResult=flv,
                         pInput=list(x,decreasing=decreasing,

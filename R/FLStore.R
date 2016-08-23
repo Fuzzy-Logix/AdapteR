@@ -78,6 +78,7 @@ storeVarnameMapping <- function(connection,
 #' @export
 store.FLMatrix <- function(object,pTableName=NULL,...)
 {
+    ##browser()
     if(is.FLMatrix(object)){
       if("FLSelectFrom" %in% class(object@select) 
           && is.null(pTableName))
@@ -90,7 +91,6 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
                             getOption("ResultIntMatrixTableFL"),
                             getOption("ResultCharMatrixTableFL"))
         vtableName1 <- as.character(names(vmapping)[vtemp==vmapping])
-        vdatabase1 <- getOption("ResultDatabaseFL")
         MID1 <- getMaxMatrixId(vtable=vtableName1,vdatabase=NULL)
 
         object <- orderVariables(object,
@@ -109,7 +109,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
         MID <- getMaxMatrixId(vtable=vtableName,vdatabase=vdatabase)
         if(class(object@select)=="FLSelectFrom")
         object@select@variables[["MATRIX_ID"]] <- MID
-        
+          
         insertIntotbl(pTableName=getRemoteTableName(vdatabase,vtableName),
                       pSelect=gsub("'%insertIDhere%'",MID,
                                   constructSelect(object,joinNames=FALSE)))
@@ -139,14 +139,15 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       #               vSqlStr)
       return(FLMatrix(
             connection = getConnection(object),
-            database = vdatabase1, 
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "rowIdColumn", 
-            col_id_colname = "colIdColumn", 
-            cell_val_colname = "valueColumn",
-            dimnames=dimnames(object)
+            row_id_colname = object@dimColumns[[1]], 
+            col_id_colname = object@dimColumns[[2]], 
+            cell_val_colname = object@dimColumns[[3]],
+            dim=dim(object),
+            dimnames=dimnames(object),
+            type=typeof(object)
             ))
     }
 }
@@ -169,7 +170,6 @@ store.FLVector <- function(object,pTableName=NULL,...)
                         getOption("ResultIntVectorTableFL"),
                         getOption("ResultCharVectorTableFL"))
     vtableName1 <- as.character(names(vmapping)[vtemp==vmapping])
-    vdatabase1 <- getOption("ResultDatabaseFL")
     VID1 <- getMaxVectorId(vtable=vtableName1,vdatabase=NULL)
 
   if(!is.null(pTableName)){
@@ -202,10 +202,8 @@ store.FLVector <- function(object,pTableName=NULL,...)
   #                   "\n")
   # sqlSendUpdate(getConnection(object),
   #                 vSqlStr)
-  select <- new(
-                "FLSelectFrom",
+  select <- new("FLSelectFrom",
                 connection = connection, 
-                database = vdatabase1, 
                 table_name = vtableName1,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),
@@ -218,7 +216,8 @@ store.FLVector <- function(object,pTableName=NULL,...)
   return(new("FLVector",
                 select=select,
                 dimnames=list(vindex,"vectorValueColumn"),
-                isDeep=FALSE))
+                isDeep=FALSE,
+                type=typeof(object)))
 }
 
 #' @export
@@ -255,13 +254,15 @@ store.FLTable <- function(object,pTableName=NULL,...)
                    vtableName,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
+                   "cell_val_colname",
+                   type=typeof(object)
                   )
   else
   table <- FLTable(
                    vdatabase,
                    vtableName,
-                   "obs_id_colname"
+                   "obs_id_colname",
+                   type=typeof(object)
                   )
   return(table)
 }

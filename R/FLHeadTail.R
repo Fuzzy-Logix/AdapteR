@@ -16,8 +16,7 @@ NULL
 #' @section Usage: \code{tail.FLMatrix(x, n=6L, ...)}
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' headflmatrix <- head(flmatrix, n=6L, ...)
 #' print(headflmatrix)
 #' @export

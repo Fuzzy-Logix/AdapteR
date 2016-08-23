@@ -13,8 +13,7 @@ NULL
 #' of input FLMatrix object and replicates the equivalent R output.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- ginv(flmatrix)
 #' @export
 ginv <- function (object, ...){
@@ -47,11 +46,12 @@ ginv.FLMatrix<-function(object,...)
                         SQLquery=sqlstr)
 
   flm <- new("FLMatrix",
-            select= tblfunqueryobj,
-            dimnames=dimnames(object))
+             select= tblfunqueryobj,
+             dim=rev(dim(object)),
+            dimnames=list(NULL,NULL))
 
   return(ensureQuerySize(pResult=flm,
-            pInput=list(object),
+            pInput=list(object,...),
             pOperator="ginv",
             pStoreResult=TRUE))
 

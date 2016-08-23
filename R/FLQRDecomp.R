@@ -19,8 +19,7 @@ NULL
 #' \item{RMatrix}{the resulting R Matrix stored in-database as FLMatrix}
 #' @examples
 #' connection<-RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- qr(flmatrix)
 #' resultList$qr
 #' resultList$qraux
@@ -39,7 +38,6 @@ qr.FLMatrix<-function(object,...)
 	flag3Check(connection)
   MID1 <- getMaxMatrixId(connection)
 
-	tempResultTable <- gen_unique_table_name("tblQRDecompResult")
 
     sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),
@@ -55,8 +53,8 @@ qr.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="qr")
 
-    createTable(pTableName=tempResultTable,
-                pSelect=sqlstr)
+	tempResultTable <- createTable(pTableName=gen_unique_table_name("tblQRDecompResult"),
+                                   pSelect=sqlstr)
 	
 	#calculating QRMatrix
 
@@ -64,14 +62,14 @@ qr.FLMatrix<-function(object,...)
 					         "OutputRowNum AS rowIdColumn, \n ",
 					          "OutputColNum AS colIdColumn, \n ",
 					          "OutputValQ AS valueColumn \n ",
-					  " FROM ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),
+					  " FROM ",tempResultTable,
 					 " WHERE OutputRowNum > OutputColNum \n ",
 					 " UNION ALL \n ",
 					 " SELECT ",MID1," AS MATRIX_ID, \n ",
 					         "OutputRowNum AS rowIdColumn, \n ",
 					         "OutputColNum AS colIdColumn, \n ",
 					         "OutputValR AS valueColumn \n ",
-					  " FROM ",getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),
+					  " FROM ",tempResultTable,
 					 " WHERE OutputRowNum <= OutputColNum ")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -86,17 +84,16 @@ qr.FLMatrix<-function(object,...)
 
   	flm <- new("FLMatrix",
             select= tblfunqueryobj,
+            dim=dim(object),
             dimnames=dimnames(object))
 
   	QRMatrix <- store(object=flm)
 
     #calculating qraux
-	table <- FLTable(
-		             getOption("ResultDatabaseFL"),
-		             tempResultTable,
+	table <- FLTable(tempResultTable,
 		             "OutputRowNum",
-		             whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
-		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum ")
+		             whereconditions=paste0(tempResultTable,".OutputRowNum = ",
+                                            tempResultTable,".OutputColNum ")
 		             )
 
 	qraux <- table[,"OutputValQ"]
@@ -105,9 +102,7 @@ qr.FLMatrix<-function(object,...)
 	r<-rankMatrix(object)
 
 	# calculating Q FLmatrix
-    Q<-FLMatrix( 
-           connection = connection, 
-           database = getOption("ResultDatabaseFL"), 
+    Q<-FLMatrix(connection = connection, 
            table_name = tempResultTable, 
            matrix_id_value = "",
            matrix_id_colname = "", 
@@ -118,9 +113,7 @@ qr.FLMatrix<-function(object,...)
 
 
     # calculating U FLmatrix
-    R<-FLMatrix( 
-           connection = connection, 
-           database = getOption("ResultDatabaseFL"), 
+    R<-FLMatrix(connection = connection, 
            table_name = tempResultTable, 
            matrix_id_value = "",
            matrix_id_colname = "", 

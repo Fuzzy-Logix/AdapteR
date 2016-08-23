@@ -66,7 +66,7 @@ test_that("lm: summary.lm https://app.asana.com/0/143316600934101/15694819281845
   result = eval_expect_equal({
     lmSum <- summary(lmobj)
   },Renv,FLenv,
-  expectation = "lmSum")
+  noexpectation = "lmSum")
 })
 
 ## Check for plot function of Linear Regression.
@@ -79,13 +79,11 @@ if(FALSE){
 
 
 ## MD Testing
-flMDObject <- FLTableMD(database="FL_DEMO",
-                        table="tblAutoMPGMD",
+flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
                         group_id_colname="GroupID",
                         obs_id_colname="ObsID",group_id = c(2,4))
 
-flMDObjectDeep <- FLTableMD(database="FL_DEMO",
-                        table="LinRegrMultiMD",
+flMDObjectDeep <- FLTableMD(table="FL_DEMO.LinRegrMultiMD",
                         group_id_colname="DatasetID",
                         obs_id_colname="ObsID",
                         var_id_colname="VarID",
@@ -128,7 +126,7 @@ test_that("Check for dimensions of coefficients and summary for DeepTable ",{
 
 
 ## Testing lm for non-continuous ObsIDs
-widetable  <- FLTable("FL_DEMO", "tblAbaloneWide",
+widetable  <- FLTable("FL_DEMO.tblAbaloneWide",
                      "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
 object <- lm(Rings~Height+Diameter,widetable)
 test_that("Check for dimensions of x Matrix ",{
@@ -141,7 +139,7 @@ test_that("Check for dimensions of x Matrix ",{
                         ))
 })
 
-deeptable <- FLTable("FL_DEMO","myLinRegrSmall",
+deeptable <- FLTable("FL_DEMO.myLinRegrSmall",
                     "ObsID","VarID","Num_Val",
                     whereconditions=c("ObsID>10","ObsID<1001"))
 object <- lm(NULL,deeptable)

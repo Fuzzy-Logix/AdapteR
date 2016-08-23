@@ -15,8 +15,7 @@ NULL
 #' a FLVector object containing eigen values which replicates the equivalent R output.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- eigen(flmatrix)
 #' resultList$values
 #' resultList$vectors
@@ -119,6 +118,7 @@ FLEigenVectors.FLMatrix<-function(object,...)
 
   	flm <- new("FLMatrix",
             select= tblfunqueryobj,
+            dim=dim(object),
             dimnames=dimnames(object))
 
   	return(ensureQuerySize(pResult=flm,

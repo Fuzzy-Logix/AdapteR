@@ -13,8 +13,7 @@ NULL
 #' and replicates the equivalent R output.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- t(flmatrix)
 #' @export
 t<-function(object, ...){
@@ -23,18 +22,10 @@ t<-function(object, ...){
 
 #' @export
 t.FLMatrix<-function(object,...){
-    if(class(object@select)=="FLTableFunctionQuery")
-        object <- store(object)
-    swapRowCol <- function(select){
-        newrc <- select@variables$rowIdColumn
-        select@variables$rowIdColumn <- select@variables$colIdColumn
-        select@variables$colIdColumn <- newrc
-        return(select)
-    }
-    object@select <- swapRowCol(object@select)
-    object@mapSelect <- swapRowCol(object@mapSelect)
+    object@dimColumns[1:2] <- rev(object@dimColumns[1:2])
     object@dim <- rev(object@dim)
-    object@dimnames <- rev(object@dimnames)
+    if(!is.null(object@dimnames))
+        object@dimnames <- rev(object@dimnames)
     return(object)
 }
 

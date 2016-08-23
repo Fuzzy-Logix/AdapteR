@@ -19,7 +19,7 @@ rowSums(object, ...)
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO", 
+flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- rowSums(flmatrix)
 }
 

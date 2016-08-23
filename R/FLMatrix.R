@@ -25,18 +25,15 @@ setClass("FLTableQuery",
 
 ##' A selectFrom models a select from a table.
 ##'
-##' @slot database character the database of the table
-##' @slot table_name character the name oth the table to select from
+##' @slot table_name character the name of the table to select from (possibly fully qualified, i.e. with database)
 ##' @export
 setClass("FLSelectFrom",
          contains="FLTableQuery",
          slots=list(
-             database = "character",
              table_name = "character"
          ))
 
-setClass(
-    "FLAbstractTable",
+setClass("FLAbstractTable",
     slots = list(
         select = "FLTableQuery",
         dimnames = "list",
@@ -45,8 +42,7 @@ setClass(
     )
 )
 
-setClass(
-	"FLAbstractColumn",
+setClass("FLAbstractColumn",
 	slots=list(
             columnName = "character"))
 
@@ -67,15 +63,17 @@ setClass("FLTableFunctionQuery",
 ##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
 ##' @slot dim list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R
 ##' @export
-setClass(
-    "FLMatrix",
-    slots = list(
-        select = "FLTableQuery",
-        mapSelect  = "FLSelectFrom",
-        dim = "ANY",
-        dimnames = "ANY"
-    )
-)
+setClass("FLMatrix",
+         slots = list(
+             select = "FLTableQuery",
+             mapSelect  = "FLSelectFrom",
+             dimColumns = "character",
+             type       = "character",
+             dim = "ANY",
+             dimnames = "ANY"
+         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
+                                 type="double")
+         )
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
@@ -85,27 +83,28 @@ setClass(
 #' @method names FLTable
 #' @param object retrieves the column names of FLTable object
 #' @export
-setClass(
-    "FLTable",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
+setClass("FLTable",
+         slots = list(
+             select = "FLTableQuery",
+             dimnames = "list",
+             isDeep = "logical",
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         ),prototype = prototype(type="double")
+        )
 
 #' An S4 class to represent FLVector
 #'
 #' @export
-setClass(
-    "FLVector",
-    slots = list(
-      select = "FLTableQuery",
-      dimnames = "list",
-      isDeep= "logical",
-      mapSelect = "FLSelectFrom"
-    ))
+setClass("FLVector",
+         slots = list(
+             select = "FLTableQuery",
+             dimnames = "list",
+             isDeep= "logical",
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         ),prototype = prototype(type="double")
+        )
 
 ##' drop a table
 ##' 
@@ -114,10 +113,8 @@ setClass(
 ##' @export
 drop.FLTable <- function(object)
 {
-    names(object@table_name) <- NULL
-    vSqlStr <- paste0(" DROP TABLE ",remoteTable(object))
-    sqlSendUpdate(getConnection(object),
-                  vSqlStr)
+    vSqlStr <- paste0(" DROP TABLE ",object@tablename)
+    sqlSendUpdate(getConnection(object), vSqlStr)
     return(paste0(object@select@table_name," DROPPED"))
 }
 
@@ -265,8 +262,7 @@ restrictFLMatrix <-
         if(is.FLTableFunctionQuery(object@select))
           object <- store(object)
         ## if there is a mapping table, use indices instead of dimnames
-        vars <- c(object@select@variables$rowIdColumn,
-                  object@select@variables$colIdColumn)
+        vars <- object@select@variables[object@dimColumns]
         for(i in 1:2)
             if(conditionDims[[i]])
                 whereconditions <-
@@ -300,7 +296,7 @@ restrictFLMatrix <-
 ##' @return the FLMatrix object, with slot dimnames re set 
 #' @export
 FLamendDimnames <- function(flm,map_table) {
-    #browser()
+    ##browser()
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -343,7 +339,7 @@ FLamendDimnames <- function(flm,map_table) {
         paste0("SELECT DISTINCT(",
                flm@select@variables[[varname]],
                ") as v\n",
-               "FROM  ",remoteTable(flm@select),
+               "FROM  ",tableAndAlias(flm@select),
                constructWhere(
                    constraintsSQL(flm@select)),
                "\nORDER BY 1")
@@ -382,7 +378,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","rnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables$rowIdColumn),
+                      paste0(flm@select@variables[[flm@dimColumns[[1]]]]),
                       "rnmap.NUM_ID"),
                   equalityConstraint("rnmap.DIM_ID","1"))
         }
@@ -395,18 +391,16 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","cnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables$colIdColumn),
+                      paste0(flm@select@variables[[flm@dimColumns[[2]]]]),
                       "cnmap.NUM_ID"),
                   equalityConstraint("cnmap.DIM_ID","2"))
         }
-        flm@mapSelect <- new(
-            "FLSelectFrom",
-            connection = connection,
-            database = getOption("ResultDatabaseFL"),
-            table_name = tablenames,
-            variables=variables,
-            whereconditions=mConstraint,
-            order = "")
+        flm@mapSelect <- new("FLSelectFrom",
+                             connection = connection,
+                             table_name = tablenames,
+                             variables=variables,
+                             whereconditions=mConstraint,
+                             order = "")
     }
 
     return(flm)
@@ -435,12 +429,11 @@ FLamendDimnames <- function(flm,map_table) {
 #' to an in-database matrix.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", "tblMatrixMulti",
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti",
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
-FLMatrix <- function(database=getOption("ResultDatabaseFL"),
-                     table_name,
+FLMatrix <- function(table_name,
                      matrix_id_value = "",
                      matrix_id_colname = "",
                      row_id_colname = "rowIdColumn",
@@ -451,8 +444,8 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
                      conditionDims=c(FALSE,FALSE),
                      whereconditions=c(""),
                      map_table=NULL,
-                     connection=getOption("connectionFL")){
-
+                     connection=getOption("connectionFL"),
+                     type="double"){
   ## If alias already exists, change it to flt.
     if(length(names(table_name))>0)
     oldalias <- names(table_name)[1]
@@ -463,9 +456,8 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
     cell_val_colname <- changeAlias(cell_val_colname,"mtrx",oldalias)
     whereconditions <- changeAlias(whereconditions,
                                   "mtrx",
-                                  c(paste0(database,".",table_name),
-                                    paste0(table_name),
-                                    paste0(database,".",oldalias),
+                                  c(getTablename(table_name),
+                                    table_name,
                                     oldalias))
     names(table_name) <- "mtrx"
 
@@ -480,13 +472,20 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
         colIdColumn=paste0(col_id_colname),
         valueColumn=paste0(cell_val_colname))
     
+    checkNames <- function(colnames){
+        if(is.numeric(colnames) && colnames==1:length(colnames))
+          return(NULL)
+        else return(colnames)
+    }
+
+    dimnames <- list(checkNames(dimnames[[1]]),
+                    checkNames(dimnames[[2]]))
+
       if((length(dimnames[[1]])>0 || 
         length(dimnames[[2]])>0 )&& 
         length(map_table)==0)
       {
-        remoteTable <- getRemoteTableName(
-                getOption("ResultDatabaseFL"),
-                getOption("NameMapTableFL"))
+        remoteTable <- getOption("NameMapTableFL")
 
         t<-sqlSendUpdate(connection,
                       paste0(" DELETE FROM ",remoteTable,
@@ -508,19 +507,18 @@ FLMatrix <- function(database=getOption("ResultDatabaseFL"),
         }
 
     ##browser()
-    select <- new(
-        "FLSelectFrom",
-        connection = connection,
-        database = database,
-        table_name = tablenames,
-        variables=variables,
-        whereconditions=c(whereconditions, mConstraint),
-        order = "")
+    select <- new("FLSelectFrom",
+                  connection = connection,
+                  table_name = tablenames,
+                  variables=variables,
+                  whereconditions=c(whereconditions, mConstraint),
+                  order = "")
     
     RESULT <- new("FLMatrix",
                   select = select,
                   dim = dim,
-                  dimnames = dimnames)
+                  dimnames = dimnames,
+                  type=type)
     
     RESULT <- FLamendDimnames(RESULT,map_table)
 
@@ -600,41 +598,36 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
 #' @param object in-database object
 #' @param table table name. Applicable only if object is the database name.
 #' @return character vector giving reference to in-database object
-setGeneric("remoteTable", function(object, table) {
-    standardGeneric("remoteTable")
+setGeneric("tableAndAlias", function(object) {
+    standardGeneric("tableAndAlias")
 })
-setMethod("remoteTable", signature(object = "FLMatrix", table="missing"),
+setMethod("tableAndAlias", signature(object = "FLMatrix"),
           function(object)
-              remoteTable(object@select))
-setMethod("remoteTable", signature(object = "FLTable", table="missing"),
+              tableAndAlias(object@select))
+setMethod("tableAndAlias", signature(object = "FLTable"),
           function(object)
-              remoteTable(object@select))
-setMethod("remoteTable", signature(object = "FLVector", table="missing"),
+              tableAndAlias(object@select))
+setMethod("tableAndAlias", signature(object = "FLVector"),
           function(object)
-              remoteTable(object@select))
-setMethod("remoteTable", signature(object = "character", table="character"),
-          function(object,table){
-            vtemp <- getRemoteTableName(object,table)
-            if(length(names(table))>0)
-            vtemp <- paste0(vtemp," AS ",names(table))
-            return(vtemp)
-          })
-setMethod("remoteTable", signature(object = "FLSelectFrom", table="missing"),
+              tableAndAlias(object@select))
+setMethod("tableAndAlias", signature(object = "character"),
           function(object){
-              if(is.null(names(object@table_name))||
-                names(object@table_name)=="")
-                return(paste0(sapply(1:length(object@table_name),
+             if(is.null(names(object))||
+                names(object)=="")
+                return(paste0(sapply(1:length(object),
                             function(x)
-                            paste0(getRemoteTableName(databaseName=object@database[x],
-                                                      tableName=object@table_name[x]))),
+                            paste0(object[x])),
                                   collapse=",\n  "))
               else
-                return(paste0(sapply(1:length(object@table_name),
+                return(paste0(sapply(1:length(object),
                             function(x)
-                            paste0(getRemoteTableName(databaseName=object@database[x],
-                                                      tableName=object@table_name[x]),
-                                  " AS ",names(object@table_name)[x])),
-                                  collapse=",\n  "))
+                            paste0(object[x],
+                                  " AS ",names(object)[x])),
+                            collapse=",\n  "))
+          })
+setMethod("tableAndAlias", signature(object = "FLSelectFrom"),
+          function(object){
+    return(tableAndAlias(object@table_name))
           })
 
 #' Compare Matrix Dimensions
@@ -680,20 +673,34 @@ print.FLMatrix <- function(object)
 #' @export
 setMethod("show","FLMatrix",print.FLMatrix)
 
-setGeneric("checkMaxQuerySize", function(pObj1) {
-    standardGeneric("checkMaxQuerySize")
+#' Check if sql query limits have been violated
+#'
+#' Limits can be on length of query to be parsed
+#' or number of nested queries
+#' @param pObj1 input FL object
+#' @return logical TRUE if limits violated
+setGeneric("checkQueryLimits", function(pObj1) {
+    standardGeneric("checkQueryLimits")
 })
-setMethod("checkMaxQuerySize",
+setMethod("checkQueryLimits",
           signature(pObj1="character"),
           function(pObj1) {
-              return(object.size(pObj1)>999000) # 1Kb tolerance
+              return(object.size(pObj1)>999000 # 1Kb tolerance
+                    ||length(gregexpr("FROM",
+                                      pObj1)[[1]])>120) ## Actual 140
           })
-setMethod("checkMaxQuerySize",
+setMethod("checkQueryLimits",
           signature(pObj1="FLMatrix"),
-          function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
-setMethod("checkMaxQuerySize",
+          function(pObj1) checkQueryLimits(constructSelect(pObj1)))
+setMethod("checkQueryLimits",
           signature(pObj1="FLVector"),
-          function(pObj1) checkMaxQuerySize(constructSelect(pObj1)))
+          function(pObj1) checkQueryLimits(constructSelect(pObj1)))
+setMethod("checkQueryLimits",
+          signature(pObj1="FLTable"),
+          function(pObj1) checkQueryLimits(constructSelect(pObj1)))
+setMethod("checkQueryLimits",
+          signature(pObj1="ANY"),
+          function(pObj1) return(FALSE))
 
 `dimnames<-.FLMatrix` <- function(x,value){
   lapply(1:2,function(i){

@@ -32,8 +32,7 @@ are supported.
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO", 
-"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 Result <- identical(flmatrix,flmatrix)
 Result <- identical(Rvector,as.FLVector(Rvector,connection))

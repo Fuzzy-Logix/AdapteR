@@ -20,7 +20,7 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 #' @export
 as.vector.FLVector <- function(object,mode="any")
 {
-  #browser()
+    #browser()
     vprev1 <- getOption("stringsAsFactors")
     vprev2 <- getOption("warn")
     options(stringsAsFactors=FALSE)
@@ -28,10 +28,18 @@ as.vector.FLVector <- function(object,mode="any")
     if(ncol(object)==1)
         x <- as.data.frame.FLVector(object)[[1]]
     if(ncol(object)>1)
-        x <- as.vector(as.data.frame.FLVector(object)[1,])
+        x <- as.vector(as.matrix(as.data.frame.FLVector(object)[1,]))
     # if(!any(is.na(as.numeric(x))) && !is.logical(x))
     # x <- as.numeric(x)
 
+    ## Adjust Return Type:
+    vTypeMapping <- c(as.logical="logical",
+                      as.character="character",
+                      as.integer="integer")
+    vfunc <- names(vTypeMapping)[vTypeMapping==typeof(object)]
+    if(length(vfunc)>0)
+        x <- do.call(vfunc,list(x))
+    
     if(ncol(object)==1) vnames <- rownames(object)
     else vnames <- colnames(object)
     if(is.character(vnames) && !all(vnames==1:length(vnames)))
@@ -56,6 +64,7 @@ as.data.frame <- function(x, ...)
 
 #' @export
 as.data.frame.FLTable <- function(x, ...){
+    #browser()
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
@@ -244,9 +253,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         #                      x=0))
         MID <- getMaxMatrixId(vconnection=connection,
                               vtable=tablename)
-        remoteTable <- getRemoteTableName(
-            getOption("ResultDatabaseFL"),
-            tablename)
+        remoteTable <- tablename
 
         #analysisID <- paste0("AdapteR",remoteTable,MID)
         if(class(connection)=="RODBC")
@@ -290,7 +297,6 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
 
         return(FLMatrix(
             connection = connection,
-            database = getOption("ResultDatabaseFL"),
             table_name = tablename,
             map_table = mapTable,
             matrix_id_value = MID,
@@ -446,15 +452,15 @@ as.sparseMatrix.FLMatrix <- function(object) {
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
       error=function(e){stop(e)})
-    i <- valuedf$rowIdColumn
-    j <- valuedf$colIdColumn
+    i <- valuedf[[object@dimColumns[[1]]]]
+    j <- valuedf[[object@dimColumns[[2]]]]
     i <- FLIndexOf(i,rownames(object))
     j <- FLIndexOf(j,colnames(object))
 
-  dn <- dimnames(object)
+    dn <- dimnames(object)
     if(any(is.na(c(i,j))))
         browser()
-  values <- valuedf$valueColumn
+    values <- valuedf[[object@dimColumns[[3]]]]
 
   if(is.factor(values))
   return(matrix(values,dim(object),
@@ -544,9 +550,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
     else
     {
       sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-      vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(getOption("ResultDatabaseFL"),
-                                      getOption("ResultMatrixTableFL")),
+      vSqlStr <- paste0(" INSERT INTO ", getOption("ResultMatrixTableFL"),
                     "\n",
                    gsub("'%insertIDhere%'",MID,sqlstr),
                     "\n")
@@ -559,7 +563,6 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
     MID <- getMaxMatrixId(connection)
     batchStore(sqlstr,MID)
     return(FLMatrix(
-            database = getOption("ResultDatabaseFL"),
             table_name = getOption("ResultMatrixTableFL"),
             map_table = NULL,
             matrix_id_value = MID,
@@ -585,7 +588,8 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
   flm <- new("FLMatrix",
               select= tblfunqueryobj,
               dim = c(rows,cols),
-              dimnames=list(1:rows,1:cols))
+              dimnames=list(1:rows,1:cols),
+              type=typeof(object))
   return(flm)
 }
 
@@ -622,8 +626,7 @@ as.FLMatrix.FLTable <- function(object,
                       return(NULL)
                       else return(x)
                   })
-  return(FLMatrix(database=object@select@database,
-                  table_name=object@select@table_name,
+  return(FLMatrix(table_name=object@select@table_name,
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
@@ -702,7 +705,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   if(class(connection)=="RODBC")
   {
     sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
-           getRemoteTableName(getOption("ResultDatabaseFL"),tablename),
+           tablename,
            " SELECT ",VID," AS vectorIdColumn,",
                      x," AS vectorIndexColumn,",
                      ifelse(tablename==getOption("ResultCharVectorTableFL"),
@@ -722,21 +725,19 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                             vectorValueColumn=as.vector(object))
     t <- as.FLTable.data.frame(vdataframe,connection,tablename,1,drop=FALSE)
   }
-  select <- new(
-                "FLSelectFrom",
+  select <- new("FLSelectFrom",
                 connection = connection, 
-                database = getOption("ResultDatabaseFL"), 
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
-                whereconditions=paste0(getOption("ResultDatabaseFL"),".",
-                  tablename,".vectorIdColumn = ",VID),
+                whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
                 order = "")
 
   return(new("FLVector",
                 select=select,
                 dimnames=list(newnames,"vectorValueColumn"),
-                isDeep=FALSE))
+                isDeep=FALSE,
+                type=typeof(object)))
 }
 
 #' @export
@@ -750,9 +751,7 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   {
     sqlstr <- sqlstr[sqlstr!=""]
     sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-    vSqlStr <- paste0(" INSERT INTO ",
-                    getRemoteTableName(getOption("ResultDatabaseFL"),
-                                     getOption("ResultVectorTableFL")),
+    vSqlStr <- paste0(" INSERT INTO ",getOption("ResultVectorTableFL"),
                     "\n",
                    gsub("'%insertIDhere%'",VID,sqlstr),
                     "\n")
@@ -780,10 +779,10 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
                               k:(k+length(rownames(object))-1)," AS vectorIndexColumn,",
                               a,".valueColumn AS vectorValueColumn 
                        FROM(",constructSelect(object),") AS ",a,
-                       " WHERE ",a,".rowIdColumn in ",rownames(object),
-                       " AND ",a,".colIdColumn in ",i)
+                       " WHERE ",a,".",object@dimColumns[[1]]," in ",rownames(object),
+                         " AND ",a,".",object@dimColumns[[2]]," in ",i)
     sqlstr <- c(sqlstr,sqlstr0)
-    if(checkMaxQuerySize(sqlstr) && i!=colnames[length(colnames)])
+    if(checkQueryLimits(sqlstr) && i!=colnames[length(colnames)])
     {
       batchStore(sqlstr)
       sqlstr <- ""
@@ -793,12 +792,10 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
     batchStore(sqlstr)
     sqlstr <- ""
     table <- FLTable(connection = getConnection(object),
-                   getOption("ResultDatabaseFL"),
-                   getOption("ResultVectorTableFL"),
-                   "vectorIndexColumn",
-                   whereconditions=paste0(getOption("ResultDatabaseFL"),
-                    ".",getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
-                  )
+                     table=getOption("ResultVectorTableFL"),
+                     obs_id_colname="vectorIndexColumn",
+                     whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)
+                     )
 
     return(table[,"vectorValueColumn"])
 }
@@ -826,8 +823,7 @@ setMethod("as.FLTable",signature(object="FLMatrix"),
 
 as.FLTable.FLMatrix <- function(object=object,...){
   object <- setAlias(object,"")
-  return(FLTable(database=object@select@database,
-                table=object@select@table_name,
+  return(FLTable(table=object@select@table_name,
                 obs_id_colname=getVariables(object)[["rowIdColumn"]],
                 var_id_colnames=getVariables(object)[["colIdColumn"]],
                 cell_val_colname=getVariables(object)[["valueColumn"]],
@@ -894,8 +890,7 @@ as.FLTable.data.frame <- function(object,
     if(drop)
     {
       if(RJDBC::dbExistsTable(connection,tableName))
-      t<-sqlSendUpdate(connection,paste0("drop table ",
-                    getOption("ResultDatabaseFL"),".",tableName,";"))
+      t<-sqlSendUpdate(connection,paste0("drop table ",tableName,";"))
       vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       t <- createTable(pTableName=tableName,
                       pColNames=names(vcolnamesCopy),
@@ -904,13 +899,12 @@ as.FLTable.data.frame <- function(object,
       # sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
       # if (getOption("debugSQL")) cat(sql)
       # t<-RJDBC::dbSendUpdate(connection,sql)
-      if(!all(t)) stop(paste0("colnames unconvenional. Error \n"))
-      updateMetaTable(pTableName=tableName,
+      updateMetaTable(pTableName=t,
                     pType="wideTable")
     }
     
     .jcall(connection@jc,"V","setAutoCommit",FALSE)
-    sqlstr <- paste0("INSERT INTO ",getOption("ResultDatabaseFL"),".",
+    sqlstr <- paste0("INSERT INTO ",
                 tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
     ps = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
     myinsert <- function(namedvector,x){
@@ -934,7 +928,7 @@ as.FLTable.data.frame <- function(object,
       if(batchSize>10000)
       {
         batchSize <- 10000
-        cat("using max batchSize=10000")
+        warning("using max batchSize=10000")
       }
       k <- 1
       vnrow <- nrow(object)
@@ -945,7 +939,7 @@ as.FLTable.data.frame <- function(object,
         vsubset <- object[k:j,]
         apply(vsubset,1,function(x) myinsert(vcolnamesCopy,x))
         tryCatch(.jcall(ps,"[I","executeBatch"),
-          error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
+                 error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
         RJDBC::dbCommit(connection)
         k <- k + batchSize
       }
@@ -954,21 +948,20 @@ as.FLTable.data.frame <- function(object,
     vcolnames <- names(vcolnames)
   }
 
-  select <- new(
-          "FLSelectFrom",
-          connection = getOption("connectionFL"), 
-          database = getOption("ResultDatabaseFL"), 
-          table_name = tableName, 
-          variables = list(
-                  obs_id_colname = obsIdColname),
-                  #var_id_colname = var_id_colnames,
-                  #cell_val_colname = cell_val_colname),
-          whereconditions=character(0),
-          order = "")
+  select <- new("FLSelectFrom",
+                connection = getOption("connectionFL"), 
+                table_name = tableName, 
+                variables = list(
+                    obs_id_colname = obsIdColname),
+                ## var_id_colname = var_id_colnames,
+                ## cell_val_colname = cell_val_colname),
+                whereconditions=character(0),
+                order = "")
 
   return(new("FLTable", 
               select = select,
               dimnames = list(object[,obsIdColname],
                               vcolnames),
-              isDeep = FALSE))
+              isDeep = FALSE,
+              type=sapply(object,typeof)))
 }

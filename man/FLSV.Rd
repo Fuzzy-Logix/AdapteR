@@ -24,8 +24,7 @@ of (700 x 700).
 }
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO", 
-"tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- FLSV(flmatrix)
 }
 

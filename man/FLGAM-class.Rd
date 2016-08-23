@@ -3,8 +3,17 @@
 \docType{class}
 \name{FLGAM-class}
 \alias{FLGAM-class}
-\title{An S4 class to represent FLGAM}
+\title{An S4 class to represent output from gam on in-database objects}
 \description{
-An S4 class to represent FLGAM
+An S4 class to represent output from gam on in-database objects
 }
+\section{Slots}{
+
+\describe{
+\item{\code{offset}}{column name used as offset}
+
+\item{\code{specid}}{unique ID from table where specifications are stored}
+
+\item{\code{family}}{information about family of fit}
+}}
 

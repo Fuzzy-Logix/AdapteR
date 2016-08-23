@@ -16,7 +16,4 @@ test_that("sort: method=shell",
           eval_expect_equal({
               tshell <- sort(x2, method = "shell", index.return = TRUE)
           },Renv,FLenv,
-          expectation = c("tshell","tquick")))
-
-options(debugSQL=F)
-ls(envir = Renv)
+          expectation = c("tshell")))
