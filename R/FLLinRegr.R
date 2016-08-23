@@ -50,7 +50,6 @@ setClass("FLRegr",
 #' @method summary FLLinRegr
 #' @method predict FLLinRegr
 #' @export
-#' and in-database procedures called during execution
 setClass(
 	"FLLinRegr",
 	contains="FLRegr",
@@ -105,7 +104,6 @@ setClass(
 #' have to fetch data
 #' @return \code{lm} returns an object of class \code{FLLinRegr}
 #' @examples
-#' library(RODBC)
 #' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' lmfit <- lm(Rings~Height+Diameter,widetable)
 #' lmfit$coefficients
@@ -115,7 +113,7 @@ setClass(
 #' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
 #' lmfit <- lm(NULL,deeptable)
 #' summary(lmfit)
-#' flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
+#' flMDObject <- FLTableMD(table="tblAutoMPGMD",
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",group_id = c(2,4))
 #' vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
@@ -1616,6 +1614,13 @@ predict.lmGeneric <- function(object,
 }
 
 ## move to file lm.R
+NULL
+
+#' Print FLLinRegr Object
+#'
+#' Printing of output from Linear Regression
+#' 
+#' @title Print FLLinRegr output Info
 #' @method print FLLinRegr
 #' @param object prints results of FLLinRegr on FL objects
 #' @method coefficients FLLinRegr

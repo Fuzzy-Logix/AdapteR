@@ -13,8 +13,7 @@ NULL
 #' @return If x is a FLMatrix then diag(x) returns the diagonal of x as FLVector object.
 #'   If x is FLVector, the value is a diagonal square FLMatrix with diagonal elements as given in FLVector.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- diag(flmatrix)
 #' DeepTable <- FLTable("tblUSArrests","ObsID")
 #' flvectorDeep <- DeepTable[1:5,1]

@@ -16,8 +16,7 @@ NULL
 #' Applying UDT functions on subsetted matrices with discontinuous row and col ids' 
 #' may result in error
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLmatrix <- flmatrix[1,]
 #' @export
 `[.FLMatrix`<-function(object,rows=1,cols=1, drop=TRUE)
@@ -76,18 +75,18 @@ NULL
 #' @return \code{[]} returns FLMatrix object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
 #' fltable <- FLTable("tblAbaloneWide", "ObsID")
 #' resultFLtable <- fltable[1:10,4:6]
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
   #browser()
-  if(class(object@select)=="FLTableFunctionQuery")
-  object <- store(object)
-	connection<-getConnection(object)
-  if(is.FLVector(rows)) rows <- as.vector(rows)
-  if(is.FLVector(cols)) cols <- as.vector(cols)
+    vtype <- typeof(object)
+    if(class(object@select)=="FLTableFunctionQuery")
+      object <- store(object)
+	  connection<-getConnection(object)
+    if(is.FLVector(rows)) rows <- as.vector(rows)
+    if(is.FLVector(cols)) cols <- as.vector(cols)
     if(is.numeric(rows))
         newrownames <- object@dimnames[[1]][rows]
     else
@@ -216,17 +215,28 @@ NULL
                   mapSelect=mapselect)
       }
       else
-      vres <- new("FLVector",
-                select=object@select,
-                dimnames=list(vrownames,vcolnames),
-                isDeep=object@isDeep)
+          vres <- new("FLVector",
+                      select=object@select,
+                      dimnames=list(vrownames,vcolnames),
+                      isDeep=object@isDeep)
       vvaluecolumn <- getValueColumn(vres)
       vvaluecolumn <- changeAlias(vvaluecolumn,"","")
-      vtype <- typeof(object)[vvaluecolumn]
-      vres@type <- vtype
+      vtype1 <- vtype[vvaluecolumn]
+      if(is.null(vtype1))
+        vtype1 <- vtype[1]
+      names(vtype1) <- NULL
+      vres@type <- vtype1
       return(vres)
     }
-    else return(object)
+    else{
+      vvaluecolumn <- getValueColumn(object)
+      vvaluecolumn <- changeAlias(vvaluecolumn,"","")
+      vtype1 <- vtype[vvaluecolumn]
+      if(is.null(vtype1))
+        vtype1 <- vtype[1]
+      object@type <- vtype1
+      return(object)
+    }
 }
 
 
@@ -240,7 +250,6 @@ NULL
 #' @return \code{[]} returns FLVector object after extraction
 #' which replicates the equivalent R extraction.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
 #' WideTable <- FLTable("tblAbaloneWide","ObsID")
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]

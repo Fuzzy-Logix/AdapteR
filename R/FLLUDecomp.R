@@ -50,8 +50,7 @@ setClass(
 #' \item{upper}{FLMatrix representing the upper triangular matrix}
 #' \item{data_perm}{FLMatrix representing the permutation matrix}
 #' @examples
-#' connection<- RODBC::odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' FLLUobject <- lu(flmatrix)
 #' listresult <- expand(FLLUobject)
 #' listresult$L

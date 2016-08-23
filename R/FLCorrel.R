@@ -14,7 +14,6 @@ NULL
 #' Only methods c("pearson","spearman","shuffle") are supported.
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
 #' deeptable <- FLTable( 
 #' "tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable("tblAbaloneWide","ObsID")
@@ -80,8 +79,7 @@ return(FLCorGeneric(x=x,y=y,
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable(
-#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' cov(deeptable,deeptable)
 #' cov(widetable,widetable)
@@ -144,8 +142,7 @@ return(FLCorGeneric(x=x,y=y,
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable(
-#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
@@ -208,8 +205,7 @@ return(FLCorGeneric(x=x,y=y,
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable(
-#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
@@ -278,8 +274,7 @@ return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 #' @return \code{cov} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable(
-#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' FLCovarP(deeptable,deeptable)
 #' FLCovarP(widetable,widetable)
@@ -379,14 +374,14 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 		vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 		if(is.null(sqlstr))
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-								a,".colIdColumn AS rowIdColumn,",
-								b,".colIdColumn AS colIdColumn,",
-                                 functionName,"(",a,".valueColumn,",
-                                 b,".valueColumn) AS valueColumn 
+								a,".",x@dimColumns[[2]]," AS rowIdColumn,",
+								b,".",y@dimColumns[[2]]," AS colIdColumn,",
+                                 functionName,"(",a,".",x@dimColumns[[3]],",",
+                                 b,".",y@dimColumns[[3]],") AS valueColumn 
 						FROM ( ",constructSelect(x),") AS ",a,
 		                  ",( ",constructSelect(y),") AS ",b,
-            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".rowIdColumn"))),
-            			" GROUP BY ",a,".colIdColumn,",b,".colIdColumn")
+            			constructWhere(c(paste0(a,".",x@dimColumns[[1]]," = ",b,".",y@dimColumns[[1]],""))),
+            			" GROUP BY ",a,".",x@dimColumns[[2]],",",b,".",y@dimColumns[[2]])
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                 connection = connection,
@@ -466,14 +461,14 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-									a,".colIdColumn AS rowIdColumn,
+									a,".",x@dimColumns[[2]]," AS rowIdColumn,
 									 1 AS colIdColumn,",
-                                        functionName,"(",a,".valueColumn,",
+                                        functionName,"(",a,".",x@dimColumns[[3]],",",
                                          b,".vectorValueColumn) AS valueColumn 
 							FROM ( ",constructSelect(x),") AS ",a,
 			                  ",( ",constructSelect(y),") AS ",b,
-	            			constructWhere(c(paste0(a,".rowIdColumn = ",b,".vectorIndexColumn"))),
-	            			" GROUP BY ",a,".colIdColumn")
+	            			constructWhere(c(paste0(a,".",x@dimColumns[[1]]," = ",b,".vectorIndexColumn"))),
+	            			" GROUP BY ",a,".",x@dimColumns[[2]])
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     connection = connection,
@@ -838,13 +833,13 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
                                          a,".var_id_colname AS rowIdColumn,",
-                                         b,".colIdColumn AS colIdColumn,",
+                                         b,".",y@dimColumns[[2]]," AS colIdColumn,",
                                          functionName,"(",a,".cell_val_colname,",
-                                         b,".valueColumn) AS valueColumn 
+                                         b,".",y@dimColumns[[3]],") AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
                                          ",( ",constructSelect(y),") AS ",b,
-                                         constructWhere(c(paste0(a,".obs_id_colname = ",b,".rowIdColumn"))),
-                                         " GROUP BY ",a,".var_id_colname,",b,".colIdColumn")
+                                         constructWhere(c(paste0(a,".obs_id_colname = ",b,".",y@dimColumns[[1]]))),
+                                         " GROUP BY ",a,".var_id_colname,",b,".",y@dimColumns[[2]])
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                     connection = connection,
@@ -1007,8 +1002,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 #' @return \code{cor} returns FLMatrix object representing correlation of x and y.
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable <- FLTable(
-#' "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' widetable <- FLTable("tblAbaloneWide","ObsID")
 #' cor(deeptable,deeptable)
 #' cor(widetable,widetable)

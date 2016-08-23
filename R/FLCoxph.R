@@ -93,7 +93,19 @@ coxph <- function (formula,data=list(),...) {
  }
 
 #' @export
-coxph.default <- survival::coxph
+coxph.default <- function(formula,data=list(),...){
+    if (!requireNamespace("survival", quietly = TRUE)){
+            stop("survival package needed for coxph. Please install it.",
+            call. = FALSE)
+        }
+    else return(survival::coxph(formula=formula,
+                                data=data,
+                                ...))
+}
+
+
+#' @export
+Surv <- survival::Surv
 
 #' @export
 coxph.FLTable <- function(formula,data, ...)
@@ -526,8 +538,9 @@ predict.FLCoxPH <-function(object,
 		vproperty <- names(vtemp)[property==vtemp]
 		statsdataframe <- object$FLCoxPHStats
 		colnames(statsdataframe) <- toupper(colnames(statsdataframe))
-		resultvector <- statsdataframe[[vproperty]]
-		names(resultvector) <- vproperty
+		resultvector <- as.vector(statsdataframe[[vproperty]])
+        names(resultvector) <- NULL
+		##names(resultvector) <- vproperty
 		assign(parentObject,object,envir=parent.frame())
 		return(resultvector)
 	}

@@ -4,12 +4,10 @@
 \alias{regexpr}
 \title{Pattern Matching}
 \usage{
-regexpr(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
-  fixed = FALSE, useBytes = FALSE)
+regexpr(pattern, text, ignore.case = FALSE, perl = FALSE, fixed = FALSE,
+  useBytes = FALSE, startpos = 1)
 }
 \arguments{
-\item{startpos}{integer(numeric) specifying starting position for each search}
-
 \item{pattern}{string to search for}
 
 \item{text}{FLVector of characters or R vector to be searched.
@@ -26,6 +24,8 @@ For FLVectors, regualar expressions are not supported}
 
 \item{useBytes}{If TRUE the matching is done byte-by-byte
 rather than character-by-character. Always FALSE for FLVector}
+
+\item{startpos}{integer(numeric) specifying starting position for each search}
 }
 \value{
 FLVector with position of first match
@@ -44,7 +44,7 @@ search position indicated.
 row FLVectors are not supported currently.
 }
 \examples{
-widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- regexpr("A",flv)
 }

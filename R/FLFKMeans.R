@@ -71,7 +71,6 @@ setClass(
 #' membership matrix, which is controlled by the degree of fuzziness.
 #'
 #' @seealso \code{\link[cluster]{fanny}} for R function reference implementation.
-#' @method fanny FLTable
 #' @param x an object of class FLTable, can be wide or deep table
 #' @param k the number of clusters. t is required that 0 < k < n/2 where n is
 #' the number of observations.
@@ -106,7 +105,6 @@ setClass(
 #' from \code{fanny} in cluster package.The mapping table can be viewed
 #' using \code{object$mapping} if input is wide table.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
 #' widetable  <- FLTable("iris", "rownames")
 #' fkmeansobject <- fanny(widetable,2,memb.exp=2)
 #' print(fkmeansobject)
@@ -122,12 +120,15 @@ setClass(
 fanny <- function (x,k,...) {
   UseMethod("fanny", x)
 }
+
 #' @export
-fanny.data.frame<-cluster::fanny
-#' @export
-fanny.matrix <- cluster::fanny
-#' @export
-fanny.default <- cluster::fanny
+fanny.default <- function(x,k,...){
+    if (!requireNamespace("cluster", quietly = TRUE)){
+            stop("cluster package needed for fanny. Please install it.",
+            call. = FALSE)
+        }
+    else return(cluster::fanny(x,k,...))
+}
 
 ## move to file fanny.R
 #' @export

@@ -6,7 +6,7 @@
 \usage{
 FLTable(table, obs_id_colname, var_id_colnames = character(0),
   cell_val_colname = character(0), whereconditions = character(0),
-  connection = NULL)
+  connection = NULL, type = "double")
 }
 \arguments{
 \item{table}{name of the table}
@@ -18,8 +18,6 @@ FLTable(table, obs_id_colname, var_id_colnames = character(0),
 \item{whereconditions}{whereconditions if any to reference the table}
 
 \item{connection}{ODBC/JDBC connection object}
-
-\item{database}{name of the database}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTable} is deep}
 }
@@ -35,9 +33,8 @@ in Teradata.
 This object is commonly used as input for data mining functions.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
-deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
+deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
 }
 

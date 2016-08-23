@@ -2,6 +2,7 @@
 % Please edit documentation in R/constructAbstractSQL.R
 \name{createTable}
 \alias{createTable}
+\title{Create Table}
 \usage{
 createTable(pTableName, pColNames = NULL, pColTypes = NULL,
   pTableOptions = NULL, pPrimaryKey = pColNames[1], pFromTableName = NULL,
@@ -44,6 +45,6 @@ Create table sql.
 covers cases where table is created from other tables
 with and without data , temporary and permanent
 if usedbSendUpdate arg is passed in ... that is used
- in place of dbSendQuery
+in place of dbSendQuery
 }
 

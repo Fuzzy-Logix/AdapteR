@@ -4,28 +4,35 @@
 ## SQL as low-level language makes analyses
 ## consumable from all SQL-enabled clients.
 
+vtemp <- readline("What this demo is about:")
 ## This demo shows how the
 ## AdapteR package of Fuzzy Logix is
 ## providing transparent matrix algrbra with
 ## the DB Lytix(TM) in-database library.
 
+vtemp <- readline("Check if connection exists:")
 if(!exists("connection")) {
+    cat("connection object not found \n ")
+    cat("using connecting demo \n ")
     demo("connecting", package="AdapteR")
 }
 
+options(debugSQL=F)
+vtemp <- readline("Comparing (SQL from R) with (AdapteR):")
 ###########################################################
+############# Comparing (SQL from R) with AdapteR ############
 ##
 ## Matrix Inversion
 ##
-## The SQL-through R way a la Manual:
-sqlQuery(connection, "
+## The SQL from R way.SQL taken from Manual:
+vresult <- sqlQuery(connection, "
 WITH z (Matrix_ID, Row_ID, Col_ID, NumVal) AS
 (
 SELECT a.Matrix_ID,
        a.Row_ID,
        a.Col_ID,
        a.Cell_Val
-FROM fl_dev.tblMatrixMulti a
+FROM fl_TRAIN.tblMatrixMulti a
 WHERE a.Matrix_ID = 5
 )
 SELECT a.*
@@ -35,46 +42,67 @@ FROM TABLE (
 ) AS a
 ORDER BY 1,2,3;")
 
-readline("You can use AdapteR to use R syntax for inversion.  First we define the remote matrix:")
-m <- FLMatrix(database          = "FL_DEMO",
-              table_name        = "tblMatrixMulti",
+vtemp <- readline("Output of (SQL from R):")
+print(vresult)
+
+vtemp <- readline("You can use AdapteR with R syntax for inversion.  First we define the remote matrix:")
+m <- FLMatrix(table_name        = "tblMatrixMulti",
               matrix_id_colname = "Matrix_ID",
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
 
-readline("Compute the inverse in-database:")
-solve(m)
+vtemp <- readline("Compute the inverse in-database:")
+ms <- solve(m)
 
-readline("You can check with the R in-memory computation after fetching the matrix with a cast:")
+vtemp <- readline("Output is also a FLMatrix and data is not fetched:")
+print(class(ms))
+
+vtemp <- readline("You can check with the R in-memory computation after fetching the matrix with a cast:")
 rm <- as.matrix(m)
 ## compute inverse in R after
 solve(rm)
+ms
 
 
-readline("in-databse matrix multiplication with inverse
+vtemp <- readline("in-databse matrix multiplication with inverse
 results in the identity matrix:")
-ms <- solve(m)
 round(m %*% ms,3)
 
-## check is R and DB Lytix results match up:
-m.r <- as.matrix(m) ## download and convert to R matrix
+vtemp <- readline("check if R and DB Lytix results match up:")
 expect_equal(as.matrix(ms),
-             solve(m.r),check.attributes=FALSE)
+             solve(rm),
+             check.attributes=FALSE)
 
-
+vtemp <- readline("Push R matrix into database:")
 flM <- as.FLMatrix(matrix(runif(25),5))
-
+vtemp <- readline("Print the matrix:")
 flM
 
-flM + flM
+vtemp <- readline("in-database addition of FLMatrices:")
+result <- flM + flM
 
-flM - flM
+vtemp <- readline("Result is fetched only when printed:")
+result
 
-flM / flM
+vtemp <- readline("in-database solution of expressions:")
+result1 <- flM + flM/flM - flM*flM
+result2 <- flM %*% flM
+result <- result1+result2
 
-a <- (flM %*% flM) - flM
-a
+vtemp <- readline("Result is fetched only when printed:")
+result
 
-solve(flM) %*% flM - flM
+vtemp <- readline("Check if Results match up:")
+rM <- as.matrix(flM)
+flResult <- solve(flM) %*% flM - flM
+rResult <- solve(rM) %*% rM -rM
+
+require(testthat)
+FLexpect_equal(flResult,
+             rResult,
+             check.attributes=FALSE)
+
+### END ###
+### Thank You ####

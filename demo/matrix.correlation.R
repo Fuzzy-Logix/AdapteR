@@ -20,9 +20,9 @@ if(!exists("connection")) {
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
 sqlQuery(connection,
-           "select top 10 * from FL_DEMO.finEquityReturns")
+           "select top 10 * from FL_TRAIN.finEquityReturns")
 
-readline("Above: The table has equity returns stored as triples (what was the equity return of which ticker on what date).\nThese triples define a matrix in deep format.")
+vtemp <- readline("Above: The table has equity returns stored as triples (what was the equity return of which ticker on what date).\nThese triples define a matrix in deep format.")
 
 ###########################################################
 ## Correlation Matrix
@@ -34,8 +34,8 @@ SELECT  a.TickerSymbol           AS Ticker1,
         b.TickerSymbol           AS Ticker2,
         FLCorrel(a.EquityReturn,
                  b.EquityReturn) AS FLCorrel
-FROM    FL_DEMO.finEquityReturns a,
-        FL_DEMO.finEquityReturns b
+FROM    FL_TRAIN.finEquityReturns a,
+        FL_TRAIN.finEquityReturns b
 WHERE   b.TxnDate = a.TxnDate
 AND     a.TickerSymbol IN ('AAPL')
 AND     b.TickerSymbol IN ('AAPL','HPQ','IBM',
@@ -44,13 +44,12 @@ GROUP BY a.TickerSymbol,
          b.TickerSymbol
 ORDER BY 1, 2;")
 
-readline("Above: The SQL-through R way to compute a correlation matrix with DB Lytix.")
+vtemp <- readline("Above: The SQL-through R way to compute a correlation matrix with DB Lytix.")
 
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
 ##
-eqnRtn <- FLMatrix(database          = "FL_DEMO",
-                   table_name        = "finEquityReturns",
+eqnRtn <- FLMatrix(table_name        = "finEquityReturns",
                    row_id_colname    = "TxnDate",
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
@@ -58,18 +57,18 @@ eqnRtn <- FLMatrix(database          = "FL_DEMO",
 ## the equity return matrix is about 3k rows and cols
 dim(eqnRtn)
 
-readline("Above: a remote matrix is defined.")
+vtemp <- readline("Above: a remote matrix is defined.")
 
 ## 1. select the desired colums from the full matrix
 sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
 
-readline("Next: the R/AdapteR way to compute a correlation matrix -- transparently in-database")
+vtemp <- readline("Next: the R/AdapteR way to compute a correlation matrix -- transparently in-database")
 
 ## 2. use the default R 'cor' function
 flCorr <- cor(sm)
 flCorr
 
-readline("Next: the SQL syntax created for you")
+vtemp <- readline("Next: the SQL syntax created for you")
 
 
 ## with this option each R command that uses DBLytix will log
@@ -83,10 +82,10 @@ sm <- eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')]
 
 ## 2. use the default R 'cor' function
 flCorr <- cor(sm)
-readline("Note that SQL is not sent yet during definition")
+vtemp <- readline("Note that SQL is not sent yet during definition")
 
 flCorr
-readline("Note that SQL is sent when data is printed or otherwise used")
+vtemp <- readline("Note that SQL is sent when data is printed or otherwise used")
 options(debugSQL=FALSE)
 ## Casting methods fetch (selected) data from the warehouse into R memory
 rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
@@ -97,7 +96,7 @@ rCorr <- cor(rEqnRtn, rEqnRtn)
 round(rCorr,2)
 round(flCorr,2)
 
-readline("Note: The result is in the same format as the R results.")
+vtemp <- readline("Note: The result is in the same format as the R results.")
 
 
 ########################################
@@ -108,17 +107,17 @@ readline("Note: The result is in the same format as the R results.")
 ## indices of date rows in december 2016
 (dec2006 <- grep("2006-12",rownames(eqnRtn)))
 
-readline("Above: dimnames and index support")
+vtemp <- readline("Above: dimnames and index support")
 
 eqnRtn[dec2006[1:5], c("HPQ","MSFT")]
 
-readline("Above: Inspecting subsets of data in R is easy with matrix subsetting syntax")
+vtemp <- readline("Above: Inspecting subsets of data in R is easy with matrix subsetting syntax")
 
 E <- eqnRtn[dec2006, randomstocks]
-readline("NO SQL is sent during the definition of subsetting")
+vtemp <- readline("NO SQL is sent during the definition of subsetting")
 
 print(E)
-readline("Data is fetched on demand only, e.g. when printing")
+vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 
 
 
@@ -136,9 +135,9 @@ heatmap.2(as.matrix(M),
           col=redgreen(100),
           cexCol = 1,
           cexRow = 1)
-readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
+vtemp <- readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
 
-metaInfo <- read.csv("https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+metaInfo <- read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
 
 run.FLCorrelationShiny <- function (){
 ###########################################################
@@ -209,4 +208,7 @@ run.FLCorrelationShiny <- function (){
     )
 }
 
-readline("To explore correlations interactively, we defined a function above. \n Simply execute\n> run.FLCorrelationShiny()\nafter ending the Demo.\nEnd the demo now:")
+vtemp <- readline("To explore correlations interactively, we defined a function above. \n Simply execute\n> run.FLCorrelationShiny()\nafter ending the Demo.\nEnd the demo now:")
+
+### END ####
+### Thank You ####

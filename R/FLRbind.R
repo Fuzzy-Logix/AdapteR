@@ -16,8 +16,7 @@ rbind.default <- base::rbind
 #' @return \code{rbind} returns a FLMatrix object which is the row wise combination of input arguments.
 #' @examples
 #' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' flmatrix <- FLMatrix("FL_TRAIN.tblMatrixMulti", 5)
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export
 rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)

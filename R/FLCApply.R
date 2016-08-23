@@ -11,7 +11,6 @@ NULL
 #' or integer index of the column
 #' @return list of results from each subset
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
 #' irisfl <- FLTable("iris","rownames")
 #' resultList <- FLCApply(irisfl,function(x)kmeans(x,3),"Species")
 #' print(resultList$setosa)

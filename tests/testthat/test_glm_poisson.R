@@ -1,7 +1,3 @@
-parts <- c("coefficients","residuals",
-           "fitted.values","df.residual" )
-fam <- "poisson"
-
 Renv = new.env(parent = globalenv())
 
 var1 <- rnorm(200)
@@ -15,46 +11,29 @@ FLenv = as.FL(Renv)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({
-    glmobj <- glm(var3 ~ var1 + var2, data=dataf, family = fam)
+    glmobj <- glm(var3 ~ var1 + var2, data=dataf, family = "poisson")
+    coeffs <- coef(glmobj)
+  },Renv,FLenv,
+  expectation = "coeffs",
+  noexpectation = "glmobj",
+  check.attributes=F,
+  tolerance = .000001)
+}) 
 
-    assign(paste0(fam, "coeff") , coef(glmobj), env = parent.env(environment()))
-                    
-           },Renv,FLenv,
-           expectation = "poissoncoeff",
-           noexpectation = "glmobj",
-           check.attributes=F,
-           tolerance = .000001,
-           verbose = T
-          
-           )
-         }) 
 
 
 
 test_that("glm: equality of coefficients, residuals, fitted.values, df.residual for poisson",{
-  result = eval_expect_equal({
-    glmobj <- glm(var3 ~ var1 + var2, data=dataf, family = fam)
-
-    sapply(parts,
-           function(i){
-
-             
-             assign(paste0("glmobj", i) , do.call("$", list(glmobj, i)), env = parent.env(environment()))
-             #print(get(paste0(z, i)))
-           })
-      
-   # modelDim <- dim(glmobj$model)
-  },Renv,FLenv,
-  noexpectation = "glmobj",
-  expectation = lapply(parts, function(i){paste0("glmobj", i)}),
-  tolerance = .000001,
-  check.attribute = F,
-  verbose = T
-)
-
+    result = eval_expect_equal({
+        coeffs2 <- glmobj$coefficients
+        res <- glmobj$residuals
+        fitteds <- glmobj$fitted.values
+        dfres <- glmobj$df.residual
+    },Renv,FLenv,
+    noexpectation = "glmobj",
+    tolerance = .000001,
+    check.attribute = F
+  )
 })
-
-
-
 
 #summary, plot??

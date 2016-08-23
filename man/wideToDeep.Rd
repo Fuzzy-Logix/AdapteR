@@ -33,8 +33,7 @@ The DB Lytix function called is FLWideToDeep.  FLWideToDeep is similar to FLRegr
 FLWideToDeep does not require dependent variable or intercept, thus it creates deep tables without them.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 resultList <- wideToDeep(widetable)
 deeptable <- resultList$table
 analysisID <- resultList$AnalysisID

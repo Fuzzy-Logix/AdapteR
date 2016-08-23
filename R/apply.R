@@ -78,16 +78,21 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 
     return(sqlQuery(getOption("connectionFL"),sqlstr)[1,1])
 }
+
+#' @export
 mean.FLAbstractColumn <- function(object,...){
 	return(paste0(" FLMean(",
 				paste0(object@columnName,collapse=","),") "))
 }
+#' @export
 mean.FLVector <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
+#' @export
 mean.FLMatrix <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
+#' @export
 mean.FLTable <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }

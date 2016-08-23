@@ -8,8 +8,7 @@ NULL
 #' @param object is of class FLMatrix.
 #' @return \code{colSums} returns a FLVector object representing the col-wise sums.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- colSums(flmatrix)
 #' @export
 colSums <- function (object, ...){
@@ -27,12 +26,12 @@ colSums.FLMatrix<-function(object,...)
 	var <- genRandVarName()
 
 	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
-			        ",",var,".colIdColumn AS vectorIndexColumn",
-			        ", SUM(",var,".valueColumn) AS vectorValueColumn 
+			        ",",var,".",object@dimColumns[[2]]," AS vectorIndexColumn",
+			        ", SUM(",var,".",object@dimColumns[[3]],") AS vectorValueColumn 
 					FROM ",
-					"( ",constructSelect(object),
-					" ) AS ",var,
-					" GROUP BY ",var,".colIdColumn")
+                   ## gk: use FLSum here!
+					"( ",constructSelect(object), " ) AS ",var,
+					" GROUP BY ",var,".",object@dimColumns[[2]])
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,

@@ -58,9 +58,8 @@ test_that("check result for Matrix M_Subtraction",
 })
 
 
-
 ## Testing M_Subtraction
-test_that("check result for M_Subtraction",
+test_that("-: vector and matrix subtraction",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
   M2 <- FLMatrix("tblmatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
@@ -77,11 +76,10 @@ test_that("check result for M_Subtraction",
   FLexpect_equal(P1$FL-V2,P1$R-V2R,check.attributes=FALSE)
   FLexpect_equal((M1$FL-V2),M1$R-V2R,check.attributes=FALSE)
   FLexpect_equal((M1$FL-P1$FL),M1$R-P1$R,check.attributes=FALSE)
-  # FLexpect_equal((V1-M2),V1R-M2R,check.attributes=FALSE)
-  # FLexpect_equal((P1$FL-M2),P1$R-M2R,check.attributes=FALSE)
-  # FLexpect_equal((P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2),
-  #              P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
-  #              check.attributes=FALSE)
+  FLexpect_equal((P1$FL-M2),P1$R-M2R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL-P1$FL-V1-V2-M2-P1$FL-M1$FL-V2),
+                P1$R-P1$R-V1R-V2R-M2R-P1$R-M1$R-V2R,
+                check.attributes=FALSE)
 })
 
 
@@ -161,8 +159,8 @@ test_that("check result for M_CrossProduct",
     FLexpect_equal((M1$FL %*% M2),M1$R%*%M2R,check.attributes=FALSE)
     FLexpect_equal((V1%*%V1),V1R%*%V1R,check.attributes=FALSE)
     FLexpect_equal((P1$FL%*%P1$FL),P1$R%*%P1$R,check.attributes=FALSE)
-    FLexpect_equal((V1%*%P1$FL),V1R%*%P1$R,check.attributes=FALSE)
-    FLexpect_equal((P1$FL%*%V1),P1$R%*%V1R,check.attributes=FALSE)
+  FLexpect_equal((V1%*%P1$FL),V1R%*%P1$R,check.attributes=FALSE)
+  FLexpect_equal((P1$FL%*%V1),P1$R%*%V1R,check.attributes=FALSE)
     FLexpect_equal((M2%*%V2),M2R%*%V2R,check.attributes=FALSE)
     FLexpect_equal((M2%*%P1$FL),M2R%*%P1$R,check.attributes=FALSE)
     FLexpect_equal((V1%*%M1$FL),V1R%*%M1$R,check.attributes=FALSE)
@@ -254,33 +252,15 @@ test_that("check result for M_Division",
     V2R <- as.vector(V2)
     P1 <- initF.FLVector(n=10,
                          isRowVec=TRUE)
-    FLexpect_equal((M1$FL/M2),
-                 M1$R/M2R,
-                 check.attributes=FALSE)
-    FLexpect_equal((V1/V2),
-                 V1R/V2R,
-                 check.attributes=FALSE)
-    FLexpect_equal((P1$FL/P1$FL),
-                 P1$R/P1$R,
-                 check.attributes=FALSE)
-    FLexpect_equal((V1/P1$FL),
-                 V1R/P1$R,
-                 check.attributes=FALSE)
-    FLexpect_equal((P1$FL/V2),
-                 P1$R/V2R,
-                 check.attributes=FALSE)
-    FLexpect_equal((M1$FL/V2),
-                 M1$R/V2R,
-                 check.attributes=FALSE)
-    FLexpect_equal((M1$FL/P1$FL),
-                 M1$R/P1$R,
-                 check.attributes=FALSE)
-    FLexpect_equal((V1/M2),
-                 V1R/M2R,
-                 check.attributes=FALSE)
-    FLexpect_equal((P1$FL/M2),
-                 P1$R/M2R,
-                 check.attributes=FALSE)
+    FLexpect_equal((M1$FL/M2), M1$R/M2R, check.attributes=FALSE)
+    ##FLexpect_equal((V1/V2), V1R/V2R, check.attributes=FALSE)
+    FLexpect_equal((P1$FL/P1$FL), P1$R/P1$R, check.attributes=FALSE)
+    FLexpect_equal((V1/P1$FL), V1R/P1$R, check.attributes=FALSE)
+    FLexpect_equal((P1$FL/V2), P1$R/V2R, check.attributes=FALSE)
+    FLexpect_equal((M1$FL/V2), M1$R/V2R, check.attributes=FALSE)
+    FLexpect_equal((M1$FL/P1$FL), M1$R/P1$R, check.attributes=FALSE)
+    FLexpect_equal((V1/M2), V1R/M2R, check.attributes=FALSE)
+    FLexpect_equal((P1$FL/M2), P1$R/M2R, check.attributes=FALSE)
 })
 
 
@@ -306,7 +286,8 @@ test_that("check result for M_Multiplication",
   FLexpect_equal(M1$FL*P1$FL,M1$R*P1$R,check.attributes=FALSE)
   FLexpect_equal(V1*M2,V1R*M2R,check.attributes=FALSE)
   FLexpect_equal(P1$FL*M2,P1$R*M2R,check.attributes=FALSE)
-  FLexpect_equal(P1$FL*P1$FL*V1*V2*M2*P1$FL*M1$FL*V2,
+  a <- P1$FL*P1$FL*V1*V2*M2*P1$FL*M1$FL
+  FLexpect_equal(a *V2,
                  P1$R*P1$R*V1R*V2R*M2R*P1$R*M1$R*V2R,
                  check.attributes=FALSE)
 })
@@ -341,9 +322,9 @@ test_that("check result for identical",
 
 
 ## testing M_Subtraction with different length vectors
-test_that("check FLVector subtraction",
+test_that("-: fzzlSerial column vectors of different length",
 {
-  flt <- FLTable("FL_DEMO.fzzlSerial","SerialVal")
+  flt <- FLTable("FL_DEMO.fzzlSerial","SerialVal", whereconditions = "serialval<100")
   flv1 <- flt[1:8,"RandVal"]
   flv <- flt[1:10,"RandVal"]
   flv1R <- as.vector(flv1)

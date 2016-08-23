@@ -64,34 +64,56 @@ setGeneric("gam",
 setMethod("gam",
 	signature(formula="formula",
 		data="missing"),
-	function(formula,family=stats::gaussian(),data=data,...)
-	mgcv::gam(formula,data=list(),...))
+	function(formula,family=stats::gaussian(),data=data,...){
+        if (!requireNamespace("mgcv", quietly = TRUE)){
+            stop("mgcv package needed for gam. Please install it.",
+            call. = FALSE)
+        }
+        else return(mgcv::gam(formula=formula,
+                              family=family,
+                              data=data,
+                              ...))
+    })
 
 setMethod("gam",
-	signature(formula="formula",
-		data="list"),
-	function(formula,family=stats::gaussian(),data,...)
-	mgcv::gam(formula,family,data,...))
+    signature(formula="formula",
+        data="ANY"),
+    function(formula,family=stats::gaussian(),data=data,...){
+        if (!requireNamespace("mgcv", quietly = TRUE)){
+            stop("mgcv package needed for gam. Please install it.",
+            call. = FALSE)
+        }
+        else return(mgcv::gam(formula=formula,
+                              family=family,
+                              data=data,
+                              ...))
+    })
 
-setMethod("gam",
-	signature(formula="formula",
-		data="data.frame"),
-	function(formula,family=stats::gaussian(),data,...)
-	mgcv::gam(formula,family,data,...))
+# setMethod("gam",
+# 	signature(formula="formula",
+# 		data="data.frame"),
+# 	function(formula,family=stats::gaussian(),data,...)
+# 	mgcv::gam(formula,family,data,...))
 
 setMethod("gam",
 	signature(formula="formula",
 		data="FLTable"),
 	function(formula,family=stats::poisson,
 		data,offset=NULL,
-		model=TRUE,maxiter=500,...)
-	gam.FLTable(formula=formula,
-		family=stats::poisson,
-		data=data,
-		offset=offset,
-		model=model,
-		maxiter=maxiter,...
-		))
+		model=TRUE,maxiter=500,...){
+        if (!requireNamespace("mgcv", quietly = TRUE)){
+            stop("mgcv package needed for gam. Please install it.",
+            call. = FALSE)
+        }
+        else return(gam.FLTable(formula=formula,
+        family=stats::poisson,
+        data=data,
+        offset=offset,
+        model=model,
+        maxiter=maxiter,
+        ...))
+    })
+	
 
 gam.FLTable <- function(formula,family=stats::poisson,
 						data,offset=NULL,

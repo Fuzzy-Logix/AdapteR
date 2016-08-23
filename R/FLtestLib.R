@@ -188,6 +188,7 @@ expect_flequal <- function(a,b,...){
 ## gk: refactor such that initF code is used for one-time creation of huge testing tables (on demand)
 ## gk: and that all actual testing is done by creating references to that permanent table
 ## type should be in c("float","int","character")
+#' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
   #browser()
@@ -252,13 +253,13 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                               " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                                 CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
                               FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a 
-                              WHERE a.serialval < 2 ")))
+                              WHERE a.serialval <=  ",n)))
 
       table <- FLTable(getOption("ResultVectorTableFL"),
                        "vectorIndexColumn",
                        whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
                      )
-      flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
+      flv <- table[,"vectorValueColumn"]
     }
   }
   Rvector <- as.vector(flv)

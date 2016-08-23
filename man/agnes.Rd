@@ -4,7 +4,7 @@
 \alias{agnes}
 \title{Agglomerative Nesting}
 \usage{
-\method{agnes}{FLTable}(x, ...)
+agnes(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, can be wide or deep table}
@@ -46,7 +46,7 @@ matrix or distance table}
 \value{
 \code{agnes} returns a list and replicates equivalent R output
 from \code{agnes} in cluster package. The mapping table can be viewed
-using \code{object$mapping} if input is wide table.
+using \code{mapping} component, if input is wide table.
 }
 \description{
 \code{agnes} computes agglomeraive hierarchial 
@@ -69,16 +69,15 @@ If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 agnesobject <- agnes(deeptable,maxit=50)
 print(agnesobject)
 plot(agnesobject)
 One can specify ClassSpec and transform categorical variables 
 before clustering. This increases the number of variables in the plot
 because categorical variable is split into binary numerical variables.
-The clusters may not be well-defined as is observed in the case below:-
-widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+The clusters may not be well-defined as is observed in the case below
+widetable  <- FLTable( "iris", "rownames")
 agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
 The below plot throws warnings!
 plot(agnesobjectnew)

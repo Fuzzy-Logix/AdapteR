@@ -40,7 +40,6 @@ test_that("qr: support of rank, pivot, qraux, qr",{
     verbose=F)
 })
 
-##Fail
 test_that("qr.fitted: low precision tol=1e-7",{
     result = eval_expect_equal({
         qrfitted = qr.fitted(qrmat7,mat8)
@@ -79,7 +78,6 @@ test_that("qr.solve: low precision 1e-5",{
     tolerance=1e-5)
 })
 
-##Fail
 test_that("qr.Q, qr.R, cross product: low precision 1e-7",{
     result = eval_expect_equal({
         m7Q = qr.Q(qrmat7)
@@ -92,15 +90,12 @@ test_that("qr.Q, qr.R, cross product: low precision 1e-7",{
     verbose=F)
 })
 
-##Fail
 test_that("qr.resid",{
     result = eval_expect_equal({
         qrresid = qr.resid(qrmat7,mat8)
     },Renv,FLenv)
 })
 
-## Fails because of transpose not 
-## reflected in constructSelect
 test_that("qr: Check Q is orthogonal ",{
     result = eval_expect_equal({
         tQ <- t(qr.Q(qrmat7))
@@ -125,7 +120,6 @@ test_that("Check R is upper-triangular ",{
     },Renv,FLenv)
 })
 
-## Failed
 test_that("qr.coef: low precision tolerance=1e-6",{
     result = eval_expect_equal({
         qrcoefff = qr.coef(qrmat7,mat8)
