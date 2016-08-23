@@ -50,8 +50,7 @@ to an in-database matrix.
 This object is used as input for matrix operation functions.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti",
+flmatrix <- FLMatrix("tblMatrixMulti",
                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 flmatrix
 }

@@ -50,7 +50,6 @@ setClass("FLRegr",
 #' @method summary FLLinRegr
 #' @method predict FLLinRegr
 #' @export
-#' and in-database procedures called during execution
 setClass(
 	"FLLinRegr",
 	contains="FLRegr",
@@ -105,17 +104,16 @@ setClass(
 #' have to fetch data
 #' @return \code{lm} returns an object of class \code{FLLinRegr}
 #' @examples
-#' library(RODBC)
 #' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' lmfit <- lm(Rings~Height+Diameter,widetable)
 #' lmfit$coefficients
 #' lmfit$fitted.values
 #' plot(lmfit)
 #' mu <- predict(lmfit,newdata=widetable)
-#' deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
 #' lmfit <- lm(NULL,deeptable)
 #' summary(lmfit)
-#' flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
+#' flMDObject <- FLTableMD(table="tblAutoMPGMD",
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",group_id = c(2,4))
 #' vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
@@ -226,7 +224,7 @@ lm.FLTableMD <- function(formula,data,...)
 #' 
 #' @return \code{step} performs linear regression and replicates equivalent R output.
 #' @examples
-#' widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' s <- step(widetable,scope=list(lower=Rings~Height+Diameter),direction = "UFbackward")
 #' plot(s)
 #' s$coefficients
@@ -260,7 +258,7 @@ lm.FLTableMD <- function(formula,data,...)
 #'  		direction = "forward")
 #' plot(s)
 #' s$coefficients
-#' deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
 #' s <- step(deeptable,
 #' 			scope=list(upper=c("-1","0","1")),
 #'  		direction = "backward")
@@ -273,7 +271,7 @@ lm.FLTableMD <- function(formula,data,...)
 #' s <- step(deeptable,
 #' 			scope=list(),
 #'  		direction = "forward")
-#' deeptable1 <- FLTable("FL_DEMO","tblLogRegr",
+#' deeptable1 <- FLTable("tblLogRegr",
 #' 					"ObsID","VarID","Num_Val",
 #'                   whereconditions=c("ObsID < 7001","VarID<5"))
 #' s <- step(deeptable1,
@@ -290,7 +288,7 @@ lm.FLTableMD <- function(formula,data,...)
 #' s <- step(deeptable1,
 #' 			scope=list(upper=c("1","2","3"),lower=c("2")),
 #'  		direction = "Fbackward",familytype="multinomial",pRefLevel=1)
-#' deeptable2 <- FLTable("FL_DEMO","tblLogRegrMN10000",
+#' deeptable2 <- FLTable("tblLogRegrMN10000",
 #' 					"ObsID","VarID","Num_Val",
 #'                   whereconditions=c("ObsID < 7001","VarID<5"))
 #' s <- step(deeptable2,
@@ -1636,6 +1634,13 @@ predict.lmGeneric <- function(object,
 }
 
 ## move to file lm.R
+NULL
+
+#' Print FLLinRegr Object
+#'
+#' Printing of output from Linear Regression
+#' 
+#' @title Print FLLinRegr output Info
 #' @method print FLLinRegr
 #' @param object prints results of FLLinRegr on FL objects
 #' @method coefficients FLLinRegr

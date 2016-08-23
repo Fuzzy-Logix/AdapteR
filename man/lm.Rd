@@ -67,7 +67,6 @@ Properties like \code{print(x),model,plot} might take time as they
 have to fetch data
 }
 \examples{
-library(RODBC)
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
 lmfit$coefficients
@@ -77,7 +76,7 @@ mu <- predict(lmfit,newdata=widetable)
 deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
 lmfit <- lm(NULL,deeptable)
 summary(lmfit)
-flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
+flMDObject <- FLTableMD(table="tblAutoMPGMD",
                       group_id_colname="GroupID",
                       obs_id_colname="ObsID",group_id = c(2,4))
 vformula <- MPG~HorsePower+Displacement+Weight+Acceleration

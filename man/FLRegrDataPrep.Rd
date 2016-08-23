@@ -62,8 +62,7 @@ stored procedure FLRegrDataPrep facilitates the conversion of contents stored in
 deep tables and also prepares the data for regression analysis.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 resultList <- wideToDeep(widetable)
 deeptable <- resultList$table
 analysisID <- resultList$AnalysisID

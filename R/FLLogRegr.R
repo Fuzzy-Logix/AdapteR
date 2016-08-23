@@ -71,7 +71,7 @@ setClass(
 #' @return \code{glm} returns \code{FLLogRegrMN} object for
 #' \code{multinomial} family and \code{FLLogRegr} otherwise
 #' @examples
-#' deeptable <- FLTable("FL_DEMO","tblLogRegr","ObsID","VarID","Num_Val",
+#' deeptable <- FLTable("tblLogRegr","ObsID","VarID","Num_Val",
 #'                whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable)
 #' coef(glmfit)

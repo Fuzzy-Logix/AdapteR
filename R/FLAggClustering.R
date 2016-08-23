@@ -31,6 +31,7 @@ NULL
 #' @method plot FLAggClust
 #' @param object plots the results of agglomerative clustering on FLtable objects.
 #' Creates plots for visualizing an agnes object.
+#' @export
 setClass(
 	"FLAggClust",
 	slots=list(
@@ -58,7 +59,6 @@ setClass(
 #'
 #' @seealso \code{\link[cluster]{agnes}} for R reference implementation.
 #'
-#' @method agnes FLTable
 #' @param x an object of class FLTable, can be wide or deep table
 #' @param diss logical if \code{x} is dissimilarity matrix.
 #' currently not used
@@ -91,18 +91,19 @@ setClass(
 #' from analysis by default.
 #' @return \code{agnes} returns a list and replicates equivalent R output
 #' from \code{agnes} in cluster package. The mapping table can be viewed
-#' using \code{object$mapping} if input is wide table.
+#' using \code{mapping} component, if input is wide table.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' agnesobject <- agnes(deeptable,maxit=50)
 #' print(agnesobject)
 #' plot(agnesobject)
+#' 
 #' One can specify ClassSpec and transform categorical variables 
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
-#' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' The clusters may not be well-defined as is observed in the case below
+#' 
+#' widetable  <- FLTable( "iris", "rownames")
 #' agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
 #' The below plot throws warnings!
 #' plot(agnesobjectnew)
@@ -112,11 +113,13 @@ agnes <- function (x,...) {
 }
 
 #' @export
-agnes.data.frame<-cluster::agnes
-#' @export
-agnes.matrix <- cluster::agnes
-#' @export
-agnes.default <- cluster::agnes
+agnes.default <- function(x,...){
+    if (!requireNamespace("cluster", quietly = TRUE)){
+            stop("cluster package needed for agnes. Please install it.",
+            call. = FALSE)
+        }
+    else return(cluster::agnes(x,...))
+}
 
 ## move to file agnes.R
 #' @export
@@ -725,6 +728,8 @@ plot.FLAggClust <- function(object)
 }
 
 ## move to file agnes.R
+NULL
+
 #' @export
 agnes.FLMatrix <- function(x,
 						diss=FALSE,

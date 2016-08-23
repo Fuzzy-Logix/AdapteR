@@ -11,8 +11,7 @@ NULL
 #' Input can only be a square FLMatrix with maximum dimension limitations of (1000 x 1000).
 #' @return \code{FLMatrixRREF} returns a FLMatrix object which is the Reduced Row Echelon form of input FLMatrix.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- FLMatrixRREF(flmatrix)
 #' @export
 FLMatrixRREF <- function (object, ...){

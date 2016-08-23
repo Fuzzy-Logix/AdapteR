@@ -69,15 +69,15 @@ setClass(
 #' coefficients,plot,print,summary methods are available for fitted object.
 #' @return \code{coxph} returns a \code{FLCoxPH} object
 #' @examples
-#' widetable  <- FLTable("FL_DEMO", "siemenswideARDemoCoxPH", "ObsID")
+#' widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
 #' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-#' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
+#' predData <- FLTable("preddatatoday","ObsID")
 #' resultList <- predict(fitT,newdata=predData)
 #' resultList[[1]]
 #' resultList[[2]]
 #' summary(fitT)
 #' plot(fitT)
-#' deeptable <- FLTable("FL_DEMO","siemensdeepARDemoCoxPH","obs_id_colname",
+#' deeptable <- FLTable("siemensdeepARDemoCoxPH","obs_id_colname",
 #'                      "var_id_colname","cell_val_colname")
 #' fitT <- coxph("",deeptable)
 #' fitT$coefficients
@@ -93,7 +93,19 @@ coxph <- function (formula,data=list(),...) {
  }
 
 #' @export
-coxph.default <- survival::coxph
+coxph.default <- function(formula,data=list(),...){
+    if (!requireNamespace("survival", quietly = TRUE)){
+            stop("survival package needed for coxph. Please install it.",
+            call. = FALSE)
+        }
+    else return(survival::coxph(formula=formula,
+                                data=data,
+                                ...))
+}
+
+
+#' @export
+Surv <- survival::Surv
 
 #' @export
 coxph.FLTable <- function(formula,data, ...)
@@ -526,8 +538,9 @@ predict.FLCoxPH <-function(object,
 		vproperty <- names(vtemp)[property==vtemp]
 		statsdataframe <- object$FLCoxPHStats
 		colnames(statsdataframe) <- toupper(colnames(statsdataframe))
-		resultvector <- statsdataframe[[vproperty]]
-		names(resultvector) <- vproperty
+		resultvector <- as.vector(statsdataframe[[vproperty]])
+        names(resultvector) <- NULL
+		##names(resultvector) <- vproperty
 		assign(parentObject,object,envir=parent.frame())
 		return(resultvector)
 	}

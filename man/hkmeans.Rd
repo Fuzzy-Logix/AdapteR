@@ -4,7 +4,7 @@
 \alias{hkmeans}
 \title{Hierarchial K-Means Clustering.}
 \usage{
-\method{hkmeans}{FLTable}(x, ...)
+hkmeans(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, wide or deep}

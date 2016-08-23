@@ -2,21 +2,31 @@
 % Please edit documentation in R/FLScalarFunctions.R
 \name{cap}
 \alias{cap}
+\title{Rounding of Numbers}
 \usage{
 cap(x, ub)
 }
 \arguments{
 \item{x}{can be an in-database object like FLMatrix,FLVector,FLTable or
 a normal R object}
+
+\item{ub}{value at which x is to be capped}
 }
 \value{
 \code{cap} returns an object of same class as input
 }
+\description{
+Scalar function which caps an input value at a ceiling or upper boundary.
+}
+\details{
+\code{cap} takes a single numeric argument x and returns 
+a numeric vector containing the smallest integers not 
+less than the corresponding elements of x.
+}
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 flvector <- as.FLVector(1:5)
-Result <- cap(flmatrix)
-Result <- cap(flvector)
+Result <- cap(flmatrix,1)
+Result <- cap(flvector,3)
 }
 

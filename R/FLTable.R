@@ -17,9 +17,8 @@ NULL
 #' @return \code{FLTable} returns an object of class FLTable mapped to a table
 #' in Teradata.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
-#' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 #' names(widetable)
 #' @export
 FLTable <- function(table,
@@ -216,7 +215,6 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     return(sqlSendUpdate(getOption("connectionFL"),sqlstr))
   }
   if(!x@isDeep){
-    #browser()
     if(!tolower(name) %in% tolower(vcolnames)){
       vtemp <- addColumnFLQuery(pTable=vtablename,
                               pName=name,
@@ -229,9 +227,10 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
         ##vtableColType <- getFLColumnType(x=as.vector(x[1,vcolnames[tolower(name)==tolower(vcolnames)][1]]))
         vnewColType <- getFLColumnType(x=value)
         dropCol <- FALSE
-        if(is.na(types[name])){
-            dropCol <- TRUE ## gk @ phani:  in this case a drop is actually not required, but it works with drop...
-        } else if(typeof(value)!=types[name])
+        # if(is.na(types[name])){
+        #     dropCol <- TRUE ## gk @ phani:  in this case a drop is actually not required, but it works with drop...
+        # } else 
+        if(typeof(value)!=types[name])
             dropCol <- TRUE
         if(dropCol){
         vtemp <- sqlSendUpdate(getOption("connectionFL"),
@@ -239,7 +238,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
         vtemp <- addColumnFLQuery(pTable=vtablename,
                                   pName=name,
                                   pValue=value)
-      }
+        }
     }
     if(!is.FLVector(value))
         value <- as.FLVector(value)
@@ -268,6 +267,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
   }
   sqlSendUpdate(getOption("connectionFL"),sqlstr)
   xcopy@dimnames[[2]] <- vcolnames
+  xcopy@type[name] <- typeof(value)
   return(xcopy)
 }
 
@@ -288,8 +288,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -457,8 +456,7 @@ setMethod("wideToDeep",
 #' @return \code{deepToWide} returns a list containing components 
 #' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable( "FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -638,8 +636,7 @@ setMethod("deepToWide",
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
 #' resultList <- wideToDeep(widetable)
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID

@@ -27,8 +27,7 @@ Input can only be a square matrix (n x n) with maximum dimension limitations
 of (1000 x 1000).
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- solve(flmatrix)
 }
 

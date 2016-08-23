@@ -1,8 +1,3 @@
-
-parts <- c("coefficients","residuals",
-           "fitted.values","df.residual",
-           "rank","terms")
-
 Renv = new.env(parent = globalenv())
 
 ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
@@ -26,21 +21,26 @@ test_that("lm: execution",{
 })
 
 test_that("lm: coefficient names https://app.asana.com/0/143316600934101/156989386834241",{
-    result = eval_expect_equal({},Renv,FLenv,
-                               expectation="C")
+    result = eval_expect_equal({
+    },Renv,FLenv,
+    expectation="C")
 })
 
 test_that("lm: equality of coefficients, residuals, fitted.values, rank and terms",{
-  result = eval_expect_equal({
-    sapply(parts,
-           function(i){
-             ##cat(paste0("getting lmobj$",i,"\n"))
-             assign(i,do.call("$",list(lmobj,i)))
-           })
-    modelDim <- dim(lmobj$model)
-  },Renv,FLenv,
-  noexpectation = "lmobj",
-  expectation = c(parts,"modelDim"))
+    result = eval_expect_equal({
+        sapply(c("coefficients","residuals",
+                 "fitted.values","df.residual",
+                 "rank","terms"),
+               function(i){
+            ##cat(paste0("getting lmobj$",i,"\n"))
+            assign(i,do.call("$",list(lmobj,i)))
+        })
+        modelDim <- dim(lmobj$model)
+    },Renv,FLenv,
+    noexpectation = "lmobj",
+    expectation = c(c("coefficients","residuals",
+                      "fitted.values","df.residual",
+                      "rank","terms"),"modelDim"))
 })
 
 

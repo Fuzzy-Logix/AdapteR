@@ -21,6 +21,10 @@ option_list = list(
                 default="Fl_demo", 
                 help="database [default= %default]",
                 type="character"),
+    make_option(c("-A", "--AdapteR"),
+                default="require", 
+                help="if 'require' load installed AdapteR version, otherwise load from git repository in --directoy [default= %default]",
+                type="character"),
     make_option(c("-J", "--jarDir"),
                 default="/Users/gregor/fuzzylogix/Teradata/jdbc", 
                 help="directory with jar files to load [default= %default]",
@@ -33,15 +37,24 @@ opt = parse_args(opt_parser)
 
 
 if(opt$directory=="."){
-    packagedir <- "."
-    basedir <- ".."
-} else {
-    packagedir <- gsub("^.*/","",opt$directory)
-    basedir <- gsub("/[^/]*$","",opt$directory)
-}
+    opt$directory <- gsub("/tests$","",getwd())
+} 
+
+packagedir <- gsub("^.*/","",opt$directory)
+basedir <- gsub("/[^/]*$","",opt$directory)
+
 cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
-setwd(basedir)
-devtools::load_all(packagedir)
+if(opt$AdapteR=="require"){
+    setwd(basedir)
+    require("AdapteR")
+} else {
+    cat(paste0("running git pull\n"))
+    setwd(basedir)
+    setwd(packagedir)
+    system2("git", c("pull", "fuzzylogix", "master"),stdout = TRUE)
+    setwd(basedir)
+    devtools::load_all(packagedir)
+}
 
 if(grepl("^jdbc",opt$host)){
     connection <-

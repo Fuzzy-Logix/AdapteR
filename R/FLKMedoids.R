@@ -51,6 +51,7 @@ NULL
 #' @param object plots the results of pam on FL objects.
 #' @method FLMapping FLKMedoids
 #' @param object gives the mapping data.frame which is used in execution.
+#' @export
 setClass(
 	"FLKMedoids",
 	slots=list(
@@ -111,8 +112,7 @@ setClass(
 #' from \code{pam} in cluster package. The mapping table can be viewed
 #' using \code{object$mapping} if input is wide table.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' kmedoidsobject <- pam(widetable,3)
 #' print(kmedoidsobject)
 #' plot(kmedoidsobject)
@@ -120,7 +120,7 @@ setClass(
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
 #' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(pamobjectnew)
 #' @export
@@ -129,11 +129,13 @@ pam <- function (x,k,...) {
 }
 
 #' @export
-pam.data.frame<-cluster::pam
-#' @export
-pam.matrix <- cluster::pam
-#' @export
-pam.default <- cluster::pam
+pam.default <- function(x,k,...){
+    if (!requireNamespace("cluster", quietly = TRUE)){
+            stop("cluster package needed for pam. Please install it.",
+            call. = FALSE)
+        }
+    else return(cluster::pam(x,k,...))
+}
 
 ## move to file pam.R
 #' @export

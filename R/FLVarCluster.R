@@ -13,7 +13,6 @@ NULL
 #'
 #' @seealso \code{ClustOfVar} package for R reference implementation.
 #'
-#' @method FLVarCluster FLTable
 #' @param x an object of class FLTable, wide or deep
 #' @param contrib Level of contribution expected in the
 #' output clusters. Value between 0 and 1
@@ -31,8 +30,7 @@ NULL
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable( "FL_DEMO", "tblLogRegr", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblLogRegr", "ObsID","VarID","Num_Val")
 #' clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 #' print(clustervector)
 #' @export

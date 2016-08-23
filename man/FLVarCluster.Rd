@@ -4,7 +4,7 @@
 \alias{FLVarCluster}
 \title{Variable Clustering.}
 \usage{
-\method{FLVarCluster}{FLTable}(x, ...)
+FLVarCluster(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, wide or deep}
@@ -44,8 +44,7 @@ If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-deeptable  <- FLTable( "FL_DEMO", "tblLogRegr", "ObsID","VarID","Num_Val")
+deeptable  <- FLTable("tblLogRegr", "ObsID","VarID","Num_Val")
 clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 print(clustervector)
 }

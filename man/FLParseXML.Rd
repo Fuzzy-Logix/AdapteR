@@ -26,7 +26,7 @@ hierarchy to be extracted to replicate the tree structure in a columnar layout.
 row vectors are not supported currently.
 }
 \examples{
-wtd <- FLTable("FL_DEMO","tblXMLTest","GroupID")
+wtd <- FLTable("tblXMLTest","GroupID")
 flv <- wtd[,"pXML"]
 resultdataframe <- FLParseXML(flv)
 }

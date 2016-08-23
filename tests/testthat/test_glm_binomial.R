@@ -1,7 +1,3 @@
-parts <- c("coefficients","residuals",
-           "fitted.values","df.residual" )
-fam <- "binomial"
-
 Renv = new.env(parent = globalenv())
 
 var1 <- rnorm(200)
@@ -15,10 +11,10 @@ FLenv = as.FL(Renv)
 
 test_that("glm: execution for binomial ",{
   result = eval_expect_equal({
-    glmobj <- glm(var3 ~ var1 + var2, data=dataf, family = fam)
-    assign(paste0(fam, "coeff") , coef(glmobj), env = parent.env(environment()))
+    glmobj <- glm(var3 ~ var1 + var2, data=dataf, family = "binomial")
+    coeffs <- coef(glmobj)
   },Renv,FLenv,
-  expectation = "binomialcoeff",
+  expectation = "coeffs",
   noexpectation = "glmobj",
   check.attributes=F,
   tolerance = .000001
@@ -28,19 +24,15 @@ test_that("glm: execution for binomial ",{
 
 
 test_that("glm: equality of coefficients, residuals, fitted.values, df.residual for binomial",{
-  result = eval_expect_equal({
-    glmobj <- glm(var3 ~ var1 + var2, data=dataf, family = fam)
-    sapply(parts,
-           function(i){
-             assign(paste0("glmobj", i) , do.call("$", list(glmobj, i)), env = parent.env(environment()))
-             ##print(get(paste0(z, i)))
-           })
-    ## modelDim <- dim(glmobj$model)
-  },Renv,FLenv,
-  noexpectation = "glmobj",
-  expectation = lapply(parts, function(i){paste0("glmobj", i)}),
-  tolerance = .000001,
-  check.attribute = F
+    result = eval_expect_equal({
+        coeffs2 <- glmobj$coefficients
+        res <- glmobj$residuals
+        fitteds <- glmobj$fitted.values
+        dfres <- glmobj$df.residual
+    },Renv,FLenv,
+    noexpectation = "glmobj",
+    tolerance = .000001,
+    check.attribute = F
   )
 })
 

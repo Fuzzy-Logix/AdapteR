@@ -93,6 +93,25 @@ setClass("FLTable",
          ),prototype = prototype(type="double")
         )
 
+#' An S4 class to represent FLTableMD, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @slot mapSelect \code{FLSelectFrom} object which contains the 
+#' mapping information if any
+#' @export
+setClass(
+    "FLTableMD",
+    contains="FLTable",
+    slots = list(
+        select = "FLTableQuery",
+        dimnames = "list",
+        isDeep = "logical",
+        mapSelect = "FLSelectFrom"
+    )
+)
+
 #' An S4 class to represent FLVector
 #'
 #' @export
@@ -105,6 +124,20 @@ setClass("FLVector",
              type       = "character"
          ),prototype = prototype(type="double")
         )
+
+setMethod("str",signature(object="FLVector"),
+          function(object) cat(paste0("FLVector [",length(object),"] ", object@type, "\n   ",str(object@select),"\n")))
+setMethod("str",signature(object="FLMatrix"),
+          function(object) cat(paste0("FLMatrix [",nrow(object),",",ncol(object),"] ",
+                                      object@type, "\n   ",object@type, str(object@select),"\n")))
+setMethod("str",signature(object="FLTable"),
+          function(object) cat(paste0("'FLTable': ",nrow(object)," obs. of ",ncol(object)," variables:",
+                                      paste0(" $ ",names(object@type)," : ",object@type, collapse="\n "),
+                                      "\n  ", str(object@select),
+                                      "\n"
+                                      )))
+setMethod("str",signature(object="FLTableQuery"),
+          function(object) gsub("[ \n]+"," ",constructSelect(object)))
 
 ##' drop a table
 ##' 
@@ -428,8 +461,7 @@ FLamendDimnames <- function(flm,map_table) {
 #' @return \code{FLMatrix} returns an object of class FLMatrix mapped
 #' to an in-database matrix.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti",
+#' flmatrix <- FLMatrix("tblMatrixMulti",
 #'                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flmatrix
 #' @export
