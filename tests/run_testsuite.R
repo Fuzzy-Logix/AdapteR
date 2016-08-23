@@ -37,18 +37,24 @@ opt = parse_args(opt_parser)
 
 
 if(opt$directory=="."){
-    packagedir <- "."
-    basedir <- ".."
-} else {
-    packagedir <- gsub("^.*/","",opt$directory)
-    basedir <- gsub("/[^/]*$","",opt$directory)
-}
+    opt$directory <- gsub("/tests$","",getwd())
+} 
+
+packagedir <- gsub("^.*/","",opt$directory)
+basedir <- gsub("/[^/]*$","",opt$directory)
+
 cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
-setwd(basedir)
 if(opt$AdapteR=="require"){
+    setwd(basedir)
     require("AdapteR")
-} else
+} else {
+    cat(paste0("running git pull\n"))
+    setwd(basedir)
+    setwd(packagedir)
+    system2("git", c("pull", "fuzzylogix", "master"),stdout = TRUE)
+    setwd(basedir)
     devtools::load_all(packagedir)
+}
 
 if(grepl("^jdbc",opt$host)){
     connection <-
