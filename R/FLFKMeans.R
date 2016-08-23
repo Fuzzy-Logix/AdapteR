@@ -597,189 +597,46 @@ silinfo.FLFKMeans <- function(object){
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-		a <- paste0(genRandVarName(),"1")
-		b <- paste0(genRandVarName(),"2")
-		c <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3")) ## gk: refactor!
-		d <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
-		e <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("5"))
+		b <- gen_unique_table_name("3") ## gk: refactor!
 
 		##Ensure required temptables exist
-		if(is.null(object@temptables[["temptbl4"]]))
-		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",e," as \n (SELECT a.",
-									obs_id_colname," AS ObsID, \n a.",var_id_colname,
-									" AS VarID, \n a.",cell_val_colname,
-									" AS Num_Val, \n b.ClusterID  \n ",
-									"FROM ",deeptablename," a,fzzlKMeansClusterID b  \n WHERE a.",
-									  obs_id_colname,"=b.ObsID and b.AnalysisID='",object@AnalysisID,
-									  "' \n  AND b.HypothesisID=1)WITH DATA"))
-			if(length(t)>1) stop(t)
-			object@temptables <- c(object@temptables,list(temptbl4=e))
-		}
-		if(is.null(object@temptables[["temptbl2"]]))
-		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",d,
-									" as  \n (SELECT a.ClusterID as ClusterIDX, \n ",
-										"b.ClusterID as ClusterIDY,a.ObsID AS ObsIDX, \n ",
-										"b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
-								  " FROM ",object@temptables[["temptbl4"]]," a, \n ",
-								  			object@temptables[["temptbl4"]]," b  \n ",
-								  " WHERE a.VarID = b.VarID and a.ClusterID <> b.ClusterID \n ",
-								  " GROUP BY 1,2,3,4) with data"))
-			if(length(t)>1) stop(t)
-			object@temptables <- c(object@temptables,list(temptbl2=d))
-		}
-		if(is.null(object@temptables[["temptbl3"]]))
-		{
-			t <- sqlSendUpdate(connection,paste0(" create table ",c,
-								" as  \n (SELECT a.ClusterID as ClusterIDX,a.ObsID AS ObsIDX, \n ",
-									"b.ObsID AS ObsIDY,FLEuclideanDist(a.Num_Val, b.Num_Val) AS Dist \n ",
-									"FROM ",object@temptables[["temptbl4"]]," a, \n ",
-											object@temptables[["temptbl4"]]," b \n ", 
-									"WHERE a.VarID = b.VarID and a.ClusterID = b.ClusterID \n ",
-									"GROUP BY 1,2,3) with data"))
-			if(length(t)>1) stop(t)
-			object@temptables <- c(object@temptables,list(temptbl3=c))
-		}
-		
+		t <- sqlSendUpdate(connection, paste0("CREATE  MULTISET VOLATILE TABLE ",b," AS (
+										SELECT  a.",obs_id_colname," AS ObsIDX, b.",obs_id_colname," AS ObsIDY, p.clusterid AS ClusIDX , q.Clusterid AS ClusIDY,
+                                        FLEuclideanDist(a.",cell_val_colname,", b.",cell_val_colname,") AS Dist
+                                        FROM ",deeptablename," a, ",deeptablename," b, fzzlkmeansclusterid p, fzzlkmeansclusterid q
+                                        WHERE a.",var_id_colname," = b.",var_id_colname," AND a.",obs_id_colname," < b.",obs_id_colname," 
+                                        AND p.obsid = a.",obs_id_colname," AND q.Obsid = b.",obs_id_colname, 
+                                        " AND q.AnalysisID = '",object@AnalysisID,"' AND q.HypothesisID = 1  AND p.AnalysisID = '",object@AnalysisID,"'
+                                        AND p.HypothesisID = 1
+                                        GROUP BY a.",obs_id_colname,", b.",obs_id_colname,", p.clusterid, q.clusterid
+										)
+										WITH DATA
+									    ON 
+										COMMIT  PRESERVE ROWS;"))
+		u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
+										" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
 
-		temptbl2 <- object@temptables[["temptbl2"]]
-		temptbl3 <- object@temptables[["temptbl3"]]
 
-		sqlstr<-paste0("select a.ObsIDX as obs_id_colname, \n a.ClusterIDX AS ClusterID, \n ",
-								"a.ClusterIDY AS neighbor,(a.num/a.den) as sil_width \n ", 
-						" from(select a.ClusterIDX , \n ",
-								"b.ClusterIDY,a.ObsIDX ,((b.bi-a.ai)) as num, \n ",
-								" Case when a.ai>b.bi then a.ai else  b.bi end as den \n ",
-							" from(select a.ClusterIDX , a.ObsIDX, FLMean(a.Dist) as ai  \n ",
-								" from ",temptbl3," a \n ",
-								" group by 1,2) as a, \n ",
-								" (select b.ObsIDX,b.ClusterIDX,c.ClusterIDY,b.bi \n ",  
-								" from(select a.ClusterIDX, a.ObsIDX,min(a.di) as bi  \n ",
-									" from(select a.ClusterIDX , a.ClusterIDY,a.ObsIDX, \n ",
-									" cast(FLMean(a.Dist) as decimal(38,7)) as di  \n ",
-										" from ",temptbl2," a \n ",
-										" group by 1,2,3) as a \n ",
-									" group by 1,2) as b, \n ",
-								" (select a.ClusterIDX , a.ClusterIDY, \n ",
-										" a.ObsIDX, cast(FLMean(a.Dist)as decimal(38,7)) as di \n ", 
-								" from ",temptbl2," a \n ",
-								" group by 1,2,3) as c \n ",
-							" where c.ObsIDX=b.ObsIDX and \n  c.ClusterIDX=b.ClusterIDX and b.bi=c.di) as b \n ",
-						" where a.ObsIDX=b.ObsIDX  \n and a.ClusterIDX=b.ClusterIDX) as a")
-		
-		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
-                        variables = list(
-			                obs_id_colname = "obs_id_colname"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-
-		widthsFLTable <- new("FLTable",
-							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
-											c("obs_id_colname","ClusterID","neighbor","sil_width")),
-							isDeep = FALSE)
-
-		widthsDataFrame <- tryCatch(as.data.frame(widthsFLTable),
-      						error=function(e){store(widthsFLTable)})
-
-		if(is.data.frame(widthsDataFrame))
-		{
-			ObsID <- widthsDataFrame[["obs_id_colname"]]
-			if(is.null(ObsID) || length(ObsID)==0)
-			ObsID <- rownames(widthsDataFrame)
-			widthsDataFrame$obs_id_colname <- NULL
-			widthsmatrix <- as.matrix(widthsDataFrame)
-			widthsmatrix <- matrix(as.numeric(widthsmatrix),nrow(widthsmatrix))
-			rownames(widthsmatrix) <- ObsID
-			colnames(widthsmatrix) <- c("cluster","neighbor","sil_width")
-		}
-		else widthsmatrix <- widthsFLTable
-
-		sqlstr <- paste0("select '%insertIDhere%' AS vectorIdColumn, \n ",
-							" ROW_NUMBER() OVER(ORDER BY a.ClusterID) as vectorIndexColumn, \n ",
-							" FLMean(a.sil_width) as vectorValueColumn \n ",
-						" from(select a.ClusterIDX as ClusterID, \n ",
-								" a.ObsIDX as ObsID,(a.num/a.den) as sil_width \n ",
-							" from(select a.ClusterIDX ,a.ObsIDX ,((b.bi-a.ai)) as num, \n ",
-								" Case when a.ai>b.bi then a.ai else  b.bi end as den  \n ",
-								" from(select a.ClusterIDX , a.ObsIDX, FLMean(a.Dist) as ai  \n ",
-									" from ",temptbl3," a \n ",
-									" group by 1,2) as a, \n ",
-								" (select a.ClusterIDX, a.ObsIDX,FLMin(a.di) as bi  \n ",
-								" from(select a.ClusterIDX , a.ClusterIDY, \n a.ObsIDX, FLMean(a.Dist) as di  \n ", 
-									"from ",temptbl2," a \n ",
-									" group by 1,2,3) as a \n ",
-								" group by 1,2) as b \n ",
-							" where a.ObsIDX=b.ObsIDX and \n  a.ClusterIDX=b.ClusterIDX) as a) as a \n ",
-							" group by a.ClusterID")
-		
-		clus.avg.widthsvector <- tryCatch(sqlQuery(connection,sqlstr)[["vectorValueColumn"]],
-										 error=function(e){
-										 	tblfunqueryobj <- new("FLTableFunctionQuery",
-										                        connection = connection,
-										                        variables = list(
-													                obs_id_colname = "vectorIndexColumn",
-													                cell_val_colname = "vectorValueColumn"),
-										                        whereconditions="",
-										                        order = "",
-										                        SQLquery=sqlstr)
-
-											t <- new("FLVector",
-													select = tblfunqueryobj,
-													dimnames = list(1:object@centers,
-																	"vectorValueColumn"),
-													isDeep = FALSE)
-											store(t)
-										 })
-
-		if(class(widthsmatrix)=="FLTable")
-		{
-			sqlstr <- paste0("select FLMean(a.sil_width) as avg_sil_width  \n ",
-							" from(select a.ClusterIDX as ClusterID, \n  a.ObsIDX as ObsID,(a.num/a.den) as sil_width \n ", 
-								"from(select a.ClusterIDX ,a.ObsIDX , \n ",
-									"((b.bi-a.ai)) as num,  \n ",
-									" Case when a.ai>b.bi then a.ai else  b.bi end as den \n ",
-									" from(select a.ClusterIDX ,  \n a.ObsIDX, \n  FLMean(a.Dist) as ai \n ",
-										"from ",temptbl3," a \n ",
-										" group by 1,2) as a, \n ",
-										"(select a.ClusterIDX, a.ObsIDX,FLMin(a.di) as bi \n ", 
-										"from(select a.ClusterIDX , a.ClusterIDY, \n ",
-											" a.ObsIDX, FLMean(a.Dist) as di \n ",
-											" from ",temptbl2," a \n ",
-											" group by 1,2,3) as a \n ",
-										" group by 1,2) as b \n ",
-									" where a.ObsIDX=b.ObsIDX and a.ClusterIDX=b.ClusterIDX) as a) as a")
-			
-			avg.widthvector <- sqlQuery(connection,sqlstr)[["avg_sil_width"]]
-		}
-		else
-		avg.widthvector <- tryCatch(base::mean(widthsmatrix[,"sil_width"]),
-									error=function(e) base::mean(widthsmatrix[,"SIL_WIDTH"]))
-
-		silinfolist <- list(widths=widthsmatrix,
-							clus.avg.widths=clus.avg.widthsvector,
-							avg.width=avg.widthvector)
-
-		
-		object@results <- c(object@results,list(silinfo = silinfolist))
-		
-		if((!(class(widthsmatrix)=="FLTable")) && (!(class(clus.avg.widthsvector)=="FLVector")))
-		{
-			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl2"]]))
-			object@temptables[["temptbl2"]] <- NULL
-			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl4"]]))
-			object@temptables[["temptbl4"]] <- NULL
-			t<-sqlSendUpdate(connection,paste0(" DROP TABLE ",object@temptables[["temptbl3"]]))
-			object@temptables[["temptbl3"]] <- NULL
-		}
-
-		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-		assign(parentObject,object,envir=parent.frame())
-		return(silinfolist)
-	}
+				
+		sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, a.ClusIDX AS ClusID, 
+													CASE WHEN FLMean(a.Dist) >  FLMin(Bi.val) 
+													THEN (FLMin(Bi.val) - FLMean(a.Dist))/ FLMean(a.Dist)
+													ELSE  (FLMin(Bi.val) - FLMean(a.Dist))/FLMin(Bi.val)
+													END AS siliwidth
+													FROM ",b," a,
+													(SELECT b.ObsIDX ObsID ,b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val
+													FROM ",b," b
+													WHERE b.ClusIDX <> b.ClusIDY
+													GROUP BY b.ObsIDX, b.ClusIDY) AS Bi
+													WHERE a.ClusIDX = a.ClusIDY AND Bi.ObsID = a.ObsIDX
+													GROUP BY a.ObsIDX, a.ClusIDX
+													ORDER BY 1,2,3"))
+									}	
+		clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
+																		mean(sili_table$siliwidth[sili_table$ClusID == i])
+																			}))
+		silinfolist <- list(widths = sili_table, clus.avg.widths = clus.avg.width)
+		return(silinfolist)																	
 }
 
 ## move to file FLFKMeans.R
