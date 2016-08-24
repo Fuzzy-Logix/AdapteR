@@ -1271,6 +1271,8 @@ prepareData.lmGeneric <- function(formula,data,
 		}
 	}
 
+	else if(property=="anova") stop("This feature is not available yet.")
+
 	else stop("That's not a valid property \n ")
 }
 
