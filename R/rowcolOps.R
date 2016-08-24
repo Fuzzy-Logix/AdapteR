@@ -19,7 +19,7 @@ rowcolOps<-function(object,margin,operation,...){
 								  res<-nrow(object)}
 					else 		 {div<-nrow(object)
 								  res<-ncol(object)}
-					opt<-"AVG"
+					opt<-"SUM"
 				}		
 	else stop("Please enter either \"Sum\" or \"Mean\"")
 	
