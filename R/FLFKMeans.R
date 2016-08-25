@@ -619,21 +619,37 @@ silinfo.FLFKMeans <- function(object){
 
 
 				
-		sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, a.ClusIDX AS ClusID, 
-													CASE WHEN FLMean(a.Dist) >  FLMin(Bi.val) 
-													THEN (FLMin(Bi.val) - FLMean(a.Dist))/ FLMean(a.Dist)
-													ELSE  (FLMin(Bi.val) - FLMean(a.Dist))/FLMin(Bi.val)
+			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, a.ClusIDX AS ClusID, B2_i.Neighbour AS Neighbour,
+
+													CASE WHEN FLMean(a.Dist) >  B2_i.val 
+													THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist)
+													ELSE  (B2_i.val - FLMean(a.Dist) )/B2_i.val
 													END AS siliwidth
-													FROM ",b," a,
-													(SELECT b.ObsIDX ObsID ,b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val
-													FROM ",b," b
+
+													FROM ",b," AS a,
+													(SELECT Bi.ObsID AS ObsIDX , FLMin(Bi.Val) AS q
+													FROM
+
+													(SELECT b.ObsIDX AS ObsID, FLMean(b.Dist) AS val
+													FROM ",b," AS b
 													WHERE b.ClusIDX <> b.ClusIDY
-													GROUP BY b.ObsIDX, b.ClusIDY) AS Bi
-													WHERE a.ClusIDX = a.ClusIDY AND Bi.ObsID = a.ObsIDX
-													GROUP BY a.ObsIDX, a.ClusIDX
-													ORDER BY 1,2,3"))
-									}	
-		clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
+													GROUP BY b.ObsIDX, b.ClusIDY
+													) AS Bi
+													GROUP BY Bi.ObsID)
+													AS  B1_i, 
+
+													(SELECT b.ObsIDX AS ObsID, b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val
+													FROM ",b," AS b
+													WHERE b.ClusIDX <> b.ClusIDY
+													GROUP BY b.ObsIDX, b.ClusIDY
+													) AS B2_i 
+
+													WHERE B1_i.q= B2_i.val AND B1_i.ObsIDX = B2_i.ObsID AND a.ClusIDX = a.ClusIDY AND a.ObsIDX = B2_i.ObsID
+													GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val 
+													ORDER BY 1,2"))
+																						}	
+	        sili_table <- sili_table[order(sili_table$ClusID, -sili_table$siliwidth), ]
+        clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
 																		mean(sili_table$siliwidth[sili_table$ClusID == i])
 																			}))
 		silinfolist <- list(widths = sili_table, clus.avg.widths = clus.avg.width)
