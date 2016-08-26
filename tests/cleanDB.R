@@ -82,11 +82,18 @@ if(vtemp=="n"){
 if(vtemp=="y"){
     vdf <- read.csv(paste0(opt$directory,"/droptables.csv"))
     vReqtbls <- as.character(vdf[["tablename"]])
-    names(vReqtbls) <- as.character(vdf[["kind"]])
-    for(i in 1:length(vreqtbls)){
+    vkind <- vdf[["kind"]]
+    if(is.logical(vkind)){
+        vkindCopy <- vkind
+        vkind[vkindCopy]<-"T"
+        vkind[!vkindCopy]<-"V"
+    }
+    names(vReqtbls) <- as.character(vkind)
+    for(i in 1:length(vReqtbls)){
         vsqlstr <- paste0("DROP ",
                           ifelse(names(vReqtbls)[i]=="T","TABLE","VIEW"),
                           " ",vReqtbls[i],";")
+        print(vsqlstr)
         vtemp <- sqlSendUpdate(connection,vsqlstr)
     }
 }
