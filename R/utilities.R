@@ -617,6 +617,7 @@ FLStartSession <- function(connection,
     options(ResultCharMatrixTableFL   = gen_table_name("tblCharMatrixMultiResult"))
     options(ResultIntMatrixTableFL    = gen_table_name("tblIntMatrixMultiResult"))
     options(ResultIntVectorTableFL    = gen_table_name("tblIntVectorResult"))
+    options(ResultByteIntVectorTableFL    = gen_table_name("tblByteIntVectorResult"))
 
     options(scipen=999)
     #options(stringsAsFactors=FALSE)
@@ -624,14 +625,16 @@ FLStartSession <- function(connection,
     vresultTables <- c("ResultMatrixTableFL","ResultSparseMatrixTableFL",
                         "ResultCharMatrixTableFL","ResultIntMatrixTableFL",
                         "ResultVectorTableFL","ResultCharVectorTableFL",
-                        "ResultIntVectorTableFL")
+                        "ResultIntVectorTableFL","ResultByteIntVectorTableFL")
     sapply(vresultTables,
         function(x){
             vtable <- getOption(x)
             if(grepl("matrix",tolower(vtable)))
             vclass <- "matrix"
             else vclass <- "vector"
-            if(grepl("int",tolower(vtable)))
+            if(grepl("byteint",tolower(vtable)))
+            vtype <- "BYTEINT"
+            else if(grepl("int",tolower(vtable)))
             vtype <- "INT"
             else if(grepl("char",tolower(vtable)))
             vtype <- "VARCHAR(100)"

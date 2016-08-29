@@ -965,3 +965,29 @@ as.FLTable.data.frame <- function(object,
               isDeep = FALSE,
               type=sapply(object,typeof)))
 }
+
+as.FLByteInt <- function(x){
+    vtbl <- getOption("ResultByteIntVectorTableFL")
+    VID <- getMaxVectorId(getOption("connectionFL"),
+                          vtbl)
+    vsqlstr <- constructSelect(x)
+    vsqlstr <- gsub("'%insertIDhere%'",VID,vsqlstr)
+    vtemp <- insertIntotbl(vtbl,
+                            pSelect=vsqlstr)
+    if(!vtemp)
+        stop("invalid input: x and y should be of BYTEINT in-database type \n ")
+    select <- new("FLSelectFrom",
+                connection = getOption("connectionFL"), 
+                table_name = c(flt=vtbl),
+                variables = list(
+                        obs_id_colname = "flt.vectorIndexColumn"),
+                whereconditions=paste0("flt.vectorIdColumn = ",VID),
+                order = "")
+
+    return(new("FLVector",
+                select=select,
+                dimnames=list(x@dimnames[[1]],
+                            "vectorValueColumn"),
+                isDeep=FALSE,
+                type="integer"))
+}

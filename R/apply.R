@@ -51,7 +51,7 @@ as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
 	return(new("FLAbstractColumn",
 				columnName=vcolnames))
 }
-genScalarFunCall <- function(object,func,indexCol=FALSE,...){
+genAggregateFunCall <- function(object,func,indexCol=FALSE,...){
 	##If FLMatrix or FLTable and indexCol may be needed for function
 	if(is.FLTable(object) && !object@isDeep)
 	object <- wideToDeep(object)[["table"]]
@@ -65,7 +65,7 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 										valueColumn="valueColumn"))
 		
 		sqlstr <- paste0(" SELECT ",
-						func(vnewObsCol),
+						func(vnewObsCol,...),
 						" FROM (SELECT ",voldAbsCol@columnName[["indexColumn"]]," AS indexColumn, \n ",
 							voldAbsCol@columnName[["valueColumn"]]," AS valueColumn \n ",
 							" FROM (",constructSelect(object),") a) b ")
@@ -86,15 +86,15 @@ mean.FLAbstractColumn <- function(object,...){
 }
 #' @export
 mean.FLVector <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+	return(genAggregateFunCall(x,mean.FLAbstractColumn,...))
 }
 #' @export
 mean.FLMatrix <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+	return(genAggregateFunCall(x,mean.FLAbstractColumn,...))
 }
 #' @export
 mean.FLTable <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+	return(genAggregateFunCall(x,mean.FLAbstractColumn,...))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 
