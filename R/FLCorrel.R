@@ -253,7 +253,7 @@ var.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
 		if(ncol(x)>1 && !x@isDeep)
 		x <- as.FLVector(as.vector(x))
-		return(genScalarFunCall(x,var.FLAbstractColumn))
+		return(genAggregateFunCall(x,var.FLAbstractColumn))
 	}
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
@@ -320,7 +320,7 @@ FLVarP.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
 		if(ncol(x)>1 && !x@isDeep)
 		x <- as.FLVector(as.vector(x))
-		return(genScalarFunCall(x,FLVarP.FLAbstractColumn))
+		return(genAggregateFunCall(x,FLVarP.FLAbstractColumn))
 	}
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovarP",...))
 }

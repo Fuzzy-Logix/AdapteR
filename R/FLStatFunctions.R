@@ -223,18 +223,18 @@ sd.FLAbstractColumn <- function(x,na.rm=TRUE){
 }
 setMethod("sd",signature(x="FLVector"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=sd.FLAbstractColumn))})
 setMethod("sd",signature(x="FLAbstractColumn"),
     function(x,na.rm=TRUE){
         return(sd.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("sd",signature(x="FLMatrix"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=sd.FLAbstractColumn))})
 setMethod("sd",signature(x="FLTable"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=sd.FLAbstractColumn))})
 
 ########################## FLSdP ##################################
@@ -247,18 +247,18 @@ FLSdP.FLAbstractColumn <- function(x,na.rm=TRUE){
 }
 setMethod("FLSdP",signature(x="FLVector"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=FLSdP.FLAbstractColumn))})
 setMethod("FLSdP",signature(x="FLAbstractColumn"),
     function(x,na.rm=TRUE){
         return(FLSdP.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("FLSdP",signature(x="FLMatrix"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=FLSdP.FLAbstractColumn))})
 setMethod("FLSdP",signature(x="FLTable"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=FLSdP.FLAbstractColumn))})
 
 ######################## skewness #####################################
@@ -271,18 +271,18 @@ skewness.FLAbstractColumn <- function(x,na.rm=TRUE){
 }
 setMethod("skewness",signature(x="FLVector"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="FLAbstractColumn"),
     function(x,na.rm=TRUE){
         return(skewness.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("skewness",signature(x="FLMatrix"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="FLTable"),
     function(x,na.rm=TRUE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=skewness.FLAbstractColumn))})
 setMethod("skewness",signature(x="ANY"),
     function(x,na.rm=TRUE){
@@ -298,18 +298,18 @@ kurtosis.FLAbstractColumn <- function(x,na.rm=FALSE){
 }
 setMethod("kurtosis",signature(x="FLVector"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=kurtosis.FLAbstractColumn))})
 setMethod("kurtosis",signature(x="FLAbstractColumn"),
     function(x,na.rm=FALSE){
         return(kurtosis.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("kurtosis",signature(x="FLMatrix"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=kurtosis.FLAbstractColumn))})
 setMethod("kurtosis",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=kurtosis.FLAbstractColumn))})
 setMethod("kurtosis",signature(x="ANY"),
     function(x,na.rm=FALSE){
@@ -335,7 +335,7 @@ prod <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    return(genScalarFunCall(object=x,
+                    return(genAggregateFunCall(object=x,
                                 func=prod.FLAbstractColumn))
                 }
                 else return(base::prod(x))
@@ -363,7 +363,7 @@ sum <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    return(genScalarFunCall(object=x,
+                    return(genAggregateFunCall(object=x,
                                 func=sum.FLAbstractColumn))
                 }
                 else return(base::sum(x))
@@ -390,7 +390,7 @@ max <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    return(genScalarFunCall(object=x,
+                    return(genAggregateFunCall(object=x,
                                 func=max.FLAbstractColumn))
                 }
                 else return(base::max(x,na.rm=na.rm))
@@ -417,7 +417,7 @@ min <- function(...,na.rm=FALSE){
                                     na.rm=na.rm))
                 }
                 else if(is.FL(x)){
-                    return(genScalarFunCall(object=x,
+                    return(genAggregateFunCall(object=x,
                                 func=min.FLAbstractColumn))
                 }
                 else return(base::min(x,na.rm=na.rm))
@@ -435,7 +435,7 @@ which.max.FLAbstractColumn <- function(x){
 }
 setMethod("which.max",signature(x="FLVector"),
     function(x){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=which.max.FLAbstractColumn,
                                 indexCol=TRUE))})
 setMethod("which.max",signature(x="FLAbstractColumn"),
@@ -443,12 +443,12 @@ setMethod("which.max",signature(x="FLAbstractColumn"),
         return(which.max.FLAbstractColumn(x))})
 setMethod("which.max",signature(x="FLMatrix"),
     function(x){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=which.max.FLAbstractColumn,
                                 indexCol=TRUE))})
 setMethod("which.max",signature(x="FLTable"),
     function(x){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=which.max.FLAbstractColumn,
                                 indexCol=TRUE))})
 
@@ -462,7 +462,7 @@ which.min.FLAbstractColumn <- function(x){
 }
 setMethod("which.min",signature(x="FLVector"),
     function(x){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=which.min.FLAbstractColumn,
                                 indexCol=TRUE))})
 setMethod("which.min",signature(x="FLAbstractColumn"),
@@ -470,12 +470,12 @@ setMethod("which.min",signature(x="FLAbstractColumn"),
         return(which.min.FLAbstractColumn(x))})
 setMethod("which.min",signature(x="FLMatrix"),
     function(x){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=which.min.FLAbstractColumn,
                                 indexCol=TRUE))})
 setMethod("which.min",signature(x="FLTable"),
     function(x){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=which.min.FLAbstractColumn,
                                 indexCol=TRUE))})
 
@@ -490,18 +490,18 @@ geometric.mean.FLAbstractColumn <- function(x,na.rm=FALSE){
 }
 setMethod("geometric.mean",signature(x="FLVector"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=geometric.mean.FLAbstractColumn))})
 setMethod("geometric.mean",signature(x="FLAbstractColumn"),
     function(x,na.rm=FALSE){
         return(geometric.mean.FLAbstractColumn(x,na.rm=na.rm))})
 setMethod("geometric.mean",signature(x="FLMatrix"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=geometric.mean.FLAbstractColumn))})
 setMethod("geometric.mean",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=geometric.mean.FLAbstractColumn))})
 setMethod("geometric.mean",signature(x="ANY"),
     function(x,na.rm=FALSE){
@@ -522,18 +522,18 @@ harmonic.mean.FLAbstractColumn <- function(x,na.rm=FALSE){
 }
 setMethod("harmonic.mean",signature(x="FLVector"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=harmonic.mean.FLAbstractColumn))})
 setMethod("harmonic.mean",signature(x="FLAbstractColumn"),
     function(x,na.rm=FALSE){
         return(harmonic.mean.FLAbstractColumn(x,na.rm=na.rm))})
 setMethod("harmonic.mean",signature(x="FLMatrix"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=harmonic.mean.FLAbstractColumn))})
 setMethod("harmonic.mean",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=harmonic.mean.FLAbstractColumn))})
 setMethod("harmonic.mean",signature(x="ANY"),
     function(x,na.rm=FALSE){
@@ -900,18 +900,18 @@ FLDevSq.FLAbstractColumn <- function(x,na.rm=FALSE){
 }
 setMethod("FLDevSq",signature(x="FLVector"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=FLDevSq.FLAbstractColumn))})
 setMethod("FLDevSq",signature(x="FLAbstractColumn"),
     function(x,na.rm=FALSE){
         return(FLDevSq.FLAbstractColumn(object=x,na.rm=na.rm))})
 setMethod("FLDevSq",signature(x="FLMatrix"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=FLDevSq.FLAbstractColumn))})
 setMethod("FLDevSq",signature(x="FLTable"),
     function(x,na.rm=FALSE){
-        return(genScalarFunCall(object=x,
+        return(genAggregateFunCall(object=x,
                                 func=FLDevSq.FLAbstractColumn))})
 
 ###############################################################################################
