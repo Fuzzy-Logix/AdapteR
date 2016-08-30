@@ -82,6 +82,55 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         return(vresList)
     })
 
+setGeneric("z.test",function(x,y=NULL,test_val=0,tails=1)
+                standardGeneric("z.test"))
+setMethod("z.test",signature(x="FLVector",
+                             test_val="numeric"),
+    function(x,
+            y=NULL,
+            test_val=0,tails=1){
+        if(is.null(x)||!is.FLVector(x))
+            stop("Only FLVector is supported")
+
+        if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
+
+        vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
+
+        if(length(y)==0){
+            if(!test_val) stop("The testing value is missing")
+            pFuncName<-"FLzTest1S"
+            vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
+                                        pFuncArgs=c("c.FLStatistic",
+                                                    test_val,
+                                                    "a.vectorValueColumn",
+                                                    tails),
+                                        pAddSelect=c(stat="c.FLStatistic"),
+                                        pFrom=c(a=constructSelect(x),
+                                                c="fzzlARHypTestStatsMap"),
+                                        pWhereConditions="c.FLFuncName='FLzTest1S'",
+                                        pGroupBy="c.FLStatistic")
+
+         }
+
+         else{
+            pFuncName<-"FLzTest2S"
+            vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
+                                        pFuncArgs=c("c.FLStatistic",
+                                                    "a.vectorValueColumn",
+                                                    "b.vectorValueColumn",
+                                                    tails),
+                                        pAddSelect=c(stat="c.FLStatistic"),
+                                        pFrom=c(a=constructSelect(x),
+                                                b=constructSelect(y),
+                                                c="fzzlARHypTestStatsMap"),
+                                        pWhereConditions=c("a.vectorIndexColumn=b.vectorIndexColumn",
+                                                         "c.FLFuncName='FLzTest2S'"),
+                                        pGroupBy="c.FLStatistic")
+         }
+    vres<-sqlQuery(connection,vsqlstr)
+    return(vres)
+    }
+  )
 ##################################### Aggregate SQL ###########################################
 constructAggregateSQL <- function(pFuncName,
                                   pFuncArgs,
