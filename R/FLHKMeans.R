@@ -360,6 +360,16 @@ centers.FLHKMeans<-function(object)
 						" AND HypothesisID = ",object@nstart," \n ",
 						" AND Level = ",object@levels)
 
+        ## Get column names from Mapping
+        vColnames <- colnames(object@deeptable)
+        ## gk: move this into colnames function.
+        ## gk: create a test case for colnames of a deeptable
+        if(object@mapTable!="")
+        vColnames <- sqlQuery(connection,
+                            paste0("SELECT ColumnName \n ",
+                                " FROM ",object@mapTable," \n ",
+                                " ORDER BY varID "))[[1]]
+
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
                         variables=list(
@@ -373,9 +383,9 @@ centers.FLHKMeans<-function(object)
 	  	centersmatrix <- new("FLMatrix",
 				            select= tblfunqueryobj,
 				            dim=c(object@centers,
-				            	length(object@deeptable@dimnames[[2]])),
+				            	length(vColnames)),
 				            dimnames=list(1:object@centers,
-				            			object@deeptable@dimnames[[2]]))
+				            			vColnames))
 
 	  	centersmatrix <- tryCatch(as.matrix(centersmatrix),
       						error=function(e){centersmatrix})
