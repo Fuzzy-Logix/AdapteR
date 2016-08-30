@@ -6,6 +6,7 @@ NULL
 # vdf <- data.frame(FLFuncName=FLFuncName,
 #                 FLStatistic=FLStatistic)
 # flt <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",drop=TRUE)
+
 #' McNemar's Chi-squared Test for Count Data.
 #'
 #' Performs McNemar's chi-squared test for 
@@ -82,36 +83,89 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         return(vresList)
     })
 
-##################################### Aggregate SQL ###########################################
-constructAggregateSQL <- function(pFuncName,
-                                  pFuncArgs,
-                                  pAddSelect="",
-                                  pFrom,
-                                  pWhereConditions="",
-                                  pGroupBy="",
-                                  pOrderBy=""){
-    vfunCall <- c(OutVal=paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
-    vSelects <- c(vfunCall,pAddSelect)
-    vSelects <- vSelects[vSelects!=""]
 
-    pWhereConditions <- setdiff(pWhereConditions,"")
-    pGroupBy <- setdiff(pGroupBy,"")
-    pOrderBy <- setdiff(pOrderBy,"")
+#' Binomial Test
+#'
+#' Performs an exact test of a simple null hypothesis
+#' about the probability of success in a Bernoulli experiment.
+#'
+#' @param x FLVector
+#' @param n number of trials
+#' @param p hypothesized probability of success
+#' @param alternative indicates the alternative hypothesis and 
+#' must be one of "two.sided", "greater" or "less". 
+#' Additionally "LT","GT","EXACT" are supported for FL objects.
+#' @param conf.level confidence level for the returned confidence interval.
+#' Not Applicable for FL objects.
+#' @section Constraints:
+#' conf.level is not supported currently for FL objects.
+#' print is not working for result htest object
+#' @return A list with class "htest"
+#' @examples
+#' flv <- as.FLVector(sample(1:50,10,replace=T))
+#' ResulthtestObject <- binom.test(flv,100,p=0.65)
+#' ResulthtestObject <- binom.test(flv,100,p=0.65,"greater")
+#' ResulthtestObject <- binom.test(flv,100,p=0.65,"LT")
+#' @export
+setGeneric("binom.test",function(x, n, p = 0.5,
+                                alternative = c("two.sided", "less","greater"),
+                                conf.level = 0.95)
+                standardGeneric("binom.test"))
 
-    vsqlstr <- paste0("SELECT ",
-                    paste0(vSelects," AS ",names(vSelects),collapse=", \n ")," \n ",
-                    " FROM ",
-                    paste0(ifelse(grepl(" ",pFrom),paste0("(",pFrom,")"),pFrom),
-                                    " AS ",names(pFrom),collapse=", \n ")," \n ",
-                    ifelse(length(pWhereConditions)>0,
-                        paste0(" WHERE ",paste0(pWhereConditions,collapse=" AND ")," \n "),
-                        ""),
-                    ifelse(length(pGroupBy)>0,
-                        paste0(" GROUP BY ",paste0(pGroupBy,collapse=",")," \n "),
-                        ""),
-                    ifelse(length(pOrderBy)>0,
-                        paste0(" ORDER BY ",paste0(pOrderBy,collapse=",")," \n "),
-                        ""))
-    return(vsqlstr)
-}
+setMethod("binom.test",signature(x="FLAbstractColumn"),
+    function(x,n,
+            p,
+            alternative
+            ){
+    return(paste0("FLBinTest(",
+            paste0(c(n,x@columnName,
+                    p,fquote(alternative)),collapse=","),
+            ")"))
+})
+setMethod("binom.test",signature(x="FLVector"),
+    function(x,
+            n,
+            p = 0.5,
+            alternative = c("two.sided", "less","greater"),
+            conf.level = 0.95){
+        browser()
+        if(length(p)>1)
+            stop("'p' must be a single number between 0 and 1 \n ")
+        else p <- as.vector(p)
 
+        alternative <- match.arg(alternative)
+
+        vcall <- paste(all.vars(sys.call())[1:2],collapse=" and ")
+
+        vAltMapping <- c(EXACT="EXACT",LE="LESS",LE="LE",
+                        GE="GREATER",GE="GE",LT="LT",
+                        GT="GT",TWO_SIDED="TWO.SIDED",TWO_SIDED="TWO_SIDED")
+        alternative1 <- names(vAltMapping)[vAltMapping==toupper(alternative)]
+        if(!length(alternative1)>0)
+            stop("alternative can be GT,LT,EXACT,two.sided,greater,less \n ")
+        vres <- constructScalarSQL(pObject=x,
+                                pFunc=binom.test,
+                                n=n,
+                                p=p,
+                                alternative=alternative1
+                                )
+        vres@type <- "double"
+        vresList <- list(statistic=c("number of successes"=x),
+                        parameter=c("number of trials" =n),
+                        p.value=vres,
+                        estimate=c("probability of success"=x/n),
+                        data.name=vcall,
+                        null.value=c("probability of success"=p),
+                        alternative=alternative,
+                        method="Exact binomial test")
+        # vresList <- list(statistic=x,
+        #                 parameter=c("number of trials" =n),
+        #                 p.value=vres,
+        #                 estimate=x/n,
+        #                 data.name=vcall,
+        #                 null.value=c("probability of success"=p),
+        #                 alternative=alternative,
+        #                 method="Exact binomial test")
+        class(vresList) <- "htest"
+        return(vresList)
+    })
