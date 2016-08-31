@@ -4,7 +4,7 @@ Renv$x <- rnorm(1000)
 
 FLenv <- as.FL(Renv)
 
-test_that("kurtosis",{
+test_that("kurtosis: https://fuzzyl.atlassian.net/projects/TDFL/issues/TDFL-752",{
   eval_expect_equal({
       test <- kurtosis(x)
   },Renv,FLenv, expectation="test")

@@ -109,7 +109,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
         MID <- getMaxMatrixId(vtable=vtableName,vdatabase=vdatabase)
         if(class(object@select)=="FLSelectFrom")
         object@select@variables[["MATRIX_ID"]] <- MID
-        
+          
         insertIntotbl(pTableName=getRemoteTableName(vdatabase,vtableName),
                       pSelect=gsub("'%insertIDhere%'",MID,
                                   constructSelect(object,joinNames=FALSE)))
@@ -142,9 +142,9 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "rowIdColumn", 
-            col_id_colname = "colIdColumn", 
-            cell_val_colname = "valueColumn",
+            row_id_colname = object@dimColumns[[1]], 
+            col_id_colname = object@dimColumns[[2]], 
+            cell_val_colname = object@dimColumns[[3]],
             dim=dim(object),
             dimnames=dimnames(object),
             type=typeof(object)

@@ -17,5 +17,10 @@ test_that("hclust",
 
 
 ## gk:  please save a left/right plot for checking, containing:
-plot(Renv$hc)
-plot(FLenv$hc)
+if(FALSE){
+    opar <- par(mfrow = c(1, 2))
+    plot(Renv$hc)
+    plot(FLenv$hc)
+    par(opar)
+}
+

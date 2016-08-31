@@ -1,16 +1,6 @@
 library(testthat)
 library(AdapteR)
 
-## gk @ phani:  the following library statements should not be required.
-library(SDMTools)
-library(MASS)
-library(psych)
-library(survival)
-library(mgcv)
-library(moments)
-library(stringdist)
-library(cluster)
-
 ##' runs a test file.
 ##'
 ##' @param f the test file to run
