@@ -128,7 +128,12 @@ vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 require(gplots)
 ## install.packages("gplots")
 
-M <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
+metaInfo <- read.csv("https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+
+M <- cor(eqnRtn[,intersect(
+    metaInfo$Symbol[metaInfo$Sector %in% c("Basic Industries")],
+    colnames(eqnRtn))])
+
 heatmap.2(as.matrix(M),
           symm=TRUE,
           distfun=function(c) as.dist(1 - c),
@@ -136,9 +141,8 @@ heatmap.2(as.matrix(M),
           col=redgreen(100),
           cexCol = 1,
           cexRow = 1)
-vtemp <- readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
 
-metaInfo <- read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+vtemp <- readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
 
 run.FLCorrelationShiny <- function (){
 ###########################################################
@@ -208,6 +212,8 @@ run.FLCorrelationShiny <- function (){
     }
     )
 }
+
+assign("metaInfo",metaInfo,envir=environment(run.FLCorrelationShiny))
 
 vtemp <- readline("To explore correlations interactively, we defined a function above. \n Simply execute\n> run.FLCorrelationShiny()\nafter ending the Demo.\nEnd the demo now:")
 

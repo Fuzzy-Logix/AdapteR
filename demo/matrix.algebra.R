@@ -98,10 +98,9 @@ rM <- as.matrix(flM)
 flResult <- solve(flM) %*% flM - flM
 rResult <- solve(rM) %*% rM -rM
 
-require(testthat)
-FLexpect_equal(flResult,
-             rResult,
-             check.attributes=FALSE)
+flResult
+
+rResult
 
 ### END ###
 ### Thank You ####
