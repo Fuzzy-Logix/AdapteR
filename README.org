@@ -78,9 +78,6 @@ remove.packages("AdapteR")
 :PROPERTIES:
 :ID:       2B55187C-17C1-488C-A980-396426D2DD18
 :END:
-:LOGBOOK:
-CLOCK: [2016-08-18 Do 14:59]
-:END:
 AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
 You can either use ODBC or JDBC to connect to the warehouse, see instructions below.
 
@@ -130,6 +127,9 @@ The package includes some demos to get you started and to explain the most impor
 #+BEGIN_SRC R :session r_fl :results output :exports both
 require(AdapteR)
 demo(package="AdapteR")
+## if you want to demonstrate what SQL queries are created during the demo:
+## options(debugSQL=TRUE)
+
 ## run a demo:
 ## demo("matrix.correlation",package="AdapteR")
 #+END_SRC
@@ -139,9 +139,13 @@ demo(package="AdapteR")
 #+BEGIN_EXAMPLE
 Demos in package ‘AdapteR’:
 
-connecting              
-matrix.algebra          
+connecting
+matrix.algebra
 matrix.correlation
+statistical.functions
+string.functions
+kmeans
+Iris_kmeans
 #+END_EXAMPLE
 ** Optional packages
 :PROPERTIES:

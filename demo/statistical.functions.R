@@ -9,9 +9,9 @@
 ## easing interaction with the DB Lytix(TM) in-database
 ## library.
 ##
-## The demo highlights how to build an
-## interactive stock returns correlation demo
-## computed in database!
+## The demo highlights how to use
+## statistical aggregation functions like mean, max
+## in combination with apply.
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
@@ -19,7 +19,6 @@ if(!exists("connection")) {
 #############################################################
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
-options(debugSQL=FALSE)
 require(testthat)
 m <- matrix(rnorm(25),5,dimnames=list(letters[1:5],letters[6:10]))
 

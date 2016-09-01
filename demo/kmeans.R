@@ -14,7 +14,6 @@
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
-options(debugSQL=FALSE)
 #############################################################
 
 ##generate data for clustering.50*2 matrix.

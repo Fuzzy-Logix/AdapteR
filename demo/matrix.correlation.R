@@ -74,6 +74,7 @@ vtemp <- readline("Next: the SQL syntax created for you")
 ## with this option each R command that uses DBLytix will log
 ## the SQL sent to Teradata.
 ## Such a dump can in many cases be used as a pure-sql script!
+oldDebugSQL <- getOption("debugSQL")
 options(debugSQL=TRUE)
 
 ## Note that no SQL is sent when defining data-sets
@@ -86,7 +87,7 @@ vtemp <- readline("Note that SQL is not sent yet during definition")
 
 flCorr
 vtemp <- readline("Note that SQL is sent when data is printed or otherwise used")
-options(debugSQL=FALSE)
+options(debugSQL=oldDebugSQL)
 ## Casting methods fetch (selected) data from the warehouse into R memory
 rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 rEqnRtn <- na.omit(rEqnRtn)

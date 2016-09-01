@@ -14,7 +14,6 @@
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
-options(debugSQL=FALSE)
 #############################################################
 data(iris)
 
