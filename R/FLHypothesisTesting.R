@@ -82,15 +82,15 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         return(vresList)
     })
 
-setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,prob)
+setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0)
                 standardGeneric("z.test"))
-setMethod("z.test",signature(x="FLVector",
-                             test_val="numeric"),
+setMethod("z.test",signature(x="FLVector"),
     function(x,
             y=NULL,
             test_val=0,
             tails=2,
-            prob){
+            conf.level=0.95,
+            prob=0){
         if(is.null(x)||!is.FLVector(x))
             stop("Only FLVector is supported")
 
@@ -136,21 +136,24 @@ setMethod("z.test",signature(x="FLVector",
             pFuncName<-"FLzTest2S"
             vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
                                         pFuncArgs=c("c.FLStatistic",
-                                                    "a.vectorValueColumn",
-                                                    "b.vectorValueColumn",
+                                                    "a.Num_Val1",
+                                                    "a.Num_Val2",
                                                     tails),
                                         pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=constructSelect(x),
-                                                b=constructSelect(y),
+                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
                                                 c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("a.vectorIndexColumn=b.vectorIndexColumn",
-                                                         "c.FLFuncName='FLzTest2S'"),
+                                        pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
                                         pGroupBy="c.FLStatistic")
          }
     vres<-sqlQuery(connection,vsqlstr)
-
-    vresList<-list(statistic=c("P value"=vres[1,1],"Z stat"=vres[2,1]),
-                    data.name=vcall)
+    vresList<-list(statistic=c("P value"=vres[1,1]),
+                   parameter=c("Z stat"=vres[2,1]),
+                   data.name=vcall,
+                   alternative=paste0("true mean is not equal to ",test_val),
+                   estimate =c("mean of x" = mean(x)),
+                   method="One Sample z-test",
+                   conf.int = conf.level*100
+                   )
     class(vresList)<-"htest"
     return(vresList)
     }
@@ -160,14 +163,15 @@ t.test.FLVector <- function(x,
                             y= NULL,
                             mu = 0,
                             tails=2,
-                            conf.level =.95,...)
-{       browser()
+                            conf.level =.95,
+                            alternative="two.sided",...)
+{       
         if(is.null(x)||!is.FLVector(x))
         stop("Only FLVector is supported")
 
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
 
-        vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
+        vcall<<-paste(all.vars(sys.call())[1],collapse=" and ")
 
         sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
                                         pFuncArgs = c("c.FLStatistic",
@@ -183,22 +187,61 @@ t.test.FLVector <- function(x,
                                         pGroupBy = "c.FLStatistic")
                                              
                     
-    result <- sqlQuery(connection, sqlstr)
-   
-      
-    res <- list(data = vcall,
-                statistic =c(t = as.numeric(result[1,1]),
-                             df=as.numeric(result[1,3])-1,
-                             p_value=as.numeric(result[2,1])),
+    result <<- sqlQuery(connection, sqlstr)
+    cint<-cint(x,conf.level,alternative)
+    attr(cint,"conf.level") <- conf.level
+    res <- list(data.name = vcall,
+                statistic =c(t = as.numeric(result[1,1])),
+                parameter= c(df=as.numeric(result[1,3])-1),
+                p.value=   c("p-value"=as.numeric(result[2,1])),
+                alternative=paste0("true mean is not equal to ",mu ),
                 estimate =c("mean of x" = mean(x)),
-                ymean = NULL,
-                conf.int = conf.level*100)                
-
-
-
+                method="One Sample t-test",
+                conf.int = cint,
+                alternative="two.sided")                
+    
     class(res) <- "htest"
     return(res)
     
+}
+
+
+cint<-function(x,conf.level,alternative="two.sided"){
+
+if (alternative=="two.sided")
+{
+    df<-length(x)-1
+    sd<-sd(x)/sqrt(length(x))
+    qt<-qt(conf.level+(1-conf.level)/2,df)*sd
+    res<-mean(x)+c(-qt,qt)
+}
+
+else stop("Not available for others")
+
+return(res)
+}
+
+createHypoView <- function(x,y){
+
+    if(length(x)>length(y)) { q<-y
+                              r<-x}
+    else{  q<-x
+           r<-y
+    }
+
+    vminLength<-length(q)
+    pViewName<-genRandVarName()
+    sqlstr0 <- paste0("CREATE VIEW ",pViewName," AS
+                       SELECT a.vectorValueColumn AS Num_Val1,
+                       b.vectorvalueColumn AS Num_Val2
+                       FROM (",constructSelect(q),") a, (",constructSelect(r),") b
+                       WHERE a.vectorindexcolumn = b.vectorindexcolumn
+                       UNION ALL
+                       SELECT NULL AS Num_Val1, b.vectorValueColumn AS Num_Val2 
+                       FROM (",constructSelect(r),") b 
+                       WHERE b.vectorindexcolumn >",vminLength)
+    sqlQuery(connection,sqlstr0)
+    return(pViewName)       
 }
 ##################################### Aggregate SQL ###########################################
 constructAggregateSQL <- function(pFuncName,
