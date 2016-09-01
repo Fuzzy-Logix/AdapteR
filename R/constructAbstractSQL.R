@@ -279,6 +279,39 @@ constructScalarSQL <- function(pObject,
     }
 }
 
+##################################### Aggregate SQL ###########################################
+constructAggregateSQL <- function(pFuncName,
+                                  pFuncArgs,
+                                  pAddSelect="",
+                                  pFrom,
+                                  pWhereConditions="",
+                                  pGroupBy="",
+                                  pOrderBy=""){
+    vfunCall <- c(OutVal=paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
+    vSelects <- c(vfunCall,pAddSelect)
+    vSelects <- vSelects[vSelects!=""]
+
+    pWhereConditions <- setdiff(pWhereConditions,"")
+    pGroupBy <- setdiff(pGroupBy,"")
+    pOrderBy <- setdiff(pOrderBy,"")
+
+    vsqlstr <- paste0("SELECT ",
+                    paste0(vSelects," AS ",names(vSelects),collapse=", \n ")," \n ",
+                    " FROM ",
+                    paste0(ifelse(grepl(" ",pFrom),paste0("(",pFrom,")"),pFrom),
+                                    " AS ",names(pFrom),collapse=", \n ")," \n ",
+                    ifelse(length(pWhereConditions)>0,
+                        paste0(" WHERE ",paste0(pWhereConditions,collapse=" AND ")," \n "),
+                        ""),
+                    ifelse(length(pGroupBy)>0,
+                        paste0(" GROUP BY ",paste0(pGroupBy,collapse=",")," \n "),
+                        ""),
+                    ifelse(length(pOrderBy)>0,
+                        paste0(" ORDER BY ",paste0(pOrderBy,collapse=",")," \n "),
+                        ""))
+    return(vsqlstr)
+}
+###############################################################################################
 
 ############################ DDLs ##########################################
 ## Set Database
