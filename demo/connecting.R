@@ -58,8 +58,6 @@ if(!exists("connection")){
         stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
 
-options(debugSQL=TRUE)
-
 vtemp <- readline("Checking if the connection is working:")
 
 ## .......................#################..................

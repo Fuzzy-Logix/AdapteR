@@ -1,7 +1,3 @@
-## test for gam function
-
-
-connection <- flConnect(odbcSource = "FL_DEMO",database ="fuzzylogix",platform="TD")
 
 ## gam function doesn't work
 ## asana ticket- https://app.asana.com/0/143316600934101/158507710191280

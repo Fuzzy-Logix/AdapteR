@@ -1,10 +1,10 @@
+
 ## Since both the objects need to be dealt differently, objects have been initialized and 
 ## defined outside test_that function
 
 
 ## Since FL and R environments have different case structure for column names
 
-options(debugSQL=F)
 ## step function does not work properly. throws an error
 test_that("test for step", {
     flData <- FLTable("FL_DEMO.tblAbaloneWide", "ObsID")

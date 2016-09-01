@@ -1218,7 +1218,7 @@ setMethod("grepl",
 
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
                                     b,".vectorIndexColumn AS vectorIndexColumn,",
-                                    "CASE WHEN ",b,".vectorValueColumn <> -1 THEN 1 ELSE 0 END AS vectorValueColumn",
+                                    "CASE WHEN ",b,".vectorValueColumn <> -1 THEN 'TRUE' ELSE 'FALSE' END AS vectorValueColumn",
                             " FROM(SELECT ",a,".vectorValueColumn AS vectorIdColumn,",
                                      a,".vectorIndexColumn AS vectorIndexColumn,",
                                     "FLInstr(0,",a,".vectorValueColumn,",fquote(pattern),") AS vectorValueColumn ",
