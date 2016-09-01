@@ -175,7 +175,6 @@ setMethod("apply",
 			 MARGIN="numeric",
 			 FUN="function"),
 	function(X,MARGIN,FUN,...){
-		browser()
 		X <- setAlias(X,"")
 		if(MARGIN==1){
 		vgroupCol <- getVariables(X)[["rowIdColumn"]]
