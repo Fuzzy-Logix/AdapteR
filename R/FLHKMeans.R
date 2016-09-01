@@ -402,30 +402,30 @@ tot.withinss.FLHKMeans<-function(object){
 	return(object@results[["tot.withinss"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
-		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
-		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-		whereconditions <- object@deeptable@select@whereconditions
+		# connection <- getConnection(object@table)
+		# deeptablename <- object@deeptable@select@table_name
+		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
+		# var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
+		# cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+		# whereconditions <- object@deeptable@select@whereconditions
 
-		sqlstr<-paste0("SELECT CAST(sum(power((",deeptablename,".",
-						cell_val_colname," - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER) \n ",
-						" FROM fzzlKMeansClusterID, \n ",deeptablename,", \n fzzlKMeansDendrogram \n ",
-						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
-						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
-						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ",
-						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
-						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",
-						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
-						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
-						ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
-						)
+		# sqlstr<-paste0("SELECT CAST(sum(power((",deeptablename,".",
+		# 				cell_val_colname," - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER) \n ",
+		# 				" FROM fzzlKMeansClusterID, \n ",deeptablename,", \n fzzlKMeansDendrogram \n ",
+		# 				" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
+		# 				" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
+		# 				" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ",
+		# 				" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
+		# 				" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",
+		# 				" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
+		# 				" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
+		# 				ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
+		# 				)
 
-		tot_withinssvector <- sqlQuery(connection,sqlstr)[1,1]
+		# tot_withinssvector <- sqlQuery(connection,sqlstr)[1,1]
 
-		tot_withinssvector <- as.vector(tot_withinssvector)
+        vWithinssVector <- object$withinss
+		tot_withinssvector <- as.vector(sum(vWithinssVector))
 		object@results <- c(object@results,list(tot.withinss = tot_withinssvector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
@@ -494,33 +494,34 @@ betweenss.FLHKMeans<-function(object){
 	return(object@results[["betweenss"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
-		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
-		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
-		whereconditions <- object@deeptable@select@whereconditions
+		# connection <- getConnection(object@table)
+		# flag3Check(connection)
+		# deeptablename <- object@deeptable@select@table_name
+		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
+		# var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
+		# cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+		# whereconditions <- object@deeptable@select@whereconditions
 
-		sqlstr<-paste0("SELECT CAST(sum(power((a.valavg - fzzlKMeansDendrogram.Centroid),2)) AS NUMBER) \n ",
-						" FROM (SELECT ",var_id_colname,",average(",cell_val_colname,") AS valavg \n ",
-							 " FROM ",deeptablename," \n ",
-							 " GROUP BY ",var_id_colname,") AS a, \n ",
-							 "fzzlKMeansClusterID, \n ",
-							 "fzzlKMeansDendrogram \n ",
-						" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
-						" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
-						" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ", 
-						" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
-						" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",  
-						" AND a.",var_id_colname," = ",deeptablename,".",var_id_colname," \n ",
-						" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
-						" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
-						ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
-						)
+		# sqlstr<-paste0("SELECT CAST(sum(power((a.valavg - fzzlKMeansDendrogram.Centroid),2)) AS NUMBER) \n ",
+		# 				" FROM (SELECT ",var_id_colname,",average(",cell_val_colname,") AS valavg \n ",
+		# 					 " FROM ",deeptablename," \n ",
+		# 					 " GROUP BY ",var_id_colname,") AS a, \n ",
+		# 					 "fzzlKMeansClusterID, \n ",
+		# 					 "fzzlKMeansDendrogram \n ",
+		# 				" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
+		# 				" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
+		# 				" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ", 
+		# 				" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
+		# 				" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",  
+		# 				" AND a.",var_id_colname," = ",deeptablename,".",var_id_colname," \n ",
+		# 				" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
+		# 				" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
+		# 				ifelse(length(whereconditions)>0, paste0(" AND ",whereconditions,collapse=" \n "),"")
+		# 				)
 
-		betweenssvector <- sqlQuery(connection,sqlstr)[1,1]
+		# betweenssvector <- sqlQuery(connection,sqlstr)[1,1]
 
+        betweenssvector <- object$totss-object$tot.withinss
 		betweenssvector <- as.vector(betweenssvector)
 		object@results <- c(object@results,list(betweenss = betweenssvector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
