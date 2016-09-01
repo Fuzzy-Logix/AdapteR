@@ -303,6 +303,8 @@ NULL
                         SQLquery=vsqlstr)
           object@select <- tblfunqueryobj
           mapselect <- NULL
+          newrownames <- as.vector(pSet)
+          newcolnames <- "vectorValueColumn"
         }
         else{
             if(class(pSet@select)=="FLTableFunctionQuery"
@@ -326,9 +328,9 @@ NULL
                                                       " AS VARCHAR(100))")),
                              order = "")
             object@select@variables[[vobsidcolumn]]<- nameIndexColumn
+            newrownames <- rownames(pSet)
+            newcolnames <- changeAlias(getValueColumn(object),"","")
         }
-        newrownames <- as.vector(pSet)
-        newcolnames <- "vectorValueColumn"
     }
     else{
       pSet <- as.vector(pSet)
@@ -533,7 +535,7 @@ setAlias <- function(object,newalias){
   object@select@variables <- variables
   object@select@whereconditions <- changeAlias(
                               object@select@whereconditions,
-                              "",oldalias)
+                              newalias,oldalias)
   object@select@whereconditions <- constraintsSQL(object)
   return(object)
 }
