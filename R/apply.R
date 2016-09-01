@@ -81,9 +81,11 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 
 #' @export
 mean.FLAbstractColumn <- function(object,...){
-	return(paste0(" FLMean(",
-				paste0(object@columnName,collapse=","),") "))
+    vFuncArgs <- c(...)
+    return(paste0(" FLSum(",
+                paste0(object@columnName,collapse=","),")/ ",vFuncArgs["count"]))
 }
+
 #' @export
 mean.FLVector <- function(x,...){
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
@@ -176,24 +178,36 @@ setMethod("apply",
 			 FUN="function"),
 	function(X,MARGIN,FUN,...){
 		X <- setAlias(X,"")
-		if(MARGIN==1){
-		vgroupCol <- getVariables(X)[["rowIdColumn"]]
-		vvalueCol <- getVariables(X)[["valueColumn"]]
-		vrownames <- rownames(X)
-		ifelse(is.null(vrownames),vrownames <- 1:nrow(X),
-			vrownames <- vrownames)
-		}
-		else if(MARGIN==2){
-		vgroupCol <- getVariables(X)[["colIdColumn"]]
-		vvalueCol <- getVariables(X)[["valueColumn"]]
-		vrownames <- colnames(X)
-		ifelse(is.null(vrownames),vrownames <- 1:ncol(X),
-			vrownames <- vrownames)
-		}
-		else stop("MARGIN can be 0 or 1 in apply.FLMatrix")
-		vabstractCol <- new("FLAbstractColumn",
-							columnName=vvalueCol)
-		vfunCalls <- FUN(vabstractCol,...)
+        if(!MARGIN %in% 1:2) 
+            stop("MARGIN must be 1 or 2 in apply for FLMatrix")
+        vgroupCol <- getVariables(X)[[X@dimColumns[MARGIN]]]
+        vvalueCol <- getVariables(X)[[X@dimColumns[3]]]
+        vrownames <- dimnames(X)[[MARGIN]]
+        ifelse(is.null(vrownames),vrownames <- 1:(dim(X)[MARGIN]),
+            vrownames <- vrownames)
+
+		# if(MARGIN==1){
+		# vgroupCol <- getVariables(X)[["rowIdColumn"]]
+		# vvalueCol <- getVariables(X)[["valueColumn"]]
+		# vrownames <- rownames(X)
+		# ifelse(is.null(vrownames),vrownames <- 1:nrow(X),
+		# 	vrownames <- vrownames)
+		# }
+		# else if(MARGIN==2){
+		# vgroupCol <- getVariables(X)[["colIdColumn"]]
+		# vvalueCol <- getVariables(X)[["valueColumn"]]
+		# vrownames <- colnames(X)
+		# ifelse(is.null(vrownames),vrownames <- 1:ncol(X),
+		# 	vrownames <- vrownames)
+		# }
+		# else stop("MARGIN can be 0 or 1 in apply.FLMatrix")
+		vFuncArgs <- list(...)
+        vFuncArgs <- c(vFuncArgs,count=dim(X)[setdiff(1:2,MARGIN)])
+        vFuncArgs <- unlist(vFuncArgs)
+        vabstractCol <- new("FLAbstractColumn",
+                            columnName=vvalueCol)
+        vfunCalls <- FUN(vabstractCol,vFuncArgs)
+        
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
 								vgroupCol," AS vectorIndexColumn,\n",
 								vfunCalls," AS vectorValueColumn \n",
