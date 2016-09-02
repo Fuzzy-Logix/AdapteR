@@ -133,6 +133,8 @@ setMethod("z.test",signature(x="FLVector"),
         }
 
         else{
+            if(prob==0)
+            {
             pFuncName<-"FLzTest2S"
             vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
                                         pFuncArgs=c("c.FLStatistic",
@@ -144,15 +146,37 @@ setMethod("z.test",signature(x="FLVector"),
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
                                         pGroupBy="c.FLStatistic")
+            }
+
+            else {
+
+            pFuncName<-"FLzTest2P"
+            vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
+                                        pFuncArgs=c("c.FLStatistic",
+                                                    "a.Num_Val1",
+                                                    "a.Num_Val2",
+                                                    tails),
+                                        pAddSelect=c(stat="c.FLStatistic"),
+                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                                c="fzzlARHypTestStatsMap"),
+                                        pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
+                                        pGroupBy="c.FLStatistic")
+
+
+
+            }        
          }
+
     vres<-sqlQuery(connection,vsqlstr)
+    cint<-cint(x,conf.level)
+    attr(cint,"conf.level") <- conf.level
     vresList<-list(statistic=c("P value"=vres[1,1]),
                    parameter=c("Z stat"=vres[2,1]),
                    data.name=vcall,
                    alternative=paste0("true mean is not equal to ",test_val),
                    estimate =c("mean of x" = mean(x)),
                    method="One Sample z-test",
-                   conf.int = conf.level*100
+                   conf.int = cint
                    )
     class(vresList)<-"htest"
     return(vresList)
@@ -164,6 +188,7 @@ t.test.FLVector <- function(x,
                             mu = 0,
                             tails=2,
                             conf.level =.95,
+                            variance="equal",
                             alternative="two.sided",...)
 {       
         if(is.null(x)||!is.FLVector(x))
@@ -171,8 +196,9 @@ t.test.FLVector <- function(x,
 
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
 
-        vcall<<-paste(all.vars(sys.call())[1],collapse=" and ")
+        vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
 
+        if(length(y)==0){
         sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
                                         pFuncArgs = c("c.FLStatistic",
                                                         mu,
@@ -185,8 +211,28 @@ t.test.FLVector <- function(x,
                                                   c = "fzzlARHypTestStatsMap"),
                                         pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
                                         pGroupBy = "c.FLStatistic")
-                                             
-                    
+        method<-"One Sample t-test"
+        }                                         
+           
+        else{
+            if(variance=="equal") var<-"EQUAL_VAR"
+            else                  var<-"UNEQUAL_VAR"
+
+        sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
+                                        pFuncArgs=c("c.FLStatistic",
+                                                     fquote(var),
+                                                    "a.Num_Val1",
+                                                    "a.Num_Val2",
+                                                    tails),
+                                        pAddSelect=c(stat="c.FLStatistic"),
+                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                                c="fzzlARHypTestStatsMap"),
+                                        pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
+                                        pGroupBy="c.FLStatistic")
+        method<-"Two Sample t-test"
+
+
+    }         
     result <<- sqlQuery(connection, sqlstr)
     cint<-cint(x,conf.level,alternative)
     attr(cint,"conf.level") <- conf.level
@@ -196,7 +242,7 @@ t.test.FLVector <- function(x,
                 p.value=   c("p-value"=as.numeric(result[2,1])),
                 alternative=paste0("true mean is not equal to ",mu ),
                 estimate =c("mean of x" = mean(x)),
-                method="One Sample t-test",
+                method=method,
                 conf.int = cint,
                 alternative="two.sided")                
     
