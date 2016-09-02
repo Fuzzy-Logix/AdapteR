@@ -82,6 +82,82 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         return(vresList)
     })
 
+
+
+
+wilcox.test.FLVector <- function(x,y = NULL,mu = 0,...)
+{
+    if(!is.FLVector(x) || !is.FLVector(y))
+
+        stop("Must be FLVector")
+
+    else
+    {
+       
+        vviewName <- gen_view_name("wsrTest")
+        if(length(x)> length(y))
+            res <- sqlSendUpdate(connection, createHypoView(y,x,vviewName))
+        else
+            res <- sqlSendUpdate(connection, createHypoView(x,y,vviewName))
+       
+        #  Using Stored Proc Query.
+
+        ret <- sqlStoredProc(connection,
+                             "FLWSRTest",
+                             TableName = vviewName,
+                             Val1ColName = "Num_Val1",
+                             Val2ColName = "Num_Val2",
+                             WhereClause = NULL ,
+                             GroupBy = NULL,
+                             TableOutput = 1,
+                             outputParameter = c(ResultTable = 'a'))
+
+        sqlstr <- paste0( "SELECT q.W_STAT AS W,
+                                  q.P_VALUE AS p  
+                           FROM ",ret$ResultTable," AS q")
+        result <-  sqlQuery(connection,sqlstr)       
+       
+        # Extracting the result.
+        
+        res <- list(statistics = c(W = result$W),
+                    p.value = result$p,
+                   # data.name = paste0((x)," and ",substitute(y)),
+                    alternative = "two.sided",
+                    method = "Wilcoxon rank sum test"
+                    )
+        class(res) <- "htest"
+        return(res)
+    }
+}
+
+# Joining two FLVectors and creating a volatile table.
+createHypoView <- function(q,r,pViewName)
+{
+    vminLength <- length(q)
+    
+    sqlstr0 <- paste0("CREATE VIEW ",pViewName," AS
+                           SELECT a.vectorValueColumn AS Num_Val1,
+                                  b.vectorvalueColumn AS Num_Val2
+                           FROM (",constructSelect(q),") a, (",constructSelect(r),") b
+                           WHERE a.vectorindexcolumn = b.vectorindexcolumn
+                           UNION ALL
+                           SELECT NULL AS Num_Val1, b.vectorValueColumn AS Num_Val2 
+                           FROM (",constructSelect(r),") b 
+                           WHERE b.vectorindexcolumn >",vminLength)
+    return(sqlstr0)         
+}
+
+
+
+
+
+
+
+
+
+
+
+
 ##################################### Aggregate SQL ###########################################
 constructAggregateSQL <- function(pFuncName,
                                   pFuncArgs,
