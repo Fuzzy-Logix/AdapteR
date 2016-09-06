@@ -80,22 +80,46 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 }
 
 #' @export
-mean.FLAbstractColumn <- function(object,...){
-    vFuncArgs <- c(...)
-    return(paste0(" FLSum(",
-                paste0(object@columnName,collapse=","),")/ ",vFuncArgs["count"]))
+mean.FLAbstractColumn <- function(x, trim = 0, na.rm = FALSE, ...){
+	return(paste0(" FLMean(",
+				paste0(x@columnName,collapse=","),") "))
+}
+modifyXforTrim <- function(x,trim){
+    n <- length(x)
+    if (trim > 0 && n){
+        if(is.FLTable(x))
+            stop("trim not supported for FLTable objects. \n ")
+        if (trim >= 0.5) 
+            return(median(x))
+        lo <- floor(n * trim) + 1
+        hi <- n + 1 - lo
+        x <- sort(x)[lo:hi]
+        return(x)
+    }
+    else if(trim==0)
+        return(x)
+    else(stop("invalid trim \n "))
 }
 
 #' @export
-mean.FLVector <- function(x,...){
+mean.FLVector <- function (x, trim = 0, na.rm = FALSE, ...){
+    x <- modifyXforTrim(x=x,trim=trim)
+    if(length(x)==1)
+        return(x)
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 #' @export
-mean.FLMatrix <- function(x,...){
+mean.FLMatrix <- function (x, trim = 0, na.rm = FALSE, ...){
+    x <- modifyXforTrim(x=x,trim=trim)
+    if(length(x)==1)
+        return(x)
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 #' @export
-mean.FLTable <- function(x,...){
+mean.FLTable <- function (x, trim = 0, na.rm = FALSE, ...){
+    x <- modifyXforTrim(x=x,trim=trim)
+    if(length(x)==1)
+        return(x)
 	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
 }
 
