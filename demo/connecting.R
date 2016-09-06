@@ -14,7 +14,7 @@
 ## Setting up a ODBC connection
 
 ## The Documentation for flConnect can be found using ?flConnect
-?flConnect
+## ?flConnect
 vtemp <- readline("Teradata:Connecting to FL_TRAIN database:")
 
 if(!exists("yourODBCSource") & !exists("yourUser"))
