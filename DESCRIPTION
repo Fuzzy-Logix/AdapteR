@@ -82,6 +82,7 @@ Collate:
     'FLHKMeans.R'
     'FLHeadTail.R'
     'FLHessenDecomp.R'
+    'FLHypothesisTesting.R'
     'FLIdentical.R'
     'FLIs.R'
     'FLJordanDecomp.R'

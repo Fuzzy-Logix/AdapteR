@@ -174,3 +174,106 @@ setMethod("binom.test",signature(x="FLVector"),
 
 
 
+t.test.FLVector <- function(x,
+                            y= NULL,
+                            mu = 0,
+                            tails=2,
+                            conf.level =.95,
+                            variance="equal",
+                            alternative="two.sided",...)
+{       
+        if(is.null(x)||!is.FLVector(x))
+        stop("Only FLVector is supported")
+
+        if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
+
+        vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
+
+        if(length(y)==0){
+        sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
+                                        pFuncArgs = c("c.FLStatistic",
+                                                        mu,
+                                                      "a.vectorValueColumn",
+                                                       tails),
+                                        pAddSelect = c(stat="c.FLStatistic",
+                                                       df = "COUNT(DISTINCT a.vectorValueColumn)"),
+                                                                              
+                                        pFrom = c(a = constructSelect(x),
+                                                  c = "fzzlARHypTestStatsMap"),
+                                        pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
+                                        pGroupBy = "c.FLStatistic")
+        method<-"One Sample t-test"
+        }                                         
+           
+        else{
+            if(variance=="equal") var<-"EQUAL_VAR"
+            else                  var<-"UNEQUAL_VAR"
+            sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
+                                          pFuncArgs=c("c.FLStatistic",
+                                                      fquote(var),
+                                                      "a.Num_Val1",
+                                                      "a.Num_Val2",
+                                                      tails),
+                                        pAddSelect=c(stat="c.FLStatistic"),
+                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                                c="fzzlARHypTestStatsMap"),
+                                        pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
+                                        pGroupBy="c.FLStatistic")
+        method<-"Two Sample t-test"
+    }
+    result <<- sqlQuery(connection, sqlstr)
+    cint<-cint(x,conf.level,alternative)
+    attr(cint,"conf.level") <- conf.level
+    res <- list(data.name = vcall,
+                statistic =c(t = as.numeric(result[1,1])),
+                parameter= c(df=as.numeric(result[1,3])-1),
+                p.value=   c("p-value"=as.numeric(result[2,1])),
+                alternative=paste0("true mean is not equal to ",mu ),
+                estimate =c("mean of x" = mean(x)),
+                method=method,
+                conf.int = cint,
+                alternative="two.sided")                
+    class(res) <- "htest"
+    return(res)
+}
+
+
+cint<-function(x,conf.level,alternative="two.sided"){
+    if (alternative=="two.sided")
+    {
+        df<-length(x)-1
+        sd<-sd(x)/sqrt(length(x))
+        qt<-qt(conf.level+(1-conf.level)/2,df)*sd
+        res<-mean(x)+c(-qt,qt)
+    }
+    else stop("Not available for others")
+    return(res)
+}
+
+## gk: this needs review for non-consecutive obs-ids/vectorindexcolumns
+## gk: probably best way to solve this is by using cbind
+## gk: with an option to not recycle values in shorter vectors (would break t.test)
+createHypoView <- function(x,y){
+    if(length(x)>length(y)) {
+        q <- y
+        r <- x
+    } else {
+        q <- x
+        r <- y
+    }
+    vminLength<-length(q)
+    pViewName<-genRandVarName()
+    sqlstr0 <- paste0("CREATE VIEW ",pViewName," AS
+                       SELECT a.vectorValueColumn AS Num_Val1,
+                       b.vectorvalueColumn AS Num_Val2
+                       FROM (",constructSelect(q),") a, (",constructSelect(r),") b
+                       WHERE a.vectorindexcolumn = b.vectorindexcolumn
+                       UNION ALL
+                       SELECT NULL AS Num_Val1, b.vectorValueColumn AS Num_Val2 
+                       FROM (",constructSelect(r),") b 
+                       WHERE b.vectorindexcolumn >",vminLength)
+    sqlQuery(connection,sqlstr0)
+    return(pViewName)       
+}
+
+
