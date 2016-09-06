@@ -65,7 +65,7 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 										valueColumn="valueColumn"))
 		
 		sqlstr <- paste0(" SELECT ",
-						func(vnewObsCol),
+						func(vnewObsCol,...),
 						" FROM (SELECT ",voldAbsCol@columnName[["indexColumn"]]," AS indexColumn, \n ",
 							voldAbsCol@columnName[["valueColumn"]]," AS valueColumn \n ",
 							" FROM (",constructSelect(object),") a) b ")
@@ -88,15 +88,24 @@ mean.FLAbstractColumn <- function(object,...){
 
 #' @export
 mean.FLVector <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+    vFuncArgs <- list(...)
+    vFuncArgs <- c(vFuncArgs,count=length(x))
+    vFuncArgs <- unlist(vFuncArgs)
+	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
 }
 #' @export
 mean.FLMatrix <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+    vFuncArgs <- list(...)
+    vFuncArgs <- c(vFuncArgs,count=length(x))
+    vFuncArgs <- unlist(vFuncArgs)
+	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
 }
 #' @export
 mean.FLTable <- function(x,...){
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+    vFuncArgs <- list(...)
+    vFuncArgs <- c(vFuncArgs,count=prod(dim(x)))
+    vFuncArgs <- unlist(vFuncArgs)
+	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 
@@ -207,7 +216,7 @@ setMethod("apply",
         vabstractCol <- new("FLAbstractColumn",
                             columnName=vvalueCol)
         vfunCalls <- FUN(vabstractCol,vFuncArgs)
-        
+
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
 								vgroupCol," AS vectorIndexColumn,\n",
 								vfunCalls," AS vectorValueColumn \n",

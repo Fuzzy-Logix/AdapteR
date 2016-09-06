@@ -326,7 +326,8 @@ step.FLTable <- function(object, scope, scale = 0,
 	if(class(scope)=="formula")
 	{
 		if(isDotFormula(scope))
-			scope <- genDeepFormula(pColnames=colnames(object),
+			scope <- genDeepFormula(pColnames=setdiff(colnames(object),
+                                                      getVariables(object)[["obs_id_colname"]]),
 									pDepColumn=ifelse(object@isDeep,
 													NULL,
 													all.vars(scope)[1]))
@@ -344,12 +345,14 @@ step.FLTable <- function(object, scope, scale = 0,
 
 		## To account for . in formula
 		if(isDotFormula(vlower))
-		vlower <- genDeepFormula(pColnames=colnames(object),
+		vlower <- genDeepFormula(pColnames=setdiff(colnames(object),
+                                                      getVariables(object)[["obs_id_colname"]]),
 								pDepColumn=ifelse(object@isDeep,
 													NULL,
 													all.vars(vlower)[1]))
 		if(isDotFormula(vupper))
-		vupper <- genDeepFormula(pColnames=colnames(object),
+		vupper <- genDeepFormula(pColnames=setdiff(colnames(object),
+                                                      getVariables(object)[["obs_id_colname"]]),
 								pDepColumn=ifelse(object@isDeep,
 													NULL,
 													all.vars(vupper)[1]))
@@ -704,7 +707,7 @@ prepareData.lmGeneric <- function(formula,data,
 								catToDummy=0,
 								performNorm=0,
 								performVarReduc=0,
-								makeDataSparse=0,
+								makeDataSparse=1,
 								minStdDev=0,
 								maxCorrel=1,
 								classSpec=list(),
@@ -721,6 +724,7 @@ prepareData.lmGeneric <- function(formula,data,
 								pRefLevel=NULL,
                                 ...){
 	#browser()
+    data <- setAlias(data,"")
 	if(data@isDeep){
 		vallVars <- colnames(data)
 		##For MultiDataset and deep data
@@ -735,9 +739,15 @@ prepareData.lmGeneric <- function(formula,data,
 		formula <- genDeepFormula(vallVars)
 	}
 	else{
-		if(isDotFormula(formula))
-			formula <- genDeepFormula(pColnames=colnames(data),
-									pDepColumn=all.vars(formula)[1])
+        if(isDotFormula(formula)){
+            vexcludeCols <- NULL
+            if("excludeCols" %in% names(list(...)))
+                vexcludeCols <- list(...)$excludeCols
+            formula <- genDeepFormula(pColnames=setdiff(colnames(data),
+                                                c(vexcludeCols,
+                                                getVariables(data)[["obs_id_colname"]])),
+                                    pDepColumn=all.vars(formula)[1])
+        }
 		vallVars <- base::all.vars(formula)
 		vdependent <- vallVars[1]
 		vindependent <- vallVars[2:length(vallVars)]
@@ -857,15 +867,20 @@ prepareData.lmGeneric <- function(formula,data,
 									collapse=","),
 								" FROM (",constructSelect(data),") a "))
 			vtempList <- list()
+            vrefVarNames <- names(vrefVars)
 			for(i in colnames(vrefVars)){
-				if(is.logical(vrefVars[[i]]))
+                ## Remove variables with NA
+                if(is.na(vrefVars[[i]]))
+                    vrefVarNames <- setdiff(vrefVarNames,
+                                            i)
+                else if(is.logical(vrefVars[[i]]))
 					vtempList <- c(vtempList,
 									levels(sqlQuery(getOption("connectionFL"),
 												paste0("SELECT DISTINCT(",i,
 												") FROM(",constructSelect(data),") a "))[[1]])[1])
 				else vtempList <- c(vtempList,as.character(vrefVars[[i]]))
 			}
-			names(vtempList) <- names(vrefVars)
+			names(vtempList) <- vrefVarNames
 			# vfactorCols[names(vrefVars)] <- as.list(apply(vrefVars[names(vrefVars)],
 			# 											2,function(x){
 			# 												browser()
@@ -1445,7 +1460,8 @@ model.FLLinRegr <- function(object,...)
 
 ## move to file lm.R
 #' @export
-summary.FLLinRegr <- function(object){
+summary.FLLinRegr <- function(object,
+                              calcResiduals=FALSE){
 	if(is.FLTableMD(object@table))
 		reqList <- summary.FLLinRegrMD(object)
 	else{
@@ -1459,8 +1475,12 @@ summary.FLLinRegr <- function(object){
 	  	#put rowname
 	  	rname <- all.vars(object@formula)
 	  	rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
+
+        if(calcResiduals)
+            vresiduals <- as.vector(object$residuals)
+        else vresiduals <- NULL
 	  	reqList <- list(call = as.call(object@formula),
-	                  residuals  = as.vector(object$residuals),
+	                  residuals  = vresiduals,
 	                  coefficients = as.matrix(coeffframe),
 	                  sigma = stat$STDERR,
 	                  df = as.vector(c((stat$DFREGRESSION + 1),stat$DFRESIDUAL, (stat$DFREGRESSION + 1))),
@@ -1518,14 +1538,13 @@ predict.lmGeneric <- function(object,
 		newdataCopy <- newdata
 		deepx <- FLRegrDataPrep(newdata,depCol="",
 								outDeepTableName="",
-								outDeepTableDatabase="",
 								outObsIDCol="",
 								outVarIDCol="",
 								outValueCol="",
 								catToDummy=0,
 								performNorm=0,
 								performVarReduc=0,
-								makeDataSparse=0,
+								makeDataSparse=1,
 								minStdDev=0,
 								maxCorrel=1,
 								trainOrTest=1,
