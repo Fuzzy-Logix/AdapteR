@@ -1307,7 +1307,7 @@ coefficients.lmGeneric <-function(object,
 		##Since Currently only 1000 Columns are supported
 		## by FLLinRegr, fetch them.
 		#browser()
-		vmapping <- NULL
+		# vmapping <- NULL
 		vfcalls <- object@vfcalls
 		vcoeffnames <- NULL
 		vmodelnames <- NULL
@@ -1356,7 +1356,7 @@ coefficients.lmGeneric <-function(object,
 
 		colnames(coeffVector) <- toupper(colnames(coeffVector))
 		coeffVector1 <- coeffVector[["COEFFVALUE"]]
-		vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
+		# vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
 		if(!is.null(vcoeffnames)){
 			if(!pIntercept)
 				names(coeffVector1) <- as.character(vcoeffnames)
@@ -1383,7 +1383,8 @@ coefficients.lmGeneric <-function(object,
 												droppedCols=droppedCols),
 												FLCoeffStats)
 		object@results[["modelColnames"]]<-vmodelnames
-		object@results[["varIDMapping"]] <- vmapping
+        object@results[["CoeffID"]] <- as.numeric(coeffVector[["COEFFID"]])
+		# object@results[["varIDMapping"]] <- vmapping
 		parentObject <- unlist(strsplit(unlist(strsplit(
 			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
