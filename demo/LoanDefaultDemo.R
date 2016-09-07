@@ -1,6 +1,6 @@
-devtools::load_all(".")
-flt <- FLTable("tblLoanDataTrain","Loanid",whereconditions = "LoanID<200000")
+flt <- FLTable("tblLoanDataTrain","Loanid")
 fltest <- FLTable("tblLoanDataTest","Loanid")
+
 excludeCols=c("sub_grade","emp_name",
               "emp_length","addr_city",
               "addr_state","bc_util",
@@ -15,6 +15,9 @@ system.time(vresFL <- glm(default_ind~.,data=flt,
                           minStdDev=0.1,
                           maxCorrel=0.7,
                           excludeCols=excludeCols))
+
+summary(vresFL)
+
 vfit <- predict(vresFL,fltest)
 #vdf <- read.csv("C:/Users/phani/Downloads/tblTwitterBuzz.dat",sep="|",header = FALSE)
 #colnames(vdf)<-colnames(flt)
