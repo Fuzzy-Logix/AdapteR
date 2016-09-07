@@ -27,7 +27,8 @@ FLTable <- function(table,
                     cell_val_colname=character(0),
                     whereconditions=character(0),
                     connection=NULL,
-                    type="double")
+                    type="double",
+                    ...)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
@@ -48,7 +49,10 @@ FLTable <- function(table,
                          paste0("SELECT DISTINCT(",
                                 var_id_colnames,") as VarID FROM ",tableAndAlias(table),
                           " ",constructWhere(whereconditions)))$VarID)
-        rows <- sort(sqlQuery(connection,
+        if(!is.null(list(...)[["ObsID"]]))
+          rows <- list(...)[["ObsID"]]
+        else
+          rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",tableAndAlias(table),
                           " ",constructWhere(whereconditions)))$VarID)
@@ -93,16 +97,21 @@ FLTable <- function(table,
 	}
 	else
 	{
-        
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
+        if(!changeAlias(obs_id_colname,"","") %in% cols)
+          stop(paste0(changeAlias(obs_id_colname,"",""),
+                      " not a column in table.Please check case Sensitivity \n "))
         # rows <- sort(as.numeric(sqlQuery(connection,
         #                     paste0("SELECT DISTINCT(",
         #                                 obs_id_colname,") as VarID
 						  #                       FROM ",tableAndAlias(table),
         #                             " ",constructWhere(whereconditions)))$VarID))
-        rows <- sort(sqlQuery(connection,
+        if(!is.null(list(...)[["ObsID"]]))
+          rows <- list(...)[["ObsID"]]
+        else
+          rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
                                         obs_id_colname,") as VarID
                                     FROM ",tableAndAlias(table),
@@ -678,7 +687,7 @@ setMethod("FLRegrDataPrep",
                   catToDummy=0,
                   performNorm=0,
                   performVarReduc=0,
-                  makeDataSparse=0,
+                  makeDataSparse=1,
                   minStdDev=0,
                   maxCorrel=0,
                   trainOrTest=0,
@@ -839,7 +848,8 @@ setMethod("FLRegrDataPrep",
               table <- FLTable(deeptablename,
                                outObsIDCol,
                                outVarIDCol,
-                               outValueCol
+                               outValueCol,
+                               ObsID=rownames(object)
                               )
             else if(is.FLTableMD(object))
               table <- FLTableMD(deeptablename,

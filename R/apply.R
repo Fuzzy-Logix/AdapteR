@@ -65,7 +65,7 @@ genScalarFunCall <- function(object,func,indexCol=FALSE,...){
 										valueColumn="valueColumn"))
 		
 		sqlstr <- paste0(" SELECT ",
-						func(vnewObsCol),
+						func(vnewObsCol,...),
 						" FROM (SELECT ",voldAbsCol@columnName[["indexColumn"]]," AS indexColumn, \n ",
 							voldAbsCol@columnName[["valueColumn"]]," AS valueColumn \n ",
 							" FROM (",constructSelect(object),") a) b ")
@@ -102,25 +102,25 @@ modifyXforTrim <- function(x,trim){
 }
 
 #' @export
-mean.FLVector <- function (x, trim = 0, na.rm = FALSE, ...){
-    x <- modifyXforTrim(x=x,trim=trim)
-    if(length(x)==1)
-        return(x)
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+mean.FLVector <- function(x,...){
+    vFuncArgs <- list(...)
+    vFuncArgs <- c(vFuncArgs,count=length(x))
+    vFuncArgs <- unlist(vFuncArgs)
+	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
 }
 #' @export
-mean.FLMatrix <- function (x, trim = 0, na.rm = FALSE, ...){
-    x <- modifyXforTrim(x=x,trim=trim)
-    if(length(x)==1)
-        return(x)
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+mean.FLMatrix <- function(x,...){
+    vFuncArgs <- list(...)
+    vFuncArgs <- c(vFuncArgs,count=length(x))
+    vFuncArgs <- unlist(vFuncArgs)
+	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
 }
 #' @export
-mean.FLTable <- function (x, trim = 0, na.rm = FALSE, ...){
-    x <- modifyXforTrim(x=x,trim=trim)
-    if(length(x)==1)
-        return(x)
-	return(genScalarFunCall(x,mean.FLAbstractColumn,...))
+mean.FLTable <- function(x,...){
+    vFuncArgs <- list(...)
+    vFuncArgs <- c(vFuncArgs,count=prod(dim(x)))
+    vFuncArgs <- unlist(vFuncArgs)
+	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 
@@ -231,7 +231,7 @@ setMethod("apply",
         vabstractCol <- new("FLAbstractColumn",
                             columnName=vvalueCol)
         vfunCalls <- FUN(vabstractCol,vFuncArgs)
-        
+
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
 								vgroupCol," AS vectorIndexColumn,\n",
 								vfunCalls," AS vectorValueColumn \n",

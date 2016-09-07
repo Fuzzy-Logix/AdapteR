@@ -843,6 +843,16 @@ checkValidFormula <- function(pObject,pData)
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
                                     tableName)
 {
+    ## check if tableName has database
+    if(grepl(".",tableName,fixed=TRUE)){
+        vdb <- strsplit(tableName,".",fixed=TRUE)[[1]][1]
+        vtbl <- strsplit(tableName,".",fixed=TRUE)[[1]][2]
+        if(!missing(databaseName) && vdb!=databaseName)
+            stop("databaseName and database included in tableName dont match \n ")
+        databaseName <- vdb
+        tableName <- vtbl
+    }
+
     vtemp <- sqlQuery(getOption("connectionFL"),paste0(
                         "SELECT 1 FROM dbc.tables \n ",
                         " WHERE databaseName = ",fquote(databaseName),

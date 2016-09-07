@@ -435,8 +435,13 @@ createTable <- function(pTableName,
         }
     }
     vsqlstr <- paste0(vsqlstr,";")
-    if(!pTemporary & getOption("temporaryTablesFL"))
+    if(!pTemporary & getOption("temporaryTablesFL")){
+        if(!pDrop){
+            if(checkRemoteTableExistence(tableName=pTableName))
+                return()
+        }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
+    }
 
     ## gk @ phani: what will this be used for? It never is used actually...
     if("usedbSendUpdate" %in% names(list(...))){
