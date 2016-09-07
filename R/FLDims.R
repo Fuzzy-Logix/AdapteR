@@ -25,7 +25,7 @@ nrow.FLMatrixBind<-function(object)
 }
 
 #' @export
-nrow.FLTable<-function(object)	return(length(object@dimnames[[1]]))
+nrow.FLTable<-function(object)	return(object@dim[[1]])
 #' @export
 nrow.FLVector<-function(object)	return(length(object@dimnames[[1]]))
 
@@ -67,7 +67,7 @@ ncol.FLMatrixBind<-function(object)
         return(ncol(object@parts[[1]]))
 }
 #' @export
-ncol.FLTable<-function(object) 	return(length(object@dimnames[[2]]))
+ncol.FLTable<-function(object) 	return(object@dim[[2]])
 #' @export
 ncol.FLVector<-function(object) return(length(object@dimnames[[2]]))
 

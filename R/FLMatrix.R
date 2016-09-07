@@ -87,10 +87,12 @@ setClass("FLTable",
          slots = list(
              select = "FLTableQuery",
              dimnames = "list",
+             dim = "numeric",
              isDeep = "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
-         ),prototype = prototype(type="double")
+         ),
+         prototype = prototype(type="double")
         )
 
 #' An S4 class to represent FLTableMD, an in-database data.frame.
@@ -101,16 +103,16 @@ setClass("FLTable",
 #' @slot mapSelect \code{FLSelectFrom} object which contains the 
 #' mapping information if any
 #' @export
-setClass(
-    "FLTableMD",
-    contains="FLTable",
-    slots = list(
-        select = "FLTableQuery",
-        dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
+setClass("FLTableMD",
+         contains="FLTable",
+         slots = list(
+             select = "FLTableQuery",
+             dimnames = "list",
+             dim = "numeric",
+             isDeep = "logical",
+             mapSelect = "FLSelectFrom"
+         )
+         )
 
 #' An S4 class to represent FLVector
 #'
@@ -122,8 +124,9 @@ setClass("FLVector",
              isDeep= "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
-         ),prototype = prototype(type="double")
-        )
+         ),
+         prototype = prototype(type="double")
+         )
 
 setMethod("str",signature(object="FLVector"),
           function(object) cat(paste0("FLVector [",length(object),"] ", object@type, "\n   ",str(object@select),"\n")))
