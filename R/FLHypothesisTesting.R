@@ -211,44 +211,45 @@ t.test.FLVector <- function(x,
                                                   c = "fzzlARHypTestStatsMap"),
                                         pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
                                         pGroupBy = "c.FLStatistic")
-        method<-"One Sample t-test"
-        }                                         
+        method<-"One Sample t-test"}                                         
            
         else{
             if(variance=="equal") var<-"EQUAL_VAR"
             else                  var<-"UNEQUAL_VAR"
 
-        sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
+            vunionSelect <<- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
+                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
+                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
+
+            sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
                                         pFuncArgs=c("c.FLStatistic",
                                                      fquote(var),
-                                                    "a.Num_Val1",
-                                                    "a.Num_Val2",
+                                                    "a.groupID",
+                                                    "a.num_val",
                                                     tails),
                                         pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                        pFrom=c(a=vunionSelect,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
                                         pGroupBy="c.FLStatistic")
-        method<-"Two Sample t-test"
-
-
-    }         
-    result <<- sqlQuery(connection, sqlstr)
+    method<-"Welch Two Sample t-test"}
+    vcall<-paste(all.vars(sys.call())[1],collapse=" and ")   
+    result <- sqlQuery(connection, sqlstr)
     cint<-cint(x,conf.level,alternative)
     attr(cint,"conf.level") <- conf.level
     res <- list(data.name = vcall,
                 statistic =c(t = as.numeric(result[1,1])),
                 parameter= c(df=as.numeric(result[1,3])-1),
                 p.value=   c("p-value"=as.numeric(result[2,1])),
-                alternative=paste0("true mean is not equal to ",mu ),
-                estimate =c("mean of x" = mean(x)),
+                alternative=paste0("true difference in means is not equal to ",mu ),
+                estimate =c("mean of x" = mean(x),
+                            "mean of y" = mean(y)),
                 method=method,
                 conf.int = cint,
                 alternative="two.sided")                
     
     class(res) <- "htest"
     return(res)
-    
 }
 
 
@@ -322,3 +323,23 @@ constructAggregateSQL <- function(pFuncName,
     return(vsqlstr)
 }
 
+constructUnionSQL <- function(pFrom,
+                           pSelect=NULL){
+    vFrom <- as.list(pFrom)
+    vSelects <- sapply(1:length(vFrom),
+                        function(x){
+                            if(is.null(pSelect))
+                                vinnerSelect <- "*"
+                            else{
+                                vinnerSelect <- pSelect[[names(vFrom)[[x]]]]
+                                vinnerSelect <- ifelse(!is.null(names(vinnerSelect)),
+                                                    paste0(vinnerSelect," AS ",names(vinnerSelect),collapse=","),
+                                                    paste0(vinnerSelect,collapse=","))
+                                print(vinnerSelect)
+                            }
+                                return(paste0("SELECT ",vinnerSelect," \n ",
+                                              " FROM (",vFrom[[x]],") AS ",
+                                                    names(vFrom)[[x]]))
+                            })
+    return(paste0(vSelects, collapse= " \n UNION ALL \n "))
+}
