@@ -15,7 +15,6 @@
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
-options(debugSQL=FALSE)
 #############################################################
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
@@ -49,3 +48,6 @@ vtemp <- readline("Above: Examining the residuals \n ")
 
 head(vresFL$fitted.values)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
+
+####### END #######
+#### Thank You ####
