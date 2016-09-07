@@ -15,16 +15,17 @@
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
-options(debugSQL=FALSE)
+
+
 #############################################################
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
-?FLTable
-vtemp <- readline("Below: wide FLTable object created. \n ")
 FLtbl <- FLTable("tblTwitterBuzz","OBSID")
 
 vtemp <- readline("Below: Examining data structure using head \n ")
 head(FLtbl)
+
+dim(FLtbl)
 
 vtemp <- readline("Below: Fitting lm model on data \n ")
 vresFL <- lm(Buzz_Magnitude~.,data=FLtbl)

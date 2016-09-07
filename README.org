@@ -127,13 +127,8 @@ The package includes some demos to get you started and to explain the most impor
 #+BEGIN_SRC R :session r_fl :results output :exports both
 require(AdapteR)
 demo(package="AdapteR")
-## if you want to demonstrate what SQL queries are created during the demo:
-## options(debugSQL=TRUE)
-
-## run a demo:
-## demo("matrix.correlation",package="AdapteR")
+## This lists all available demos
 #+END_SRC
-
 
 #+RESULTS: 
 #+BEGIN_EXAMPLE
@@ -147,6 +142,34 @@ string.functions
 kmeans
 Iris_kmeans
 #+END_EXAMPLE
+
+To start a demo, set your connection info with ODBC
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourODBCSource <- "Gandalf" ## please make sure you use a 64 bit ODBC driver on a 64 bit R session
+yourPlatform <- "td"
+#+END_SRC
+
+Or set your connection info with ODBC
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourUser <- "" 
+yourPassword <- ""
+yourHost <- ""
+yourJarDir <- ""
+yourPlatform <- "td"
+#+END_SRC
+
+
+Run a demo:
+#+BEGIN_SRC R :session r_fl :results output :exports both
+demo("matrix.correlation",package="AdapteR")
+#+END_SRC
+
+If you want to demonstrate what SQL queries are created during the demo:
+options(debugSQL=TRUE)
+#+BEGIN_SRC R :session r_fl :results output :exports both
+options(debugSQL=TRUE)
+#+END_SRC
+
 ** Optional packages
 :PROPERTIES:
 :ID:       A7CCAA11-1DCD-482D-8744-88631588B3AF
