@@ -334,7 +334,7 @@ predict.FLCoxPH <-function(object,
 		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
 		newdataCopy <- newdata
 		vtablename <- newdataCopy@select@table_name
-		vtablename2 <- table@select@table_name
+		vtablename2 <- object@table@select@table_name
 
 		## SQL to Insert the dependent column ans statusColumn
 		vVaridVec <- c(-2)

@@ -116,3 +116,14 @@ is.formula <- function(pObject){
 
 is.FLTableFunctionQuery <- function(pObject)
     return(class(pObject)=="FLTableFunctionQuery")
+
+isContinuous <- function(x){
+    if(any(suppressWarnings(is.na(as.numeric(x)))))
+        return(FALSE)
+    else x <- as.numeric(x)
+
+    x <- sort(x)
+    if(all(abs(diff(x))==1))
+        return(TRUE)
+    else return(FALSE)
+}

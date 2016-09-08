@@ -50,3 +50,6 @@ vtemp <- readline("Above: Examining the residuals \n ")
 
 head(vresFL$fitted.values)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
+
+####### END #######
+#### Thank You ####
