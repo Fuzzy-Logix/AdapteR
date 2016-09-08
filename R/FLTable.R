@@ -360,6 +360,7 @@ setMethod("wideToDeep",
               object <- new("FLTable",
                             select = select,
                             dimnames = object@dimnames,
+                            dim = dim(object),
                             isDeep = FALSE)
               #object <- store(object)
             }
@@ -551,6 +552,7 @@ setMethod("deepToWide",
 
               object <- new("FLTable",
                             select = select,
+                            dim = dim(object),
                             dimnames = object@dimnames,
                             isDeep = TRUE)
             # if(class(object@select)=="FLTableFunctionQuery" || length(whereconditions)>0)

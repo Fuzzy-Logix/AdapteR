@@ -958,10 +958,11 @@ as.FLTable.data.frame <- function(object,
                 whereconditions=character(0),
                 order = "")
 
-  return(new("FLTable", 
+  return(new("FLTable",
               select = select,
               dimnames = list(object[,obsIdColname],
                               vcolnames),
+             dim=dim(object),
               isDeep = FALSE,
               type=sapply(object,typeof)))
 }

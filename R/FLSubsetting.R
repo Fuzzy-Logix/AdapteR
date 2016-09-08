@@ -80,7 +80,6 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
-  #browser()
     vtype <- typeof(object)
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
@@ -117,6 +116,7 @@ NULL
                newrownames <- sort(as.numeric(object@dimnames[[1]])))
         object@dimnames <- list(newrownames,
                                 newcolnames)
+        object@dim[[2]] <- length(newcolnames)
         if(object@isDeep){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
@@ -137,6 +137,8 @@ NULL
                               newcolnames))
         }
         object@dimnames = list(newrownames, newcolnames)
+        object@dim[[2]] <- length(newrownames)
+        object@dim[[2]] <- length(newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
     {
