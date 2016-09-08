@@ -136,28 +136,33 @@ setMethod("z.test",signature(x="FLVector"),
             if(prob==0)
             {
             pFuncName<-"FLzTest2S"
+            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
+                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
+                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
             vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
                                         pFuncArgs=c("c.FLStatistic",
-                                                    "a.Num_Val1",
-                                                    "a.Num_Val2",
+                                                    "a.groupID",
+                                                    "a.num_val",
                                                     tails),
                                         pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                        pFrom=c(a=vunionSelect,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
                                         pGroupBy="c.FLStatistic")
             }
 
             else {
-
             pFuncName<-"FLzTest2P"
+            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
+                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
+                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
             vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
                                         pFuncArgs=c("c.FLStatistic",
-                                                    "a.Num_Val1",
-                                                    "a.Num_Val2",
+                                                    "a.groupID",
+                                                    "a.num_val",
                                                     tails),
                                         pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                        pFrom=c(a=vunionSelect,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
                                         pGroupBy="c.FLStatistic")
@@ -184,11 +189,11 @@ setMethod("z.test",signature(x="FLVector"),
   )
 
 t.test.FLVector <- function(x,
-                            y= NULL,
+                            y=NULL,
                             mu = 0,
                             tails=2,
                             conf.level =.95,
-                            variance="equal",
+                            var.equal=FALSE,
                             alternative="two.sided",...)
 {       
         if(is.null(x)||!is.FLVector(x))
@@ -214,10 +219,13 @@ t.test.FLVector <- function(x,
         method<-"One Sample t-test"}                                         
            
         else{
-            if(variance=="equal") var<-"EQUAL_VAR"
-            else                  var<-"UNEQUAL_VAR"
-
-            vunionSelect <<- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
+            if(var.equal==TRUE) {
+                    var<-"EQUAL_VAR"
+                    method<-"Two Sample t-test"}
+            else{
+                var<-"UNEQUAL_VAR"
+                method<-"Welch Two Sample t-test"}
+            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
                                               pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
                                                            b=c(groupID=2,num_val="b.vectorValueColumn")))
 
@@ -232,7 +240,7 @@ t.test.FLVector <- function(x,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
                                         pGroupBy="c.FLStatistic")
-    method<-"Welch Two Sample t-test"}
+            }
     vcall<-paste(all.vars(sys.call())[1],collapse=" and ")   
     result <- sqlQuery(connection, sqlstr)
     cint<-cint(x,conf.level,alternative)
@@ -268,28 +276,6 @@ else stop("Not available for others")
 return(res)
 }
 
-createHypoView <- function(x,y){
-
-    if(length(x)>length(y)) { q<-y
-                              r<-x}
-    else{  q<-x
-           r<-y
-    }
-
-    vminLength<-length(q)
-    pViewName<-genRandVarName()
-    sqlstr0 <- paste0("CREATE VIEW ",pViewName," AS
-                       SELECT a.vectorValueColumn AS Num_Val1,
-                       b.vectorvalueColumn AS Num_Val2
-                       FROM (",constructSelect(q),") a, (",constructSelect(r),") b
-                       WHERE a.vectorindexcolumn = b.vectorindexcolumn
-                       UNION ALL
-                       SELECT NULL AS Num_Val1, b.vectorValueColumn AS Num_Val2 
-                       FROM (",constructSelect(r),") b 
-                       WHERE b.vectorindexcolumn >",vminLength)
-    sqlQuery(connection,sqlstr0)
-    return(pViewName)       
-}
 ##################################### Aggregate SQL ###########################################
 constructAggregateSQL <- function(pFuncName,
                                   pFuncArgs,
