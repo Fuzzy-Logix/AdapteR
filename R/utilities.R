@@ -7,7 +7,7 @@ setOldClass("RODBC")
 
 
 sqlError <- function(e){
-    print(e)
+    warning(e)
     sys.call()
 }
 ################################################################################
