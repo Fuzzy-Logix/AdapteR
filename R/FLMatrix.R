@@ -133,7 +133,7 @@ setMethod("str",signature(object="FLMatrix"),
 setMethod("str",signature(object="FLTable"),
           function(object) cat(paste0("'FLTable': ",nrow(object)," obs. of ",ncol(object)," variables:",
                                       paste0(" $ ",names(object@type)," : ",object@type, collapse="\n "),
-                                      "\n  ", str(object@select),
+                                      "\n  ", constructSelect(object),
                                       "\n"
                                       )))
 setMethod("str",signature(object="FLTableQuery"),

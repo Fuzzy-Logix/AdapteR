@@ -154,12 +154,17 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     #                 paste0(rep("?", length(args)+length(outputParameter)),
     #                        collapse=","),
     #                  ")")
+    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
+                                         gsub(" +","    ",
+                                              constructStoredProcSQL(pConnection="string",
+                                                                     pFuncName=query,
+                                                                     pOutputParameter=outputParameter,
+                                                                     ...)),"\n"))
     query <- constructStoredProcSQL(pConnection=connection,
                                     pFuncName=query,
                                     pOutputParameter=outputParameter,
                                     ...)
 
-    if(getOption("debugSQL")) cat(paste0("CALLING Stored Pro: \n",gsub(" +"," ",query),"\n"))
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
 

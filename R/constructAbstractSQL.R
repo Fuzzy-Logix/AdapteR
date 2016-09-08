@@ -125,7 +125,6 @@ constructStoredProcSQL <- function(pConnection,
                                     pFuncName,
                                     pOutputParameter,
                                     ...){
-    #browser()
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -136,7 +135,7 @@ constructStoredProcSQL <- function(pConnection,
 
     ## Construct input params 
     ## NULL in TD == '' in others
-    if(class(pConnection)=="RODBC"){
+    if(class(pConnection)=="RODBC" | class(pConnection)=="character"){
         pars <- sapply(args,
                     function(a){
                         if(is.character(a)){
@@ -164,11 +163,10 @@ constructStoredProcSQL <- function(pConnection,
         #         pars[ai] <- a
         #     ai <- ai+1L
         # }
-    }
-    else{
+    } else {
         pars <- rep("?",length(args))
         if(is.TD())
-        names(pOutputParameter)<-"?"
+            names(pOutputParameter)<-"?"
     }
 
     names(pars) <- names(args)
@@ -176,8 +174,7 @@ constructStoredProcSQL <- function(pConnection,
     vCall <- c(TD="CALL ",
                 TDAster="SELECT * FROM ",
                 Hadoop="SELECT ")
-    vCall <- vCall[names(vCall)==getOption("FLPlatform")]
-
+    vCall <- vCall[[getOption("FLPlatform")]]
     if(is.TDAster()){
         pars <- c(pars,
                 DSN=fquote(getOption("DSN")))
