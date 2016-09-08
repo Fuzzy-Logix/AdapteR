@@ -856,7 +856,8 @@ setMethod("FLRegrDataPrep",
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               ObsID=rownames(object)
+                               # ObsID=rownames(object)
+                               fetchIDs=FALSE
                               )
             else if(is.FLTableMD(object))
               table <- FLTableMD(deeptablename,

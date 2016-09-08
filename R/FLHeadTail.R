@@ -20,11 +20,18 @@ NULL
 #' print(headflmatrix)
 #' @export
 head.FLTable <- function(x,n=6L,...){
-
+    if("display" %in% names(list(...))){
+        vobsidcol <- changeAlias(getVariables(x)[["obs_id_colname"]],"","")
+        vsqlstr <- paste0("SELECT TOP ",n," a.* \n ",
+                           " FROM (",constructSelect(x),") a ",
+                           " ORDER BY a.",vobsidcol)
+        vres <- sqlQuery(getOption("connectionFL"),vsqlstr)
+        return(vres)
+    }
     stopifnot(length(n) == 1L)
-  n <- if (n < 0L) max(nrow(x) + n, 0L) else min(n, nrow(x))
-  if(n <= 0) stop("n value in head function is out of bounds")
-  x[seq_len(n), ,drop=FALSE]
+    n <- if (n < 0L) max(nrow(x) + n, 0L) else min(n, nrow(x))
+    if(n <= 0) stop("n value in head function is out of bounds")
+    x[seq_len(n), ,drop=FALSE]
 }
 
 ## move to file headtail.R

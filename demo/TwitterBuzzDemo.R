@@ -19,34 +19,41 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-vtemp <- readline("Below: wide FLTable object created. \n ")
-FLtbl <- FLTable("tblTwitterBuzz","OBSID")
 
-vtemp <- readline("Below: Examining data structure using head \n ")
-head(FLtbl)
+FLtbl <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE)
+vtemp <- readline("Above: wide FLTable object created. \n ")
+
+## Using display=TRUE fetches and returns result as R object
+## Recommended for Large objects
+head(FLtbl,n=10,display=TRUE)
+vtemp <- readline("Above: Head is supported to examine structure of data \n ")
 
 vtemp <- readline("Below: Fitting lm model on data \n ")
 vresFL <- lm(Buzz_Magnitude~.,data=FLtbl)
 
+####
+#### Print the ouput object. Similar to 'lm' object printing
 print(vresFL)
 vtemp <- readline("Above: Print method on fitted object \n ")
 
+####
+#### Examine the Coefficients. Syntax exactly mimics default stats::lm behavior
 head(vresFL$coefficients)
 vtemp <- readline("Above: Examining the fitted coefficients \n ")
 
+####
+#### Summary of fit model. Similar to summary on 'lm' object
 summary(vresFL)
 vtemp <- readline("Above: summary method on fitted object \n ")
 
-FLfit <- predict(vresFL,FLtbl)
-vtemp <- readline("Above: Prediction on same dataset \n ")
-
-head(FLfit)
-vtemp <- readline("Above: Examining the fitted values on new dataset \n ")
-
-head(vresFL$residuals)
+### Print residuals after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of lm object are supported)
+head(vresFL$residuals,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the residuals \n ")
 
-head(vresFL$fitted.values)
+### Print fitted values after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of lm object are supported)
+head(vresFL$fitted.values,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
 ####### END #######

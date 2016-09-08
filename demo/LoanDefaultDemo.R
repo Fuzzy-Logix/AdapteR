@@ -32,12 +32,15 @@ vtemp <- readline("Above: Using FLSampleData to create Train & Test Data\n ")
 ## Create a FLTable object for Training table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-vtemp <- readline("Below: wide FLTable object created. \n ")
-FLtbl <- FLTable(vTrainTableName,"Loanid")
+FLtbl <- FLTable(vTrainTableName,"Loanid",fetchIDs=FALSE)
+vtemp <- readline("Above: wide FLTable object created. \n ")
 
-vtemp <- readline("Below: Examining data structure using head \n ")
-head(FLtbl)
+## Using display=TRUE fetches and returns result as R object
+## Recommended for Large objects
+head(FLtbl,n=10,display=TRUE)
+vtemp <- readline("Above: Examining data structure using head \n ")
 
+### Data Preparation and Fitting a binomial glm model
 vtemp <- readline("Below: Fitting glm model on data (Binomial family) excluding some columns\n ")
 vCategoricalCols <- c("sub_grade","emp_name",
                     "emp_length","addr_city",
@@ -58,28 +61,40 @@ vresFL <- glm(default_ind~.,
             doNotTransform=vCategoricalCols
             )
 
+
+####
+#### Print the ouput object. Similar to 'glm' object printing
 print(vresFL)
 vtemp <- readline("Above: Print method on fitted object \n ")
 
+####
+#### Examine the Coefficients. Syntax exactly mimics default stats::glm behavior
 head(vresFL$coefficients)
 vtemp <- readline("Above: Examining the fitted coefficients \n ")
 
+####
+#### Summary of fit model. Similar to summary on 'glm' object
 summary(vresFL)
 vtemp <- readline("Above: summary method on fitted object \n ")
 
-vtemp <- readline("Below: Prediction on Test dataset \n ")
-FLTestTbl <- FLTable(vTestTableName,"Loanid")
+####
+### Score on Test data using 'predict'
+FLTestTbl <- FLTable(vTestTableName,"Loanid",fetchIDs=FALSE)
 FLfit <- predict(vresFL,FLTestTbl)
+vtemp <- readline("Above: Prediction on Test dataset \n ")
 
-vtemp <- readline("Below: Examining the fitted values on new dataset \n ")
-## Using display=TRUE fetches and returns result as R Vector
-## For displaying the type of result
-head(FLfit,display=TRUE)
+### Print y(hat) values
+head(FLfit,n=10,display=TRUE)
+vtemp <- readline("Above: Examining the fitted values on new dataset \n ")
 
-head(vresFL$residuals,display=TRUE)
+### Print residuals after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of glm object are supported)
+head(vresFL$residuals,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the residuals \n ")
 
-head(vresFL$fitted.values,display=TRUE)
+### Print fitted values after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of glm object are supported)
+head(vresFL$fitted.values,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
 ####### END #######
