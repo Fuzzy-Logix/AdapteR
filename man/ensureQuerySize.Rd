@@ -3,7 +3,7 @@
 \name{ensureQuerySize}
 \alias{ensureQuerySize}
 \title{Ensure sqlQuery constructed meets limits
-namely max size and max nestings}
+namely max size(1MB) and max nestings(140-147)}
 \usage{
 ensureQuerySize(pResult, pInput, pOperator, pStoreResult = FALSE, ...)
 }
@@ -23,14 +23,16 @@ and recomputing the operation
 }
 \description{
 Ensure sqlQuery constructed meets limits
-namely max size and max nestings
+namely max size(1MB) and max nestings(140-147)
 }
 \examples{
+cat("Below Example shows how expressions with number of nested queries exceeding the limit are handled:")
 flm <- FLMatrix("tblmatrixMulti",3,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 flv <- as.FLVector(rnorm(25))
-vexpression <- paste0(rep("flm+flv",13),collapse="")
+vexpression <- paste0(rep("flm+flv",17),collapse="+")
+cat(vexpression)
 cat("no.of Nested Queries: ",length(gregexpr("FROM",constructSelect(eval(parse(text=vexpression))))[[1]]))
-vResult <- eval(parse(text=paste0(vexpression,"+",vexpression)))
+vResult <- eval(parse(text=vexpression))
 cat("no.of Nested Queries in Result: ",length(gregexpr("FROM",constructSelect(vResult))[[1]]))
 }
 

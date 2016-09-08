@@ -17,10 +17,13 @@ if(!exists("connection")) {
 }
 #############################################################
 ## Create Train and Test DataSets from tblLoanData.
-vSampleDataTables <- FLSampleData(pTableName="tblLoanData",
+vSampleDataTables <- suppressWarnings(FLSampleData(pTableName="tblLoanData",
                                   pObsIDColumn="Loanid",
                                   pTrainTableName="ARtblLoanDataTrain",
-                                  pTestTableName="ARtblLoanDataTest")
+                                  pTestTableName="ARtblLoanDataTest",
+                                  pTrainDataRatio=0.3,
+                                  pTemporary=FALSE,
+                                  pDrop=TRUE))
 vTrainTableName <- vSampleDataTables["TrainTableName"]
 vTestTableName <- vSampleDataTables["TestTableName"]
 
@@ -29,20 +32,26 @@ vtemp <- readline("Above: Using FLSampleData to create Train & Test Data\n ")
 ## Create a FLTable object for Training table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-vtemp <- readline("Below: wide FLTable object created. \n ")
-FLtbl <- FLTable(vTrainTableName,"Loanid")
+FLtbl <- FLTable(vTrainTableName,"Loanid",fetchIDs=FALSE)
+str(FLtbl)
+FLTestTbl <- FLTable(vTestTableName,"Loanid",fetchIDs=FALSE)
+str(FLTestTbl)
+vtemp <- readline("Above: wide FLTable object created. \n ")
 
-vtemp <- readline("Below: Examining data structure using head \n ")
-head(FLtbl)
+## Using display=TRUE fetches and returns result as R object
+## Recommended for Large objects
+head(FLtbl,n=10,display=TRUE)
+vtemp <- readline("Above: Examining data structure using head \n ")
 
+### Data Preparation and Fitting a binomial glm model
 vtemp <- readline("Below: Fitting glm model on data (Binomial family) excluding some columns\n ")
-vExcludeCols <- c("sub_grade","emp_name",
-                "emp_length","addr_city",
-                "addr_state","bc_util",
-                "earliest_cr_line")
+vCategoricalCols <- c("sub_grade","emp_name",
+                    "emp_length","addr_city",
+                    "addr_state","bc_util",
+                    "earliest_cr_line")
 vresFL <- glm(default_ind~.,
             data=FLtbl,
-            excludeCols=vExcludeCols,
+            pThreshold=0.5,
             classSpec=list(term="36 months",
                          grade="A",
                          home_ownership="RENT",
@@ -50,29 +59,44 @@ vresFL <- glm(default_ind~.,
                          purpose="debt_consolidation"),
             makeDataSparse=TRUE,
             minStdDev=0.1,
-            maxCorrel=0.7
+            maxCorrel=0.75,
+            performVarReduc=1,
+            doNotTransform=vCategoricalCols
             )
 
+
+####
+#### Print the ouput object. Similar to 'glm' object printing
 print(vresFL)
 vtemp <- readline("Above: Print method on fitted object \n ")
 
+####
+#### Examine the Coefficients. Syntax exactly mimics default stats::glm behavior
 head(vresFL$coefficients)
 vtemp <- readline("Above: Examining the fitted coefficients \n ")
 
+####
+#### Summary of fit model. Similar to summary on 'glm' object
 summary(vresFL)
 vtemp <- readline("Above: summary method on fitted object \n ")
 
-vtemp <- readline("Below: Prediction on Test dataset \n ")
-FLTestTbl <- FLTable(vTestTableName,"Loanid")
+####
+### Score on Test data using 'predict'
 FLfit <- predict(vresFL,FLTestTbl)
+vtemp <- readline("Above: Prediction on Test dataset \n ")
 
-vtemp <- readline("Below: Examining the fitted values on new dataset \n ")
-head(FLfit)
+### Print y(hat) values
+head(FLfit,n=10,display=TRUE)
+vtemp <- readline("Above: Examining the fitted values on new dataset \n ")
 
-head(vresFL$residuals)
+### Print residuals after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of glm object are supported)
+head(vresFL$residuals,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the residuals \n ")
 
-head(vresFL$fitted.values)
+### Print fitted values after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of glm object are supported)
+head(vresFL$fitted.values,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
 ####### END #######

@@ -28,6 +28,7 @@ FLTable <- function(table,
                     whereconditions=character(0),
                     connection=NULL,
                     type="double",
+                    fetchIDs=TRUE,
                     ...)
 {
     if(is.null(connection)) connection <- getConnection(NULL)
@@ -43,31 +44,39 @@ FLTable <- function(table,
                                    c(getTablename(table),
                                      oldalias))
     names(table) <- "flt"
+
+    cleanNames <- function(x){
+        ##change factors to strings
+        if(is.factor(x) || class(x)=="Date")
+            x <- as.character(x)
+        if(is.character(x))
+            x <- gsub("^ +| +$","",x)
+        x
+    }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-        cols <- sort(sqlQuery(connection,
-                         paste0("SELECT DISTINCT(",
-                                var_id_colnames,") as VarID FROM ",tableAndAlias(table),
-                          " ",constructWhere(whereconditions)))$VarID)
+        cols <- cleanNames(sort(sqlQuery(connection,
+                                         paste0("SELECT DISTINCT(",
+                                                var_id_colnames,") as VarID FROM ",tableAndAlias(table),
+                                                " ",constructWhere(whereconditions)))$VarID))
+        ncol <- length(cols)
         if(!is.null(list(...)[["ObsID"]]))
           rows <- list(...)[["ObsID"]]
-        else
+        else if(fetchIDs) {
           rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",tableAndAlias(table),
                           " ",constructWhere(whereconditions)))$VarID)
-        # cols <- gsub("^ +| +$","",cols)
-        # rows <- gsub("^ +| +$","",rows)
+          rows <- cleanNames(rows)
+          nrow <- length(rows)
+        } else {
+            rows <- NULL
+            nrow <- sqlQuery(connection,
+                            paste0("SELECT count(DISTINCT(",obs_id_colname,")) as N
+                                    FROM ",tableAndAlias(table),
+                                    " ",constructWhere(whereconditions)))$N
+        }
 
-        ##change factors to strings
-        vstringdimnames <- lapply(list(rows,cols),
-                                  function(x){
-                                      if(is.factor(x))
-                                      as.character(x)
-                                      else x
-                                  })
-        rows <- vstringdimnames[[1]]
-        cols <- vstringdimnames[[2]]
 
         ## To account for sparse format
         # vdimnames <- lapply(list(rows),
@@ -92,6 +101,7 @@ FLTable <- function(table,
         new("FLTable",
             select = select,
             dimnames = list(rows,cols),
+            dim = c(nrow,ncol),
             isDeep = TRUE,
             type=type)
 	}
@@ -103,37 +113,33 @@ FLTable <- function(table,
         if(!changeAlias(obs_id_colname,"","") %in% cols)
           stop(paste0(changeAlias(obs_id_colname,"",""),
                       " not a column in table.Please check case Sensitivity \n "))
-        # rows <- sort(as.numeric(sqlQuery(connection,
-        #                     paste0("SELECT DISTINCT(",
-        #                                 obs_id_colname,") as VarID
-						  #                       FROM ",tableAndAlias(table),
-        #                             " ",constructWhere(whereconditions)))$VarID))
         if(!is.null(list(...)[["ObsID"]]))
           rows <- list(...)[["ObsID"]]
-        else
+        else if(fetchIDs) {
           rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
                                         obs_id_colname,") as VarID
                                     FROM ",tableAndAlias(table),
                                     " ",constructWhere(whereconditions)))$VarID)
-        cols <- gsub("^ +| +$","",cols)
-        rows <- gsub("^ +| +$","",rows)
-
-        ##change factors to strings
-        vstringdimnames <- lapply(list(rows,cols),
-                                  function(x){
-                                      if(is.factor(x) || class(x)=="Date")
-                                      as.character(x)
-                                      else x
-                                  })
-        rows <- vstringdimnames[[1]]
-        cols <- vstringdimnames[[2]]
+          rows <- cleanNames(rows)
+          nrow <- length(rows)
+        } else {
+            rows <- NULL
+            nrow <- sqlQuery(connection,
+                            paste0("SELECT count(",obs_id_colname,") as N
+                                    FROM ",tableAndAlias(table),
+                                    " ",constructWhere(whereconditions)))$N
+        }
+        cols <- cleanNames(cols)
         
         if(length(var_id_colnames)==0)
             var_id_colnames <- cols
         if(length(setdiff(var_id_colnames,cols)))
             stop(paste0("columns do not exist: "))
 
+        ncol <- length(var_id_colnames)
+
+        mydimnames <- list(rows,var_id_colnames)
         select <- new("FLSelectFrom",
                       connection = connection, 
                       table_name = table, 
@@ -146,7 +152,8 @@ FLTable <- function(table,
 
         T <- new("FLTable", 
                  select = select,
-                 dimnames = list(rows,var_id_colnames),
+                 dimnames = mydimnames,
+                 dim = c(nrow,ncol),
                  isDeep = FALSE,
                  type=type)
 	}
@@ -849,7 +856,8 @@ setMethod("FLRegrDataPrep",
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               ObsID=rownames(object)
+                               # ObsID=rownames(object)
+                               fetchIDs=FALSE
                               )
             else if(is.FLTableMD(object))
               table <- FLTableMD(deeptablename,
@@ -871,27 +879,48 @@ FLSampleData <- function(pTableName,
                                                 "Train"),
                          pTestTableName=paste0(pTableName,
                                               "Test"),
-                         pTempTables=getOption("temporaryTablesFL")
+                         pTemporary=getOption("temporaryTablesFL"),
+                         pDrop=TRUE
                          ){
-  vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
-                    pTrainTableName," AS  ( ",
-                    " SELECT  a.* FROM ",pTableName," a ",
-                    " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
-                      pTrainDataRatio,") WITH DATA ",
-                      " PRIMARY INDEX (",pObsIDColumn,")",
-                      ifelse(pTempTables," ON COMMIT PRESERVE ROWS ","")
-                      )
-  vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 
-  vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
-                    pTestTableName," \n AS  ( \n ",
-                    " SELECT  a.* FROM ",pTableName," a \n ",
+  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+                    " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+                      pTrainDataRatio," ")
+  vtemp <- createTable(pTableName=pTrainTableName,
+                      pPrimaryKey=pObsIDColumn,
+                      pTemporary=pTemporary,
+                      pDrop=pDrop,
+                      pSelect=vsqlstr)
+
+  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a \n ",
                     " WHERE NOT EXISTS \n (SELECT 1 FROM ",
-                      pTableName," b WHERE b.",
-                      pObsIDColumn,"=a.",pObsIDColumn," \n ) \n )",
-                    " WITH DATA \n PRIMARY INDEX(",pObsIDColumn,")",
-                      ifelse(pTempTables," ON COMMIT PRESERVE ROWS ",""))
-  vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+                      pTrainTableName," b WHERE b.",
+                      pObsIDColumn,"=a.",pObsIDColumn," \n ) ")
+  vtemp <- createTable(pTableName=pTestTableName,
+                      pPrimaryKey=pObsIDColumn,
+                      pTemporary=pTemporary,
+                      pDrop=pDrop,
+                      pSelect=vsqlstr)
+
+  # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
+  #                   pTrainTableName," AS  ( ",
+  #                   " SELECT  a.* FROM ",pTableName," a ",
+  #                   " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+  #                     pTrainDataRatio,") WITH DATA ",
+  #                     " PRIMARY INDEX (",pObsIDColumn,")",
+  #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ","")
+  #                     )
+  # vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+
+  # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
+  #                   pTestTableName," \n AS  ( \n ",
+  #                   " SELECT  a.* FROM ",pTableName," a \n ",
+  #                   " WHERE NOT EXISTS \n (SELECT 1 FROM ",
+  #                     pTableName," b WHERE b.",
+  #                     pObsIDColumn,"=a.",pObsIDColumn," \n ) \n )",
+  #                   " WITH DATA \n PRIMARY INDEX(",pObsIDColumn,")",
+  #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ",""))
+  # vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
   return(c(TrainTableName=pTrainTableName,
           TestTableName=pTestTableName))
 }

@@ -546,7 +546,7 @@ objective.FLKMedoids <- function(object){
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
 		flag3Check(connection)
-		n <- length(object@deeptable@dimnames[[1]])
+		n <- nrow(object@deeptable)
 
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						         a,".Iteration AS vectorIndexColumn, \n ",
