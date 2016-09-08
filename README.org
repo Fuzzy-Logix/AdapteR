@@ -87,10 +87,11 @@ Use =flConnect= to connect to a database. Help on this can be found using
    #+end_src
 
 ** ODBC
-  #+BEGIN_SRC R :eval no
-  install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
-  library(RODBC)
-  #+END_SRC
+#+BEGIN_SRC R :eval no
+install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
+library(RODBC)
+#+END_SRC
+*Note: it is required that the Teradata ODBC option "Return Output Parameters As Result Set" is checked (set to true).*
 
 ** JDBC
 *** Java JDK
