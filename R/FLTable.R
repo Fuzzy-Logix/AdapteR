@@ -871,27 +871,48 @@ FLSampleData <- function(pTableName,
                                                 "Train"),
                          pTestTableName=paste0(pTableName,
                                               "Test"),
-                         pTempTables=getOption("temporaryTablesFL")
+                         pTemporary=getOption("temporaryTablesFL"),
+                         pDrop=TRUE
                          ){
-  vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
-                    pTrainTableName," AS  ( ",
-                    " SELECT  a.* FROM ",pTableName," a ",
-                    " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
-                      pTrainDataRatio,") WITH DATA ",
-                      " PRIMARY INDEX (",pObsIDColumn,")",
-                      ifelse(pTempTables," ON COMMIT PRESERVE ROWS ","")
-                      )
-  vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 
-  vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
-                    pTestTableName," \n AS  ( \n ",
-                    " SELECT  a.* FROM ",pTableName," a \n ",
+  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+                    " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+                      pTrainDataRatio," ")
+  vtemp <- createTable(pTableName=pTrainTableName,
+                      pPrimaryKey=pObsIDColumn,
+                      pTemporary=pTemporary,
+                      pDrop=pDrop,
+                      pSelect=vsqlstr)
+
+  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a \n ",
                     " WHERE NOT EXISTS \n (SELECT 1 FROM ",
-                      pTableName," b WHERE b.",
-                      pObsIDColumn,"=a.",pObsIDColumn," \n ) \n )",
-                    " WITH DATA \n PRIMARY INDEX(",pObsIDColumn,")",
-                      ifelse(pTempTables," ON COMMIT PRESERVE ROWS ",""))
-  vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+                      pTrainTableName," b WHERE b.",
+                      pObsIDColumn,"=a.",pObsIDColumn," \n ) ")
+  vtemp <- createTable(pTableName=pTestTableName,
+                      pPrimaryKey=pObsIDColumn,
+                      pTemporary=pTemporary,
+                      pDrop=pDrop,
+                      pSelect=vsqlstr)
+
+  # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
+  #                   pTrainTableName," AS  ( ",
+  #                   " SELECT  a.* FROM ",pTableName," a ",
+  #                   " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+  #                     pTrainDataRatio,") WITH DATA ",
+  #                     " PRIMARY INDEX (",pObsIDColumn,")",
+  #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ","")
+  #                     )
+  # vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+
+  # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
+  #                   pTestTableName," \n AS  ( \n ",
+  #                   " SELECT  a.* FROM ",pTableName," a \n ",
+  #                   " WHERE NOT EXISTS \n (SELECT 1 FROM ",
+  #                     pTableName," b WHERE b.",
+  #                     pObsIDColumn,"=a.",pObsIDColumn," \n ) \n )",
+  #                   " WITH DATA \n PRIMARY INDEX(",pObsIDColumn,")",
+  #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ",""))
+  # vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
   return(c(TrainTableName=pTrainTableName,
           TestTableName=pTestTableName))
 }

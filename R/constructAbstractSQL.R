@@ -348,10 +348,10 @@ createTable <- function(pTableName,
 
     if(pDrop)
         dropTable(pTableName)
-    vtempKeyword <- c(VOLATILE="TD",
-                    TEMPORARY="Hadoop",
-                    "TDAster")  ##TEMPORARY="TDAster"
-    vtempKeyword <- names(vtempKeyword)[vtempKeyword==getOption("FLPlatform")]
+    vtempKeyword <- c(TD="VOLATILE",
+                      Hadoop="TEMPORARY",
+                      TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
+    vtempKeyword <- vtempKeyword[getOption("FLPlatform")]
 
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
@@ -396,11 +396,11 @@ createTable <- function(pTableName,
                             ))
             ## Add columns
             vsqlstr <- paste0(vsqlstr,addColNameType(pColNames,pColTypes))
-            ## Add primaryKey
-            if(pPrimaryKey!="" && !is.null(pPrimaryKey))
-            vsqlstr <- paste0(vsqlstr," PRIMARY INDEX (",
-                                paste0(pPrimaryKey,collapse=","),")")
         }
+        ## Add primaryKey
+        if(pPrimaryKey!="" && !is.null(pPrimaryKey))
+        vsqlstr <- paste0(vsqlstr," PRIMARY INDEX (",
+                            paste0(pPrimaryKey,collapse=","),")")
         ## Add ON COMMIT PRESERVE ROWS
         if(pTemporary)
         vsqlstr <- paste0(vsqlstr," ON COMMIT PRESERVE ROWS ")

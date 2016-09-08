@@ -17,10 +17,13 @@ if(!exists("connection")) {
 }
 #############################################################
 ## Create Train and Test DataSets from tblLoanData.
-vSampleDataTables <- FLSampleData(pTableName="tblLoanData",
+vSampleDataTables <- suppressWarnings(FLSampleData(pTableName="tblLoanData",
                                   pObsIDColumn="Loanid",
                                   pTrainTableName="ARtblLoanDataTrain",
-                                  pTestTableName="ARtblLoanDataTest")
+                                  pTestTableName="ARtblLoanDataTest",
+                                  pTrainDataRatio=0.3,
+                                  pTemporary=FALSE,
+                                  pDrop=TRUE))
 vTrainTableName <- vSampleDataTables["TrainTableName"]
 vTestTableName <- vSampleDataTables["TestTableName"]
 
@@ -36,13 +39,13 @@ vtemp <- readline("Below: Examining data structure using head \n ")
 head(FLtbl)
 
 vtemp <- readline("Below: Fitting glm model on data (Binomial family) excluding some columns\n ")
-vExcludeCols <- c("sub_grade","emp_name",
-                "emp_length","addr_city",
-                "addr_state","bc_util",
-                "earliest_cr_line")
+vCategoricalCols <- c("sub_grade","emp_name",
+                    "emp_length","addr_city",
+                    "addr_state","bc_util",
+                    "earliest_cr_line")
 vresFL <- glm(default_ind~.,
             data=FLtbl,
-            excludeCols=vExcludeCols,
+            pThreshold=0.5,
             classSpec=list(term="36 months",
                          grade="A",
                          home_ownership="RENT",
@@ -50,7 +53,9 @@ vresFL <- glm(default_ind~.,
                          purpose="debt_consolidation"),
             makeDataSparse=TRUE,
             minStdDev=0.1,
-            maxCorrel=0.7
+            maxCorrel=0.75,
+            performVarReduc=1,
+            doNotTransform=vCategoricalCols
             )
 
 print(vresFL)
@@ -67,12 +72,14 @@ FLTestTbl <- FLTable(vTestTableName,"Loanid")
 FLfit <- predict(vresFL,FLTestTbl)
 
 vtemp <- readline("Below: Examining the fitted values on new dataset \n ")
-head(FLfit)
+## Using display=TRUE fetches and returns result as R Vector
+## For displaying the type of result
+head(FLfit,display=TRUE)
 
-head(vresFL$residuals)
+head(vresFL$residuals,display=TRUE)
 vtemp <- readline("Above: Examining the residuals \n ")
 
-head(vresFL$fitted.values)
+head(vresFL$fitted.values,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
 ####### END #######

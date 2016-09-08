@@ -52,7 +52,14 @@ return(tail.FLTable(x=x,n=n,...))
 ## move to file headtail.R
 #' @export
 head.FLVector <- function(x,n=6,...){
-
+    if("display" %in% names(list(...))){
+        vsqlstr <- paste0("SELECT TOP ",n," a.vectorValueColumn \n ",
+                           " FROM (",constructSelect(x),") a ",
+                           " ORDER BY a.vectorIndexColumn")
+        vres <- sqlQuery(getOption("connectionFL"),vsqlstr)[[1]]
+        names(vres) <- sort(names(x))[1:n]
+        return(vres)
+    }
     stopifnot(length(n) == 1L)
     n <- if (n < 0L) max(length(x) + n, 0L) else min(n, length(x))
     if(n <= 0) stop("n value in head function is out of bounds")

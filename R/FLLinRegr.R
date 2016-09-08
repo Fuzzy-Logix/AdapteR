@@ -35,7 +35,8 @@ setClass("FLDataMining",
 setClass("FLRegr",
 		contains="FLDataMining",
 		slots=list(formula="formula",
-					scoreTable="character"))
+					scoreTable="character",
+                    RegrDataPrepSpecs="list"))
 
 #' An S4 class to represent output from Linear Regression(lm) on in-database Objects
 #'
@@ -694,7 +695,8 @@ lmGeneric <- function(formula,data,
 				mapTable=mapTable,
 				scoreTable="",
 				vfcalls=vfcalls,
-				offset=as.character(offset)))
+				offset=as.character(offset),
+                RegrDataPrepSpecs=RegrDataPrepSpecs))
 }
 
 ## move to file lmGeneric.R
@@ -840,7 +842,8 @@ prepareData.lmGeneric <- function(formula,data,
 							getVariables(data)[["obs_id_colname"]],
 							"obs_id_colname",
 							getVariables(data)[["group_id_colname"]],
-							"group_id_colname"))){
+							"group_id_colname",
+                            list(...)[["doNotTransform"]]))){
 			if(length(i)==0) break;
 			if(is.factor(vfirstRow[[i]]) 
 				|| is.character(vfirstRow[[i]])
@@ -915,6 +918,20 @@ prepareData.lmGeneric <- function(formula,data,
 								classSpec=classSpec,
 								whereconditions=whereconditions,
 								inAnalysisID="")
+
+        vRegrDataPrepSpecs <- list(outDeepTableName="",
+                                outObsIDCol="",
+                                outVarIDCol="",
+                                outValueCol="",
+                                catToDummy=catToDummy,
+                                performNorm=performNorm,
+                                performVarReduc=performVarReduc,
+                                makeDataSparse=makeDataSparse,
+                                minStdDev=minStdDev,
+                                maxCorrel=maxCorrel,
+                                trainOrTest=0,
+                                excludeCols=vexcludeCols,
+                                classSpec=classSpec)
 
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
@@ -1065,7 +1082,8 @@ prepareData.lmGeneric <- function(formula,data,
 				noneventweight=noneventweight,
 				maxiter=maxiter,
 				pThreshold=pThreshold,
-				offset=offset))
+				offset=offset,
+                RegrDataPrepSpecs=vRegrDataPrepSpecs))
 }
 
 ## move to file lm.R
@@ -1474,8 +1492,9 @@ summary.FLLinRegr <- function(object,
 	  	colnames(coeffframe)<-c("Estimate","Std. Error","t value","Pr(>|t|)")
 
 	  	#put rowname
-	  	rname <- all.vars(object@formula)
-	  	rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
+	  	# rname <- all.vars(object@formula)
+	  	# rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
+        rownames(coeffframe) <- names(object$coefficients)
 
         if(calcResiduals)
             vresiduals <- as.vector(object$residuals)
@@ -1512,16 +1531,19 @@ predict<-function(object,newdata,...){
 #' @export
 predict.FLLinRegr <- function(object,
 							newdata=object@table,
-							scoreTable=""){
+							scoreTable="",
+                            ...){
 	return(predict.lmGeneric(object,newdata=newdata,
-							scoreTable=scoreTable))
+							scoreTable=scoreTable,
+                            ...))
 }
 
 ## move to file lmGeneric.R
 #' @export
 predict.lmGeneric <- function(object,
 							newdata=object@table,
-							scoreTable=""){
+							scoreTable="",
+                            ...){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- newdata@select@table_name
@@ -1537,21 +1559,23 @@ predict.lmGeneric <- function(object,
 	if(!newdata@isDeep)
 	{
 		newdataCopy <- newdata
-		deepx <- FLRegrDataPrep(newdata,depCol="",
-								outDeepTableName="",
-								outObsIDCol="",
-								outVarIDCol="",
-								outValueCol="",
-								catToDummy=0,
-								performNorm=0,
-								performVarReduc=0,
-								makeDataSparse=1,
-								minStdDev=0,
-								maxCorrel=1,
+        vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object@RegrDataPrepSpecs,
+                                                            values=list(...))
+		deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+								outDeepTableName=vRegrDataPrepSpecs$outDeepTableName,
+								outObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+								outVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+								outValueCol=vRegrDataPrepSpecs$outValueCol,
+								catToDummy=vRegrDataPrepSpecs$catToDummy,
+								performNorm=vRegrDataPrepSpecs$performNorm,
+								performVarReduc=vRegrDataPrepSpecs$performVarReduc,
+								makeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+								minStdDev=vRegrDataPrepSpecs$minStdDev,
+								maxCorrel=vRegrDataPrepSpecs$maxCorrel,
 								trainOrTest=1,
-								excludeCols="",
-								classSpec=list(),
-								whereconditions="",
+								excludeCols=vRegrDataPrepSpecs$excludeCols,
+								classSpec=vRegrDataPrepSpecs$classSpec,
+								whereconditions=vRegrDataPrepSpecs$whereconditions,
 								inAnalysisID=object@wideToDeepAnalysisId)
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")
@@ -1871,4 +1895,30 @@ print.summary.FLLinRegrMD <- function(object){
 	cat("MSRegression: ",ret[["MSREGRESSION"]]," , SigFStat: ",ret[["SIGFSTAT"]],"\n")
 	cat("DWStat: ",ret[["DWSTAT"]]," , ResidualAutoCorrel: ",ret[["RESIDUALAUTOCORREL"]],"\n")
 	cat("BPStat: ",ret[["BPSTAT"]]," , SigBPStat: ",ret[["SIGBPSTAT"]],"\n")
+}
+
+
+setDefaultsRegrDataPrepSpecs <- function(x,values){
+    x <- as.list(x)
+    for(i in c("catToDummy","performNorm",
+                "performVarReduc","minStdDev",
+                "maxCorrel","makeDataSparse",
+                "excludeCols","classSpec")){
+        if(i %in% names(values))
+            x[[i]] <- values
+        else if(is.null(x[[i]])){
+            if(i %in% c("maxCorrel","makeDataSparse"))
+                x[[i]] <- 1
+            else if(i %in% c("excludeCols","depCol",
+                            "outDeepTableName","outObsIDCol",
+                            "outVarIDCol","outValueCol",
+                            "whereconditions"))
+                x[[i]] <- ""
+            else if(i %in% "classSpec")
+                x[[i]] <- list()
+            else x[[i]] <- 0
+        }
+    }
+    x[["depCol"]] <- ""
+    x
 }
