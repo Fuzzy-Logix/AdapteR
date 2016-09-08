@@ -14,7 +14,6 @@
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
-options(debugSQL=FALSE)
 #############################################################
 
 ## ActressLDist table has information about hollywood movies
@@ -45,16 +44,22 @@ distFLVec <- stringdist("Aleandro Formal",
                         FLVecObj,
                         method="lv",
                         caseFlag=1)
-top5Matches <- FLVecObj[head(order(distFLVec),5)]
-top5Matches
+
+
+## in-database sorting
+O <- order(distFLVec)
+
+selection <- head(O,5)
+data.frame(Actress  = as.R(FLVecObj[selection]),
+           distance = as.R(distFLVec[selection]))
 
 vtemp <- readline("Above: Top 5 matches are found with no data fetching")
 
 ##******* Finding the information about any 'Sherlock Holmes' movies **********
 FLVecObj <- FLTblObj[,"FilmTitle"]
 matching_index <- grep(pattern="Sherlock Holmes",
-                      x=FLVecObj,
-                      ignore.case=TRUE)
+                       x=FLVecObj,
+                       ignore.case=TRUE)
 ### Display matching Film names
 FLVecObj[matching_index]
 

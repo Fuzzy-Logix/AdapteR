@@ -10,14 +10,13 @@ vtemp <- readline("What this demo is about:")
 ## providing transparent matrix algrbra with
 ## the DB Lytix(TM) in-database library.
 
-vtemp <- readline("Check if connection exists:")
 if(!exists("connection")) {
+    vtemp <- readline("Check if connection exists:")
     cat("connection object not found \n ")
     cat("using connecting demo \n ")
     demo("connecting", package="AdapteR")
 }
 
-options(debugSQL=F)
 vtemp <- readline("Comparing (SQL from R) with (AdapteR):")
 ###########################################################
 ############# Comparing (SQL from R) with AdapteR ############
@@ -99,10 +98,9 @@ rM <- as.matrix(flM)
 flResult <- solve(flM) %*% flM - flM
 rResult <- solve(rM) %*% rM -rM
 
-require(testthat)
-FLexpect_equal(flResult,
-             rResult,
-             check.attributes=FALSE)
+flResult
+
+rResult
 
 ### END ###
 ### Thank You ####

@@ -360,8 +360,10 @@ centers.FLHKMeans<-function(object)
 						" AND HypothesisID = ",object@nstart," \n ",
 						" AND Level = ",object@levels)
 
-        ##Get column names from Mapping
+        ## Get column names from Mapping
         vColnames <- colnames(object@deeptable)
+        ## gk: move this into colnames function.
+        ## gk: create a test case for colnames of a deeptable
         if(object@mapTable!="")
         vColnames <- sqlQuery(connection,
                             paste0("SELECT ColumnName \n ",

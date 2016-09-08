@@ -902,6 +902,7 @@ prepareData.lmGeneric <- function(formula,data,
 	vcallObject <- callObject
 	if(!data@isDeep)
 	{
+        ## gk: can't we use prepareData.lmGeneric here?
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								outDeepTableName="",
 								outObsIDCol="",
@@ -1284,6 +1285,28 @@ prepareData.lmGeneric <- function(formula,data,
 	{
 		return(c(0,rep(1,length(all.vars(object@formula))-1)))
 	}
+
+	else if(property=="formula")
+	{
+		if(!is.null(object@results[["formula"]]))
+		return(object@results[["formula"]])
+		else
+		{
+			coeffVector <- object$coefficients
+			vallVars <- all.vars(object@formula)
+			vcolnames <- object@results[["modelColnames"]][-1]
+			if(is.null(vcolnames))
+				vcolnames <- names(coeffVector)[2:length(coeffVector)]
+			vterms <- terms(formula(paste0(vallVars[1],"~",
+				paste0(vcolnames,collapse="+"))))
+			object@results <- c(object@results,list(terms=vterms))
+			assign(parentObject,object,envir=parent.frame())
+			return(vterms)
+		}
+	}
+
+	else if(property=="anova") stop("This feature is not available yet.")
+
 	else stop("That's not a valid property \n ")
 }
 
