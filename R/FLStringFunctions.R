@@ -169,11 +169,11 @@ setMethod("FLStringDist",
 
               flm <- new("FLMatrix",
                                select= tblfunqueryobj,
-                               dim=c(length(xsource@dimnames[[1]]),
-                                    length(targets@dimnames[[1]])),
+                               dim=c(length(xsource),
+                                     length(targets)),
                                dimnames = list(
-                                   xsource@dimnames[[1]],
-                                   targets@dimnames[[1]]))
+                                   names(xsource),
+                                   names(targets)))
               return(flm)
             }
             else{
@@ -593,7 +593,7 @@ setMethod("stringdistmatrix",
 
             if(!(method %in% c("lv","dl","hamming","jaccard","jw","nmw")))
             if(method == "osa"){
-              cat("osa not supported for FLTypes...Using dl instead \n ")
+              warning("osa not supported for FLTypes...Using dl instead.")
               method <- "dl"
             }
             else{

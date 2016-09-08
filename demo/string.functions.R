@@ -50,10 +50,15 @@ distFLVec <- stringdist("Aleandro Formal",
 O <- order(distFLVec)
 
 selection <- head(O,5)
+
 data.frame(Actress  = as.R(FLVecObj[selection]),
            distance = as.R(distFLVec[selection]))
 
-vtemp <- readline("Above: Top 5 matches are found with no data fetching")
+vtemp <- readline("Above: Top 5 matches are found.  Data fetched only for printed 5 matches")
+
+distFL <- stringdistmatrix(FLVecObj,c("Aleandro Formal","John Wayn"),method="dl")
+
+head(distFL)
 
 ##******* Finding the information about any 'Sherlock Holmes' movies **********
 FLVecObj <- FLTblObj[,"FilmTitle"]
