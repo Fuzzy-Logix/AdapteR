@@ -75,6 +75,11 @@ vtemp <- readline("Above: Print method on fitted object \n ")
 head(vresFL$coefficients)
 vtemp <- readline("Above: Examining the fitted coefficients \n ")
 
+### Print residuals after scoring on same dataset as used for model training.
+### (Mimics R behaviour:- Properties of glm object are supported)
+head(vresFL$residuals,n=10,display=TRUE)
+vtemp <- readline("Above: Examining the residuals \n ")
+
 ####
 #### Summary of fit model. Similar to summary on 'glm' object
 summary(vresFL)
@@ -88,16 +93,6 @@ vtemp <- readline("Above: Prediction on Test dataset \n ")
 ### Print y(hat) values
 head(FLfit,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on new dataset \n ")
-
-### Print residuals after scoring on same dataset as used for model training.
-### (Mimics R behaviour:- Properties of glm object are supported)
-head(vresFL$residuals,n=10,display=TRUE)
-vtemp <- readline("Above: Examining the residuals \n ")
-
-### Print fitted values after scoring on same dataset as used for model training.
-### (Mimics R behaviour:- Properties of glm object are supported)
-head(vresFL$fitted.values,n=10,display=TRUE)
-vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
 ####### END #######
 #### Thank You ####
