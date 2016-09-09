@@ -874,6 +874,7 @@ setMethod("FLRegrDataPrep",
           }
         )
 
+#' @export
 FLSampleData <- function(pTableName,
                          pObsIDColumn,
                          pTrainDataRatio=0.7,

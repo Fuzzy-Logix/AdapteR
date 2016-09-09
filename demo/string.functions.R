@@ -81,5 +81,85 @@ if(any(grepl("Star Wars",FLVecObj))){
 
 vtemp<- readline("Above: Demonstrates support of expressions in AdapteR")
 
+run.FLStringDistShiny <- function (){
+    ## #########################################################
+    ## Shiny web application Demo
+    ##
+    ## A search string can be inserted
+    ## and results are shown after matching
+    FLTblObj <- FLTable(table="ActressLDist",
+                        obs_id_colname="ObsID",
+                        whereconditions = "Actor<>'' AND Actress<>'' AND Director<>'' AND FilmTitle<>''")
+    findName <- function(FLTblObj,
+                         text,
+                         columnName="Actor",
+                         method="lv",
+                         N=10){
+        ## Using Levenshtein distance measure to find top similarities
+        distFLVec <- stringdist(text,
+                                FLTblObj[[columnName]],
+                                method=method,
+                                caseFlag=1)
+        ## in-database sorting
+        O <- order(distFLVec)
+        selection <- head(O,N)
+        return(cbind(
+            dist=as.vector(distFLVec[selection]),
+            as.data.frame(FLTblObj[selection,])))
+    }
+    ##findName(FLTblObj,"Jim","Director")
+    require(R.utils)
+    require(shiny)
+    shinyApp(
+        ui = fluidPage(
+            fluidRow(
+                column(3,
+                       textInput("freetext", "Name:","Eastwoard, Clint")),
+                column(3,
+                       selectInput(
+                           "columns", "Columns:",
+                           choices = c("Actor","Actress","Director","Filmtitle"),
+                           selected = "Actor",
+                           multiple = FALSE)),
+                column(3,
+                       selectInput(
+                           "method", "Method:",
+                           choices = c(Levenshtein="lv", "Levenshtein-Damerau"="dl",
+                                       "Jaro-Winkler"="jw"), ##, "Needleman-Wunsch"="nmw"
+                           selected = "lv",
+                           multiple = FALSE))),
+            fluidRow(tableOutput("matches"))
+        ),
+        server = function(input, output) {
+        Matches <- reactive({
+            text <- input$freetext
+            method <- input$method
+            a <- ldply(input$columns,
+                       function(colName){
+                rr <- data.frame()
+                tryCatch({
+                    rr <- findName(FLTblObj,text,colName,method=method)
+                    rr[,toupper(colName)] <- paste0("<b>",rr[,toupper(colName)],"</b>")
+                    rr},error=function(e) print(e))
+                rr$OBSID <- rr$IMAGE <- NULL
+                print(rr)
+                rr
+            })
+            a <- a[order(a$dist),]
+            if(is.null(a)) return(data.frame())
+            a$Image <- NULL
+            a$vectorIndexColumn <- NULL
+            a
+        })
+        output$matches <- renderTable(Matches(),
+                                      include.rownames=FALSE,
+                                      sanitize.text.function = function(x) x)
+    }
+    )
+}
+
+vtemp <- readline("To explore string matches interactively, we defined a function above. \n Simply execute\n> run.FLStringDistShiny()\nafter ending the Demo now:")
+
+
 ###...END...###
 ###...Thank You...###
