@@ -124,11 +124,19 @@ Also, you need to download and use the jdbc connector jar files either in the ja
 the java development toolkit (jdbc).
 
 * AdapteR Demos and Training
-The package includes some demos to get you started and to explain the most important concepts:
+The package includes some demos to get you started and to explain the most important concepts.
+To run the package demos, please copy and execute all scripts here in R.
+(Before running the demo for the first time, also run the scripts in [[id:A7CCAA11-1DCD-482D-8744-88631588B3AF][Optional packages]]).
+
 #+BEGIN_SRC R :session r_fl :results output :exports both
+## Load devtools and Update AdapteR from github
+require(devtools)
+install_github("Fuzzy-Logix/AdapteR")
+
+
 require(AdapteR)
-demo(package="AdapteR")
 ## This lists all available demos
+demo(package="AdapteR")
 #+END_SRC
 
 #+RESULTS: 
@@ -144,21 +152,14 @@ kmeans
 Iris_kmeans
 #+END_EXAMPLE
 
-To start a demo, set your connection info with ODBC
+To start a demo, first set your connection info with ODBC ([[id:EA123B7F-CC54-405A-86E4-740A788FC239][If you use JDBC, see below how to set your connection info with JDBC]])
 #+BEGIN_SRC R :session r_fl :results output :exports both
 yourODBCSource <- "Gandalf" ## please make sure you use a 64 bit ODBC driver on a 64 bit R session
-yourPlatform <- "td"
+yourPlatform <- "TD"
+connection <- flConnect(odbcSource = yourODBCSource,
+                        database="FL_TRAIN",
+                        platform=yourPlatform)
 #+END_SRC
-
-Or set your connection info with ODBC
-#+BEGIN_SRC R :session r_fl :results output :exports both
-yourUser <- "" 
-yourPassword <- ""
-yourHost <- ""
-yourJarDir <- ""
-yourPlatform <- "td"
-#+END_SRC
-
 
 Run a demo:
 #+BEGIN_SRC R :session r_fl :results output :exports both
@@ -166,9 +167,33 @@ demo("matrix.correlation",package="AdapteR")
 #+END_SRC
 
 If you want to demonstrate what SQL queries are created during the demo:
-options(debugSQL=TRUE)
 #+BEGIN_SRC R :session r_fl :results output :exports both
 options(debugSQL=TRUE)
+demo("matrix.correlation",package="AdapteR")
+#+END_SRC
+
+
+** Or set your connection info with JDBC
+:PROPERTIES:
+:ID:       EA123B7F-CC54-405A-86E4-740A788FC239
+:END:
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourUser <- "" 
+yourPassword <- ""
+yourHost <- ""
+yourPlatform <- "td"
+
+                ## set jdbc.jarsDir to add jdbc driver
+                ## and security jars to classpath:
+                ##    terajdbc4.jar tdgssconfig.jar
+                ## CAVE: fully qualified PATH required
+yourJarDir <- ""
+connection <- flConnect(
+                host     = yourHost,
+                database = "FL_TRAIN",
+                user = yourUser,
+                passwd = yourPassword,
+                jdbc.jarsDir = yourJarDir)
 #+END_SRC
 
 ** Optional packages
@@ -198,6 +223,7 @@ Functions in these packages provide the reference implementations for AdapteR fu
 
 These packages are required to run the test suite:
 #+BEGIN_SRC R :eval no
+  install.packages("devtools")
   install.packages("testthat")
   install.packages("optparse")
 #+END_SRC
