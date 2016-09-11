@@ -126,7 +126,7 @@ the java development toolkit (jdbc).
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts.
 To run the package demos, please copy and execute all scripts here in R.
-(Before running the demo for the first time, also run the scripts in [[https://github.com/Fuzzy-Logix/AdapteR#optional-packages][Optional packages]], see below).
+(Before running the demo in a fresh installation for the first time, also run the scripts in [[https://github.com/Fuzzy-Logix/AdapteR#optional-packages][Optional packages]], see below).
 
 #+BEGIN_SRC R :session r_fl :results table :exports both 
 ## Load devtools and Update AdapteR from github
