@@ -126,33 +126,18 @@ the java development toolkit (jdbc).
 * AdapteR Demos and Training
 The package includes some demos to get you started and to explain the most important concepts.
 To run the package demos, please copy and execute all scripts here in R.
-(Before running the demo for the first time, also run the scripts in [[id:A7CCAA11-1DCD-482D-8744-88631588B3AF][Optional packages]]).
+(Before running the demo for the first time, also run the scripts in [[https://github.com/Fuzzy-Logix/AdapteR#optional-packages][Optional packages]], see below).
 
-#+BEGIN_SRC R :session r_fl :results output :exports both
+#+BEGIN_SRC R :session r_fl :results table :exports both 
 ## Load devtools and Update AdapteR from github
 require(devtools)
 install_github("Fuzzy-Logix/AdapteR")
 
 
 require(AdapteR)
-## This lists all available demos
-demo(package="AdapteR")
 #+END_SRC
 
-#+RESULTS: 
-#+BEGIN_EXAMPLE
-Demos in package ‘AdapteR’:
-
-connecting
-matrix.algebra
-matrix.correlation
-statistical.functions
-string.functions
-kmeans
-Iris_kmeans
-#+END_EXAMPLE
-
-To start a demo, first set your connection info with ODBC ([[id:EA123B7F-CC54-405A-86E4-740A788FC239][If you use JDBC, see below how to set your connection info with JDBC]])
+To start a demo, first set your connection info with ODBC ([[https://github.com/Fuzzy-Logix/AdapteR#or-set-your-connection-info-with-jdbc][If you use JDBC, see below how to set your connection info with JDBC]])
 #+BEGIN_SRC R :session r_fl :results output :exports both
 yourODBCSource <- "Gandalf" ## please make sure you use a 64 bit ODBC driver on a 64 bit R session
 yourPlatform <- "TD"
@@ -166,6 +151,29 @@ Run a demo:
 demo("matrix.correlation",package="AdapteR")
 #+END_SRC
 
+This lists all available demos
+#+BEGIN_SRC R :session r_fl :results output :exports both 
+demo(package="AdapteR")
+#+END_SRC
+
+#+RESULTS: 
+#+begin_example
+Demos in package ‘AdapteR’:
+
+Iris_kmeans             
+LoanDefaultDemo         
+TwitterBuzzDemo         
+apply.statistical.functions
+                        
+connecting              
+kmeans                  
+matrix.algebra          
+matrix.correlation      
+string.functions
+#+end_example
+
+
+
 If you want to demonstrate what SQL queries are created during the demo:
 #+BEGIN_SRC R :session r_fl :results output :exports both
 options(debugSQL=TRUE)
@@ -177,11 +185,12 @@ demo("matrix.correlation",package="AdapteR")
 :PROPERTIES:
 :ID:       EA123B7F-CC54-405A-86E4-740A788FC239
 :END:
+Before running, please fill in the required information in "".
 #+BEGIN_SRC R :session r_fl :results output :exports both
 yourUser <- "" 
 yourPassword <- ""
 yourHost <- ""
-yourPlatform <- "td"
+yourPlatform <- "TD"
 
                 ## set jdbc.jarsDir to add jdbc driver
                 ## and security jars to classpath:
