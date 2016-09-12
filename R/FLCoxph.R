@@ -155,14 +155,15 @@ coxph.FLTable <- function(formula,data, ...)
 				mapTable=deep$mapTable,
 				scoreTable="",
 				statusCol=deep$vStatus,
-				timeValCol=deep$vTimeVal))
+				timeValCol=deep$vTimeVal,
+                RegrDataPrepSpecs=deep$RegrDataPrepSpecs))
 }
 
 prepareData.coxph <- function(formula,data,
                               catToDummy=0,
                               performNorm=0,
                               performVarReduc=0,
-                              makeDataSparse=0,
+                              makeDataSparse=1,
                               minStdDev=0,
                               maxCorrel=1,
                               classSpec=list(),
@@ -233,6 +234,19 @@ prepareData.coxph <- function(formula,data,
 								whereconditions=whereconditions,
 								inAnalysisID="")
 
+        vRegrDataPrepSpecs <- list(outDeepTableName="",
+                                outObsIDCol="",
+                                outVarIDCol="",
+                                outValueCol="",
+                                catToDummy=catToDummy,
+                                performNorm=performNorm,
+                                performVarReduc=performVarReduc,
+                                makeDataSparse=makeDataSparse,
+                                minStdDev=minStdDev,
+                                maxCorrel=maxCorrel,
+                                trainOrTest=0,
+                                excludeCols=vexcludeCols,
+                                classSpec=classSpec)
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
 
@@ -302,14 +316,16 @@ prepareData.coxph <- function(formula,data,
                 mapTable=mapTable,
                 vStatus=vStatus,
                 vTimeVal=vTimeVal,
-                vdata=data))
+                vdata=data,
+                RegrDataPrepSpecs=vRegrDataPrepSpecs))
 }
 
 #' @export
 predict.FLCoxPH <-function(object,
 							newdata=object@table,
 							scoreTable="",
-							survivalCurveTable=""){
+							survivalCurveTable="",
+                            ...){
 	if(!is.FLTable(newdata)) 
 		stop("scoring allowed on FLTable only")
 	#browser()
@@ -334,7 +350,7 @@ predict.FLCoxPH <-function(object,
 		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
 		newdataCopy <- newdata
 		vtablename <- newdataCopy@select@table_name
-		vtablename2 <- table@select@table_name
+		vtablename2 <- object@table@select@table_name
 
 		## SQL to Insert the dependent column ans statusColumn
 		vVaridVec <- c(-2)
@@ -367,22 +383,42 @@ predict.FLCoxPH <-function(object,
 			}
 		}
 		else stop("newdata is not consistent with formula object for scoring \n ")
-		deepx <- FLRegrDataPrep(newdata,depCol="",
-								outDeepTableName="",
-								outObsIDCol="",
-								outVarIDCol="",
-								outValueCol="",
-								catToDummy=0,
-								performNorm=0,
-								performVarReduc=0,
-								makeDataSparse=0,
-								minStdDev=0,
-								maxCorrel=1,
-								trainOrTest=1,
-								excludeCols="",
-								classSpec=list(),
-								whereconditions="",
-								inAnalysisID=object@wideToDeepAnalysisId)
+
+        vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object@RegrDataPrepSpecs,
+                                                            values=list(...))
+        deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+                                outDeepTableName=vRegrDataPrepSpecs$outDeepTableName,
+                                outObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+                                outVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+                                outValueCol=vRegrDataPrepSpecs$outValueCol,
+                                catToDummy=vRegrDataPrepSpecs$catToDummy,
+                                performNorm=vRegrDataPrepSpecs$performNorm,
+                                performVarReduc=vRegrDataPrepSpecs$performVarReduc,
+                                makeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+                                minStdDev=vRegrDataPrepSpecs$minStdDev,
+                                maxCorrel=vRegrDataPrepSpecs$maxCorrel,
+                                trainOrTest=1,
+                                excludeCols=vRegrDataPrepSpecs$excludeCols,
+                                classSpec=vRegrDataPrepSpecs$classSpec,
+                                whereconditions=vRegrDataPrepSpecs$whereconditions,
+                                inAnalysisID=object@wideToDeepAnalysisId)
+
+		# deepx <- FLRegrDataPrep(newdata,depCol="",
+		# 						outDeepTableName="",
+		# 						outObsIDCol="",
+		# 						outVarIDCol="",
+		# 						outValueCol="",
+		# 						catToDummy=0,
+		# 						performNorm=0,
+		# 						performVarReduc=0,
+		# 						makeDataSparse=1,
+		# 						minStdDev=0,
+		# 						maxCorrel=1,
+		# 						trainOrTest=1,
+		# 						excludeCols="",
+		# 						classSpec=list(),
+		# 						whereconditions="",
+		# 						inAnalysisID=object@wideToDeepAnalysisId)
 
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")

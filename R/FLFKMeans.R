@@ -455,11 +455,11 @@ membership.FLFKMeans<-function(object)
 
 	  	membershipmatrix <- new("FLMatrix",
 				            select= tblfunqueryobj,
-				            dim=c(length(object@deeptable@dimnames[[1]]),
+				            dim=c(nrow(object@deeptable),
 				            	object@centers),
 				            dimnames=list(
-				            			object@deeptable@dimnames[[1]],
-				            			1:object@centers))
+                                                rownames(object@deeptable),
+                                                1:object@centers))
 
 		membershipmatrix <- tryCatch(as.matrix(membershipmatrix),
       						error=function(e){membershipmatrix})
