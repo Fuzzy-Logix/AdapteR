@@ -100,7 +100,10 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                 res <- sqlSendUpdate(connection, createHypoView(y,x,vviewName))
             else
                 res <- sqlSendUpdate(connection, createHypoView(x,y,vviewName))
-            
+
+
+            vcall <- as.list(sys.call())
+            dname = paste0(vcall[2]," and ",vcall[3])
                                         #  Using Stored Proc Query.
 
             ret <- sqlStoredProc(connection,
@@ -114,18 +117,23 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                                  outputParameter = c(ResultTable = 'a'))
 
             sqlstr <- paste0( "SELECT q.W_STAT AS W,
-                                  q.P_VALUE AS p  
+                                      q.P_VALUE AS p,
+                                      q.W_STAT_Neg AS W_Neg,
+                                      q.W_STAT_Posi AS W_Pos
                            FROM ",ret$ResultTable," AS q")
-            result <-  sqlQuery(connection,sqlstr)       
-            
-                                        # Extracting the result.
-         #   vcall <-all.vars(sys.call())
-          #  print(vcall)
-            res <- list(statistics = c(W = result$W),
+            result <-  sqlQuery(connection,sqlstr)
+            if(result$W_Pos > result$W_Neg)
+            {
+                stats = c(V = result$W_Pos)
+            }
+            else
+                stats <- c(W = result$W_Pos)
+
+            res <- list(statistic = stats,
                         p.value = result$p,
-                                        #data.name = paste0((x)," and ",substitute(y)),
+                        data.name =dname,
                         alternative = "two.sided",
-                        method = "Wilcoxon rank sum test",
+                        method = "Wilcoxon rank sum test"
            #            call=vcall
                         )
             class(res) <- "htest"
@@ -146,33 +154,29 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                         FROM (",constructSelect(y),") AS l
                       ")
 
-            t <- sqlSendUpdate(connection,sqlstr)
-            str <- paste0("SELECT * FROM ",vviewName)
-            retu <- sqlQuery(connection, str)
-            
+            vcall <- as.list(sys.call())
+            dname = paste0(vcall[2]," and ",vcall[3])
 
-            str <- paste0("CALL FLMWTest('",vviewName,"', 'Num_Val',
-                                           'GroupID', NULL, NULL, 1,
-                                         ResultTable);")
-            res_1 <- sqlQuery(connection, str)
-                #        ret <- sqlStoredProc(connection,
-     #                            "FLMWTest",
-      #                           TableName = vviewName,
-       #                          GroupColName = "GroupID",
-        #                         Val1ColName = "Num_Val",
-         #                        WhereClause = NULL ,
-          #                       GroupBy = NULL,
-           #                      TableOutput = 1,
-            #                     outputParameter = c(ResultTable = 'a'))
+            t <- sqlSendUpdate(connection,sqlstr)
+            ret <- sqlStoredProc(connection,
+                                 "FLMWTest",
+                                 TableName = vviewName,
+                                 ValColName = "Num_Val",
+                                 GroupColName = "GroupID",
+                                 WhereClause = NULL ,
+                                 GroupBy = NULL,
+                                 TableOutput = 1,
+                                 outputParameter = c(ResultTable = 'a'))
+
 
             sqlstr <- paste0("SELECT U_STAT AS W,
                              P_VALUE AS P
-                     FROM ",res_1$ResultTable)
+                     FROM ",ret$ResultTable)
             result <- sqlQuery(connection, sqlstr)
 
-            res <- list(statistics = c(W = result$W),
+            res <- list(statistic = c(W = result$W),
                         p.value = result$P,
-                                        #data.name = paste0((x)," and ",substitute(y)),
+                        data.name = dname,
                         alternative = "two.sided",
                         method = "Wilcoxon rank sum test"
 
@@ -189,51 +193,80 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
 }
 
 
-Waldtest1s  <- function(vFLvector,
-                        vSign
-                        )
+WaldWolftest1s  <- function(vFLvector,threshold = 0)
 
 {
-    if(!is.FLVector(vFLvector)|| !is.FLVector(vSign))
-        stop("Only take FLVector")
-    else
-    {
-        if(length(vFLvector) != length(vSign))
-            stop("Both FLVector must be of same length")
-        else
-        {
-            vviewName <- gen_view_name("ww1sTest")
-            res <- sqlSendUpdate(connection, createHypoView(vFLvector, vSign, vviewName))
+    if(!is.FLVector(vFLvector))
+       stop("Only take FLVector")
+       else
+       {
+           vviewName <- gen_view_name("ww1sTest")
+           if(threshold)
+           {
+               t <- sqlSendUpdate(connection,
+                                  createSignview(vviewName, threshold, vFLvector))
+}
+           else{
+               sqlstr <- paste0("SELECT FLMedianUDT(q.GroupID,q.Num_Val)
+                                FROM ",vviewName)
+               partition = sqlQuery(connection, sqlstr)
+               t <- sqlSendUpdate(connection,
+                                  createSignview(vviewName, threshold, vFLvector))
+           }
+
+           vcall <- as.list(sys.call())[[2]]
+           
                                         #Testing the code part
-            ret <- sqlStoredProc(connection,
-                                 "FLWWTest1S",
-                                 TableName = vviewName,
-                                 ObsIDColName = "ObsID",
-                                 Sign= "Num_Val2",
-                                 WhereClause = NULL ,
-                                 GroupBy = NULL,
-                                 TableOutput = 1,
-                                 outputParameter = c(ResultTable = 'a')
-                                 )
+           ret <- sqlStoredProc(connection,
+                                "FLWWTest1S",
+                                TableName = vviewName,
+                                ObsIDColName = "ObsID",
+                                Sign= "Sign",
+                                WhereClause = NULL ,
+                                GroupBy = NULL,
+                                TableOutput = 1,
+                                outputParameter = c(ResultTable = 'a')
+                                )
 
 
 
-            sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
-                             ret$ResultTable," AS q")
-            res_1 <- sqlQuery(connection , sqlstr)
-            result <- list(statistics = c(Z = res_1$Z),
-                           p.value = res_1$P,
-                           method = "Wald Wolfowitz test"
-                           )
-            class(result) <- "htest"
-            return(result)
+           sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
+                            ret$ResultTable," AS q")
+           res_1 <- sqlQuery(connection , sqlstr)
+           result <- list(statistics = c(Z = res_1$Z),
+                          p.value = res_1$P,
+                          data.name = vcall,
+                          method = "Wald Wolfowitz test"
+                          )
+           class(result) <- "htest"
+           return(result)
 
 
-            #print(res_1)
-           # print(paste0("P-Value is ",res_1$P,"Z Value is ",res_1$Z))
-            
-        }
+                                        #print(res_1)
+                                        # print(paste0("P-Value is ",res_1$P,"Z Value is ",res_1$Z))
+           
+       }
     }
+
+
+                                        # join FLVecotor assign Sign Value and create a table name.
+        
+createSignview <- function(vName, vpart, vFLVector)
+{
+    
+    sqlstr <- paste0("CREATE VIEW ",vName," AS
+                        SELECT t.vectorValueColumn AS Num_Val,
+                               1 AS GroupID,
+                               t.vectorindexcolumn AS ObsID,
+                              CASE WHEN t.vectorValueColumn > ",vpart,"
+                                        THEN 1
+                                   WHEN t.vectorValueColumn < ",vpart,"
+                                        THEN -1
+                                   ELSE 0
+                              END AS Sign
+                                FROM (",constructSelect(vFLVector),") AS t
+                      ")
+    return(sqlstr)
 
 }
 
