@@ -17,6 +17,9 @@
 ## ?flConnect
 vtemp <- readline("Teradata:Connecting to FL_TRAIN database:")
 
+if(!exists("yourPlatform"))
+    yourPlatform <- "TD"
+
 if(!exists("yourODBCSource") & !exists("yourUser"))
     stop("Please set the variable \nyourODBCSource <- \"...\" for odbc login!\nor set for jdbc login:\nyourUser <- \"...\"\nyourPassword <- \"...\"")
 

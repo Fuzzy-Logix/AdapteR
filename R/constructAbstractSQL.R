@@ -125,7 +125,6 @@ constructStoredProcSQL <- function(pConnection,
                                     pFuncName,
                                     pOutputParameter,
                                     ...){
-    #browser()
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -136,7 +135,7 @@ constructStoredProcSQL <- function(pConnection,
 
     ## Construct input params 
     ## NULL in TD == '' in others
-    if(class(pConnection)=="RODBC"){
+    if(class(pConnection)=="RODBC" | class(pConnection)=="character"){
         pars <- sapply(args,
                     function(a){
                         if(is.character(a)){
@@ -164,11 +163,10 @@ constructStoredProcSQL <- function(pConnection,
         #         pars[ai] <- a
         #     ai <- ai+1L
         # }
-    }
-    else{
+    } else {
         pars <- rep("?",length(args))
         if(is.TD())
-        names(pOutputParameter)<-"?"
+            names(pOutputParameter)<-"?"
     }
 
     names(pars) <- names(args)
@@ -176,8 +174,7 @@ constructStoredProcSQL <- function(pConnection,
     vCall <- c(TD="CALL ",
                 TDAster="SELECT * FROM ",
                 Hadoop="SELECT ")
-    vCall <- vCall[names(vCall)==getOption("FLPlatform")]
-
+    vCall <- vCall[[getOption("FLPlatform")]]
     if(is.TDAster()){
         pars <- c(pars,
                 DSN=fquote(getOption("DSN")))
@@ -381,10 +378,10 @@ createTable <- function(pTableName,
 
     if(pDrop)
         dropTable(pTableName)
-    vtempKeyword <- c(VOLATILE="TD",
-                    TEMPORARY="Hadoop",
-                    "TDAster")  ##TEMPORARY="TDAster"
-    vtempKeyword <- names(vtempKeyword)[vtempKeyword==getOption("FLPlatform")]
+    vtempKeyword <- c(TD="VOLATILE",
+                      Hadoop="TEMPORARY",
+                      TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
+    vtempKeyword <- vtempKeyword[getOption("FLPlatform")]
 
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
@@ -429,11 +426,11 @@ createTable <- function(pTableName,
                             ))
             ## Add columns
             vsqlstr <- paste0(vsqlstr,addColNameType(pColNames,pColTypes))
-            ## Add primaryKey
-            if(pPrimaryKey!="" && !is.null(pPrimaryKey))
-            vsqlstr <- paste0(vsqlstr," PRIMARY INDEX (",
-                                paste0(pPrimaryKey,collapse=","),")")
         }
+        ## Add primaryKey
+        if(pPrimaryKey!="" && !is.null(pPrimaryKey))
+        vsqlstr <- paste0(vsqlstr," PRIMARY INDEX (",
+                            paste0(pPrimaryKey,collapse=","),")")
         ## Add ON COMMIT PRESERVE ROWS
         if(pTemporary)
         vsqlstr <- paste0(vsqlstr," ON COMMIT PRESERVE ROWS ")
@@ -468,8 +465,13 @@ createTable <- function(pTableName,
         }
     }
     vsqlstr <- paste0(vsqlstr,";")
-    if(!pTemporary & getOption("temporaryTablesFL"))
+    if(!pTemporary & getOption("temporaryTablesFL")){
+        if(!pDrop){
+            if(checkRemoteTableExistence(tableName=pTableName))
+                return()
+        }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
+    }
 
     ## gk @ phani: what will this be used for? It never is used actually...
     if("usedbSendUpdate" %in% names(list(...))){

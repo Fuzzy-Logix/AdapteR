@@ -4,11 +4,11 @@
 ## SQL as low-level language makes analyses
 ## consumable from all SQL-enabled clients.
 
-vtemp <- readline("What this demo is about:")
 ## This demo shows how the
 ## AdapteR package of Fuzzy Logix is
 ## providing transparent matrix algrbra with
 ## the DB Lytix(TM) in-database library.
+vtemp <- readline("What this demo is about:")
 
 if(!exists("connection")) {
     vtemp <- readline("Check if connection exists:")
@@ -17,7 +17,6 @@ if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
 
-vtemp <- readline("Comparing (SQL from R) with (AdapteR):")
 ###########################################################
 ############# Comparing (SQL from R) with AdapteR ############
 ##
@@ -41,7 +40,7 @@ FROM TABLE (
 ) AS a
 ORDER BY 1,2,3;")
 
-vtemp <- readline("Output of (SQL from R):")
+vtemp <- readline("Matrix inversion output (SQL from R) is in deep format:")
 print(vresult)
 
 vtemp <- readline("You can use AdapteR with R syntax for inversion.  First we define the remote matrix:")
@@ -59,9 +58,14 @@ vtemp <- readline("Output is also a FLMatrix and data is not fetched:")
 print(class(ms))
 
 vtemp <- readline("You can check with the R in-memory computation after fetching the matrix with a cast:")
+
+## Casting downloads data of the matrix and creates a R in-memory object
 rm <- as.matrix(m)
-## compute inverse in R after
+
+## compute and print inverse in R
 solve(rm)
+
+## print computed inverse in FL
 ms
 
 

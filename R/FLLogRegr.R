@@ -216,7 +216,8 @@ predict.FLLogRegr <- function(object,
 }
 
 #' @export
-summary.FLLogRegr <- function(object){
+summary.FLLogRegr <- function(object,
+                              calcResiduals=FALSE){
     stat <- object$FLLogRegrStats
   	coeffframe <- data.frame(object$coefficients,
 							object$FLCoeffStdErr,
@@ -224,15 +225,16 @@ summary.FLLogRegr <- function(object){
 							object$FLCoeffPValue)
 	colnames(coeffframe)<-c("Estimate","Std. Error","ChiSquare","Pr(>|t|)")
   #put rowname
-    rname <- all.vars(object@formula)
-    rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
+    # rname <- all.vars(object@formula)
+    # rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
+    rownames(coeffframe) <- names(object$coefficients)
 
-
-
-    
+    if(calcResiduals)
+        vresiduals <- as.vector(object$residuals)
+    else vresiduals <- NULL
 
     reqList <- list(call = as.call(object@formula),
-                    deviance.resid  = as.vector(object$residuals),
+                    deviance.resid  = vresiduals,
                     coefficients = as.matrix(coeffframe),
                     df = as.vector(c((stat$NUMOFOBS + 1),(stat$NUMOFOBS-1-stat$NUMOFVARS), (stat$NUMOFOBS + 1))),
                     aliased = FALSE,
