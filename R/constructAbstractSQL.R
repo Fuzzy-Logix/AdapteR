@@ -310,6 +310,9 @@ constructAggregateSQL <- function(pFuncName,
 }
 
 
+## gk: this needs review for non-consecutive obs-ids/vectorindexcolumns
+## gk: probably best way to solve this is by using cbind
+## gk: with an option to not recycle values in shorter vectors (would break t.test)
 constructUnionSQL <- function(pFrom,
                             pSelect=NULL){
      vFrom <- as.list(pFrom)
