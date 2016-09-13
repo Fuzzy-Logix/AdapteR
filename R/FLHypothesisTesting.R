@@ -272,7 +272,8 @@ createHypoView <- function(x,y){
                        FROM (",constructSelect(r),") b 
                        WHERE b.vectorindexcolumn >",vminLength)
     sqlQuery(connection,sqlstr0)
-    return(pViewName)       
+    return(pViewName)
+}     
 
 wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
 {
@@ -385,43 +386,33 @@ Waldtest1s  <- function(vFLvector,
 {
     if(!is.FLVector(vFLvector)|| !is.FLVector(vSign))
         stop("Only take FLVector")
+    
+    if(length(vFLvector) != length(vSign))
+        stop("Both FLVector must be of same length")
     else
     {
-        if(length(vFLvector) != length(vSign))
-            stop("Both FLVector must be of same length")
-        else
-        {
-            vviewName <- gen_view_name("ww1sTest")
-            res <- sqlSendUpdate(connection, createHypoView(vFLvector, vSign, vviewName))
-                                        #Testing the code part
-            ret <- sqlStoredProc(connection,
-                                 "FLWWTest1S",
-                                 TableName = vviewName,
-                                 ObsIDColName = "ObsID",
-                                 Sign= "Num_Val2",
-                                 WhereClause = NULL ,
-                                 GroupBy = NULL,
-                                 TableOutput = 1,
-                                 outputParameter = c(ResultTable = 'a')
-                                 )
+        vviewName <- gen_view_name("ww1sTest")
+        res <- sqlSendUpdate(connection, createHypoView(vFLvector, vSign, vviewName))
+                                    #Testing the code part
+        ret <- sqlStoredProc(connection,
+                             "FLWWTest1S",
+                             TableName = vviewName,
+                             ObsIDColName = "ObsID",
+                             Sign= "Num_Val2",
+                             WhereClause = NULL ,
+                             GroupBy = NULL,
+                             TableOutput = 1,
+                             outputParameter = c(ResultTable = 'a')
+                             )
 
-
-
-            sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
-                             ret$ResultTable," AS q")
-            res_1 <- sqlQuery(connection , sqlstr)
-            result <- list(statistics = c(Z = res_1$Z),
-                           p.value = res_1$P,
-                           method = "Wald Wolfowitz test"
-                           )
-            class(result) <- "htest"
-            return(result)
-
-
-            #print(res_1)
-           # print(paste0("P-Value is ",res_1$P,"Z Value is ",res_1$Z))
-            
-        }
+        sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
+                         ret$ResultTable," AS q")
+        res_1 <- sqlQuery(connection , sqlstr)
+        result <- list(statistics = c(Z = res_1$Z),
+                       p.value = res_1$P,
+                       method = "Wald Wolfowitz test"
+                       )
+        class(result) <- "htest"
+        return(result)
     }
-
 }

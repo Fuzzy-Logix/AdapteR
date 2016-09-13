@@ -463,3 +463,8 @@ getDatabase <- function(x) {
     if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
     db
 }
+
+getTableNameSlot <- function(x){
+    return(tryCatch(x@select@table_name,
+                    error=function(x)NULL))
+}

@@ -308,6 +308,28 @@ constructAggregateSQL <- function(pFuncName,
                         ""))
     return(vsqlstr)
 }
+
+
+constructUnionSQL <- function(pFrom,
+                            pSelect=NULL){
+     vFrom <- as.list(pFrom)
+     vSelects <- sapply(1:length(vFrom),
+                         function(x){
+                             if(is.null(pSelect[[names(vFrom)[[x]]]]))
+                                 vinnerSelect <- "*"
+                             else{
+                                 vinnerSelect <- pSelect[[names(vFrom)[[x]]]]
+                                 vinnerSelect <- ifelse(!is.null(names(vinnerSelect)),
+                                                     paste0(vinnerSelect," AS ",names(vinnerSelect),collapse=","),
+                                                     paste0(vinnerSelect,collapse=","))
+                                 print(vinnerSelect)
+                             }
+                                 return(paste0("SELECT ",vinnerSelect," \n ",
+                                               " FROM (",vFrom[[x]],") AS ",
+                                                     names(vFrom)[[x]]))
+                             })
+     return(paste0(vSelects, collapse= " \n UNION ALL \n "))
+}
 ###############################################################################################
 
 ############################ DDLs ##########################################
