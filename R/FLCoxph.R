@@ -176,33 +176,37 @@ prepareData.coxph <- function(formula,data,
 	}
 	if(!data@isDeep)
 	{
-		if(isDotFormula(formula))
-			formula <- genDeepFormula(pColnames=colnames(data),
-									pDepColumn=all.vars(formula)[1])
-		vallVars <- base::all.vars(formula)
-		checkValidFormula(formula,data)
-		vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
-		if(!("Surv" %in% vSurvival))
-		stop("specify dependent variables as Surv object")
-		if(length(vSurvival)==2)
-		stop("atleast time and event components must be present in Surv object")
-		if(length(vSurvival)==3)
-		{
-			vTimeVal <- vSurvival[2]
-			vStatus <- vSurvival[3]
-		}
-		else if(length(vSurvival)==4)
-		{
-			vtempList <- IncludeTimeVal(data=data,
-										formula=formula)
-			vStatus <- vtempList[["vStatus"]]
-			vtablename <- vtempList[["vtablename"]]
-			vTimeVal <- vtempList[["vTimeVal"]]
-			data <- vtempList[["data"]]
-			vallVars <- vtempList[["vallVars"]]
-			vallVars <- c(vallVars,vTimeVal)
-		}
-		vallVars <- vallVars[vallVars!=vStatus]
+        vtemp <- prepareSurvivalFormula(data=data,
+                                        formula=formula)
+        for(i in names(vtemp))
+        assign(i,vtemp[[i]])
+		# if(isDotFormula(formula))
+		# 	formula <- genDeepFormula(pColnames=colnames(data),
+		# 							pDepColumn=all.vars(formula)[1])
+		# vallVars <- base::all.vars(formula)
+		# checkValidFormula(formula,data)
+		# vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+		# if(!("Surv" %in% vSurvival))
+		# stop("specify dependent variables as Surv object")
+		# if(length(vSurvival)==2)
+		# stop("atleast time and event components must be present in Surv object")
+		# if(length(vSurvival)==3)
+		# {
+		# 	vTimeVal <- vSurvival[2]
+		# 	vStatus <- vSurvival[3]
+		# }
+		# else if(length(vSurvival)==4)
+		# {
+		# 	vtempList <- IncludeTimeVal(data=data,
+		# 								formula=formula)
+		# 	vStatus <- vtempList[["vStatus"]]
+		# 	vtablename <- vtempList[["vtablename"]]
+		# 	vTimeVal <- vtempList[["vTimeVal"]]
+		# 	data <- vtempList[["data"]]
+		# 	vallVars <- vtempList[["vallVars"]]
+		# 	vallVars <- c(vallVars,vTimeVal)
+		# }
+		# vallVars <- vallVars[vallVars!=vStatus]
 	}
 	
 	vcolnames <- colnames(data)
@@ -846,29 +850,72 @@ plot.FLCoxPH <- function(object,nobs=5,...){
 		title(main = "Survival curve plot FL"))
 }
 
-IncludeTimeVal <- function(data,
-						   formula,
-						   vTimeVal=NULL){
-	vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
-	vTimeVal1 <- vSurvival[2]
-	vTimeVal2 <- vSurvival[3]
-	vStatus <- vSurvival[4]
-	if(is.null(vTimeVal))
-	vTimeVal <- "FLTimeValCol"
-	vtablename1 <- data@select@table_name
+prepareSurvivalFormula <- function(data,
+                                 formula
+                                 ){
 
-	vtablename <- createView(pViewName=gen_unique_table_name(""),
-				pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
-						" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-				)
-    
-	data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
-	data@select@table_name <- vtablename
-	vallVars <- base::all.vars(formula)
-	vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
-	return(list(data=data,
+    IncludeTimeVal <- function(data,
+                           formula,
+                           vTimeVal=NULL){
+        vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+        vTimeVal1 <- vSurvival[2]
+        vTimeVal2 <- vSurvival[3]
+        vStatus <- vSurvival[4]
+        if(is.null(vTimeVal))
+        vTimeVal <- "FLTimeValCol"
+        vtablename1 <- data@select@table_name
+
+        vtablename <- createView(pViewName=gen_unique_table_name(""),
+                                pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
+                                            " AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+                    )
+        
+        data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
+        data@select@table_name <- vtablename
+        vallVars <- base::all.vars(formula)
+        vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
+        return(list(data=data,
+                        vTimeVal=vTimeVal,
+                        vStatus=vStatus,
+                        vtablename=vtablename,
+                        vallVars=vallVars))
+    }
+
+    if(isDotFormula(formula))
+            formula <- genDeepFormula(pColnames=colnames(data),
+                                    pDepColumn=all.vars(formula)[1])
+        vallVars <- base::all.vars(formula)
+        vtablename <- NULL
+        checkValidFormula(formula,data)
+        vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+        if(!("Surv" %in% vSurvival))
+        stop("specify dependent variables as Surv object")
+        if(length(vSurvival)==2)
+        stop("atleast time and event components must be present in Surv object")
+        if(length(vSurvival)==3)
+        {
+            vTimeVal <- vSurvival[2]
+            vStatus <- vSurvival[3]
+        }
+        else if(length(vSurvival)==4)
+        {
+            vtempList <- IncludeTimeVal(data=data,
+                                        formula=formula)
+            vStatus <- vtempList[["vStatus"]]
+            vtablename <- vtempList[["vtablename"]]
+            vTimeVal <- vtempList[["vTimeVal"]]
+            data <- vtempList[["data"]]
+            vallVars <- vtempList[["vallVars"]]
+            vallVars <- c(vallVars,vTimeVal)
+        }
+        else stop("Error in formula:check function documentation for constraints on formula \n ")
+        vallVars <- vallVars[vallVars!=vStatus]
+        return(list(vStatus=vStatus,
                     vTimeVal=vTimeVal,
-                    vStatus=vStatus,
+                    data=data,
+                    vallVars=vallVars,
                     vtablename=vtablename,
-                    vallVars=vallVars))
+                    formula=formula,
+                    vSurvival=vSurvival))
 }
+

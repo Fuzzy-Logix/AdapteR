@@ -24,24 +24,24 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     how AdapteR can be used to build interactive analytics at scale with just a few
     lines of R code!
 Depends:
-	R (>= 3.2.0),
-	methods,
-	Matrix (>= 1.1-5)
+    R (>= 3.2.0),
+    methods,
+    Matrix (>= 1.1-5)
 Imports:
-	testthat,
-	plyr,
-	Rcpp,
-	utils,
-	graphics,
-	lattice,
-	grid,
-	stats,
-	psych,
-	reshape2,
-	stringr,
-	stringi,
-	magrittr,
-	DBI
+    testthat,
+    plyr,
+    Rcpp,
+    utils,
+    graphics,
+    lattice,
+    grid,
+    stats,
+    psych,
+    reshape2,
+    stringr,
+    stringi,
+    magrittr,
+    DBI
 Suggests:
     SDMTools,
     MASS,
@@ -126,4 +126,5 @@ Collate:
     'experiment_benchmarking.R'
     'rowcolOps.R'
     'tcrossprod.R'
+    'z.test.R'
 RoxygenNote: 5.0.1

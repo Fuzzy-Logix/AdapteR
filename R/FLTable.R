@@ -113,8 +113,10 @@ FLTable <- function(table,
         if(!changeAlias(obs_id_colname,"","") %in% cols)
           stop(paste0(changeAlias(obs_id_colname,"",""),
                       " not a column in table.Please check case Sensitivity \n "))
-        if(!is.null(list(...)[["ObsID"]]))
+        if(!is.null(list(...)[["ObsID"]])){
           rows <- list(...)[["ObsID"]]
+          nrow <- length(rows)
+        }
         else if(fetchIDs) {
           rows <- sort(sqlQuery(connection,
                             paste0("SELECT DISTINCT(",
