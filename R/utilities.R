@@ -7,7 +7,7 @@ setOldClass("RODBC")
 
 
 sqlError <- function(e){
-    print(e)
+    warning(e)
     sys.call()
 }
 ################################################################################
@@ -154,12 +154,17 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     #                 paste0(rep("?", length(args)+length(outputParameter)),
     #                        collapse=","),
     #                  ")")
+    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
+                                         gsub(" +","    ",
+                                              constructStoredProcSQL(pConnection="string",
+                                                                     pFuncName=query,
+                                                                     pOutputParameter=outputParameter,
+                                                                     ...)),"\n"))
     query <- constructStoredProcSQL(pConnection=connection,
                                     pFuncName=query,
                                     pOutputParameter=outputParameter,
                                     ...)
 
-    if(getOption("debugSQL")) cat(paste0("CALLING Stored Pro: \n",gsub(" +"," ",query),"\n"))
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
 
@@ -770,7 +775,7 @@ getMaxVectorId <- function(vconnection = getOption("connectionFL"),
                 vconnection=vconnection)+1
 
 #' Ensure sqlQuery constructed meets limits
-#' namely max size and max nestings
+#' namely max size(1MB) and max nestings(140-147)
 #'
 #' @param pResult object whose constructSelect
 #' needs to be within limits
@@ -779,12 +784,14 @@ getMaxVectorId <- function(vconnection = getOption("connectionFL"),
 #' @param pStoreResult Flag whether to store the pResult
 #' @return pResult after storing transparently inputs 
 #' and recomputing the operation
-#' @examples 
+#' @examples
+#' cat("Below Example shows how expressions with number of nested queries exceeding the limit are handled:")
 #' flm <- FLMatrix("tblmatrixMulti",3,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 #' flv <- as.FLVector(rnorm(25))
-#' vexpression <- paste0(rep("flm+flv",13),collapse="")
+#' vexpression <- paste0(rep("flm+flv",17),collapse="+")
+#' cat(vexpression)
 #' cat("no.of Nested Queries: ",length(gregexpr("FROM",constructSelect(eval(parse(text=vexpression))))[[1]]))
-#' vResult <- eval(parse(text=paste0(vexpression,"+",vexpression)))
+#' vResult <- eval(parse(text=vexpression))
 #' cat("no.of Nested Queries in Result: ",length(gregexpr("FROM",constructSelect(vResult))[[1]]))
 ensureQuerySize <- function(pResult,
                             pInput,
@@ -844,6 +851,16 @@ checkValidFormula <- function(pObject,pData)
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
                                     tableName)
 {
+    ## check if tableName has database
+    if(grepl(".",tableName,fixed=TRUE)){
+        vdb <- strsplit(tableName,".",fixed=TRUE)[[1]][1]
+        vtbl <- strsplit(tableName,".",fixed=TRUE)[[1]][2]
+        if(!missing(databaseName) && vdb!=databaseName)
+            stop("databaseName and database included in tableName dont match \n ")
+        databaseName <- vdb
+        tableName <- vtbl
+    }
+
     vtemp <- sqlQuery(getOption("connectionFL"),paste0(
                         "SELECT 1 FROM dbc.tables \n ",
                         " WHERE databaseName = ",fquote(databaseName),

@@ -344,7 +344,7 @@ prod <- function(...,na.rm=FALSE){
 }
 
 ####################### sum ###############################################
-sum.FLAbstractColumn <- function(x,na.rm=FALSE){
+sum.FLAbstractColumn <- function(x,na.rm=FALSE,...){
     return(paste0(" FLSUM(",
                         paste0(x@columnName,collapse=","),") "))
 }
@@ -372,7 +372,7 @@ sum <- function(...,na.rm=FALSE){
 }
 
 ######################### max #############################################
-max.FLAbstractColumn <- function(x,na.rm=FALSE){
+max.FLAbstractColumn <- function(x,na.rm=FALSE,...){
     return(paste0(" FLMax(",
                         paste0(x@columnName,collapse=","),") "))
 }

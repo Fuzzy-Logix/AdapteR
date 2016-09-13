@@ -180,15 +180,19 @@ getXMatrix <- function(object,
   # if(length(vdroppedCols)==0){
   #   vcurrColumns <- setdiff(colnames(modelframe),pDropCols)
 
-  #   varidoffset <- sapply(-2:0,function(x){
-  #                 if(all(x:0 %in% vcurrColumns))
-  #                   x
-  #                 else NULL
-  #             })
-  #   varidoffset <- unlist(varidoffset)
-  #   if(length(varidoffset)>0)
-  #     varidoffset <- abs(min(varidoffset))+1
-  #   else varidoffset <- 0
+    # varidoffset <- sapply(-2:0,function(x){
+    #               if(all(x:0 %in% object@results[["CoeffID"]]))
+    #                 x
+    #               else NULL
+    #           })
+    # varidoffset <- unlist(varidoffset)
+    # if(length(varidoffset)>0)
+    #   varidoffset <- abs(min(varidoffset))+1
+    # else varidoffset <- 0
+
+    varidoffset <- 0
+    if(min(object@results[["CoeffID"]])==0)
+        varidoffset <- 1
 
   #   vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
   #             "obs_id_colname AS rowIdColumn,\n ",
@@ -211,15 +215,38 @@ getXMatrix <- function(object,
   #   }
   #   else vtablename <- object@results[["varidMapTable"]]
 
+    if(isContinuous(rownames(modelframe)))
+        vrowidcolumn <- "a.obs_id_colname"
+    else vrowidcolumn <- "DENSE_RANK()OVER(ORDER BY a.obs_id_colname)"
+
+    if(is.null(object@results[["CoeffID"]])
+        ||!isContinuous(object@results[["CoeffID"]]))
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                "ROW_NUMBER()OVER(PARTITION BY a.var_id_colname ORDER BY a.obs_id_colname) AS rowIdColumn,\n ",
-                "ROW_NUMBER()OVER(PARTITION BY a.obs_id_colname ",
-                    "ORDER BY b.vectorIndexColumn) AS colIdColumn, \n ",
-                "a.cell_val_colname AS valueColumn \n ",
-              " FROM (",constructSelect(modelframe),") a, \n ",
-                     "(",constructSelect(object@results[["varIDMapping"]]),") b \n ",
-            " WHERE b.vectorValueColumn=a.var_id_colname \n "
-               )
+                            vrowidcolumn," AS rowIdColumn, \n ",
+                            "b.CoeffIDNew AS colIdColumn, \n ",
+                            "a.cell_val_colname AS valueColumn \n ",
+                      " FROM (",constructSelect(modelframe),") a, \n ",
+                            "(SELECT CoeffID,ROW_NUMBER()over(order by CoeffID) AS CoeffIDNew \n ",
+                            " FROM ",object@vfcalls["coefftablename"]," a \n ",
+                            " WHERE a.AnalysisID = ",fquote(object@AnalysisID),
+                                    ifelse(length(object@results[["modelID"]])>0,
+                                        paste0("\n AND a.ModelID = ",object@results[["modelID"]]),""),
+                            ") b \n ",
+                      " WHERE b.CoeffID=a.var_id_colname "
+                    )
+    else
+    vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+                            vrowidcolumn," AS rowIdColumn, \n ",
+                            "b.CoeffID ",
+                            ifelse(varidoffset==0,"",paste0("+",varidoffset))," AS colIdColumn, \n ",
+                            "a.cell_val_colname AS valueColumn \n ",
+                      " FROM (",constructSelect(modelframe),") a, \n ",
+                            object@vfcalls["coefftablename"]," b \n ",
+                      " WHERE b.AnalysisID = ",fquote(object@AnalysisID),
+                            ifelse(length(object@results[["modelID"]])>0,
+                                paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
+                            " AND b.CoeffID=a.var_id_colname "
+                    )
 
     # vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
   #             "a.obs_id_colname AS rowIdColumn,\n ",
@@ -435,4 +462,9 @@ getDatabase <- function(x) {
     db <- gsub("\\.[^.]*$","",x)
     if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
     db
+}
+
+getTableNameSlot <- function(x){
+    return(tryCatch(x@select@table_name,
+                    error=function(x)NULL))
 }

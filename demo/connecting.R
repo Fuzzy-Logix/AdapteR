@@ -14,8 +14,11 @@
 ## Setting up a ODBC connection
 
 ## The Documentation for flConnect can be found using ?flConnect
-?flConnect
+## ?flConnect
 vtemp <- readline("Teradata:Connecting to FL_TRAIN database:")
+
+if(!exists("yourPlatform"))
+    yourPlatform <- "TD"
 
 if(!exists("yourODBCSource") & !exists("yourUser"))
     stop("Please set the variable \nyourODBCSource <- \"...\" for odbc login!\nor set for jdbc login:\nyourUser <- \"...\"\nyourPassword <- \"...\"")
@@ -57,8 +60,6 @@ if(!exists("connection")){
     if(!exists("connection")) 
         stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
-
-options(debugSQL=TRUE)
 
 vtemp <- readline("Checking if the connection is working:")
 

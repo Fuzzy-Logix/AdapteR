@@ -78,9 +78,6 @@ remove.packages("AdapteR")
 :PROPERTIES:
 :ID:       2B55187C-17C1-488C-A980-396426D2DD18
 :END:
-:LOGBOOK:
-CLOCK: [2016-08-18 Do 14:59]
-:END:
 AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
 You can either use ODBC or JDBC to connect to the warehouse, see instructions below.
 
@@ -90,10 +87,11 @@ Use =flConnect= to connect to a database. Help on this can be found using
    #+end_src
 
 ** ODBC
-  #+BEGIN_SRC R :eval no
-  install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
-  library(RODBC)
-  #+END_SRC
+#+BEGIN_SRC R :eval no
+install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
+library(RODBC)
+#+END_SRC
+*Note: it is required that the Teradata ODBC option "Return Output Parameters As Result Set" is checked (set to true).*
 
 ** JDBC
 *** Java JDK
@@ -126,30 +124,101 @@ Also, you need to download and use the jdbc connector jar files either in the ja
 the java development toolkit (jdbc).
 
 * AdapteR Demos and Training
-The package includes some demos to get you started and to explain the most important concepts:
-#+BEGIN_SRC R :session r_fl :results output :exports both
+The package includes some demos to get you started and to explain the most important concepts.
+To run the package demos, please copy and execute all scripts here in R.
+(Before running the demo in a fresh installation for the first time, also run the scripts in [[https://github.com/Fuzzy-Logix/AdapteR#optional-packages][Optional packages]], see below).
+
+#+BEGIN_SRC R :session r_fl :results table :exports both 
+## Load devtools and Update AdapteR from github
+require(devtools)
+install_github("Fuzzy-Logix/AdapteR")
+
+
 require(AdapteR)
+#+END_SRC
+
+To start a demo, first set your connection info with ODBC ([[https://github.com/Fuzzy-Logix/AdapteR#or-set-your-connection-info-with-jdbc][If you use JDBC, see below how to set your connection info with JDBC]])
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourODBCSource <- "Gandalf" ## please make sure you use a 64 bit ODBC driver on a 64 bit R session
+yourPlatform <- "TD"
+connection <- flConnect(odbcSource = yourODBCSource,
+                        database="FL_TRAIN",
+                        platform=yourPlatform)
+#+END_SRC
+
+Run a demo:
+#+BEGIN_SRC R :session r_fl :results output :exports both
+demo("matrix.correlation",package="AdapteR")
+#+END_SRC
+
+This lists all available demos
+#+BEGIN_SRC R :session r_fl :results output :exports both 
 demo(package="AdapteR")
-## run a demo:
-## demo("matrix.correlation",package="AdapteR")
+#+END_SRC
+
+#+RESULTS: 
+#+begin_example
+Demos in package ‘AdapteR’:
+
+Iris_kmeans             
+LoanDefaultDemo         
+TwitterBuzzDemo         
+apply.statistical.functions
+                        
+connecting              
+kmeans                  
+matrix.algebra          
+matrix.correlation      
+string.functions
+#+end_example
+
+
+
+If you want to demonstrate what SQL queries are created during the demo:
+#+BEGIN_SRC R :session r_fl :results output :exports both
+options(debugSQL=TRUE)
+demo("matrix.correlation",package="AdapteR")
 #+END_SRC
 
 
-#+RESULTS: 
-#+BEGIN_EXAMPLE
-Demos in package ‘AdapteR’:
+** Or set your connection info with JDBC
+:PROPERTIES:
+:ID:       EA123B7F-CC54-405A-86E4-740A788FC239
+:END:
+Before running, please fill in the required information in "".
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourUser <- "" 
+yourPassword <- ""
+yourHost <- ""
+yourPlatform <- "TD"
 
-connecting              
-matrix.algebra          
-matrix.correlation
-#+END_EXAMPLE
+                ## set jdbc.jarsDir to add jdbc driver
+                ## and security jars to classpath:
+                ##    terajdbc4.jar tdgssconfig.jar
+                ## CAVE: fully qualified PATH required
+yourJarDir <- ""
+connection <- flConnect(
+                host     = yourHost,
+                database = "FL_TRAIN",
+                user = yourUser,
+                passwd = yourPassword,
+                jdbc.jarsDir = yourJarDir)
+#+END_SRC
+
 ** Optional packages
 :PROPERTIES:
 :ID:       A7CCAA11-1DCD-482D-8744-88631588B3AF
 :END:
 The following suggested packages provide functions that are used if AdapteR functions are called on data.frame, matrix or vectors (not remote representations).
-Functions in these packages provide the reference implementations for 
-#+BEGIN_SRC R :eval no
+Install these packages for the demos:
+  #+BEGIN_SRC R :eval no
+  install.packages("gplots")
+  install.packages("shiny")
+  install.packages("R.utils")
+  #+END_SRC
+  
+Functions in these packages provide the reference implementations for AdapteR functions:
+  #+BEGIN_SRC R :eval no
   install.packages("psych")
   install.packages("SDMTools")
   install.packages("MASS")
@@ -163,6 +232,7 @@ Functions in these packages provide the reference implementations for
 
 These packages are required to run the test suite:
 #+BEGIN_SRC R :eval no
+  install.packages("devtools")
   install.packages("testthat")
   install.packages("optparse")
 #+END_SRC

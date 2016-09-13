@@ -64,15 +64,15 @@ Only \code{coefficients},\code{linear.predictors},\code{FLSurvivalData},
 coefficients,plot,print,summary methods are available for fitted object.
 }
 \examples{
-widetable  <- FLTable("FL_DEMO", "siemenswideARDemoCoxPH", "ObsID")
+widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
 fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
+predData <- FLTable("preddatatoday","ObsID")
 resultList <- predict(fitT,newdata=predData)
 resultList[[1]]
 resultList[[2]]
 summary(fitT)
 plot(fitT)
-deeptable <- FLTable("FL_DEMO","siemensdeepARDemoCoxPH","obs_id_colname",
+deeptable <- FLTable("siemensdeepARDemoCoxPH","obs_id_colname",
                      "var_id_colname","cell_val_colname")
 fitT <- coxph("",deeptable)
 fitT$coefficients

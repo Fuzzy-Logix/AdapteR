@@ -6,6 +6,7 @@ NULL
 # vdf <- data.frame(FLFuncName=FLFuncName,
 #                 FLStatistic=FLStatistic)
 # flt <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",drop=TRUE)
+
 #' McNemar's Chi-squared Test for Count Data.
 #'
 #' Performs McNemar's chi-squared test for 
@@ -82,250 +83,245 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         return(vresList)
     })
 
-setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0)
-                standardGeneric("z.test"))
-setMethod("z.test",signature(x="FLVector"),
+#' Binomial Test
+#'
+#' Performs an exact test of a simple null hypothesis
+#' about the probability of success in a Bernoulli experiment.
+#'
+#' @param x FLVector
+#' @param n number of trials
+#' @param p hypothesized probability of success
+#' @param alternative indicates the alternative hypothesis and 
+#' must be one of "two.sided", "greater" or "less". 
+#' Additionally "LT","GT","EXACT" are supported for FL objects.
+#' @param conf.level confidence level for the returned confidence interval.
+#' Not Applicable for FL objects.
+#' @section Constraints:
+#' conf.level is not supported currently for FL objects.
+#' print is not working for result htest object
+#' @return A list with class "htest"
+#' @examples
+#' flv <- as.FLVector(sample(1:50,10,replace=T))
+#' ResulthtestObject <- binom.test(flv,100,p=0.65)
+#' ResulthtestObject <- binom.test(flv,100,p=0.65,"greater")
+#' ResulthtestObject <- binom.test(flv,100,p=0.65,"LT")
+#' expect_equal(ResulthtestObject[10],binom.test(as.R(flv[10]),100,p=0.65,"LT"))
+#' @export
+setGeneric("binom.test",function(x, n, p = 0.5,
+                                alternative = c("two.sided", "less","greater"),
+                                conf.level = 0.95)
+                standardGeneric("binom.test"))
+
+setMethod("binom.test",signature(x="FLAbstractColumn"),
+    function(x,n,
+            p,
+            alternative
+            ){
+    return(paste0("FLBinTest(",
+            paste0(c(n,x@columnName,
+                    p,fquote(alternative)),collapse=","),
+            ")"))
+})
+setMethod("binom.test",signature(x="FLVector"),
     function(x,
-            y=NULL,
-            test_val=0,
-            tails=2,
-            conf.level=0.95,
-            prob=0){
-        if(is.null(x)||!is.FLVector(x))
-            stop("Only FLVector is supported")
+            n,
+            p = 0.5,
+            alternative = c("two.sided", "less","greater"),
+            conf.level = 0.95){
+        browser()
+        if(length(p)>1)
+            stop("'p' must be a single number between 0 and 1 \n ")
+        else p <- as.vector(p)
 
-        if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
+        alternative <- match.arg(alternative)
 
-        vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
+        vcall <- paste(all.vars(sys.call())[1:2],collapse=" and ")
 
-        if(length(y)==0){
-            if(!test_val) stop("The testing value is missing")
-            if(prob==0)
-            {
-                pFuncName<-"FLzTest1S"
-                vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
-                                                pFuncArgs=c("c.FLStatistic",
-                                                            test_val,
-                                                            "a.vectorValueColumn",
-                                                                tails),
-                                                pAddSelect=c(stat="c.FLStatistic"),
-                                                pFrom=c(a=constructSelect(x),
-                                                        c="fzzlARHypTestStatsMap"),
-                                                pWhereConditions="c.FLFuncName='FLzTest1S'",
-                                                pGroupBy="c.FLStatistic")
+        vAltMapping <- c(EXACT="EXACT",LESS="LE",LE="LE",
+                         GREATER="GE",GE="GE",LT="LT",
+                         GT="GT",TWO.SIDED="TWO_SIDED",TWO_SIDED="TWO_SIDED")
+        alternative1 <- vAltMapping[toupper(alternative)]
 
-         }
+        if(!length(alternative1)>0)
+            stop("alternative can be GT,LT,EXACT,two.sided,greater,less \n ")
+        vres <- constructScalarSQL(pObject=x,
+                                pFunc=binom.test,
+                                n=n,
+                                p=p,
+                                alternative=alternative1
+                                )
+        vres@type <- "double"
+        vresList <- list(statistic=c("number of successes"=x),
+                        parameter=c("number of trials" =n),
+                        p.value=vres,
+                        estimate=c("probability of success"=x/n),
+                        data.name=vcall,
+                        null.value=c("probability of success"=p),
+                        alternative=alternative,
+                        method="Exact binomial test")
+        # vresList <- list(statistic=x,
+        #                 parameter=c("number of trials" =n),
+        #                 p.value=vres,
+        #                 estimate=x/n,
+        #                 data.name=vcall,
+        #                 null.value=c("probability of success"=p),
+        #                 alternative=alternative,
+        #                 method="Exact binomial test")
+        class(vresList) <- "htest"
+        return(vresList)
+    })
 
-            else { 
-                pFuncName<-"FLzTest1P"
-                vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
-                                                pFuncArgs=c("c.FLStatistic",
-                                                            test_val,
-                                                            "a.vectorValueColumn",
-                                                                tails),
-                                                pAddSelect=c(stat="c.FLStatistic"),
-                                                pFrom=c(a=constructSelect(x),
-                                                        c="fzzlARHypTestStatsMap"),
-                                                pWhereConditions="c.FLFuncName='FLzTest1P'",
-                                                pGroupBy="c.FLStatistic")
-
-            }
-        }
-
-        else{
-            if(prob==0)
-            {
-            pFuncName<-"FLzTest2S"
-            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
-                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
-                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
-            vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
-                                        pFuncArgs=c("c.FLStatistic",
-                                                    "a.groupID",
-                                                    "a.num_val",
-                                                    tails),
-                                        pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=vunionSelect,
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
-                                        pGroupBy="c.FLStatistic")
-            }
-
-            else {
-            pFuncName<-"FLzTest2P"
-            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
-                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
-                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
-            vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
-                                        pFuncArgs=c("c.FLStatistic",
-                                                    "a.groupID",
-                                                    "a.num_val",
-                                                    tails),
-                                        pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=vunionSelect,
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
-                                        pGroupBy="c.FLStatistic")
-
-
-
-            }        
-         }
-
-    vres<-sqlQuery(connection,vsqlstr)
-    cint<-cint(x,conf.level)
-    attr(cint,"conf.level") <- conf.level
-    vresList<-list(statistic=c("P value"=vres[1,1]),
-                   parameter=c("Z stat"=vres[2,1]),
-                   data.name=vcall,
-                   alternative=paste0("true mean is not equal to ",test_val),
-                   estimate =c("mean of x" = mean(x)),
-                   method="One Sample z-test",
-                   conf.int = cint
-                   )
-    class(vresList)<-"htest"
-    return(vresList)
+cint<-function(x,conf.level,alternative="two.sided"){
+    if (alternative=="two.sided")
+    {
+        df<-length(x)-1
+        sd<-sd(x)/sqrt(length(x))
+        qt<-qt(conf.level+(1-conf.level)/2,df)*sd
+        res<-mean(x)+c(-qt,qt)
     }
-  )
-
-t.test.FLVector <- function(x,
-                            y=NULL,
-                            mu = 0,
-                            tails=2,
-                            conf.level =.95,
-                            var.equal=FALSE,
-                            alternative="two.sided",...)
-{       
-        if(is.null(x)||!is.FLVector(x))
-        stop("Only FLVector is supported")
-
-        if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
-
-        vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
-
-        if(length(y)==0){
-        sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
-                                        pFuncArgs = c("c.FLStatistic",
-                                                        mu,
-                                                      "a.vectorValueColumn",
-                                                       tails),
-                                        pAddSelect = c(stat="c.FLStatistic",
-                                                       df = "COUNT(DISTINCT a.vectorValueColumn)"),
-                                                                              
-                                        pFrom = c(a = constructSelect(x),
-                                                  c = "fzzlARHypTestStatsMap"),
-                                        pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
-                                        pGroupBy = "c.FLStatistic")
-        method<-"One Sample t-test"}                                         
-           
-        else{
-            if(var.equal==TRUE) {
-                    var<-"EQUAL_VAR"
-                    method<-"Two Sample t-test"}
-            else{
-                var<-"UNEQUAL_VAR"
-                method<-"Welch Two Sample t-test"}
-            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
-                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
-                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
-
-            sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
-                                        pFuncArgs=c("c.FLStatistic",
-                                                     fquote(var),
-                                                    "a.groupID",
-                                                    "a.num_val",
-                                                    tails),
-                                        pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=vunionSelect,
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
-                                        pGroupBy="c.FLStatistic")
-            }
-    vcall<-paste(all.vars(sys.call())[1],collapse=" and ")   
-    result <- sqlQuery(connection, sqlstr)
-    cint<-cint(x,conf.level,alternative)
-    attr(cint,"conf.level") <- conf.level
-    res <- list(data.name = vcall,
-                statistic =c(t = as.numeric(result[1,1])),
-                parameter= c(df=as.numeric(result[1,3])-1),
-                p.value=   c("p-value"=as.numeric(result[2,1])),
-                alternative=paste0("true difference in means is not equal to ",mu ),
-                estimate =c("mean of x" = mean(x),
-                            "mean of y" = mean(y)),
-                method=method,
-                conf.int = cint,
-                alternative="two.sided")                
-    
-    class(res) <- "htest"
+    else stop("Not available for others")
     return(res)
 }
 
-
-cint<-function(x,conf.level,alternative="two.sided"){
-
-if (alternative=="two.sided")
+     
+wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
 {
-    df<-length(x)-1
-    sd<-sd(x)/sqrt(length(x))
-    qt<-qt(conf.level+(1-conf.level)/2,df)*sd
-    res<-mean(x)+c(-qt,qt)
+    if(!is.FLVector(x) || !is.FLVector(y))
+
+        stop("Must be FLVector")
+
+    else
+    {
+        if(paired)
+        {
+            vviewName <- gen_view_name("wsrTest")
+            if(length(x)> length(y))
+                res <- sqlSendUpdate(connection, createHypoView(y,x,vviewName))
+            else
+                res <- sqlSendUpdate(connection, createHypoView(x,y,vviewName))
+            
+                                        #  Using Stored Proc Query.
+
+            ret <- sqlStoredProc(connection,
+                                 "FLWSRTest",
+                                 TableName = vviewName,
+                                 Val1ColName = "Num_Val1",
+                                 Val2ColName = "Num_Val2",
+                                 WhereClause = NULL ,
+                                 GroupBy = NULL,
+                                 TableOutput = 1,
+                                 outputParameter = c(ResultTable = 'a'))
+
+            sqlstr <- paste0( "SELECT q.W_STAT AS W,
+                                  q.P_VALUE AS p  
+                           FROM ",ret$ResultTable," AS q")
+            result <-  sqlQuery(connection,sqlstr)       
+            
+                                        # Extracting the result.
+         #   vcall <-all.vars(sys.call())
+          #  print(vcall)
+            res <- list(statistics = c(W = result$W),
+                        p.value = result$p,
+                                        #data.name = paste0((x)," and ",substitute(y)),
+                        alternative = "two.sided",
+                        method = "Wilcoxon rank sum test",
+           #            call=vcall
+                        )
+            class(res) <- "htest"
+            return(res)
+        }
+       
+        else
+        {
+            
+            vviewName <- gen_view_name("MWTest")
+            sqlstr <- paste0("CREATE VIEW ",vviewName," AS
+                        SELECT t.vectorValueColumn AS Num_Val,
+                               1 AS GroupID
+                        FROM (",constructSelect(x),") AS t
+                   UNION ALL
+                        SELECT l.vectorValueColumn AS Num_Val,
+                              2 AS GroupID
+                        FROM (",constructSelect(y),") AS l
+                      ")
+
+            t <- sqlSendUpdate(connection,sqlstr)
+            str <- paste0("SELECT * FROM ",vviewName)
+            retu <- sqlQuery(connection, str)
+            
+
+            str <- paste0("CALL FLMWTest('",vviewName,"', 'Num_Val',
+                                           'GroupID', NULL, NULL, 1,
+                                         ResultTable);")
+            res_1 <- sqlQuery(connection, str)
+                #        ret <- sqlStoredProc(connection,
+     #                            "FLMWTest",
+      #                           TableName = vviewName,
+       #                          GroupColName = "GroupID",
+        #                         Val1ColName = "Num_Val",
+         #                        WhereClause = NULL ,
+          #                       GroupBy = NULL,
+           #                      TableOutput = 1,
+            #                     outputParameter = c(ResultTable = 'a'))
+
+            sqlstr <- paste0("SELECT U_STAT AS W,
+                             P_VALUE AS P
+                     FROM ",res_1$ResultTable)
+            result <- sqlQuery(connection, sqlstr)
+
+            res <- list(statistics = c(W = result$W),
+                        p.value = result$P,
+                                        #data.name = paste0((x)," and ",substitute(y)),
+                        alternative = "two.sided",
+                        method = "Wilcoxon rank sum test"
+
+                        )
+            class(res) <- "htest"
+            return(res)
+
+
+            
+        }
+
+
+    }
 }
 
-else stop("Not available for others")
 
-return(res)
-}
+Waldtest1s  <- function(vFLvector,
+                        vSign
+                        )
 
-##################################### Aggregate SQL ###########################################
-constructAggregateSQL <- function(pFuncName,
-                                  pFuncArgs,
-                                  pAddSelect="",
-                                  pFrom,
-                                  pWhereConditions="",
-                                  pGroupBy="",
-                                  pOrderBy=""){
-    vfunCall <- c(OutVal=paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
-    vSelects <- c(vfunCall,pAddSelect)
-    vSelects <- vSelects[vSelects!=""]
+{
+    if(!is.FLVector(vFLvector)|| !is.FLVector(vSign))
+        stop("Only take FLVector")
+    
+    if(length(vFLvector) != length(vSign))
+        stop("Both FLVector must be of same length")
+    else
+    {
+        vviewName <- gen_view_name("ww1sTest")
+        res <- sqlSendUpdate(connection, createHypoView(vFLvector, vSign, vviewName))
+                                    #Testing the code part
+        ret <- sqlStoredProc(connection,
+                             "FLWWTest1S",
+                             TableName = vviewName,
+                             ObsIDColName = "ObsID",
+                             Sign= "Num_Val2",
+                             WhereClause = NULL ,
+                             GroupBy = NULL,
+                             TableOutput = 1,
+                             outputParameter = c(ResultTable = 'a')
+                             )
 
-    pWhereConditions <- setdiff(pWhereConditions,"")
-    pGroupBy <- setdiff(pGroupBy,"")
-    pOrderBy <- setdiff(pOrderBy,"")
-
-    vsqlstr <- paste0("SELECT ",
-                    paste0(vSelects," AS ",names(vSelects),collapse=", \n ")," \n ",
-                    " FROM ",
-                    paste0(ifelse(grepl(" ",pFrom),paste0("(",pFrom,")"),pFrom),
-                                    " AS ",names(pFrom),collapse=", \n ")," \n ",
-                    ifelse(length(pWhereConditions)>0,
-                        paste0(" WHERE ",paste0(pWhereConditions,collapse=" AND ")," \n "),
-                        ""),
-                    ifelse(length(pGroupBy)>0,
-                        paste0(" GROUP BY ",paste0(pGroupBy,collapse=",")," \n "),
-                        ""),
-                    ifelse(length(pOrderBy)>0,
-                        paste0(" ORDER BY ",paste0(pOrderBy,collapse=",")," \n "),
-                        ""))
-    return(vsqlstr)
-}
-
-constructUnionSQL <- function(pFrom,
-                           pSelect=NULL){
-    vFrom <- as.list(pFrom)
-    vSelects <- sapply(1:length(vFrom),
-                        function(x){
-                            if(is.null(pSelect))
-                                vinnerSelect <- "*"
-                            else{
-                                vinnerSelect <- pSelect[[names(vFrom)[[x]]]]
-                                vinnerSelect <- ifelse(!is.null(names(vinnerSelect)),
-                                                    paste0(vinnerSelect," AS ",names(vinnerSelect),collapse=","),
-                                                    paste0(vinnerSelect,collapse=","))
-                                print(vinnerSelect)
-                            }
-                                return(paste0("SELECT ",vinnerSelect," \n ",
-                                              " FROM (",vFrom[[x]],") AS ",
-                                                    names(vFrom)[[x]]))
-                            })
-    return(paste0(vSelects, collapse= " \n UNION ALL \n "))
+        sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
+                         ret$ResultTable," AS q")
+        res_1 <- sqlQuery(connection , sqlstr)
+        result <- list(statistics = c(Z = res_1$Z),
+                       p.value = res_1$P,
+                       method = "Wald Wolfowitz test"
+                       )
+        class(result) <- "htest"
+        return(result)
+    }
 }
