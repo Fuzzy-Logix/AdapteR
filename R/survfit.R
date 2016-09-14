@@ -60,7 +60,7 @@ survfit.formula <- function(formula, data, weights,
         colnames(vgrpframe) <- c(vgroupCols,"cnt")
 
         fGenFLVector <- function(colName,grpValues,ObsID){
-            VarID <- c("DataSetID","Gender","TimeIndex","TIME_VAL",
+            VarID <- c(names(grpValues),"TimeIndex",vTimeVal,
                         "NumAtRisk","NumEvents","Censored",
                         "CumEvents","CumCensored","KaplanMeier","StdErr",
                         "PetoEst","LowerLimit","UpperLimit"
@@ -90,7 +90,7 @@ survfit.formula <- function(formula, data, weights,
                             x = x[setdiff(names(x),"cnt")]
                             vresList <- list(
                                             n = vcnt,
-                                            time = fGenFLVector("TIME_VAL",x,ObsID=1:vcnt),
+                                            time = fGenFLVector(vTimeVal,x,ObsID=1:vcnt),
                                             n.risk = fGenFLVector("NumAtRisk",x,ObsID=1:vcnt),
                                             n.event = fGenFLVector("NumEvents",x,ObsID=1:vcnt),
                                             n.censor = fGenFLVector("Censored",x,ObsID=1:vcnt),
@@ -113,10 +113,14 @@ survfit.formula <- function(formula, data, weights,
         vgrpframe[["cnt"]] <- NULL
         names(vresList) <- apply(vgrpframe,1,
                                 paste0,collapse=".")
+
+        if(length(vresList)==1)
+            vresList <- vresList[[1]]
         return(vresList)
     }
 }
 
+#' @export
 fFetchFLSurvfit <- function(pObject){
     vresList <- lapply(pObject,
                     function(x){

@@ -125,6 +125,10 @@ Collate:
     'crossprod.R'
     'experiment_benchmarking.R'
     'rowcolOps.R'
+    'survdiff.R'
+    'survfit.R'
+    't.test.R'
     'tcrossprod.R'
+    'wilcox.test.R'
     'z.test.R'
 RoxygenNote: 5.0.1

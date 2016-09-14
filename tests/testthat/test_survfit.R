@@ -1,5 +1,6 @@
 Renv = new.env(parent = globalenv())
 FLenv = as.FL(Renv)
+require(survival)
 
 Renv$data <- sqlQuery(connection,paste0("SELECT DataSetID,Gender,TIME_VAL,STATUS ",
                                         " FROM vwWHAS100 ORDER by 1,2"))
