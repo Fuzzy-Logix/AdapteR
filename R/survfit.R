@@ -1,6 +1,36 @@
 
 ## Overloading problems..
 ## Cannot call default R function
+NULL
+
+#' Compute a Survival Curve for Censored Data
+#'
+#' Computes an estimate of a survival curve for censored data
+#'
+#' @param formula a formula object, which must have a Surv object 
+#' as the response on the left of the ~ operator and 1 on right side(Single survival curve)
+#' @param data Wide FLTable or FLTableMD objects
+#' @param weights Not currently used
+#' @param subset Not currently used
+#' @param na.action na values omitted always
+#' @param etype Not currently used
+#' @param id Not currently used
+#' @param istate Not currently used
+#' @param ... The additional arguments used by FL function:
+#' \code{conf.int} the level for a two-sided confidence interval on the survival curve(s). Default is 0.95.
+#' \code{whereconditions} WhereConditions to subset data
+#' \code{GroupBy} Column names defining the different groups in data, if any.
+#' @section Constraints:
+#' Only Single survival curve supoorted currently.(RHS of formula is 1)
+#' Only conf.type='plain' supported.
+#' @return A list with class \code{survfit}.
+#' A list of \code{survfit} objects if the input is a FLTableMD object.
+#' @examples
+#' fltMD <- FLTableMD("vwWHAS100","DataSetID","ObsID")
+#' resultList <- survfit(Surv(TIME_VAL,STATUS)~1,data=fltMD)
+#' print(resultList[[1]])
+#' summary(resultList[[1]])
+#' plot(resultList[[1]])
 #' @export
 survfit.formula <- function(formula, data, weights, 
                             subset, na.action,
@@ -31,10 +61,14 @@ survfit.formula <- function(formula, data, weights,
 
         vcall <- match.call()
         vobsIDCol <- getVariables(data)[["obs_id_colname"]]
-        vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
+        # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
+        vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
+                                list(...)[["GroupBy"]]))
         if(any(!setdiff(vgroupCols,vobsIDCol) %in% colnames(data)))
-            stop("columns specified in GroupBy not in data \n ")
+            stop("columns specified in GroupBy not in data:Hint:check Case-Sensitivity \n ")
         vgrp <- paste0(vgroupCols,collapse=",")
+        if(!length(vgroupCols)>0)
+            vgrp <- NULL
 
         ret <- sqlStoredProc(connection,
                              "FLKaplanMeier",
@@ -50,11 +84,16 @@ survfit.formula <- function(formula, data, weights,
         ret <- as.character(ret[1,1])
 
         vgrpframe <- sqlQuery(connection,
-                            paste0("SELECT DISTINCT ",vgrp,", COUNT(1) AS cnt\n ",
+                            paste0("SELECT DISTINCT ",
+                                        ifelse(length(setdiff(vgrp,""))>0,
+                                        paste0(vgrp,","),""),
+                                        " COUNT(1) AS cnt \n ",
                                    " FROM ",getTableNameSlot(data)," \n ",
                                    constructWhere(list(...)[["whereconditions"]]),
-                                    " GROUP BY ",vgrp," \n ",
-                                    " ORDER BY ",vgrp
+                                    ifelse(length(setdiff(vgrp,""))>0,
+                                        paste0(" GROUP BY ",vgrp," \n "),""),
+                                    ifelse(length(setdiff(vgrp,""))>0,
+                                        paste0(" ORDER BY ",vgrp," \n "),"")
                                     )
                             )
         colnames(vgrpframe) <- c(vgroupCols,"cnt")
@@ -65,14 +104,17 @@ survfit.formula <- function(formula, data, weights,
                         "CumEvents","CumCensored","KaplanMeier","StdErr",
                         "PetoEst","LowerLimit","UpperLimit"
                         )
+            vwhereConds <- ""
+            if(length(grpValues)>0)
+                vwhereConds <- paste0(names(grpValues),
+                                        " IN (",fquote(grpValues),
+                                        ")")
             vselect <- new("FLSelectFrom",
                           connection = connection, 
                           table_name = ret,
                           variables = list(
                               obs_id_colname = "TimeIndex"),
-                          whereconditions=paste0(names(grpValues),
-                                                " IN (",fquote(grpValues),
-                                                    ")"),
+                          whereconditions=vwhereConds,
                           order = "")
             vFLtbl <- new("FLTable",
                           select=vselect,

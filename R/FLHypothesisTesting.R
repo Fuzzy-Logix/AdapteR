@@ -19,7 +19,7 @@ NULL
 #' If TRUE,Available methods are EDWARDS(default),YATES.
 #' @return A list with class "htest"
 #' @examples
-#' flTable <- FLTable("tblMcNemarMulti", "ObsID",whereconditions="datasetID=1")
+#' flTable <- FLTable("tblMcNemarMulti", "obsid",whereconditions="datasetID=1")
 #' x <- flTable[,"predicted"]
 #' y <- flTable[,"observed"]
 #' ResulthtestObject <- mcnemar.test(x,y)
