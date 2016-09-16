@@ -58,13 +58,15 @@ is.FLSelectFrom <- function(pObj){
   else return(FALSE)
 }
 
+#' @export
 is.FL <- function(x){
     if(class(x) %in% c("FLMatrix",
                         "FLVector",
                         "FLTable",
                         "FLTableQuery",
                         "FLSelectFrom",
-                        "FLTableFunctionQuery"))
+                        "FLTableFunctionQuery",
+                        "FLTableMD"))
     return(TRUE)
     else return(FALSE)
 }

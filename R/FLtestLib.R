@@ -628,3 +628,7 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
 initF.numeric <- initF.FLVector
 initF.data.frame <- initF.FLTable
 initF.matrix <- initF.FLMatrix
+
+dropFLTestTable <- function(){
+    dropTable(pTableName="ARBaseTestTempTable")
+}
