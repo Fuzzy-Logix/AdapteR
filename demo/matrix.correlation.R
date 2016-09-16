@@ -74,6 +74,7 @@ vtemp <- readline("Next: the SQL syntax created for you")
 ## with this option each R command that uses DBLytix will log
 ## the SQL sent to Teradata.
 ## Such a dump can in many cases be used as a pure-sql script!
+oldDebugSQL <- getOption("debugSQL")
 options(debugSQL=TRUE)
 
 ## Note that no SQL is sent when defining data-sets
@@ -86,7 +87,7 @@ vtemp <- readline("Note that SQL is not sent yet during definition")
 
 flCorr
 vtemp <- readline("Note that SQL is sent when data is printed or otherwise used")
-options(debugSQL=FALSE)
+options(debugSQL=oldDebugSQL)
 ## Casting methods fetch (selected) data from the warehouse into R memory
 rEqnRtn <- as.matrix(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
 rEqnRtn <- na.omit(rEqnRtn)
@@ -127,7 +128,12 @@ vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 require(gplots)
 ## install.packages("gplots")
 
-M <- cor(eqnRtn[,c('AAPL','HPQ','IBM','MSFT','ORCL')])
+metaInfo <- read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+
+M <- cor(eqnRtn[,intersect(
+    metaInfo$Symbol[metaInfo$Sector %in% c("Basic Industries")],
+    colnames(eqnRtn))])
+
 heatmap.2(as.matrix(M),
           symm=TRUE,
           distfun=function(c) as.dist(1 - c),
@@ -135,9 +141,8 @@ heatmap.2(as.matrix(M),
           col=redgreen(100),
           cexCol = 1,
           cexRow = 1)
-vtemp <- readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
 
-metaInfo <- read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+vtemp <- readline("You can use FL results in other R packages, e.g. plotting -- or shiny (next)")
 
 run.FLCorrelationShiny <- function (){
 ###########################################################
@@ -207,6 +212,8 @@ run.FLCorrelationShiny <- function (){
     }
     )
 }
+
+assign("metaInfo",metaInfo,envir=environment(run.FLCorrelationShiny))
 
 vtemp <- readline("To explore correlations interactively, we defined a function above. \n Simply execute\n> run.FLCorrelationShiny()\nafter ending the Demo.\nEnd the demo now:")
 

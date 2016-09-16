@@ -12,18 +12,19 @@ FLenv <- as.FL(Renv)
 ## gk @phani:  please make rownames invisible as FLtable column, expose only through rownames()
 Renv$iris <- cbind(rownames=1:nrow(Renv$iris),Renv$iris)
 
-test_that("kmeans components dimensions check ",{
-  eval_expect_equal({
-  cl <- kmeans(x,2)
-  test1 <- length(cl$cluster)
-  test2 <- dim(cl$centers)
-  test3 <- length(cl$totss)
-  test4 <- length(cl$withinss)
-  test5 <- length(cl$tot.withinss)
-  test6 <- length(cl$betweenss)
-  test7 <- length(cl$size)
-  },Renv,FLenv,
-  noexpectation=c("cl")
+test_that("kmeans: results on simulated 2-cluster data with clusters far apart",{
+    eval_expect_equal({
+        cl <- kmeans(x,2)
+        cluster <- cl$cluster
+        centers <- cl$centers
+        totss <- cl$totss
+        withinss <- cl$withinss
+        tot.withinss <- cl$tot.withinss
+        betweenss <- cl$betweenss
+        size <- cl$size
+    },Renv,FLenv,
+    noexpectation=c("cl"),
+    check.attributes=FALSE
   )
 })
 

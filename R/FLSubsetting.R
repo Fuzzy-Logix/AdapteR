@@ -80,7 +80,6 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
-  #browser()
     vtype <- typeof(object)
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
@@ -117,6 +116,7 @@ NULL
                newrownames <- sort(as.numeric(object@dimnames[[1]])))
         object@dimnames <- list(newrownames,
                                 newcolnames)
+        object@dim[[2]] <- length(newcolnames)
         if(object@isDeep){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
@@ -137,6 +137,8 @@ NULL
                               newcolnames))
         }
         object@dimnames = list(newrownames, newcolnames)
+        object@dim[[2]] <- length(newrownames)
+        object@dim[[2]] <- length(newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
     {
@@ -303,6 +305,8 @@ NULL
                         SQLquery=vsqlstr)
           object@select <- tblfunqueryobj
           mapselect <- NULL
+          newrownames <- as.vector(pSet)
+          newcolnames <- "vectorValueColumn"
         }
         else{
             if(class(pSet@select)=="FLTableFunctionQuery"
@@ -326,9 +330,9 @@ NULL
                                                       " AS VARCHAR(100))")),
                              order = "")
             object@select@variables[[vobsidcolumn]]<- nameIndexColumn
+            newrownames <- rownames(pSet)
+            newcolnames <- changeAlias(getValueColumn(object),"","")
         }
-        newrownames <- as.vector(pSet)
-        newcolnames <- "vectorValueColumn"
     }
     else{
       pSet <- as.vector(pSet)
@@ -533,7 +537,7 @@ setAlias <- function(object,newalias){
   object@select@variables <- variables
   object@select@whereconditions <- changeAlias(
                               object@select@whereconditions,
-                              "",oldalias)
+                              newalias,oldalias)
   object@select@whereconditions <- constraintsSQL(object)
   return(object)
 }

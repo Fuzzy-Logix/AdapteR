@@ -16,8 +16,7 @@ setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")
 })
 
-setMethod("constructSelect",
-          signature(object = "FLMatrix"),
+setMethod("constructSelect", signature(object = "FLMatrix"),
           function(object,joinNames=TRUE){
             if(!"matrix_id" %in% tolower(names(getVariables(object))))
             object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
@@ -35,8 +34,7 @@ setMethod("constructSelect",
               return(constructSelect(select))
           })
 
-setMethod("constructSelect",
-          signature(object = "FLTableQuery"),
+setMethod("constructSelect", signature(object = "FLTableQuery"),
           function(object) {
               return(paste0("SELECT ",
                             paste(colnames(object),collapse=", "),
@@ -47,8 +45,7 @@ setMethod("constructSelect",
           })
 
 
-setMethod("constructSelect",
-          signature(object = "FLTable"),
+setMethod("constructSelect", signature(object = "FLTable"),
           function(object) {
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
@@ -114,7 +111,7 @@ setMethod("constructSelect",
 setMethod("constructSelect", signature(object = "FLVector"),
           function(object,joinNames=TRUE) {
             if(class(object@select)=="FLTableFunctionQuery") 
-            return(constructSelect(object@select))
+                return(constructSelect(object@select))
             ## If mapSelect exists join tables
             # mapTable <- ""
             # addWhereClause <- ""
