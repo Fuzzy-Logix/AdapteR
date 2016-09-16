@@ -103,24 +103,30 @@ modifyXforTrim <- function(x,trim){
 
 #' @export
 mean.FLVector <- function(x,...){
-    vFuncArgs <- list(...)
-    vFuncArgs <- c(vFuncArgs,count=length(x))
-    vFuncArgs <- unlist(vFuncArgs)
-	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    # vFuncArgs <- list(...)
+    # vFuncArgs <- c(vFuncArgs,count=length(x))
+    # vFuncArgs <- unlist(vFuncArgs)
+	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    return(genAggregateFunCall(x,mean.FLAbstractColumn,
+                                count=length(x),...))
 }
 #' @export
 mean.FLMatrix <- function(x,...){
-    vFuncArgs <- list(...)
-    vFuncArgs <- c(vFuncArgs,count=length(x))
-    vFuncArgs <- unlist(vFuncArgs)
-	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    # vFuncArgs <- list(...)
+    # vFuncArgs <- c(vFuncArgs,count=length(x))
+    # vFuncArgs <- unlist(vFuncArgs)
+	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    return(genAggregateFunCall(x,mean.FLAbstractColumn,
+                                count=length(x),...))
 }
 #' @export
 mean.FLTable <- function(x,...){
-    vFuncArgs <- list(...)
-    vFuncArgs <- c(vFuncArgs,count=prod(dim(x)))
-    vFuncArgs <- unlist(vFuncArgs)
-	return(genScalarFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    # vFuncArgs <- list(...)
+    # vFuncArgs <- c(vFuncArgs,count=prod(dim(x)))
+    # vFuncArgs <- unlist(vFuncArgs)
+	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    return(genAggregateFunCall(x,mean.FLAbstractColumn,
+                                count=length(x),...))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 
