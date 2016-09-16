@@ -55,13 +55,16 @@ setMethod("z.test",signature(x="FLVector"),
             if(prob==0)
             {
             pFuncName<-"FLzTest2S"
+            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
+                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
+                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
             vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
                                         pFuncArgs=c("c.FLStatistic",
-                                                    "a.Num_Val1",
-                                                    "a.Num_Val2",
+                                                    "a.groupID",
+                                                    "a.num_val",
                                                     tails),
                                         pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                        pFrom=c(a=vunionSelect,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
                                         pGroupBy="c.FLStatistic")
@@ -70,16 +73,20 @@ setMethod("z.test",signature(x="FLVector"),
             else {
 
             pFuncName<-"FLzTest2P"
+            vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
+                                              pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
+                                                           b=c(groupID=2,num_val="b.vectorValueColumn")))
             vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
                                         pFuncArgs=c("c.FLStatistic",
-                                                    "a.Num_Val1",
-                                                    "a.Num_Val2",
+                                                    "a.groupID",
+                                                    "a.num_val",
                                                     tails),
                                         pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=constructSelect(createHypoView(x,y)),
+                                        pFrom=c(a=vunionSelect,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
                                         pGroupBy="c.FLStatistic")
+
 
 
 
