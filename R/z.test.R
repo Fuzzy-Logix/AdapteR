@@ -18,7 +18,6 @@ setMethod("z.test",signature(x="FLVector"),
         vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
 
         if(length(y)==0){
-            if(!test_val) stop("The testing value is missing")
             if(prob==0)
             {
                 pFuncName<-"FLzTest1S"
@@ -26,7 +25,7 @@ setMethod("z.test",signature(x="FLVector"),
                                                 pFuncArgs=c("c.FLStatistic",
                                                             test_val,
                                                             "a.vectorValueColumn",
-                                                                tails),
+                                                            tails),
                                                 pAddSelect=c(stat="c.FLStatistic"),
                                                 pFrom=c(a=constructSelect(x),
                                                         c="fzzlARHypTestStatsMap"),
@@ -49,6 +48,7 @@ setMethod("z.test",signature(x="FLVector"),
                                                 pGroupBy="c.FLStatistic")
 
             }
+            method<-"One sample z-test"
         }
 
         else{
@@ -87,10 +87,8 @@ setMethod("z.test",signature(x="FLVector"),
                                         pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
                                         pGroupBy="c.FLStatistic")
 
-
-
-
-            }        
+            }
+            method<-"Two sample z-test"       
          }
 
     vres<-sqlQuery(connection,vsqlstr)
@@ -101,9 +99,8 @@ setMethod("z.test",signature(x="FLVector"),
                    data.name=vcall,
                    alternative=paste0("true mean is not equal to ",test_val),
                    estimate =c("mean of x" = mean(x)),
-                   method="One Sample z-test",
-                   conf.int = cint
-                   )
+                   method=method,
+                   conf.int = cint)
     class(vresList)<-"htest"
     return(vresList)
     }
