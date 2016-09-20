@@ -15,8 +15,6 @@ setMethod("z.test",signature(x="FLVector"),
 
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
 
-        vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
-
         if(length(y)==0){
             if(prob==0)
             {
@@ -48,6 +46,9 @@ setMethod("z.test",signature(x="FLVector"),
                                                 pGroupBy="c.FLStatistic")
 
             }
+            vcall<-paste(all.vars(sys.call())[1])
+            alter<-paste0("true mean is not equal to ",test_val)
+            estimate<-c("mean of x"=mean(x))
             method<-"One sample z-test"
         }
 
@@ -88,7 +89,10 @@ setMethod("z.test",signature(x="FLVector"),
                                         pGroupBy="c.FLStatistic")
 
             }
-            method<-"Two sample z-test"       
+            vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
+            method<-"Two sample z-test"
+            alter<-"true difference in means is not equal to 0 "
+            estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))       
          }
 
     vres<-sqlQuery(connection,vsqlstr)
@@ -97,8 +101,8 @@ setMethod("z.test",signature(x="FLVector"),
     vresList<-list(statistic=c("P value"=vres[1,1]),
                    parameter=c("Z stat"=vres[2,1]),
                    data.name=vcall,
-                   alternative=paste0("true mean is not equal to ",test_val),
-                   estimate =c("mean of x" = mean(x)),
+                   alternative=alter,
+                   estimate =estimate,
                    method=method,
                    conf.int = cint)
     class(vresList)<-"htest"
