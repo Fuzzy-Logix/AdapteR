@@ -1,6 +1,26 @@
 #' @include FLMatrix.R
 NULL
 
+#' Z test for 1 and 2 samples
+#'
+#' Performs z test for samples and sample proportions on vector values
+#'
+#' @param x FLVector
+#' @param y FLVector
+#' @param test_val The mean value for which the z test has to be performed.
+#' The default value is 0.
+#' @param prob The values is 1 if the sample set is for proportions. Otherwise, by default it's 0.
+#' @return A list with class "htest" outputting the corresponding Z Stat and P Values.
+#' @examples
+#' flx<-as.FLVector(rnorm(100))
+#' fly<-as.FLVector(rnorm(100))
+#' z.test(flx)
+#' z.test(flx,fly)
+#' fla<-as.FLVector(sample(c(0,1),replace=T,size=100))
+#' flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
+#' z.test(fla,prob=1)
+#' z.test(fla,flb,prob=1)
+
 setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0)
                 standardGeneric("z.test"))
 setMethod("z.test",signature(x="FLVector"),
