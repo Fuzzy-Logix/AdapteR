@@ -6,7 +6,17 @@ Renv$b <- c(75,50,50,40,20,65,40,25)
 FLenv = as.FL(Renv)
 
 
+
 test_that("Wilcox Signed Rank Test ",{
+  result = eval_expect_equal({
+      t <- wilcox.test(a, b, paired = TRUE)
+  },Renv,FLenv,
+  tolerance = .000001
+  )
+}) 
+
+
+test_that("Wilcox Signed Rank Test: correct p.value and statistic",{
   result = eval_expect_equal({
       t <- wilcox.test(a, b, paired = TRUE)
       p.value <- t$p.value
@@ -16,9 +26,9 @@ test_that("Wilcox Signed Rank Test ",{
   expectation = c("p.value", "W"),
   check.attributes=F,
   tolerance = .000001
-  
   )
 }) 
+
 
 
 
@@ -56,7 +66,7 @@ Renv$q <- a[c(FALSE,TRUE)]
 FLenv = as.FL(Renv)
 
 
-test_that("Wilcoxon Signed-Rank Test ",{
+test_that("Wilcoxon Signed-Rank Test: correct p.value and statistic",{
   result = eval_expect_equal({
       z <- wilcox.test(t, q, paired = TRUE)
       p.value <- z$p.value
@@ -80,7 +90,7 @@ Renv$b = c(7, 10, 4, 3, 5, 6)
 FLenv = as.FL(Renv)
 
 
-test_that("Mann-Whitney Wilcoxon Test ",{
+test_that("Mann-Whitney Wilcoxon Test: correct p.value and statistic",{
   result = eval_expect_equal({
       t <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
       p.value <- t$p.value
