@@ -11,81 +11,6 @@ cint<-function(x,conf.level,alternative="two.sided"){
     return(res)
 }
 
-
-## gk: please move to file wald.wolfowitz.test.R
-WaldWolftest1s  <- function(vFLvector,threshold = 0) {
-    if(!is.FLVector(vFLvector))
-       stop("Only take FLVector")
-       else
-       {
-           vviewName <- gen_view_name("ww1sTest")
-           if(threshold)
-           {
-               t <- sqlSendUpdate(connection,
-                                  createSignview(vviewName, threshold, vFLvector))
-}
-           else{
-               sqlstr <- paste0("SELECT FLMedianUDT(q.GroupID,q.Num_Val)
-                                FROM ",vviewName)
-               partition = sqlQuery(connection, sqlstr)
-               t <- sqlSendUpdate(connection,
-                                  createSignview(vviewName, threshold, vFLvector))
-           }
-
-           vcall <- as.list(sys.call())[[2]]
-           
-                                        #Testing the code part
-           ret <- sqlStoredProc(connection,
-                                "FLWWTest1S",
-                                TableName = vviewName,
-                                ObsIDColName = "ObsID",
-                                Sign= "Sign",
-                                WhereClause = NULL ,
-                                GroupBy = NULL,
-                                TableOutput = 1,
-                                outputParameter = c(ResultTable = 'a')
-                                )
-
-
-
-           sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
-                            ret$ResultTable," AS q")
-           res_1 <- sqlQuery(connection , sqlstr)
-           result <- list(statistics = c(Z = res_1$Z),
-                          p.value = res_1$P,
-                          data.name = vcall,
-                          method = "Wald Wolfowitz test"
-                          )
-           class(result) <- "htest"
-           return(result)
-
-
-                                        #print(res_1)
-                                        # print(paste0("P-Value is ",res_1$P,"Z Value is ",res_1$Z))
-           
-       }
-    }
-
-
-## join FLVecotor assign Sign Value and create a table name.
-createSignview <- function(vName, vpart, vFLVector)
-{
-    
-    sqlstr <- paste0("CREATE VIEW ",vName," AS
-                        SELECT t.vectorValueColumn AS Num_Val,
-                               1 AS GroupID,
-                               t.vectorindexcolumn AS ObsID,
-                              CASE WHEN t.vectorValueColumn > ",vpart,"
-                                        THEN 1
-                                   WHEN t.vectorValueColumn < ",vpart,"
-                                        THEN -1
-                                   ELSE 0
-                              END AS Sign
-                                FROM (",constructSelect(vFLVector),") AS t
-                      ")
-    return(sqlstr)
-}
-
 ## gk: please use constructUnionSQL
 ## Joining two FLVectors and creating a volatile table.
 createHypoView <- function(q,r,pViewName)
@@ -106,3 +31,4 @@ createHypoView <- function(q,r,pViewName)
                            WHERE b.vectorindexcolumn >",vminLength)
     return(sqlstr0)         
 }
+
