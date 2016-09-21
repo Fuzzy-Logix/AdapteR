@@ -1,3 +1,23 @@
+#' @include FLMatrix.R
+NULL
+#' Student's t-Test
+#'
+#' Performs one and two sample t-tests on vectors of data.
+#'
+#' @param x FLVector
+#' @param y FLVector
+#' @param mu The value of hypothesized mean
+#' @param var.equal a logical variable indicating whether to treat the two variances as being equal.
+#' If TRUE then the pooled variance is used to estimate the
+#' variance otherwise the Welch (or Satterthwaite) approximation to the degrees of freedom is used.
+#' @return A list with class "htest" containing the statistic and p-values.
+#' @examples
+#' flx<-as.FLVector(rnorm(100))
+#' fly<-as.FLVector(rnorm(100))
+#' t.test(flx)
+#' t.test(flx,fly)
+#' t.test(flx,fly,var.equal=F)
+#' @export
 t.test.FLVector <- function(x,
                             y=NULL,
                             mu = 0,
@@ -10,8 +30,6 @@ t.test.FLVector <- function(x,
         stop("Only FLVector is supported")
 
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
-
-        vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
 
         if(length(y)==0){
         sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
@@ -26,6 +44,9 @@ t.test.FLVector <- function(x,
                                                   c = "fzzlARHypTestStatsMap"),
                                         pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
                                         pGroupBy = "c.FLStatistic")
+        vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
+        alter<-paste0("true mean is not equal to ",mu )
+        estimate<-c("mean of x"=mean(x))
         method<-"One Sample t-test"}                                         
            
         else{
@@ -50,21 +71,20 @@ t.test.FLVector <- function(x,
                                                 c="fzzlARHypTestStatsMap"),
                                         pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
                                         pGroupBy="c.FLStatistic")
-            }
-    vcall<-paste(all.vars(sys.call())[1],collapse=" and ")   
-    result <- sqlQuery(connection, sqlstr)
+            vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
+            alter<-"true difference in means is not equal to 0 "
+            estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))
+            }  
+    result <<- sqlQuery(connection, sqlstr)
     cint<-cint(x,conf.level,alternative)
     attr(cint,"conf.level") <- conf.level
     res <- list(data.name = vcall,
                 statistic =c(t = as.numeric(result[1,1])),
-                parameter= c(df=as.numeric(result[1,3])-1),
                 p.value=   c("p-value"=as.numeric(result[2,1])),
-                alternative=paste0("true difference in means is not equal to ",mu ),
-                estimate =c("mean of x" = mean(x),
-                            "mean of y" = mean(y)),
+                alternative=alter,
+                estimate =estimate,
                 method=method,
-                conf.int = cint,
-                alternative="two.sided")                
+                conf.int = cint)                
     class(res) <- "htest"
     return(res)
 }

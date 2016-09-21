@@ -875,10 +875,10 @@ prepareSurvivalFormula <- function(data,
         vallVars <- base::all.vars(formula)
         vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
         return(list(data=data,
-                        vTimeVal=vTimeVal,
-                        vStatus=vStatus,
-                        vtablename=vtablename,
-                        vallVars=vallVars))
+                    vTimeVal=vTimeVal,
+                    vStatus=vStatus,
+                    vtablename=vtablename,
+                    vallVars=vallVars))
     }
 
     if(isDotFormula(formula))
@@ -910,12 +910,14 @@ prepareSurvivalFormula <- function(data,
         }
         else stop("Error in formula:check function documentation for constraints on formula \n ")
         vallVars <- vallVars[vallVars!=vStatus]
+        vIndepVars <- attr(terms(formula),"term.labels")
         return(list(vStatus=vStatus,
                     vTimeVal=vTimeVal,
                     data=data,
                     vallVars=vallVars,
                     vtablename=vtablename,
                     formula=formula,
-                    vSurvival=vSurvival))
+                    vSurvival=vSurvival,
+                    vIndepVars=vIndepVars))
 }
 
