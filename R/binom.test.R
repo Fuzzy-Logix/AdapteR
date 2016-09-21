@@ -16,7 +16,7 @@ NULL
 #' @section Constraints:
 #' conf.level is not supported currently for FL objects.
 #' print is not working for result htest object
-#' @return A list with class "htest"
+#' @return A list with class "FLhtest"
 #' @examples
 #' flv <- as.FLVector(sample(1:50,10,replace=T))
 #' ResulthtestObject <- binom.test(flv,100,p=0.65)
