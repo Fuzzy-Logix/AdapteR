@@ -17,6 +17,22 @@
 #          }
 #          )
 
+NULL
+#' KS TEst
+#' Perform a one- or two-sample Kolmogorov-Smirnov test.
+#' @param x a FLVector of data values.
+#' @param y either a FLVector of data values, or a character string naming a cumulative distribution function or 
+#' an actual cumulative distribution function such as pnorm. Only continuous CDFs are valid.
+#' @section Constraints: As of now only supports normal disctribution, alternative and exact isn't supported for FL objects 
+#' @return A list with class "htest".
+#' @examples
+#' set.seed(100)                                       
+#' p <- as.FLVector(rnorm(50))
+#' q <- as.FLVector(runif(30))
+#' res <- ks.test(p, q)
+#' If y is a FLVector, a two-sample test of the null hypothesis that x and y were drawn from the same continuous distribution is performed.
+#' Alternatively, y can be a character string naming a continuous (cumulative) distribution function, or such a function. 
+#' In this case, a one-sample test is carried out of the null that the distribution function which generated x is distribution y with parameters.
 
 setMethod("ks.test",signature(x="FLVector"),
           function(x,

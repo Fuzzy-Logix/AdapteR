@@ -325,7 +325,7 @@ constructUnionSQL <- function(pFrom,
                                  vinnerSelect <- ifelse(!is.null(names(vinnerSelect)),
                                                      paste0(vinnerSelect," AS ",names(vinnerSelect),collapse=","),
                                                      paste0(vinnerSelect,collapse=","))
-                                 print(vinnerSelect)
+                               
                              }
                                  return(paste0("SELECT ",vinnerSelect," \n ",
                                                " FROM (",vFrom[[x]],") AS ",

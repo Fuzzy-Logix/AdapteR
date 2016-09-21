@@ -1,3 +1,24 @@
+
+#' Performs the Wald-Wolfowitz runs test of randomness for continuous data.
+#' @param x a FLVector containing the observations.
+#' @param threshold the cut-point to transform the data into a dichotomous vector.
+#' @section Constraints: alternative, plot, pvalue isnt't currently supported for FL objects.
+#' @return A list with class "htest".
+#' @examples
+#' WaldWolfowitz test 1s:
+#' data(sweetpotato)
+#' yield <- as.FLVector(sweetpotato$yield)
+#' WaldWolftest1s(yield)
+#' 
+#' Data is transformed into a dichotomous vector according as each values is above or below a given threshold. Values equal to the level are removed from the sample.
+#' The default threshold value used in applications is the sample median which give us the special case of this test with n1 = n2, the runs test above and below the median.
+
+#' @export
+
+#TO-DO: need to add documentation of Waldwolfwotiz 2S.
+
+
+
 WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
     if(!is.FLVector(vFLvector))
         stop("Only take FLVector")
@@ -37,6 +58,10 @@ WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
         return(result)      
     }
 }
+
+
+
+
 
 WaldWolftest2s <- function(vFLvector, vFLvector2)
 {
