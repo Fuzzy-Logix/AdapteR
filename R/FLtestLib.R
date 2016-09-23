@@ -58,9 +58,14 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                                        expected[[i]],...)))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
-          function(object,expected,...)
-              FLexpect_equal(as.FLVector(object),
-                                     expected,...))
+          function(object,expected,...){
+            if(is.numeric(object) || is.integer(object) || is.vector(object)){
+                object <- as.vector(object)
+                return(testthat::expect_equal(object,as.R(expected),...))
+            }
+            else FLexpect_equal(as.FLVector(object),
+                                expected,...)
+          })
 
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),

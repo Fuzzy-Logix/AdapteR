@@ -121,6 +121,7 @@ setClass("FLVector",
          slots = list(
              select = "FLTableQuery",
              dimnames = "list",
+             dim = "numeric",
              isDeep= "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"

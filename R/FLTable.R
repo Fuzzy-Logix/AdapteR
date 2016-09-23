@@ -128,7 +128,7 @@ FLTable <- function(table,
         } else {
             rows <- NULL
             nrow <- sqlQuery(connection,
-                            paste0("SELECT count(",obs_id_colname,") as N
+                            paste0("SELECT count(DISTINCT ",obs_id_colname,") as N
                                     FROM ",tableAndAlias(table),
                                     " ",constructWhere(whereconditions)))$N
         }

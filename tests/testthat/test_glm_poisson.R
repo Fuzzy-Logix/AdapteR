@@ -1,13 +1,14 @@
 Renv = new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
 
-var1 <- rnorm(200)
-var2 <- rnorm(200)
-var3 <- sample(c(0, 1), 200, replace = TRUE)
-dataf<- data.frame(var1 = var1,var2 =var2, var3 = var3,offset=1)
+Renv$dataf<- data.frame(var1 = rnorm(200),
+                        var2 = rnorm(200), 
+                        var3 = sample( c(0, 1), 200, replace = TRUE),
+                        offset=1)
 #rownames(var4) <- 1:nrow(var4)
-Renv$dataf <- dataf
-FLenv = as.FL(Renv)
-
+FLenv$dataf <- as.FLTable(Renv$dataf,
+                        tableName="ARBaseTestTempTable",
+                        drop=TRUE)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({
@@ -30,6 +31,8 @@ test_that("glm: equality of coefficients, residuals, fitted.values, df.residual 
         fitteds <- glmobj$fitted.values
         dfres <- glmobj$df.residual
     },Renv,FLenv,
+    expectation=c("coeffs2","res",
+                "fitteds","dfres"),
     noexpectation = "glmobj",
     tolerance = .000001,
     check.attribute = F

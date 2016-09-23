@@ -31,9 +31,11 @@ length.FLMatrixBind <- function(obj)
 #' @export
 length.FLVector <- function(obj)
 {
-    if(length(dimnames(obj)[[2]])>length(dimnames(obj)[[1]]))
-    return(length(dimnames(obj)[[2]]))
-    else return(length(dimnames(obj)[[1]]))
+    if(!is.null(obj@dim))
+        vlength <- max(obj@dim)
+    else vlength <- max(length(dimnames(obj)[[2]]),
+                        length(dimnames(obj)[[1]]))
+    return(vlength)
 }
 
 #' computes the length of FLTable object.

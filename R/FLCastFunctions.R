@@ -99,6 +99,8 @@ as.data.frame.FLVector <- function(x, ...){
       error=function(e){stop(e)})
    
     names(D) <- toupper(names(D))
+
+    x <- populateDimnames(x)
     vrownames <- rownames(x)
     vcolnames <- colnames(x)
     # if(ncol(x)<=1 && !(!x@isDeep && nrow(x)==1 && ncol(x)==1))
@@ -110,7 +112,7 @@ as.data.frame.FLVector <- function(x, ...){
       if(is.character(colnames(x)) && !all(colnames(x)==1:length(colnames(x))))
       vcolnames<-1:length(colnames(x))
     }
-    
+
      i <- charmatch(vrownames,D[[toupper("vectorIndexColumn")]],nomatch=0)
      if(x@isDeep) {
         if(length(colnames(x))>1)
@@ -859,7 +861,9 @@ as.FLTable.data.frame <- function(object,
   if(class(connection)=="RODBC")
   {
     vcolnames <- gsub("\\.","",colnames(object),fixed=FALSE)
-    tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE,safer=drop),
+    if(drop)
+        t <- dropTable(pTableName=tableName)
+    tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE),
       error=function(e){stop(e)})
   }
   else if(class(connection)=="JDBCConnection")
@@ -992,3 +996,18 @@ as.FLByteInt <- function(x){
                 isDeep=FALSE,
                 type="integer"))
 }
+
+setGeneric("populateDimnames",
+    function(x,...){
+        standardGeneric("populateDimnames")
+        })
+
+setMethod("populateDimnames",
+    signature(x="ANY"),
+    function(x,...){
+        if(is.null(rownames(x)))
+            x@dimnames[[1]] <- 1:x@dim[1]
+        if(x@isDeep)
+            x@dimnames[[2]] <- 1:x@dim[2]
+        return(x)
+})

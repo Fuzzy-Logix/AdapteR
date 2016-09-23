@@ -425,6 +425,7 @@ calcResiduals <- function(object,
   flv <- new("FLVector",
               select = tblfunqueryobj,
               dimnames = dimnames(vfit),
+              dim = vfit@dim,
               isDeep = FALSE)
 
   vresidVector <- ensureQuerySize(pResult=flv,
