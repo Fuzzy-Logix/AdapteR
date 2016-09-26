@@ -20,9 +20,10 @@ Renv$fit2 <- survival::survdiff(Surv(futime, fustat) ~ rx,
 FLenv$data1 <- FLTableMD("vwWHAS100","DataSetID","ObsID")
 FLenv$fit1 <- survdiff(Surv(TIME_VAL,STATUS)~Gender,
                         data=FLenv$data1)
-dropFLTestTable()
+# dropFLTestTable()
 FLenv$data2 <- as.FLTable(Renv$data2,
-                        tableName="ARBaseTestTempTable")
+                        tableName="ARBaseTestTempTable",
+                        drop=TRUE)
 FLenv$fit2 <- survdiff(Surv(futime, fustat) ~ rx,
                         data=FLenv$data2)
 

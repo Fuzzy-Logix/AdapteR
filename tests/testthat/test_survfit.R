@@ -20,9 +20,10 @@ dat <- aml
 colnames(dat) <- c("ftime","fstatus","x")
 Renv$data2 <- dat
 
-dropFLTestTable()
+# dropFLTestTable()
 FLenv$data2 <- as.FLTable(Renv$data2,
-                        tableName="ARBaseTestTempTable")
+                        tableName="ARBaseTestTempTable",
+                        drop=TRUE)
 
 FLenv$fit2 <- survfit(Surv(ftime, fstatus) ~ 1, 
                     data = FLenv$data2)

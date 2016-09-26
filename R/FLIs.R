@@ -47,7 +47,7 @@ is.RowFLVector <- function(pObject){
 }
 
 is.wideFLTable <- function(pObject){
-    if(!is.FLTable(pObject))
+    if(!is.FLTable(pObject) && !is.FLTableMD(pObject))
     return(FALSE)
     else return(!pObject@isDeep)
 }
