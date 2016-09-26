@@ -66,7 +66,7 @@ constructUDTSQL <- function(pViewColnames,
                         " )",
                        "SELECT ",constructVariables(pOutColnames),
                        "FROM TABLE (",
-                            pFuncName,"(",paste0("z.",names(viewCols),
+                            pFuncName,"(",paste0("z.",names(pViewColnames),
                                         collapse=","),
                                     ")",
                             " HASH BY ",paste0("z.",pPartitionBy,
@@ -325,7 +325,6 @@ constructUnionSQL <- function(pFrom,
                                  vinnerSelect <- ifelse(!is.null(names(vinnerSelect)),
                                                      paste0(vinnerSelect," AS ",names(vinnerSelect),collapse=","),
                                                      paste0(vinnerSelect,collapse=","))
-                                 print(vinnerSelect)
                              }
                                  return(paste0("SELECT ",vinnerSelect," \n ",
                                                " FROM (",vFrom[[x]],") AS ",

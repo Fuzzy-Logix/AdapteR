@@ -686,6 +686,8 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
   newnames <- as.character(names(object))
   else newnames <- 1:length(object)
 
+  if(is.factor(object))
+    object <- as.character(object)
   if(is.logical(object))
   tablename <- getOption("ResultCharVectorTableFL")
   else if(suppressWarnings(!any(is.na(as.integer(object))) && 
@@ -864,7 +866,7 @@ as.FLTable.data.frame <- function(object,
     if(drop)
         t <- dropTable(pTableName=tableName)
     tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE),
-      error=function(e){stop(e)})
+            error=function(e){stop(e)})
   }
   else if(class(connection)=="JDBCConnection")
   {

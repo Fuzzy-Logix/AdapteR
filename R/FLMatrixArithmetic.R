@@ -45,8 +45,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 
 		if(pOperator %in% c("%%","*","**"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                               a,".",pObj1@dimColumns[[1]]," AS IDrow,",
-                               a,".",pObj1@dimColumns[[2]]," AS IDcol,",
+                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn,",
+                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn,",
                                a,".",pObj1@dimColumns[[3]],
                                ifelse(pOperator=="%%"," MOD ",pOperator)," ",
                                b,".",pObj2@dimColumns[[3]]," AS valueColumn 
@@ -58,8 +58,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 
 		else if(pOperator %in% c("/"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS IDrow, \n ",
-                               a,".",pObj1@dimColumns[[2]]," AS IDcol, \n ",
+                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn, \n ",
                                "CAST(",a,".",pObj1@dimColumns[[3]]," AS FLOAT) ",pOperator," ",
                                b,".",pObj2@dimColumns[[3]]," AS valueColumn \n ",
                                " FROM ( ",constructSelect(pObj1),") AS ",a,
@@ -70,8 +70,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 
 		else if(pOperator %in% c("%/%"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS IDrow, \n ",
-                               a,".",pObj1@dimColumns[[2]],"  AS IDcol, \n ",
+                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[2]],"  AS colIdColumn, \n ",
                                "CASE WHEN ((",a,".",pObj1@dimColumns[[3]],"/",b,".",pObj2@dimColumns[[3]],")<0) ",
                                " THEN CAST( ",a,".",pObj1@dimColumns[[3]]," / ",
                                b,".",pObj2@dimColumns[[3]]," AS INT ) - 1 ",
@@ -86,8 +86,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		else if(pOperator %in% c("%*%"))
 		{
 			sqlstr <-paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                            a,".",pObj1@dimColumns[[1]]," AS IDrow,",
-                            b,".",pObj2@dimColumns[[2]]," AS IDcol,
+                            a,".",pObj1@dimColumns[[1]]," AS rowIdColumn,",
+                            b,".",pObj2@dimColumns[[2]]," AS colIdColumn,
 									 FLSumProd(",a,".",pObj1@dimColumns[[3]],",",b,".",pObj2@dimColumns[[3]],") AS valueColumn  
 									 FROM (",constructSelect(pObj1),") AS ",a,
                             ",(",constructSelect(pObj2),") AS ",b,
@@ -103,38 +103,38 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		{
 			sqlstr <- paste0(" SELECT\n",
                              "    '%insertIDhere%' AS MATRIX_ID,\n",
-                             "    ",a,".IDrow AS IDrow,\n",
-                             "    ",a,".IDcol AS IDcol,\n",
+                             "    ",a,".rowIdColumn AS rowIdColumn,\n",
+                             "    ",a,".colIdColumn AS colIdColumn,\n",
                              "    "," FLSum(",a,".valueColumn) AS valueColumn \n",
                              " FROM (\n",
                              "       SELECT \n",
-                             "               a.",pObj1@dimColumns[[1]]," AS IDrow,\n",
-                             "               a.",pObj1@dimColumns[[2]]," AS IDcol,\n",
+                             "               a.",pObj1@dimColumns[[1]]," AS rowIdColumn,\n",
+                             "               a.",pObj1@dimColumns[[2]]," AS colIdColumn,\n",
                              "               a.",pObj1@dimColumns[[3]]," AS valueColumn\n",
                              "       FROM(",constructSelect(pObj1),") AS a \n",
                              "       UNION ALL \n",
                              "       SELECT \n",
-                             "               b.",pObj2@dimColumns[[1]]," AS IDrow,\n",
-                             "               b.",pObj2@dimColumns[[2]]," AS IDcol,\n",
+                             "               b.",pObj2@dimColumns[[1]]," AS rowIdColumn,\n",
+                             "               b.",pObj2@dimColumns[[2]]," AS colIdColumn,\n",
                              "               b.",pObj2@dimColumns[[3]],"*(",pOperator,"1) AS valueColumn\n",
                              "       FROM(",constructSelect(pObj2),") AS b\n",
                              "       ) AS ",a,"\n",
-							 " GROUP BY ",a,".IDrow,", a,".IDcol ")
+							 " GROUP BY ",a,".rowIdColumn,", a,".colIdColumn ")
 		}
 
 		else if(pOperator %in% vcompvector){
             stop("this needs review")
 			sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                             "a.IDrow AS IDrow, \n ",
-                             "a.IDcol AS IDcol, \n ",
+                             "a.rowIdColumn AS rowIdColumn, \n ",
+                             "a.colIdColumn AS colIdColumn, \n ",
                              " CASE WHEN FLSum(a.valueColumn) ",
                              ifelse(pOperator=="==","=",pOperator)," 0 ",
                              " THEN 'TRUE' ELSE 'FALSE' END AS valueColumn \n ",
                              " FROM(",constructSelect(pObj1,joinNames=FALSE),
                              " \n UNION ALL \n ",
                              " SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                             " b.IDrowColumn AS IDrow, \n ",
-                             " b.IDcolColumn AS IDcol, \n ",
+                             " b.rowIdColumn AS rowIdColumn, \n ",
+                             " b.colIdColumn AS colIdColumn, \n ",
                              " b.valueColumn*(-1) AS valueColumn \n ",
                              " FROM(",constructSelect(pObj2),") AS b) AS a \n ",
 							 " GROUP BY 1,2,3 ")
@@ -143,8 +143,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                               connection = connection,
                               variables=list(
-                                  IDrowColumn="IDrow",
-                                  IDcolColumn="IDcol",
+                                  rowIdColumn="rowIdColumn",
+                                  colIdColumn="colIdColumn",
                                   valueColumn="valueColumn"),
                               whereconditions="",
                               order = "",
@@ -153,7 +153,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                    select= tblfunqueryobj,
                    dim=dims,
                    dimnames=dimnames,
-                   dimColumns=c("IDrow","IDcol","valueColumn"),
+                   dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
                    type=vtype)
 
 		return(ensureQuerySize(pResult=flm,

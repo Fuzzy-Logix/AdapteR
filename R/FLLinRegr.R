@@ -900,6 +900,7 @@ prepareData.lmGeneric <- function(formula,data,
     }
 	
 	vcallObject <- callObject
+    vRegrDataPrepSpecs <- list()
 	if(!data@isDeep)
 	{
         ## gk: can't we use prepareData.lmGeneric here?
@@ -1226,6 +1227,7 @@ prepareData.lmGeneric <- function(formula,data,
 							select = tblfunqueryobj,
 							dimnames = list(object@deeptable@dimnames[[1]],
 											"vectorValueColumn"),
+                            dim = c(nrow(object@deeptable),1),
 							isDeep = FALSE)
 			object@results <- c(object@results,list(y=yvector))
 			assign(parentObject,object,envir=parent.frame())
@@ -1921,7 +1923,16 @@ print.summary.FLLinRegrMD <- function(object){
 	cat("BPStat: ",ret[["BPSTAT"]]," , SigBPStat: ",ret[["SIGBPSTAT"]],"\n")
 }
 
-
+#' @export
+`[[.FLLinRegr`<-function(object,property){
+    #parentObject <- deparse(substitute(object))
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+                        "(",fixed=T))[2],",",fixed=T))[1]
+    vresult <- `$.FLLinRegr`(object=object,property=property)
+    assign(parentObject,object,envir=parent.frame())
+    return(vresult)
+    
+}
 setDefaultsRegrDataPrepSpecs <- function(x,values){
     x <- as.list(x)
     for(i in c("catToDummy","performNorm",

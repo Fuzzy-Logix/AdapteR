@@ -133,10 +133,12 @@ test_that("Check for dimensions of x Matrix ",{
         expect_equal(nrow(object$x),nrow(widetable))
         expect_equal(colnames(object$x),
                     c("(Intercept)","Height","Diameter"))
-        expect_equal(dimnames(object$model),
-                    list(rownames(widetable),
-                        c("Rings","Height","Diameter")
-                        ))
+        expect_equal(rownames(object$model),
+                     as.character(rownames(widetable))
+                    )
+        expect_equal(colnames(object$model),
+                     c("Rings","Height","Diameter")
+                    )
 })
 
 deeptable <- FLTable("FL_DEMO.myLinRegrSmall",
