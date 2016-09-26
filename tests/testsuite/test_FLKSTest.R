@@ -1,9 +1,5 @@
-
-
                                         # Problems with data.name,
                                         # p.value error computed is wrong.
-
-
                                         # Kolmogorov-Smirnov (KS) Test 1S
 sqlstr <- paste0("SELECT * FROM tblKSTest WHERE GroupID = 1")
 t <- sqlQuery(connection, sqlstr)
@@ -24,11 +20,8 @@ test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
 }
 )
 
-
-
-
-
                                         # Kolmogorov-Smirnov (KS) Test 1S
+                                        # gives p.value as > .25
 set.seed(250)
 Renv = new.env(parent = globalenv())
 Renv$x <- rnorm(10, 1, 2)
@@ -44,7 +37,7 @@ test_that("Kolmogorov-Smirnov Test 1s:", {
     )
     })
 
-# Kolmogorov-Smirnov (KS) Test 2S
+                                        # Kolmogorov-Smirnov (KS) Test 2S
 set.seed(100)                                       
 Renv = new.env(parent = globalenv())
 Renv$p <- rnorm(50)
@@ -64,8 +57,7 @@ test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
 )
 
 
-# Kolmogorov-Smirnov (KS) Test 2S
-
+                                        # Kolmogorov-Smirnov (KS) Test 2S
 
 sqlstr <- paste0("SELECT * FROM tblKSTest")
 t <- sqlQuery(connection, sqlstr)
@@ -86,6 +78,10 @@ test_that("Kolmogorov-Smirnov Test 2S:DBLytix Example ",{
     )
 }
 )
+
+
+
+
 
 
 

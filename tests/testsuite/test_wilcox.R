@@ -9,13 +9,11 @@ FLenv = as.FL(Renv)
 test_that("Wilcox Signed Rank Test ",{
   result = eval_expect_equal({
       t <- wilcox.test(a, b, paired = TRUE)
-      p.value <- t$p.value
-      W <- as.numeric(t$statistic)
   },Renv,FLenv,
-  noexpectation = "t",
-  expectation = c("p.value", "W"),
+  expectation = "t",
   check.attributes=F,
-  tolerance = .000001
+  tolerance = .000001,
+  verbose = TRUE
   
   )
 }) 
@@ -55,17 +53,14 @@ Renv$t <- a[c(TRUE,FALSE)]
 Renv$q <- a[c(FALSE,TRUE)]
 FLenv = as.FL(Renv)
 
-
 test_that("Wilcoxon Signed-Rank Test ",{
   result = eval_expect_equal({
       z <- wilcox.test(t, q, paired = TRUE)
-      p.value <- z$p.value
-      W <- as.numeric(z$statistic)
   },Renv,FLenv,
-  noexpectation = "z",
-  expectation = c("p.value", "W"),
+  expectation = "z",
   check.attributes=F,
-  tolerance = .000001
+  tolerance = .000001,
+  verbose = TRUE
   )
 }) 
 
@@ -83,16 +78,14 @@ FLenv = as.FL(Renv)
 test_that("Mann-Whitney Wilcoxon Test ",{
   result = eval_expect_equal({
       t <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
-      p.value <- t$p.value
-      W <- as.numeric(t$statistic)
   },Renv,FLenv,
-  noexpectation = "t",
-  expectation = c("p.value", "W"),
+  expectation = "t",
   check.attributes=F,
   tolerance = .000001,
   verbose = TRUE
   )
-  }) 
+})
+
 
 
                                         #Mann - Whitney Test
@@ -123,11 +116,8 @@ FLenv = as.FL(Renv)
 test_that("Mann-Whitney Wilcoxon Test ",{
   result = eval_expect_equal({
       q <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
-      p.value <- q$p.value
-      W <- as.numeric(q$statistic)
   },Renv,FLenv,
-  noexpectation = "q",
-  expectation = c("p.value", "W"),
+  expectation = "q",
   check.attributes=F,
   tolerance = .000001,
   verbose = TRUE
