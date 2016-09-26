@@ -1,7 +1,13 @@
 
 #' Wilcox Test
+#'
+#'
+#' 
 #'An S3 class to represent wilcox signed Rank test
 #'Performs one- and two-sample Wilcoxon tests on vectors of data; the latter is also known as \code{Mann-Whitney} test.
+#' 
+#' If only x is given, or if both x and y are given and paired is TRUE, a Wilcoxon signed rank test of the null that the distribution of x (in the one sample case) or of x - y (in the paired two sample case) is symmetric about mu is performed.
+#' Otherwise, if both x and y are given and paired is FALSE, a Wilcoxon rank sum test (equivalent to the Mann-Whitney test: see the Note) is carried out. In this case, the null hypothesis is that the distributions of x and y differ by a location shift of mu and the alternative is that they differ by some other location shift (and the one-sided alternative "greater" is that x is shifted to the right of y).
 
 
 #'@param x FLvector of data values. Non-finite (e.g., infinite or missing) values will be omitted.
@@ -9,7 +15,7 @@
 #' @param y an optional FLVector of data values: as with x non-finite values will be omitted.
 #' @param paired a logical indicating whether you want a paired test.
 
-#' @section Constraints: conf.level, conf.level is not supported currently for FL objects.
+#' @section Constraints: conf.level, conf.int is not supported currently for FL objects.
 #'@return A list with class "htest".
 #' @examples
 #' Wilcoxon Signed Rank test:
@@ -22,8 +28,6 @@
 #' b <-  c(7, 10, 4, 3, 5, 6)
 #' res <- wilcox.test(a, b, paired = FALSE)
 #' 
-#' If only x is given, or if both x and y are given and paired is TRUE, a Wilcoxon signed rank test of the null that the distribution of x (in the one sample case) or of x - y (in the paired two sample case) is symmetric about mu is performed.
-#' Otherwise, if both x and y are given and paired is FALSE, a Wilcoxon rank sum test (equivalent to the Mann-Whitney test: see the Note) is carried out. In this case, the null hypothesis is that the distributions of x and y differ by a location shift of mu and the alternative is that they differ by some other location shift (and the one-sided alternative "greater" is that x is shifted to the right of y).
 #' @export
 
 
@@ -65,10 +69,13 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                 stats <- c(W = result$W_Pos)
             ##
             res <- list(statistic = stats,
+                        parameter = NULL,
                         p.value = result$p,
-                        data.name =dname,
+                        null.value = 0,
                         alternative = "two.sided",
-                        method = "Wilcoxon rank sum test"
+                        method = "Wilcoxon signed rank test",
+                        data.name =dname
+                        
                                         #            call=vcall
                         )
             class(res) <- "htest"
@@ -101,10 +108,13 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
             result <- sqlQuery(connection, sqlstr)
 
             res <- list(statistic = c(W = result$W),
+                        parameter = NULL,
                         p.value = result$P,
-                        data.name = dname,
+                        null.value = 0,
                         alternative = "two.sided",
-                        method = "Wilcoxon rank sum test")
+                        method = "Wilcoxon rank sum test",
+                        data.name = dname
+                        )
             class(res) <- "htest"
             return(res)
         }

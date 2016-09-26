@@ -66,8 +66,9 @@ setMethod("ks.test",signature(x="FLVector"),
                                        q.D_PValue AS P_Value
                                FROM ",ret$OutTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
+              
               if(! class(res_1$P_Value) == "numeric")
-                  pval <- as.character(res_1$P_Value)
+                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
               else
                   pval <- res_1$P_Value
 
@@ -119,7 +120,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
               res_1 <- sqlQuery(connection, sqlstr)
 
               if(!class(res_1$P_Value) == "numeric")
-                  pval <- as.character(res_1$P_Value)
+                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
               else
                   pval <- res_1$P_Value
 
