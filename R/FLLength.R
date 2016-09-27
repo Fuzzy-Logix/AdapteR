@@ -31,7 +31,7 @@ length.FLMatrixBind <- function(obj)
 #' @export
 length.FLVector <- function(obj)
 {
-    if(!is.null(obj@dim))
+    if(!is.null(obj@dim) && length(obj@dim)>0)
         vlength <- max(obj@dim)
     else vlength <- max(length(dimnames(obj)[[2]]),
                         length(dimnames(obj)[[1]]))
