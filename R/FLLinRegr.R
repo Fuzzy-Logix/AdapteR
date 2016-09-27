@@ -1675,6 +1675,7 @@ predict.lmGeneric <- function(object,
 				select = tblfunqueryobj,
 				dimnames = list(rownames(newdata),
 								"vectorValueColumn"),
+                dim = c(newdata@dim[1],1),
 				isDeep = FALSE)
 
 	return(flv)

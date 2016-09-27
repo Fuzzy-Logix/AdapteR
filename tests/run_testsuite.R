@@ -40,19 +40,27 @@ if(opt$directory=="."){
     opt$directory <- gsub("/tests$","",getwd())
 } 
 
-packagedir <- gsub("^.*/","",opt$directory)
-basedir <- gsub("/[^/]*$","",opt$directory)
+packagedir <- opt$directory
+print(opt$directory)
 
-cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
+# packagedir <- gsub("^.*/","",opt$directory)
+# basedir <- gsub("/[^/]*$","",opt$directory)
+# print(packagedir)
+# print(basedir)
+
+# cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 if(opt$AdapteR=="require"){
-    setwd(basedir)
+    ##phani: do we need to set this?
+    # setwd(basedir)
     require("AdapteR")
 } else {
-    cat(paste0("running git pull\n"))
-    setwd(basedir)
-    setwd(packagedir)
-    system2("git", c("pull", "fuzzylogix", "master"),stdout = TRUE)
-    setwd(basedir)
+    ##phani: I think git pull should be done outside the sript
+    ## As this might change my working branch
+    # cat(paste0("running git pull\n"))
+    # setwd(basedir)
+    # setwd(packagedir)
+    # system2("git", c("pull", "fuzzylogix", "master"),stdout = TRUE)
+    # setwd(basedir)
     devtools::load_all(packagedir)
 }
 
