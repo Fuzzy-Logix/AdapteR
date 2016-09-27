@@ -1,4 +1,5 @@
 
+## gk @ as: please refactor to R package 
 a<-rnorm(50)
 b<-sample(c(0,1),replace = T,size =50)
 c<-rnorm(50)
