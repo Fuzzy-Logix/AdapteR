@@ -210,14 +210,14 @@ NULL
         #           paste0(vtableref,".DIM_ID=1")),
         #     order = "")
         
-        vres <- new("FLVector",
+        vres <- newFLVector(
                   select=object@select,
                   dimnames=list(newrownames,newcolnames),
                   isDeep=object@isDeep,
                   mapSelect=mapselect)
       }
       else
-          vres <- new("FLVector",
+          vres <- newFLVector(
                       select=object@select,
                       dimnames=list(vrownames,vcolnames),
                       isDeep=object@isDeep)
@@ -479,13 +479,13 @@ NULL
     select <- object@select
 
     if(!is.null(mapselect))
-    return(new("FLVector",
+    return(newFLVector(
                 select=select,
                 dimnames=list(newrownames,newcolnames),
                 isDeep=object@isDeep,
                 mapSelect=mapselect,
                 type=typeof(object)))
-    else return(new("FLVector",
+    else return(newFLVector(
                 select=select,
                 dimnames=list(newrownames,newcolnames),
                 isDeep=object@isDeep,

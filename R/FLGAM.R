@@ -590,7 +590,7 @@ residuals.FLGAM <- function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		residualsvector <- new("FLVector",
+		residualsvector <- newFLVector(
 								select = tblfunqueryobj,
 								dimnames = list(rownames(object@table),
 												"vectorValueColumn"),
@@ -758,7 +758,7 @@ offset.FLGAM <- function(object)
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-			offsetvector <- new("FLVector",
+			offsetvector <- newFLVector(
 									select = tblfunqueryobj,
 									dimnames = list(1:nrow(object@table),
 													"vectorValueColumn"),
@@ -843,7 +843,7 @@ y.FLGAM <- function(object)
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-			yvector <- new("FLVector",
+			yvector <- newFLVector(
 							select = tblfunqueryobj,
 							dimnames = list(1:nrow(object@table),
 											"vectorValueColumn"),
@@ -948,7 +948,7 @@ predict.FLGAM <- function(object,
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = list(1:nrow(newdata),
 								"vectorValueColumn"),

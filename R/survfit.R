@@ -116,7 +116,7 @@ survfit.formula <- function(formula, data, weights,
                               obs_id_colname = "TimeIndex"),
                           whereconditions=vwhereConds,
                           order = "")
-            vFLtbl <- new("FLTable",
+            vFLtbl <- newFLTable(
                           select=vselect,
                           dimnames=list(ObsID,VarID),
                           dim=c(length(ObsID),length(VarID)),

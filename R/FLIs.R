@@ -83,23 +83,6 @@ is.RSparseMatrix <- function(object){
     return(FALSE)
 }
 
-is.TD <- function(){
-    if(getOption("FLPlatform")=="TD")
-    return(TRUE)
-    else return(FALSE)
-}
-
-is.TDAster <- function(){
-    if(getOption("FLPlatform")=="TDAster")
-    return(TRUE)
-    else return(FALSE)
-}
-
-is.Hadoop <- function(){
-    if(getOption("FLPlatform")=="Hadoop")
-    return(TRUE)
-    else return(FALSE)
-}
 
 isDotFormula <- function(pFormula){
     if(!is.formula(pFormula))

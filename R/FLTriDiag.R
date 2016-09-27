@@ -41,7 +41,7 @@ FLTriDiag.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  	flm <- new("FLMatrix",
+  	flm <- newFLMatrix(
             select= tblfunqueryobj,
             dim=dim(object),
             dimnames=dimnames(object))

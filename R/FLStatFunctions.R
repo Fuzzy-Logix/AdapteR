@@ -39,7 +39,7 @@ FLStatsDist <- function(x,method="euclidean",
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
-        flm <- new("FLMatrix",
+        flm <- newFLMatrix(
                            select= tblfunqueryobj,
                            dim=c(x@dim[1],x@dim[1]),
                            dimnames=list(rownames(x),rownames(x)))
@@ -579,7 +579,7 @@ getDescStatsUDT <- function(object,
                         length(object),
                         nrow(object)*ncol(object))
 
-        return(store(new("FLVector",
+        return(store(newFLVector(
                 select=tblfunqueryobj,
                 dimnames=list(1:vlength,"vectorValueColumn"),
                 isDeep=FALSE)))
@@ -952,7 +952,7 @@ getDescStatsUDTjoin <- function(object,
     vnames <- names(object)
     else vnames <- 1:vlength
 
-    return(store(new("FLVector",
+    return(store(newFLVector(
             select=tblfunqueryobj,
             dimnames=list(vnames,"vectorValueColumn"),
             isDeep=FALSE)))

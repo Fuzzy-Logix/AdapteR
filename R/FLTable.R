@@ -98,7 +98,7 @@ FLTable <- function(table,
                       whereconditions=whereconditions,
                       order = "")
         
-        new("FLTable",
+        newFLTable(
             select = select,
             dimnames = list(rows,cols),
             dim = c(nrow,ncol),
@@ -152,7 +152,7 @@ FLTable <- function(table,
                       whereconditions=whereconditions,
                       order = "")
 
-        T <- new("FLTable", 
+        T <- newFLTable( 
                  select = select,
                  dimnames = mydimnames,
                  dim = c(nrow,ncol),
@@ -359,7 +359,7 @@ setMethod("wideToDeep",
                         whereconditions="",
                         order = "")
 
-              object <- new("FLTable",
+              object <- newFLTable(
                             select = select,
                             dimnames = object@dimnames,
                             dim = dim(object),
@@ -552,7 +552,7 @@ setMethod("deepToWide",
                         whereconditions="",
                         order = "")
 
-              object <- new("FLTable",
+              object <- newFLTable(
                             select = select,
                             dim = dim(object),
                             dimnames = object@dimnames,

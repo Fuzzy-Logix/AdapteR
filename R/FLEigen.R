@@ -76,7 +76,7 @@ FLEigenValues.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = list(1:nrow(object),
 								"vectorValueColumn"),
@@ -115,7 +115,7 @@ FLEigenVectors.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  	flm <- new("FLMatrix",
+  	flm <- newFLMatrix(
             select= tblfunqueryobj,
             dim=dim(object),
             dimnames=dimnames(object))

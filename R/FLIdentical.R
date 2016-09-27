@@ -221,7 +221,7 @@ NULL
                         order = "",
                         SQLquery=sqlstr)
 
-	    flm <- new("FLMatrix",
+	    flm <- newFLMatrix(
 	            select= tblfunqueryobj,
 	            dim=dim(pObj1),
 	            dimnames=dimnames(pObj1))
@@ -335,7 +335,7 @@ NULL
                         order = "",
                         SQLquery=sqlstr)
 
-		flv <- new("FLVector",
+		flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = dimnames,
 				isDeep = FALSE)

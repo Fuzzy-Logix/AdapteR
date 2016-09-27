@@ -51,7 +51,7 @@ ginv.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  flm <- new("FLMatrix",
+  flm <- newFLMatrix(
              select= tblfunqueryobj,
              dim=rev(dim(object)),
             dimnames=list(NULL,NULL))

@@ -88,7 +88,7 @@ setMethod("FLStringDist",
                         order = "",
                         SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
                             dimnames = list(targets@dimnames[[1]],
                                           "vectorValueColumn"),
@@ -167,7 +167,7 @@ setMethod("FLStringDist",
                     order = "",
                     SQLquery=sqlstr)
 
-              flm <- new("FLMatrix",
+              flm <- newFLMatrix(
                                select= tblfunqueryobj,
                                dim=c(length(xsource),
                                      length(targets)),
@@ -230,7 +230,7 @@ setMethod("FLStringDist",
                       order = "",
                       SQLquery=sqlstr)
 
-                return(new("FLVector",
+                return(newFLVector(
                           select = tblfunqueryobj,
                           dimnames =list(vmaxrownames,"vectorValueColumn"),
                           isDeep = FALSE))
@@ -709,7 +709,7 @@ setMethod("FLStrCommon",
                         order = "",
                         SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
                             dimnames = list(object@dimnames[[1]],
                                           "vectorValueColumn"),
@@ -779,7 +779,7 @@ setMethod("FLConcatString",
                         order = "",
                         SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
                             dimnames = list(1,
                                           "vectorValueColumn"),
@@ -1147,7 +1147,7 @@ setMethod("grep",
                                 order = "",
                                 SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
                             dimnames = list(1:vlength,
                                           "vectorValueColumn"),
@@ -1234,7 +1234,7 @@ setMethod("grepl",
                                 order = "",
                                 SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
                             dimnames = list(object@dimnames[[1]],
                                           "vectorValueColumn"),

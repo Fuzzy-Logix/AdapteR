@@ -22,7 +22,7 @@ FLVector <- function(table,
     V <- NULL
 	if(table@isDeep) {
         if(length(val_col_name)) { ## column vector deep table
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = table@variables$valueColumn,
                      whereconditions = c(whereconditions,
@@ -30,7 +30,7 @@ FLVector <- function(table,
                                              table@var_id_colname,val_col_name)))
             ##V <- V[val_row_name]
         } else if(length(val_row_name)) { ## column vector deep table
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = table@variables$valueColumn,
                      whereconditions = c(whereconditions,
@@ -39,13 +39,13 @@ FLVector <- function(table,
         }
     } else if(!table@isDeep) {
         if(length(val_col_name)) { 
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = val_col_name,
                      whereconditions = c(whereconditions))
             ##V <- V[val_row_name]
         } else if(length(val_row_name)) { ## column vector deep table
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = names(table),
                      whereconditions = c(whereconditions,

@@ -408,7 +408,7 @@ clustering.FLFKMeans <- function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		clusteringvector <- new("FLVector",
+		clusteringvector <- newFLVector(
 							select = tblfunqueryobj,
 							dimnames = list(object@deeptable@dimnames[[1]],
 											"vectorValueColumn"),
@@ -453,7 +453,7 @@ membership.FLFKMeans<-function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-	  	membershipmatrix <- new("FLMatrix",
+	  	membershipmatrix <- newFLMatrix(
 				            select= tblfunqueryobj,
 				            dim=c(nrow(object@deeptable),
 				            	object@centers),

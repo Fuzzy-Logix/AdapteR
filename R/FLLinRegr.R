@@ -420,7 +420,6 @@ step.FLTable <- function(object, scope, scale = 0,
 					direction=direction,
 					trace=trace,
 					...))
-
 }
 
 ## move to file lmGeneric.R
@@ -1222,7 +1221,7 @@ prepareData.lmGeneric <- function(formula,data,
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-			yvector <- new("FLVector",
+			yvector <- newFLVector(
 							select = tblfunqueryobj,
 							dimnames = list(object@deeptable@dimnames[[1]],
 											"vectorValueColumn"),
@@ -1671,7 +1670,7 @@ predict.lmGeneric <- function(object,
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = list(rownames(newdata),
 								"vectorValueColumn"),

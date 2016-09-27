@@ -587,7 +587,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                         order = "",
                         SQLquery=sqlstr)
 
-  flm <- new("FLMatrix",
+  flm <- newFLMatrix(
               select= tblfunqueryobj,
               dim = c(rows,cols),
               dimnames=list(1:rows,1:cols),
@@ -737,7 +737,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                 whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
                 order = "")
 
-  return(new("FLVector",
+  return(newFLVector(
                 select=select,
                 dimnames=list(newnames,"vectorValueColumn"),
                 isDeep=FALSE,
@@ -964,7 +964,7 @@ as.FLTable.data.frame <- function(object,
                 whereconditions=character(0),
                 order = "")
 
-  return(new("FLTable",
+  return(newFLTable(
               select = select,
               dimnames = list(object[,obsIdColname],
                               vcolnames),
@@ -991,7 +991,7 @@ as.FLByteInt <- function(x){
                 whereconditions=paste0("flt.vectorIdColumn = ",VID),
                 order = "")
 
-    return(new("FLVector",
+    return(newFLVector(
                 select=select,
                 dimnames=list(x@dimnames[[1]],
                             "vectorValueColumn"),

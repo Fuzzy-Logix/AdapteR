@@ -39,7 +39,7 @@ rowcolOps<-function(object,margin,operation,...){
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = list(1:res,
 								"vectorValueColumn"),

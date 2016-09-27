@@ -81,7 +81,7 @@ qr.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstrQR)
 
-  	flm <- new("FLMatrix",
+  	flm <- newFLMatrix(
             select= tblfunqueryobj,
             dim=dim(object),
             dimnames=dimnames(object))

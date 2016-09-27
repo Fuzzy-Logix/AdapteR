@@ -456,7 +456,7 @@ height.FLAggClust <- function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		heightvector <- new("FLVector",
+		heightvector <- newFLVector(
 							select = tblfunqueryobj,
 							dimnames = list(1:(nrow(object@deeptable)-1),
                                                                         "vectorValueColumn"),

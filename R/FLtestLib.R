@@ -209,7 +209,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     variables = list(obs_id_colname="SERIALVAL"),
                     whereconditions=paste0(getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE),".SERIALVAL < ",n+1),
                     order = "")
-      flv <- new("FLVector",
+      flv <- newFLVector(
                 select=select,
                 dimnames=list(1:n,"RANDVAL"),
                 isDeep=FALSE)
@@ -246,7 +246,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     variables = list(obs_id_colname="vectorIndexColumn"),
                     whereconditions=paste0(vtableName,".vectorIndexColumn < ",n+1),
                     order = "")
-      flv <- new("FLVector",
+      flv <- newFLVector(
                   select=select,
                   dimnames=list(1:n,"vectorValueColumn"),
                   isDeep=FALSE)
@@ -354,7 +354,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                   paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
                 order = "")
   
-  flm <- new("FLMatrix",
+  flm <- newFLMatrix(
             select = select,
             dim = c(n,ifelse(isSquare,n,n-1)),
             dimnames = list(NULL,NULL))

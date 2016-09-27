@@ -63,7 +63,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
             vdim <- dim(object),
             vdim <- dim(object)-1)
 
-  	flm <- new("FLMatrix",
+  	flm <- newFLMatrix(
                select= tblfunqueryobj,
                dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
                              dimnames(object)[[2]][(-1*ExclIdx)]),

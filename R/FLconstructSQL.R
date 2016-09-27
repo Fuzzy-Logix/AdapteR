@@ -119,7 +119,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
             # {
             #   # if(ncol(object)==1) newnames <- rownames(object)
             #   # else newnames <- colnames(object)
-            #   # namesflvector <- new("FLVector",
+            #   # namesflvector <- newFLVector(
             #   #           select=object@mapSelect,
             #   #           dimnames=list(newnames,"NAME"),
             #   #           isDeep=FALSE)

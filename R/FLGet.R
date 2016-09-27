@@ -127,15 +127,6 @@ setMethod("getValueColumn",signature(object="FLTable"),
                         }))
         })
 
-getFLPlatform <- function(){
-  return(getOption("FLPlatform"))
-}
-
-setMethod("getConnection",
-          signature(object = "missing"),
-          function(object) 
-            getOption("connectionFL"))
-
 genDeepFormula <- function(pColnames,
                           pDepColumn=NULL)
 {
@@ -286,7 +277,7 @@ getXMatrix <- function(object,
 
   vdimnames <- list(rownames(modelframe),vcolnames)
 
-  modelframe <- new("FLMatrix",
+  modelframe <- newFLMatrix(
                   select=vselect,
                   dim=c(nrow(modelframe),length(vcolnames)),
                   dimnames=list(NULL,vcolnames))
@@ -321,7 +312,7 @@ calcLinearPred <- function(object,...){
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
-    flv <- new("FLVector",
+    flv <- newFLVector(
               select = tblfunqueryobj,
               dimnames = dimnames(vfit),
               isDeep = FALSE)
@@ -422,7 +413,7 @@ calcResiduals <- function(object,
                         order = "",
                         SQLquery=sqlstr)
   
-  flv <- new("FLVector",
+  flv <- newFLVector(
               select = tblfunqueryobj,
               dimnames = dimnames(vfit),
               dim = vfit@dim,

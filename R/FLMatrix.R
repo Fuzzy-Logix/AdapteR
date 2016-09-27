@@ -15,8 +15,7 @@ setOldClass("RODBC")
 #' @export
 setClass("FLTableQuery",
          slots=list(
-             connection = "ANY",
-             variables="list",
+             variables  = "list",
              whereconditions="character",
              order = "character"
          ))
@@ -75,6 +74,18 @@ setClass("FLMatrix",
                                  type="double")
          )
 
+
+setClass("FLMatrix.Hadoop", contains = "FLMatrix")
+setClass("FLMatrix.TD", contains = "FLMatrix")
+setClass("FLMatrix.Aster", contains = "FLMatrix")
+
+newFLMatrix <- function(....) {
+    new(paste0("FLMatrix.",getFLPlatform(getConnection())),
+        ...)
+}
+
+
+
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
@@ -94,6 +105,17 @@ setClass("FLTable",
          ),
          prototype = prototype(type="double")
         )
+
+
+setClass("FLTable.Hadoop", contains = "FLMatrix")
+setClass("FLTable.TD", contains = "FLMatrix")
+setClass("FLTable.Aster", contains = "FLMatrix")
+
+newFLMatrix <- function(....) {
+    new(paste0("FLTable.",getFLPlatform(getConnection())),
+        ...)
+}
+
 
 #' An S4 class to represent FLTableMD, an in-database data.frame.
 #'
@@ -128,6 +150,14 @@ setClass("FLVector",
          ),
          prototype = prototype(type="double")
          )
+
+setClass("FLVector.Hadoop", contains = "FLMatrix")
+setClass("FLVector.TD", contains = "FLMatrix")
+setClass("FLVector.Aster", contains = "FLMatrix")
+
+newFLMatrix <- function(....) {
+    new(paste0("FLVector.",getFLPlatform(getConnection())), ...)
+}
 
 setMethod("str",signature(object="FLVector"),
           function(object) cat(paste0("FLVector [",length(object),"] ", object@type, "\n   ",str(object@select),"\n")))
@@ -550,7 +580,7 @@ FLMatrix <- function(table_name,
                   whereconditions=c(whereconditions, mConstraint),
                   order = "")
     
-    RESULT <- new("FLMatrix",
+    RESULT <- newFLMatrix(
                   select = select,
                   dim = dim,
                   dimnames = dimnames,
@@ -590,14 +620,18 @@ setGeneric("getConnection", function(object) {
     standardGeneric("getConnection")
 })
 setMethod("getConnection", signature(object = "ANY"), function(object) getOption("connectionFL"))
-setMethod("getConnection", signature(object = "FLMatrix"),
-          function(object) object@select@connection)
-setMethod("getConnection", signature(object = "FLTable"),
-          function(object) object@select@connection)
-setMethod("getConnection", signature(object = "FLTableQuery"),
-          function(object) object@select@connection)
-setMethod("getConnection", signature(object = "FLVector"),
-          function(object) object@select@connection)
+setMethod("getConnection", signature(object = "missing"), function(object) getOption("connectionFL"))
+## setMethod("getConnection", signature(object = "FLMatrix"), function(object) object@select@connection)
+## setMethod("getConnection", signature(object = "FLTable"), function(object) object@select@connection)
+## setMethod("getConnection", signature(object = "FLTableQuery"), function(object) object@select@connection)
+## setMethod("getConnection", signature(object = "FLVector"), function(object) object@select@connection)
+
+getFLPlatform <- function() return(getOption("FLPlatform"))
+is.TD         <- function() getFLPlatform()=="TD"
+is.TDAster    <- function() getFLPlatform()=="TDAster"
+is.Hadoop     <- function() getFLPlatform()=="Hadoop"
+
+
 
 setGeneric("constraintsSQL", function(object) {
     standardGeneric("constraintsSQL")

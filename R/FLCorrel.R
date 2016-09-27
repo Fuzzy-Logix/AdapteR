@@ -393,7 +393,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
                 order = "",
                 SQLquery=sqlstr)
 
-		flm <- new("FLMatrix",
+		flm <- newFLMatrix(
                            select= tblfunqueryobj,
                            dim=c(ncol(x),ncol(y)),
 		            dimnames = list(
@@ -480,7 +480,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
                     order = "",
                     SQLquery=sqlstr)
 
-			flm <- new("FLMatrix",
+			flm <- newFLMatrix(
                        select= tblfunqueryobj,
                        dim=c(ncol(x),1),
 			            dimnames = list(
@@ -748,7 +748,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
                     order = "",
                     SQLquery=sqlstr)
 
-			flm <- new("FLMatrix",
+			flm <- newFLMatrix(
 			            select= tblfunqueryobj,
                        dim=c(ncol(x),ncol(y)),
 			            dimnames = list(
@@ -851,7 +851,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
                     order = "",
                     SQLquery=sqlstr)
 
-			flm <- new("FLMatrix",
+			flm <- newFLMatrix(
 			            select= tblfunqueryobj,
                        dim=c(ncol(x),ncol(y)),
 			            dimnames = list(
@@ -936,7 +936,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
                     SQLquery=sqlstr)
 
 			
-			flm <- new("FLMatrix",
+			flm <- newFLMatrix(
                        select= tblfunqueryobj,
                        dim=c(ncol(x),1),
                        dimnames = list(
@@ -1046,7 +1046,7 @@ cov.wtGeneric <- function(x,
                 order = "",
                 SQLquery=sqlstr)
 
-	flm <- new("FLMatrix",
+	flm <- newFLMatrix(
                        select= tblfunqueryobj,
                        dim=c(ncol(x),ncol(x)),
 	            	   dimnames = list(
@@ -1074,7 +1074,7 @@ cov.wtGeneric <- function(x,
 	                    order = "",
 	                    SQLquery=sqlstr)
 
-		center <- new("FLVector",
+		center <- newFLVector(
 					select = tblfunqueryobj,
 					dimnames = list(colnames(x),"vectorValueColumn"),
 					isDeep = FALSE)

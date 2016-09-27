@@ -482,7 +482,7 @@ predict.FLCoxPH <-function(object,
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = list(rownames(newdata),
 								"vectorValueColumn"),

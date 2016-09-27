@@ -417,7 +417,7 @@ clustering.FLKMedoids <- function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		clusteringvector <- new("FLVector",
+		clusteringvector <- newFLVector(
 							select = tblfunqueryobj,
 							dimnames = list(object@deeptable@dimnames[[1]],
 											"vectorValueColumn"),
@@ -473,7 +473,7 @@ medoids.FLKMedoids<-function(object)
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-		  	medoidsmatrix <- new("FLMatrix",
+		  	medoidsmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
 					            dim=c(object@centers,
 					            	length(object@deeptable@dimnames[[2]])),
@@ -519,7 +519,7 @@ id.med.FLKMedoids<-function(object){
                         order = "",
                         SQLquery=sqlstr)
 
-		id.medvector <- new("FLVector",
+		id.medvector <- newFLVector(
 							select = tblfunqueryobj,
 							dimnames = list(1:object@centers,
 											"vectorValueColumn"),
@@ -890,7 +890,7 @@ silinfo.FLKMedoids <- function(object){
                         order = "",
                         SQLquery=sqlstr)
 
-		widthsFLTable <- new("FLTable",
+		widthsFLTable <- newFLTable(
                              select = tblfunqueryobj,
                              dim=c(nrow(object@deeptable), 4),
 							dimnames = list(object@deeptable@dimnames[[1]],
@@ -941,7 +941,7 @@ silinfo.FLKMedoids <- function(object){
 										                        order = "",
 										                        SQLquery=sqlstr)
 
-											t <- new("FLVector",
+											t <- newFLVector(
 													select = tblfunqueryobj,
 													dimnames = list(1:object@centers,
 																	"vectorValueColumn"),
@@ -1046,7 +1046,7 @@ diss.FLKMedoids<-function(object)
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-		  	dissmatrix <- new("FLMatrix",
+		  	dissmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
 					            dim=c(length(object@deeptable@dimnames[[1]]),
 					            	length(object@deeptable@dimnames[[1]])),

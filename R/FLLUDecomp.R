@@ -134,7 +134,7 @@ lu.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstrLU)
 
-	flm <- new("FLMatrix",
+	flm <- newFLMatrix(
                select= tblfunqueryobj,
                dim=dim(object),
 	            dimnames=dimnames(object))
@@ -201,7 +201,7 @@ lu.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstrX)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
 				dimnames = list(1:length(LUMatrix),
 								"vectorValueColumn"),
