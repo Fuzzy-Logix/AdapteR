@@ -342,9 +342,11 @@ setCurrentDatabase <- function(pDBName){
     else if(is.TD())
         vsqlstr <- c(paste0("DATABASE ",pDBName,";"),
                     "SET ROLE ALL;")
-    else if(is.TDAster() && 
-            tolower(getOption("ResultDatabaseFL"))!=tolower(pDBName))
-    stop("use flConnect to set database in Aster \n ")
+    else if(is.TDAster()){
+        if(tolower(getOption("ResultDatabaseFL"))!=tolower(pDBName))
+            stop("use flConnect to set database in Aster \n ")
+        else return()
+        }
 
     sqlSendUpdate(getOption("connectionFL"),vsqlstr)
 }
@@ -352,7 +354,9 @@ setCurrentDatabase <- function(pDBName){
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName,
                                temporaryTable=getOption("temporaryTablesFL")) {
-    if(is.null(databaseName) || temporaryTable)
+    if(is.null(databaseName) 
+        || temporaryTable 
+        || databaseName==getOption("ResultDatabaseFL"))
         return(tableName)
     else return(paste0(databaseName,".",tableName))
 }
@@ -433,7 +437,9 @@ createTable <- function(pTableName,
             psqlstr <- paste0(psqlstr," AS ",pSelect)
         
     }
-    if(pTemporary){
+    ### Temporary tables can be created only within a BEGIN-END
+    ### block in Aster.RollBack exists.
+    if(pTemporary && !is.TDAster()){
         vsqlstr <- paste0("CREATE ",vtempKeyword,
                           " TABLE ",pTableName, " ")
     } else 
@@ -492,6 +498,7 @@ createTable <- function(pTableName,
     if(!pTemporary & getOption("temporaryTablesFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
+                # stop(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
