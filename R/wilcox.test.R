@@ -79,6 +79,7 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                                         #            call=vcall
                         )
             class(res) <- "htest"
+            dropView(vviewName)
             return(res)
         } else {
             vviewName <- gen_view_name("MWTest")
@@ -116,6 +117,7 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                         data.name = dname
                         )
             class(res) <- "htest"
+            dropView(vviewName)
             return(res)
         }
     }

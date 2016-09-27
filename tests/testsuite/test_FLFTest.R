@@ -46,3 +46,4 @@ test_that("F- Test: DB Lytix Example",{
 
 
 # error when instead of using FLVectors using subset of FLTable.
+# null.value, estimate, conf.int not computed as of now
