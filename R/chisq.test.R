@@ -38,7 +38,6 @@ setMethod("chisq.test",signature(x="FLMatrix"),
 			vres<-sqlQuery(connection,vsqlstr)
 			return(vres)}
 		else{
-			browser()
 			pFuncName<-"FLPearsonChiSq"
 			pTableName<-x@select@table_name
 			## asana ticket-https://app.asana.com/0/150173007236461/182190129148838
@@ -52,7 +51,10 @@ setMethod("chisq.test",signature(x="FLMatrix"),
 									GroupBy="MATRIX_ID",
 									TableOutput=1,
 									outputParameter=c(ResultTable="resTable"))
-			return(resTable)
+			res<-list(p.value=res[1,4],
+					  statistic=res[1,3])
+			class(res)<-"htest"
+			return(res)
 		}	
 	}
 )

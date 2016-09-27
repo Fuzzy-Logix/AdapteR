@@ -21,8 +21,11 @@ NULL
 #' z.test(fla,prob=1)
 #' z.test(fla,flb,prob=1)
 
-setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0)
+setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0,...)
                 standardGeneric("z.test"))
+setMethod("z.test",signature(x="ANY"),
+    function(x,y,...){
+        return(PASWR::z.test(x,y,...))})
 setMethod("z.test",signature(x="FLVector"),
     function(x,
             y=NULL,
@@ -118,8 +121,8 @@ setMethod("z.test",signature(x="FLVector"),
     vres<-sqlQuery(connection,vsqlstr)
     cint<-cint(x,conf.level)
     attr(cint,"conf.level") <- conf.level
-    vresList<-list(statistic=c("P value"=vres[1,1]),
-                   parameter=c("Z stat"=vres[2,1]),
+    vresList<-list(statistic=c("Z stat"=vres[2,1]),
+                   p.value=c("p-value"=vres[1,1]),
                    data.name=vcall,
                    alternative=alter,
                    estimate =estimate,

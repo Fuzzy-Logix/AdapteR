@@ -22,7 +22,7 @@ Additionally "LT","GT","EXACT" are supported for FL objects.}
 Not Applicable for FL objects.}
 }
 \value{
-A list with class "FLhtest"
+A list with class "htest"
 }
 \description{
 Performs an exact test of a simple null hypothesis
