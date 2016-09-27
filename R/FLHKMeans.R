@@ -305,7 +305,7 @@ cluster.FLHKMeans<-function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						    "     ObsID AS vectorIndexColumn, \n ",
@@ -349,7 +349,7 @@ centers.FLHKMeans<-function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag1Check(connection)
+		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
 						    "  DENSE_RANK()OVER(ORDER BY ClusterID) AS rowIdColumn, \n ",
@@ -440,7 +440,7 @@ withinss.FLHKMeans<-function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -538,7 +538,7 @@ totss.FLHKMeans<-function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -575,7 +575,7 @@ size.FLHKMeans<-function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						    "     DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorIndexColumn, \n ",
 							"	 COUNT(ObsID) AS vectorValueColumn \n ",

@@ -85,8 +85,8 @@ lu.default <- Matrix::lu
 lu.FLMatrix<-function(object,...)
 {
 	connection<-getFLConnection()
-	flag3Check(connection)
-	flag1Check(connection)
+	## flag3Check(connection)
+	## flag1Check(connection)
 	
     MID1 <- getMaxMatrixId(connection)
 

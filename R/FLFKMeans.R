@@ -390,7 +390,7 @@ clustering.FLFKMeans <- function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						    "    ObsID AS vectorIndexColumn, \n ",
@@ -432,7 +432,7 @@ membership.FLFKMeans<-function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag1Check(connection)
+		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
@@ -479,7 +479,7 @@ coeff.FLFKMeans<-function(object){
 	{
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		k<-1/object@centers
 
 		sqlstr <- paste0("SELECT FLSum(a.Weight*a.Weight)/COUNT(DISTINCT a.ObsID) AS dunn_coeff, \n ",
@@ -508,7 +508,7 @@ objective.FLFKMeans <- function(object){
 		##Phani-- Query needs to be optimized.
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+            ## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -549,7 +549,7 @@ k.crisp.FLFKMeans<-function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		k<-1/object@centers
 
 		sqlstr <- paste0("SELECT COUNT(DISTINCT a.ObsID) as nonCrispClusters \n FROM \n ",
@@ -593,7 +593,7 @@ silinfo.FLFKMeans <- function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]

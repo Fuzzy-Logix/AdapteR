@@ -27,7 +27,7 @@ det.default <- base::det
 det.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
-	flag3Check(connection)
+	## flag3Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object, "a", withName="z"),
                    outputSelectMatrix("FLMatrixDetUdt", 

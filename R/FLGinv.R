@@ -34,7 +34,7 @@ ginv.FLMatrix<-function(object,...)
 {
 
 	connection<-getConnection(object)
-	flag1Check(connection)
+    ## flag1Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLMatrixPseudoInvUdt",viewName="z",

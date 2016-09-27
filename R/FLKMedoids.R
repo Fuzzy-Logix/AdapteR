@@ -395,7 +395,7 @@ clustering.FLKMedoids <- function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 								" a.ObsID AS vectorIndexColumn, \n ", 
@@ -445,7 +445,7 @@ medoids.FLKMedoids<-function(object)
 		else
 		{
 			connection <- getConnection(object@table)
-			flag1Check(connection)
+			## flag1Check(connection)
 			AnalysisID <- object@AnalysisID
 			deeptablename <- object@deeptable@select@table_name
 			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -503,7 +503,7 @@ id.med.FLKMedoids<-function(object){
 	{
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						        " ROW_NUMBER() OVER(ORDER BY ",a,".MedoidID) AS vectorIndexColumn, \n ",
 						         a,".MedoidID AS vectorValueColumn \n ", 
@@ -545,7 +545,7 @@ objective.FLKMedoids <- function(object){
 		## The idea is the same,i.e to see improvement from build to swap
 		a <- genRandVarName()
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+            ## flag3Check(connection)
 		n <- nrow(object@deeptable)
 
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -574,7 +574,7 @@ isolation.FLKMedoids <- function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -689,7 +689,7 @@ clusinfo.FLKMedoids <- function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -806,7 +806,7 @@ silinfo.FLKMedoids <- function(object){
 	else
 	{
 		connection <- getConnection(object@table)
-		flag3Check(connection)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -1007,7 +1007,7 @@ diss.FLKMedoids<-function(object)
 	else
 	{
 		connection <- getConnection(object@table)
-		flag1Check(connection)
+		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]

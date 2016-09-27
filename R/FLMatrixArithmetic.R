@@ -31,7 +31,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 	connection <- getConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
-		flag1Check(connection)
+            ## flag1Check(connection)
 		if(pOperator %in% c("+","-","%/%","%%","/","*","**",vcompvector))
             checkSameDims(pObj1,pObj2)
 		else if(pOperator %in% c("%*%"))
@@ -258,7 +258,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.FLVector(pObj2))
 	{
-		flag3Check(connection)
+            ## flag3Check(connection)
 
 		if(pOperator %in% c("%*%"))
 		{

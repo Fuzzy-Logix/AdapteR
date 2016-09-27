@@ -33,8 +33,8 @@ qr<-function(object, ...){
 qr.FLMatrix<-function(object,...)
 {
 	connection<-getConnection(object)
-	flag1Check(connection)
-	flag3Check(connection)
+	## flag1Check(connection)
+	## flag3Check(connection)
   MID1 <- getMaxMatrixId(connection)
 
 

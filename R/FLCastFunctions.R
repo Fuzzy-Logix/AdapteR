@@ -681,7 +681,7 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 #' @export
 as.FLVector.vector <- function(object,connection=getConnection(object))
 {
-  flag3Check(connection)
+    ##flag3Check(connection)
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))
   newnames <- as.character(names(object))
   else newnames <- 1:length(object)
@@ -747,7 +747,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
 #' @export
 as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
 {
-  flag3Check(connection)
+    ##flag3Check(connection)
   VID <- getMaxVectorId(connection)
   k <- 1
   sqlstr <- ""

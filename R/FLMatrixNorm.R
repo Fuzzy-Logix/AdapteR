@@ -30,7 +30,7 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 {
 
 	connection<-getConnection(object)
-	flag3Check(connection)
+    ## flag3Check(connection)
 
 	if(NormMethod > 4 || NormMethod < 1)
 	stop("NormMethod parameter should be whole number from 1 to 4")

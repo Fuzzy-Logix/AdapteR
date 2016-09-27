@@ -29,7 +29,7 @@ FLHessen.FLMatrix<-function(object,...)
 {
 	#checkSquare(object,"FLHessen")
 	connection<-getConnection(object)
-	flag1Check(connection)
+    ## flag1Check(connection)
 
 
     sqlstr <- paste0(

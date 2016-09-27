@@ -28,7 +28,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 {
 
     connection<-getConnection(object)
-    flag1Check(connection)
+    ## flag1Check(connection)
 
     MID <- "'%insertIDhere%'"
 

@@ -27,7 +27,7 @@ chol <- function (object, ...){
 chol.FLMatrix<-function(object,...)
 {
     connection<-getConnection(object)
-    flag1Check(connection)
+    ##flag1Check(connection)
 
     sqlstr<-paste0(
         viewSelectMatrix(object,"a",withName="z"),

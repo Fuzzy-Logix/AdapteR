@@ -33,7 +33,7 @@ diag.FLMatrix<-function(object,...)
 {
     
     connection<-getConnection(object)
-    flag3Check(connection)
+    ## flag3Check(connection)
 
     table <- FLTable(table=object@select@table_name,
                      obs_id_colname = getVariables(object)[[object@dimColumns[[1]]]],
@@ -54,11 +54,11 @@ diag.FLMatrix<-function(object,...)
 diag.FLVector <- function(object,...)
 {
     connection <- getConnection(object)
-    flag1Check(connection)
+    ## flag1Check(connection)
 
     if(length(object)==1)
     {
-        flag1Check(connection)
+        ## flag1Check(connection)
         value <- as.vector(object)
         MID <- getMaxMatrixId(connection)
 

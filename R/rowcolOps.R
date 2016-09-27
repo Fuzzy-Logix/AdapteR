@@ -3,7 +3,7 @@ NULL
 
 rowcolOps<-function(object,margin,operation,...){
     connection<-getConnection(object)
-    flag3Check(connection)
+    ## flag3Check(connection)
     var <- genRandVarName()
     
     if(!margin %in% c("1","2")) stop("Please enter 1 for row and 2 for column")
