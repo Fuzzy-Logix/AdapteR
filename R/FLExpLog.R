@@ -20,7 +20,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
             sqlstr <- paste0(" SELECT COUNT(a.valueColumn) AS cnt",
                         " FROM(",constructSelect(x),") AS a",
                         " WHERE a.valueColumn",vcondition)
-            vcount <- sqlQuery(getOption("connectionFL"),sqlstr)
+            vcount <- sqlQuery(getFLConnection(),sqlstr)
             if(length(vcount)>1 || is.null(vcount))
             stop(vcount)
             else if(vcount[["cnt"]]>0) stop("invalid argument")
@@ -33,7 +33,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
                         " FROM(",constructSelect(x),") AS ",a)
 
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -81,7 +81,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
                                 "vectorValueColumn")
         }
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                             obs_id_colname = "vectorIndexColumn",
                             cell_val_colname = "vectorValueColumn"),
@@ -266,7 +266,7 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
                       whereclause)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                             obs_id_colname = "vectorIndexColumn",
                             cell_val_colname = "vectorValueColumn"),
@@ -309,7 +309,7 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
                       " FROM (",constructSelect(x),") AS ",a)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                             obs_id_colname = "vectorIndexColumn",
                             cell_val_colname = "vectorValueColumn"),
@@ -354,7 +354,7 @@ sort.FLMatrix <- function(x,decreasing=FALSE,
                       " FROM (",constructSelect(x),") AS ",a)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                             obs_id_colname = "vectorIndexColumn",
                             cell_val_colname = "vectorValueColumn"),

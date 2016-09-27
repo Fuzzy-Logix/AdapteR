@@ -264,7 +264,7 @@ NULL
 {
 	if(is.FLVector(pObj2))
 	{
-		connection <- getOption("connectionFL")
+		connection <- getFLConnection()
 		if(checkQueryLimits(pObj1))
 		pObj1 <- store(pObj1)
 		if(checkQueryLimits(pObj2))
@@ -466,7 +466,7 @@ FLanyall <- function(...,na.rm=FALSE,vfunction="all"){
     				" FROM (",constructSelect(x),") AS a \n ",
     				" WHERE a.",vrescolumn," = ",vreqLogic
     				)
-    	vresult <- sqlQuery(getOption("connectionFL"),
+    	vresult <- sqlQuery(getFLConnection(),
     				vsqlstr)
     	if(nrow(vresult)>0){
 	    	if(vfunction=="all") return(FALSE)

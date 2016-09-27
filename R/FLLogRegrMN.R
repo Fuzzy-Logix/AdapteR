@@ -60,14 +60,14 @@ coefficients.FLLogRegrMN <- function(object){
 	{
 		vfcalls <- object@vfcalls
 		if(object@table@isDeep)
-		coeffVector <- sqlQuery(getOption("connectionFL"),
+		coeffVector <- sqlQuery(getFLConnection(),
 			paste0("SELECT * FROM ",vfcalls["coefftablename"],
 				" where AnalysisID=",fquote(object@AnalysisID),
 				ifelse(!is.null(object@results[["modelID"]]),
 					paste0(" AND ModelID=",object@results[["modelID"]]),""),
 					" ORDER BY LevelID,CoeffID"))
 		else
-		coeffVector <- sqlQuery(getOption("connectionFL"),
+		coeffVector <- sqlQuery(getFLConnection(),
 			paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
 					"a.COLUMN_NAME || a.Catvalue ELSE \n",
 					"a.Column_name END AS CoeffName,b.* \n",

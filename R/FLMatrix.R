@@ -80,7 +80,7 @@ setClass("FLMatrix.TD", contains = "FLMatrix")
 setClass("FLMatrix.Aster", contains = "FLMatrix")
 
 newFLMatrix <- function(....) {
-    new(paste0("FLMatrix.",getFLPlatform(getConnection())),
+    new(paste0("FLMatrix.",getFLPlatform(getFLConnection())),
         ...)
 }
 
@@ -112,7 +112,7 @@ setClass("FLTable.TD", contains = "FLMatrix")
 setClass("FLTable.Aster", contains = "FLMatrix")
 
 newFLMatrix <- function(....) {
-    new(paste0("FLTable.",getFLPlatform(getConnection())),
+    new(paste0("FLTable.",getFLPlatform(getFLConnection())),
         ...)
 }
 
@@ -156,7 +156,7 @@ setClass("FLVector.TD", contains = "FLMatrix")
 setClass("FLVector.Aster", contains = "FLMatrix")
 
 newFLMatrix <- function(....) {
-    new(paste0("FLVector.",getFLPlatform(getConnection())), ...)
+    new(paste0("FLVector.",getFLPlatform(getFLConnection())), ...)
 }
 
 setMethod("str",signature(object="FLVector"),
@@ -372,7 +372,7 @@ FLamendDimnames <- function(flm,map_table) {
             names(colnames) <- 1:length(colnames)
         return(colnames)
     }
-    connection <- getConnection()
+    connection <- getFLConnection()
     dimnames <- flm@dimnames
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
@@ -510,7 +510,7 @@ FLMatrix <- function(table_name,
                      conditionDims=c(FALSE,FALSE),
                      whereconditions=c(""),
                      map_table=NULL,
-                     connection=getOption("connectionFL"),
+                     connection=getFLConnection(),
                      type="double"){
   ## If alias already exists, change it to flt.
     if(length(names(table_name))>0)
@@ -619,8 +619,8 @@ equalityConstraint <- function(tableColName,constantValue){
 setGeneric("getConnection", function(object) {
     standardGeneric("getConnection")
 })
-setMethod("getConnection", signature(object = "ANY"), function(object) getOption("connectionFL"))
-setMethod("getConnection", signature(object = "missing"), function(object) getOption("connectionFL"))
+setMethod("getConnection", signature(object = "ANY"), function(object) getFLConnection())
+setMethod("getConnection", signature(object = "missing"), function(object) getFLConnection())
 ## setMethod("getConnection", signature(object = "FLMatrix"), function(object) object@select@connection)
 ## setMethod("getConnection", signature(object = "FLTable"), function(object) object@select@connection)
 ## setMethod("getConnection", signature(object = "FLTableQuery"), function(object) object@select@connection)

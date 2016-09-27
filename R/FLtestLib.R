@@ -203,7 +203,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
     if(type=="float")
     {
       select <- new("FLSelectFrom",
-                    connection = getOption("connectionFL"), 
+                    connection = getFLConnection(), 
                     ##database = getOption("ResultDatabaseFL"), 
                     table_name = "fzzlserial",
                     variables = list(obs_id_colname="SERIALVAL"),
@@ -241,7 +241,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       }
       # options(FLTestVectorTable=TRUE)
       select <- new("FLSelectFrom",
-                    connection = getOption("connectionFL"), 
+                    connection = getFLConnection(), 
                     table_name = vtableName,
                     variables = list(obs_id_colname="vectorIndexColumn"),
                     whereconditions=paste0(vtableName,".vectorIndexColumn < ",n+1),
@@ -259,7 +259,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
     }
     else{
       vmaxId <- getMaxVectorId()
-      sqlSendUpdate(getOption("connectionFL"),
+      sqlSendUpdate(getFLConnection(),
                           c(paste0("INSERT INTO ",getOption("ResultVectorTableFL")," \n ",
                               " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                                 CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
@@ -344,7 +344,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
             ARTestIntMatrixTable="int")
   vtableName <- names(vtemp)[vtemp==type]
   select <- new("FLSelectFrom",
-                connection = getOption("connectionFL"),
+                connection = getFLConnection(),
                 table_name = c(mtrx=vtableName),
                 variables=list(MATRIX_ID="'%insertIDhere%'",
                                rowIdColumn=paste0("mtrx.rowIdColumn"),

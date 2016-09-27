@@ -84,7 +84,7 @@ lu.default <- Matrix::lu
 #' @export
 lu.FLMatrix<-function(object,...)
 {
-	connection<-getOption("connectionFL")
+	connection<-getFLConnection()
 	flag3Check(connection)
 	flag1Check(connection)
 	

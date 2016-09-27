@@ -720,7 +720,7 @@ genCreateResulttbl <- function(tablename,
 
 
 getMaxId <- function(vdatabase,vtable,vcolName,
-                     vconnection=getOption("connectionFL"),...){
+                     vconnection=getFLConnection(),...){
     sqlstr <- paste0(" SELECT MAX(",vcolName,
                      " )+1 FROM ",vdatabase,".",vtable)
 
@@ -733,7 +733,7 @@ getMaxId <- function(vdatabase,vtable,vcolName,
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
+getMaxMatrixId <- function(vconnection=getFLConnection(),
                             vtable=getOption("ResultMatrixTableFL"),
                             ...)
     getMaxValue(vtable=vtable,
@@ -751,7 +751,7 @@ getMaxMatrixId <- function(vconnection=getOption("connectionFL"),
 
 getMaxValue <- function(vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
-                        vconnection=getOption("connectionFL"))
+                        vconnection=getFLConnection())
 {
     R <- sqlQuery(vconnection,
                     paste0("SELECT max(",
@@ -767,7 +767,7 @@ getMaxValue <- function(vtable=getOption("ResultVectorTableFL"),
 #'
 #' used to know ID of next entry in table
 #' @param vconnection ODBC/JDBC connection object
-getMaxVectorId <- function(vconnection = getOption("connectionFL"),
+getMaxVectorId <- function(vconnection = getFLConnection(),
                            vtable=getOption("ResultVectorTableFL"),
                            ...)
     getMaxValue(vtable=vtable,
@@ -861,7 +861,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
         tableName <- vtbl
     }
 
-    vtemp <- sqlQuery(getOption("connectionFL"),paste0(
+    vtemp <- sqlQuery(getFLConnection(),paste0(
                         "SELECT 1 FROM dbc.tables \n ",
                         " WHERE databaseName = ",fquote(databaseName),
                         " AND tablename = ",fquote(tableName)))

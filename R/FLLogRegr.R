@@ -163,7 +163,7 @@ glm.FLTable <- function(formula,
 							ifelse(!is.null(object@results[["modelID"]]),
 							paste0(" \nAND ModelID=",object@results[["modelID"]]),""))
 
-			statsdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			statsdataframe <- sqlQuery(getFLConnection(),sqlstr)
 			object@results <- c(object@results,list(FLLogRegrStats=statsdataframe))
 			assign(parentObject,object,envir=parent.frame())
 			return(statsdataframe)

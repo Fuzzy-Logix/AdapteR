@@ -151,7 +151,7 @@ NULL
         MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
-        newrownames <- storeVarnameMapping(connection=getOption("connectionFL"),
+        newrownames <- storeVarnameMapping(connection=getFLConnection(),
                         tablename=object@select@table_name,
                         matrixId=MID,
                         dimId= 1,
@@ -168,7 +168,7 @@ NULL
         MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
-        newcolnames <- storeVarnameMapping(connection=getOption("connectionFL"),
+        newcolnames <- storeVarnameMapping(connection=getFLConnection(),
                         tablename=object@select@table_name,
                         matrixId=MID,
                         dimId= 1,
@@ -184,7 +184,7 @@ NULL
         if(!isAliasSet(object))
         object <- setAlias(object,"flt")
         mapselect <- new("FLSelectFrom",
-                         connection = getOption("connectionFL"), 
+                         connection = getFLConnection(), 
                          table_name = c(nameflt=getOption("NameMapTableFL")),
                          variables = list(),
                          whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
@@ -321,7 +321,7 @@ NULL
             nameValueColumn <- changeAlias(nameValueColumn,"nameflt",oldalias)
             nameIndexColumn <- changeAlias(nameIndexColumn,"nameflt",oldalias)
             mapselect <- new("FLSelectFrom",
-                             connection = getOption("connectionFL"), 
+                             connection = getFLConnection(), 
                              table_name = pSet@select@table_name,
                              variables = list(),
                              whereconditions=c(constraintsSQL(pSet),
@@ -353,14 +353,14 @@ NULL
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
-          newnames <- storeVarnameMapping(connection=getOption("connectionFL"),
+          newnames <- storeVarnameMapping(connection=getFLConnection(),
                         tablename=getOption("ResultVectorTableFL"),
                         matrixId=MID,
                         dimId= 1,
                         mynames=object@dimnames[[1]]
                         )
           mapselect <- new("FLSelectFrom",
-                           connection = getOption("connectionFL"), 
+                           connection = getFLConnection(), 
                            table_name = c(nameflt=getOption("NameMapTableFL")),
                            variables = list(),
                            whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
@@ -450,7 +450,7 @@ NULL
               vcolName="MATRIX_ID",
               vconnection=connection)+1
 
-        newnames <- storeVarnameMapping(connection=getOption("connectionFL"),
+        newnames <- storeVarnameMapping(connection=getFLConnection(),
                         tablename=getOption("ResultVectorTableFL"),
                         matrixId=MID,
                         dimId= 1,
@@ -458,7 +458,7 @@ NULL
                         )
 
         mapselect <- new("FLSelectFrom",
-                         connection = getOption("connectionFL"), 
+                         connection = getFLConnection(), 
                          table_name = c(nameflt=getOption("NameMapTableFL")),
                          variables = list(),
                          whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),

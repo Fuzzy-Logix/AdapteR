@@ -184,7 +184,7 @@ FLVarCluster.FLTable<-function(x,
 			sqlstr <- paste0(" SELECT a.columnName AS vcolnames \n ",
                             " FROM ",mapTable," a,",outputTable," b \n ",
                             " WHERE a.vectorIndexColumn=b.vectorIndexColumn ")
-			names(clustervector) <- sqlQuery(getOption("connectionFL"),sqlstr)[["vcolnames"]]
+			names(clustervector) <- sqlQuery(getFLConnection(),sqlstr)[["vcolnames"]]
 			t <- sqlSendUpdate(" DROP TABLE ",mapTable)
 		}
 	return(clustervector)

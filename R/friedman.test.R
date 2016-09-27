@@ -133,7 +133,7 @@ friedman.test.FLMatrix <- function(y,...){
 #                                     ...))
 #     else{
 #         data <- setAlias(data,"")
-#         connection <- getOption("connectionFL")
+#         connection <- getFLConnection()
 #         if(data@isDeep){
 #             vBlockColname <- getVariables(data)[["obs_id_colname"]]
 #             vGroupColname <- getVariables(data)[["var_id_colname"]]
@@ -283,7 +283,7 @@ setMethod("friedman.test",
                                                     ...))
                     }
                     data <- setAlias(data,"")
-                    connection <- getOption("connectionFL")
+                    connection <- getFLConnection()
                     if(data@isDeep){
                         vBlockColname <- getVariables(data)[["obs_id_colname"]]
                         vGroupColname <- getVariables(data)[["var_id_colname"]]

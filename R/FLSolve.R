@@ -48,7 +48,7 @@ FLInv <- function(x,...)
                 )
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",

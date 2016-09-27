@@ -80,7 +80,7 @@ setMethod("FLStringDist",
                              " FROM(",constructSelect(targets),") AS ",a)
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -158,7 +158,7 @@ setMethod("FLStringDist",
                                       constructSelect(targets),") AS b ")
 
               tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = getOption("connectionFL"),
+                    connection = getFLConnection(),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -222,7 +222,7 @@ setMethod("FLStringDist",
                                     "CAST((b.vectorIndexColumn MOD ",
                                     vminlen,") AS INT)")
                tblfunqueryobj <- new("FLTableFunctionQuery",
-                      connection = getOption("connectionFL"),
+                      connection = getFLConnection(),
                       variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -701,7 +701,7 @@ setMethod("FLStrCommon",
                              " FROM(",constructSelect(object),") AS ",a)
           }
           tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -771,7 +771,7 @@ setMethod("FLConcatString",
                              " GROUP BY 1,2")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -1128,7 +1128,7 @@ setMethod("grep",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL AND ",
                                       b,".vectorValueColumn ",ifelse(invert,"=","<>")," -1")
 
-            vlength <- sqlQuery(getOption("connectionFL"),sqlstr)[1,1]
+            vlength <- sqlQuery(getFLConnection(),sqlstr)[1,1]
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
                                     "ROW_NUMBER()OVER(ORDER BY CAST(",b,".vectorIndexColumn AS INT)) AS vectorIndexColumn,",
                                     b,ifelse(value,".vectorIdColumn",".vectorIndexColumn")," AS vectorValueColumn",
@@ -1139,7 +1139,7 @@ setMethod("grep",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL AND ",
                                       b,".vectorValueColumn ",ifelse(invert,"=","<>")," -1")
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                                connection = getOption("connectionFL"),
+                                connection = getFLConnection(),
                                 variables = list(
                                 obs_id_colname = "vectorIndexColumn",
                                 cell_val_colname = "vectorValueColumn"),
@@ -1226,7 +1226,7 @@ setMethod("grepl",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL ")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                                connection = getOption("connectionFL"),
+                                connection = getFLConnection(),
                                 variables = list(
                                 obs_id_colname = "vectorIndexColumn",
                                 cell_val_colname = "vectorValueColumn"),
@@ -1432,5 +1432,5 @@ setMethod("FLParseXML",
                               ) AS d
                               ORDER BY 1,2;")
 
-            return(sqlQuery(getOption("connectionFL"),sqlstr))
+            return(sqlQuery(getFLConnection(),sqlstr))
         })

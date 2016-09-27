@@ -31,7 +31,7 @@ FLStatsDist <- function(x,method="euclidean",
                         " GROUP BY 1,2,3")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -143,7 +143,7 @@ FLWtGeneric <- function(x,w,functionName){
                         " FROM (",constructSelect(x)," ) a,\n",
                             "(",constructSelect(w),") b \n",
                         " WHERE a.vectorIndexColumn = b.vectorIndexColumn")
-    return(sqlQuery(getOption("connectionFL"),sqlstr)[[1]])
+    return(sqlQuery(getFLConnection(),sqlstr)[[1]])
 }
 
 #' @export
@@ -565,10 +565,10 @@ getDescStatsUDT <- function(object,
                     " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a \n ")
 
     if(!outFLVector)
-    return(sqlQuery(getOption("connectionFL"),sqlstr)[["vectorValueColumn"]])
+    return(sqlQuery(getFLConnection(),sqlstr)[["vectorValueColumn"]])
     else{
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -937,7 +937,7 @@ getDescStatsUDTjoin <- function(object,
 
     
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = getOption("connectionFL"),
+                    connection = getFLConnection(),
                     variables = list(
                   obs_id_colname = "vectorIndexColumn",
                   cell_val_colname = "vectorValueColumn"),

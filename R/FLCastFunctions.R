@@ -835,7 +835,7 @@ as.FLTable.FLMatrix <- function(object=object,...){
 }
 #' @export
 as.FLTable.data.frame <- function(object,
-                                  connection=getOption("connectionFL"),
+                                  connection=getFLConnection(),
                                   tableName,
                                   uniqueIdColumn=0,
                                   drop=TRUE,
@@ -955,7 +955,7 @@ as.FLTable.data.frame <- function(object,
   }
 
   select <- new("FLSelectFrom",
-                connection = getOption("connectionFL"), 
+                connection = getFLConnection(), 
                 table_name = tableName, 
                 variables = list(
                     obs_id_colname = obsIdColname),
@@ -975,7 +975,7 @@ as.FLTable.data.frame <- function(object,
 
 as.FLByteInt <- function(x){
     vtbl <- getOption("ResultByteIntVectorTableFL")
-    VID <- getMaxVectorId(getOption("connectionFL"),
+    VID <- getMaxVectorId(getFLConnection(),
                           vtbl)
     vsqlstr <- constructSelect(x)
     vsqlstr <- gsub("'%insertIDhere%'",VID,vsqlstr)
@@ -984,7 +984,7 @@ as.FLByteInt <- function(x){
     if(!vtemp)
         stop("invalid input: x and y should be of BYTEINT in-database type \n ")
     select <- new("FLSelectFrom",
-                connection = getOption("connectionFL"), 
+                connection = getFLConnection(), 
                 table_name = c(flt=vtbl),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),

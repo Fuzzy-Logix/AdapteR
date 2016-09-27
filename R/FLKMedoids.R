@@ -1179,11 +1179,11 @@ FLMapping.FLKMedoids <- function(object)
 		if(object@mapTable!="")
 		{
 			sqlstr <- paste0("SELECT * FROM ",object@mapTable)
-			mapdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			mapdataframe <- sqlQuery(getFLConnection(),sqlstr)
 			if((is.vector(mapdataframe) && length(mapdataframe)==2) || is.null(mapdataframe))
 			mapdataframe <- paste0("The mapping table in database is",object@mapTable)
 			else if(is.data.frame(mapdataframe))
-			t <- sqlSendUpdate(getOption("connectionFL"),paste0(" DROP TABLE ",object@mapTable))
+			t <- sqlSendUpdate(getFLConnection(),paste0(" DROP TABLE ",object@mapTable))
 		}
 		else mapdataframe <- ""
 		

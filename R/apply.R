@@ -76,7 +76,7 @@ genAggregateFunCall <- function(object,func,indexCol=FALSE,...){
     								,...),
                      "\n FROM(",constructSelect(object),") AS a")
 
-    return(sqlQuery(getOption("connectionFL"),sqlstr)[1,1])
+    return(sqlQuery(getFLConnection(),sqlstr)[1,1])
 }
 
 #' @export
@@ -161,7 +161,7 @@ setMethod("ddply",
 						" FROM  ",tableAndAlias(.data),"\n",
 						constructWhere(constraintsSQL(.data)),"\n",
 						" GROUP BY ",paste0(.variables,collapse=","))
-		return(sqlQuery(getOption("connectionFL"),sqlstr))
+		return(sqlQuery(getFLConnection(),sqlstr))
 	})
 
 setMethod("ddply",
@@ -246,7 +246,7 @@ setMethod("apply",
 						" GROUP BY ",vgroupCol)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-	                    connection = getOption("connectionFL"),
+	                    connection = getFLConnection(),
 	                    variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

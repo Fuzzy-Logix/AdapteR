@@ -25,7 +25,7 @@ head.FLTable <- function(x,n=6L,...){
         vsqlstr <- paste0("SELECT TOP ",n," a.* \n ",
                            " FROM (",constructSelect(x),") a ",
                            " ORDER BY a.",vobsidcol)
-        vres <- sqlQuery(getOption("connectionFL"),vsqlstr)
+        vres <- sqlQuery(getFLConnection(),vsqlstr)
         return(vres)
     }
     stopifnot(length(n) == 1L)
@@ -63,7 +63,7 @@ head.FLVector <- function(x,n=6,...){
         vsqlstr <- paste0("SELECT TOP ",n," a.vectorValueColumn \n ",
                            " FROM (",constructSelect(x),") a ",
                            " ORDER BY a.vectorIndexColumn")
-        vres <- sqlQuery(getOption("connectionFL"),vsqlstr)[[1]]
+        vres <- sqlQuery(getFLConnection(),vsqlstr)[[1]]
         names(vres) <- sort(names(x))[1:n]
         return(vres)
     }

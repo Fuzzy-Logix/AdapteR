@@ -230,7 +230,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     vColumnType <- getFLColumnType(x=pValue)
     sqlstr <- paste0("ALTER TABLE ",pTable," \n ",
                     " ADD ",pName," ",vColumnType,";")
-    return(sqlSendUpdate(getOption("connectionFL"),sqlstr))
+    return(sqlSendUpdate(getFLConnection(),sqlstr))
   }
   if(!x@isDeep){
     if(!tolower(name) %in% tolower(vcolnames)){
@@ -251,7 +251,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
         if(typeof(value)!=types[name])
             dropCol <- TRUE
         if(dropCol){
-        vtemp <- sqlSendUpdate(getOption("connectionFL"),
+        vtemp <- sqlSendUpdate(getFLConnection(),
                                     paste0(" ALTER TABLE ",vtablename," DROP COLUMN ",name))
         vtemp <- addColumnFLQuery(pTable=vtablename,
                                   pName=name,
@@ -283,7 +283,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
       vcolnames <- c(vcolnames,name)
     }
   }
-  sqlSendUpdate(getOption("connectionFL"),sqlstr)
+  sqlSendUpdate(getFLConnection(),sqlstr)
   xcopy@dimnames[[2]] <- vcolnames
   xcopy@type[name] <- typeof(value)
   return(xcopy)
@@ -915,7 +915,7 @@ FLSampleData <- function(pTableName,
   #                     " PRIMARY INDEX (",pObsIDColumn,")",
   #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ","")
   #                     )
-  # vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+  # vtemp <- sqlSendUpdate(getFLConnection(),vsqlstr)
 
   # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
   #                   pTestTableName," \n AS  ( \n ",
@@ -925,7 +925,7 @@ FLSampleData <- function(pTableName,
   #                     pObsIDColumn,"=a.",pObsIDColumn," \n ) \n )",
   #                   " WITH DATA \n PRIMARY INDEX(",pObsIDColumn,")",
   #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ",""))
-  # vtemp <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+  # vtemp <- sqlSendUpdate(getFLConnection(),vsqlstr)
   return(c(TrainTableName=pTrainTableName,
           TestTableName=pTestTableName))
 }

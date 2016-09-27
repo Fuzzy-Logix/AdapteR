@@ -346,7 +346,7 @@ setCurrentDatabase <- function(pDBName){
             tolower(getOption("ResultDatabaseFL"))!=tolower(pDBName))
     stop("use flConnect to set database in Aster \n ")
 
-    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    sqlSendUpdate(getFLConnection(),vsqlstr)
 }
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
@@ -500,10 +500,10 @@ createTable <- function(pTableName,
     ## gk @ phani: what will this be used for? It never is used actually...
     if("usedbSendUpdate" %in% names(list(...))){
         cat("sending:  ",vsqlstr)
-        return(RJDBC::dbSendUpdate(getOption("connectionFL"),vsqlstr))
+        return(RJDBC::dbSendUpdate(getFLConnection(),vsqlstr))
     }
 
-    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    sqlSendUpdate(getFLConnection(),vsqlstr)
     return(pTableName)
 }
 
@@ -525,7 +525,7 @@ createView <- function(pViewName,
     else pStore <- TRUE
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
                         " AS ",pSelect,";")
-    res <- sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    res <- sqlSendUpdate(getFLConnection(),vsqlstr)
     if(pStore)
     updateMetaTable(pTableName=pViewName,
                     pType="view",
@@ -537,13 +537,13 @@ createView <- function(pViewName,
 
 ## DROP VIEW
 dropView <- function(pViewName){
-    sqlSendUpdate(getOption("connectionFL"),
+    sqlSendUpdate(getFLConnection(),
                 paste0("DROP VIEW ",pViewName,";"))
 }
 
 ## DROP TABLE
 dropTable <- function(pTableName){
-    sqlSendUpdate(getOption("connectionFL"),
+    sqlSendUpdate(getFLConnection(),
                 paste0("DROP TABLE ",pTableName,";"))
 }
 
@@ -578,7 +578,7 @@ insertIntotbl <- function(pTableName,
         vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
     }
     ##print(vsqlstr)
-    sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+    sqlSendUpdate(getFLConnection(),vsqlstr)
 }
 
 updateMetaTable <- function(pTableName,

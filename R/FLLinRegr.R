@@ -575,7 +575,7 @@ lmGeneric <- function(formula,data,
 	}
 	vinputCols <- c(vinputCols,
 					NOTE=vnote)
-	retobj <- sqlStoredProc(getOption("connectionFL"),
+	retobj <- sqlStoredProc(getFLConnection(),
 							vfuncName,
 							outputParameter=c(AnalysisID="a"),
 							pInputParams=vinputCols
@@ -597,7 +597,7 @@ lmGeneric <- function(formula,data,
 		vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
 							ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
 							" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
-		vtemp <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		vtemp <- sqlQuery(getFLConnection(),vsqlstr)
 		vmaxModelID <- vtemp[["ModelID"]]
 		vmaxLevelID <- vtemp[["LevelID"]]
 	}
@@ -618,7 +618,7 @@ lmGeneric <- function(formula,data,
 						" WHERE a.AnalysisID=",fquote(AnalysisID),
 						" AND a.ModelID=",vmaxModelID,"\n",
 						" ORDER BY 3")
-		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		d <- sqlQuery(getFLConnection(),vsqlstr)
 		colnames(d)<-toupper(colnames(d))
 		d[["ANALYSISID"]] <- NULL
 		vdroppedCols <- c()
@@ -673,7 +673,7 @@ lmGeneric <- function(formula,data,
 								" AND a.HighestPValue < 0.10 \n",
 								" ORDER BY 3 DESC, 2;\n")
 
-		d <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		d <- sqlQuery(getFLConnection(),vsqlstr)
 		colnames(d) <- toupper(colnames(d))
 		d[["ANALYSISID"]] <- NULL
 		vmaxModelID <- d[["MODELID"]]
@@ -831,7 +831,7 @@ prepareData.lmGeneric <- function(formula,data,
 								c(getVariables(data)[["obs_id_colname"]],
 								getVariables(data)[["group_id_colname"]]))
 		## Detect factors and assign classSpec
-		vfirstRow <- sqlQuery(getOption("connectionFL"),
+		vfirstRow <- sqlQuery(getFLConnection(),
 							limitRowsSQL(paste0("SELECT * FROM (",
 									constructSelect(data),") a "),1))
 		vfactorCols <- list()
@@ -848,7 +848,7 @@ prepareData.lmGeneric <- function(formula,data,
 				|| is.character(vfirstRow[[i]])
 				|| is.logical(vfirstRow[[i]])){
 				# if(is.logical(vfirstRow[[i]])){
-				# 	vtemp <- levels(sqlQuery(getOption("connectionFL"),
+				# 	vtemp <- levels(sqlQuery(getFLConnection(),
 				# 					paste0("SELECT DISTINCT(",i,
 				# 						") FROM(",constructSelect(data),") a "))[[1]])[1]
 				# 	names(vtemp) <- i
@@ -862,7 +862,7 @@ prepareData.lmGeneric <- function(formula,data,
 			}
 		}
 		if(length(vfactorCols)>0){
-			vrefVars <- sqlQuery(getOption("connectionFL"),
+			vrefVars <- sqlQuery(getFLConnection(),
 							paste0("SELECT ",
 								paste0("MIN(",names(vfactorCols),
 									") AS ",names(vfactorCols),
@@ -877,7 +877,7 @@ prepareData.lmGeneric <- function(formula,data,
                                             i)
                 else if(is.logical(vrefVars[[i]]))
 					vtempList <- c(vtempList,
-									levels(sqlQuery(getOption("connectionFL"),
+									levels(sqlQuery(getFLConnection(),
 												paste0("SELECT DISTINCT(",i,
 												") FROM(",constructSelect(data),") a "))[[1]])[1])
 				else vtempList <- c(vtempList,as.character(vrefVars[[i]]))
@@ -887,7 +887,7 @@ prepareData.lmGeneric <- function(formula,data,
 			# 											2,function(x){
 			# 												browser()
 			# 												if(is.logical(x))
-			# 													return(levels(sqlQuery(getOption("connectionFL"),
+			# 													return(levels(sqlQuery(getFLConnection(),
 			# 																	paste0("SELECT DISTINCT(",names(x),
 			# 																		") FROM(",constructSelect(data),") a "))[[1]])[1])
 			# 												else as.character(x)
@@ -948,13 +948,13 @@ prepareData.lmGeneric <- function(formula,data,
 							" -2 AS var_id_colname,","\n               ",
 							ifelse(offset!="",offset,0)," AS cell_val_colname","\n        ",
 							" FROM ",vtablename1)
-			t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
+			t <- sqlSendUpdate(getFLConnection(),sqlstr)
 			deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
 		}
 		
 		##Get Mapping Information for specID
 		if(!is.FLTableMD(data)){
-			vmapping <- sqlQuery(getOption("connectionFL"),
+			vmapping <- sqlQuery(getFLConnection(),
 							paste0("SELECT a.Column_name AS colName,\n",
 									" a.Final_VarID AS varID\n",
 								   " FROM fzzlRegrDataPrepMap AS a\n",
@@ -1023,7 +1023,7 @@ prepareData.lmGeneric <- function(formula,data,
 	## Set RefLevel for Multinomial
 	if(familytype=="multinomial"){
     	if(is.null(pRefLevel)){
-    		pRefLevel <- sqlQuery(getOption("connectionFL"),
+    		pRefLevel <- sqlQuery(getFLConnection(),
     							paste0("SELECT cell_val_colname FROM (",
     									constructSelect(data),") a \n ",
     									"WHERE obs_id_colname = 1 \n AND ",
@@ -1063,7 +1063,7 @@ prepareData.lmGeneric <- function(formula,data,
 							vexclude,",","'X')"))
 		}
 		if(!is.null(sqlstr))
-                    t <- sqlSendUpdate(getOption("connectionFL"),paste0(sqlstr,collapse=";"))
+                    t <- sqlSendUpdate(getFLConnection(),paste0(sqlstr,collapse=";"))
 	}
 
 	return(list(deepx=deepx,
@@ -1151,7 +1151,7 @@ prepareData.lmGeneric <- function(formula,data,
 							" WHERE AnalysisID=",fquote(object@AnalysisID),
 							" \nAND ModelID=",object@results[["modelID"]])
 
-			statsdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			statsdataframe <- sqlQuery(getFLConnection(),sqlstr)
 			object@results <- c(object@results,list(FLLinRegrStats=statsdataframe))
 			assign(parentObject,object,envir=parent.frame())
 			return(statsdataframe)
@@ -1213,7 +1213,7 @@ prepareData.lmGeneric <- function(formula,data,
 							" \nWHERE ",var_id_colname," = -1 \n")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getOption("connectionFL"),
+	                        connection = getFLConnection(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -1352,7 +1352,7 @@ coefficients.lmGeneric <-function(object,
 		vcoeffnames <- NULL
 		vmodelnames <- NULL
 		if(object@table@isDeep)
-		coeffVector <- sqlQuery(getOption("connectionFL"),
+		coeffVector <- sqlQuery(getFLConnection(),
 			paste0("SELECT * FROM ",vfcalls["coefftablename"],
 				" where AnalysisID=",fquote(object@AnalysisID),
 				ifelse(length(object@results[["modelID"]])>0,
@@ -1360,7 +1360,7 @@ coefficients.lmGeneric <-function(object,
 					" ORDER BY CoeffID"))
 		else{
 			#browser()
-			vcoeffframe <- sqlQuery(getOption("connectionFL"),
+			vcoeffframe <- sqlQuery(getFLConnection(),
 									paste0("SELECT a.*,b.* \n",
 										   " FROM fzzlRegrDataPrepMap AS a, \n ",
 										   vfcalls["coefftablename"]," AS b \n",
@@ -1623,7 +1623,7 @@ predict.lmGeneric <- function(object,
 											vVaridCols," AS var_id_colname, \n ",
 											vcellValCols," AS cell_val_colname \n  ",
 									" FROM ",vtablename,collapse=" UNION ALL "))
-			t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
+			t <- sqlSendUpdate(getFLConnection(),sqlstr)
 			newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
 		}
 	}
@@ -1650,7 +1650,7 @@ predict.lmGeneric <- function(object,
 	vinputCols <- c(vinputCols,
 					NOTE=genNote(paste0("Scoring ",vfcalls["note"])))
 
-	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
+	AnalysisID <- sqlStoredProc(getFLConnection(),
 								vfcalls["scoretablename"],
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputCols)
@@ -1662,7 +1662,7 @@ predict.lmGeneric <- function(object,
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connection = getFLConnection(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -1798,7 +1798,7 @@ coefficients.FLLinRegrMD <- function(object){
 	else
 	{
 		if(object@table@isDeep){
-			coeffVector <- sqlQuery(getOption("connectionFL"),
+			coeffVector <- sqlQuery(getFLConnection(),
 								paste0("SELECT * FROM ",object@vfcalls["coefftablename"],
 										" where AnalysisID=",fquote(object@AnalysisID),
 										" AND ModelID IN(",paste0(object@deeptable@dimnames[[3]],collapse=","),
@@ -1811,7 +1811,7 @@ coefficients.FLLinRegrMD <- function(object){
 										}))
 		}
 		else{
-			vcoeffframe <- sqlQuery(getOption("connectionFL"),
+			vcoeffframe <- sqlQuery(getFLConnection(),
 									paste0("SELECT a.*,b.* \n",
 										   " FROM fzzlRegrDataPrepMDMap AS a, \n ",
 										   object@vfcalls["coefftablename"]," AS b \n",
@@ -1871,7 +1871,7 @@ summary.FLLinRegrMD <- function(object){
 	vcoeffList <- object$coefficients
 	coeffframe <- object@results[["coeffframe"]]
 	if(is.null(object@results[["statsframe"]]))
-		statsframe <- sqlQuery(getOption("connectionFL"),
+		statsframe <- sqlQuery(getFLConnection(),
 						paste0("SELECT * FROM ",object@vfcalls["statstablename"],
 								" WHERE AnalysisID=",fquote(object@AnalysisID),
 								" ORDER BY MODELID "))
