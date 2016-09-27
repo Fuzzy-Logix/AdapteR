@@ -8,7 +8,7 @@ test_that("one sample t test",{
 		obj<-t.test(obja)
 	},Renv,FLenv,
 	noexpectation="obj")
-for(n in c("statistic","parameter","p.value"))
+for(n in c("statistic","p.value"))
 	FLexpect_equal(as.vector(Renv$obj[[n]]),as.vector(FLenv$obj[[n]]))
 })
 
@@ -23,3 +23,4 @@ for(n in c("statistic","p.value")){
 	FLexpect_equal(as.vector(Renv$obj[[n]]),as.vector(FLenv$obj[[n]]))
   FLexpect_equal(as.vector(Renv$obj2[[n]]),as.vector(FLenv$obj2[[n]]))}
 })
+
