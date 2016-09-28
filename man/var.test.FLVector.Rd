@@ -2,27 +2,28 @@
 % Please edit documentation in R/FLFTest.R
 \name{var.test.FLVector}
 \alias{var.test.FLVector}
-\title{F Test.
-Performs an F test to compare the variances of two samples from normal populations.}
+\title{F Test.}
 \usage{
 \method{var}{test.FLVector}(x, y, ratio = 1, alternative = "two.sided",
   conf.level = 0.95)
 }
 \arguments{
-\item{x:}{FLVectors of data values}
+\item{x:}{FLVector of data values}
 
-\item{y:}{FLVectors of data values}
+\item{y:}{FLVector of data values}
 
 \item{alternative:}{a character string specifying the alternative hypothesis,
  must be one of '"two.sided"' (default), '"greater"' or
-'"less"'.  You can specify just the initial letter.}
+'"less"'.}
 }
 \value{
 A list with class "htest".
 }
 \description{
-F Test.
 Performs an F test to compare the variances of two samples from normal populations.
+The null hypothesis is that the ratio of the variances of the populations from which
+x and y were drawn, or in the data to which the linear models x and y were fitted,
+is equal to ratio.
 }
 \section{Constraints}{
  conf.level, ratio, formula, data aren't supported currently for FL objects.
@@ -32,11 +33,5 @@ set.seed(450)
 x <- as.FLVector(rnorm(50, mean = 0, sd = 2))
 y <- as.FLVector(rnorm(30, mean = 1, sd = 1))
 var.test(x, y, "two.sided")
-
-The null hypothesis is that the ratio of the variances of the populations from which
-x and y were drawn, or in the data to which the linear models x and y were fitted,
-is equal to ratio.
-
-
 }
 

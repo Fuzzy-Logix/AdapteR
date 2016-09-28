@@ -2,9 +2,7 @@
 % Please edit documentation in R/wilcox.test.R
 \name{wilcox.test.FLVector}
 \alias{wilcox.test.FLVector}
-\title{Wilcox Test
-An S3 class to represent wilcox signed Rank test
-Performs one- and two-sample Wilcoxon tests on vectors of data; the latter is also known as \code{Mann-Whitney} test.}
+\title{Wilcox Test}
 \usage{
 \method{wilcox.test}{FLVector}(x, y = NULL, paired = TRUE, mu = 0, ...)
 }
@@ -18,13 +16,15 @@ Performs one- and two-sample Wilcoxon tests on vectors of data; the latter is al
 \value{
 A list with class "htest".
 }
-\description{
-Wilcox Test
+\details{
 An S3 class to represent wilcox signed Rank test
 Performs one- and two-sample Wilcoxon tests on vectors of data; the latter is also known as \code{Mann-Whitney} test.
+
+If only x is given, or if both x and y are given and paired is TRUE, a Wilcoxon signed rank test of the null that the distribution of x (in the one sample case) or of x - y (in the paired two sample case) is symmetric about mu is performed.
+Otherwise, if both x and y are given and paired is FALSE, a Wilcoxon rank sum test (equivalent to the Mann-Whitney test: see the Note) is carried out. In this case, the null hypothesis is that the distributions of x and y differ by a location shift of mu and the alternative is that they differ by some other location shift (and the one-sided alternative "greater" is that x is shifted to the right of y).
 }
 \section{Constraints}{
- conf.level, conf.level is not supported currently for FL objects.
+ conf.level, conf.int is not supported currently for FL objects.
 }
 \examples{
 Wilcoxon Signed Rank test:
@@ -37,7 +37,5 @@ a <-(6, 8, 2, 4, 4, 5)
 b <-  c(7, 10, 4, 3, 5, 6)
 res <- wilcox.test(a, b, paired = FALSE)
 
-If only x is given, or if both x and y are given and paired is TRUE, a Wilcoxon signed rank test of the null that the distribution of x (in the one sample case) or of x - y (in the paired two sample case) is symmetric about mu is performed.
-Otherwise, if both x and y are given and paired is FALSE, a Wilcoxon rank sum test (equivalent to the Mann-Whitney test: see the Note) is carried out. In this case, the null hypothesis is that the distributions of x and y differ by a location shift of mu and the alternative is that they differ by some other location shift (and the one-sided alternative "greater" is that x is shifted to the right of y).
 }
 

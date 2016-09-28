@@ -4,7 +4,7 @@
 \alias{getMaxVectorId}
 \title{Get Max Vector ID+1 from result Vector table}
 \usage{
-getMaxVectorId(vconnection = getOption("connectionFL"),
+getMaxVectorId(vconnection = getFLConnection(),
   vtable = getOption("ResultVectorTableFL"), ...)
 }
 \arguments{

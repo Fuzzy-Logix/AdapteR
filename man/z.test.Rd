@@ -5,7 +5,7 @@
 \title{Z test for 1 and 2 samples}
 \usage{
 z.test(x, y = NULL, test_val = 0, tails = 2, conf.level = 0.95,
-  prob = 0)
+  prob = 0, ...)
 }
 \arguments{
 \item{x}{FLVector}

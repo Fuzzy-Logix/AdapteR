@@ -3,6 +3,7 @@
 \docType{class}
 \name{FLMatrix-class}
 \alias{FLMatrix-class}
+\alias{FLMatrixPrototype}
 \title{An S4 class to represent FLMatrix.
 A Matrix can be either based off a query from a deep table (customizable by any where-condition)
 -- or based off an arbitrary SQL statement returning a deep table.}

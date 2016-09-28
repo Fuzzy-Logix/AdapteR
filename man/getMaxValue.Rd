@@ -5,7 +5,7 @@
 \title{Get Max ID from given table}
 \usage{
 getMaxValue(vtable = getOption("ResultVectorTableFL"),
-  vcolName = "vectorIdColumn", vconnection = getOption("connectionFL"))
+  vcolName = "vectorIdColumn", vconnection = getFLConnection())
 }
 \arguments{
 \item{vtable}{name of the table}

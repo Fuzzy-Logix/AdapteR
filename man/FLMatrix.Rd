@@ -6,10 +6,9 @@
 \usage{
 FLMatrix(table_name, matrix_id_value = "", matrix_id_colname = "",
   row_id_colname = "rowIdColumn", col_id_colname = "colIdColumn",
-  cell_val_colname = "valueColumn", dim = 0, dimnames = NULL,
+  cell_val_colname = "valueColumn", dims = 0, dimnames = NULL,
   conditionDims = c(FALSE, FALSE), whereconditions = c(""),
-  map_table = NULL, connection = getOption("connectionFL"),
-  type = "double")
+  map_table = NULL, connection = getFLConnection(), type = "double")
 }
 \arguments{
 \item{table_name}{name of the matrix table}
@@ -24,8 +23,6 @@ FLMatrix(table_name, matrix_id_value = "", matrix_id_colname = "",
 
 \item{cell_val_colname}{column name in \code{table_name} where matrix elements are stored}
 
-\item{dim}{vector representing the dimensions of the matrix}
-
 \item{dimnames}{list of dimension names to assign to the matrix}
 
 \item{conditionDims}{logical vector of length two representing if there are any conditions on dimensions}
@@ -37,6 +34,8 @@ FLMatrix(table_name, matrix_id_value = "", matrix_id_colname = "",
 \item{connection}{ODBC/JDBC connection handle to the database.}
 
 \item{database}{name of the database}
+
+\item{dim}{vector representing the dimensions of the matrix}
 }
 \value{
 \code{FLMatrix} returns an object of class FLMatrix mapped

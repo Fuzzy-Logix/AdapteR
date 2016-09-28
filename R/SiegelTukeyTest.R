@@ -1,3 +1,4 @@
+#' @export
 setGeneric("SiegelTukeyTest",function(x,y,alternative="two.sided",conf.level=0.95,...)
                 standardGeneric("SiegelTukeyTest"))
 setMethod("SiegelTukeyTest",signature(x="ANY"),

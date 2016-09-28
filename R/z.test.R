@@ -20,7 +20,7 @@ NULL
 #' flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
 #' z.test(fla,prob=1)
 #' z.test(fla,flb,prob=1)
-
+#' @export
 setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0,...)
                 standardGeneric("z.test"))
 setMethod("z.test",signature(x="ANY"),
