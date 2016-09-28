@@ -572,6 +572,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     }
     connection <- FLConnection(connection, platform)
     options("connectionFL" = connection)
+    options("FLPlatform" = platform)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
