@@ -860,15 +860,19 @@ as.FLTable.data.frame <- function(object,
     else
     obsIdColname <- colnames(object)[uniqueIdColumn]
   }
-  if(class(connection)=="RODBC")
+  connection <- getRConnection(connection)
+  if(is.ODBC(connection))
   {
     vcolnames <- gsub("\\.","",colnames(object),fixed=FALSE)
     if(drop)
         t <- dropTable(pTableName=tableName)
-    tryCatch(RODBC::sqlSave(connection,object,tableName,rownames=FALSE),
+    tryCatch(RODBC::sqlSave(channel=connection,
+                            dat=object,
+                            tablename=tableName,
+                            rownames=FALSE),
       error=function(e){stop(e)})
   }
-  else if(class(connection)=="JDBCConnection")
+  else if(is.JDBC(connection))
   {
     vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
@@ -953,9 +957,9 @@ as.FLTable.data.frame <- function(object,
     .jcall(connection@jc,"V","setAutoCommit",TRUE)
     vcolnames <- names(vcolnames)
   }
-
+  # browser()
   select <- new("FLSelectFrom",
-                connection = getFLConnection(), 
+                # connection = getFLConnection(), 
                 table_name = tableName, 
                 variables = list(
                     obs_id_colname = obsIdColname),
@@ -968,7 +972,7 @@ as.FLTable.data.frame <- function(object,
               select = select,
               Dimnames = list(object[,obsIdColname],
                               vcolnames),
-             dims=dim(object),
+              dims=dim(object),
               isDeep = FALSE,
               type=sapply(object,typeof)))
 }

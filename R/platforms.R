@@ -16,4 +16,11 @@ is.TD         <- function() getFLPlatform()=="TD"
 is.TDAster    <- function() getFLPlatform()=="TDAster"
 is.Hadoop     <- function() getFLPlatform()=="Hadoop"
 
-
+##' @export
+setGeneric("getRConnection", function(object) {
+    standardGeneric("getRConnection")
+})
+setMethod("getRConnection", 
+    signature(object = "FLConnection"), 
+    function(object) 
+    object$connection)

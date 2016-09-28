@@ -112,3 +112,19 @@ isContinuous <- function(x){
         return(TRUE)
     else return(FALSE)
 }
+
+is.FLConnection <- function(pObject){
+    return(class(pObject)=="FLConnection")
+}
+
+is.ODBC <- function(pObject){
+    if(is.FLConnection(pObject))
+        pObject <- getRConnection(pObject)
+    return(class(pObject)=="RODBC")
+}
+
+is.JDBC <- function(pObject){
+    if(is.FLConnection(pObject))
+        pObject <- getRConnection(pObject)
+    return(class(pObject)=="JDBCConnection")
+}

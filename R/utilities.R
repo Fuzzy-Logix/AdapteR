@@ -12,7 +12,11 @@ setOldClass("RODBC")
 #' @param connection ODBC/JDBC connection class for connectivity for R
 #' @param platform character, either TD, TDAster, or Hadoop
 FLConnection <- function(connection, platform)
-    structure(connection=connection,platform=platform,class="FLConnection")
+    # structure(connection=connection,platform=platform,class="FLConnection")
+    structure(list(connection),
+            platform=platform,
+            class="FLConnection",
+            names="connection")
 
 
 sqlError <- function(e){
@@ -30,7 +34,8 @@ sqlError <- function(e){
 #' @param query SQLQuery to be sent
 #' @export
 sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
-sqlSendUpdate.FLConnection <- function(connection,query,...) sqlSendUpdate(connection$connection,query,...)
+sqlSendUpdate.FLConnection <- function(connection,query,...) 
+    sqlSendUpdate(connection$connection,query,...)
 
 #' Send a query to database
 #' Result is returned as data.frame
@@ -38,7 +43,8 @@ sqlSendUpdate.FLConnection <- function(connection,query,...) sqlSendUpdate(conne
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
-sqlQuery.FLConnection <- function(connection,query,...) sqlQuery(connection$connection,query,...)
+sqlQuery.FLConnection <- function(connection,query,...)
+    sqlQuery(connection$connection,query,...)
 
 
 #' Send a query to database
@@ -554,9 +560,12 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                      "cloudera"                        ="Hadoop",
                      "clouderahive"                    ="Hadoop",
                      "hive2"                           ="Hadoop",
-                     "org.apache.hive.jdbc.HiveDriver" ="Hadoop")
+                     "org.apache.hive.jdbc.HiveDriver" ="Hadoop",
+                     "TDAster"                         ="TDAster",
+                     "TD"                              ="TD",
+                     "Hadoop"                          ="Hadoop")
     platform <- platformMap[driverClass]
-    if(is.null(platform)) platform <- list(...)$platform ## if platform cannot be determined from driverClass, use platform argument
+    if(length(platform)==0) platform <- list(...)$platform ## if platform cannot be determined from driverClass, use platform argument
     if(!is.null(platform)) {
         if(!(platform %in% unique (platformMap))) ## use map
             platform <- platformMap[[platform]]
