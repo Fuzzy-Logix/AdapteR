@@ -43,7 +43,7 @@ sqlSendUpdate.FLConnection <- function(connection,query,...)
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
-sqlQuery.FLConnection <- function(connection,query,...) 
+sqlQuery.FLConnection <- function(connection,query,...)
     sqlQuery(connection$connection,query,...)
 
 

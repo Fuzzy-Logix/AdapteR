@@ -79,9 +79,9 @@ setClass("FLMatrix",
 
 setClass("FLMatrix.Hadoop", contains = "FLMatrix")
 setClass("FLMatrix.TD", contains = "FLMatrix")
-setClass("FLMatrix.Aster", contains = "FLMatrix")
+setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
-newFLMatrix <- function(....) {
+newFLMatrix <- function(...) {
     new(paste0("FLMatrix.",getFLPlatform()),
         ...)
 }
@@ -109,11 +109,11 @@ setClass("FLTable",
         )
 
 
-setClass("FLTable.Hadoop", contains = "FLMatrix")
-setClass("FLTable.TD", contains = "FLMatrix")
-setClass("FLTable.Aster", contains = "FLMatrix")
+setClass("FLTable.Hadoop", contains = "FLTable")
+setClass("FLTable.TD", contains = "FLTable")
+setClass("FLTable.TDAster", contains = "FLTable")
 
-newFLMatrix <- function(....) {
+newFLTable <- function(...) {
     new(paste0("FLTable.",getFLPlatform()),
         ...)
 }
@@ -153,11 +153,11 @@ setClass("FLVector",
          prototype = prototype(type="double")
          )
 
-setClass("FLVector.Hadoop", contains = "FLMatrix")
-setClass("FLVector.TD", contains = "FLMatrix")
-setClass("FLVector.Aster", contains = "FLMatrix")
+setClass("FLVector.Hadoop", contains = "FLVector")
+setClass("FLVector.TD", contains = "FLVector")
+setClass("FLVector.TDAster", contains = "FLVector")
 
-newFLMatrix <- function(....) {
+newFLVector <- function(...) {
     new(paste0("FLVector.",getFLPlatform()), ...)
 }
 

@@ -31,6 +31,7 @@ FLTable <- function(table,
                     fetchIDs=TRUE,
                     ...)
 {
+    browser()
     if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
