@@ -854,13 +854,27 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
         tableName <- vtbl
     }
 
-    vtemp <- sqlQuery(getFLConnection(),paste0(
+    if(is.TD()){
+        vtemp <- sqlQuery(getFLConnection(),paste0(
                         "SELECT 1 FROM dbc.tables \n ",
                         " WHERE databaseName = ",fquote(databaseName),
                         " AND tablename = ",fquote(tableName)))
-    if(!is.na(vtemp[1,1]) && vtemp[1,1]==1)
-    return(TRUE)
-    else return(FALSE)
+        if(!is.na(vtemp[1,1]) && vtemp[1,1]==1)
+        return(TRUE)
+        else return(FALSE)
+    }
+    else{
+        ### No table in Aster that stores MetaInfo!
+        if(is.Hadoop())
+            tableName <- paste0(databaseName,".",tableName)
+        vsqlstr <- limitRowsSQL(paste0("SELECT * FROM \n ",
+                                        tableName," \n "),1)
+        vtemp <- tryCatch(sqlQuery(getOption("connectionFL"),
+                        vsqlstr),error=function(e)FALSE)
+        if(is.data.frame(vtemp) && nrow(vtemp)==1)
+            return(TRUE)
+        else return(FALSE)
+    }
 }
 
 rearrangeInputCols <- function(pInputCols,

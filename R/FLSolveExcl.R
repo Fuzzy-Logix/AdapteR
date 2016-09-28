@@ -39,15 +39,15 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 								   ",getVariables(object)$colId,", 
 								   ",getVariables(object)$value,",",
 								   ExclIdx, 
-							" FROM  ",tableAndAlias(object),
-							constructWhere(c(constraintsSQL(object))),") 
-					SELECT ",MID,
-					       ",a.OutputRowNum,
-					        a.OutputColNum,
-					        a.OutputVal 
-					FROM TABLE (FLMatrixInvExclUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val, z.ExclIdx) 
-						HASH BY z.Matrix_ID 
-						LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
+							" \n FROM  ",tableAndAlias(object),
+							constructWhere(c(constraintsSQL(object))),") \n ",
+					" SELECT ",MID," AS MATRIX_ID, \n ",
+					       "a.OutputRowNum AS rowIdColumn, \n ",
+					        "a.OutputColNum AS colIdColumn, \n ",
+					        "a.OutputVal AS valueColumn \n ",
+					" FROM TABLE (FLMatrixInvExclUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val, z.ExclIdx) 
+						 \n HASH BY z.Matrix_ID 
+						 \n LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connection = connection,
@@ -68,7 +68,8 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
                Dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
                              dimnames(object)[[2]][(-1*ExclIdx)]),
                dims=vdim,
-               dimColumns=c("OutputRowNum","OutputColNum","OutputVal"))
+               #dimColumns=c("OutputRowNum","OutputColNum","OutputVal")
+               )
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object,ExclIdx),

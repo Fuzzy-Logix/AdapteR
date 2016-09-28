@@ -6,7 +6,9 @@ FLenv$flm <- FLMatrix("tblmatrixMulti",3,"Matrix_id","ROW_ID","COL_ID","CELL_VAL
 ## Generate an expression which has >141 nested queries:
 FLenv$vexpression <- paste0(rep("flm+flm",20),collapse="+")
 ## cat(vexpression)
-cat("no.of Nested Queries: ",length(gregexpr("FROM",constructSelect(eval(parse(text=vexpression))))[[1]]))
+cat("no.of Nested Queries: ",
+    length(gregexpr("FROM",
+        constructSelect(eval(parse(text=FLenv$vexpression),envir=FLenv)))[[1]]))
 
 ## The following Query has 157 Nested Queries
 FLenv$vsqlstr <- " SELECT
@@ -960,7 +962,7 @@ test_that("Check functioning of ensureQuerySize for large no.of nested queries: 
         ## Running through ensureQuerySize
         ##vResult <- eval(parse(text=paste0(vexpression)))
         vResult <- tryCatch({
-                        eval(parse(text=paste0(vexpression)),envir=FLenv)
+                        eval(parse(text=paste0(FLenv$vexpression)),envir=FLenv)
                     }, error=function(err) {
                         stop(err)
                     })
