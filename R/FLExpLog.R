@@ -43,8 +43,8 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
                         SQLquery=sqlstr)
         flm <- newFLMatrix(
                            select= tblfunqueryobj,
-                           dim=x@dim,
-                           dimnames=dimnames(x))
+                           dims=x@dims,
+                           Dimnames=dimnames(x))
 
         return(ensureQuerySize(pResult=flm,
                         pInput=list(x),
@@ -91,7 +91,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
 
         flv <- newFLVector(
                     select = tblfunqueryobj,
-                    dimnames = dimnames,
+                    Dimnames = dimnames,
                     isDeep = FALSE)
 
         return(ensureQuerySize(pResult=flv,
@@ -276,7 +276,7 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
 
     flv <- newFLVector(
                 select = tblfunqueryobj,
-                dimnames = list(1:length(vlist[[1]]),
+                Dimnames = list(1:length(vlist[[1]]),
                                 "vectorValueColumn"),
                 isDeep = FALSE)
 
@@ -319,7 +319,7 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
 
     flv <- newFLVector(
                 select = tblfunqueryobj,
-                dimnames = list(1:length(x),
+                Dimnames = list(1:length(x),
                                 "vectorValueColumn"),
                 isDeep = FALSE,
                 type=typeof(x))
@@ -364,7 +364,7 @@ sort.FLMatrix <- function(x,decreasing=FALSE,
 
     flv <- newFLVector(
                 select = tblfunqueryobj,
-                dimnames = list(1:length(x),
+                Dimnames = list(1:length(x),
                                 "vectorValueColumn"),
                 isDeep = FALSE,
                 type=typeof(x))

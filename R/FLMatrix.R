@@ -35,7 +35,7 @@ setClass("FLSelectFrom",
 setClass("FLAbstractTable",
     slots = list(
         select = "FLTableQuery",
-        dimnames = "list",
+        Dimnames = "list",
         isDeep = "logical",
         mapSelect = "FLSelectFrom"
     )
@@ -68,10 +68,11 @@ setClass("FLMatrix",
              mapSelect  = "FLSelectFrom",
              dimColumns = "character",
              type       = "character",
-             dim = "ANY",
-             dimnames = "ANY"
-         ),prototype = prototype(dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
-                                 type="double")
+             dims = "ANY",
+             Dimnames = "ANY"
+         ), prototype = prototype(
+             dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
+             type="double")
          )
 
 
@@ -97,8 +98,8 @@ newFLMatrix <- function(....) {
 setClass("FLTable",
          slots = list(
              select = "FLTableQuery",
-             dimnames = "list",
-             dim = "numeric",
+             Dimnames = "list",
+             dims = "numeric",
              isDeep = "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
@@ -129,8 +130,8 @@ setClass("FLTableMD",
          contains="FLTable",
          slots = list(
              select = "FLTableQuery",
-             dimnames = "list",
-             dim = "numeric",
+             Dimnames = "list",
+             dims = "numeric",
              isDeep = "logical",
              mapSelect = "FLSelectFrom"
          )
@@ -142,8 +143,8 @@ setClass("FLTableMD",
 setClass("FLVector",
          slots = list(
              select = "FLTableQuery",
-             dimnames = "list",
-             dim = "numeric",
+             Dimnames = "list",
+             dims = "numeric",
              isDeep= "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
@@ -322,7 +323,7 @@ FLIndexOf <- function(i,thenames){
 restrictFLMatrix <-
     function(object,
              whereconditions = object@select@whereconditions,
-             dimnames = object@dimnames,
+             dimnames = object@Dimnames,
              conditionDims = c(FALSE,FALSE)){
         ##browser()
         if(is.null(dimnames)) return(object)
@@ -338,16 +339,16 @@ restrictFLMatrix <-
                       vars[[i]],
                       getConditionValues(
                           dimnames[[i]],
-                          object@dimnames[[i]])))
+                          object@Dimnames[[i]])))
 
         object@select@whereconditions <-
             unique(c(object@select@whereconditions,
                      whereconditions))
         for(i in 1:2)
             if(!is.null(dimnames[[i]])){
-                object@dim[[i]] <- length(dimnames[[i]])
-                object@dimnames[[i]] <- FLName(dimnames[[i]],
-                                               object@dimnames[[i]])
+                object@dims[[i]] <- length(dimnames[[i]])
+                object@Dimnames[[i]] <- FLName(dimnames[[i]],
+                                               object@Dimnames[[i]])
             }
 
         object
@@ -373,7 +374,7 @@ FLamendDimnames <- function(flm,map_table) {
         return(colnames)
     }
     connection <- getFLConnection()
-    dimnames <- flm@dimnames
+    dimnames <- flm@Dimnames
     ##print(dimnames)
     if(is.null(dimnames) & !is.null(map_table)){
         ## if there is currently no dimnames set,
@@ -425,10 +426,10 @@ FLamendDimnames <- function(flm,map_table) {
                                   })
         rownames <- vstringdimnames[[1]]
         colnames <- vstringdimnames[[2]]
-    if(all(flm@dim==0))
-        flm@dim <- c(length(rownames),length(colnames))
+    if(all(flm@dims==0))
+        flm@dims <- c(length(rownames),length(colnames))
     
-    dimnames <- flm@dimnames <- list(checkNames(rownames),
+    dimnames <- flm@Dimnames <- list(checkNames(rownames),
                                      checkNames(colnames))
 
 
@@ -505,7 +506,7 @@ FLMatrix <- function(table_name,
                      row_id_colname = "rowIdColumn",
                      col_id_colname = "colIdColumn",
                      cell_val_colname = "valueColumn",
-                     dim=0,
+                     dims=0,
                      dimnames = NULL,
                      conditionDims=c(FALSE,FALSE),
                      whereconditions=c(""),
@@ -582,8 +583,8 @@ FLMatrix <- function(table_name,
     
     RESULT <- newFLMatrix(
                   select = select,
-                  dim = dim,
-                  dimnames = dimnames,
+                  dims = dim,
+                  Dimnames = dimnames,
                   type=type)
     
     RESULT <- FLamendDimnames(RESULT,map_table)
@@ -788,7 +789,7 @@ setMethod("checkQueryLimits",
                       names(vnames)<-1:length(i)
                       return(vnames)
                     })
-  x@dimnames <- vdimnames
+  x@Dimnames <- vdimnames
   x@mapSelect <- new("FLSelectFrom")
   x
 }
@@ -801,7 +802,7 @@ setMethod("checkQueryLimits",
     vnames <- NULL
   else vnames <- value
   names(vnames)<-1:length(value)
-  x@dimnames <- list(vnames,x@dimnames[[2]])
+  x@Dimnames <- list(vnames,x@Dimnames[[2]])
   x@mapSelect <- new("FLSelectFrom")
   x
 }
@@ -814,7 +815,7 @@ setMethod("checkQueryLimits",
     vnames <- NULL
   else vnames <- value
   names(vnames)<-1:length(value)
-  x@dimnames <- list(x@dimnames[[1]],vnames)
+  x@Dimnames <- list(x@Dimnames[[1]],vnames)
   x@mapSelect <- new("FLSelectFrom")
   x
 }

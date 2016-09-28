@@ -53,8 +53,8 @@ ginv.FLMatrix<-function(object,...)
 
   flm <- newFLMatrix(
              select= tblfunqueryobj,
-             dim=rev(dim(object)),
-            dimnames=list(NULL,NULL))
+             dims=rev(dim(object)),
+            Dimnames=list(NULL,NULL))
 
   return(ensureQuerySize(pResult=flm,
             pInput=list(object,...),

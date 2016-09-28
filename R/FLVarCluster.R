@@ -163,7 +163,7 @@ FLVarCluster.FLTable<-function(x,
 
 	clustervector <- newFLVector(
 						select = tblfunqueryobj,
-						dimnames = list(deepx@dimnames[[2]],
+						Dimnames = list(deepx@Dimnames[[2]],
 										"vectorValueColumn"),
 						isDeep = FALSE)
 

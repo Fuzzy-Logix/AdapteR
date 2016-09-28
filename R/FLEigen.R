@@ -78,7 +78,7 @@ FLEigenValues.FLMatrix<-function(object,...)
 
 	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:nrow(object),
+				Dimnames = list(1:nrow(object),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 
@@ -117,8 +117,8 @@ FLEigenVectors.FLMatrix<-function(object,...)
 
   	flm <- newFLMatrix(
             select= tblfunqueryobj,
-            dim=dim(object),
-            dimnames=dimnames(object))
+            dims=dim(object),
+            Dimnames=dimnames(object))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object),

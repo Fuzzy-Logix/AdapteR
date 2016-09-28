@@ -592,7 +592,7 @@ residuals.FLGAM <- function(object)
 
 		residualsvector <- newFLVector(
 								select = tblfunqueryobj,
-								dimnames = list(rownames(object@table),
+								Dimnames = list(rownames(object@table),
 												"vectorValueColumn"),
 								isDeep = FALSE)
 
@@ -760,7 +760,7 @@ offset.FLGAM <- function(object)
 
 			offsetvector <- newFLVector(
 									select = tblfunqueryobj,
-									dimnames = list(1:nrow(object@table),
+									Dimnames = list(1:nrow(object@table),
 													"vectorValueColumn"),
 									isDeep = FALSE)
 		}
@@ -845,7 +845,7 @@ y.FLGAM <- function(object)
 
 			yvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(1:nrow(object@table),
+							Dimnames = list(1:nrow(object@table),
 											"vectorValueColumn"),
 							isDeep = FALSE)
 		}
@@ -950,7 +950,7 @@ predict.FLGAM <- function(object,
 
 	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:nrow(newdata),
+				Dimnames = list(1:nrow(newdata),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 

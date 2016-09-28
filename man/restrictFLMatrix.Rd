@@ -5,7 +5,7 @@
 \title{Appends where clauses for subsetting etc.}
 \usage{
 restrictFLMatrix(object, whereconditions = object@select@whereconditions,
-  dimnames = object@dimnames, conditionDims = c(FALSE, FALSE))
+  dimnames = object@Dimnames, conditionDims = c(FALSE, FALSE))
 }
 \arguments{
 \item{object}{An FLMatrix object}

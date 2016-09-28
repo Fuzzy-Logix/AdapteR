@@ -100,8 +100,8 @@ FLTable <- function(table,
         
         newFLTable(
             select = select,
-            dimnames = list(rows,cols),
-            dim = c(nrow,ncol),
+            Dimnames = list(rows,cols),
+            dims = c(nrow,ncol),
             isDeep = TRUE,
             type=type)
 	}
@@ -154,8 +154,8 @@ FLTable <- function(table,
 
         T <- newFLTable( 
                  select = select,
-                 dimnames = mydimnames,
-                 dim = c(nrow,ncol),
+                 Dimnames = mydimnames,
+                 dims = c(nrow,ncol),
                  isDeep = FALSE,
                  type=type)
 	}
@@ -165,11 +165,11 @@ FLTable <- function(table,
 ##'
 ##' @param object 
 #' @export
-names.FLTable <- function(object) object@dimnames[[2]]
+names.FLTable <- function(object) object@Dimnames[[2]]
 #' @export
-colnames.FLTable <- function(object) object@dimnames[[2]]
+colnames.FLTable <- function(object) object@Dimnames[[2]]
 #' @export
-rownames.FLTable <- function(object) object@dimnames[[1]]
+rownames.FLTable <- function(object) object@Dimnames[[1]]
 
 #' @export
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
@@ -219,7 +219,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 # head(irisFL)
 #' @export
 `$<-.FLTable` <- function(x,name,value){
-  vcolnames <- x@dimnames[[2]]
+  vcolnames <- x@Dimnames[[2]]
   vtablename <- x@select@table_name
   name <- gsub("\\.","",name,fixed=TRUE)
   xcopy <- x
@@ -284,7 +284,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     }
   }
   sqlSendUpdate(getFLConnection(),sqlstr)
-  xcopy@dimnames[[2]] <- vcolnames
+  xcopy@Dimnames[[2]] <- vcolnames
   xcopy@type[name] <- typeof(value)
   return(xcopy)
 }
@@ -361,8 +361,8 @@ setMethod("wideToDeep",
 
               object <- newFLTable(
                             select = select,
-                            dimnames = object@dimnames,
-                            dim = dim(object),
+                            Dimnames = object@Dimnames,
+                            dims = dim(object),
                             isDeep = FALSE)
               #object <- store(object)
             }
@@ -554,8 +554,8 @@ setMethod("deepToWide",
 
               object <- newFLTable(
                             select = select,
-                            dim = dim(object),
-                            dimnames = object@dimnames,
+                            dims = dim(object),
+                            Dimnames = object@Dimnames,
                             isDeep = TRUE)
             # if(class(object@select)=="FLTableFunctionQuery" || length(whereconditions)>0)
             # object <- store(object)
@@ -732,7 +732,7 @@ setMethod("FLRegrDataPrep",
 
               object <- new(class(object),
                             select = select,
-                            dimnames = object@dimnames,
+                            Dimnames = object@Dimnames,
                             isDeep = FALSE)
               #object <- store(object)
             }
@@ -869,7 +869,7 @@ setMethod("FLRegrDataPrep",
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               group_id=object@dimnames[[3]]
+                               group_id=object@Dimnames[[3]]
                               )
             return(list(table=table,
                         AnalysisID=dataprepID))

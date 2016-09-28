@@ -76,12 +76,12 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
     
     if(ncol(x)==1)
     ifelse(is.FLVector(value),
-        x@dimnames[[1]] <- value,
-        x@dimnames[[1]] <- as.character(value))
+        x@Dimnames[[1]] <- value,
+        x@Dimnames[[1]] <- as.character(value))
     else if(ncol(x)>1)
     ifelse(is.FLVector(value),
-        x@dimnames[[2]] <- value,
-        x@dimnames[[2]] <- as.character(value))
+        x@Dimnames[[2]] <- value,
+        x@Dimnames[[2]] <- as.character(value))
     return(x)
 }
 
@@ -94,9 +94,9 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
 names.FLVector <- function(x)
 {
     if(ncol(x)==1)
-    vnames <- x@dimnames[[1]]
+    vnames <- x@Dimnames[[1]]
     else if(ncol(x)>1)
-    vnames <- x@dimnames[[2]]
+    vnames <- x@Dimnames[[2]]
 
     if(all(vnames==1:length(vnames)))
     return(NULL)

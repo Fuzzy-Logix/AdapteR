@@ -121,7 +121,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
             #   # else newnames <- colnames(object)
             #   # namesflvector <- newFLVector(
             #   #           select=object@mapSelect,
-            #   #           dimnames=list(newnames,"NAME"),
+            #   #           Dimnames=list(newnames,"NAME"),
             #   #           isDeep=FALSE)
             #   mapTable <- paste0(",(",constructSelect(object@mapSelect),") AS b ")
             # }

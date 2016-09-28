@@ -41,7 +41,7 @@ rowcolOps<-function(object,margin,operation,...){
 
 	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:res,
+				Dimnames = list(1:res,
 								"vectorValueColumn"),
 				isDeep = FALSE)
 

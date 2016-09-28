@@ -47,7 +47,7 @@ setMethod("FLStringDist",
             else if(is.numeric(caseFlag) && (caseFlag==0 ||caseFlag==1)) caseFlag<-caseFlag
             else stop("caseFlag must be numeric 0,1 or logical")
 
-            if(length(targets@dimnames[[2]])>1 && targets@isDeep==FALSE)
+            if(length(dimnames(targets)[[2]])>1 && targets@isDeep==FALSE)
             #targets <- store(targets)
             stop("row Vectors not supported for string operations")
 
@@ -90,7 +90,7 @@ setMethod("FLStringDist",
 
             resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(targets@dimnames[[1]],
+                            Dimnames = list(dimnames(targets)[[1]],
                                           "vectorValueColumn"),
                             isDeep = FALSE)
             return(resultvec)
@@ -120,10 +120,10 @@ setMethod("FLStringDist",
             else if(is.numeric(caseFlag) && (caseFlag==0 ||caseFlag==1)) caseFlag<-caseFlag
             else stop("caseFlag must be numeric 0,1 or logical")
 
-            if(length(targets@dimnames[[2]])>1 && targets@isDeep==FALSE)
+            if(length(dimnames(targets)[[2]])>1 && targets@isDeep==FALSE)
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
-            if(length(xsource@dimnames[[2]])>1 && xsource@isDeep==FALSE)
+            if(length(dimnames(xsource)[[2]])>1 && xsource@isDeep==FALSE)
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
 
@@ -169,9 +169,9 @@ setMethod("FLStringDist",
 
               flm <- newFLMatrix(
                                select= tblfunqueryobj,
-                               dim=c(length(xsource),
+                               dims=c(length(xsource),
                                      length(targets)),
-                               dimnames = list(
+                               Dimnames = list(
                                    names(xsource),
                                    names(targets)))
               return(flm)
@@ -232,7 +232,7 @@ setMethod("FLStringDist",
 
                 return(newFLVector(
                           select = tblfunqueryobj,
-                          dimnames =list(vmaxrownames,"vectorValueColumn"),
+                          Dimnames =list(vmaxrownames,"vectorValueColumn"),
                           isDeep = FALSE))
             }
           })
@@ -668,7 +668,7 @@ setMethod("FLStrCommon",
             vtype <- list(...)$type
           else vtype <- "character"
           a <- genRandVarName()
-          if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+          if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
           stop("row Vectors not supported for string operations")
 
           if(is.null(delimiter)||is.na(delimiter)||length(delimiter)==0)
@@ -711,7 +711,7 @@ setMethod("FLStrCommon",
 
             resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(object@dimnames[[1]],
+                            Dimnames = list(object@Dimnames[[1]],
                                           "vectorValueColumn"),
                             isDeep = FALSE,
                             type=vtype)
@@ -781,7 +781,7 @@ setMethod("FLConcatString",
 
             resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(1,
+                            Dimnames = list(1,
                                           "vectorValueColumn"),
                             isDeep = FALSE)
             return(resultvec)
@@ -1117,7 +1117,7 @@ setMethod("grep",
             a <- genRandVarName()
             b <- genRandVarName()
             object <- x
-            if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
             stop("row Vectors not supported for string operations")
 
             sqlstr <- paste0("SELECT COUNT(",b,".vectorIndexColumn) AS vlength",
@@ -1149,7 +1149,7 @@ setMethod("grep",
 
             resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(1:vlength,
+                            Dimnames = list(1:vlength,
                                           "vectorValueColumn"),
                             isDeep = FALSE,
                             type="integer")
@@ -1213,7 +1213,7 @@ setMethod("grepl",
             a <- genRandVarName()
             b <- genRandVarName()
             object <- x
-            if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
             stop("row Vectors not supported for string operations")
 
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -1236,7 +1236,7 @@ setMethod("grepl",
 
             resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(object@dimnames[[1]],
+                            Dimnames = list(object@Dimnames[[1]],
                                           "vectorValueColumn"),
                             isDeep = FALSE,
                             type="logical")
@@ -1417,7 +1417,7 @@ setMethod("FLParseXML",
             object="FLVector"),
           function(object)
           {
-            if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
             stop("row Vectors not supported for string operations")
             sqlstr <- paste0("WITH tw (GroupID, pXML)
                               AS (

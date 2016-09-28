@@ -263,7 +263,7 @@ prepareData.coxph <- function(formula,data,
 						vStatus," AS cell_val_colname","\n               ",
 						" FROM ",vtablename1)
 		t <- sqlSendUpdate(getFLConnection(),sqlstr)
-		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
+		deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
 	}
@@ -435,7 +435,7 @@ predict.FLCoxPH <-function(object,
 										vCellValVec," AS cell_val_colname \n  ",
 								" FROM ",vfromtbl,collapse=" UNION ALL "))
 		t <- sqlSendUpdate(getFLConnection(),sqlstr)
-		newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
+		newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 	}
 	vtable <- newdata@select@table_name
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
@@ -484,7 +484,7 @@ predict.FLCoxPH <-function(object,
 
 	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(rownames(newdata),
+				Dimnames = list(rownames(newdata),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 
@@ -870,7 +870,7 @@ prepareSurvivalFormula <- function(data,
                                             " AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
                     )
         
-        data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
+        data@Dimnames[[2]] <- c(data@Dimnames[[2]],vTimeVal)
         data@select@table_name <- vtablename
         vallVars <- base::all.vars(formula)
         vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]

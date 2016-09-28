@@ -47,8 +47,8 @@ chol.FLMatrix<-function(object,...)
 
     flm <- newFLMatrix(
                select= tblfunqueryobj,
-               dim=dim(object),
-               dimnames=dimnames(object))
+               dims=dim(object),
+               Dimnames=dimnames(object))
 
     ## gk: todo: a JIRA ticket should investigate, because A %*% t(A) is definition of A=chol(object), not t(A) %*% A
     return(t(flm))

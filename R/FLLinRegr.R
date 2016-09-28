@@ -949,7 +949,7 @@ prepareData.lmGeneric <- function(formula,data,
 							ifelse(offset!="",offset,0)," AS cell_val_colname","\n        ",
 							" FROM ",vtablename1)
 			t <- sqlSendUpdate(getFLConnection(),sqlstr)
-			deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
+			deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		}
 		
 		##Get Mapping Information for specID
@@ -1223,7 +1223,7 @@ prepareData.lmGeneric <- function(formula,data,
 
 			yvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
 							isDeep = FALSE)
 			object@results <- c(object@results,list(y=yvector))
@@ -1463,7 +1463,7 @@ model.FLLinRegr <- function(object,...)
 		if(!is.null(object@results[["modelColnames"]])){
 			vcolnames <- object@results[["modelColnames"]]
 			modelframe <- object@table
-			modelframe@dimnames[[2]] <- vcolnames
+			modelframe@Dimnames[[2]] <- vcolnames
 		}
 		else{
 			vdroppedCols <- object@results[["droppedCols"]]
@@ -1482,7 +1482,7 @@ model.FLLinRegr <- function(object,...)
 		}
 
 		## Have to implement names for FLTable
-		# modelframe@dimnames <- list(modelframe@dimnames[[1]],
+		# modelframe@Dimnames <- list(modelframe@Dimnames[[1]],
 		# 							vcolnames)
 		# return(modelframe)
 	
@@ -1624,7 +1624,7 @@ predict.lmGeneric <- function(object,
 											vcellValCols," AS cell_val_colname \n  ",
 									" FROM ",vtablename,collapse=" UNION ALL "))
 			t <- sqlSendUpdate(getFLConnection(),sqlstr)
-			newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
+			newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 		}
 	}
 	vtable <- newdata@select@table_name
@@ -1672,9 +1672,9 @@ predict.lmGeneric <- function(object,
 
 	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(rownames(newdata),
+				Dimnames = list(rownames(newdata),
 								"vectorValueColumn"),
-                dim = c(newdata@dim[1],1),
+                dims = c(newdata@dims[1],1),
 				isDeep = FALSE)
 
 	return(flv)
@@ -1801,7 +1801,7 @@ coefficients.FLLinRegrMD <- function(object){
 			coeffVector <- sqlQuery(getFLConnection(),
 								paste0("SELECT * FROM ",object@vfcalls["coefftablename"],
 										" where AnalysisID=",fquote(object@AnalysisID),
-										" AND ModelID IN(",paste0(object@deeptable@dimnames[[3]],collapse=","),
+										" AND ModelID IN(",paste0(object@deeptable@Dimnames[[3]],collapse=","),
 										") ORDER BY ModelID,CoeffID"))
 			vcoeffnames <- as.vector(apply(coeffVector,1,
 										function(x){
@@ -1820,7 +1820,7 @@ coefficients.FLLinRegrMD <- function(object){
 											"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
 											"\n AND a.groupID = b.modelID ",
 											"\n AND b.ModelID IN(",
-												paste0(object@deeptable@dimnames[[3]],
+												paste0(object@deeptable@Dimnames[[3]],
 													collapse=","),
 											")\n ORDER BY ModelID,CoeffID"))
 			colnames(vcoeffframe) <- toupper(colnames(vcoeffframe))
@@ -1856,7 +1856,7 @@ coefficients.FLLinRegrMD <- function(object){
 								names(vcoeff) <- x[["COEFFNAMES"]]
 								return(vcoeff)
 								})
-		names(vcoeffList) <- paste0("Model",object@deeptable@dimnames[[3]])
+		names(vcoeffList) <- paste0("Model",object@deeptable@Dimnames[[3]])
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character
 							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		object@results[["coefficients"]] <- vcoeffList
@@ -1877,7 +1877,7 @@ summary.FLLinRegrMD <- function(object){
 								" ORDER BY MODELID "))
 	else statsframe <- object@results[["statsframe"]]
 	colnames(statsframe) <- toupper(colnames(statsframe))
-	vresList <- lapply(object@deeptable@dimnames[[3]],
+	vresList <- lapply(object@deeptable@Dimnames[[3]],
 					function(x){
 						vtemp <- coeffframe[coeffframe[,"MODELID"]==x,]
 						vrownames <- vtemp[["COEFFNAMES"]]
@@ -1893,7 +1893,7 @@ summary.FLLinRegrMD <- function(object){
 						class(vsummaryList) <- "summary.FLLinRegrMD"
 						return(vsummaryList)
 						})
-	names(vresList) <- paste0("Model",object@deeptable@dimnames[[3]])
+	names(vresList) <- paste0("Model",object@deeptable@Dimnames[[3]])
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character
 							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	object@results[["statsframe"]] <- statsframe

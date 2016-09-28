@@ -395,8 +395,8 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 
 		flm <- newFLMatrix(
                            select= tblfunqueryobj,
-                           dim=c(ncol(x),ncol(y)),
-		            dimnames = list(
+                           dims=c(ncol(x),ncol(y)),
+		            Dimnames = list(
                                 colnames(x),
                                 colnames(y)))
 		return(ensureQuerySize(pResult=flm,
@@ -482,8 +482,8 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 
 			flm <- newFLMatrix(
                        select= tblfunqueryobj,
-                       dim=c(ncol(x),1),
-			            dimnames = list(
+                       dims=c(ncol(x),1),
+			            Dimnames = list(
                           colnames(x),
                           "1"))
 
@@ -750,8 +750,8 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 
 			flm <- newFLMatrix(
 			            select= tblfunqueryobj,
-                       dim=c(ncol(x),ncol(y)),
-			            dimnames = list(
+                       dims=c(ncol(x),ncol(y)),
+			            Dimnames = list(
                           colnames(x),
                           colnames(y)))
 
@@ -790,7 +790,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME")]
 
-			flm@dimnames <- list(varnamesx,
+			flm@Dimnames <- list(varnamesx,
 								varnamesy)
 			return(flm)
 		}
@@ -809,7 +809,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
 			rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
 			# correlmat <- matrix(vec,ncol(x),byrow=T,dimnames=list(varnamesx,c()))
-			flm@dimnames[[1]] <- rownames 
+			flm@Dimnames[[1]] <- rownames 
 			return(flm)
 		}
 		if(!y@isDeep && x@isDeep)
@@ -853,8 +853,8 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 
 			flm <- newFLMatrix(
 			            select= tblfunqueryobj,
-                       dim=c(ncol(x),ncol(y)),
-			            dimnames = list(
+                       dims=c(ncol(x),ncol(y)),
+			            Dimnames = list(
                           colnames(x),
                           colnames(y)))
 
@@ -877,7 +877,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("COLUMN_NAME","Final_VarID")]
 			rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
-			flm@dimnames[[1]] <- rownames 
+			flm@Dimnames[[1]] <- rownames 
 			return(flm)
 		}
 	}
@@ -938,13 +938,13 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			
 			flm <- newFLMatrix(
                        select= tblfunqueryobj,
-                       dim=c(ncol(x),1),
-                       dimnames = list(
+                       dims=c(ncol(x),1),
+                       Dimnames = list(
                            colnames(x),
                            "1"))
 
 			if(!is.null(varnamesx))
-			flm@dimnames[[1]] <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
+			flm@Dimnames[[1]] <- varnamesx[charmatch(rownames(flm),varnamesx[["Final_VarID"]]),"COLUMN_NAME"]
 
 			return(ensureQuerySize(pResult=flm,
 							pInput=list(x,y,functionName,...),
@@ -1048,8 +1048,8 @@ cov.wtGeneric <- function(x,
 
 	flm <- newFLMatrix(
                        select= tblfunqueryobj,
-                       dim=c(ncol(x),ncol(x)),
-	            	   dimnames = list(
+                       dims=c(ncol(x),ncol(x)),
+	            	   Dimnames = list(
                             colnames(x),
                             colnames(x)))
 	flm <- ensureQuerySize(pResult=flm,
@@ -1076,7 +1076,7 @@ cov.wtGeneric <- function(x,
 
 		center <- newFLVector(
 					select = tblfunqueryobj,
-					dimnames = list(colnames(x),"vectorValueColumn"),
+					Dimnames = list(colnames(x),"vectorValueColumn"),
 					isDeep = FALSE)
 	}
 	n.obs <- nrow(x)

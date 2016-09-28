@@ -214,7 +214,7 @@ hkmeans.FLTable<-function(x,
 
 	cols <- sqlQuery(connection,sqlstr)[["vectorIndexColumn"]]
 
-	deepx@dimnames <- list(rows,cols)
+	deepx@Dimnames <- list(rows,cols)
 
 	if(levels>1)
 	{
@@ -326,7 +326,7 @@ cluster.FLHKMeans<-function(object)
 
 		clustervector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
 							isDeep = FALSE)
 
@@ -382,9 +382,9 @@ centers.FLHKMeans<-function(object)
 
 	  	centersmatrix <- newFLMatrix(
 				            select= tblfunqueryobj,
-				            dim=c(object@centers,
+				            dims=c(object@centers,
 				            	length(vColnames)),
-				            dimnames=list(1:object@centers,
+				            Dimnames=list(1:object@centers,
 				            			vColnames))
 
 	  	centersmatrix <- tryCatch(as.matrix(centersmatrix),
@@ -473,7 +473,7 @@ withinss.FLHKMeans<-function(object){
 
 		withinssvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(1:object@centers,
+							Dimnames = list(1:object@centers,
 											"vectorValueColumn"),
 							isDeep = FALSE)
 
@@ -595,7 +595,7 @@ size.FLHKMeans<-function(object)
 
 		sizevector <- newFLVector(
 					select = tblfunqueryobj,
-					dimnames = list(1:object@centers,
+					Dimnames = list(1:object@centers,
 									"vectorValueColumn"),
 					isDeep = FALSE)
 
@@ -701,10 +701,10 @@ fitted.FLHKMeans <- function(object,method="centers",...){
 
   	centersmatrix <- newFLMatrix(
 			            select= tblfunqueryobj,
-			            dim=c(nrow(object@deeptable),
+			            dims=c(nrow(object@deeptable),
 			            	ncol(object@deeptable)),
-			            dimnames=list(object$cluster,
-			            			object@deeptable@dimnames[[2]]))
+			            Dimnames=list(object$cluster,
+			            			object@deeptable@Dimnames[[2]]))
   	return(centersmatrix)
 }
 

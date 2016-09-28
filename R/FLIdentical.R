@@ -223,8 +223,8 @@ NULL
 
 	    flm <- newFLMatrix(
 	            select= tblfunqueryobj,
-	            dim=dim(pObj1),
-	            dimnames=dimnames(pObj1))
+	            dims=dim(pObj1),
+	            Dimnames=dimnames(pObj1))
 
 	    flm <- ensureQuerySize(pResult=flm,
 		            pInput=list(pObj1,pObj2),
@@ -337,7 +337,7 @@ NULL
 
 		flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = dimnames,
+				Dimnames = dimnames,
 				isDeep = FALSE)
 
 		flv <- ensureQuerySize(pResult=flv,

@@ -306,8 +306,8 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
             row_id_colname = "rowIdColumn",
             col_id_colname = "colIdColumn",
             cell_val_colname = "valueColumn",
-            dim = mydims,
-            dimnames = mydimnames))
+            dims = mydims,
+            Dimnames = mydimnames))
 }
 
 #' Casting to FLMatrix
@@ -517,8 +517,8 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
   if(ncol(object)>1)
   object <- store(object)
 
-  if(ncol(object)==1) vnames <- object@dimnames[[1]]
-  else vnames <- object@dimnames[[2]]
+  if(ncol(object)==1) vnames <- object@Dimnames[[1]]
+  else vnames <- object@Dimnames[[2]]
 
   if(class(object@select)=="FLTableFunctionQuery"
     && !all(vnames==1:length(vnames)))
@@ -589,8 +589,8 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
 
   flm <- newFLMatrix(
               select= tblfunqueryobj,
-              dim = c(rows,cols),
-              dimnames=list(1:rows,1:cols),
+              dims = c(rows,cols),
+              Dimnames=list(1:rows,1:cols),
               type=typeof(object))
   return(flm)
 }
@@ -632,7 +632,7 @@ as.FLMatrix.FLTable <- function(object,
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
-                  dimnames=vdimnames,
+                  Dimnames=vdimnames,
                   whereconditions=object@select@whereconditions))
 }
 ######################################################################################################################
@@ -739,7 +739,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
 
   return(newFLVector(
                 select=select,
-                dimnames=list(newnames,"vectorValueColumn"),
+                Dimnames=list(newnames,"vectorValueColumn"),
                 isDeep=FALSE,
                 type=typeof(object)))
 }
@@ -764,17 +764,17 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   }
   colnames <- colnames(object)
   if(is.null(colnames(object))) 
-  colnames <- 1:object@dim[[2]]
+  colnames <- 1:object@dims[[2]]
   else if(!is.null(names(colnames)))
   colnames <- names(colnames)
-  object@dimnames[[2]] <- colnames
+  object@Dimnames[[2]] <- colnames
 
   rownames <- rownames(object)
   if(is.null(rownames(object))) 
-  rownames <- 1:object@dim[[1]]
+  rownames <- 1:object@dims[[1]]
   else if(!is.null(names(rownames)))
   rownames <- names(rownames)
-  object@dimnames[[1]] <- rownames
+  object@Dimnames[[1]] <- rownames
   ## FOR loop used only for generating SQL query.
   for(i in colnames)
   {
@@ -966,9 +966,9 @@ as.FLTable.data.frame <- function(object,
 
   return(newFLTable(
               select = select,
-              dimnames = list(object[,obsIdColname],
+              Dimnames = list(object[,obsIdColname],
                               vcolnames),
-             dim=dim(object),
+             dims=dim(object),
               isDeep = FALSE,
               type=sapply(object,typeof)))
 }
@@ -993,7 +993,7 @@ as.FLByteInt <- function(x){
 
     return(newFLVector(
                 select=select,
-                dimnames=list(x@dimnames[[1]],
+                Dimnames=list(x@Dimnames[[1]],
                             "vectorValueColumn"),
                 isDeep=FALSE,
                 type="integer"))
@@ -1008,8 +1008,8 @@ setMethod("populateDimnames",
     signature(x="ANY"),
     function(x,...){
         if(is.null(rownames(x)))
-            x@dimnames[[1]] <- 1:x@dim[1]
+            x@Dimnames[[1]] <- 1:x@dims[1]
         if(x@isDeep)
-            x@dimnames[[2]] <- 1:x@dim[2]
+            x@Dimnames[[2]] <- 1:x@dims[2]
         return(x)
 })

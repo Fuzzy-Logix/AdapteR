@@ -410,7 +410,7 @@ clustering.FLFKMeans <- function(object)
 
 		clusteringvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
 							isDeep = FALSE)
 		clusteringvector <- tryCatch(as.vector(clusteringvector),
@@ -455,9 +455,9 @@ membership.FLFKMeans<-function(object)
 
 	  	membershipmatrix <- newFLMatrix(
 				            select= tblfunqueryobj,
-				            dim=c(nrow(object@deeptable),
+				            dims=c(nrow(object@deeptable),
 				            	object@centers),
-				            dimnames=list(
+				            Dimnames=list(
                                                 rownames(object@deeptable),
                                                 1:object@centers))
 

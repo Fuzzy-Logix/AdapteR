@@ -135,7 +135,7 @@ FLTableMD <- function(table,
 
         new("FLTableMD",
             select = select,
-            dimnames = list(rows,cols,vgrp),
+            Dimnames = list(rows,cols,vgrp),
             isDeep = TRUE)
     }
     else
@@ -186,7 +186,7 @@ FLTableMD <- function(table,
 
         T <- new("FLTableMD", 
                  select = select,
-                 dimnames = list(rows,cols,vgrp),
+                 Dimnames = list(rows,cols,vgrp),
                  isDeep = FALSE)
     }
 }

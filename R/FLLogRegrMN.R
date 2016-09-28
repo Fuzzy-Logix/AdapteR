@@ -96,12 +96,12 @@ coefficients.FLLogRegrMN <- function(object){
 		vrownames1 <- sort(unique(coeffVector[["LEVELID"]]))
 		coeffVector1 <- matrix(coeffVector1,nrow=length(vrownames1),
 								ncol=length(vcolnames1),
-								dimnames=list(vrownames1,
+								Dimnames=list(vrownames1,
 												vcolnames1))
 		FLCoeffStats <- lapply(FLCoeffStats,function(x)
 							matrix(x,nrow=length(vrownames1),
 								ncol=length(vcolnames1),
-								dimnames=list(vrownames1,
+								Dimnames=list(vrownames1,
 												vcolnames1)))
 		vcolnames <- colnames(object@deeptable)
 		droppedCols <- vcolnames[!vcolnames %in% c("-1",coeffVector[["COEFFID"]])]

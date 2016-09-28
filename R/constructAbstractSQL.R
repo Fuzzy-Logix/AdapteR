@@ -255,7 +255,7 @@ constructScalarSQL <- function(pObject,
         if(is.FLVector(pObject)){
             vValueCol <- getValueColumn(pObject)
             #names(pObject@select@table_name) <- NULL
-            pObject@dimnames[[2]] <- pFunc(new("FLAbstractColumn",
+            pObject@Dimnames[[2]] <- pFunc(new("FLAbstractColumn",
                                                 columnName=vValueCol),
                                                 ...)
             return(pObject)

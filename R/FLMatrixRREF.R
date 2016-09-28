@@ -42,8 +42,8 @@ FLMatrixRREF.FLMatrix<-function(object,...)
 
   	flm <- newFLMatrix(
             select= tblfunqueryobj,
-            dim=dim(object),
-            dimnames=dimnames(object))
+            dims=dim(object),
+            Dimnames=dimnames(object))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object),

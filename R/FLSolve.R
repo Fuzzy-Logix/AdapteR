@@ -59,8 +59,8 @@ FLInv <- function(x,...)
 
   flm <- newFLMatrix(
              select= tblfunqueryobj,
-             dim=rev(dim(x)),
-             dimnames=rev(dimnames(x)))
+             dims=rev(dim(x)),
+             Dimnames=rev(dimnames(x)))
 
    return(ensureQuerySize(pResult=flm,
             pInput=list(x),

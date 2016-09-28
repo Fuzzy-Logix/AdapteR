@@ -136,8 +136,8 @@ lu.FLMatrix<-function(object,...)
 
 	flm <- newFLMatrix(
                select= tblfunqueryobj,
-               dim=dim(object),
-	            dimnames=dimnames(object))
+               dims=dim(object),
+	            Dimnames=dimnames(object))
 
   	LUMatrix <- store(object=flm)
 
@@ -203,7 +203,7 @@ lu.FLMatrix<-function(object,...)
 
 	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:length(LUMatrix),
+				Dimnames = list(1:length(LUMatrix),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 

@@ -10,7 +10,7 @@ setClass("FLMatrixBind",
          slots = list(parts = "list",
                       by = "numeric",
                       offsets = "numeric",
-                      dimnames = "list"))
+                      Dimnames = "list"))
 
 namesOrIndex <- function(x){
     if(!is.null(names(x)))
@@ -92,7 +92,7 @@ FLMatrixBind <- function(parts,by){
                                     offsets[n,by])
                 P
             }),
-        dimnames=dimnames,
+        Dimnames=dimnames,
         by=by)
 }
 

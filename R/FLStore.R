@@ -145,8 +145,8 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
             row_id_colname = object@dimColumns[[1]], 
             col_id_colname = object@dimColumns[[2]], 
             cell_val_colname = object@dimColumns[[3]],
-            dim=dim(object),
-            dimnames=dimnames(object),
+            dims=dim(object),
+            Dimnames=dimnames(object),
             type=typeof(object)
             ))
     }
@@ -215,7 +215,7 @@ store.FLVector <- function(object,pTableName=NULL,...)
   else vindex <- colnames(object)
   return(newFLVector(
                 select=select,
-                dimnames=list(vindex,"vectorValueColumn"),
+                Dimnames=list(vindex,"vectorValueColumn"),
                 isDeep=FALSE,
                 type=typeof(object)))
 }

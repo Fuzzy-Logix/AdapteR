@@ -37,7 +37,7 @@ NULL
                  object = object,
                  whereconditions = object@select@whereconditions,
                  dimnames = list(newrownames,
-                                 object@dimnames[[2]]),
+                                 object@Dimnames[[2]]),
                  conditionDims=c(TRUE,FALSE)))
     }
     else { ## !missing(cols)
@@ -47,7 +47,7 @@ NULL
             return(restrictFLMatrix(
                 object = object,
                 whereconditions = object@select@whereconditions,
-                dimnames = list(object@dimnames[[1]],
+                dimnames = list(object@Dimnames[[1]],
                                 newcolnames),
                 conditionDims=c(FALSE,TRUE)))
         } else {  ## !missing(cols) and !missing(rows)
@@ -87,12 +87,12 @@ NULL
     if(is.FLVector(rows)) rows <- as.vector(rows)
     if(is.FLVector(cols)) cols <- as.vector(cols)
     if(is.numeric(rows))
-        newrownames <- object@dimnames[[1]][rows]
+        newrownames <- object@Dimnames[[1]][rows]
     else
         newrownames <- rows
 
     if(is.numeric(cols))
-        newcolnames <- object@dimnames[[2]][cols]
+        newcolnames <- object@Dimnames[[2]][cols]
     else
         newcolnames <- cols
 
@@ -102,48 +102,48 @@ NULL
     if(missing(cols))
     {
         if (!missing(rows)) {
-            if(!setequal(object@dimnames[[1]],
+            if(!setequal(object@Dimnames[[1]],
                          newrownames))
                 object@select@whereconditions <- c(object@select@whereconditions,
                                             inCondition(paste0(getVariables(object)$obs_id_colname),
                                                         newrownames))
-            object@dimnames <- list(newrownames,
-                                   object@dimnames[[2]])
+            object@Dimnames <- list(newrownames,
+                                   object@Dimnames[[2]])
         }
     } else if(missing(rows)) { ## !missing(cols)
-        ifelse(any(is.na(as.numeric(object@dimnames[[1]]))),
-               newrownames <- sort(object@dimnames[[1]]),
-               newrownames <- sort(as.numeric(object@dimnames[[1]])))
-        object@dimnames <- list(newrownames,
+        ifelse(any(is.na(as.numeric(object@Dimnames[[1]]))),
+               newrownames <- sort(object@Dimnames[[1]]),
+               newrownames <- sort(as.numeric(object@Dimnames[[1]])))
+        object@Dimnames <- list(newrownames,
                                 newcolnames)
-        object@dim[[2]] <- length(newcolnames)
+        object@dims[[2]] <- length(newcolnames)
         if(object@isDeep){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
                   inCondition(paste0(getVariables(object)$var_id_colname),
-                              object@dimnames[[2]]))
+                              object@Dimnames[[2]]))
         }
     } else {  ## !missing(cols) and !missing(rows)
         ##browser()
-        if(!setequal(object@dimnames[[1]], newrownames))
+        if(!setequal(object@Dimnames[[1]], newrownames))
             object@select@whereconditions <-
             c(object@select@whereconditions,
               inCondition(paste0(getVariables(object)$obs_id_colname),
                           newrownames))
-        if(object@isDeep & !setequal(object@dimnames[[2]], newcolnames)){
+        if(object@isDeep & !setequal(object@Dimnames[[2]], newcolnames)){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
                   inCondition(paste0(getVariables(object)$var_id_colname),
                               newcolnames))
         }
-        object@dimnames = list(newrownames, newcolnames)
-        object@dim[[2]] <- length(newrownames)
-        object@dim[[2]] <- length(newcolnames)
+        object@Dimnames = list(newrownames, newcolnames)
+        object@dims[[2]] <- length(newrownames)
+        object@dims[[2]] <- length(newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
     {
-      vcolnames <- object@dimnames[[2]]
-      vrownames <- object@dimnames[[1]]
+      vcolnames <- object@Dimnames[[2]]
+      vrownames <- object@Dimnames[[1]]
       newnames <- NULL
       if(ncol(object)==1 && 
         (!all(vrownames==(1:nrow(object)))))
@@ -342,12 +342,12 @@ NULL
       if(is.RowFLVector(object))
       {
         if(is.numeric(pSet))
-        pSet <- object@dimnames[[2]][pSet]
+        pSet <- object@Dimnames[[2]][pSet]
         if(!all(pSet %in% colnames(object)))
         stop("index out of bounds")
-        object@dimnames[[2]] <- pSet
+        object@Dimnames[[2]] <- pSet
 
-        if(length(pSet)==1 && object@dimnames[[1]]!=1)
+        if(length(pSet)==1 && object@Dimnames[[1]]!=1)
         {
           MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
               vcolName="MATRIX_ID",
@@ -357,7 +357,7 @@ NULL
                         tablename=getOption("ResultVectorTableFL"),
                         matrixId=MID,
                         dimId= 1,
-                        mynames=object@dimnames[[1]]
+                        mynames=object@Dimnames[[1]]
                         )
           mapselect <- new("FLSelectFrom",
                            connection = getFLConnection(), 
@@ -369,7 +369,7 @@ NULL
                                                     getVariables(object)[[vobsidcolumn]],
                                                     " AS VARCHAR(100))")),
                            order = "")
-          object@dimnames[[1]] <- 1
+          object@Dimnames[[1]] <- 1
           object@mapSelect <- mapselect
           object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
         }
@@ -481,7 +481,7 @@ NULL
     if(!is.null(mapselect))
     return(newFLVector(
                 select=select,
-                dimnames=list(newrownames,newcolnames),
+                Dimnames=list(newrownames,newcolnames),
                 isDeep=object@isDeep,
                 mapSelect=mapselect,
                 type=typeof(object)))

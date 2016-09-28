@@ -45,7 +45,7 @@ FLSV.FLMatrix<-function(object,...)
 
   flv <- newFLVector(
         select = tblfunqueryobj,
-        dimnames = list(1:nrow(object),
+        Dimnames = list(1:nrow(object),
                         "vectorValueColumn"),
         isDeep = FALSE)
 

@@ -83,8 +83,8 @@ qr.FLMatrix<-function(object,...)
 
   	flm <- newFLMatrix(
             select= tblfunqueryobj,
-            dim=dim(object),
-            dimnames=dimnames(object))
+            dims=dim(object),
+            Dimnames=dimnames(object))
 
   	QRMatrix <- store(object=flm)
 

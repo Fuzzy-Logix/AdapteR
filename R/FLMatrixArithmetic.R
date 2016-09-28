@@ -151,8 +151,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                               SQLquery=sqlstr)
 		flm <- newFLMatrix(
                    select= tblfunqueryobj,
-                   dim=dims,
-                   dimnames=dimnames,
+                   dims=dims,
+                   Dimnames=dimnames,
                    dimColumns=c("IDrow","IDcol","valueColumn"),
                    type=vtype)
 
@@ -433,7 +433,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 
 			flv <- newFLVector(
                        select = tblfunqueryobj,
-                       dimnames = dimnames,
+                       Dimnames = dimnames,
                        isDeep = FALSE,
                        type=vtype)
 

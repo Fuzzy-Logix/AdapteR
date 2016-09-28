@@ -279,8 +279,8 @@ getXMatrix <- function(object,
 
   modelframe <- newFLMatrix(
                   select=vselect,
-                  dim=c(nrow(modelframe),length(vcolnames)),
-                  dimnames=list(NULL,vcolnames))
+                  dims=c(nrow(modelframe),length(vcolnames)),
+                  Dimnames=list(NULL,vcolnames))
   #dimnames(modelframe) <- vdimnames
 
   # colnames(modelframe)[1] <- "Intercept"
@@ -314,7 +314,7 @@ calcLinearPred <- function(object,...){
                         SQLquery=sqlstr)
     flv <- newFLVector(
               select = tblfunqueryobj,
-              dimnames = dimnames(vfit),
+              Dimnames = dimnames(vfit),
               isDeep = FALSE)
 
     vlinPred <- ensureQuerySize(pResult=flv,
@@ -415,8 +415,8 @@ calcResiduals <- function(object,
   
   flv <- newFLVector(
               select = tblfunqueryobj,
-              dimnames = dimnames(vfit),
-              dim = vfit@dim,
+              Dimnames = dimnames(vfit),
+              dims = vfit@dims,
               isDeep = FALSE)
 
   vresidVector <- ensureQuerySize(pResult=flv,

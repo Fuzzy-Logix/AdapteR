@@ -419,7 +419,7 @@ clustering.FLKMedoids <- function(object)
 
 		clusteringvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
 							isDeep = FALSE)
 		clusteringvector <- tryCatch(as.vector(clusteringvector),
@@ -475,10 +475,10 @@ medoids.FLKMedoids<-function(object)
 
 		  	medoidsmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dim=c(object@centers,
-					            	length(object@deeptable@dimnames[[2]])),
-					            dimnames=list(1:object@centers,
-					            			object@deeptable@dimnames[[2]]))
+					            dims=c(object@centers,
+					            	length(object@deeptable@Dimnames[[2]])),
+					            Dimnames=list(1:object@centers,
+					            			object@deeptable@Dimnames[[2]]))
 		}
 		if(class(medoidsmatrix)=="FLMatrix")
 		medoidsmatrix <- tryCatch(as.matrix(medoidsmatrix),
@@ -521,7 +521,7 @@ id.med.FLKMedoids<-function(object){
 
 		id.medvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(1:object@centers,
+							Dimnames = list(1:object@centers,
 											"vectorValueColumn"),
 							isDeep = FALSE)
 		id.medvector <- tryCatch(as.vector(id.medvector),
@@ -892,8 +892,8 @@ silinfo.FLKMedoids <- function(object){
 
 		widthsFLTable <- newFLTable(
                              select = tblfunqueryobj,
-                             dim=c(nrow(object@deeptable), 4),
-							dimnames = list(object@deeptable@dimnames[[1]],
+                             dims=c(nrow(object@deeptable), 4),
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											c("obs_id_colname","MedoidID","neighbor","sil_width")),
 							isDeep = FALSE)
 
@@ -943,7 +943,7 @@ silinfo.FLKMedoids <- function(object){
 
 											t <- newFLVector(
 													select = tblfunqueryobj,
-													dimnames = list(1:object@centers,
+													Dimnames = list(1:object@centers,
 																	"vectorValueColumn"),
 													isDeep = FALSE)
 											store(t)
@@ -1048,10 +1048,10 @@ diss.FLKMedoids<-function(object)
 
 		  	dissmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dim=c(length(object@deeptable@dimnames[[1]]),
-					            	length(object@deeptable@dimnames[[1]])),
-					            dimnames=list(object@deeptable@dimnames[[1]],
-					            			object@deeptable@dimnames[[1]]))
+					            dims=c(length(object@deeptable@Dimnames[[1]]),
+					            	length(object@deeptable@Dimnames[[1]])),
+					            Dimnames=list(object@deeptable@Dimnames[[1]],
+					            			object@deeptable@Dimnames[[1]]))
 
 		  	dissmatrix <- tryCatch(as.sparseMatrix.FLMatrix(dissmatrix),
 		  							error=function(e){

@@ -211,7 +211,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     order = "")
       flv <- newFLVector(
                 select=select,
-                dimnames=list(1:n,"RANDVAL"),
+                Dimnames=list(1:n,"RANDVAL"),
                 isDeep=FALSE)
     }
     # else if(is.null(getOption("FLTestVectorTable")) ||
@@ -248,7 +248,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     order = "")
       flv <- newFLVector(
                   select=select,
-                  dimnames=list(1:n,"vectorValueColumn"),
+                  Dimnames=list(1:n,"vectorValueColumn"),
                   isDeep=FALSE)
     }
   }
@@ -356,8 +356,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   
   flm <- newFLMatrix(
             select = select,
-            dim = c(n,ifelse(isSquare,n,n-1)),
-            dimnames = list(NULL,NULL))
+            dims = c(n,ifelse(isSquare,n,n-1)),
+            Dimnames = list(NULL,NULL))
 
   return(list(FL=flm,R=as.matrix(flm)))
 }
