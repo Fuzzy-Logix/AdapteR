@@ -16,14 +16,14 @@ NULL
 ##              input arguments to udt are matrix
 
 constructMatrixUDTSQL <- function(pObject,
-                            pFuncName,
-                            pOutColnames=list(
-                                    rowIdColumn="row_id",
-                                    colIdColumn="col_id",
-                                    valueColumn="cell_val"),
-                            pWhereConditions="",
-                            pIncludeMID=TRUE,
-                            ...){
+                                  pFuncName,
+                                  pOutColnames=list(
+                                      rowIdColumn="row_id",
+                                      colIdColumn="col_id",
+                                      valueColumn="cell_val"),
+                                  pWhereConditions="",
+                                  pIncludeMID=TRUE,
+                                  ...){
 
     ## Covers case when vector output is needed
     if(pIncludeMID){
@@ -120,11 +120,21 @@ constructUDTSQL <- function(pViewColnames,
 
 
 ############################## Stored Procs ###########################
-
-constructStoredProcSQL <- function(pConnection,
+constructStoredProcSQL <- function (pConnection,
                                     pFuncName,
                                     pOutputParameter,
-                                    ...){
+                                    ...) {
+    UseMethod("constructStoredProcSQL",
+              pConnection,
+              pFuncName,
+              pOutputParameter,
+              ...)
+}
+
+constructStoredProcSQL.FLConnection <- function(pConnection,
+                                                pFuncName,
+                                                pOutputParameter,
+                                                ...){
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -132,7 +142,6 @@ constructStoredProcSQL <- function(pConnection,
         args <- args[[1]]
     ## Setting up input parameter value
     pars <- character()
-
     ## Construct input params 
     ## NULL in TD == '' in others
     if(class(pConnection)=="RODBC" | class(pConnection)=="character"){

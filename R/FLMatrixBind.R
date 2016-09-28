@@ -128,9 +128,6 @@ setMethod("constructSelect",
                   collapse=" UNION ALL ")
           })
 
-setMethod("getConnection",
-          signature(object = "FLMatrixBind"),
-          function(object) getConnection(object@parts[[1]]))
 
 setMethod("store",
           signature(object = "FLMatrixBind"),

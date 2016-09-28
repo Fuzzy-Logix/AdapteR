@@ -1,3 +1,4 @@
+#' @include platforms.R
 NULL
 
 
@@ -81,7 +82,7 @@ setClass("FLMatrix.TD", contains = "FLMatrix")
 setClass("FLMatrix.Aster", contains = "FLMatrix")
 
 newFLMatrix <- function(....) {
-    new(paste0("FLMatrix.",getFLPlatform(getFLConnection())),
+    new(paste0("FLMatrix.",getFLPlatform()),
         ...)
 }
 
@@ -113,7 +114,7 @@ setClass("FLTable.TD", contains = "FLMatrix")
 setClass("FLTable.Aster", contains = "FLMatrix")
 
 newFLMatrix <- function(....) {
-    new(paste0("FLTable.",getFLPlatform(getFLConnection())),
+    new(paste0("FLTable.",getFLPlatform()),
         ...)
 }
 
@@ -157,7 +158,7 @@ setClass("FLVector.TD", contains = "FLMatrix")
 setClass("FLVector.Aster", contains = "FLMatrix")
 
 newFLMatrix <- function(....) {
-    new(paste0("FLVector.",getFLPlatform(getFLConnection())), ...)
+    new(paste0("FLVector.",getFLPlatform()), ...)
 }
 
 setMethod("str",signature(object="FLVector"),
@@ -615,22 +616,6 @@ equalityConstraint <- function(tableColName,constantValue){
         paste0(tableColName, "=",constantValue)
 }
 
-
-##' @export
-setGeneric("getConnection", function(object) {
-    standardGeneric("getConnection")
-})
-setMethod("getConnection", signature(object = "ANY"), function(object) getFLConnection())
-setMethod("getConnection", signature(object = "missing"), function(object) getFLConnection())
-## setMethod("getConnection", signature(object = "FLMatrix"), function(object) object@select@connection)
-## setMethod("getConnection", signature(object = "FLTable"), function(object) object@select@connection)
-## setMethod("getConnection", signature(object = "FLTableQuery"), function(object) object@select@connection)
-## setMethod("getConnection", signature(object = "FLVector"), function(object) object@select@connection)
-
-getFLPlatform <- function() return(getOption("FLPlatform"))
-is.TD         <- function() getFLPlatform()=="TD"
-is.TDAster    <- function() getFLPlatform()=="TDAster"
-is.Hadoop     <- function() getFLPlatform()=="Hadoop"
 
 
 

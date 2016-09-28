@@ -54,6 +54,7 @@ Suggests:
 License: GPL-2
 LazyData: true
 Collate:
+    'platforms.R'
     'FLMatrix.R'
     'FLADTest.R'
     'FLAggClustering.R'
@@ -131,7 +132,6 @@ Collate:
     'friedman.test.R'
     'kruskal.test.R'
     'mcnemar.test.R'
-    'platforms.R'
     'rowcolOps-G.R'
     'rowcolOps.R'
     'survdiff.R'

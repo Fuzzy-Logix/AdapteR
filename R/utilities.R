@@ -5,11 +5,21 @@ NULL
 
 setOldClass("RODBC")
 
+#' A FLConnection object stores either a JDBC or a ODBC connection
+#' as well as the platform that is connected to.
+#' 
+#' @export
+#' @param connection ODBC/JDBC connection class for connectivity for R
+#' @param platform character, either TD, TDAster, or Hadoop
+FLConnection <- function(connection, platform)
+    structure(connection=connection,platform=platform,class="FLConnection")
+
 
 sqlError <- function(e){
     warning(e)
     sys.call()
 }
+
 ################################################################################
 ######  provide methods for JDBC with same signature as ODBC methods
 ################################################################################
@@ -20,6 +30,7 @@ sqlError <- function(e){
 #' @param query SQLQuery to be sent
 #' @export
 sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
+sqlSendUpdate.FLConnection <- function(connection,query,...) sqlSendUpdate(connection$connection,query,...)
 
 #' Send a query to database
 #' Result is returned as data.frame
@@ -27,21 +38,16 @@ sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
+sqlQuery.FLConnection <- function(connection,query,...) sqlQuery(connection$connection,query,...)
+
 
 #' Send a query to database
 #' Result is returned as data.frame
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlStoredProc <- function(connection, query, 
-                          outputParameter,
-                          ...)
-    UseMethod("sqlStoredProc")
-
-## gk: this made packaging fail here, as I cannot install RODBC, and
-## then it is unknown. Can we do a package check? We need to discuss
-## this.
-## sqlQuery.default <- RODBC::sqlQuery
+sqlStoredProc <- function(connection, query, outputParameter, ...) UseMethod("sqlStoredProc")
+sqlStoredProc.FLConnection <- function(connection,query,...) sqlStoredProc(connection$connection,query,...)
 
 #' Send a query to database
 #' 
@@ -463,33 +469,6 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       driverClass=NULL,
                       verbose=FALSE,
                       ...){
-    getPlatform <- function(pdrvClass,pDotsList){
-        #browser()
-        matchPlatform <- function(pObj1){
-            pObj2 <- list(c("TD","teradata","com.teradata.jdbc.TeraDriver"),
-                          c("TDAster","aster","astertd",
-                            "teradataaster","com.asterdata.ncluster.Driver"),
-                          c("Hadoop","hive","cloudera",
-                            "clouderahive","hive2","org.apache.hive.jdbc.HiveDriver"))
-            return(sapply(pObj2,
-                        function(i){
-                            if(tolower(pObj1) %in% tolower(i))
-                            return(as.vector(i[[1]]))
-                            else return(NULL)
-                            }))
-        }
-        vplatform <- NULL
-        if(!is.null(pdrvClass))
-            vplatform <- matchPlatform(pdrvClass)
-        else if("platform" %in% names(pDotsList))
-            vplatform <- matchPlatform(pDotsList$platform)
-        vplatform <- as.character(vplatform[sapply(vplatform,
-                                                    function(x)
-                                                        !is.null(x))])
-        if(length(vplatform)==0)
-            stop("invalid driverClass or platform argument in flConnect \n ")
-        return(vplatform)
-    }
 
     options(ResultDatabaseFL=database)
     options(FLUsername=user)
@@ -564,12 +543,26 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     }
     if(is.null(connection))
         stop("Please provide either odbcSource for connecting to an ODBC source; or provide host, database, user, passwd for connecting to JDBC")
-    
 
-    vplatform <- getPlatform(pdrvClass=driverClass,
-                            pDotsList=list(...))
-    options(FLPlatform=vplatform)
-    options(connectionFL              = connection)
+    platformMap <- c("teradata"                        ="TD",
+                     "com.teradata.jdbc.TeraDriver"    ="TD",
+                     "aster"                           ="TDAster",
+                     "astertd"                         ="TDAster",
+                     "teradataaster"                   ="TDAster",
+                     "com.asterdata.ncluster.Driver"   ="TDAster",
+                     "hive"                            ="Hadoop",
+                     "cloudera"                        ="Hadoop",
+                     "clouderahive"                    ="Hadoop",
+                     "hive2"                           ="Hadoop",
+                     "org.apache.hive.jdbc.HiveDriver" ="Hadoop")
+    platform <- platformMap[driverClass]
+    if(is.null(platform)) platform <- list(...)$platform ## if platform cannot be determined from driverClass, use platform argument
+    if(!is.null(platform)) {
+        if(!(platform %in% unique (platformMap))) ## use map
+            platform <- platformMap[[platform]]
+    }
+    connection <- FLConnection(connection, platform)
+    options("connectionFL" = connection)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
