@@ -72,7 +72,7 @@ qr.FLMatrix<-function(object,...)
 					 " WHERE OutputRowNum <= OutputColNum ")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",

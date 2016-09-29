@@ -153,7 +153,7 @@ FLVarCluster.FLTable<-function(x,
 					" FROM ",outputTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

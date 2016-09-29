@@ -31,7 +31,7 @@ FLStatsDist <- function(x,method="euclidean",
                         " GROUP BY 1,2,3")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -568,7 +568,7 @@ getDescStatsUDT <- function(object,
     return(sqlQuery(getFLConnection(),sqlstr)[["vectorValueColumn"]])
     else{
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -937,7 +937,7 @@ getDescStatsUDTjoin <- function(object,
 
     
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = getFLConnection(),
+                    connectionName = getFLConnectionName(),
                     variables = list(
                   obs_id_colname = "vectorIndexColumn",
                   cell_val_colname = "vectorValueColumn"),

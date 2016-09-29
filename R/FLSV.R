@@ -35,7 +35,7 @@ FLSV.FLMatrix<-function(object,...)
                    )
 
 	 tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),

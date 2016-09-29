@@ -204,7 +204,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
     if(type=="float")
     {
       select <- new("FLSelectFrom",
-                    connection = getFLConnection(), 
+                    connectionName = getFLConnectionName(), 
                     ##database = getOption("ResultDatabaseFL"), 
                     table_name = "fzzlserial",
                     variables = list(obs_id_colname="SERIALVAL"),
@@ -242,7 +242,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       }
       # options(FLTestVectorTable=TRUE)
       select <- new("FLSelectFrom",
-                    connection = getFLConnection(), 
+                    connectionName = getFLConnectionName(), 
                     table_name = vtableName,
                     variables = list(obs_id_colname="vectorIndexColumn"),
                     whereconditions=paste0(vtableName,".vectorIndexColumn < ",n+1),
@@ -345,7 +345,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
             ARTestIntMatrixTable="int")
   vtableName <- names(vtemp)[vtemp==type]
   select <- new("FLSelectFrom",
-                connection = getFLConnection(),
+                connectionName = getFLConnectionName(),
                 table_name = c(mtrx=vtableName),
                 variables=list(MATRIX_ID="'%insertIDhere%'",
                                rowIdColumn=paste0("mtrx.rowIdColumn"),

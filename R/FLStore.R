@@ -138,7 +138,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       # sqlSendUpdate(getFLConnection(object),
       #               vSqlStr)
       return(FLMatrix(
-            connection = getFLConnection(object),
+            connectionName = getFLConnectionName(object),
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
@@ -203,7 +203,7 @@ store.FLVector <- function(object,pTableName=NULL,...)
   # sqlSendUpdate(getFLConnection(object),
   #                 vSqlStr)
   select <- new("FLSelectFrom",
-                connection = connection, 
+                connectionName = attr(connection,"name"), 
                 table_name = vtableName1,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),

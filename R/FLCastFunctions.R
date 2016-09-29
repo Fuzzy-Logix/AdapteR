@@ -578,7 +578,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
 
   sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name")$name,
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -679,7 +679,7 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
               as.FLVector.FLMatrix(object))
 
 #' @export
-as.FLVector.vector <- function(object,connection=getFLConnection(object))
+as.FLVector.vector <- function(object,connection=getFLConnection())
 {
     ##flag3Check(connection)
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))
@@ -730,7 +730,7 @@ as.FLVector.vector <- function(object,connection=getFLConnection(object))
     t <- as.FLTable.data.frame(vdataframe,connection,tablename,1,drop=FALSE)
   }
   select <- new("FLSelectFrom",
-                connection = connection, 
+                connectionName = attr(connection,"name"), 
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
@@ -959,7 +959,7 @@ as.FLTable.data.frame <- function(object,
   }
   # browser()
   select <- new("FLSelectFrom",
-                connection = getFLConnection(), 
+                connectionName = getFLConnectionName(), 
                 table_name = tableName, 
                 variables = list(
                     obs_id_colname = obsIdColname),
@@ -988,7 +988,7 @@ as.FLByteInt <- function(x){
     if(!vtemp)
         stop("invalid input: x and y should be of BYTEINT in-database type \n ")
     select <- new("FLSelectFrom",
-                connection = getFLConnection(), 
+                connectionName = getFLConnectionName(), 
                 table_name = c(flt=vtbl),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),

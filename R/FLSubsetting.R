@@ -184,7 +184,7 @@ NULL
         if(!isAliasSet(object))
         object <- setAlias(object,"flt")
         mapselect <- new("FLSelectFrom",
-                         connection = getFLConnection(), 
+                         connectionName = getFLConnectionName(), 
                          table_name = c(nameflt=getOption("NameMapTableFL")),
                          variables = list(),
                          whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
@@ -296,7 +296,7 @@ NULL
                             " WHERE a.vectorIndexColumn = b.vectorIndexColumn \n",
                             " AND c.vectorValueColumn = b.vectorValueColumn \n")
           tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -321,7 +321,7 @@ NULL
             nameValueColumn <- changeAlias(nameValueColumn,"nameflt",oldalias)
             nameIndexColumn <- changeAlias(nameIndexColumn,"nameflt",oldalias)
             mapselect <- new("FLSelectFrom",
-                             connection = getFLConnection(), 
+                             connectionName = getFLConnectionName(), 
                              table_name = pSet@select@table_name,
                              variables = list(),
                              whereconditions=c(constraintsSQL(pSet),
@@ -360,7 +360,7 @@ NULL
                         mynames=object@Dimnames[[1]]
                         )
           mapselect <- new("FLSelectFrom",
-                           connection = getFLConnection(), 
+                           connectionName = getFLConnectionName(), 
                            table_name = c(nameflt=getOption("NameMapTableFL")),
                            variables = list(),
                            whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
@@ -435,7 +435,7 @@ NULL
                           " FROM ",tableAndAlias(object),
                           constructWhere(constraintsSQL(object)))
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                          connection = connection,
+                          connectionName = attr(connection,"name"),
                           variables = list(
                         obs_id_colname = "vectorIndexColumn",
                         cell_val_colname = "vectorValueColumn"),
@@ -458,7 +458,7 @@ NULL
                         )
 
         mapselect <- new("FLSelectFrom",
-                         connection = getFLConnection(), 
+                         connectionName = getFLConnectionName(), 
                          table_name = c(nameflt=getOption("NameMapTableFL")),
                          variables = list(),
                          whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),

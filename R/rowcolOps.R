@@ -31,7 +31,7 @@ rowcolOps<-function(object,margin,operation,...){
 					" GROUP BY ",var,".",object@dimColumns[[margin]])
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

@@ -557,7 +557,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         if(!(platform %in% unique (platformMap))) ## use map
             platform <- platformMap[[platform]]
     }
-    connection <- FLConnection(connection, platform)
+    connection <- FLConnection(connection, platform, name=ifelst(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)

@@ -252,7 +252,7 @@ setMethod("apply",
 						" GROUP BY ",vgroupCol)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-	                    connection = getFLConnection(),
+	                    connectionName = getFLConnectionName(),
 	                    variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

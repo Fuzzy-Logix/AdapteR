@@ -5,7 +5,7 @@
 \title{A FLConnection object stores either a JDBC or a ODBC connection
 as well as the platform that is connected to.}
 \usage{
-FLConnection(connection, platform)
+FLConnection(connection, platform, name)
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection class for connectivity for R}

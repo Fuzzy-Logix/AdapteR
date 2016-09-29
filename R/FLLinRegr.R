@@ -1214,7 +1214,7 @@ prepareData.lmGeneric <- function(formula,data,
 							" \nWHERE ",var_id_colname," = -1 \n")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getFLConnection(),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -1226,7 +1226,7 @@ prepareData.lmGeneric <- function(formula,data,
 							select = tblfunqueryobj,
 							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
-                            dim = c(nrow(object@deeptable),1),
+                            dims = c(nrow(object@deeptable),1),
 							isDeep = FALSE)
 			object@results <- c(object@results,list(y=yvector))
 			assign(parentObject,object,envir=parent.frame())
@@ -1664,7 +1664,7 @@ predict.lmGeneric <- function(object,
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

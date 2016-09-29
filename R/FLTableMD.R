@@ -122,7 +122,7 @@ FLTableMD <- function(table,
         #     stop("obsIDs and varIDs cannot be characters \n ")
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           group_id_colname= group_id_colname,
@@ -173,7 +173,7 @@ FLTableMD <- function(table,
         cols <- setdiff(cols,changeAlias(obs_id_colname,"","flt"))
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           group_id_colname=group_id_colname,

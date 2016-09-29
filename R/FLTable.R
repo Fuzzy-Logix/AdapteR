@@ -88,7 +88,7 @@ FLTable <- function(table,
         #cols <- vdimnames[[2]]
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           obs_id_colname = obs_id_colname,
@@ -142,7 +142,7 @@ FLTable <- function(table,
 
         mydimnames <- list(rows,var_id_colnames)
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           obs_id_colname = obs_id_colname,
@@ -351,7 +351,7 @@ setMethod("wideToDeep",
               widetable <- createView(pViewName=gen_view_name(object@select@table_name),
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
-                        connection = connection, 
+                        connectionName = attr(connection,"name"), 
                         table_name = widetable, 
                         variables = list(
                                 obs_id_colname = obs_id_colname),
@@ -542,7 +542,7 @@ setMethod("deepToWide",
               deeptable <- createView(pViewName=gen_view_name(object@select@table_name),
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
-                        connection = connection, 
+                        connectionName = attr(connection,"name"), 
                         table_name = deeptable, 
                         variables = list(
                                 obs_id_colname = "obs_id_colname",
@@ -722,7 +722,7 @@ setMethod("FLRegrDataPrep",
               widetable <- createView(pViewName=gen_view_name(object@select@table_name),
                                       pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
-                        connection = connection, 
+                        connectionName = attr(connection,"name"), 
                         table_name = widetable, 
                         variables = list(
                                 obs_id_colname = obs_id_colname),

@@ -409,7 +409,7 @@ clustering.FLKMedoids <- function(object)
 						" \n  AND a.MedoidID=b.MedoidID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -464,7 +464,7 @@ medoids.FLKMedoids<-function(object)
 							" WHERE a.",obs_id_colname," = b.MedoidID")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = connection,
+	                        connectionName = attr(connection,"name"),
 	                        variables=list(
 	                            rowIdColumn="rowIdColumn",
 	                            colIdColumn="colIdColumn",
@@ -511,7 +511,7 @@ id.med.FLKMedoids<-function(object){
 						" WHERE ",a,".AnalysisID = '",object@AnalysisID,"'")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -883,7 +883,7 @@ silinfo.FLKMedoids <- function(object){
 						" where a.ObsIDX=b.ObsIDX \n  and a.MedoidIDX=b.MedoidIDX) as a")
 		
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "obs_id_colname"),
                         whereconditions="",
@@ -933,7 +933,7 @@ silinfo.FLKMedoids <- function(object){
 		clus.avg.widthsvector <- tryCatch(sqlQuery(connection,sqlstr)[["vectorValueColumn"]],
 										 error=function(e){
 										 	tblfunqueryobj <- new("FLTableFunctionQuery",
-										                        connection = connection,
+										                        connectionName = attr(connection,"name"),
 										                        variables = list(
 													                obs_id_colname = "vectorIndexColumn",
 													                cell_val_colname = "vectorValueColumn"),
@@ -1037,7 +1037,7 @@ diss.FLKMedoids<-function(object)
 		}
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = connection,
+	                        connectionName = attr(connection,"name"),
 	                        variables=list(
 	                            rowIdColumn="rowIdColumn",
 	                            colIdColumn="colIdColumn",

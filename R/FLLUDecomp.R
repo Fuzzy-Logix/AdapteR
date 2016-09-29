@@ -125,7 +125,7 @@ lu.FLMatrix<-function(object,...)
 				   		" AND OutputValU IS NOT NULL ")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -193,7 +193,7 @@ lu.FLMatrix<-function(object,...)
 					 constructWhere(constraintsSQL(LUMatrix)))
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

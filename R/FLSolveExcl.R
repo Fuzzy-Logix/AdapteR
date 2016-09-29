@@ -50,7 +50,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 						 \n LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",

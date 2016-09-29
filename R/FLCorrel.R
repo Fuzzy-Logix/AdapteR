@@ -384,7 +384,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
             			" GROUP BY ",a,".",x@dimColumns[[2]],",",b,".",y@dimColumns[[2]])
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                connection = connection,
+                connectionName = attr(connection,"name"),
                 variables=list(
                     rowIdColumn="rowIdColumn",
                     colIdColumn="colIdColumn",
@@ -471,7 +471,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 	            			" GROUP BY ",a,".",x@dimColumns[[2]])
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -739,7 +739,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
                                          " GROUP BY ",a,".var_id_colname,",b,".var_id_colname")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -842,7 +842,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
                                          " GROUP BY ",a,".var_id_colname,",b,".",y@dimColumns[[2]])
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -926,7 +926,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	            			" GROUP BY ",a,".var_id_colname")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -1037,7 +1037,7 @@ cov.wtGeneric <- function(x,
             			" GROUP BY a.",colIdColumn,",b.",colIdColumn)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                connection = connection,
+                connectionName = attr(connection,"name"),
                 variables=list(
                     rowIdColumn="rowIdColumn",
                     colIdColumn="colIdColumn",
@@ -1066,7 +1066,7 @@ cov.wtGeneric <- function(x,
 						" GROUP BY 1,2")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-	                    connection = connection,
+	                    connectionName = attr(connection,"name"),
 	                    variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
