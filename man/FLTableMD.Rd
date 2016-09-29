@@ -6,7 +6,7 @@
 \usage{
 FLTableMD(table, group_id_colname, obs_id_colname,
   var_id_colnames = character(0), cell_val_colname = character(0),
-  connection = NULL, group_id = c())
+  connection = getFLConnection(), group_id = c())
 }
 \arguments{
 \item{table}{name of the table}

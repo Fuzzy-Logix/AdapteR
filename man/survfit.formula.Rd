@@ -4,8 +4,8 @@
 \alias{survfit.formula}
 \title{Compute a Survival Curve for Censored Data}
 \usage{
-survfit.formula(formula, data, weights, subset, na.action, etype, id, istate,
-  ...)
+\method{survfit}{formula}(formula, data, weights, subset, na.action, etype, id,
+  istate, ...)
 }
 \arguments{
 \item{formula}{a formula object, which must have a Surv object 
