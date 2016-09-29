@@ -5,19 +5,6 @@ NULL
 
 setOldClass("RODBC")
 
-#' A FLConnection object stores either a JDBC or a ODBC connection
-#' as well as the platform that is connected to.
-#' 
-#' @export
-#' @param connection ODBC/JDBC connection class for connectivity for R
-#' @param platform character, either TD, TDAster, or Hadoop
-FLConnection <- function(connection, platform)
-    # structure(connection=connection,platform=platform,class="FLConnection")
-    structure(list(connection),
-            platform=platform,
-            class="FLConnection",
-            names="connection")
-
 
 sqlError <- function(e){
     warning(e)
@@ -571,7 +558,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             platform <- platformMap[[platform]]
     }
     connection <- FLConnection(connection, platform)
-    options("connectionFL" = connection)
+    options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
     return(connection)
@@ -878,7 +865,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
             tableName <- paste0(databaseName,".",tableName)
         vsqlstr <- limitRowsSQL(paste0("SELECT * FROM \n ",
                                         tableName," \n "),1)
-        vtemp <- tryCatch(sqlQuery(getOption("connectionFL"),
+        vtemp <- tryCatch(sqlQuery(getConnection(),
                         vsqlstr),error=function(e)FALSE)
         if(is.data.frame(vtemp) && nrow(vtemp)==1)
             return(TRUE)

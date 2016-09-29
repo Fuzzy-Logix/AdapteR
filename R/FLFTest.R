@@ -41,7 +41,8 @@ var.test.FLVector <- function(x, y, ratio = 1, alternative = "two.sided", conf.l
         p <- createTable(tName,pSelect=t)
         vcall <- as.list(sys.call())
         dname <- paste0(vcall[[2]]," and ",vcall[[3]])
-        # gk: please use a generator function
+        ## gk: please use a generator function
+        ## constructUDTSQL("DataSetID, GroupID, Num_Val", "FLFTestUdt", "*")
         str <- paste0("WITH z(DataSetID, GroupID, Num_Val) AS
                                  (SELECT q.* FROM ",p," AS q)
 SELECT a.* FROM TABLE (FLFTestUdt(z.DataSetID, '",vmapping[alternative],"', z.GroupID, z.Num_Val)

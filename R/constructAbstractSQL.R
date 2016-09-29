@@ -183,7 +183,7 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
     vCall <- c(TD="CALL ",
                 TDAster="SELECT * FROM ",
                 Hadoop="SELECT ")
-    vCall <- vCall[[getOption("FLPlatform")]]
+    vCall <- vCall[[getFLPlatform()]]
     if(is.TDAster()){
         pars <- c(pars,
                 DSN=fquote(getOption("DSN")))
@@ -418,7 +418,7 @@ createTable <- function(pTableName,
     vtempKeyword <- c(TD="VOLATILE",
                       Hadoop="TEMPORARY",
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
-    vtempKeyword <- vtempKeyword[getOption("FLPlatform")]
+    vtempKeyword <- vtempKeyword[getFLPlatform()]
 
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
