@@ -39,8 +39,13 @@ sqlQuery.FLConnection <- function(connection,query,...)
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlStoredProc <- function(connection, query, outputParameter, ...) UseMethod("sqlStoredProc")
-sqlStoredProc.FLConnection <- function(connection,query,...) sqlStoredProc(connection$connection,query,...)
+sqlStoredProc <- function(connection, query, outputParameter, ...) 
+    UseMethod("sqlStoredProc")
+sqlStoredProc.FLConnection <- function(connection,query, outputParameter,...) 
+    sqlStoredProc(connection=getRConnection(connection),
+                  query=query, 
+                  outputParameter=outputParameter,
+                  ...)
 
 #' Send a query to database
 #' 
@@ -317,8 +322,8 @@ validate_args <- function (arg_list, type_list, class_list = list())
         }
     }
     for (name in names(class_list)) {
-        if( class(arg_list[[name]]) != class_list[[name]])
-            stop(paste("Argument Type Mismatch:", name, "should be of class", class_list[[name]]))
+        if(!inherits(arg_list[[name]],class_list[[name]]))
+            stop(paste("Argument Type Mismatch:", name, "should inherit class", class_list[[name]]))
     }
 }
 

@@ -146,7 +146,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
             col_id_colname = object@dimColumns[[2]], 
             cell_val_colname = object@dimColumns[[3]],
             dims=dim(object),
-            Dimnames=dimnames(object),
+            dimnames=dimnames(object),
             type=typeof(object)
             ))
     }
