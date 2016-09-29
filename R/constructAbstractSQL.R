@@ -124,17 +124,16 @@ constructStoredProcSQL <- function (pConnection,
                                     pFuncName,
                                     pOutputParameter,
                                     ...) {
-    UseMethod("constructStoredProcSQL",
-              pConnection,
-              pFuncName,
-              pOutputParameter,
-              ...)
+    UseMethod("constructStoredProcSQL")
 }
+
+
 
 constructStoredProcSQL.FLConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
                                                 ...){
+    pConnection <- pConnection$connection
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -144,6 +143,7 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
     pars <- character()
     ## Construct input params 
     ## NULL in TD == '' in others
+    ## gk: refactor conditionals to class methods
     if(class(pConnection)=="RODBC" | class(pConnection)=="character"){
         pars <- sapply(args,
                     function(a){
