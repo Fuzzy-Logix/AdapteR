@@ -959,7 +959,7 @@ as.FLTable.data.frame <- function(object,
   }
   # browser()
   select <- new("FLSelectFrom",
-                # connection = getFLConnection(), 
+                connection = getFLConnection(), 
                 table_name = tableName, 
                 variables = list(
                     obs_id_colname = obsIdColname),
