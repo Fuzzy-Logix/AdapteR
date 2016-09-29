@@ -127,3 +127,18 @@ dim.FLVector <- function(object)
 }
 
 
+#' @export
+dimnames.FLMatrix <- function(object)
+  return(object@Dimnames)
+  #' @export
+dimnames.FLVector <- function(object)
+  return(object@Dimnames)
+#' @export
+dimnames.FLTable <- function(object)
+  return(object@Dimnames)
+#' @export
+dimnames.FLTableMD <- function(object)
+  return(object@Dimnames)
+#' @export
+dimnames.FLAbstractTable <- function(object)
+  return(object@Dimnames)

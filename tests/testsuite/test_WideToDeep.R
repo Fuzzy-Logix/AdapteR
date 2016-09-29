@@ -15,7 +15,7 @@ table3<-FLTable(table= "tblUSArrests",
 #Asana Ticket - https://app.asana.com/0/143316600934101/149535659543490
 test_that("check for wide to deep",{
     sqlstr<-paste0("DROP TABLE ","tblAutoMpgd;")
-    sqlSendUpdate(getOption("connectionFL"),sqlstr)
+    sqlSendUpdate(getOption("FLConnection"),sqlstr)
     wideToDeep(object = table2,
                excludeCols = "HorsePower,Weight",
                classSpec = list(CarName = "Toyota",Cylinders = "4"),
@@ -30,7 +30,7 @@ test_that("check for wide to deep",{
 #Asana Ticket - https://app.asana.com/0/143316600934101/149535659543490
 test_that("check for deep",{
     sqlstr<- "DROP TABLE tblUSArrestswide1;"
-    sqlSendUpdate(getOption("connectionFL"),sqlstr)
+    sqlSendUpdate(getOption("FLConnection"),sqlstr)
     deepToWide(object = table3,
                  whereconditions="",
                  mapTable="",

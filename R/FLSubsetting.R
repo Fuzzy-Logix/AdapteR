@@ -212,14 +212,14 @@ NULL
         
         vres <- newFLVector(
                   select=object@select,
-                  dimnames=list(newrownames,newcolnames),
+                  Dimnames=list(newrownames,newcolnames),
                   isDeep=object@isDeep,
                   mapSelect=mapselect)
       }
       else
           vres <- newFLVector(
                       select=object@select,
-                      dimnames=list(vrownames,vcolnames),
+                      Dimnames=list(vrownames,vcolnames),
                       isDeep=object@isDeep)
       vvaluecolumn <- getValueColumn(vres)
       vvaluecolumn <- changeAlias(vvaluecolumn,"","")
@@ -487,7 +487,7 @@ NULL
                 type=typeof(object)))
     else return(newFLVector(
                 select=select,
-                dimnames=list(newrownames,newcolnames),
+                Dimnames=list(newrownames,newcolnames),
                 isDeep=object@isDeep,
                 type=typeof(object)))
 }

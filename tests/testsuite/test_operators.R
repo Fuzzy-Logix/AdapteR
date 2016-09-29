@@ -324,9 +324,9 @@ test_that("check result for identical",
 ## testing M_Subtraction with different length vectors
 test_that("-: fzzlSerial column vectors of different length",
 {
-  flt <- FLTable("FL_DEMO.fzzlSerial","SerialVal", whereconditions = "serialval<100")
-  flv1 <- flt[1:8,"RandVal"]
-  flv <- flt[1:10,"RandVal"]
+  flt <- FLTable("FL_DEMO.fzzlSerial","SERIALVAL", whereconditions = "SERIALVAL<100")
+  flv1 <- flt[1:8,"RANDVAL"]
+  flv <- flt[1:10,"RANDVAL"]
   flv1R <- as.vector(flv1)
   flvR <- as.vector(flv)
   FLexpect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)

@@ -11,7 +11,7 @@ getObsIdColname <- function(object){
 ## returns INT for integers or bool,VARCHAR(255)
 ## for characters and FLOAT for numeric
 getFLColumnType <- function(x,columnName=NULL){
-    if(!is.FL(x)) stop("Input is not FL object. Use typeof. \n ")
+    # if(!is.FL(x)) stop("Input is not FL object. Use typeof. \n ")
     vmapping <- c(VARCHAR="character",
                   INT="integer",
                   FLOAT="double",
