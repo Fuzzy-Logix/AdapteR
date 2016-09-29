@@ -67,7 +67,7 @@ as.data.frame.FLTable <- function(x, ...){
     #browser()
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-    tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
+    tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
     names(D) <- toupper(names(D))
     D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
@@ -95,7 +95,7 @@ as.data.frame.FLVector <- function(x, ...){
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     #browser()
 
-   tryCatch(D <- sqlQuery(getConnection(x),sqlstr),
+   tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
    
     names(D) <- toupper(names(D))
@@ -218,7 +218,7 @@ as.matrix.FLTable <- function(x,...)
 as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
     ##browser()
     if(!is.logical(sparse)) stop("sparse must be logical")
-    if(is.null(connection)) connection <- getConnection(object)
+    if(is.null(connection)) connection <- getFLConnection(object)
     options(warn=-1)
     if(is.integer(as.vector(as.matrix(object))))
     tablename <- getOption("ResultIntMatrixTableFL")
@@ -452,7 +452,7 @@ as.FLEnvironment <- function(Renv){
 as.sparseMatrix.FLMatrix <- function(object) {
     #browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
-    tryCatch(valuedf <- sqlQuery(getConnection(object), sqlstr),
+    tryCatch(valuedf <- sqlQuery(getFLConnection(object), sqlstr),
       error=function(e){stop(e)})
     i <- valuedf[[object@dimColumns[[1]]]]
     j <- valuedf[[object@dimColumns[[2]]]]
@@ -512,7 +512,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
 {
-  if(is.null(connection)) connection <- getConnection(object)
+  if(is.null(connection)) connection <- getFLConnection(object)
   ##Get names of vector
   if(ncol(object)>1)
   object <- store(object)
@@ -679,7 +679,7 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
               as.FLVector.FLMatrix(object))
 
 #' @export
-as.FLVector.vector <- function(object,connection=getConnection(object))
+as.FLVector.vector <- function(object,connection=getFLConnection(object))
 {
     ##flag3Check(connection)
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))
@@ -745,7 +745,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
 }
 
 #' @export
-as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
+as.FLVector.FLMatrix <- function(object,connection=getFLConnection(object))
 {
     ##flag3Check(connection)
   VID <- getMaxVectorId(connection)
@@ -795,7 +795,7 @@ as.FLVector.FLMatrix <- function(object,connection=getConnection(object))
   }
     batchStore(sqlstr)
     sqlstr <- ""
-    table <- FLTable(connection = getConnection(object),
+    table <- FLTable(connection = getFLConnection(object),
                      table=getOption("ResultVectorTableFL"),
                      obs_id_colname="vectorIndexColumn",
                      whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",VID)

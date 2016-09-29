@@ -26,7 +26,7 @@ chol <- function (object, ...){
 #' @export
 chol.FLMatrix<-function(object,...)
 {
-    connection<-getConnection(object)
+    connection<-getFLConnection(object)
     ##flag1Check(connection)
 
     sqlstr<-paste0(

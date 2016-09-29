@@ -33,7 +33,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
                         " FROM(",constructSelect(x),") AS ",a)
 
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connection = getFLConnection(x),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -81,7 +81,7 @@ setMethod("FLExpLog",signature(x="FLVector"),
                                 "vectorValueColumn")
         }
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connection = getFLConnection(x),
                         variables = list(
                             obs_id_colname = "vectorIndexColumn",
                             cell_val_colname = "vectorValueColumn"),

@@ -865,7 +865,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
             tableName <- paste0(databaseName,".",tableName)
         vsqlstr <- limitRowsSQL(paste0("SELECT * FROM \n ",
                                         tableName," \n "),1)
-        vtemp <- tryCatch(sqlQuery(getConnection(),
+        vtemp <- tryCatch(sqlQuery(getFLConnection(),
                         vsqlstr),error=function(e)FALSE)
         if(is.data.frame(vtemp) && nrow(vtemp)==1)
             return(TRUE)

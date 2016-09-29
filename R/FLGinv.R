@@ -33,7 +33,7 @@ ginv.default <- function(object,...){
 ginv.FLMatrix<-function(object,...)
 {
 
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag1Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),

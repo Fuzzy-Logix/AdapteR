@@ -358,7 +358,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 {
 	if(is.null(y))
 	y <- x
-	connection <- getConnection(x)
+	connection <- getFLConnection(x)
 	pStoreResult <- FALSE
     ##browser()
     if(is.FLMatrix(y))
@@ -626,7 +626,7 @@ FLCorGeneric.FLVector <- function(x,y=NULL,
 	if(is.null(y))
 	y <- x
 
-	connection <- getConnection(x)
+	connection <- getFLConnection(x)
 
 	if(is.FLVector(y))
 	{
@@ -713,7 +713,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	}
 	else vnullFlag <- 0
 
-	connection <- getConnection(x)
+	connection <- getFLConnection(x)
 	if(is.FLTable(y))
 	{
 		if(nrow(x) != nrow(y)) stop("incompatible dimensions")

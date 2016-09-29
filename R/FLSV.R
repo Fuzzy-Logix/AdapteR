@@ -23,7 +23,7 @@ FLSV <- function (object, ...){
 FLSV.FLMatrix<-function(object,...)
 {
 	#checkSquare(object)
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag3Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),

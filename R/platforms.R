@@ -23,11 +23,6 @@ setMethod("getFLConnection", signature(object = "missing"), function(object) get
 ## setMethod("getConnection", signature(object = "FLTableQuery"), function(object) object@select@connection)
 ## setMethod("getConnection", signature(object = "FLVector"), function(object) object@select@connection)
 
-## phani: In many places getConnection(object) is used..
-## This may be replaced with getFLConnection(object) everywhere 
-## and below setMethod is deleted?
-setMethod("getConnection", signature(what = "ANY"), function(what) getFLConnection())
-
 ##' @export
 getFLPlatform <- function(connection=getFLConnection()) return(attr(getFLConnection(),"platform"))
 is.TD         <- function() getFLPlatform()=="TD"

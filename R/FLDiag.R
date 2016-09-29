@@ -32,7 +32,7 @@ diag.default <- base::diag
 diag.FLMatrix<-function(object,...)
 {
     
-    connection<-getConnection(object)
+    connection<-getFLConnection(object)
     ## flag3Check(connection)
 
     table <- FLTable(table=object@select@table_name,
@@ -53,7 +53,7 @@ diag.FLMatrix<-function(object,...)
 #' @export
 diag.FLVector <- function(object,...)
 {
-    connection <- getConnection(object)
+    connection <- getFLConnection(object)
     ## flag1Check(connection)
 
     if(length(object)==1)

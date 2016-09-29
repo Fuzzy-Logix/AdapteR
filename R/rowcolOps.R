@@ -2,7 +2,7 @@
 NULL
 
 rowcolOps<-function(object,margin,operation,...){
-    connection<-getConnection(object)
+    connection<-getFLConnection(object)
     ## flag3Check(connection)
     var <- genRandVarName()
     

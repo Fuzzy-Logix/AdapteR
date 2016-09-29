@@ -24,7 +24,7 @@ rankMatrix.default <- Matrix::rankMatrix
 #' @export
 rankMatrix.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
 				   outputSelectMatrix("FLMatrixRankUdt",

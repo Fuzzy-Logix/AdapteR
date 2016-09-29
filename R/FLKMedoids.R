@@ -189,7 +189,7 @@ pam.FLTable <- function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	vcall <- match.call()
@@ -394,7 +394,7 @@ clustering.FLKMedoids <- function(object)
 	return(object@results[["clustering"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -444,7 +444,7 @@ medoids.FLKMedoids<-function(object)
 		medoidsmatrix <- id.med.FLKMedoids(object)
 		else
 		{
-			connection <- getConnection(object@table)
+			connection <- getFLConnection(object@table)
 			## flag1Check(connection)
 			AnalysisID <- object@AnalysisID
 			deeptablename <- object@deeptable@select@table_name
@@ -502,7 +502,7 @@ id.med.FLKMedoids<-function(object){
 	else
 	{
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						        " ROW_NUMBER() OVER(ORDER BY ",a,".MedoidID) AS vectorIndexColumn, \n ",
@@ -544,7 +544,7 @@ objective.FLKMedoids <- function(object){
 		## DBLytix TotalCost is the average;R cost is absolute.
 		## The idea is the same,i.e to see improvement from build to swap
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
             ## flag3Check(connection)
 		n <- nrow(object@deeptable)
 
@@ -573,7 +573,7 @@ isolation.FLKMedoids <- function(object){
 	return(object@results[["isolation"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -688,7 +688,7 @@ clusinfo.FLKMedoids <- function(object){
 	return(object@results[["clusinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -805,7 +805,7 @@ silinfo.FLKMedoids <- function(object){
 	return(object@results[["silinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -1006,7 +1006,7 @@ diss.FLKMedoids<-function(object)
 	return(object@results[["diss"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 		deeptablename <- object@deeptable@select@table_name

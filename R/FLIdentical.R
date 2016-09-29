@@ -35,7 +35,7 @@ identical.default <- base::identical
 #' @export
 identical.FLMatrix <- function(pObj1, pObj2)
 {
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
 		if(!all(dim(pObj1)==dim(pObj2)))
@@ -80,7 +80,7 @@ identical.FLMatrix <- function(pObj1, pObj2)
 #' @export
 identical.FLVector <- function(pObj1, pObj2)
 {
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLVector(pObj2))
 	{
 		if(length(pObj1) != length(pObj2)) return(FALSE)
@@ -194,7 +194,7 @@ NULL
 #' @export
 `==.FLMatrix` <- function(pObj1, pObj2)
 {
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
 		checkSameDims(pObj1,pObj2)

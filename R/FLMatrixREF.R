@@ -22,7 +22,7 @@ FLMatrixREF <- function (object, ...){
 FLMatrixREF.FLMatrix<-function(object,...)
 {
 
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag1Check(connection)
 
 	sqlstr<-paste0(

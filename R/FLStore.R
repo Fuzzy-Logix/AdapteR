@@ -135,10 +135,10 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       #                        constructSelect(object,joinNames=FALSE)),
       #                   "\n")
 
-      # sqlSendUpdate(getConnection(object),
+      # sqlSendUpdate(getFLConnection(object),
       #               vSqlStr)
       return(FLMatrix(
-            connection = getConnection(object),
+            connection = getFLConnection(object),
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
@@ -155,7 +155,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
 #' @export
 store.FLVector <- function(object,pTableName=NULL,...)
 {
-  connection <- getConnection(object)
+  connection <- getFLConnection(object)
   if(length(colnames(object))>1 && object@isDeep==FALSE)
   {
     object <- as.vector(object)
@@ -200,7 +200,7 @@ store.FLVector <- function(object,pTableName=NULL,...)
   #                   "\n",
   #                  gsub("'%insertIDhere%'",VID,constructSelect(object)),
   #                   "\n")
-  # sqlSendUpdate(getConnection(object),
+  # sqlSendUpdate(getFLConnection(object),
   #                 vSqlStr)
   select <- new("FLSelectFrom",
                 connection = connection, 
@@ -223,7 +223,7 @@ store.FLVector <- function(object,pTableName=NULL,...)
 #' @export
 store.FLTable <- function(object,pTableName=NULL,...)
 {
-  connection <- getConnection(object)
+  connection <- getFLConnection(object)
   if(is.null(pTableName))
     table_name <- gen_unique_table_name("store")
   else table_name <- pTableName

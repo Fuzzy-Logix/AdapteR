@@ -253,7 +253,7 @@ getXMatrix <- function(object,
 
   # }
   vselect <- new("FLTableFunctionQuery",
-          connection=getConnection(object),
+          connection=getFLConnection(object),
           variables=list(MATRIX_ID="MATRIX_ID",
                   rowIdColumn="rowIdColumn",
                   colIdColumn="colIdColumn",

@@ -33,7 +33,7 @@ tr.default <- function(object,...){
 
 #' @export
 tr.FLMatrix<-function(object,...){
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
 	
 	## flag3Check(connection)
 
