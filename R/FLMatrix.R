@@ -17,6 +17,7 @@ setOldClass("RODBC")
 setClass("FLTableQuery",
          slots=list(
              variables  = "list",
+             connection = "FLConnection",
              whereconditions="character",
              order = "character"
          ))
@@ -86,7 +87,8 @@ newFLMatrix <- function(...) {
         ...)
 }
 
-
+#' @export
+setClass("FLConnection",slots=list())
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
@@ -584,7 +586,7 @@ FLMatrix <- function(table_name,
     
     RESULT <- newFLMatrix(
                   select = select,
-                  dims = dim,
+                  dims = dims,
                   Dimnames = dimnames,
                   type=type)
     

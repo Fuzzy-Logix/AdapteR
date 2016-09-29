@@ -258,7 +258,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         remoteTable <- tablename
 
         #analysisID <- paste0("AdapteR",remoteTable,MID)
-        if(class(connection)=="RODBC")
+        if(is.ODBC())
         {
           sqlstatements <-
             base::apply(mdeep,1,
@@ -273,7 +273,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
                               paste(sqlstatements,
                                     collapse="\n"))
         }
-        else if(class(connection)=="JDBCConnection")
+        else if(is.JDBC())
         {
           mdeep <- base::cbind(MATRIX_ID=as.integer(MID),mdeep)
           mdeep <- as.data.frame(mdeep)
@@ -307,7 +307,7 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
             col_id_colname = "colIdColumn",
             cell_val_colname = "valueColumn",
             dims = mydims,
-            Dimnames = mydimnames))
+            dimnames = mydimnames))
 }
 
 #' Casting to FLMatrix
@@ -632,7 +632,7 @@ as.FLMatrix.FLTable <- function(object,
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
-                  Dimnames=vdimnames,
+                  dimnames=vdimnames,
                   whereconditions=object@select@whereconditions))
 }
 ######################################################################################################################
@@ -706,7 +706,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
 
   #vobjcopy <- ifelse(is.character(object),fquote(object[x]),object[x])
   #object <- c(1,"NULL")
-  if(class(connection)=="RODBC")
+  if(is.ODBC())
   {
     sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
            tablename,
@@ -721,7 +721,7 @@ as.FLVector.vector <- function(object,connection=getConnection(object))
                               paste(sqlstr,
                                     collapse="\n"))
   }
-  else if(class(connection)=="JDBCConnection")
+  else if(is.JDBC())
   {
     #browser()
     vdataframe <- data.frame(vectorIdColumn=as.integer(VID),

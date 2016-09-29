@@ -6,7 +6,8 @@
 is.FLMatrix <- function(object)
 {
     if (class(object) == "FLMatrix" |
-        class(object) == "FLMatrixBind")
+        class(object) == "FLMatrixBind" ||
+        inherits(object,"FLMatrix"))
         return (TRUE)
 	else return (FALSE)
 }
@@ -15,7 +16,10 @@ is.FLMatrix <- function(object)
 #' @export
 is.FLVector <- function(object)
 {
-	ifelse(class(object)=="FLVector",TRUE,FALSE)
+	ifelse(class(object)=="FLVector" ||
+            inherits(object,"FLVector"),
+            TRUE,
+            FALSE)
 	
 }
 
@@ -23,13 +27,19 @@ is.FLVector <- function(object)
 #' @export
 is.FLTable <- function(object)
 {
-	ifelse(class(object)=="FLTable",TRUE,FALSE)
+	ifelse(class(object)=="FLTable" ||
+            inherits(object,"FLTable"),
+            TRUE,
+            FALSE)
 }
 
 #' @export
 is.FLTableMD <- function(object)
 {
-    ifelse(class(object)=="FLTableMD",TRUE,FALSE)
+    ifelse(class(object)=="FLTableMD" ||
+            inherits(object,"FLTableMD"),
+            TRUE,
+            FALSE)
 }
 
 is.FLAbstractColumn <- function(object){
@@ -60,13 +70,13 @@ is.FLSelectFrom <- function(pObj){
 
 #' @export
 is.FL <- function(x){
-    if(class(x) %in% c("FLMatrix",
-                        "FLVector",
-                        "FLTable",
-                        "FLTableQuery",
-                        "FLSelectFrom",
-                        "FLTableFunctionQuery",
-                        "FLTableMD"))
+    if(inherits(x,c("FLMatrix",
+                    "FLVector",
+                    "FLTable",
+                    "FLTableQuery",
+                    "FLSelectFrom",
+                    "FLTableFunctionQuery",
+                    "FLTableMD")))
     return(TRUE)
     else return(FALSE)
 }
@@ -117,13 +127,13 @@ is.FLConnection <- function(pObject){
     return(class(pObject)=="FLConnection")
 }
 
-is.ODBC <- function(pObject){
+is.ODBC <- function(pObject=getOption("FLConnection")){
     if(is.FLConnection(pObject))
         pObject <- getRConnection(pObject)
     return(class(pObject)=="RODBC")
 }
 
-is.JDBC <- function(pObject){
+is.JDBC <- function(pObject=getOption("FLConnection")){
     if(is.FLConnection(pObject))
         pObject <- getRConnection(pObject)
     return(class(pObject)=="JDBCConnection")

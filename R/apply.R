@@ -84,11 +84,11 @@ mean.FLAbstractColumn <- function(x, trim = 0, na.rm = FALSE, ...){
 	return(paste0(" FLMean(",
 				paste0(x@columnName,collapse=","),") "))
 }
-modifyXforTrim <- function(x,trim){
+modifyXforTrim <- function(x,trim=0){
     n <- length(x)
     if (trim > 0 && n){
-        if(is.FLTable(x))
-            stop("trim not supported for FLTable objects. \n ")
+        if(!is.FLVector(x))
+            stop("trim supported for FLVector objects only. \n ")
         if (trim >= 0.5) 
             return(median(x))
         lo <- floor(n * trim) + 1
@@ -107,6 +107,8 @@ mean.FLVector <- function(x,...){
     # vFuncArgs <- c(vFuncArgs,count=length(x))
     # vFuncArgs <- unlist(vFuncArgs)
 	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    x <- modifyXforTrim(x,...)
+    if(!is.FL(x)) return(x)
     return(genAggregateFunCall(x,mean.FLAbstractColumn,
                                 count=length(x),...))
 }
@@ -116,6 +118,8 @@ mean.FLMatrix <- function(x,...){
     # vFuncArgs <- c(vFuncArgs,count=length(x))
     # vFuncArgs <- unlist(vFuncArgs)
 	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    x <- modifyXforTrim(x,...)
+    if(!is.FL(x)) return(x)
     return(genAggregateFunCall(x,mean.FLAbstractColumn,
                                 count=length(x),...))
 }
@@ -125,6 +129,8 @@ mean.FLTable <- function(x,...){
     # vFuncArgs <- c(vFuncArgs,count=prod(dim(x)))
     # vFuncArgs <- unlist(vFuncArgs)
 	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
+    x <- modifyXforTrim(x,...)
+    if(!is.FL(x)) return(x)
     return(genAggregateFunCall(x,mean.FLAbstractColumn,
                                 count=length(x),...))
 }

@@ -60,8 +60,9 @@ setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
           function(object,expected,...){
             if(is.numeric(object) || is.integer(object) || is.vector(object)){
-                object <- as.vector(object)
-                return(testthat::expect_equal(object,as.R(expected),...))
+                # object <- as.vector(object)
+                # return(testthat::expect_equal(object,as.R(expected),...))
+                return(FLexpect_equal(expected,object,...))
             }
             else FLexpect_equal(as.FLVector(object),
                                 expected,...)
