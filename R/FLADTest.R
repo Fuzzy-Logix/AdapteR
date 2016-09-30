@@ -69,6 +69,7 @@ setMethod("ad.test",signature(x="FLVector"),
                             # data.name = dname                             
                              )
               class(result) <- "htest"
-              return(result)            
+              dropView(vviewName)
+              return(result)
           }
           )
