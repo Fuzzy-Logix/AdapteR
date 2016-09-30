@@ -5,10 +5,11 @@
 #' @export
 #' @param connection ODBC/JDBC connection class for connectivity for R
 #' @param platform character, either TD, TDAster, or Hadoop
-FLConnection <- function(connection, platform)
+FLConnection <- function(connection, platform, name)
     # structure(connection=connection,platform=platform,class="FLConnection")
     structure(list(connection),
-            platform=platform,
+              platform=platform,
+              name=name,
             class="FLConnection",
             names="connection")
 
@@ -23,10 +24,7 @@ setMethod("getFLConnection", signature(object = "missing"), function(object) get
 ## setMethod("getConnection", signature(object = "FLTableQuery"), function(object) object@select@connection)
 ## setMethod("getConnection", signature(object = "FLVector"), function(object) object@select@connection)
 
-## phani: In many places getConnection(object) is used..
-## This may be replaced with getFLConnection(object) everywhere 
-## and below setMethod is deleted?
-setMethod("getConnection", signature(what = "ANY"), function(what) getFLConnection())
+getFLConnectionName <- function(...) attr(getFLConnection(...),"name")
 
 ##' @export
 getFLPlatform <- function(connection=getFLConnection()) return(attr(getFLConnection(),"platform"))

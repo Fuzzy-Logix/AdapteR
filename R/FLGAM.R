@@ -582,7 +582,7 @@ residuals.FLGAM <- function(object)
 									object@scoreTable,".",vobsid)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -750,7 +750,7 @@ offset.FLGAM <- function(object)
 							" FROM ",vtablename)
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getFLConnection(),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -835,7 +835,7 @@ y.FLGAM <- function(object)
 							" FROM ",vtablename)
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getFLConnection(),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -940,7 +940,7 @@ predict.FLGAM <- function(object,
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

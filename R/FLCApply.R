@@ -20,7 +20,7 @@ NULL
 FLCApply <- function(data,FUN,column)
 {
 	if(class(data)!="FLTable") stop(" input FLTable object as data")
-	connection <- getConnection(data)
+	connection <- getFLConnection(data)
 	if(is.numeric(column))
 	{
 		column <- data@Dimnames[[2]][column]

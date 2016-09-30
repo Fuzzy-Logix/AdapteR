@@ -182,7 +182,7 @@ fanny.FLTable <- function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
@@ -389,7 +389,7 @@ clustering.FLFKMeans <- function(object)
 	return(object@results[["clustering"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -400,7 +400,7 @@ clustering.FLFKMeans <- function(object)
 						"HypothesisID = 1 ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -431,7 +431,7 @@ membership.FLFKMeans<-function(object)
 	return(object@results[["membership"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 
@@ -444,7 +444,7 @@ membership.FLFKMeans<-function(object)
 						" AND a.HypothesisID=1")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -478,7 +478,7 @@ coeff.FLFKMeans<-function(object){
 	else
 	{
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		k<-1/object@centers
 
@@ -507,7 +507,7 @@ objective.FLFKMeans <- function(object){
 	{
 		##Phani-- Query needs to be optimized.
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
             ## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -548,7 +548,7 @@ k.crisp.FLFKMeans<-function(object){
 	return(object@results[["k.crisp"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		k<-1/object@centers
 
@@ -592,7 +592,7 @@ silinfo.FLFKMeans <- function(object){
 	return(object@results[["silinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]

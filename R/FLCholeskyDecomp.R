@@ -26,7 +26,7 @@ chol <- function (object, ...){
 #' @export
 chol.FLMatrix<-function(object,...)
 {
-    connection<-getConnection(object)
+    connection<-getFLConnection(object)
     ##flag1Check(connection)
 
     sqlstr<-paste0(
@@ -36,7 +36,7 @@ chol.FLMatrix<-function(object,...)
     )
     
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                          connection = connection,
+                          connectionName = attr(connection,"name"),
                           variables=list(
                               rowIdColumn="OutputColNum",
                               colIdColumn="OutputRowNum",

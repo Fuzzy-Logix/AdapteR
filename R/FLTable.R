@@ -26,12 +26,11 @@ FLTable <- function(table,
                     var_id_colnames=character(0), 
                     cell_val_colname=character(0),
                     whereconditions=character(0),
-                    connection=NULL,
+                    connection=getFLConnection(),
                     type="double",
                     fetchIDs=TRUE,
                     ...)
 {
-    if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
     oldalias <- names(table)[1]
@@ -89,7 +88,7 @@ FLTable <- function(table,
         #cols <- vdimnames[[2]]
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           obs_id_colname = obs_id_colname,
@@ -143,7 +142,7 @@ FLTable <- function(table,
 
         mydimnames <- list(rows,var_id_colnames)
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           obs_id_colname = obs_id_colname,
@@ -338,7 +337,7 @@ setMethod("wideToDeep",
                   outValueCol)
           {
             if(object@isDeep) return(list(table=object))
-            connection <- getConnection(object)
+            connection <- getFLConnection(object)
             object <- setAlias(object,"")
             if(outDeepTableName == "")
             deeptablename <- gen_deep_table_name(object@select@table_name)
@@ -352,7 +351,7 @@ setMethod("wideToDeep",
               widetable <- createView(pViewName=gen_view_name(object@select@table_name),
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
-                        connection = connection, 
+                        connectionName = attr(connection,"name"), 
                         table_name = widetable, 
                         variables = list(
                                 obs_id_colname = obs_id_colname),
@@ -508,7 +507,7 @@ setMethod("deepToWide",
           {
             #browser()
             if(!object@isDeep) return(list(table=object))
-            connection <- getConnection(object)
+            connection <- getFLConnection(object)
               object <- setAlias(object,"")
               ## gk: please use the common mapping table!
             usedwidetablename <- paste0(getOption("ResultDatabaseFL"),".",
@@ -543,7 +542,7 @@ setMethod("deepToWide",
               deeptable <- createView(pViewName=gen_view_name(object@select@table_name),
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
-                        connection = connection, 
+                        connectionName = attr(connection,"name"), 
                         table_name = deeptable, 
                         variables = list(
                                 obs_id_colname = "obs_id_colname",
@@ -711,7 +710,7 @@ setMethod("FLRegrDataPrep",
                   )
           {
             if(object@isDeep) return(list(table=object))
-            connection <- getConnection(object)
+            connection <- getFLConnection(object)
             object <- setAlias(object,"")
             if(outDeepTableName == "")
             deeptablename <- gen_deep_table_name(object@select@table_name)
@@ -723,7 +722,7 @@ setMethod("FLRegrDataPrep",
               widetable <- createView(pViewName=gen_view_name(object@select@table_name),
                                       pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
-                        connection = connection, 
+                        connectionName = attr(connection,"name"), 
                         table_name = widetable, 
                         variables = list(
                                 obs_id_colname = obs_id_colname),

@@ -31,7 +31,7 @@ svd.default<-base::svd
 #' @export
 svd.FLMatrix<-function(object,nu=c(),nv=c())
 {
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
 	## flag1Check(connection)
 	## flag3Check(connection)
 

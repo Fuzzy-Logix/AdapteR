@@ -28,7 +28,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		else stop("two arguments needed for ",pOperator," \n ")
 	}
 
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
             ## flag1Check(connection)
@@ -141,7 +141,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                              connection = connection,
+                              connectionName = attr(connection,"name"),
                               variables=list(
                                   rowIdColumn="rowIdColumn",
                                   colIdColumn="colIdColumn",
@@ -221,7 +221,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 		else stop("two arguments needed for ",pOperator," \n ")
 	}
 
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
 		if(pOperator %in% c("%*%"))
@@ -423,7 +423,7 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
             }
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                                  connection = connection,
+                                  connectionName = attr(connection,"name"),
                                   variables = list(
                                       obs_id_colname = "vectorIndexColumn",
                                       cell_val_colname = "vectorValueColumn"),
@@ -486,7 +486,7 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 	{
 		if(is.FLMatrix(pObj2))
 		{
-			connection <- getConnection(pObj2)
+			connection <- getFLConnection(pObj2)
 			if(nrow(pObj2)==length(pObj1))
                 pObj1 <- as.FLMatrix(matrix(pObj1,1))
 			else if(nrow(pObj2)==1)
@@ -497,7 +497,7 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 		}
 		else if(class(pObj2)=="FLVector")
 		{
-			connection <- getConnection(pObj2)
+			connection <- getFLConnection(pObj2)
 			if(length(pObj2) != length(pObj1)) stop("non-conformable dimensions")
 			pObj1 <- as.FLMatrix(matrix(pObj1,1))
 			return(pObj1 %*% pObj2)
@@ -507,7 +507,7 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.FLMatrix(pObj2) || is.FLVector(pObj2))
 	{
-		connection <- getConnection(pObj2)
+		connection <- getFLConnection(pObj2)
 		if(is.FLMatrix(pObj2))
             pObj1 <- as.FLMatrix(matrix(pObj1,nrow(pObj2),ncol(pObj2)))
 		else 

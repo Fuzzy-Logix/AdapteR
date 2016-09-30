@@ -253,7 +253,7 @@ getXMatrix <- function(object,
 
   # }
   vselect <- new("FLTableFunctionQuery",
-          connection=getConnection(object),
+          connectionName = getFLConnectionName(object),
           variables=list(MATRIX_ID="MATRIX_ID",
                   rowIdColumn="rowIdColumn",
                   colIdColumn="colIdColumn",
@@ -305,7 +305,7 @@ calcLinearPred <- function(object,...){
                           " AS vectorValueColumn \n ",
                       " FROM (",constructSelect(vfit),") a ")
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                         obs_id_colname = "vectorIndexColumn",
                         cell_val_colname = "vectorValueColumn"),
@@ -405,7 +405,7 @@ calcResiduals <- function(object,
   }
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                         obs_id_colname = "vectorIndexColumn",
                         cell_val_colname = "vectorValueColumn"),

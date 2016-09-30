@@ -9,7 +9,7 @@ setOldClass("RODBC")
 #' A table query models a select or a table result of a sql statement.
 #' 
 #' 
-#' @slot connection ANY ODBC/JDBC connectivity for R
+#' @slot connectionName character variable not used right now, will be used for future support of working with several connections (to different platforms possibly)
 #' @slot variables list Named list of variables for the table query: values are rownames, names (keys) are result column names.
 #' @slot whereconditions character vector of strings restricting the select query (if any)
 #' @slot order character ordering statements (if any)
@@ -17,7 +17,7 @@ setOldClass("RODBC")
 setClass("FLTableQuery",
          slots=list(
              variables  = "list",
-             connection = "FLConnection",
+             connectionName = "character",
              whereconditions="character",
              order = "character"
          ))
@@ -185,7 +185,7 @@ setMethod("str",signature(object="FLTableQuery"),
 drop.FLTable <- function(object)
 {
     vSqlStr <- paste0(" DROP TABLE ",object@tablename)
-    sqlSendUpdate(getConnection(object), vSqlStr)
+    sqlSendUpdate(getFLConnection(object), vSqlStr)
     return(paste0(object@select@table_name," DROPPED"))
 }
 
@@ -467,7 +467,7 @@ FLamendDimnames <- function(flm,map_table) {
                   equalityConstraint("cnmap.DIM_ID","2"))
         }
         flm@mapSelect <- new("FLSelectFrom",
-                             connection = connection,
+                             connectionName = attr(connection,"name"),
                              table_name = tablenames,
                              variables=variables,
                              whereconditions=mConstraint,
@@ -578,7 +578,7 @@ FLMatrix <- function(table_name,
 
     ##browser()
     select <- new("FLSelectFrom",
-                  connection = connection,
+                  connectionName = attr(connection,"name"),
                   table_name = tablenames,
                   variables=variables,
                   whereconditions=c(whereconditions, mConstraint),

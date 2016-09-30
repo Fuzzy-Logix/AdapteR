@@ -80,7 +80,7 @@ setMethod("FLStringDist",
                              " FROM(",constructSelect(targets),") AS ",a)
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -158,7 +158,7 @@ setMethod("FLStringDist",
                                       constructSelect(targets),") AS b ")
 
               tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = getFLConnection(),
+                    connectionName = getFLConnectionName(),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -222,7 +222,7 @@ setMethod("FLStringDist",
                                     "CAST((b.vectorIndexColumn MOD ",
                                     vminlen,") AS INT)")
                tblfunqueryobj <- new("FLTableFunctionQuery",
-                      connection = getFLConnection(),
+                      connectionName = getFLConnectionName(),
                       variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -701,7 +701,7 @@ setMethod("FLStrCommon",
                              " FROM(",constructSelect(object),") AS ",a)
           }
           tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -771,7 +771,7 @@ setMethod("FLConcatString",
                              " GROUP BY 1,2")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -1139,7 +1139,7 @@ setMethod("grep",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL AND ",
                                       b,".vectorValueColumn ",ifelse(invert,"=","<>")," -1")
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                                connection = getFLConnection(),
+                                connectionName = getFLConnectionName(),
                                 variables = list(
                                 obs_id_colname = "vectorIndexColumn",
                                 cell_val_colname = "vectorValueColumn"),
@@ -1226,7 +1226,7 @@ setMethod("grepl",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL ")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                                connection = getFLConnection(),
+                                connectionName = getFLConnectionName(),
                                 variables = list(
                                 obs_id_colname = "vectorIndexColumn",
                                 cell_val_colname = "vectorValueColumn"),

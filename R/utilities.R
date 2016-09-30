@@ -39,13 +39,21 @@ sqlQuery.FLConnection <- function(connection,query,...)
 #' @param channel ODBC/JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlStoredProc <- function(connection, query, outputParameter, ...) 
-    UseMethod("sqlStoredProc")
-sqlStoredProc.FLConnection <- function(connection,query, outputParameter,...) 
-    sqlStoredProc(connection=getRConnection(connection),
-                  query=query, 
-                  outputParameter=outputParameter,
-                  ...)
+sqlStoredProc <- function(connection, query, outputParameter, ...) UseMethod("sqlStoredProc")
+sqlStoredProc.FLConnection <- function(connection,query,outputParameter,...) {
+    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
+                                         gsub(" +","    ",
+                                              constructStoredProcSQL(pConnection="string",
+                                                                     pFuncName=query,
+                                                                     pOutputParameter=outputParameter,
+                                                                     ...)),"\n"))
+    query <- constructStoredProcSQL(pConnection=connection,
+                                    pFuncName=query,
+                                    pOutputParameter=outputParameter,
+                                    ...)
+
+    sqlStoredProc(connection=connection$connection,query=query,outputParameter=outputParameter,...)
+}
 
 #' Send a query to database
 #' 
@@ -158,16 +166,6 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     #                 paste0(rep("?", length(args)+length(outputParameter)),
     #                        collapse=","),
     #                  ")")
-    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
-                                         gsub(" +","    ",
-                                              constructStoredProcSQL(pConnection="string",
-                                                                     pFuncName=query,
-                                                                     pOutputParameter=outputParameter,
-                                                                     ...)),"\n"))
-    query <- constructStoredProcSQL(pConnection=connection,
-                                    pFuncName=query,
-                                    pOutputParameter=outputParameter,
-                                    ...)
 
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
@@ -562,7 +560,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         if(!(platform %in% unique (platformMap))) ## use map
             platform <- platformMap[[platform]]
     }
-    connection <- FLConnection(connection, platform)
+    connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
     FLStartSession(connection=connection,database=database,...)
@@ -870,7 +868,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
             tableName <- paste0(databaseName,".",tableName)
         vsqlstr <- limitRowsSQL(paste0("SELECT * FROM \n ",
                                         tableName," \n "),1)
-        vtemp <- tryCatch(sqlQuery(getConnection(),
+        vtemp <- tryCatch(sqlQuery(getFLConnection(),
                         vsqlstr),error=function(e)FALSE)
         if(is.data.frame(vtemp) && nrow(vtemp)==1)
             return(TRUE)

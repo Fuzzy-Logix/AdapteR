@@ -132,6 +132,7 @@ Collate:
     'friedman.test.R'
     'kruskal.test.R'
     'mcnemar.test.R'
+    'rowcolOps-G.R'
     'rowcolOps.R'
     'survdiff.R'
     'survfit.R'

@@ -32,7 +32,7 @@ qr<-function(object, ...){
 #' @export
 qr.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
 	## flag1Check(connection)
 	## flag3Check(connection)
   MID1 <- getMaxMatrixId(connection)
@@ -72,7 +72,7 @@ qr.FLMatrix<-function(object,...)
 					 " WHERE OutputRowNum <= OutputColNum ")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",

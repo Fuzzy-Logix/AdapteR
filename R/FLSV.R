@@ -23,7 +23,7 @@ FLSV <- function (object, ...){
 FLSV.FLMatrix<-function(object,...)
 {
 	#checkSquare(object)
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag3Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
@@ -35,7 +35,7 @@ FLSV.FLMatrix<-function(object,...)
                    )
 
 	 tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),

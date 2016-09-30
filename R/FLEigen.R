@@ -33,7 +33,7 @@ eigen.FLMatrix<-function(x,symmetric=FALSE,
                 only.values = FALSE, 
                 EISPACK = FALSE)
 {
-    connection<-getConnection(x)
+    connection<-getFLConnection(x)
     if(only.values)
     retobj <- list(values = FLEigenValues(x),
                    vectors = NULL)
@@ -53,7 +53,7 @@ FLEigenValues<-function(object,...)
 FLEigenValues.FLMatrix<-function(object,...)
 {
 	
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag3Check(connection)
 
 	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
@@ -68,7 +68,7 @@ FLEigenValues.FLMatrix<-function(object,...)
                    )
 	
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -97,7 +97,7 @@ FLEigenVectors<-function(object,...)
 #' @export
 FLEigenVectors.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
 	## flag1Check(connection)
 
 	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
@@ -106,7 +106,7 @@ FLEigenVectors.FLMatrix<-function(object,...)
                    )
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",

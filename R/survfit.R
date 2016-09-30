@@ -110,7 +110,7 @@ survfit.formula <- function(formula, data, weights,
                                         " IN (",fquote(grpValues),
                                         ")")
             vselect <- new("FLSelectFrom",
-                          connection = connection, 
+                          connectionName = attr(connection,"name"), 
                           table_name = ret,
                           variables = list(
                               obs_id_colname = "TimeIndex"),

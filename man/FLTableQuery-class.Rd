@@ -10,7 +10,7 @@ A table query models a select or a table result of a sql statement.
 \section{Slots}{
 
 \describe{
-\item{\code{connection}}{ANY ODBC/JDBC connectivity for R}
+\item{\code{connectionName}}{character variable not used right now, will be used for future support of working with several connections (to different platforms possibly)}
 
 \item{\code{variables}}{list Named list of variables for the table query: values are rownames, names (keys) are result column names.}
 

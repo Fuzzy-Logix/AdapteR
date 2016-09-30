@@ -127,13 +127,13 @@ is.FLConnection <- function(pObject){
     return(class(pObject)=="FLConnection")
 }
 
-is.ODBC <- function(pObject=getOption("FLConnection")){
+is.ODBC <- function(pObject=getFLConnection()){
     if(is.FLConnection(pObject))
         pObject <- getRConnection(pObject)
     return(class(pObject)=="RODBC")
 }
 
-is.JDBC <- function(pObject=getOption("FLConnection")){
+is.JDBC <- function(pObject=getFLConnection()){
     if(is.FLConnection(pObject))
         pObject <- getRConnection(pObject)
     return(class(pObject)=="JDBCConnection")

@@ -37,14 +37,13 @@ FLTableMD <- function(table,
                       obs_id_colname,
                       var_id_colnames=character(0), 
                       cell_val_colname=character(0),
-                      connection=NULL,
+                      connection=getFLConnection(),
                       group_id=c())
 {
     whereconditions <- ""
     vgrp <- group_id
     if(length(vgrp)>0)
         vgrp <- sort(vgrp)
-    if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
     oldalias <- names(table)[1]
@@ -123,7 +122,7 @@ FLTableMD <- function(table,
         #     stop("obsIDs and varIDs cannot be characters \n ")
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           group_id_colname= group_id_colname,
@@ -174,7 +173,7 @@ FLTableMD <- function(table,
         cols <- setdiff(cols,changeAlias(obs_id_colname,"","flt"))
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           group_id_colname=group_id_colname,
