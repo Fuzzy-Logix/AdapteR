@@ -133,7 +133,6 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
                                                 ...){
-    pConnection <- pConnection$connection
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -144,7 +143,7 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
     ## Construct input params 
     ## NULL in TD == '' in others
     ## gk: refactor conditionals to class methods
-    if(class(pConnection)=="RODBC" | class(pConnection)=="character"){
+    if(is.ODBC(pConnection) || is.character(pConnection)){
         pars <- sapply(args,
                     function(a){
                         if(is.character(a)){
@@ -211,6 +210,9 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
         )
 }
 
+constructStoredProcSQL.character <- constructStoredProcSQL.FLConnection
+constructStoredProcSQL.RODBC <- constructStoredProcSQL.FLConnection
+constructStoredProcSQL.JDBCConnection <- constructStoredProcSQL.FLConnection
 ############################### Aggregates ############################
 ## should already work
 
