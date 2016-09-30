@@ -138,7 +138,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       # sqlSendUpdate(getFLConnection(object),
       #               vSqlStr)
       return(FLMatrix(
-            connectionName = getFLConnectionName(object),
+            connection = getFLConnection(object),
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
