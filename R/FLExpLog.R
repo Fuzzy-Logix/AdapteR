@@ -127,16 +127,14 @@ setMethod("FLExpLog",signature(x="FLVector"),
 #' @return returns an in-database object if there is atleast one in-database object 
 #' as input.Otherwise, the default behavior of R is preserved
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' ResultFLmatrix <- exp(flmatrix)
 #' ResultFLmatrix <- logb(flmatrix,3)
 #' ResultFLmatrix <- log10(flmatrix)
 #' ResultFLmatrix <- log1p(flmatrix)
 #' ResultFLmatrix <- log(flmatrix)
 #' ResultFLmatrix <- log2(flmatrix)
-#' deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 #' flvector <- deeptable[1:5,1]
 #' resultFLVector <- exp(flvector)
 #' resultFLVector <- log(flvector,4)
@@ -293,7 +291,9 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
 #' @export
 sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
 {
-    #browser()
+    if("method" %in% names(list(...)))
+        warning("method argument has no effect on AdapteR implementation of sort.")
+    
     decreasing <- as.logical(decreasing)
     if(is.na(decreasing) || length(decreasing) < 1 
         || is.null(decreasing))
@@ -321,7 +321,8 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
                 select = tblfunqueryobj,
                 dimnames = list(1:length(x),
                                 "vectorValueColumn"),
-                isDeep = FALSE)
+                isDeep = FALSE,
+                type=typeof(x))
 
     flv <- ensureQuerySize(pResult=flv,
                         pInput=list(x,decreasing=decreasing,
@@ -334,7 +335,9 @@ sort.FLVector <- function(x,decreasing=FALSE,index.return=FALSE,...)
 
 ## move to file sort.R
 #' @export
-sort.FLMatrix <- function(x,decreasing=FALSE,index.return=FALSE,...)
+sort.FLMatrix <- function(x,decreasing=FALSE,
+                        index.return=FALSE,
+                        ...)
 {
     decreasing <- as.logical(decreasing)
     if(is.na(decreasing) || length(decreasing) < 1 
@@ -363,13 +366,17 @@ sort.FLMatrix <- function(x,decreasing=FALSE,index.return=FALSE,...)
                 select = tblfunqueryobj,
                 dimnames = list(1:length(x),
                                 "vectorValueColumn"),
-                isDeep = FALSE)
+                isDeep = FALSE,
+                type=typeof(x))
 
     flv <- ensureQuerySize(pResult=flv,
-                        pInput=list(x,decreasing=decreasing,...),
+                        pInput=list(x,decreasing=decreasing,
+                                    index.return=index.return,
+                                    ...),
                         pOperator="sort")
 
     if(index.return)
-    return(list(x=flv,ix=order(x)))
+    return(list(x=flv,
+                ix=order(x)))
     else return(flv)
 }

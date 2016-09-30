@@ -169,11 +169,11 @@ setMethod("FLStringDist",
 
               flm <- new("FLMatrix",
                                select= tblfunqueryobj,
-                               dim=c(length(xsource@dimnames[[1]]),
-                                    length(targets@dimnames[[1]])),
+                               dim=c(length(xsource),
+                                     length(targets)),
                                dimnames = list(
-                                   xsource@dimnames[[1]],
-                                   targets@dimnames[[1]]))
+                                   names(xsource),
+                                   names(targets)))
               return(flm)
             }
             else{
@@ -362,7 +362,7 @@ setMethod("FLStringDist",
 #' Output is slightly different from stringdist::stringdist.
 #' Refer to \code{@return} section.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' flv <- widetable[1:10,"Species"]
 #' resultflvector <- stringdist("xyz",flv)
 #' resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)
@@ -498,7 +498,7 @@ setMethod("stringdist",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "iris", "rownames")
+#' widetable  <- FLTable("iris", "rownames")
 #' flv <- widetable[1:10,"Species"]
 #' resultflmatrix <- stringdistmatrix("xyz",flv)
 #' resultflmatrix <- stringdistmatrix(c("xyz","abc"),flv,method="lv",caseFlag=1)
@@ -593,7 +593,7 @@ setMethod("stringdistmatrix",
 
             if(!(method %in% c("lv","dl","hamming","jaccard","jw","nmw")))
             if(method == "osa"){
-              cat("osa not supported for FLTypes...Using dl instead \n ")
+              warning("osa not supported for FLTypes...Using dl instead.")
               method <- "dl"
             }
             else{
@@ -652,7 +652,8 @@ setGeneric("FLStrCommon",
           function(functionName,
                   object,
                   delimiter="",
-                  stringpos=1,...)
+                  stringpos=1,
+                  ...)
     standardGeneric("FLStrCommon"))
 
 setMethod("FLStrCommon",
@@ -660,8 +661,12 @@ setMethod("FLStrCommon",
         function(functionName,
                 object,
                 delimiter="",
-                stringpos=1)
+                stringpos=1,
+                ...)
         {
+          if("type" %in% names(list(...)))
+            vtype <- list(...)$type
+          else vtype <- "character"
           a <- genRandVarName()
           if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
           stop("row Vectors not supported for string operations")
@@ -708,7 +713,8 @@ setMethod("FLStrCommon",
                             select = tblfunqueryobj,
                             dimnames = list(object@dimnames[[1]],
                                           "vectorValueColumn"),
-                            isDeep = FALSE)
+                            isDeep = FALSE,
+                            type=vtype)
             return(resultvec)
           })
 ################################################################################
@@ -736,7 +742,7 @@ setMethod("FLStrCommon",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLConcatString(flv,",")
 #' @export
@@ -797,7 +803,7 @@ setMethod("FLConcatString",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLCleanStr(flv)
 #' @export
@@ -827,7 +833,7 @@ setMethod("FLCleanStr",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLIsHex(flv)
 #' @export
@@ -839,7 +845,8 @@ setMethod("FLIsHex",
           signature(object="FLVector"),
           function(object){
             return(FLStrCommon(functionName="FLIsHex",
-                            object=object))
+                            object=object,
+                            type="logical"))
             })
 ## move to file FLIsNumeric.R
 #' Check if Numeric
@@ -857,7 +864,7 @@ setMethod("FLIsHex",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLIsNumeric(flv)
 #' @export
@@ -869,7 +876,8 @@ setMethod("FLIsNumeric",
           signature(object="FLVector"),
           function(object){
             return(FLStrCommon(functionName="FLIsNumeric",
-                            object=object))
+                            object=object,
+                            type="logical"))
             })
 
 ## move to file FLSqueezeSpace.R
@@ -890,7 +898,7 @@ setMethod("FLIsNumeric",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLSqueezeSpace(flv)
 #' @export
@@ -933,7 +941,7 @@ setMethod("FLSqueezeSpace",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- FLExtractStr(flv,"A",1)
 #' @export
@@ -964,7 +972,6 @@ setMethod("FLExtractStr",
 #'
 #' @seealso \code{\link[base]{regexpr}} for R function reference implementation.
 #'
-#' @param startpos integer(numeric) specifying starting position for each search
 #' @param pattern string to search for
 #' @param text FLVector of characters or R vector to be searched.
 #' where matches are sought
@@ -976,12 +983,13 @@ setMethod("FLExtractStr",
 #' For FLVectors, regualar expressions are not supported
 #' @param useBytes If TRUE the matching is done byte-by-byte
 #' rather than character-by-character. Always FALSE for FLVector
+#' @param startpos integer(numeric) specifying starting position for each search
 #' @return FLVector with position of first match
 #' or -1 for no match or R Vector
 #' @section Constraints:
 #' row FLVectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- regexpr("A",flv)
 #' @export
@@ -992,29 +1000,30 @@ setMethod("FLExtractStr",
 ## RV: StartPos argument need only be included in regexpr since only that is calling DB Lytix FLInStr right?
 ##     Others(gregexpr,grep,sub,......) dont though they essentially perform similar functions; so we dont need startpos there right???
 
-setGeneric("regexpr", function(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
-        fixed = FALSE, useBytes = FALSE)
+setGeneric("regexpr", function(pattern, text, ignore.case = FALSE, perl = FALSE,
+        fixed = FALSE, useBytes = FALSE,startpos = 1)
     standardGeneric("regexpr"))
 
 ## move to file regexpr.R
 setMethod("regexpr",
           signature(
             text="FLVector"),
-          function(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
-        fixed = FALSE, useBytes = FALSE)
+          function(pattern, text, ignore.case = FALSE, perl = FALSE,
+        fixed = FALSE, useBytes = FALSE,startpos = 1)
           {
             if(is.null(pattern)||is.na(pattern)||length(pattern)==0)
             pattern <- "NULL"
             return(FLStrCommon("FLInstr",
-                      text,delimiter=pattern,stringpos=startpos))
+                      text,delimiter=pattern,stringpos=startpos,
+                      type="integer"))
           })
 
 ## move to file regexpr.R
 setMethod("regexpr",
           signature(
             text="ANY"),
-          function(startpos = 1, pattern, text, ignore.case = FALSE, perl = FALSE,
-        fixed = FALSE, useBytes = FALSE)
+          function(pattern, text, ignore.case = FALSE, perl = FALSE,
+        fixed = FALSE, useBytes = FALSE,startpos = 1)
           base::regexpr(pattern,text,ignore.case = ignore.case, perl = perl,
         fixed = fixed, useBytes = useBytes)
           )
@@ -1041,7 +1050,7 @@ setMethod("regexpr",
 #' @section Constraints:
 #' row FLVectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- gregexpr("A",flv)
 #' @export
@@ -1084,7 +1093,7 @@ setMethod("gregexpr",
 #' @section Constraints:
 #' row FLVectors are not supported currently.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- grep("A",flv,value=TRUE)
 #' flvector <- grep("A",flv,invert=TRUE)
@@ -1130,19 +1139,20 @@ setMethod("grep",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL AND ",
                                       b,".vectorValueColumn ",ifelse(invert,"=","<>")," -1")
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
-                        variables = list(
-                      obs_id_colname = "vectorIndexColumn",
-                      cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+                                connection = getOption("connectionFL"),
+                                variables = list(
+                                obs_id_colname = "vectorIndexColumn",
+                                cell_val_colname = "vectorValueColumn"),
+                                whereconditions="",
+                                order = "",
+                                SQLquery=sqlstr)
 
             resultvec <- new("FLVector",
                             select = tblfunqueryobj,
                             dimnames = list(1:vlength,
                                           "vectorValueColumn"),
-                            isDeep = FALSE)
+                            isDeep = FALSE,
+                            type="integer")
             return(resultvec)
           })
 
@@ -1183,7 +1193,7 @@ setMethod("grep",
 #' row FLVectors are not supported currently.
 #' Output slightly differs from base::grepl. See \code{return}
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- grepl("A",flv)
 #' @export
@@ -1208,7 +1218,7 @@ setMethod("grepl",
 
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
                                     b,".vectorIndexColumn AS vectorIndexColumn,",
-                                    "CASE WHEN ",b,".vectorValueColumn <> -1 THEN 1 ELSE 0 END AS vectorValueColumn",
+                                    "CASE WHEN ",b,".vectorValueColumn <> -1 THEN 'TRUE' ELSE 'FALSE' END AS vectorValueColumn",
                             " FROM(SELECT ",a,".vectorValueColumn AS vectorIdColumn,",
                                      a,".vectorIndexColumn AS vectorIndexColumn,",
                                     "FLInstr(0,",a,".vectorValueColumn,",fquote(pattern),") AS vectorValueColumn ",
@@ -1216,19 +1226,20 @@ setMethod("grepl",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL ")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
-                        variables = list(
-                      obs_id_colname = "vectorIndexColumn",
-                      cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+                                connection = getOption("connectionFL"),
+                                variables = list(
+                                obs_id_colname = "vectorIndexColumn",
+                                cell_val_colname = "vectorValueColumn"),
+                                whereconditions="",
+                                order = "",
+                                SQLquery=sqlstr)
 
             resultvec <- new("FLVector",
                             select = tblfunqueryobj,
                             dimnames = list(object@dimnames[[1]],
                                           "vectorValueColumn"),
-                            isDeep = FALSE)
+                            isDeep = FALSE,
+                            type="logical")
             return(resultvec)
           })
 
@@ -1272,7 +1283,7 @@ setMethod("grepl",
 #' row FLVectors are not supported currently.
 #' Currently only one character is used for replacement.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- sub("A","X",flv)
 #' @export
@@ -1336,7 +1347,7 @@ setMethod("sub",
 #' row FLVectors are not supported currently.
 #' Currently only one character is used for replacement.
 #' @examples 
-#' widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+#' widetable  <- FLTable("tblstringID", "stringID")
 #' flv <- widetable[1:6,"string"]
 #' flvector <- gsub("A","X",flv)
 #' @export
@@ -1393,7 +1404,7 @@ setMethod("gsub",
 #' @section Constraints:
 #' row vectors are not supported currently.
 #' @examples 
-#' wtd <- FLTable("FL_DEMO","tblXMLTest","GroupID")
+#' wtd <- FLTable("tblXMLTest","GroupID")
 #' flv <- wtd[,"pXML"]
 #' resultdataframe <- FLParseXML(flv)
 #' @export

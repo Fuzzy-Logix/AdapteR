@@ -15,18 +15,23 @@ NULL
 #' @return returns an object (usually) like x i.e. an in-database object but generally smaller.
 #' @section Usage: \code{tail.FLMatrix(x, n=6L, ...)}
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' headflmatrix <- head(flmatrix, n=6L, ...)
 #' print(headflmatrix)
 #' @export
 head.FLTable <- function(x,n=6L,...){
-
+    if("display" %in% names(list(...))){
+        vobsidcol <- changeAlias(getVariables(x)[["obs_id_colname"]],"","")
+        vsqlstr <- paste0("SELECT TOP ",n," a.* \n ",
+                           " FROM (",constructSelect(x),") a ",
+                           " ORDER BY a.",vobsidcol)
+        vres <- sqlQuery(getOption("connectionFL"),vsqlstr)
+        return(vres)
+    }
     stopifnot(length(n) == 1L)
-  n <- if (n < 0L) max(nrow(x) + n, 0L) else min(n, nrow(x))
-  if(n <= 0) stop("n value in head function is out of bounds")
-  x[seq_len(n), ,drop=FALSE]
+    n <- if (n < 0L) max(nrow(x) + n, 0L) else min(n, nrow(x))
+    if(n <= 0) stop("n value in head function is out of bounds")
+    x[seq_len(n), ,drop=FALSE]
 }
 
 ## move to file headtail.R
@@ -54,7 +59,14 @@ return(tail.FLTable(x=x,n=n,...))
 ## move to file headtail.R
 #' @export
 head.FLVector <- function(x,n=6,...){
-
+    if("display" %in% names(list(...))){
+        vsqlstr <- paste0("SELECT TOP ",n," a.vectorValueColumn \n ",
+                           " FROM (",constructSelect(x),") a ",
+                           " ORDER BY a.vectorIndexColumn")
+        vres <- sqlQuery(getOption("connectionFL"),vsqlstr)[[1]]
+        names(vres) <- sort(names(x))[1:n]
+        return(vres)
+    }
     stopifnot(length(n) == 1L)
     n <- if (n < 0L) max(length(x) + n, 0L) else min(n, length(x))
     if(n <= 0) stop("n value in head function is out of bounds")

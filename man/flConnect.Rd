@@ -6,7 +6,8 @@
 the FL session tables.}
 \usage{
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
-  jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL, ...)
+  jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL,
+  driverClass = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{host}{}
@@ -17,11 +18,25 @@ flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
 
 \item{passwd}{}
 
-\item{jdbc.jarsDir}{if provided, class paths for tdgssconfig.jar and terajdbc4.jar in that dir are loaded.  Issues can occur unless you provide the fully qualified path.}
+\item{jdbc.jarsDir}{if provided, class paths for jars to be loaded.
+If one element, a directory, all jar files in that directory will be loaded.
+If multiple elements, specific jar files, these will be loaded.
+Issues can occur unless you provide the fully qualified path.}
+
+\item{jdbc.options}{}
 
 \item{odbcSource}{}
 
-\item{...}{}
+\item{driverClass}{}
+
+\item{verbose}{print debugging messages}
+
+\item{...}{include platform here. Use TD for Teradata.
+platform is mandatory for odbc connection}
+
+\item{#"TMODE}{}
+
+\item{CHARSET}{}
 }
 \value{
 either an ODBC connection or an JDBC connection
@@ -29,5 +44,26 @@ either an ODBC connection or an JDBC connection
 \description{
 Creates either an ODBC connection or an JDBC connection and initializes
 the FL session tables.
+}
+\examples{
+connection <- flConnect("jdbc:teradata://xx.xxx.x.xxx",
+                          "FL_TRAIN",
+                         "UserName","PassWord",
+                        c("C:/Users/xxx/terajdbc4.jar",
+                            "C:/Users/xxx/tdgssconfig.jar"),
+                        driverClass="com.teradata.jdbc.TeraDriver")
+connection <- flConnect("jdbc:hive2://xx.xxx.x.xxx",
+                         "dblytix",
+                         "userName","Password",
+                        c("C:/Users/xxx/hive-jdbc-1.2.1-standalone.jar",
+                            "C:/Users/xxx/hadoop-common-2.6.0.jar"),
+                        driverClass="org.apache.hive.jdbc.HiveDriver")
+connection <- flConnect("jdbc:ncluster://xx.xxx.x.xxx","fuzzylogix",
+                         "UserName","Password",
+                        c("C:/Users/xxx/noarch-aster-jdbc-driver.jar",
+                          "C:/Users/xxx/noarch-aster-adfs-client.jar"),
+                        driverClass = "com.asterdata.ncluster.Driver")
+connection <- flConnect(odbcSource="sourceName",database="FL_TRAIN",platform="TD")
+connection <- flConnect(odbcSource="SorceName",database="fuzzylogix",platform="TDAster")
 }
 

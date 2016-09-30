@@ -1,22 +1,20 @@
 
 
-# #Not in R .
-# #For ODBC Connection with FL_DEMO database.
-# ## Table tblstringID does not exist.
-# test_that("Check for FLCleanStr function",{
-#          widetable  <- FLTable(getOption("ResultDatabaseFL"), "tblstringID", "stringID")
-#          flv <- widetable[1:6,"string"]
-#          ##         print(flv)
-#          resultflvector <- FLIsNumeric(flv)
-#          ##         print(resultflvector)
-#        })
 
-#Not in R .
-#For JDBC Connection with fuzzylogix database.
+test_that("Check correct result for FLIsNumeric ",{
+    vecChar <- letters[3:1]
+    vecInt <- c("1","2")
+    vecFloat <- c("1","2.2")
+    castExpectIsNumeric <- function(x)
+        FLexpect_equal(FLIsNumeric(as.FL(x)), !is.na(as.numeric(x)))
+    castExpectIsNumeric(vecChar)
+    castExpectIsNumeric(vecInt)
+    castExpectIsNumeric(vecFloat)
+})
+
+
 test_that("Check for FLIsNumeric function",{
-         widetable  <- FLTable(getOption("ResultDatabaseFL"), "tblAutoMpg", "ObsID")
-         flv <- widetable[1:6,"CarName"]
-         ##         print(flv)
-         resultflvector <- FLIsNumeric(flv)
-         ##         print(resultflvector)
-       })
+    widetable  <- FLTable("tblAutoMpg","ObsID")
+    flv <- widetable[1:6,"CarName"]
+    resultflvector <- FLIsNumeric(flv)
+})

@@ -1,6 +1,7 @@
 Package: AdapteR
-Title: Converts R syntax to SQL to provide fast analytics using in-database C++ library DB Lytix.
-Version: 2.1
+Title: Converts R syntax to SQL to provide fast analytics using in-database C++
+    library DB Lytix.
+Version: 2.2
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -23,34 +24,33 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     how AdapteR can be used to build interactive analytics at scale with just a few
     lines of R code!
 Depends:
-    R (>= 3.1.0),
-    plyr,
-    MASS (>= 7.3-10),
-    Matrix (>= 1.1-5),
-    base,
-    stats,
-    psych,
-    reshape2,
-    cluster,
+    R (>= 3.2.0),
     methods,
-    DBI,
-    survival,
-    mgcv
+    Matrix (>= 1.1-5)
 Imports:
+    testthat,
     plyr,
-    MASS (>= 7.3-10),
-    Matrix (>= 1.1-5),
-    base,
+    Rcpp,
+    utils,
+    graphics,
+    lattice,
+    grid,
     stats,
     psych,
     reshape2,
-    cluster,
-    methods,
-    DBI,
-    testthat,
-    mgcv
+    stringr,
+    stringi,
+    magrittr,
+    DBI
 Suggests:
-    testthat
+    SDMTools,
+    MASS,
+    psych,
+    cluster,
+    survival,
+    mgcv,
+    moments,
+    stringdist
 License: GPL-2
 LazyData: true
 Collate:
@@ -63,24 +63,37 @@ Collate:
     'FLColMeans.R'
     'FLColSums.R'
     'FLCorrel.R'
+    'FLTable.R'
+    'data_prep.R'
+    'utilities.R'
+    'FLLinRegr.R'
+    'FLCoxph.R'
     'FLDet.R'
     'FLDiag.R'
     'FLDims.R'
     'FLEigen.R'
     'FLExpLog.R'
     'FLFKMeans.R'
+    'FLFTest.R'
+    'FLVector.R'
+    'FLGAM.R'
+    'FLGet.R'
     'FLGinv.R'
     'FLHClust.R'
     'FLHKMeans.R'
     'FLHeadTail.R'
     'FLHessenDecomp.R'
+    'FLHypothesisTesting.R'
     'FLIdentical.R'
     'FLIs.R'
     'FLJordanDecomp.R'
     'FLKMeans.R'
     'FLKMedoids.R'
+    'FLKSTest.R'
     'FLLUDecomp.R'
     'FLLength.R'
+    'FLLogRegr.R'
+    'FLLogRegrMN.R'
     'FLMatrixArithmetic.R'
     'FLStore.R'
     'FLconstructSQL.R'
@@ -97,22 +110,34 @@ Collate:
     'FLRowSums.R'
     'FLSV.R'
     'FLSVDecomp.R'
+    'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
     'FLStatFunctions.R'
     'FLStringFunctions.R'
     'FLSubsetting.R'
-    'FLTable.R'
+    'FLTableMD.R'
     'FLTrace.R'
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
-    'FLVector.R'
+    'FLsurvfit.R'
     'FLtestLib.R'
+    'SiegelTukeyTest.R'
     'apply.R'
+    'binom.test.R'
+    'chisq.test.R'
+    'cochran.qtest.R'
+    'constructAbstractSQL.R'
     'crossprod.R'
-    'data_prep.R'
     'experiment_benchmarking.R'
+    'friedman.test.R'
+    'kruskal.test.R'
+    'mcnemar.test.R'
+    'rowcolOps-G.R'
+    'rowcolOps.R'
+    't.test.R'
     'tcrossprod.R'
-    'utilities.R'
+    'wilcox.test.R'
+    'z.test.R'
 RoxygenNote: 5.0.1

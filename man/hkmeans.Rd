@@ -4,7 +4,7 @@
 \alias{hkmeans}
 \title{Hierarchial K-Means Clustering.}
 \usage{
-\method{hkmeans}{FLTable}(x, ...)
+hkmeans(x, ...)
 }
 \arguments{
 \item{x}{an object of class FLTable, wide or deep}
@@ -42,8 +42,7 @@ If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX")
 print(hkmeansobject)
 plot(hkmeansobject)

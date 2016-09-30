@@ -18,9 +18,7 @@ NULL
 #' \code{dgTMatrix},\code{matrix},\code{Matrix},\code{vector} R types
 #' are supported.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' Rvector <- 1:5
 #' Result <- identical(flmatrix,flmatrix)
 #' Result <- identical(Rvector,as.FLVector(Rvector,connection))
@@ -174,8 +172,7 @@ NULL
 #' RVector==FLVector
 #' @examples
 #' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' flvector <- as.FLVector(1:5)
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector
@@ -268,9 +265,9 @@ NULL
 	if(is.FLVector(pObj2))
 	{
 		connection <- getOption("connectionFL")
-		if(checkMaxQuerySize(pObj1))
+		if(checkQueryLimits(pObj1))
 		pObj1 <- store(pObj1)
-		if(checkMaxQuerySize(pObj2))
+		if(checkQueryLimits(pObj2))
 		pObj2 <- store(pObj2)
 
 		ifelse(length(pObj1)>length(pObj2),{

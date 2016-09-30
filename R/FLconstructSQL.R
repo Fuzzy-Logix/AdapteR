@@ -16,8 +16,7 @@ setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")
 })
 
-setMethod("constructSelect",
-          signature(object = "FLMatrix"),
+setMethod("constructSelect", signature(object = "FLMatrix"),
           function(object,joinNames=TRUE){
             if(!"matrix_id" %in% tolower(names(getVariables(object))))
             object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
@@ -32,27 +31,21 @@ setMethod("constructSelect",
                                      object@mapSelect@table_name)
               select@whereconditions <- c(select@whereconditions,
                                           object@mapSelect@whereconditions)
-              select@database <- c(select@database,
-                                  rep(object@mapSelect@database,length(select@table_name)))
               return(constructSelect(select))
           })
 
-setMethod("constructSelect",
-          signature(object = "FLTableQuery"),
+setMethod("constructSelect", signature(object = "FLTableQuery"),
           function(object) {
-              if(is.null(object@database)) return(NULL)
-              if(length(object@database)==0) return(NULL)
               return(paste0("SELECT ",
                             paste(colnames(object),collapse=", "),
-                            " FROM ",remoteTable(object),
+                            " FROM ",tableAndAlias(object),
                             constructWhere(c(constraintsSQL(object))),
                             paste(object@order,collapse=", "),
                             "\n"))
           })
 
 
-setMethod("constructSelect",
-          signature(object = "FLTable"),
+setMethod("constructSelect", signature(object = "FLTable"),
           function(object) {
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
@@ -83,7 +76,7 @@ setMethod("constructSelect",
                 #                    variables," AS ",
                 #                    names(variables),
                 #                    collapse = ",\n"),
-                #             "\n FROM ",remoteTable(object),
+                #             "\n FROM ",tableAndAlias(object),
                 #             constructWhere(c(constraintsSQL(object))),
                 #             "\n"))
               }
@@ -107,7 +100,7 @@ setMethod("constructSelect",
                 #                  variables," AS ",
                 #                  names(variables),
                 #                  collapse = ",\n"),
-                #           "\n FROM ",remoteTable(object),
+                #           "\n FROM ",tableAndAlias(object),
                 #           constructWhere(c(constraintsSQL(object))),
                 #           "\n"))
               }
@@ -118,7 +111,7 @@ setMethod("constructSelect",
 setMethod("constructSelect", signature(object = "FLVector"),
           function(object,joinNames=TRUE) {
             if(class(object@select)=="FLTableFunctionQuery") 
-            return(constructSelect(object@select))
+                return(constructSelect(object@select))
             ## If mapSelect exists join tables
             # mapTable <- ""
             # addWhereClause <- ""
@@ -164,7 +157,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
               #                    variables," AS ",
               #                    names(variables),
               #                    collapse = ",\n"),
-              #             "\n FROM ",remoteTable(object),mapTable,
+              #             "\n FROM ",tableAndAlias(object),mapTable,
               #             constructWhere(c(constraintsSQL(object),addWhereClause)),
               #             "\n"))
             } else {
@@ -194,7 +187,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
                 #                  variables," AS ",
                 #                  names(variables),
                 #                  collapse = ",\n"),
-                #           "\n FROM ",remoteTable(object),mapTable,
+                #           "\n FROM ",tableAndAlias(object),mapTable,
                 #           constructWhere(c(constraintsSQL(object),addWhereClause)),
                 #           "\n"))
             }
@@ -208,9 +201,6 @@ setMethod("constructSelect", signature(object = "FLVector"),
                                        object@mapSelect@table_name)
                 select@whereconditions <- c(select@whereconditions,
                                             object@mapSelect@whereconditions)
-                select@database <- c(select@database,
-                                    rep(object@mapSelect@database,
-                                      length(select@table_name)))
               }
               return(constructSelect(select))
           })
@@ -228,13 +218,10 @@ constructVariables <- function(variables){
                       collapse = ",\n"))
                
 }
-setMethod(
-    "constructSelect",
+setMethod("constructSelect",
     signature(object = "FLSelectFrom"),
     function(object) {
       #browser()
-        if(is.null(object@database)) return(NULL)
-        if(length(object@database)==0) return(NULL)
         variables <- getVariables(object)
         order <- setdiff(object@order,c(NA,""))
         if(length(order)==0)
@@ -247,7 +234,7 @@ setMethod(
         return(paste0(
             "SELECT\n",
             constructVariables(variables),
-            "\n FROM ",remoteTable(object),
+            "\n FROM ",tableAndAlias(object),
             constructWhere(c(constraintsSQL(object))),
             ordering,
             "\n"))
@@ -268,9 +255,11 @@ setMethod("constructSelect",
 
 ## Phani-- removed \n as it was creating problem in FLCorrel test cases
 constructWhere <- function(conditions) {
+    conditions <- setdiff(conditions,c(NA,""))
+    if(length(conditions)==0)
+      return("")
     if(!is.character(conditions))
         stop("Provide constraints as character vector")
-    conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)>0)
         paste0(" WHERE",paste0("   (",conditions,")",
                                 collapse=" AND "))

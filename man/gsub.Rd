@@ -44,7 +44,7 @@ row FLVectors are not supported currently.
 Currently only one character is used for replacement.
 }
 \examples{
-widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 flvector <- gsub("A","X",flv)
 }

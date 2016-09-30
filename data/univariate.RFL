@@ -1,0 +1,14 @@
+
+## This file uses R-like syntax to define function mappings very efficiently.
+## This code is not evaluated in R, but parsed programmatically:
+## function definitions for executing the R function (left of " <- ")
+## in-dabase with DB Lytix function (right of " <- ") are created programmatically.
+## 
+##
+runif <- FLSimUniform(n,min,max)
+rnorm <- FLSimUniform(n,mean,sd)
+
+rpois <- FLSimPoisson(n,lambda)
+dpois <- FLPDFPoisson(x,lambda)
+qpois <- FLInvCDFPoisson(p,lambda)
+ppois <- FLCDFPoisson(q,lambda)

@@ -10,3 +10,10 @@ test_that("sort:",{
               test2 <- sort(x1)
           },Renv,FLenv)
 })
+
+
+test_that("sort: method=shell",
+          eval_expect_equal({
+              tshell <- sort(x2, method = "shell", index.return = TRUE)
+          },Renv,FLenv,
+          expectation = c("tshell")))

@@ -78,7 +78,6 @@ test_that("qr.solve: low precision 1e-5",{
     tolerance=1e-5)
 })
 
-
 test_that("qr.Q, qr.R, cross product: low precision 1e-7",{
     result = eval_expect_equal({
         m7Q = qr.Q(qrmat7)
@@ -96,7 +95,6 @@ test_that("qr.resid",{
         qrresid = qr.resid(qrmat7,mat8)
     },Renv,FLenv)
 })
-
 
 test_that("qr: Check Q is orthogonal ",{
     result = eval_expect_equal({
