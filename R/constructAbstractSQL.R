@@ -521,8 +521,11 @@ createTable <- function(pTableName,
         return(RJDBC::dbSendUpdate(getFLConnection(),vsqlstr))
     }
 
-    sqlSendUpdate(getFLConnection(),vsqlstr)
-    return(pTableName)
+    vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    updateMetaTable(pTableName=pTableName,
+                    pType="wideTable",
+                    ...)
+    return(vres)
 }
 
 ## CREATE VIEW
@@ -566,6 +569,7 @@ dropTable <- function(pTableName){
 }
 
 ## Insert Into Table
+## TODO: add pConnection as input
 insertIntotbl <- function(pTableName,
                           pColNames=NULL,
                           pValues=NULL,
@@ -582,15 +586,49 @@ insertIntotbl <- function(pTableName,
             vsqlstr <- paste0(vsqlstr,"(",
                         paste0(pColNames,collapse=","),
                         ") ")
-        pValues <- sapply(pValues,
-                    function(x){
-                        if(is.character(x) && !grepl("'",x))
-                        return(fquote(x))
-                        else return(x)
-                    })
-        vsqlstr <- paste0(vsqlstr," VALUES (",
-                            paste0(pValues,collapse=","),
-                            ");")
+        vsqlstr <- paste0(vsqlstr," \n VALUES ")
+        if(is.vector(pValues))
+            pValues <- matrix(pValues,1,length(pValues))
+        if(is.TD())
+            vsqlstr <- paste0(apply(pValues,1,
+                                function(x){
+                                  paste0(vsqlstr,"(",
+                                      paste0(sapply(x,
+                                            function(y){
+                                                if(is.logical(y)||
+                                                  is.factor(y)) 
+                                                    y <- as.character(y)
+                                                suppressWarnings(if(!is.na(as.numeric(y)))
+                                                                 y <- as.numeric(y))
+                                                if(is.character(y) && !grepl("'",y))
+                                                    y <- fquote(y)
+                                                else y}),
+                                        collapse = ","),")")}),
+                            collapse = ";")
+            # vsqlstr <- paste0(apply(pValues,1,
+            #                 function(x)
+            #                     paste0(vsqlstr,"(",paste0(fquote(x),collapse=","),")")),collapse = ";")
+        else if(is.TDAster()){
+            vappend <- paste0(apply(pValues,1,
+                                function(x){
+                                  paste0("(",
+                                      paste0(sapply(x,
+                                            function(y){
+                                                if(is.logical(y)||
+                                                  is.factor(y)) 
+                                                    y <- as.character(y)
+                                                suppressWarnings(if(!is.na(as.numeric(y)))
+                                                                 y <- as.numeric(y))
+                                                if(is.character(y) && !grepl("'",y))
+                                                    y <- fquote(y)
+                                                else y}),
+                                        collapse = ","),")")}),
+                            collapse = ",")
+            # vappend <- paste0(apply(pValues,1,
+            #                 function(x)
+            #                     paste0("(",paste0(fquote(x),collapse=","),")")),collapse = ",")
+            vsqlstr <- paste0(vsqlstr,vappend)
+        }
     }
     else if(!is.null(pSelect)){
         vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
@@ -619,15 +657,15 @@ updateMetaTable <- function(pTableName,
                             "UserName","DatabaseName",
                             "TableName","ElementID",
                             "ObjType","Comments"),
-                  pValues=list(fquote(as.character(as.POSIXlt(Sys.time(),tz="GMT"))),
-                            fquote(as.character(Sys.Date())),
-                            fquote(ifelse(is.null(getOption("FLUsername")),
-                                "default",getOption("FLUsername"))),
-                            fquote(vdatabase),
-                            fquote(pTableName),
+                  pValues=list(as.character(as.POSIXlt(Sys.time(),tz="GMT")),
+                            as.character(Sys.Date()),
+                            ifelse(is.null(getOption("FLUsername")),
+                                "default",getOption("FLUsername")),
+                            vdatabase,
+                            pTableName,
                             as.integer(pElementID),
                             as.character(pType),
-                            fquote(pNote)
+                            pNote
                         ))
 }
 

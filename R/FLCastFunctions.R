@@ -69,6 +69,8 @@ as.data.frame.FLTable <- function(x, ...){
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
+    vnames <- names(D)
+    vnames <- vnames[-grepl("obs_id_colname",vnames,ignore.case=TRUE)]
     names(D) <- toupper(names(D))
     D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
     ##browser()
@@ -86,6 +88,8 @@ as.data.frame.FLTable <- function(x, ...){
     D[[toupper("obs_id_colname")]] <- NULL
     ## For sparse deep table
     D[is.na(D)] <- 0
+    if(!x@isDeep)
+        names(D) <- vnames
     return(D)
 }
 
@@ -839,42 +843,37 @@ as.FLTable.data.frame <- function(object,
                                   tableName,
                                   uniqueIdColumn=0,
                                   drop=TRUE,
-                                  batchSize=10000){
+                                  batchSize=10000,
+                                  temporary=TRUE){
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
   stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
-  if(uniqueIdColumn==0)
-  {
+  if(uniqueIdColumn==0){
     vrownames <- rownames(object)
     if(!any(is.na(as.numeric(vrownames))))
-    vrownames <- as.numeric(vrownames)
+        vrownames <- as.numeric(vrownames)
     object <- base::cbind(rownames=vrownames,object)
     obsIdColname <- "rownames"
   }
-  else if(is.numeric(uniqueIdColumn))
-  {
+  else if(is.numeric(uniqueIdColumn)){
     uniqueIdColumn <- as.integer(uniqueIdColumn)
     if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
-    stop("uniqueIdColumn is out of bounds")
+        stop("uniqueIdColumn is out of bounds")
     else
-    obsIdColname <- colnames(object)[uniqueIdColumn]
+        obsIdColname <- colnames(object)[uniqueIdColumn]
   }
-  connection <- getRConnection(connection)
-  if(is.ODBC(connection))
-  {
-    vcolnames <- gsub("\\.","",colnames(object),fixed=FALSE)
-    if(drop)
-        t <- dropTable(pTableName=tableName)
-    tryCatch(RODBC::sqlSave(channel=connection,
-                            dat=object,
-                            tablename=tableName,
-                            rownames=FALSE),
-      error=function(e){stop(e)})
+  else if(is.character(uniqueIdColumn)){
+    if(!uniqueIdColumn %in% colnames(object))
+        stop("uniqueIdColumn is out of bounds")
+    else
+        obsIdColname <- uniqueIdColumn
   }
-  else if(is.JDBC(connection))
-  {
-    vcols <- ncol(object)
+
+  ## A copy of connection is needed as in Aster, if query fails
+  ## connection becomes unusable until end of transaction block.
+  vconnection <- getRConnection(connection)
+  vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()
     #browser()
@@ -899,24 +898,50 @@ as.FLTable.data.frame <- function(object,
 
     if(drop)
     {
-      if(RJDBC::dbExistsTable(connection,tableName))
-      t<-sqlSendUpdate(connection,paste0("drop table ",tableName,";"))
-      vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
+      # if(RJDBC::dbExistsTable(connection,tableName))
+      # t<-sqlSendUpdate(connection,paste0("drop table ",tableName,";"))
+      # vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
       t <- createTable(pTableName=tableName,
                       pColNames=names(vcolnamesCopy),
                       pColTypes=vcolnamesCopy,
-                      pTemporary=FALSE)
+                      pTemporary=temporary,
+                      pDrop=drop
+                      )
       # sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
       # if (getOption("debugSQL")) cat(sql)
       # t<-RJDBC::dbSendUpdate(connection,sql)
-      updateMetaTable(pTableName=t,
-                    pType="wideTable")
+      # updateMetaTable(pTableName=t,
+      #               pType="wideTable")
     }
+  if(is.ODBC(vconnection))
+  {
+    ## SqlSave uses parameterized sql which is slow for odbc.
+    ## SqlSave does not include distribute by during table creation.
+    ## SqlSave with append=TRUE crashes R session for Aster.
+    # tryCatch(RODBC::sqlSave(channel=connection,
+    #                         dat=object,
+    #                         tablename=tableName,
+    #                         rownames=FALSE),
+    #   error=function(e){stop(e)})
     
-    .jcall(connection@jc,"V","setAutoCommit",FALSE)
+    ## This bulk insertion may fail for very big data
+    ## as there size of query fired may exceed odbc limits!
+    ## These cases will be handled by Parameterized sql
+    vresult <- tryCatch(insertIntotbl(pTableName=tableName,
+                                    pValues=object),
+                        error=function(e){
+                            sqlstr <- paste0("INSERT INTO ",tableName,
+                                            " VALUES(",paste0(rep("?",vcols),
+                                            collapse=","),")")
+                            sqlExecute(vconnection,sqlstr,object)
+                        })
+  }
+  else if(is.JDBC(vconnection))
+  {
+    .jcall(vconnection@jc,"V","setAutoCommit",FALSE)
     sqlstr <- paste0("INSERT INTO ",
                 tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
-    ps = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
+    ps = .jcall(vconnection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
     myinsert <- function(namedvector,x){
                   vsetvector <- c()
                   vsetvector[" VARCHAR(255) "] <- "setString"
@@ -950,13 +975,13 @@ as.FLTable.data.frame <- function(object,
         apply(vsubset,1,function(x) myinsert(vcolnamesCopy,x))
         tryCatch(.jcall(ps,"[I","executeBatch"),
                  error=function(e){stop("may be repeating primary key or bad column format.Error mssg recieved is:",e)})
-        RJDBC::dbCommit(connection)
+        RJDBC::dbCommit(vconnection)
         k <- k + batchSize
       }
     }
-    .jcall(connection@jc,"V","setAutoCommit",TRUE)
-    vcolnames <- names(vcolnames)
+    .jcall(vconnection@jc,"V","setAutoCommit",TRUE)
   }
+  vcolnames <- names(vcolnames)
   # browser()
   select <- new("FLSelectFrom",
                 connectionName = getFLConnectionName(), 
