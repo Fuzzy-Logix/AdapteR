@@ -41,18 +41,10 @@ sqlQuery.FLConnection <- function(connection,query,...)
 #' @export
 sqlStoredProc <- function(connection, query, outputParameter, ...) UseMethod("sqlStoredProc")
 sqlStoredProc.FLConnection <- function(connection,query,outputParameter,...) {
-    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
-                                         gsub(" +","    ",
-                                              constructStoredProcSQL(pConnection="string",
-                                                                     pFuncName=query,
-                                                                     pOutputParameter=outputParameter,
-                                                                     ...)),"\n"))
-    query <- constructStoredProcSQL(pConnection=connection,
-                                    pFuncName=query,
-                                    pOutputParameter=outputParameter,
-                                    ...)
-
-    sqlStoredProc(connection=connection$connection,query=query,outputParameter=outputParameter,...)
+    sqlStoredProc(connection=getRConnection(connection),
+                query=query,
+                outputParameter=outputParameter,
+                ...)
 }
 
 #' Send a query to database
@@ -166,7 +158,16 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
     #                 paste0(rep("?", length(args)+length(outputParameter)),
     #                        collapse=","),
     #                  ")")
-
+    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
+                                         gsub(" +","    ",
+                                              constructStoredProcSQL(pConnection="string",
+                                                                     pFuncName=query,
+                                                                     pOutputParameter=outputParameter,
+                                                                     ...)),"\n"))
+    query <- constructStoredProcSQL(pConnection=connection,
+                                    pFuncName=query,
+                                    pOutputParameter=outputParameter,
+                                    ...)
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
 
