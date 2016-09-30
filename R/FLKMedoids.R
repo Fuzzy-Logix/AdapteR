@@ -288,11 +288,12 @@ pam.FLTable <- function(x,
 	AnalysisID <- as.character(retobj[1,1])
 
 	## medoid points are necessary for calculating some results
-	sqlstr0 <- paste0("INSERT INTO fzzlKMedoidsCluster \n ",
-						" SELECT AnalysisID,MedoidID,MedoidID \n ", 
-						" FROM fzzlKMedoidsMedoidIDs \n ",
-						" WHERE AnalysisID='",AnalysisID,"' ")
-	sqlSendUpdate(connection,sqlstr0)
+	sqlstr0 <- paste0(" SELECT AnalysisID,MedoidID,MedoidID \n ", 
+                        " FROM fzzlKMedoidsMedoidIDs \n ",
+                        " WHERE AnalysisID='",AnalysisID,"' ")
+    # sqlSendUpdate(connection,sqlstr0)
+    insertIntotbl(pTableName="fzzlKMedoidsCluster",
+                pSelect=sqlstr0)
 	
 	FLKMedoidsobject <- new("FLKMedoids",
 						centers=k,

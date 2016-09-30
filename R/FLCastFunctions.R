@@ -262,29 +262,29 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
         remoteTable <- tablename
 
         #analysisID <- paste0("AdapteR",remoteTable,MID)
-        if(is.ODBC())
-        {
-          sqlstatements <-
-            base::apply(mdeep,1,
-                        function(r)
-                            paste0(" INSERT INTO ",
-                                   remoteTable,
-                                   " (matrix_id, rowIdColumn, colIdColumn, valueColumn) VALUES (",
-                                   paste0(c(MID,r), collapse=", "),
-                                   ");"))
-        ##flag1Check(connection)
-        retobj<-sqlSendUpdate(connection,
-                              paste(sqlstatements,
-                                    collapse="\n"))
-        }
-        else if(is.JDBC())
-        {
+        # if(is.ODBC())
+        # {
+        #   sqlstatements <-
+        #     base::apply(mdeep,1,
+        #                 function(r)
+        #                     paste0(" INSERT INTO ",
+        #                            remoteTable,
+        #                            " (matrix_id, rowIdColumn, colIdColumn, valueColumn) VALUES (",
+        #                            paste0(c(MID,r), collapse=", "),
+        #                            ");"))
+        # ##flag1Check(connection)
+        # retobj<-sqlSendUpdate(connection,
+        #                       paste(sqlstatements,
+        #                             collapse="\n"))
+        # }
+        # else if(is.JDBC())
+        # {
           mdeep <- base::cbind(MATRIX_ID=as.integer(MID),mdeep)
           mdeep <- as.data.frame(mdeep)
           colnames(mdeep) <- c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
           t <- as.FLTable.data.frame(mdeep,connection,
                                     tablename,1,drop=FALSE)
-        }
+        # }
         mydimnames <- dimnames(object)
         mydims <- dim(object)
         ##print(mydimnames)
@@ -556,11 +556,13 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
     else
     {
       sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-      vSqlStr <- paste0(" INSERT INTO ", getOption("ResultMatrixTableFL"),
-                    "\n",
-                   gsub("'%insertIDhere%'",MID,sqlstr),
-                    "\n")
-      sqlSendUpdate(connection,vSqlStr)
+      # vSqlStr <- paste0(" INSERT INTO ", getOption("ResultMatrixTableFL"),
+      #               "\n",
+      #              gsub("'%insertIDhere%'",MID,sqlstr),
+      #               "\n")
+      # sqlSendUpdate(connection,vSqlStr)
+      insertIntotbl(pTableName=getOption("ResultMatrixTableFL"),
+                    pSelect=gsub("'%insertIDhere%'",MID,sqlstr))
     }
   }
 
@@ -582,7 +584,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
 
   sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = attr(connection,"name")$name,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -710,29 +712,29 @@ as.FLVector.vector <- function(object,connection=getFLConnection())
 
   #vobjcopy <- ifelse(is.character(object),fquote(object[x]),object[x])
   #object <- c(1,"NULL")
-  if(is.ODBC())
-  {
-    sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
-           tablename,
-           " SELECT ",VID," AS vectorIdColumn,",
-                     x," AS vectorIndexColumn,",
-                     ifelse(tablename==getOption("ResultCharVectorTableFL"),
-                            fquote(object[x]),
-                            object[x]),
-                     " AS vectorValueColumn;"
-                   ))
-    retobj<-sqlSendUpdate(connection,
-                              paste(sqlstr,
-                                    collapse="\n"))
-  }
-  else if(is.JDBC())
-  {
+  # if(is.ODBC())
+  # {
+  #   sqlstr<-sapply(1:length(object),FUN=function(x) paste0("INSERT INTO ",
+  #          tablename,
+  #          " SELECT ",VID," AS vectorIdColumn,",
+  #                    x," AS vectorIndexColumn,",
+  #                    ifelse(tablename==getOption("ResultCharVectorTableFL"),
+  #                           fquote(object[x]),
+  #                           object[x]),
+  #                    " AS vectorValueColumn;"
+  #                  ))
+  #   retobj<-sqlSendUpdate(connection,
+  #                             paste(sqlstr,
+  #                                   collapse="\n"))
+  # }
+  # else if(is.JDBC())
+  # {
     #browser()
     vdataframe <- data.frame(vectorIdColumn=as.integer(VID),
                             vectorIndexColumn=as.integer(1:length(object)),
                             vectorValueColumn=as.vector(object))
     t <- as.FLTable.data.frame(vdataframe,connection,tablename,1,drop=FALSE)
-  }
+  # }
   select <- new("FLSelectFrom",
                 connectionName = attr(connection,"name"), 
                 table_name = c(flt=tablename),
@@ -759,12 +761,14 @@ as.FLVector.FLMatrix <- function(object,connection=getFLConnection(object))
   {
     sqlstr <- sqlstr[sqlstr!=""]
     sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
-    vSqlStr <- paste0(" INSERT INTO ",getOption("ResultVectorTableFL"),
-                    "\n",
-                   gsub("'%insertIDhere%'",VID,sqlstr),
-                    "\n")
-    sqlSendUpdate(connection,
-                  vSqlStr)
+    # vSqlStr <- paste0(" INSERT INTO ",getOption("ResultVectorTableFL"),
+    #                 "\n",
+    #                gsub("'%insertIDhere%'",VID,sqlstr),
+    #                 "\n")
+    # sqlSendUpdate(connection,
+    #               vSqlStr)
+    insertIntotbl(pTableName=getOption("ResultVectorTableFL"),
+                    pSelect=gsub("'%insertIDhere%'",VID,sqlstr))
   }
   colnames <- colnames(object)
   if(is.null(colnames(object))) 

@@ -596,13 +596,20 @@ insertIntotbl <- function(pTableName,
                                       paste0(sapply(x,
                                             function(y){
                                                 if(is.logical(y)||
-                                                  is.factor(y)) 
+                                                  is.factor(y))
                                                     y <- as.character(y)
                                                 suppressWarnings(if(!is.na(as.numeric(y)))
-                                                                 y <- as.numeric(y))
-                                                if(is.character(y) && !grepl("'",y))
-                                                    y <- fquote(y)
-                                                else y}),
+                                                    y <- as.numeric(y))
+                                                if((is.character(y) && !grepl("'",y))
+                                                    || is.null(y)){
+                                                    if(y=="NULL" || is.null(y)){
+                                                        if(is.TD())
+                                                            return("NULL")
+                                                        else return("''")
+                                                    }
+                                                    return(fquote(y))
+                                                }
+                                                else return(y)}),
                                         collapse = ","),")")}),
                             collapse = ";")
             # vsqlstr <- paste0(apply(pValues,1,

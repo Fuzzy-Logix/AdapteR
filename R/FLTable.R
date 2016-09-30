@@ -274,11 +274,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     else{
       if(is.na(as.numeric(name)))
       stop("name should be numeric in deep table \n ")
-      sqlstr <- paste0(" INSERT INTO ",vtablename," \n ",
-                    " SELECT a.vectorIndexColumn, \n ",
+      sqlstr <- paste0(" SELECT a.vectorIndexColumn, \n ",
                             name,
                             ", \n a.vectorValueColumn \n ",
-                    " FROM(",constructSelect(value),") a;")
+                        " FROM(",constructSelect(value),") a;")
+      insertIntotbl(pTableName=vtablename,
+                    pSelect=sqlstr)
+      sqlstr <- NULL
       vcolnames <- c(vcolnames,name)
     }
   }
@@ -515,14 +517,15 @@ setMethod("deepToWide",
             if(mapTable=="" || mapTable=="NULL"){
               if(Analysisid!="")
               {
-                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ",
-                                " INSERT INTO ",usedwidetablename," \n ", 
-                                " SELECT a.Final_VarID, \n  
+                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ")
+                sqlSendUpdate(connection,sqlstr1)
+                sqlstr1<-paste0(" SELECT a.Final_VarID, \n  
                                         a.COLUMN_NAME, \n 
                                         a.FROM_TABLE
                                  FROM fzzlRegrDataPrepMap a 
                                  WHERE a.AnalysisID = '",Analysisid,"';")
-                sqlSendUpdate(connection,sqlstr1)
+                insertIntotbl(pTableName=usedwidetablename,
+                            pSelect=sqlstr1)
                 mapTable<-usedwidetablename
                 mapname<- genRandVarName()
               }

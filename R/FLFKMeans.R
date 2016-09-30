@@ -614,8 +614,10 @@ silinfo.FLFKMeans <- function(object){
 										WITH DATA
 									    ON 
 										COMMIT  PRESERVE ROWS;"))
-		u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
-										" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
+		# u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
+		# 								" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
+        u <- insertIntotbl(pTableName=b,
+                           pSelect=paste0(" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
 
 
 				
