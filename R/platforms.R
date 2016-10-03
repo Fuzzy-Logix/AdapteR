@@ -1,3 +1,6 @@
+#' @export
+setClass("FLConnection",slots=list())
+
 
 #' A FLConnection object stores either a JDBC or a ODBC connection
 #' as well as the platform that is connected to.

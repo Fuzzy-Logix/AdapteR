@@ -14,8 +14,8 @@ NULL
 
 kuip.test <- function(vFLvector1, vFLvector2)          {
     dname <- as.list(sys.call())
+        vcall <- paste0(dname[2], " and ", dname[3])
     vviewName <- gen_view_name("kuiptest")
-    
     t <- constructUnionSQL(pFrom =c(a = constructSelect(vFLvector1),
                                     b = constructSelect(vFLvector2)),
                            pSelect = list(a = c(GroupID = 1,
@@ -47,9 +47,10 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
     
     result <- list(statistics = c(Stat = res_1$TStat),
                    p.value = pval,
-                   method = "2-Sample Kuiper Test"
-                                        # data.name = dname                             
+                   method = "2-Sample Kuiper Test",
+                   data.name = vcall                             
                    )
     class(result) <- "htest"
+    dropView(vviewName)
     return(result)            
 }

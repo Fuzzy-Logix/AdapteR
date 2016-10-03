@@ -78,6 +78,7 @@ setMethod("ks.test",signature(x="FLVector"),
                              method = "One-sample Kolmogorov-Smirnov test",
                              data.name = as.character(dname))
               class(result) <- "htest"
+              dropView(vviewName)
               return(result)              
           }
           )
@@ -132,6 +133,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                              data.name = dname                             
                              )
               class(result) <- "htest"
+              dropView(vviewName)
               return(result)            
           }
           )

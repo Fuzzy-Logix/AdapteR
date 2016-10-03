@@ -26,21 +26,17 @@ test_that("lm: coefficient names https://app.asana.com/0/143316600934101/1569893
     expectation="C")
 })
 
+
 test_that("lm: equality of coefficients, residuals, fitted.values, rank and terms",{
     result = eval_expect_equal({
-        sapply(c("coefficients","residuals",
-                 "fitted.values","df.residual",
-                 "rank","terms"),
-               function(i){
-            ##cat(paste0("getting lmobj$",i,"\n"))
-            assign(i,do.call("$",list(lmobj,i)))
-        })
+        mycoefffs <- lmobj$coefficients
+        myres <- lmobj$residuals
+        myfitted.values <- lmobj$fitted.values
+        mydf.res <- lmobj$df.residual
+        myrank <- lmobj$rank
+        myterms <- lmobj$terms
         modelDim <- dim(lmobj$model)
-    },Renv,FLenv,
-    noexpectation = "lmobj",
-    expectation = c(c("coefficients","residuals",
-                      "fitted.values","df.residual",
-                      "rank","terms"),"modelDim"))
+    },Renv,FLenv)
 })
 
 

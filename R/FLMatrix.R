@@ -87,9 +87,6 @@ newFLMatrix <- function(...) {
         ...)
 }
 
-#' @export
-setClass("FLConnection",slots=list())
-
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
