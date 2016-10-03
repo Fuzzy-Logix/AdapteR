@@ -87,11 +87,11 @@ Choose a formula based model by p-values and R-Squared Values.
 \section{Constraints}{
 
 The anova method is not yet available for FLLinRegr.
+Properties like \code{print(fit$x),model,plot} might take time as they
+have to fetch data
 }
 \examples{
-library(RODBC)
-connection <- flConnect("Gandalf")
-widetable  <- FLTable("FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 s <- step(widetable,scope=list(lower=Rings~Height+Diameter),direction = "UFbackward")
 plot(s)
 s$coefficients
@@ -125,7 +125,7 @@ s <- step(widetable,
  		direction = "forward")
 plot(s)
 s$coefficients
-deeptable <- FLTable("FL_DEMO","myLinRegrSmall","ObsID","VarID","Num_Val")
+deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
 s <- step(deeptable,
 			scope=list(upper=c("-1","0","1")),
  		direction = "backward")
@@ -138,16 +138,7 @@ s <- step(deeptable,
 s <- step(deeptable,
 			scope=list(),
  		direction = "forward")
-deeptable1 <- FLTable("FL_DEMO","tblLogRegr",
-					"ObsID","VarID","Num_Val",whereconditions="ObsID < 7001")
-s <- step(deeptable1,
-			scope=list(upper=c("-1","0","1","2","3")),
- 		direction = "backward",
-			familytype="logistic")
-s <- step(deeptable1,
-			scope=list(upper=c("1","2","3"),lower=c("2")),
- 		direction = "Fbackward",familytype="logistic")
-deeptable1 <- FLTable("FL_DEMO","tblLogRegr",
+deeptable1 <- FLTable("tblLogRegr",
 					"ObsID","VarID","Num_Val",
                   whereconditions=c("ObsID < 7001","VarID<5"))
 s <- step(deeptable1,
@@ -157,8 +148,6 @@ s <- step(deeptable1,
 			scope=list(),
  		direction = "forward",familytype="logistic")
 plot(s)
-deeptable2 <- FLTable("FL_DEMO","tblLogRegrMN10000",
-					"ObsID","VarID","Num_Val",whereconditions="ObsID < 7001")
 s <- step(deeptable1,
 			scope=list(upper=c("-1","0","1","2","3")),
  		direction = "backward",
@@ -166,12 +155,15 @@ s <- step(deeptable1,
 s <- step(deeptable1,
 			scope=list(upper=c("1","2","3"),lower=c("2")),
  		direction = "Fbackward",familytype="multinomial",pRefLevel=1)
-deeptable2 <- FLTable("FL_DEMO","tblLogRegrMN10000",
+deeptable2 <- FLTable("tblLogRegrMN10000",
 					"ObsID","VarID","Num_Val",
                   whereconditions=c("ObsID < 7001","VarID<5"))
 s <- step(deeptable2,
          scope=list(lower=c("2")),
          direction = "UFbackward",familytype = "multinomial",pRefLevel=1)
 summary(s)
+}
+\seealso{
+\code{\link[stats]{step}} for R reference implementation.
 }
 

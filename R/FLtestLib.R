@@ -58,9 +58,14 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                                        expected[[i]],...)))
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
-          function(object,expected,...)
-              FLexpect_equal(as.FLVector(object),
-                                     expected,...))
+          function(object,expected,...){
+            if(is.numeric(object) || is.integer(object) || is.vector(object)){
+                object <- as.vector(object)
+                return(testthat::expect_equal(object,as.R(expected),...))
+            }
+            else FLexpect_equal(as.FLVector(object),
+                                expected,...)
+          })
 
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
@@ -188,6 +193,7 @@ expect_flequal <- function(a,b,...){
 ## gk: refactor such that initF code is used for one-time creation of huge testing tables (on demand)
 ## gk: and that all actual testing is done by creating references to that permanent table
 ## type should be in c("float","int","character")
+#' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
   #browser()
@@ -196,48 +202,49 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
   else if(!isRowVec){
     if(type=="float")
     {
-      select <- new(
-                  "FLSelectFrom",
-                  connection = getOption("connectionFL"), 
-                  database = getOption("ResultDatabaseFL"), 
-                  table_name = "fzzlserial",
-                  variables = list(obs_id_colname="SERIALVAL"),
-                  whereconditions=paste0(getOption("ResultDatabaseFL"),
-                                        ".fzzlserial.SERIALVAL < ",n+1),
-                  order = "")
+      select <- new("FLSelectFrom",
+                    connection = getOption("connectionFL"), 
+                    ##database = getOption("ResultDatabaseFL"), 
+                    table_name = "fzzlserial",
+                    variables = list(obs_id_colname="SERIALVAL"),
+                    whereconditions=paste0(getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    order = "")
       flv <- new("FLVector",
                 select=select,
                 dimnames=list(1:n,"RANDVAL"),
                 isDeep=FALSE)
     }
-    else if(is.null(getOption("FLTestVectorTable")) ||
-            !getOption("FLTestVectorTable"))
+    # else if(is.null(getOption("FLTestVectorTable")) ||
+    #         !getOption("FLTestVectorTable"))
+    else
     {
-      if(!checkRemoteTableExistence(tableName="ARTestIntVectorTable"))
-      vtemp <- createTable(pTableName="ARTestIntVectorTable",
-                          pSelect=paste0(" SELECT a.serialval AS vectorIndexColumn, \n ",
+      # if(!checkRemoteTableExistence(tableName="ARTestIntVectorTable"))
+      if(type=="int"){
+        vtableName <- "ARTestIntVectorTable"
+        vtemp <- createTable(pTableName="ARTestIntVectorTable",
+                            pSelect=paste0(" SELECT a.serialval AS vectorIndexColumn, \n ",
                                 " CAST(FLSimUniform(a.serialval,-100,100) AS INT) AS vectorValueColumn \n ",
-                                " FROM fzzlserial a "))
-      if(!checkRemoteTableExistence(tableName="ARTestCharVectorTable"))
-      vtemp <- createTable(pTableName="ARTestCharVectorTable",
+                                " FROM fzzlserial a "),
+                            pTemporary=FALSE)
+      }
+      else{
+        vtemp <- createTable(pTableName="ARTestCharVectorTable",
                           pSelect=paste0(" SELECT a.serialval AS vectorIndexColumn, \n ",
                                         " b.string1 AS vectorValueColumn \n ",
                                         " FROM fzzlserial a, \n ",
                                             "(SELECT ROW_NUMBER()OVER(ORDER BY string1) AS obsid, \n ",
                                               "string1 \n ",
                                             " FROM tblstring ) AS b \n ",
-                                        " WHERE FLMOD(a.serialval,5) + 1 = b.obsid "))
-      if(type=="int") vtableName <- "ARTestIntVectorTable"
-      else vtableName <- "ARTestCharVectorTable"
-      options(FLTestVectorTable=TRUE)
-      select <- new(
-                    "FLSelectFrom",
+                                        " WHERE FLMOD(a.serialval,5) + 1 = b.obsid "),
+                          pTemporary=FALSE)
+        vtableName <- "ARTestCharVectorTable"
+      }
+      # options(FLTestVectorTable=TRUE)
+      select <- new("FLSelectFrom",
                     connection = getOption("connectionFL"), 
-                    database = getOption("ResultDatabaseFL"), 
                     table_name = vtableName,
                     variables = list(obs_id_colname="vectorIndexColumn"),
-                    whereconditions=paste0(getOption("ResultDatabaseFL"),
-                                          ".",vtableName,".vectorIndexColumn < ",n+1),
+                    whereconditions=paste0(vtableName,".vectorIndexColumn < ",n+1),
                     order = "")
       flv <- new("FLVector",
                   select=select,
@@ -247,27 +254,23 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
   }
   else{
     if(type == "character"){
-      widetable<-FLTable(getOption("ResultDatabaseFL"),"tblAutoMpg","ObsID")
+      widetable<-FLTable(getRemoteTableName(tableName = "tblAutoMpg",temporaryTable = FALSE),"ObsID")
       flv <- widetable[1,rep("CarName",n)]
     }
     else{
       vmaxId <- getMaxVectorId()
       sqlSendUpdate(getOption("connectionFL"),
-                          c(paste0("INSERT INTO ",getOption("ResultDatabaseFL"),
-                                                ".",getOption("ResultVectorTableFL")," \n ",
+                          c(paste0("INSERT INTO ",getOption("ResultVectorTableFL")," \n ",
                               " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
                                 CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                              FROM ", getOption("ResultDatabaseFL"),".fzzlserial a 
-                              WHERE a.serialval < 2 ")))
+                              FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a 
+                              WHERE a.serialval <=  ",n)))
 
-      table <- FLTable(connection=getOption("connectionFL"),
-                     getOption("ResultDatabaseFL"),
-                     getOption("ResultVectorTableFL"),
-                     "vectorIndexColumn",
-                     whereconditions=paste0(getOption("ResultDatabaseFL"),".",
-                                      getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
+      table <- FLTable(getOption("ResultVectorTableFL"),
+                       "vectorIndexColumn",
+                       whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
                      )
-      flv <- table[1,base::sample(c("vectorValueColumn","vectorIndexColumn"),n,replace=TRUE)]
+      flv <- table[,"vectorValueColumn"]
     }
   }
   Rvector <- as.vector(flv)
@@ -291,7 +294,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
     if(type=="int")
     {
       vtableName <- "ARTestIntMatrixTable"
-      if(!checkRemoteTableExistence(tableName="ARTestIntMatrixTable"))
+      # if(!checkRemoteTableExistence(tableName="ARTestIntMatrixTable"))
       vtemp <- createTable(pTableName="ARTestIntMatrixTable",
                           pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
                                         " b.serialval AS colIdColumn, \n ",
@@ -300,11 +303,12 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                         " -100,100) AS INT) AS valueColumn \n ",
                                         " FROM fzzlserial a,fzzlserial b \n ",
                                         " WHERE a.serialval < 1001",n+1,
-                                        " AND b.serialval < 1001 "))
+                                        " AND b.serialval < 1001 "),
+                          pTemporary=FALSE)
     }
     else if(type=="character"){
       vtableName <- "ARTestCharMatrixTable"
-      if(!checkRemoteTableExistence(tableName="ARTestCharMatrixTable"))
+      # if(!checkRemoteTableExistence(tableName="ARTestCharMatrixTable"))
       vtemp <- createTable(pTableName="ARTestCharMatrixTable",
                           pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
                                         " b.serialval AS colIdColumn, \n ",
@@ -314,12 +318,13 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                           "string1 FROM tblstring) c ",
                                         " WHERE a.serialval < 1001 \n ",
                                         " AND b.serialval < 1001 \n ",
-                                        " AND FLMOD(a.serialval,5)+1=c.obsid ")
+                                        " AND FLMOD(a.serialval,5)+1=c.obsid "),
+                          pTemporary=FALSE
                         )
     }
     else if(type=="float"){
       vtableName <- "ARTestMatrixTable"
-      if(!checkRemoteTableExistence(tableName="ARTestMatrixTable"))
+      # if(!checkRemoteTableExistence(tableName="ARTestMatrixTable"))
       vtemp <- createTable(pTableName="ARTestMatrixTable",
                           pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
                                 " b.serialval AS colIdColumn, \n ",
@@ -328,7 +333,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                 " -100,100) AS valueColumn \n ",
                                 " FROM fzzlserial a,fzzlserial b \n ",
                                 " WHERE a.serialval < 1001 \n ",
-                                " AND b.serialval < 1001 ")
+                                " AND b.serialval < 1001 "),
+                          pTemporary=FALSE
                         )
     }
     else stop("type should be int,float,character")
@@ -337,19 +343,17 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
             ARTestCharMatrixTable="character",
             ARTestIntMatrixTable="int")
   vtableName <- names(vtemp)[vtemp==type]
-  select <- new(
-        "FLSelectFrom",
-        connection = getOption("connectionFL"),
-        database = getOption("ResultDatabaseFL"),
-        table_name = c(mtrx=vtableName),
-        variables=list(MATRIX_ID="'%insertIDhere%'",
-                      rowIdColumn=paste0("mtrx.rowIdColumn"),
-                      colIdColumn=paste0("mtrx.colIdColumn"),
-                      valueColumn=paste0("mtrx.valueColumn")),
-        whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),
-                          paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
-        order = "")
-    
+  select <- new("FLSelectFrom",
+                connection = getOption("connectionFL"),
+                table_name = c(mtrx=vtableName),
+                variables=list(MATRIX_ID="'%insertIDhere%'",
+                               rowIdColumn=paste0("mtrx.rowIdColumn"),
+                               colIdColumn=paste0("mtrx.colIdColumn"),
+                               valueColumn=paste0("mtrx.valueColumn")),
+                whereconditions=c(paste0("mtrx.rowIdColumn < ",n+1),
+                                  paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
+                order = "")
+  
   flm <- new("FLMatrix",
             select = select,
             dim = c(n,ifelse(isSquare,n,n-1)),
@@ -361,12 +365,10 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
 #' @export
 initF.FLTable <- function(rows,cols,...)
 {
-  WideTable <- FLTable(connection=getOption("connectionFL"),
-                      getOption("ResultDatabaseFL"),
-                      "fzzlserial",
-                      "serialval",
-                      whereconditions=paste0(getOption("ResultDatabaseFL"),".fzzlserial.serialval < ",rows+1))
-  return(WideTable[1:rows,base::sample(c("randval","serialval"),cols,replace=TRUE)])
+  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE)),
+                       "SERIALVAL",
+                       whereconditions=paste0("SERIALVAL < ",rows+1))
+  return(WideTable[1:rows,base::sample(c("RANDVAL","SERIALVAL"),cols,replace=TRUE)])
 }
 
 
@@ -631,3 +633,8 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
 initF.numeric <- initF.FLVector
 initF.data.frame <- initF.FLTable
 initF.matrix <- initF.FLMatrix
+
+#' @export
+dropFLTestTable <- function(){
+    dropTable(pTableName="ARBaseTestTempTable")
+}

@@ -14,9 +14,7 @@ NULL
 #'       \item{P}{FLMatrix representing P matrix obtained from Jordan decomposition}
 #'       \item{PInv}{FLMatrix representing PInv matrix obtained from Jordan decomposition}
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' flmatrix <- FLMatrix("FL_DEMO", 
-#' "tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLJordan(flmatrix)
 #' resultList$J
 #' resultList$P
@@ -33,7 +31,6 @@ FLJordan.FLMatrix<-function(object,...)
 	flag1Check(connection)
 	flag3Check(connection)
 	
-	tempResultTable <- gen_unique_table_name("Jordon")
 
         sqlstr <- paste0(
                          viewSelectMatrix(object, "a","z"),
@@ -48,39 +45,32 @@ FLJordan.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="FLJordan")
 
-    createTable(pTableName=tempResultTable,
-                pSelect=sqlstr)
+	tempResultTable <- createTable(pTableName=gen_unique_table_name("Jordon"),
+                                   pSelect=sqlstr)
 
-    PMatrix <- FLMatrix(
-				       connection = connection, 
-				       database = getOption("ResultDatabaseFL"), 
+    PMatrix <- FLMatrix(connection = connection, 
 				       table_name = tempResultTable, 
 					   matrix_id_value = "",
 					   matrix_id_colname = "", 
 					   row_id_colname = "OutputRowNum", 
 					   col_id_colname = "OutputColNum", 
 					   cell_val_colname = "OutPVal",
-					   whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutPVal IS NOT NULL "))
+					   whereconditions=paste0(tempResultTable,".OutPVal IS NOT NULL "))
 
 
-    PInvMatrix <- FLMatrix(
-			            connection = connection, 
-			            database = getOption("ResultDatabaseFL"), 
+    PInvMatrix <- FLMatrix(connection = connection, 
 			            table_name = tempResultTable, 
 			            matrix_id_value = "",
 			            matrix_id_colname = "", 
 			            row_id_colname = "OutputRowNum", 
 			            col_id_colname = "OutputColNum", 
 			            cell_val_colname = "OutPInvVal",
-			            whereconditions=paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutPInvVal IS NOT NULL "))
+			            whereconditions=paste0(tempResultTable,".OutPInvVal IS NOT NULL "))
 
-	table <- FLTable(
-		             getOption("ResultDatabaseFL"),
-		             tempResultTable,
+	table <- FLTable(tempResultTable,
 		             "OutputRowNum",
-		             whereconditions=c(paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutJVal IS NOT NULL "),
-		             	paste0(getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputRowNum = ",
-		             	getRemoteTableName(getOption("ResultDatabaseFL"),tempResultTable),".OutputColNum "))
+		             whereconditions=c(paste0(tempResultTable,".OutJVal IS NOT NULL "),
+                                       paste0(tempResultTable,".OutputRowNum = ", tempResultTable,".OutputColNum "))
 		             )
 
 	JVector <- table[,"OutJVal"]

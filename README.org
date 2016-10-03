@@ -14,43 +14,226 @@ custom SQL.
 AdapteR can be used to build interactive analytics at scale with just a few lines of R code!
 
 You can download the full manual here: [[https://securisync.intermedia.net/web/s/LtQNzab68gL5jwSzQERIiV][AdapteR package manual]].
-
 * Requirements
-- AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
+AdapteR needs DB Lytix™ suite to be installed on your Teradata Appliance, so it can use its fast C++ implementation of analytical functions.
+Find more information on [[http://www.fuzzylogix.com]].
+** R
+:PROPERTIES:
+:ID:       DF5AB673-2890-4EAF-A9B3-A721F1609BF1
+:END:
+*** Installation of R on Windows:
+1. Download and install R(>=3.2.0) from https://cran.r-project.org/bin/windows/base/
 
-  Find more information on [[http://www.fuzzylogix.com]].
+*** Installation of R on Linux:
+1. Install R using 
+   Ubuntu:
+   : apt-get install r-base
+2. Install OS packages required to build R packages
 
-- Install prerequisite teradataR
-  #+BEGIN_SRC R :eval no
-  install.packages("devtools")
-  require(devtools)
-  install_github("Teradata/teradataR")
-  #+END_SRC
+   Ubuntu:
+   #+begin_src sh 
+    apt-get -y build-dep libcurl4-gnutls-dev
+    apt-get -y install libcurl4-gnutls-dev
+    apt-get install libssl-dev
+   #+end_src
+** Work environments & recommendations
+We recommend to
+- add R and Rcript executables to PATH variable.
+- install R-Studio: https://www.rstudio.com/products/rstudio/download/
+* Installation and Update instructions
+:PROPERTIES:
+:ID:       4AD7DBF5-9C7A-4C9C-A714-0735F860E7A4
+:END:
+1. Open R-Studio or an R terminal
+2. The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
+   1. Install devtools package using "install.packages("devtools")"
+      #+BEGIN_SRC R :eval no
+      install.packages("devtools") ## Required for install_github
+      #+END_SRC
+   2. Load devtools using
+      #+BEGIN_SRC R :eval no
+      require(devtools)
+      #+END_SRC
+   3. Install AdapteR from github
+      #+BEGIN_SRC R :eval no
+      install_github("Fuzzy-Logix/AdapteR")
+      #+END_SRC
+      This automatically installs dependencies. 
+      # On failure please install the [[id:A7CCAA11-1DCD-482D-8744-88631588B3AF][reference syntax packages]]
+5. Load AdapteR using
+      #+BEGIN_SRC R :eval no
+      library(AdapteR)
+      #+END_SRC
 
-* Installation instructions
-Install (or update) the package 
+
+** Remove older Version, if you encounter any issues
+#+begin_src R
+remove.packages("AdapteR")
+#+end_src
+
+
+
+
+* Connecting to the Data Warehouse
+:PROPERTIES:
+:ID:       2B55187C-17C1-488C-A980-396426D2DD18
+:END:
+AdapteR does not depend on either JDBC or ODBC but uses either you provide at runtime.
+You can either use ODBC or JDBC to connect to the warehouse, see instructions below.
+
+Use =flConnect= to connect to a database. Help on this can be found using 
+   #+begin_src R
+   ?flConnect
+   #+end_src
+
+** ODBC
 #+BEGIN_SRC R :eval no
-# install.packages("devtools")
-# require(devtools)
-install_github("Fuzzy-Logix/AdapteR")
+install.packages("RODBC") ## Required for ODBC Connection.Need to setup odbc Source
+library(RODBC)
 #+END_SRC
-(The package does not depend on either JDBC or ODBC but uses either you provide at runtime.  You savely can ignore warnings about xDBC.)
+*Note: it is required that the Teradata ODBC option "Return Output Parameters As Result Set" is checked (set to true).*
+
+** JDBC
+*** Java JDK
+- Windows: 
+  1. (re-)install the jdk, and set the path variable in R
+  : Sys.setenv(JAVA_HOME="yourPathTojdk")
+  (https://docs.oracle.com/cd/E19182-01/820-7851/inst_cli_jdk_javahome_t/)
+- Linux: 
+  1. install jdk and sources
+     Ubuntu:
+     #+begin_src sh
+     sudo apt install default-jdk
+     #+end_src
+
+  2. setup R for using your java installation
+     #+begin_src sh
+     sudo R CMD javareconf
+     #+end_src
+
+*** RJDBC
+In order to use jdbc with AdapteR, you need to install rJava
+#+BEGIN_SRC R :eval no
+install.packages("rJava") ## Required for RJDBC
+install.packages("RJDBC") ## Required for JDBC connection
+library(RJDBC)            ## check if RJDBC can be loaded
+
+#+END_SRC
+*** JDBC connectors
+Also, you need to download and use the jdbc connector jar files either in the java load path or provide them when calling =flConnect=
+the java development toolkit (jdbc).
 
 * AdapteR Demos and Training
-The package includes some demos to get you started and to explain the most important concepts:
-#+BEGIN_SRC R :session r_fl :results output :exports both
+The package includes some demos to get you started and to explain the most important concepts.
+To run the package demos, please copy and execute all scripts here in R.
+(Before running the demo in a fresh installation for the first time, also run the scripts in [[https://github.com/Fuzzy-Logix/AdapteR#optional-packages][Optional packages]], see below).
+
+#+BEGIN_SRC R :session r_fl :results table :exports both 
+## Load devtools and Update AdapteR from github
+require(devtools)
+install_github("Fuzzy-Logix/AdapteR")
+
+
 require(AdapteR)
+#+END_SRC
+
+To start a demo, first set your connection info with ODBC ([[https://github.com/Fuzzy-Logix/AdapteR#or-set-your-connection-info-with-jdbc][If you use JDBC, see below how to set your connection info with JDBC]])
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourODBCSource <- "Gandalf" ## please make sure you use a 64 bit ODBC driver on a 64 bit R session
+yourPlatform <- "TD"
+connection <- flConnect(odbcSource = yourODBCSource,
+                        database="FL_TRAIN",
+                        platform=yourPlatform)
+#+END_SRC
+
+Run a demo:
+#+BEGIN_SRC R :session r_fl :results output :exports both
+demo("matrix.correlation",package="AdapteR")
+#+END_SRC
+
+This lists all available demos
+#+BEGIN_SRC R :session r_fl :results output :exports both 
 demo(package="AdapteR")
-## run a demo:
-## demo("matrix.correlation",package="AdapteR")
+#+END_SRC
+
+#+RESULTS: 
+#+begin_example
+Demos in package ‘AdapteR’:
+
+Iris_kmeans             
+LoanDefaultDemo         
+TwitterBuzzDemo         
+apply.statistical.functions
+                        
+connecting              
+kmeans                  
+matrix.algebra          
+matrix.correlation      
+string.functions
+#+end_example
+
+
+
+If you want to demonstrate what SQL queries are created during the demo:
+#+BEGIN_SRC R :session r_fl :results output :exports both
+options(debugSQL=TRUE)
+demo("matrix.correlation",package="AdapteR")
 #+END_SRC
 
 
-#+RESULTS: 
-#+BEGIN_EXAMPLE
-Demos in package ‘AdapteR’:
+** Or set your connection info with JDBC
+:PROPERTIES:
+:ID:       EA123B7F-CC54-405A-86E4-740A788FC239
+:END:
+Before running, please fill in the required information in "".
+#+BEGIN_SRC R :session r_fl :results output :exports both
+yourUser <- "" 
+yourPassword <- ""
+yourHost <- ""
+yourPlatform <- "TD"
 
-connecting              
-matrix.algebra          
-matrix.correlation
-#+END_EXAMPLE
+                ## set jdbc.jarsDir to add jdbc driver
+                ## and security jars to classpath:
+                ##    terajdbc4.jar tdgssconfig.jar
+                ## CAVE: fully qualified PATH required
+yourJarDir <- ""
+connection <- flConnect(
+                host     = yourHost,
+                database = "FL_TRAIN",
+                user = yourUser,
+                passwd = yourPassword,
+                jdbc.jarsDir = yourJarDir)
+#+END_SRC
+
+** Optional packages
+:PROPERTIES:
+:ID:       A7CCAA11-1DCD-482D-8744-88631588B3AF
+:END:
+The following suggested packages provide functions that are used if AdapteR functions are called on data.frame, matrix or vectors (not remote representations).
+Install these packages for the demos:
+  #+BEGIN_SRC R :eval no
+  install.packages("gplots")
+  install.packages("shiny")
+  install.packages("R.utils")
+  #+END_SRC
+  
+Functions in these packages provide the reference implementations for AdapteR functions:
+  #+BEGIN_SRC R :eval no
+  install.packages("psych")
+  install.packages("SDMTools")
+  install.packages("MASS")
+  install.packages("psych")
+  install.packages("cluster")
+  install.packages("survival")
+  install.packages("mgcv")
+  install.packages("moments")
+  install.packages("stringdist")
+  install.packages("PASWR")
+#+END_SRC
+
+These packages are required to run the test suite:
+#+BEGIN_SRC R :eval no
+  install.packages("devtools")
+  install.packages("testthat")
+  install.packages("optparse")
+#+END_SRC

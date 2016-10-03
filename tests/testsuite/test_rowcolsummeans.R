@@ -10,19 +10,19 @@ Renv$M <- as.array(Renv$M)
 FLenv <- as.FL(Renv)
 
 test_that("Check1 for colSums function",{
-  result = eval_expect_equal({colSums(M) },Renv, FLenv)
+  result = eval_expect_equal({test1 <- colSums(M) },Renv, FLenv)
 })
 
 test_that("Check2 for rowSums function",{
-  result = eval_expect_equal({rowSums(M) },Renv,FLenv)
+  result = eval_expect_equal({test2 <- rowSums(M) },Renv,FLenv)
 })
 
 test_that("Check3 for colMeans function",{
-  result = eval_expect_equal({colMeans(M) },Renv,FLenv)
+  result = eval_expect_equal({test3 <- colMeans(M) },Renv,FLenv)
 })
 
 test_that("Check4 for rowMeans function",{
-  result = eval_expect_equal({rowMeans(M) },Renv,FLenv)
+  result = eval_expect_equal({test4 <- rowMeans(M) },Renv,FLenv)
 })
 
 

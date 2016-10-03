@@ -1,7 +1,37 @@
 #' @include FLMatrix.R
 NULL
 
+## move to file FLAggClustering.R
 #' An S4 class to represent FLAggClustering
+#'
+#' @slot AnalysisID A character output used to retrieve the results of analysis
+#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' during widetable to deeptable conversion.
+#' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{fanny}
+#' @slot table FLTable object given as input on which analysis is performed
+#' @slot results A list of all fetched components
+#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' widetable or input deeptable)
+#' @slot temptables A list of temporary table names used across the results
+#' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
+#' @slot whereconditions takes the where_clause as a string 
+#' @slot maxit maximal number of iterations for the FANNY algorithm.
+#' @method order FLAggClust
+#' @param object  returns a vector giving a permutation of the original observations to allow for plotting, 
+#' in the sense that the branches of a clustering tree will not cross.
+#' @method height FLAggClust
+#' @param object  returns a vector with the distances between merging clusters at the successive stages.
+#' @method ac FLAggClust
+#' @param object the agglomerative coefficient, measuring the clustering structure of the dataset.
+#' @method merge FLAggClust
+#' @param object returns an (n-1) by 2 matrix, where n is the number of observations. Row i of merge describes 
+#' the merging of clusters at step i of the clustering.
+#' @method print FLAggClust
+#' @param object prints the results of agglomerative clustering on FLTable objects.
+#' @method plot FLAggClust
+#' @param object plots the results of agglomerative clustering on FLtable objects.
+#' Creates plots for visualizing an agnes object.
+#' @export
 setClass(
 	"FLAggClust",
 	slots=list(
@@ -16,24 +46,19 @@ setClass(
 	)
 )
 
-#' @export
-agnes <- function (x,...) {
-  UseMethod("agnes", x)
-}
-
-#' @export
-agnes.data.frame<-cluster::agnes
-#' @export
-agnes.matrix <- cluster::agnes
-#' @export
-agnes.default <- cluster::agnes
-
+## move to file agnes.R
 #' Agglomerative Nesting
 #'
 #' \code{agnes} computes agglomeraive hierarchial 
 #' clustering on FLTable objects.
 #'
-#' @method agnes FLTable
+#' The DB Lytix function called is FLAggClustering. In the initialization, each observation in the dataset
+#' belongs to its own cluster. In each iteration, agglomerative clustering would aggregate the two clusters that 
+#' are nearest to each other, for which the distance is measured by the linkage method. This would continue until 
+#' either the entire dataset belongs to one cluster or until the maximum number of iterations has been reached
+#'
+#' @seealso \code{\link[cluster]{agnes}} for R reference implementation.
+#'
 #' @param x an object of class FLTable, can be wide or deep table
 #' @param diss logical if \code{x} is dissimilarity matrix.
 #' currently not used
@@ -66,21 +91,37 @@ agnes.default <- cluster::agnes
 #' from analysis by default.
 #' @return \code{agnes} returns a list and replicates equivalent R output
 #' from \code{agnes} in cluster package. The mapping table can be viewed
-#' using \code{object$mapping} if input is wide table.
+#' using \code{mapping} component, if input is wide table.
 #' @examples
-#' connection <- flConnect(odbcSource="Gandalf")
-#' deeptable  <- FLTable("FL_DEMO", "tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 #' agnesobject <- agnes(deeptable,maxit=50)
 #' print(agnesobject)
 #' plot(agnesobject)
+#' 
 #' One can specify ClassSpec and transform categorical variables 
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
-#' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable( "FL_DEMO", "iris", "rownames")
+#' The clusters may not be well-defined as is observed in the case below
+#' 
+#' widetable  <- FLTable( "iris", "rownames")
 #' agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
 #' The below plot throws warnings!
 #' plot(agnesobjectnew)
+#' @export
+agnes <- function (x,...) {
+  UseMethod("agnes", x)
+}
+
+#' @export
+agnes.default <- function(x,...){
+    if (!requireNamespace("cluster", quietly = TRUE)){
+            stop("cluster package needed for agnes. Please install it.",
+            call. = FALSE)
+        }
+    else return(cluster::agnes(x,...))
+}
+
+## move to file agnes.R
 #' @export
 agnes.FLTable <- function(x,
 						diss=FALSE,
@@ -149,9 +190,6 @@ agnes.FLTable <- function(x,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					gen_wide_table_name("map"))
-
 		sqlstr <- paste0(
 			    	    " SELECT a.Final_VarID AS VarID, \n ",
 			    	     	"    a.COLUMN_NAME AS ColumnName, \n ",
@@ -159,44 +197,46 @@ agnes.FLTable <- function(x,
 			    	    " FROM fzzlRegrDataPrepMap a \n ",
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
-		createTable(pTableName=mapTable,
-					pSelect=sqlstr)
+        mapTable <- createTable(pTableName=gen_wide_table_name("map"),
+                                pSelect=sqlstr)
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name()
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						deeptablename," AS \n ",constructSelect(x))
-		sqlSendUpdate(connection,sqlstr)
+		deeptablename <- createView(pViewName=gen_view_name(),
+                                    pSelect=constructSelect(x))	
 
-		deeptablename1 <- gen_deep_table_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-						" AS \n SELECT * FROM ",getOption("ResultDatabaseFL"),".",
-						deeptablename,constructWhere(whereconditions))
-		t <- sqlSendUpdate(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
+		 
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#" AS \n SELECT * FROM ",getOption("ResultDatabaseFL"),".",
+		#deeptablename,constructWhere(whereconditions))
+		#t <- sqlSendUpdate(connection,sqlstr)
 
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename1,
+		deeptablename1<-createView(pViewName=gen_deep_table_name("New"),
+			pSelect=paste0("SELECT * FROM ",
+			deeptablename,constructWhere(whereconditions)
+				)
+			)
+
+		deepx <- FLTable(table=t,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
-                  )
+                   "cell_val_colname")
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 	else
 	{
 		x@select@whereconditions <- c(x@select@whereconditions,whereconditions)
-		deeptablename <- gen_deep_table_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-						deeptablename," AS \n ",constructSelect(x))
-		t <- sqlSendUpdate(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch")
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename,
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+		#				deeptablename," AS \n ",constructSelect(x))
+		#t <- sqlSendUpdate(connection,sqlstr)
+
+		deeptablename <- createView(pViewName=gen_deep_table_name("New"),
+			pSelect=constructSelect(x)
+			)
+
+		## if(!all(t)) stop("Input Table and whereconditions mismatch") ##gk @ phani: what was this for?  I moved it into creatView
+		deepx <- FLTable(table=deeptablename,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
@@ -207,7 +247,7 @@ agnes.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
 
@@ -231,7 +271,7 @@ agnes.FLTable <- function(x,
         Note=vnote,
         outputParameter=c(AnalysisID="a"))
 	
-	retobj <- checkSqlQueryOutput(retobj)
+    retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
 	
 	FLAggCLustobject <- new("FLAggClust",
@@ -246,6 +286,8 @@ agnes.FLTable <- function(x,
 	return(FLAggCLustobject)
 }
 
+
+## move to file FLAggClustering.R
 #' @export
 `$.FLAggClust`<-function(object,property)
 {
@@ -304,6 +346,7 @@ agnes.FLTable <- function(x,
 }
 
 
+## move to file FLAggClustering.R
 order.FLAggClust <- function(object)
 {
 	if(!is.null(object@results[["order"]]))
@@ -340,6 +383,8 @@ order.FLAggClust <- function(object)
 	}
 }
 
+
+## move to file FLAggClustering.R
 height.FLAggClust <- function(object)
 {
 	if(!is.null(object@results[["height"]]))
@@ -348,18 +393,16 @@ height.FLAggClust <- function(object)
 	{
 		connection <- getConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		a <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
-		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
 
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesCentroid"]]))
 		{
-			t <- createTable(pTableName=a,
+			a <- createTable(pTableName=gen_unique_table_name("3"),
 							pSelect=paste0(" SELECT a.HypothesisID AS LevelID, \n ",
 										" a.ClusterID, \n ",
 										" b.",var_id_colname," AS VarID, \n ",
@@ -370,13 +413,12 @@ height.FLAggClust <- function(object)
 										" AND a.AnalysisID=",fquote(AnalysisID)," \n ",
 										" GROUP BY a.HypothesisID,a.ClusterID, \n ",
 											" b.",var_id_colname," "))
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesCentroid=a))
 		}
 		
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- createTable(pTableName=b,
+			b <- createTable(pTableName=gen_unique_table_name("4"),
 							pSelect=paste0(" SELECT a.HypothesisID AS OldLevel, \n ",
 												"a.ClusterID AS OldClusterID, \n ",
 												"b.HypothesisID AS NewLevel, \n ",
@@ -389,7 +431,6 @@ height.FLAggClust <- function(object)
 											" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 											" AND a.ClusterID <> b.ClusterID "))
 
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesMembership=b))
 		}
 
@@ -417,8 +458,8 @@ height.FLAggClust <- function(object)
 
 		heightvector <- new("FLVector",
 							select = tblfunqueryobj,
-							dimnames = list(1:(length(object@deeptable@dimnames[[1]])-1),
-											"vectorValueColumn"),
+							dimnames = list(1:(nrow(object@deeptable)-1),
+                                                                        "vectorValueColumn"),
 							isDeep = FALSE)
 		heightvector <- tryCatch(as.vector(heightvector),
       						error=function(e){heightvector})
@@ -443,6 +484,8 @@ height.FLAggClust <- function(object)
 	}
 }
 
+
+## move to file FLAggClustering.R
 ac.FLAggClust <- function(object){
 	if(!is.null(object@results[["ac"]]))
 	return(object@results[["ac"]])
@@ -450,18 +493,15 @@ ac.FLAggClust <- function(object){
 	{
 		connection <- getConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		a <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("3"))
-		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
-
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesCentroid"]]))
 		{
-			t <- createTable(pTableName=a,
+			a <- createTable(pTableName=gen_unique_table_name("3"),
 							pSelect=paste0(" SELECT a.HypothesisID AS LevelID, \n ",
 												" a.ClusterID, \n ",
 												" b.",var_id_colname," AS VarID, \n ",
@@ -472,13 +512,12 @@ ac.FLAggClust <- function(object){
 											" AND a.AnalysisID='",AnalysisID,"' \n ",
 											" GROUP BY a.HypothesisID,a.ClusterID, \n ",
 												" b.",var_id_colname," "))
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesCentroid=a))
 		}
 		
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- createTable(pTableName=b,
+			b <- createTable(pTableName=gen_unique_table_name("4"),
 							pSelect=paste0(" SELECT a.HypothesisID AS OldLevel, \n ",
 													"a.ClusterID AS OldClusterID, \n ",
 													"b.HypothesisID AS NewLevel, \n ",
@@ -491,7 +530,6 @@ ac.FLAggClust <- function(object){
 											" AND a.HypothesisID = b.HypothesisID - 1 \n ",
 											" AND a.ClusterID <> b.ClusterID "))
 
-			if(length(t)>1) stop(t)
 			object@temptables <- c(object@temptables,list(agnesMembership=b))
 		}
 
@@ -548,6 +586,8 @@ ac.FLAggClust <- function(object){
 	}
 }
 
+
+## move to file FLAggClustering.R
 merge.FLAggClust <- function(object){
 	if(!is.null(object@results[["merge"]]))
 	return(object@results[["merge"]])
@@ -555,17 +595,15 @@ merge.FLAggClust <- function(object){
 	{
 		connection <- getConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 		
-		b <- paste0(getOption("ResultDatabaseFL"),".",gen_unique_table_name("4"))
-
 		##Ensure required temptables exist
 		if(is.null(object@temptables[["agnesMembership"]]))
 		{
-			t <- createTable(pTableName=b,
+			b <- createTable(pTableName=gen_unique_table_name("4"),
 							pSelect=paste0(" SELECT a.HypothesisID AS OldLevel, \n ",
 												"a.ClusterID AS OldClusterID, \n ",
 												"b.HypothesisID AS NewLevel, \n ",
@@ -621,6 +659,8 @@ merge.FLAggClust <- function(object){
 	
 }
 
+
+## move to file FLAggClustering.R
 #' @export
 print.FLAggClust <- function(object)
 {
@@ -643,6 +683,8 @@ print.FLAggClust <- function(object)
 	print(results)
 }
 
+
+## move to file FLAggClustering.R
 #' @export
 setMethod("show","FLAggClust",
 			function(object)
@@ -653,6 +695,8 @@ setMethod("show","FLAggClust",
 			}
 		 )
 
+
+## move to file FLAggClustering.R
 #' @export
 plot.FLAggClust <- function(object)
 {
@@ -683,6 +727,8 @@ plot.FLAggClust <- function(object)
 	plot(results)
 }
 
+## move to file agnes.R
+NULL
 
 #' @export
 agnes.FLMatrix <- function(x,

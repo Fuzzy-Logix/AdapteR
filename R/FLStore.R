@@ -12,7 +12,7 @@ NULL
 ##' @param ... Additional arguments like pNote to be included in fzzlAdapteRTablesInfo
 ##' @return in-database object after storing
 ##' @export
-setGeneric("store", function(object,pTableName,...) {
+setGeneric("store", function(object,pTableName=NULL,...) {
     standardGeneric("store")
 })
 setMethod("store",
@@ -49,7 +49,6 @@ storeVarnameMapping <- function(connection,
     names(mynames) <- 1:Ndim
     sqlstatements <- paste0(
         " INSERT INTO ",
-        getOption("ResultDatabaseFL"),".",
         getOption("NameMapTableFL"),
         "(TABLENAME, MATRIX_ID, DIM_ID, ",
         "NAME, NUM_ID",
@@ -79,6 +78,7 @@ storeVarnameMapping <- function(connection,
 #' @export
 store.FLMatrix <- function(object,pTableName=NULL,...)
 {
+    ##browser()
     if(is.FLMatrix(object)){
       if("FLSelectFrom" %in% class(object@select) 
           && is.null(pTableName))
@@ -91,7 +91,6 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
                             getOption("ResultIntMatrixTableFL"),
                             getOption("ResultCharMatrixTableFL"))
         vtableName1 <- as.character(names(vmapping)[vtemp==vmapping])
-        vdatabase1 <- getOption("ResultDatabaseFL")
         MID1 <- getMaxMatrixId(vtable=vtableName1,vdatabase=NULL)
 
         object <- orderVariables(object,
@@ -110,17 +109,19 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
         MID <- getMaxMatrixId(vtable=vtableName,vdatabase=vdatabase)
         if(class(object@select)=="FLSelectFrom")
         object@select@variables[["MATRIX_ID"]] <- MID
-        
+          
         insertIntotbl(pTableName=getRemoteTableName(vdatabase,vtableName),
                       pSelect=gsub("'%insertIDhere%'",MID,
                                   constructSelect(object,joinNames=FALSE)))
         ## Store MetaInfo if permanent Storage
         updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
-                      pElementID=MID)
+                      pElementID=MID,
+                      pType="Matrix",
+                      ...)
       }
       if(class(object@select)=="FLSelectFrom")
         object@select@variables[["MATRIX_ID"]] <- MID1
-        
+      
       insertIntotbl(pTableName=vtableName1,
                     pSelect=gsub("'%insertIDhere%'",MID1,
                                   constructSelect(object,joinNames=FALSE)))
@@ -138,14 +139,15 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       #               vSqlStr)
       return(FLMatrix(
             connection = getConnection(object),
-            database = vdatabase1, 
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "rowIdColumn", 
-            col_id_colname = "colIdColumn", 
-            cell_val_colname = "valueColumn",
-            dimnames=dimnames(object)
+            row_id_colname = object@dimColumns[[1]], 
+            col_id_colname = object@dimColumns[[2]], 
+            cell_val_colname = object@dimColumns[[3]],
+            dim=dim(object),
+            dimnames=dimnames(object),
+            type=typeof(object)
             ))
     }
 }
@@ -168,7 +170,6 @@ store.FLVector <- function(object,pTableName=NULL,...)
                         getOption("ResultIntVectorTableFL"),
                         getOption("ResultCharVectorTableFL"))
     vtableName1 <- as.character(names(vmapping)[vtemp==vmapping])
-    vdatabase1 <- getOption("ResultDatabaseFL")
     VID1 <- getMaxVectorId(vtable=vtableName1,vdatabase=NULL)
 
   if(!is.null(pTableName)){
@@ -185,7 +186,9 @@ store.FLVector <- function(object,pTableName=NULL,...)
                               constructSelect(object)))
     ## Store MetaInfo if permanent Storage
     updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
-                  pElementID=VID)
+                  pElementID=VID,
+                  pType="vector",
+                  ...)
   }
 
   insertIntotbl(pTableName=vtableName1,
@@ -199,10 +202,8 @@ store.FLVector <- function(object,pTableName=NULL,...)
   #                   "\n")
   # sqlSendUpdate(getConnection(object),
   #                 vSqlStr)
-  select <- new(
-                "FLSelectFrom",
+  select <- new("FLSelectFrom",
                 connection = connection, 
-                database = vdatabase1, 
                 table_name = vtableName1,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),
@@ -215,7 +216,8 @@ store.FLVector <- function(object,pTableName=NULL,...)
   return(new("FLVector",
                 select=select,
                 dimnames=list(vindex,"vectorValueColumn"),
-                isDeep=FALSE))
+                isDeep=FALSE,
+                type=typeof(object)))
 }
 
 #' @export
@@ -242,7 +244,9 @@ store.FLTable <- function(object,pTableName=NULL,...)
   vdatabase <- vtemp["vdatabase"]
 
   ## Store MetaInfo if permanent Storage
-  updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName))
+  updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
+                  pType=ifelse(object@isDeep,"deepTable","wideTable"),
+                  ...)
 
   if(object@isDeep)
   table <- FLTable(
@@ -250,29 +254,19 @@ store.FLTable <- function(object,pTableName=NULL,...)
                    vtableName,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
+                   "cell_val_colname",
+                   type=typeof(object)
                   )
   else
   table <- FLTable(
                    vdatabase,
                    vtableName,
-                   "obs_id_colname"
+                   "obs_id_colname",
+                   type=typeof(object)
                   )
   return(table)
 }
 
-separateDBName <- function(vtableName){
-  ## If tablename has database name
-  names(vtableName) <- NULL
-  if(grepl(".",vtableName,fixed=TRUE)){
-    vdatabase <- base::strsplit(vtableName,".",fixed=TRUE)[[1]]
-    vtableName <- vdatabase[2]
-    vdatabase <- vdatabase[1]
-  }
-  else vdatabase <- getOption("ResultDatabaseFL")
-  return(c(vdatabase=vdatabase,
-          vtableName=vtableName))
-}
 # #' @export
 # store.character <- function(object,returnType,connection)
 # {

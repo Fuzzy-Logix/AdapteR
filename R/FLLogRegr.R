@@ -2,18 +2,10 @@
 #' @include data_prep.R
 #' @include FLTable.R
 NULL
-#' An S4 class to represent FLLinRegr
+
+#' An S4 class to represent output from glm on in-database Objects
 #'
-#' @slot formula an object of class 'formula': Model Formula
-#' @slot deeptable A character vector containing 
-#' the deeptable on conversion from a widetable
-#' @slot AnalysisID An output character ID from CALL FLLogRegr
-#' @slot wideToDeepAnalysisID An output character ID from FLRegrDataPrep
-#' @slot mapTable name of the mapping table
-#' @slot scoreTable name of the scoring table
-#' @slot modelID id of the model with best fit
-#' @slot table input FLTable object
-#' @slot results cache list of results computed
+#' @slot offset column name used as offset
 #' @slot vfcalls contains names of tables
 #' @method print FLLogRegr
 #' @method coefficients FLLogRegr
@@ -23,26 +15,19 @@ NULL
 #' @method plot FLLogRegr
 #' @method summary FLLogRegr
 #' @method predict FLLogRegr
+#' @export
 setClass(
 	"FLLogRegr",
 	contains="FLRegr",
 	slots=list(offset="character",
 				vfcalls="character"))
 
-#' @export
-glm <- function (formula,data=list(),...) {
-	UseMethod("glm", data)
- }
-
-#' @export
-glm.default <- stats::glm
-
 #' Logistic and Poisson Regression.
 #'
 #' \code{glm} performs logistic and poisson regression on FLTable objects.
 #'
 #' @param formula A symbolic description of model to be fitted
-#' @param family Can be one of poisson,binomial,linear or multinomial.
+#' @param family Can be one of poisson,binomial,logisticwt or multinomial characters.
 #' Can be family functions like stats::poisson wherever possible.
 #' @param data An object of class FLTable
 #' @param catToDummy Transform categorical variables to numerical values
@@ -81,27 +66,29 @@ glm.default <- stats::glm
 #' In case of multinomial family, residuals,fitted.values
 #' properties are not available.plot,influence methods are
 #' also not available.
-#' @return \code{glm} performs logistic 
-#' or poisson regression and replicates equivalent R output.
+#' Properties like \code{print(fit$x),model,plot} might take time as they
+#' have to fetch data
+#' @return \code{glm} returns \code{FLLogRegrMN} object for
+#' \code{multinomial} family and \code{FLLogRegr} otherwise
 #' @examples
-#' library(RODBC)
-#' connection <- flConnect("Gandalf")
-#' deeptable <- FLTable("FL_DEMO","tblLogRegr","ObsID","VarID","Num_Val",
+#' deeptable <- FLTable("tblLogRegr","ObsID","VarID","Num_Val",
 #'                whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable)
+#' coef(glmfit)
 #' summary(glmfit)
+#' head(residuals(glmfit))
 #' plot(glmfit)
 #' glmfit <- glm(NULL,data=deeptable,family="logisticwt",eventweight=0.8,noneventweight=1)
 #' summary(glmfit)
 #' plot(glmfit)
 #' connection <- flConnect(odbcSource = "Gandalf",database = "FL_DEV")
-#' widetable  <- FLTable("FL_DEV", "siemenswidetoday1", "ObsID")
+#' widetable  <- FLTable("siemenswidetoday1", "ObsID")
 #' poissonfit <- glm(event ~ meanTemp, family=poisson, data=widetable,offset="age")
 #' summary(poissonfit)
 #' plot(poissonfit)
-#' predData <- FLTable("FL_DEV","preddata1","ObsID")
+#' predData <- FLTable("preddata1","ObsID")
 #' mu <- predict(poissonfit,newdata=predData)
-#' deeptable <- FLTable("FL_DEMO","tblLogRegrMN10000","ObsID","VarID","Num_Val",
+#' deeptable <- FLTable("tblLogRegrMN10000","ObsID","VarID","Num_Val",
 #'              whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable,family="multinomial")
 #' glmfit$coefficients
@@ -109,6 +96,14 @@ glm.default <- stats::glm
 #' glmfit$FLCoeffStdErr
 #' summary(glmfit)
 #' print(glmfit)
+#' @export
+glm <- function (formula,data=list(),...) {
+	UseMethod("glm", data)
+ }
+
+#' @export
+glm.default <- stats::glm
+
 #' @export
 glm.FLTable <- function(formula,
 						family="binomial",
@@ -180,6 +175,12 @@ glm.FLTable <- function(formula,
 		assign(parentObject,object,envir=parent.frame())
 		return(df.residualsvector)
 	}
+	else if(property=="linear.predictors")
+	{
+		vlinPred <- calcLinearPred(object)
+		assign(parentObject,object,envir=parent.frame())
+		return(vlinPred)
+	}
 	else stop("That's not a valid property")
 }
 
@@ -188,19 +189,20 @@ coefficients.FLLogRegr<-function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	coeffVector <- coefficients.lmGeneric(object,
-						FLCoeffStats=c(FLCoeffStdErr="STDERR",
+							FLCoeffStats=c(FLCoeffStdErr="STDERR",
 							FLCoeffPValue="PVALUE",
 							FLCoeffChiSq="CHISQ"))
 	assign(parentObject,object,envir=parent.frame())
 	return(coeffVector)
-	}
+}
 
 #' @export
 residuals.FLLogRegr<-function(object)
 {
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	residualsvector <- residuals.FLLinRegr(object)
+	residualsvector <- calcResiduals(object,"working")
+	object@results <- c(object@results,list(residuals=residualsvector))
 	assign(parentObject,object,envir=parent.frame())
 	return(residualsvector)
 }
@@ -214,67 +216,39 @@ predict.FLLogRegr <- function(object,
 }
 
 #' @export
-summary.FLLogRegr<-function(object){
-	ret <- object$FLLogRegrStats
-	colnames(ret) <- toupper(colnames(ret))
-	vresiduals <- object$residuals
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT FLMin(z.val),FLMax(z.val),q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.25) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q,z
-								   group by 3")
-	vresult1 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.50) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q")
-	vresult2 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	sqlstr <- paste0("WITH z (id,val)",
-						" AS(SELECT 1,",
-						 		"a.vectorValueColumn AS deviation",
-						 	" FROM (",constructSelect(vresiduals),") AS a) ", 
-					" SELECT q.*",
-							" FROM (SELECT a.oPercVal as perc
-							 	   FROM TABLE (FLPercUdt(z.id, z.val, 0.75) 
-							 	   HASH BY z.id
-							 	   LOCAL ORDER BY z.id) AS a) AS q")
-	vresult3 <- sqlQuery(getOption("connectionFL"),sqlstr)
-	coeffframe <- data.frame(object$coefficients,
+summary.FLLogRegr <- function(object,
+                              calcResiduals=FALSE){
+    stat <- object$FLLogRegrStats
+  	coeffframe <- data.frame(object$coefficients,
 							object$FLCoeffStdErr,
 							object$FLCoeffChiSq,
 							object$FLCoeffPValue)
 	colnames(coeffframe)<-c("Estimate","Std. Error","ChiSquare","Pr(>|t|)")
+  #put rowname
+    # rname <- all.vars(object@formula)
+    # rownames(coeffframe) <- c(rownames(coeffframe)[1], rname[2:length(rname)])
+    rownames(coeffframe) <- names(object$coefficients)
 
-	residualframe <- data.frame(vresult1[[1]],
-								vresult1[[3]],
-								vresult2[[1]],
-								vresult3[[1]],
-								vresult1[[2]])
-	colnames(residualframe) <- c("Min","1Q","Median","3Q","Max")
-	parentObject <- unlist(strsplit(unlist(strsplit
-		(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	assign(parentObject,object,envir=parent.frame())
-	
-	cat("Call:\n")
-	cat(paste0(object$call),"\n")
-	cat("\nResiduals:\n")
-	print(residualframe)
-	cat("\n\nCoefficients:\n")
-	print(coeffframe)
-	cat("\n---\n")
-	cat("Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 '' 1\n")
-	print(ret)
-	cat("\n")
+    if(calcResiduals)
+        vresiduals <- as.vector(object$residuals)
+    else vresiduals <- NULL
+
+    reqList <- list(call = as.call(object@formula),
+                    deviance.resid  = vresiduals,
+                    coefficients = as.matrix(coeffframe),
+                    df = as.vector(c((stat$NUMOFOBS + 1),(stat$NUMOFOBS-1-stat$NUMOFVARS), (stat$NUMOFOBS + 1))),
+                    aliased = FALSE,
+                    dispersion = 1,
+                    df.residual = (stat$NUMOFOBS-1-stat$NUMOFVARS),
+                    iter = stat$ITERATIONS,
+                    df.null = (stat$NUMOFOBS - 1),
+                    null.deviance = NA
+                )
+  
+  
+    class(reqList) <- "summary.glm"
+    reqList
+  
 }
 
 #' @export

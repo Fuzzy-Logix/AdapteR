@@ -5,7 +5,7 @@
 \title{Convert Wide Table to Deep Table in database.}
 \usage{
 wideToDeep(object, excludeCols, classSpec, whereconditions, outDeepTableName,
-  outDeepTableDatabase, outObsIDCol, outVarIDCol, outValueCol)
+  outObsIDCol, outVarIDCol, outValueCol)
 }
 \arguments{
 \item{object}{FLTable object}
@@ -16,9 +16,7 @@ wideToDeep(object, excludeCols, classSpec, whereconditions, outDeepTableName,
 
 \item{whereconditions}{character vector giving where conditions if any to reference the wide table}
 
-\item{outDeepTableName}{name to be given to the output deep table}
-
-\item{outDeepTableDatabase}{name of database to store the output deep table}
+\item{outDeepTableName}{name to be given to the output deep table, possibly with database}
 
 \item{outObsIDCol}{name to give to the primary key column name of the output deep table}
 
@@ -31,11 +29,11 @@ wideToDeep(object, excludeCols, classSpec, whereconditions, outDeepTableName,
 \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
-Convert Wide Table to Deep Table in database.
+The DB Lytix function called is FLWideToDeep.  FLWideToDeep is similar to FLRegrDataPrep , except that 
+FLWideToDeep does not require dependent variable or intercept, thus it creates deep tables without them.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_DEMO", "tblAbaloneWide", "ObsID")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
 resultList <- wideToDeep(widetable)
 deeptable <- resultList$table
 analysisID <- resultList$AnalysisID

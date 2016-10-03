@@ -26,8 +26,7 @@ but not currently used}
 \item{maxiter}{maximum num of iterations}
 }
 \value{
-\code{gam} returns a list and replicates equivalent R output
-from \code{mgcv::gam}.
+\code{gam} returns \code{FLGAM} object
 }
 \description{
 \code{gam} Fits a generalized additive model
@@ -36,10 +35,10 @@ from \code{mgcv::gam}.
 \section{Constraints}{
 
 Plotting is not available. The result Set may not include all
-results as in mgcv::gam. Only print and predict methods are defined.
+results and methods as in mgcv::gam.
 }
 \examples{
-widetable <- FLTable("FL_DEMO","tblGAMSimData","ObsID")
+widetable <- FLTable("tblGAMSimData","ObsID")
 myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)+s(x2Val,x1Val)
 gamobject <- gam(myformula,data=widetable,offset="x2Val")
 predictedValues <- predict(gamobject,widetable)

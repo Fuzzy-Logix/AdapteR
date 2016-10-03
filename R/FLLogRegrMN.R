@@ -2,45 +2,54 @@
 #' @include data_prep.R
 #' @include FLTable.R
 NULL
-# library(RODBC)
-# connection <- flConnect("Gandalf")
-# deeptable <- FLTable("FL_DEMO","tblLogRegrMN10000","ObsID","VarID","Num_Val",
-#                whereconditions="ObsID<7001")
-# glmfit <- glm(NULL,data=deeptable,family="multinomial")
-# glmfit$coefficients
-# glmfit$FLLogRegrStats
-# glmfit$FLCoeffStdErr
-# summary(glmfit)
-# print(glmfit)
 
+#' An S4 class to represent output from glm when family is multinomial
+#'
+#' @slot offset column name used as offset
+#' @slot vfcalls contains names of tables
+#' @method print FLLogRegr
+#' @method coefficients FLLogRegr
+#' @method residuals FLLogRegr
+#' @method influence FLLogRegr
+#' @method lm.influence FLLogRegr
+#' @method plot FLLogRegr
+#' @method summary FLLogRegr
+#' @method predict FLLogRegr
+#' @export
 setClass(
-	"FLLogRegrMN",
-	slots=list(formula="formula",
-				AnalysisID="character",
-				wideToDeepAnalysisId="character",
-				table="FLTable",
-				results="list",
-				deeptable="FLTable",
-				mapTable="character",
-				scoreTable="character",
-				offset="character",
-				vfcalls="character"))
+    "FLLogRegrMN",
+    contains="FLRegr",
+    slots=list(offset="character",
+                vfcalls="character"))
 
 #' @export
 `$.FLLogRegrMN`<-function(object,property){
 	#parentObject <- deparse(substitute(object))
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
-	if(property %in% c("coefficients","FLCoeffStdErr",
-		"FLCoeffPValue","call","model","x",
+    if(property %in% c("FLCoeffStdErr",
+        "FLCoeffPValue","FLCoeffChiSq"))
+    {
+        vcoeff <- coefficients.FLLogRegrMN(object)
+        propertyValue <- object@results[[property]]
+        assign(parentObject,object,envir=parent.frame())
+        return(propertyValue)
+    }
+	if(property %in% c("call","model","x",
 		"y","qr","rank","xlevels","terms","assign",
-		"FLCoeffChiSq","FLLogRegrStats","df.residual"))
+		"FLLogRegrStats","df.residual"))
 	{
 		propertyValue <- `$.FLLogRegr`(object,property)
 		assign(parentObject,object,envir=parent.frame())
 		return(propertyValue)
 	}
-	else stop("That's not a valid property")
+	else if(property %in% "coefficients"){
+        vcoeff <- coefficients.FLLogRegrMN(object)
+        assign(parentObject,object,envir=parent.frame())
+        return(vcoeff)
+    }
+    else
+        stop("That's not a valid property")
 }
 
 #' @export
@@ -140,3 +149,14 @@ print.FLLogRegrMN <- function(object){
 
 #' @export
 setMethod("show","FLLogRegrMN",print.FLLogRegrMN)
+
+#' @export
+residuals.FLLogRegrMN<-function(object)
+{
+    parentObject <- unlist(strsplit(unlist(strsplit(
+        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    residualsvector <- clacResiduals(object,"response")
+    object@results <- c(object@results,list(residuals=residualsvector))
+    assign(parentObject,object,envir=parent.frame())
+    return(residualsvector)
+}

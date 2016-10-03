@@ -39,7 +39,7 @@ row FLVectors are not supported currently.
 Output slightly differs from base::grepl. See \code{return}
 }
 \examples{
-widetable  <- FLTable("FL_DEMO", "tblstringID", "stringID")
+widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 flvector <- grepl("A",flv)
 }

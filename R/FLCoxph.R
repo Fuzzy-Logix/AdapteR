@@ -4,20 +4,26 @@
 #' @include FLLinRegr.R
 NULL
 
+#' An S4 class to represent output from coxph on in-database Objects
+#'
+#' @slot timeValCol column name representing time variable
+#' @slot statusCol column name representing Status variable
+#' @slot vfcalls information about system tables
+#' and in-database procedures called during execution
+#' @method print FLCoxPH
+#' @method coefficients FLCoxPH
+#' @method residuals FLCoxPH
+#' @method plot FLCoxPH
+#' @method summary FLCoxPH
+#' @method predict FLCoxPH
+#' @export
 setClass(
 	"FLCoxPH",
 	contains="FLRegr",
-	slots=list(modelID="numeric",
+	slots=list(#modelID="numeric",
 				timeValCol="character",
-				statusCol="character"))
-
-#' @export
-coxph <- function (formula,data=list(),...) {
-	UseMethod("coxph", data)
- }
-
-#' @export
-coxph.default <- survival::coxph
+				statusCol="character",
+                vfcalls="character"))
 
 #' Cox Proportional Hazard Model
 #' 
@@ -54,35 +60,53 @@ coxph.default <- survival::coxph
 #' The formula object should have a \code{Surv} object.
 #' The arguments to \code{Surv} object must strictly be in the order
 #' (\code{time},\code{time2},\code{event}) or (\code{time},\code{event}).
-#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(event)}
+#' Arguments to \code{Surv} should be plain. For instance, \code{as.numeric(SurvColumn)}
 #' inside \code{Surv} is not supported.
 #' Only \code{coefficients},\code{linear.predictors},\code{FLSurvivalData},
 #' \code{FLCoxPHStats},\code{loglik},\code{wald.test},\code{n},\code{nevent},
 #' \code{rscore},\code{call},\code{formula},\code{call},\code{model},\code{x},
 #' \code{means},\code{terms} can be called on fitted object using $.
 #' coefficients,plot,print,summary methods are available for fitted object.
-#' @return \code{coxph} performs linear regression and replicates equivalent R output.
+#' @return \code{coxph} returns a \code{FLCoxPH} object
 #' @examples
-#' library(RODBC)
-#' connection <- odbcConnect("Gandalf")
-#' widetable  <- FLTable("FL_DEMO", "siemenswideARDemoCoxPH", "ObsID")
+#' widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
 #' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-#' predData <- FLTable("FL_DEMO","preddatatoday","ObsID")
+#' predData <- FLTable("preddatatoday","ObsID")
 #' resultList <- predict(fitT,newdata=predData)
 #' resultList[[1]]
 #' resultList[[2]]
 #' summary(fitT)
 #' plot(fitT)
-#' deeptable <- FLTable("FL_DEMO","siemensdeepARDemoCoxPH","obs_id_colname",
-#'						"var_id_colname","cell_val_colname")
+#' deeptable <- FLTable("siemensdeepARDemoCoxPH","obs_id_colname",
+#'                      "var_id_colname","cell_val_colname")
 #' fitT <- coxph("",deeptable)
 #' fitT$coefficients
 #' summary(fitT)
 #' plot(fitT)
-## Failed
+## Failed due to numeric overflow in FLCoxPH
 #fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
 # fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
 # fitT <- coxph(Surv(age,event)~meanTemp,widetable)
+#' @export
+coxph <- function (formula,data=list(),...) {
+	UseMethod("coxph", data)
+ }
+
+#' @export
+coxph.default <- function(formula,data=list(),...){
+    if (!requireNamespace("survival", quietly = TRUE)){
+            stop("survival package needed for coxph. Please install it.",
+            call. = FALSE)
+        }
+    else return(survival::coxph(formula=formula,
+                                data=data,
+                                ...))
+}
+
+
+#' @export
+Surv <- survival::Surv
+
 #' @export
 coxph.FLTable <- function(formula,data, ...)
 {
@@ -90,11 +114,12 @@ coxph.FLTable <- function(formula,data, ...)
 	maxiter <- list(...)$maxiter
 	else maxiter <- 15
 
+	data <- setAlias(data,"")
     deep <- prepareData.coxph(formula,data,...)
     wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
     deepx <- deep[["deeptable"]]
     
-	deeptable <- paste0(deepx@select@database,".",deepx@select@table_name)
+	deeptable <- deepx@select@table_name
 
 	retobj <- sqlStoredProc(getOption("connectionFL"),
 							"FLCoxPH",
@@ -124,20 +149,21 @@ coxph.FLTable <- function(formula,data, ...)
 				formula=deep[["formula"]],
 				AnalysisID=AnalysisID,
 				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				table=data,
+				table=deep$vdata,
 				results=list(call=vcallObject),
 				deeptable=deepx,
 				mapTable=deep$mapTable,
 				scoreTable="",
 				statusCol=deep$vStatus,
-				timeValCol=deep$vTimeVal))
+				timeValCol=deep$vTimeVal,
+                RegrDataPrepSpecs=deep$RegrDataPrepSpecs))
 }
 
 prepareData.coxph <- function(formula,data,
                               catToDummy=0,
                               performNorm=0,
                               performVarReduc=0,
-                              makeDataSparse=0,
+                              makeDataSparse=1,
                               minStdDev=0,
                               maxCorrel=1,
                               classSpec=list(),
@@ -150,39 +176,37 @@ prepareData.coxph <- function(formula,data,
 	}
 	if(!data@isDeep)
 	{
-		vallVars <- base::all.vars(formula)
-		checkValidFormula(formula,data)
-		vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
-		if(!("Surv" %in% vSurvival))
-		stop("specify dependent variables as Surv object")
-		if(length(vSurvival)==2)
-		stop("atleast time and event components must be present in Surv object")
-		if(length(vSurvival)==3)
-		{
-			vTimeVal <- vSurvival[2]
-			vStatus <- vSurvival[3]
-		}
-		else if(length(vSurvival)==4)
-		{
-			vTimeVal1 <- vSurvival[2]
-			vTimeVal2 <- vSurvival[3]
-			vStatus <- vSurvival[4]
-			a <- gen_unique_table_name("")
-			vTimeVal <- genRandVarName()
-			vtablename <- paste0(getOption("ResultDatabaseFL"),".",a)
-			vtablename1 <- paste0(data@select@database,".",data@select@table_name)
-
-			sqlstr <- paste0(" SELECT b.",vTimeVal2," - b.",vTimeVal1,
-								" AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
-			t <- createTable(pTableName=vtablename,
-							pSelect=sqlstr)
-			data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
-			data@select@database <- getOption("ResultDatabaseFL")
-			data@select@table_name <- a
-			vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
-			vallVars <- c(vallVars,vTimeVal)
-		}
-		vallVars <- vallVars[vallVars!=vStatus]
+        vtemp <- prepareSurvivalFormula(data=data,
+                                        formula=formula)
+        for(i in names(vtemp))
+        assign(i,vtemp[[i]])
+		# if(isDotFormula(formula))
+		# 	formula <- genDeepFormula(pColnames=colnames(data),
+		# 							pDepColumn=all.vars(formula)[1])
+		# vallVars <- base::all.vars(formula)
+		# checkValidFormula(formula,data)
+		# vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+		# if(!("Surv" %in% vSurvival))
+		# stop("specify dependent variables as Surv object")
+		# if(length(vSurvival)==2)
+		# stop("atleast time and event components must be present in Surv object")
+		# if(length(vSurvival)==3)
+		# {
+		# 	vTimeVal <- vSurvival[2]
+		# 	vStatus <- vSurvival[3]
+		# }
+		# else if(length(vSurvival)==4)
+		# {
+		# 	vtempList <- IncludeTimeVal(data=data,
+		# 								formula=formula)
+		# 	vStatus <- vtempList[["vStatus"]]
+		# 	vtablename <- vtempList[["vtablename"]]
+		# 	vTimeVal <- vtempList[["vTimeVal"]]
+		# 	data <- vtempList[["data"]]
+		# 	vallVars <- vtempList[["vallVars"]]
+		# 	vallVars <- c(vallVars,vTimeVal)
+		# }
+		# vallVars <- vallVars[vallVars!=vStatus]
 	}
 	
 	vcolnames <- colnames(data)
@@ -199,7 +223,6 @@ prepareData.coxph <- function(formula,data,
 	{
 		deepx <- FLRegrDataPrep(data,depCol=vTimeVal,
 								outDeepTableName="",
-								outDeepTableDatabase="",
 								outObsIDCol="",
 								outVarIDCol="",
 								outValueCol="",
@@ -215,11 +238,24 @@ prepareData.coxph <- function(formula,data,
 								whereconditions=whereconditions,
 								inAnalysisID="")
 
+        vRegrDataPrepSpecs <- list(outDeepTableName="",
+                                outObsIDCol="",
+                                outVarIDCol="",
+                                outValueCol="",
+                                catToDummy=catToDummy,
+                                performNorm=performNorm,
+                                performVarReduc=performVarReduc,
+                                makeDataSparse=makeDataSparse,
+                                minStdDev=minStdDev,
+                                maxCorrel=maxCorrel,
+                                trainOrTest=0,
+                                excludeCols=vexcludeCols,
+                                classSpec=classSpec)
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
 
-		vtablename <- paste0(deepx@select@database,".",deepx@select@table_name)
-		vtablename1 <- paste0(data@select@database,".",data@select@table_name)
+		vtablename <- deepx@select@table_name
+		vtablename1 <- data@select@table_name
 		vobsid <- getVariables(data)[["obs_id_colname"]]
 		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
 						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
@@ -229,26 +265,26 @@ prepareData.coxph <- function(formula,data,
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
 		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-					"fzzlRegrDataPrepMap")
+		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
-		deeptablename <- gen_view_name("")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
-							".",deeptablename," AS ",constructSelect(data))
-		sqlSendUpdate(connection,sqlstr)
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),
+		#					".",deeptablename," AS ",constructSelect(data))
+		#sqlSendUpdate(connection,sqlstr)
 
-		deeptablename1 <- gen_view_name("New")
-		sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
-						" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
-						constructWhere(whereconditions))
-		t <- sqlQuery(connection,sqlstr)
-		if(length(t)>1) stop("Input Table and whereconditions mismatch,Error:",t)
+		deeptablename <- createView(pViewName=gen_view_name(""),
+                                    pSelect=constructSelect(data)
+			)
+		
+		#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",deeptablename1,
+		#				" AS SELECT * FROM ",getOption("ResultDatabaseFL"),".",deeptablename,
+		#				constructWhere(whereconditions))
+		deeptablename1 <- createView(pViewName=gen_view_name("New"),
+                                     pSelect=paste0("SELECT * FROM ",deeptablename,
+                                                    constructWhere(whereconditions)))
 
-		deepx <- FLTable(
-                   getOption("ResultDatabaseFL"),
-                   deeptablename1,
+		deepx <- FLTable(deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
                    "cell_val_colname"
@@ -261,76 +297,147 @@ prepareData.coxph <- function(formula,data,
 		data@select@whereconditions <- c(data@select@whereconditions,whereconditions)
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
-			deeptablename <- gen_view_name("New")
-			sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
-							deeptablename," AS ",constructSelect(data))
-			t <- sqlQuery(connection,sqlstr)
-			if(length(t)>1) stop("Input Table and whereconditions mismatch")
+			
+			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
+			#				deeptablename," AS ",constructSelect(data))
+			#t <- sqlQuery(connection,sqlstr)
+			
+			deeptablename <- createView(pViewName=gen_view_name("New"),
+                                        pSelect=constructSelect(data))
+
 			deepx <- FLTable(
-	                   getOption("ResultDatabaseFL"),
-	                   deeptablename,
-	                   "obs_id_colname",
-	                   "var_id_colname",
-	                   "cell_val_colname")
+	                   table=deeptablename,
+	                   obs_id_colname="obs_id_colname",
+	                   var_id_colname="var_id_colname",
+	                   cell_val_colname="cell_val_colname")
 		}
 		whereconditions <- ""
 	}
+	deepx <- setAlias(deepx,"")
     return(list(deeptable=deepx,
                 wideToDeepAnalysisId=wideToDeepAnalysisId,
                 formula=formula,
                 mapTable=mapTable,
                 vStatus=vStatus,
-                vTimeVal=vTimeVal))
+                vTimeVal=vTimeVal,
+                vdata=data,
+                RegrDataPrepSpecs=vRegrDataPrepSpecs))
 }
 
 #' @export
 predict.FLCoxPH <-function(object,
 							newdata=object@table,
 							scoreTable="",
-							survivalCurveTable=""){
-	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
-	vinputTable <- paste0(newdata@select@database,".",newdata@select@table_name)
+							survivalCurveTable="",
+                            ...){
+	if(!is.FLTable(newdata)) 
+		stop("scoring allowed on FLTable only")
+	#browser()
+	newdata <- setAlias(newdata,"")
+	vinputTable <- newdata@select@table_name
 
 	if(scoreTable=="")
-	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
-	else if(!grep(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	# scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+	# 								gen_score_table_name(object@table@select@table_name))
+	scoreTable <- gen_score_table_name(object@table@select@table_name)
+
+	# if(!grepl(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+	
 	if(survivalCurveTable=="")
-	survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name("survival"))
-	else if(!grep(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
+	# survivalCurveTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
+	# 										gen_score_table_name("survival"))
+	survivalCurveTable <- gen_score_table_name("survival")
+	# if(!grepl(".",survivalCurveTable)) survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",survivalCurveTable)
 
 	if(!newdata@isDeep)
 	{
-		deepx <- FLRegrDataPrep(newdata,depCol="",
-								outDeepTableName="",
-								outDeepTableDatabase="",
-								outObsIDCol="",
-								outVarIDCol="",
-								outValueCol="",
-								catToDummy=0,
-								performNorm=0,
-								performVarReduc=0,
-								makeDataSparse=0,
-								minStdDev=0,
-								maxCorrel=1,
-								trainOrTest=1,
-								excludeCols="",
-								classSpec=list(),
-								whereconditions="",
-								inAnalysisID=object@wideToDeepAnalysisId)
-		newdata <- deepx[["table"]]
+		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
+		newdataCopy <- newdata
+		vtablename <- newdataCopy@select@table_name
+		vtablename2 <- object@table@select@table_name
 
-		vtablename <- paste0(newdata@select@database,".",newdata@select@table_name)
-		vtablename1 <- paste0(object@table@select@database,".",object@table@select@table_name)
+		## SQL to Insert the dependent column ans statusColumn
+		vVaridVec <- c(-2)
+		vCellValVec <- c(object@statusCol)
+		vfromtbl <- vtablename
+		if(!object@statusCol %in% colnames(newdata))
+			# stop(object@statusCol," not in newdata \n ")
+			vfromtbl <- vtablename2
+
+		if(length(vSurvival)==3 || object@timeValCol %in% colnames(newdata)){
+			vVaridVec <- c(vVaridVec,-1)
+			vCellValVec <- c(vCellValVec,object@timeValCol)
+			vfromtbl <- c(vfromtbl,vtablename)
+			if(!object@timeValCol %in% colnames(newdata))
+			vfromtbl <- c(vfromtbl,vtablename2)
+		}
+		else if(length(vSurvival)==4)
+		{
+			vTimeVal1 <- vSurvival[2]
+			vTimeVal2 <- vSurvival[3]
+			vVaridVec <- c(vVaridVec,-1)
+			vCellValVec <- c(vCellValVec,
+							paste0(vTimeVal1,"-",vTimeVal2))
+			if(!all(c(vTimeVal1,vTimeVal2) %in% colnames(newdata))){
+				# stop("timeValue columns not found in newdata \n ")
+				vfromtbl <- c(vfromtbl,vtablename2)
+			}
+			else{
+				vfromtbl <- c(vfromtbl,vtablename)
+			}
+		}
+		else stop("newdata is not consistent with formula object for scoring \n ")
+
+        vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object@RegrDataPrepSpecs,
+                                                            values=list(...))
+        deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+                                outDeepTableName=vRegrDataPrepSpecs$outDeepTableName,
+                                outObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+                                outVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+                                outValueCol=vRegrDataPrepSpecs$outValueCol,
+                                catToDummy=vRegrDataPrepSpecs$catToDummy,
+                                performNorm=vRegrDataPrepSpecs$performNorm,
+                                performVarReduc=vRegrDataPrepSpecs$performVarReduc,
+                                makeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+                                minStdDev=vRegrDataPrepSpecs$minStdDev,
+                                maxCorrel=vRegrDataPrepSpecs$maxCorrel,
+                                trainOrTest=1,
+                                excludeCols=vRegrDataPrepSpecs$excludeCols,
+                                classSpec=vRegrDataPrepSpecs$classSpec,
+                                whereconditions=vRegrDataPrepSpecs$whereconditions,
+                                inAnalysisID=object@wideToDeepAnalysisId)
+
+		# deepx <- FLRegrDataPrep(newdata,depCol="",
+		# 						outDeepTableName="",
+		# 						outObsIDCol="",
+		# 						outVarIDCol="",
+		# 						outValueCol="",
+		# 						catToDummy=0,
+		# 						performNorm=0,
+		# 						performVarReduc=0,
+		# 						makeDataSparse=1,
+		# 						minStdDev=0,
+		# 						maxCorrel=1,
+		# 						trainOrTest=1,
+		# 						excludeCols="",
+		# 						classSpec=list(),
+		# 						whereconditions="",
+		# 						inAnalysisID=object@wideToDeepAnalysisId)
+
+		newdata <- deepx[["table"]]
+		newdata <- setAlias(newdata,"")
+
+		vtablename1 <- newdata@select@table_name
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
-						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
-						" -2 AS var_id_colname,","\n               ",
-						object@statusCol," AS cell_val_colname","\n               ",
-						" FROM ",vtablename1)
+		sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
+						paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
+										vVaridVec," AS var_id_colname, \n ",
+										vCellValVec," AS cell_val_colname \n  ",
+								" FROM ",vfromtbl,collapse=" UNION ALL "))
 		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
-		newdata@dimnames[[2]] <- c("-2",newdata@dimnames[[2]])
+		newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
 	}
-	vtable <- paste0(newdata@select@database,".",newdata@select@table_name)
+	vtable <- newdata@select@table_name
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
@@ -382,7 +489,9 @@ predict.FLCoxPH <-function(object,
 				isDeep = FALSE)
 
 	vScore <- flv
-	sqlstr <- paste0("SELECT TOP 100 * from ",survivalCurveTable," ORDER BY 1")
+	sqlstr <- paste0(limitRowsSQL(paste0("SELECT * from ",
+								survivalCurveTable),100),
+								" ORDER BY 1")
 	vSurvival <- sqlQuery(getOption("connectionFL"),sqlstr)
 	return(list(score=vScore,
 				survival=vSurvival))
@@ -401,36 +510,38 @@ predict.FLCoxPH <-function(object,
 	else if (property=="linear.predictors"){
 		if(!is.null(object@results[["linear.predictors"]]))
 		return(object@results[["linear.predictors"]])
-		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-			gen_score_table_name(object@table@select@table_name))
-		survivalCurveTable <- paste0(getOption("ResultDatabaseFL"),".",
-			gen_score_table_name("surv"))
-		vtemp <- predict(object,scoreTable=scoreTable,
+
+		scoreTable <- getRemoteTableName(tableName = gen_score_table_name(object@table@select@table_name), temporaryTable = FALSE)
+		survivalCurveTable <- getRemoteTableName(tableName = gen_score_table_name("surv"), temporaryTable = FALSE)
+
+		vtemp <- predict(object,
+						newdata=object@deeptable,
+						scoreTable=scoreTable,
 						survivalCurveTable=survivalCurveTable)
 		hazardratiovector <- vtemp$score
 		object@results <- c(object@results,
 			list(linear.predictors=hazardratiovector,
+				FLSurvivalData=vtemp$survival,
 				FLSurvivalDataTable=survivalCurveTable))
 		assign(parentObject,object,envir=parent.frame())
 		return(hazardratiovector)
 	}
 	else if (property=="FLSurvivalData"){
-		if(!is.null(object@results[["FLSurvivalDataTable"]]))
-		survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
-		else
+		if(is.null(object@results[["FLSurvivalData"]]))
 		vtemp <- object$linear.predictors
-		survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
+		# survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
 
-		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-		vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable,
-						" \nWHERE ",obs_id_colname," < 6 ORDER BY 1")
-		if(!is.null(getOption("InteractiveFL")) && getOption("InteractiveFL"))
-		{
-			vinput <- readline("Fetching for top 5 observations only.--Recommended Continue? y/n ")
-			if(!checkYorN(vinput))
-			vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable," ORDER BY 1")
-		}
-		vsurvivaldata <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
+		# vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable,
+		# 				" \nWHERE ",obs_id_colname," < 6 ORDER BY 1")
+		# if(!is.null(getOption("InteractiveFL")) && getOption("InteractiveFL"))
+		# {
+		# 	vinput <- readline("Fetching for top 5 observations only.--Recommended Continue? y/n ")
+		# 	if(!checkYorN(vinput))
+		# 	vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable," ORDER BY 1")
+		# }
+		# vsurvivaldata <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		vsurvivaldata <- object@results[["FLSurvivalData"]]
 		assign(parentObject,object,envir=parent.frame())
 		return(vsurvivaldata)
 	}
@@ -467,8 +578,9 @@ predict.FLCoxPH <-function(object,
 		vproperty <- names(vtemp)[property==vtemp]
 		statsdataframe <- object$FLCoxPHStats
 		colnames(statsdataframe) <- toupper(colnames(statsdataframe))
-		resultvector <- statsdataframe[[vproperty]]
-		names(resultvector) <- vproperty
+		resultvector <- as.vector(statsdataframe[[vproperty]])
+        names(resultvector) <- NULL
+		##names(resultvector) <- vproperty
 		assign(parentObject,object,envir=parent.frame())
 		return(resultvector)
 	}
@@ -491,16 +603,33 @@ predict.FLCoxPH <-function(object,
 	}
 	else if(property=="model")
 	{
-			modelframe <- model.FLCoxPH(object)
+			coeffVector <- object$coefficients
+			vtemp <- c(object@timeValCol,
+						names(coeffVector))
+            names(vtemp) <- c(as.character(object@formula)[2],
+                            names(coeffVector))
+            object@results[["modelColnames"]] <- vtemp
+			modelframe <- model.FLLinRegr(object)
 			assign(parentObject,object,envir=parent.frame())
 			return(modelframe)
 	}
 	else if(property=="x")
 	{
-		modelframe <- model.FLCoxPH(object)
-		modelframe[[object@statusCol]] <- NULL
+		if(!is.null(object@results[["x"]]))
+		return(object@results[["x"]])
+
+		coeffVector <- object$coefficients
+		object@results[["XMatrixColnames"]] <- names(coeffVector)
+		modelframe <- getXMatrix(object,
+								pDropCols=c(-1,-2,0))
+		object@results <- c(object@results,list(x=modelframe))
 		assign(parentObject,object,envir=parent.frame())
 		return(modelframe)
+
+		# modelframe <- object$model
+		# modelframe[[object@statusCol]] <- NULL
+		# assign(parentObject,object,envir=parent.frame())
+		# return(modelframe)
 	}
 	else if(property=="means")
 	{
@@ -510,7 +639,7 @@ predict.FLCoxPH <-function(object,
 		{
 			coeffVector <- object$coefficients
 			vcolnames <- names(coeffVector)
-			deeptablename <- paste0(object@deeptable@select@database,".",object@deeptable@select@table_name)
+			deeptablename <- object@deeptable@select@table_name
 			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -551,116 +680,143 @@ coefficients.FLCoxPH <- function(object){
 	return(object@results[["coefficients"]])
 	else
 	{
-		if(object@table@isDeep)
-		coeffVector <- sqlQuery(getOption("connectionFL"),
-			paste0("SELECT * FROM fzzlCoxPHCoeffs where AnalysisID=",fquote(object@AnalysisID),
-					" ORDER BY CoeffID"))
-		else
-		coeffVector <- sqlQuery(getOption("connectionFL"),
-			paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
-					"a.COLUMN_NAME || a.Catvalue ELSE \n",
-					"a.Column_name END AS CoeffName,b.* \n",
-				   " FROM fzzlRegrDataPrepMap AS a,fzzlCoxPHCoeffs AS b \n",
-				   " WHERE a.Final_VarID = b.CoeffID \n",
-					" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
-					"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
-					"\n ORDER BY CoeffID"))
+        object@vfcalls <- c(coefftablename="fzzlCoxPHCoeffs")
+        vres <- coefficients.lmGeneric(object,
+                        FLCoeffStats=c(FLCoeffStdErr="STDERR",
+                                    FLCoeffZScore="ZSCORE",
+                                    FLCoeffPValue="PVALUE",
+                                    FLCoeffexpneg="EXPNEGCOEFF",
+                                    FLCoeffexp="EXPCOEFF",
+                                    FLCoefflowerlimit="LOWERLIMIT",
+                                    FLCoeffupperlimit="UPPERLIMIT"),
+                        pIntercept=FALSE)
+		# if(object@table@isDeep)
+		# coeffVector <- sqlQuery(getOption("connectionFL"),
+		# 	paste0("SELECT * FROM fzzlCoxPHCoeffs where AnalysisID=",fquote(object@AnalysisID),
+		# 			" ORDER BY CoeffID"))
+		# else
+		# coeffVector <- sqlQuery(getOption("connectionFL"),
+		# 	paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
+		# 			"a.COLUMN_NAME || a.Catvalue ELSE \n",
+		# 			"a.Column_name END AS CoeffName,b.* \n",
+		# 		   " FROM fzzlRegrDataPrepMap AS a,fzzlCoxPHCoeffs AS b \n",
+		# 		   " WHERE a.Final_VarID = b.CoeffID \n",
+		# 			" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
+		# 			"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
+		# 			"\n ORDER BY CoeffID"))
 
-		colnames(coeffVector) <- toupper(colnames(coeffVector))
-		stderrVector <- coeffVector[["STDERR"]]
-		zscoreVector <- coeffVector[["ZSCORE"]]
-		pvalVector <- coeffVector[["PVALUE"]]
-		lowerlimitVector <- coeffVector[["LOWERLIMIT"]]
-		expnegcoeffVector <- coeffVector[["EXPNEGCOEFF"]]
-		upperlimitVector <- coeffVector[["UPPERLIMIT"]]
-		coeffVector1 <- coeffVector[["COEFFVALUE"]]
-		expcoeffVector <- coeffVector[["EXPCOEFF"]]
+		# colnames(coeffVector) <- toupper(colnames(coeffVector))
+		# stderrVector <- coeffVector[["STDERR"]]
+		# zscoreVector <- coeffVector[["ZSCORE"]]
+		# pvalVector <- coeffVector[["PVALUE"]]
+		# lowerlimitVector <- coeffVector[["LOWERLIMIT"]]
+		# expnegcoeffVector <- coeffVector[["EXPNEGCOEFF"]]
+		# upperlimitVector <- coeffVector[["UPPERLIMIT"]]
+		# coeffVector1 <- coeffVector[["COEFFVALUE"]]
+		# expcoeffVector <- coeffVector[["EXPCOEFF"]]
 
-		if(!is.null(coeffVector[["COEFFNAME"]]))
-		names(coeffVector1) <- coeffVector[["COEFFNAME"]]
-		else{
-			vallVars <- all.vars(genDeepFormula(coeffVector[["COEFFID"]]))
-			names(coeffVector1) <- vallVars[2:length(vallVars)]
-		}
+		# if(!is.null(coeffVector[["COEFFNAME"]]))
+		# names(coeffVector1) <- coeffVector[["COEFFNAME"]]
+		# else{
+		# 	vallVars <- all.vars(genDeepFormula(coeffVector[["COEFFID"]]))
+		# 	names(coeffVector1) <- vallVars[2:length(vallVars)]
+		# }
 		
-		vcolnames <- colnames(object@deeptable)
-		droppedCols <- vcolnames[!vcolnames %in% c("-1","0","-2",coeffVector[["COEFFID"]])]
-		object@results <- c(object@results,list(coefficients=coeffVector1,
-												FLCoeffStdErr=stderrVector,
-												FLCoeffZScore=zscoreVector,
-												FLCoeffPValue=pvalVector,
-												FLCoeffexpneg=expnegcoeffVector,
-												FLCoeffexp=expcoeffVector,
-												FLCoefflowerlimit=lowerlimitVector,
-												FLCoeffupperlimit=upperlimitVector,
-												droppedCols=droppedCols))
+		# vcolnames <- colnames(object@deeptable)
+		# droppedCols <- vcolnames[!vcolnames %in% c("-1","0","-2",coeffVector[["COEFFID"]])]
+		# object@results <- c(object@results,list(coefficients=coeffVector1,
+		# 										FLCoeffStdErr=stderrVector,
+		# 										FLCoeffZScore=zscoreVector,
+		# 										FLCoeffPValue=pvalVector,
+		# 										FLCoeffexpneg=expnegcoeffVector,
+		# 										FLCoeffexp=expcoeffVector,
+		# 										FLCoefflowerlimit=lowerlimitVector,
+		# 										FLCoeffupperlimit=upperlimitVector,
+		# 										droppedCols=droppedCols))
 		parentObject <- unlist(strsplit(unlist(strsplit
 			(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		assign(parentObject,object,envir=parent.frame())
-		return(coeffVector1)
+		return(vres)
 	}
 }
 
-model.FLCoxPH <- function(object)
-{
-	if(!is.null(object@results[["model"]]))
-	return(object@results[["model"]])
-	else
-	{
-		if(interactive())
-		{
-			vinput <- readline("Fetching entire table. Continue? y/n ")
-			if(!checkYorN(vinput)) return(NULL)
-		}
-		modelframe <- as.data.frame(object@deeptable)
-		modelframe[["0"]] <- NULL ##Intercept
-		modelframe[["-1"]] <- NULL ##timeValue
-		coeffVector <- object$coefficients
-		vdroppedCols <- object@results[["droppedCols"]]
-		for(i in vdroppedCols)
-		modelframe[[paste0(i)]] <- NULL
-		vallVars <- all.vars(object@formula)
-		vcolnames <- c(object@statusCol,names(coeffVector))
-		colnames(modelframe) <- vcolnames
-		object@results <- c(object@results,list(model=modelframe))
-		parentObject <- unlist(strsplit(unlist(strsplit(
-			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-		assign(parentObject,object,envir=parent.frame())
-		return(modelframe)
-	}
-}
+# model.FLCoxPH <- function(object)
+# {
+# 	if(!is.null(object@results[["model"]]))
+# 	return(object@results[["model"]])
+# 	else
+# 	{
+# 		# if(interactive())
+# 		# {
+# 		# 	vinput <- readline("Fetching entire table. Continue? y/n ")
+# 		# 	if(!checkYorN(vinput)) return(NULL)
+# 		# }
+# 		modelframe <- as.data.frame(object@deeptable)
+# 		modelframe[["0"]] <- NULL ##Intercept
+# 		modelframe[["-1"]] <- NULL ##timeValue
+# 		coeffVector <- object$coefficients
+# 		vdroppedCols <- object@results[["droppedCols"]]
+# 		for(i in vdroppedCols)
+# 		modelframe[[paste0(i)]] <- NULL
+# 		vallVars <- all.vars(object@formula)
+# 		vcolnames <- c(object@statusCol,names(coeffVector))
+# 		colnames(modelframe) <- vcolnames
+# 		object@results <- c(object@results,list(model=modelframe))
+# 		parentObject <- unlist(strsplit(unlist(strsplit(
+# 			as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+# 		assign(parentObject,object,envir=parent.frame())
+# 		return(modelframe)
+# 	}
+# }
 
+#' @export
 summary.FLCoxPH <- function(object){
-	parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	cat("CALL:\n")
-	cat(paste0(object$call),"\n\n")
-	cat("   n = ",object$n,",   number of events = ",object$nevent,"\n\n")
-	vcoeffdata <- data.frame(as.vector(object$coefficients),
-		as.vector(object$FLCoeffexp),
-		round(as.vector(object$FLCoeffStdErr),4),
-		round(as.vector(object$FLCoeffZScore),4),
-		round(as.vector(object$FLCoeffPValue),4),
-		as.vector(object$FLCoeffexp),as.vector(object$FLCoeffexpneg),
-		round(as.vector(object$FLCoefflowerlimit),4),
-		round(as.vector(object$FLCoeffupperlimit),4))
-	colnames(vcoeffdata) <- c("coef","exp(coef)","se(coef)","z","Pr(>|z|)",
-		"exp(coef)","exp(-coef)","lower.95","upper.95")
-	rownames(vcoeffdata) <- names(object$coefficients)
-	print(vcoeffdata)
-	cat("\n\n")
-	vstatsdata <- object$FLCoxPHStats
-	assign(parentObject,object,envir=parent.frame())
-	colnames(vstatsdata) <- toupper(colnames(vstatsdata))
-	cat("Likelihood Ration Test = ",vstatsdata[["LIKELIHOODSTATS"]],",\n")
-	cat("Partial Log Likelihood = ",vstatsdata[["PARTIALLL"]],",\n")
-	cat("Likelihood p Value = ",vstatsdata[["LIKELIHOODPVALUE"]],"\n")
-	cat("Wald Test          = ",vstatsdata[["WALDSTATS"]],", p = ",
-		vstatsdata[["WALDPVALUE"]],"\n")
-	cat("Score (log rank) = ",vstatsdata[["LOGRANKSTATS"]],", p = ",
-		vstatsdata[["LOGRANKPVALUE"]],"\n")
+  stat <- object$FLCoxPHStats
+  
+  coefficients <- data.frame(as.vector(object$coefficients),
+                             as.vector(object$FLCoeffexp),
+                             as.vector(object$FLCoeffStdErr),
+                             as.vector(object$FLCoeffZScore),
+                             as.vector(object$FLCoeffPValue))
+  
+  rname <- all.vars(object$formula)
+  colnames(coefficients) <- c("coef","exp(coef)","se(coef)","z","Pr(>|z|)")    
+  rownames(coefficients) <- names(object$coefficients) 
+  
+  
+  conf.int <- data.frame(as.vector(object$FLCoeffexp),
+                         as.vector(object$FLCoeffexpneg),
+                         as.vector(object$FLCoefflowerlimit),
+                         as.vector(object$FLCoeffupperlimit))
+  
+  
+  colnames(conf.int) <- c("exp(coef)","exp(-coef)","lower.95","upper.95")
+  rownames(conf.int) <- names(object$coefficients)
+  
+  
+  
+  
+  
+  reqList <- list(call = as.call(object$call),
+                  n = object$n,
+                  nevent = as.numeric(object$nevent),
+                  coefficients = as.matrix(coefficients),
+                  conf.int = as.matrix(conf.int),
+                  waldtest = c(test = stat$WaldStats,df = length(object$coefficients) , pvalue = stat$WaldPValue),
+                  sctest = c(test = stat$LogRankStats, df = length(`object`$coefficients) , pvalue = stat$LogRankPValue),
+                  rsq = as.numeric(NULL),
+                  logtest = c(test = stat$LikelihoodStats, df = length(`object`$coefficients) , pvalue = stat$LikelihoodPValue),
+                  #concordance = NULL,
+                  used.robust = FALSE
+                  
+  )
+  
+  class(reqList) <- "summary.coxph"
+  reqList
+  
 }
 
+#' @export
 print.FLCoxPH <- function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -668,10 +824,10 @@ print.FLCoxPH <- function(object){
 	assign(parentObject,object,envir=parent.frame())
 }
 
+## Choose number of observations to fetch and plot
+#' @export
 plot.FLCoxPH <- function(object,nobs=5,...){
-	if(!is.null(object@results[["FLSurvivalDataTable"]]))
-	survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
-	else
+	if(is.null(object@results[["FLSurvivalDataTable"]]))
 	vtemp <- object$linear.predictors
 	survivalCurveTable <- object@results[["FLSurvivalDataTable"]]
 	if(is.na(nobs) || is.null(nobs)) nobs<-5
@@ -693,3 +849,75 @@ plot.FLCoxPH <- function(object,nobs=5,...){
 		xlab = "Time",ylab = "Survival Probability",
 		title(main = "Survival curve plot FL"))
 }
+
+prepareSurvivalFormula <- function(data,
+                                 formula
+                                 ){
+
+    IncludeTimeVal <- function(data,
+                           formula,
+                           vTimeVal=NULL){
+        vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+        vTimeVal1 <- vSurvival[2]
+        vTimeVal2 <- vSurvival[3]
+        vStatus <- vSurvival[4]
+        if(is.null(vTimeVal))
+        vTimeVal <- "FLTimeValCol"
+        vtablename1 <- data@select@table_name
+
+        vtablename <- createView(pViewName=gen_unique_table_name(""),
+                                pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,
+                                            " AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
+                    )
+        
+        data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
+        data@select@table_name <- vtablename
+        vallVars <- base::all.vars(formula)
+        vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]
+        return(list(data=data,
+                    vTimeVal=vTimeVal,
+                    vStatus=vStatus,
+                    vtablename=vtablename,
+                    vallVars=vallVars))
+    }
+
+    if(isDotFormula(formula))
+            formula <- genDeepFormula(pColnames=colnames(data),
+                                    pDepColumn=all.vars(formula)[1])
+        vallVars <- base::all.vars(formula)
+        vtablename <- NULL
+        checkValidFormula(formula,data)
+        vSurvival <- as.character(attr(terms(formula),"variables")[[2]])
+        if(!("Surv" %in% vSurvival))
+        stop("specify dependent variables as Surv object")
+        if(length(vSurvival)==2)
+        stop("atleast time and event components must be present in Surv object")
+        if(length(vSurvival)==3)
+        {
+            vTimeVal <- vSurvival[2]
+            vStatus <- vSurvival[3]
+        }
+        else if(length(vSurvival)==4)
+        {
+            vtempList <- IncludeTimeVal(data=data,
+                                        formula=formula)
+            vStatus <- vtempList[["vStatus"]]
+            vtablename <- vtempList[["vtablename"]]
+            vTimeVal <- vtempList[["vTimeVal"]]
+            data <- vtempList[["data"]]
+            vallVars <- vtempList[["vallVars"]]
+            vallVars <- c(vallVars,vTimeVal)
+        }
+        else stop("Error in formula:check function documentation for constraints on formula \n ")
+        vallVars <- vallVars[vallVars!=vStatus]
+        vIndepVars <- attr(terms(formula),"term.labels")
+        return(list(vStatus=vStatus,
+                    vTimeVal=vTimeVal,
+                    data=data,
+                    vallVars=vallVars,
+                    vtablename=vtablename,
+                    formula=formula,
+                    vSurvival=vSurvival,
+                    vIndepVars=vIndepVars))
+}
+

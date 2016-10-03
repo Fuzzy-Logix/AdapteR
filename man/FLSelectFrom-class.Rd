@@ -10,8 +10,6 @@ A selectFrom models a select from a table.
 \section{Slots}{
 
 \describe{
-\item{\code{database}}{character the database of the table}
-
-\item{\code{table_name}}{character the name oth the table to select from}
+\item{\code{table_name}}{character the name of the table to select from (possibly fully qualified, i.e. with database)}
 }}
 

@@ -4,13 +4,11 @@
 \alias{FLTable}
 \title{Constructor function for FLTable.}
 \usage{
-FLTable(database, table, obs_id_colname, var_id_colnames = character(0),
+FLTable(table, obs_id_colname, var_id_colnames = character(0),
   cell_val_colname = character(0), whereconditions = character(0),
-  connection = NULL)
+  connection = NULL, type = "double", fetchIDs = TRUE, ...)
 }
 \arguments{
-\item{database}{name of the database}
-
 \item{table}{name of the table}
 
 \item{obs_id_colname}{column name set as primary key}
@@ -35,9 +33,8 @@ in Teradata.
 This object is commonly used as input for data mining functions.
 }
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-widetable  <- FLTable( "FL_Deep", "tblAbaloneWide", "ObsID")
-deeptable <- FLTable("FL_DEMO","tblUSArrests","ObsID","VarID","Num_Val")
+widetable  <- FLTable("tblAbaloneWide", "ObsID")
+deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
 }
 
