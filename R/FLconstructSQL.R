@@ -21,17 +21,18 @@ setMethod("constructSelect", signature(object = "FLMatrix"),
             if(!"matrix_id" %in% tolower(names(getVariables(object))))
             object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
                                         getVariables(object))
-
-              if(!FLNamesMappedP(object) | !joinNames)
-                  return(constructSelect(object@select))
-              select <- object@select
-              select@variables <- c(select@variables,
+            if(!is.null(object@dimColumns))
+                names(object@select@variables) <- object@dimColumns
+            if(!FLNamesMappedP(object) | !joinNames)
+                return(constructSelect(object@select))
+            select <- object@select
+            select@variables <- c(select@variables,
                                     object@mapSelect@variables)
-              select@table_name <- c(select@table_name,
+            select@table_name <- c(select@table_name,
                                      object@mapSelect@table_name)
-              select@whereconditions <- c(select@whereconditions,
+            select@whereconditions <- c(select@whereconditions,
                                           object@mapSelect@whereconditions)
-              return(constructSelect(select))
+            return(constructSelect(select))
           })
 
 setMethod("constructSelect", signature(object = "FLTableQuery"),

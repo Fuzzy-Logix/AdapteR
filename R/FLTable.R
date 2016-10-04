@@ -109,7 +109,7 @@ FLTable <- function(table,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
-        if(!changeAlias(obs_id_colname,"","") %in% cols)
+        if(!changeAlias(obs_id_colname,"","") %in% cols && !is.TDAster())
           stop(paste0(changeAlias(obs_id_colname,"",""),
                       " not a column in table.Please check case Sensitivity \n "))
         if(!is.null(list(...)[["ObsID"]])){

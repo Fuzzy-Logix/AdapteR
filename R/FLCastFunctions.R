@@ -220,7 +220,6 @@ as.matrix.FLTable <- function(x,...)
 
 #' @export
 as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
-    ##browser()
     if(!is.logical(sparse)) stop("sparse must be logical")
     if(is.null(connection)) connection <- getFLConnection(object)
     options(warn=-1)
@@ -282,6 +281,8 @@ as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
           mdeep <- base::cbind(MATRIX_ID=as.integer(MID),mdeep)
           mdeep <- as.data.frame(mdeep)
           colnames(mdeep) <- c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
+          if(tablename==getOption("ResultIntMatrixTableFL"))
+            mdeep[["valueColumn"]] <- as.integer(mdeep[["valueColumn"]])
           t <- as.FLTable.data.frame(mdeep,connection,
                                     tablename,1,drop=FALSE)
         # }
@@ -454,19 +455,18 @@ as.FLEnvironment <- function(Renv){
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
-    #browser()
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getFLConnection(object), sqlstr),
       error=function(e){stop(e)})
-    i <- valuedf[[object@dimColumns[[1]]]]
-    j <- valuedf[[object@dimColumns[[2]]]]
+    i <- valuedf[[object@dimColumns[[2]]]]
+    j <- valuedf[[object@dimColumns[[3]]]]
     i <- FLIndexOf(i,rownames(object))
     j <- FLIndexOf(j,colnames(object))
 
     dn <- dimnames(object)
     if(any(is.na(c(i,j))))
         browser()
-    values <- valuedf[[object@dimColumns[[3]]]]
+    values <- valuedf[[object@dimColumns[[4]]]]
 
   if(is.factor(values))
   return(matrix(values,dim(object),
@@ -791,8 +791,8 @@ as.FLVector.FLMatrix <- function(object,connection=getFLConnection(object))
                               k:(k+length(rownames(object))-1)," AS vectorIndexColumn,",
                               a,".valueColumn AS vectorValueColumn 
                        FROM(",constructSelect(object),") AS ",a,
-                       " WHERE ",a,".",object@dimColumns[[1]]," in ",rownames(object),
-                         " AND ",a,".",object@dimColumns[[2]]," in ",i)
+                       " WHERE ",a,".",object@dimColumns[[2]]," in ",rownames(object),
+                         " AND ",a,".",object@dimColumns[[3]]," in ",i)
     sqlstr <- c(sqlstr,sqlstr0)
     if(checkQueryLimits(sqlstr) && i!=colnames[length(colnames)])
     {

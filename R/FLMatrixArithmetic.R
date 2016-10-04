@@ -45,65 +45,65 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 
 		if(pOperator %in% c("*","**"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn,",
-                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn,",
-                               a,".",pObj1@dimColumns[[3]]," ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn,",
+                               a,".",pObj1@dimColumns[[3]]," AS colIdColumn,",
+                               a,".",pObj1@dimColumns[[4]]," ",
                                pOperator," ",
-                               b,".",pObj2@dimColumns[[3]]," AS valueColumn 
+                               b,".",pObj2@dimColumns[[4]]," AS valueColumn 
 	            		    FROM ( ",constructSelect(pObj1),") AS ",a,
                             ",( ",constructSelect(pObj2),") AS ",b,
-	            			constructWhere(c(paste0(a,".", pObj1@dimColumns[[1]]," = ", b,".",pObj2@dimColumns[[1]],""),
-                                             paste0( a,".",pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]]," "),
-                                             ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[3]],"<>0")))))
+	            			constructWhere(c(paste0(a,".", pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]],""),
+                                             paste0( a,".",pObj1@dimColumns[[3]]," = ", b,".",pObj2@dimColumns[[3]]," "),
+                                             ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[4]],"<>0")))))
         else if(pOperator %in% c("%%"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
-                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[3]]," AS colIdColumn, \n ",
                                getMODSQL(pConnection=getFLConnection(pObj1),
-                                        pColumn1=paste0(a,".",pObj1@dimColumns[[3]]),
-                                        pColumn2=paste0(b,".",pObj2@dimColumns[[3]])),
+                                        pColumn1=paste0(a,".",pObj1@dimColumns[[4]]),
+                                        pColumn2=paste0(b,".",pObj2@dimColumns[[4]])),
                                " AS valueColumn \n ",
                             " FROM ( ",constructSelect(pObj1),") AS ",a,
                             ",( ",constructSelect(pObj2),") AS ",b,
-                            constructWhere(c(paste0(a,".", pObj1@dimColumns[[1]]," = ", b,".",pObj2@dimColumns[[1]],""),
-                                             paste0( a,".",pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]]," "),
-                                             paste0(b,".",pObj2@dimColumns[[3]],"<>0"))))
+                            constructWhere(c(paste0(a,".", pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]],""),
+                                             paste0( a,".",pObj1@dimColumns[[3]]," = ", b,".",pObj2@dimColumns[[3]]," "),
+                                             paste0(b,".",pObj2@dimColumns[[4]],"<>0"))))
 		else if(pOperator %in% c("/"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
-                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn, \n ",
-                               "CAST(",a,".",pObj1@dimColumns[[3]]," AS FLOAT) ",pOperator," ",
-                               b,".",pObj2@dimColumns[[3]]," AS valueColumn \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[3]]," AS colIdColumn, \n ",
+                               "CAST(",a,".",pObj1@dimColumns[[4]]," AS FLOAT) ",pOperator," ",
+                               b,".",pObj2@dimColumns[[4]]," AS valueColumn \n ",
                                " FROM ( ",constructSelect(pObj1),") AS ",a,
                                ",( ",constructSelect(pObj2),") AS ",b,
-                               constructWhere(c(paste0(a,".", pObj1@dimColumns[[1]]," = ", b,".",pObj2@dimColumns[[1]],""),
-                                                paste0( a,".",pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]]," "),
-                                                ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[3]],"<>0")))))
+                               constructWhere(c(paste0(a,".", pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]],""),
+                                                paste0( a,".",pObj1@dimColumns[[3]]," = ", b,".",pObj2@dimColumns[[3]]," "),
+                                                ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[4]],"<>0")))))
 
 		else if(pOperator %in% c("%/%"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
-                               a,".",pObj1@dimColumns[[2]],"  AS colIdColumn, \n ",
-                               "CASE WHEN ((",a,".",pObj1@dimColumns[[3]],"/",b,".",pObj2@dimColumns[[3]],")<0) ",
-                               " THEN CAST( ",a,".",pObj1@dimColumns[[3]]," / ",
-                               b,".",pObj2@dimColumns[[3]]," AS INT ) - 1 ",
-                               " ELSE CAST( ",a,".",pObj1@dimColumns[[3]]," / ",
-                               b,".",pObj2@dimColumns[[3]]," AS INT ) END AS valueColumn \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[3]],"  AS colIdColumn, \n ",
+                               "CASE WHEN ((",a,".",pObj1@dimColumns[[4]],"/",b,".",pObj2@dimColumns[[4]],")<0) ",
+                               " THEN CAST( ",a,".",pObj1@dimColumns[[4]]," / ",
+                               b,".",pObj2@dimColumns[[4]]," AS INT ) - 1 ",
+                               " ELSE CAST( ",a,".",pObj1@dimColumns[[4]]," / ",
+                               b,".",pObj2@dimColumns[[4]]," AS INT ) END AS valueColumn \n ",
                                " FROM ( ",constructSelect(pObj1),") AS ",a,
                                ",( ",constructSelect(pObj2),") AS ",b,
-                               constructWhere(c(paste0(a,".",pObj1@dimColumns[[1]]," = ",b,".",pObj2@dimColumns[[1]],""),
-                                                paste0(a,".",pObj1@dimColumns[[2]],"  = ", b,".",pObj2@dimColumns[[2]]," "),
-                                                paste0(b,".",pObj2@dimColumns[[3]],"<>0"))))
+                               constructWhere(c(paste0(a,".",pObj1@dimColumns[[2]]," = ",b,".",pObj2@dimColumns[[2]],""),
+                                                paste0(a,".",pObj1@dimColumns[[3]],"  = ", b,".",pObj2@dimColumns[[3]]," "),
+                                                paste0(b,".",pObj2@dimColumns[[4]],"<>0"))))
 
 		else if(pOperator %in% c("%*%"))
 		{
 			sqlstr <-paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                            a,".",pObj1@dimColumns[[1]]," AS rowIdColumn,",
-                            b,".",pObj2@dimColumns[[2]]," AS colIdColumn,
-									 FLSumProd(",a,".",pObj1@dimColumns[[3]],",",b,".",pObj2@dimColumns[[3]],") AS valueColumn  
+                            a,".",pObj1@dimColumns[[2]]," AS rowIdColumn,",
+                            b,".",pObj2@dimColumns[[3]]," AS colIdColumn,
+									 FLSumProd(",a,".",pObj1@dimColumns[[4]],",",b,".",pObj2@dimColumns[[4]],") AS valueColumn  
 									 FROM (",constructSelect(pObj1),") AS ",a,
                             ",(",constructSelect(pObj2),") AS ",b,
-	                        constructWhere(paste0( a,".",pObj1@dimColumns[[2]],"  = ",b,".",pObj2@dimColumns[[1]],"")),
+	                        constructWhere(paste0( a,".",pObj1@dimColumns[[3]],"  = ",b,".",pObj2@dimColumns[[2]],"")),
 	                        " GROUP BY 1,2,3")
 			dimnames <- list(dimnames(pObj1)[[1]],
                              dimnames(pObj2)[[2]])
@@ -120,15 +120,15 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                              "    "," FLSum(",a,".valueColumn) AS valueColumn \n",
                              " FROM (\n",
                              "       SELECT \n",
-                             "               a.",pObj1@dimColumns[[1]]," AS rowIdColumn,\n",
-                             "               a.",pObj1@dimColumns[[2]]," AS colIdColumn,\n",
-                             "               a.",pObj1@dimColumns[[3]]," AS valueColumn\n",
+                             "               a.",pObj1@dimColumns[[2]]," AS rowIdColumn,\n",
+                             "               a.",pObj1@dimColumns[[3]]," AS colIdColumn,\n",
+                             "               a.",pObj1@dimColumns[[4]]," AS valueColumn\n",
                              "       FROM(",constructSelect(pObj1),") AS a \n",
                              "       UNION ALL \n",
                              "       SELECT \n",
-                             "               b.",pObj2@dimColumns[[1]]," AS rowIdColumn,\n",
-                             "               b.",pObj2@dimColumns[[2]]," AS colIdColumn,\n",
-                             "               b.",pObj2@dimColumns[[3]],"*(",pOperator,"1) AS valueColumn\n",
+                             "               b.",pObj2@dimColumns[[2]]," AS rowIdColumn,\n",
+                             "               b.",pObj2@dimColumns[[3]]," AS colIdColumn,\n",
+                             "               b.",pObj2@dimColumns[[4]],"*(",pOperator,"1) AS valueColumn\n",
                              "       FROM(",constructSelect(pObj2),") AS b\n",
                              "       ) AS ",a,"\n",
 							 " GROUP BY ",a,".rowIdColumn,", a,".colIdColumn ")

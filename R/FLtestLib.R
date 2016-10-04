@@ -262,14 +262,17 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       vmaxId <- getMaxVectorId()
       sqlSendUpdate(getFLConnection(),
                           c(paste0("INSERT INTO ",getOption("ResultVectorTableFL")," \n ",
-                              " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
-                                CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                              FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a 
-                              WHERE a.serialval <=  ",n)))
+                              " SELECT ",vmaxId," AS vectorIdColumn, \n ",
+                                        " a.serialval AS vectorIndexColumn, \n ",
+                                        #CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
+                                        "a.RANDVAL AS vectorValueColumn \n ",
+                              " FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a \n ",
+                              " WHERE a.serialval <=  ",n)))
 
       table <- FLTable(getOption("ResultVectorTableFL"),
                        "vectorIndexColumn",
-                       whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
+                       whereconditions=paste0(getOption("ResultVectorTableFL"),
+                                            ".vectorIdColumn = ",vmaxId)
                      )
       flv <- table[,"vectorValueColumn"]
     }
