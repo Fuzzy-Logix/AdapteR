@@ -535,15 +535,24 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
 
   k <- base::ceiling((rows*cols)/length(object))-1
   a<-genRandVarName()
+  # sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
+  #                            a,".vectorIndexColumn + ",(0:k)*length(object),
+  #                            " - (CAST((",a,".vectorIndexColumn + ",(0:k)*length(object),
+  #                             "-0.355)/",rows," AS INT)*",rows,") AS rowIdColumn,",
+  #                           " CAST((",a,".vectorIndexColumn + ",(0:k)*length(object),
+  #                             "-0.355)/",rows," AS INT)+1 AS colIdColumn,",
+  #                            a,".vectorValueColumn AS valueColumn",
+  #                   " FROM(",constructSelect(object),") AS ",a,
+  #                   " WHERE ",a,".vectorIndexColumn + ",(0:k)*length(object)," <= ",rows*cols)
   sqlstr <- paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                             a,".vectorIndexColumn + ",(0:k)*length(object),
-                             " - (CAST((",a,".vectorIndexColumn + ",(0:k)*length(object),
-                              "-0.355)/",rows," AS INT)*",rows,") AS rowIdColumn,",
-                            " CAST((",a,".vectorIndexColumn + ",(0:k)*length(object),
-                              "-0.355)/",rows," AS INT)+1 AS colIdColumn,",
-                             a,".vectorValueColumn AS valueColumn",
-                    " FROM(",constructSelect(object),") AS ",a,
-                    " WHERE ",a,".vectorIndexColumn + ",(0:k)*length(object)," <= ",rows*cols)
+                             "a.vectorIndexColumn + ",(0:k)*length(object),
+                             " - (FLTrunc((a.vectorIndexColumn + ",(0:k)*length(object),
+                              "-0.355)/",rows,",0)*",rows,") AS rowIdColumn,",
+                            " FLTrunc((a.vectorIndexColumn + ",(0:k)*length(object),
+                              "-0.355)/",rows,",0)+1 AS colIdColumn,",
+                            "a.vectorValueColumn AS valueColumn",
+                    " FROM(",constructSelect(object),") AS a ",
+                    " WHERE a.vectorIndexColumn + ",(0:k)*length(object)," <= ",rows*cols)
 
   batchStore <- function(sqlstr,MID)
   {
@@ -791,8 +800,8 @@ as.FLVector.FLMatrix <- function(object,connection=getFLConnection(object))
                               k:(k+length(rownames(object))-1)," AS vectorIndexColumn,",
                               a,".valueColumn AS vectorValueColumn 
                        FROM(",constructSelect(object),") AS ",a,
-                       " WHERE ",a,".",object@dimColumns[[2]]," in ",rownames(object),
-                         " AND ",a,".",object@dimColumns[[3]]," in ",i)
+                       " WHERE (",a,".",object@dimColumns[[2]]," = ",rownames(object),
+                         ") AND (",a,".",object@dimColumns[[3]]," = ",i,") ")
     sqlstr <- c(sqlstr,sqlstr0)
     if(checkQueryLimits(sqlstr) && i!=colnames[length(colnames)])
     {

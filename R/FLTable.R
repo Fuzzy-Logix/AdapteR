@@ -57,7 +57,7 @@ FLTable <- function(table,
         cols <- cleanNames(sort(sqlQuery(connection,
                                          paste0("SELECT DISTINCT(",
                                                 var_id_colnames,") as VarID FROM ",tableAndAlias(table),
-                                                " ",constructWhere(whereconditions)))$VarID))
+                                                " ",constructWhere(whereconditions)))[[1]]))
         ncol <- length(cols)
         if(!is.null(list(...)[["ObsID"]]))
           rows <- list(...)[["ObsID"]]
@@ -65,7 +65,7 @@ FLTable <- function(table,
           rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",tableAndAlias(table),
-                          " ",constructWhere(whereconditions)))$VarID)
+                          " ",constructWhere(whereconditions)))[[1]])
           rows <- cleanNames(rows)
           nrow <- length(rows)
         } else {
@@ -73,7 +73,7 @@ FLTable <- function(table,
             nrow <- sqlQuery(connection,
                             paste0("SELECT count(DISTINCT(",obs_id_colname,")) as N
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$N
+                                    " ",constructWhere(whereconditions)))[[1]]
         }
 
 
@@ -121,7 +121,7 @@ FLTable <- function(table,
                             paste0("SELECT DISTINCT(",
                                         obs_id_colname,") as VarID
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$VarID)
+                                    " ",constructWhere(whereconditions)))[[1]])
           rows <- cleanNames(rows)
           nrow <- length(rows)
         } else {
@@ -129,7 +129,7 @@ FLTable <- function(table,
             nrow <- sqlQuery(connection,
                             paste0("SELECT count(DISTINCT ",obs_id_colname,") as N
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$N
+                                    " ",constructWhere(whereconditions)))[[1]]
         }
         cols <- cleanNames(cols)
         

@@ -163,8 +163,8 @@ test_that("check result for M_CrossProduct",
   FLexpect_equal((P1$FL%*%V1),P1$R%*%V1R,check.attributes=FALSE)
     FLexpect_equal((M2%*%V2),M2R%*%V2R,check.attributes=FALSE)
     FLexpect_equal((M2%*%P1$FL),M2R%*%P1$R,check.attributes=FALSE)
-    FLexpect_equal((V1%*%M1$FL),V1R%*%M1$R,check.attributes=FALSE)
-    FLexpect_equal((P1$FL%*%M1$FL),P1$R%*%M1$R,check.attributes=FALSE)
+    FLexpect_equal((V1%*%M1$FL),V1R%*%M1$R,check.attributes=FALSE) ## Fails in Aster!
+    FLexpect_equal((P1$FL%*%M1$FL),P1$R%*%M1$R,check.attributes=FALSE) ## Fails in Aster!
 })
 
 
@@ -324,7 +324,7 @@ test_that("check result for identical",
 ## testing M_Subtraction with different length vectors
 test_that("-: fzzlSerial column vectors of different length",
 {
-  flt <- FLTable("FL_DEMO.fzzlSerial","SERIALVAL", whereconditions = "SERIALVAL<100")
+  flt <- FLTable("fzzlSerial","SERIALVAL", whereconditions = "SERIALVAL<100")
   flv1 <- flt[1:8,"RANDVAL"]
   flv <- flt[1:10,"RANDVAL"]
   flv1R <- as.vector(flv1)
