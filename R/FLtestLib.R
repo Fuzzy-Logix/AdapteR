@@ -31,10 +31,14 @@ setMethod("FLexpect_equal",
             return(testthat::expect_equal(object,
                         as.dist(as.matrix(expected))
                         ,...))
-
             testthat::expect_equal(object,
                                      as.matrix(expected),...)
           })
+setMethod("FLexpect_equal",
+          signature(object="FLSimpleVector",expected="vector"),
+          function(object,expected,...)
+              testthat::expect_equal(as.vector(object),
+                                     expected,...))
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
           function(object,expected,...)
@@ -56,6 +60,15 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                     function(i)
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLSimpleVector"),
+          function(object,expected,...){
+            if(is.numeric(object) || is.integer(object) || is.vector(object)){
+                return(FLexpect_equal(expected,object,...))
+            }
+            else FLexpect_equal(as.FLVector(object),
+                                expected,...)
+          })
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
           function(object,expected,...){

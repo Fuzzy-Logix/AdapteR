@@ -3,6 +3,17 @@ NULL
 
 
 setOldClass("RODBC")
+#' Models sparse data objects.
+#' 
+#' Sparse Indexed values objects are table queries with a value column and
+#' one (vectors), two (matrices) or several (arrays) index columns.
+#'
+#' The name of the values column
+setClass("FLIndexedValues", slots=list(
+                                dims = "integer"
+                       ## dimColumns = "character" gk: todo: this needs some refactoring for FLVector
+                       ))
+
 setClass("FLAbstractColumn",
 	slots=list(
             columnName = "character"))
@@ -106,6 +117,20 @@ setClass("FLMatrix.Hadoop", contains = "FLMatrix")
 setClass("FLMatrix.TD", contains = "FLMatrix")
 setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
+#' An S4 class to represent FLVector
+#'
+#' @export
+setClass("FLSimpleVector",
+         contains="FLIndexedValues",
+         slots = list(
+             select = "FLTableQuery",
+             dimColumns = "character",
+             names = "ANY",
+             type       = "character"
+         ),prototype = prototype(type="double")
+         )
+
+
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
@@ -155,6 +180,47 @@ setClass("FLTableMD",
              mapSelect = "FLSelectFrom"
          )
          )
+
+#' computes the length of FLVector object.
+#' @param obj is a FLVector object.
+#' @return \code{length} returns a R Vector giving the length of input object.
+#' @export
+length.FLSimpleVector <- function(obj) obj@dims
+
+#' Get names of a FLVector
+#'
+#' @param x FLVector
+#' @return character vector of names
+#' of FLVector if exists. Else NULL
+#' @export
+names.FLSimpleVector <- function(x) x@names
+
+
+#' Converts FLVector object to vector in R
+#' @export
+as.vector.FLSimpleVector <- function(object,mode="any")
+{
+    x <- sqlQuery(connection,constructSelect(object))
+    return(x[[object@dimColumns[[2]]]])
+}
+
+#' @export
+FLSerial <- function(min,max){
+    new("FLSimpleVector",
+        select=new("FLSelectFrom",
+                   table_name="fzzlSerial",
+                   connectionName=getFLConnectionName(),
+                   variables=list(serialVal="serialVal"),
+                   whereconditions=c(paste("serialVal>=",min),paste("serialVal<=",max)),
+                   order="serialVal"),
+        dimColumns = c("serialVal","serialVal"),
+        names=NULL,
+        dims    = as.integer(max-min+1),
+        type       = "integer"
+        )
+}
+
+
 
 
 ##' constructs a sql statement returning the
@@ -418,6 +484,7 @@ constructWhere <- function(conditions) {
     else
         ""
 }
+
 
 setGeneric("viewSelectMatrix", function(object,localName, withName) {
     standardGeneric("viewSelectMatrix")

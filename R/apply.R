@@ -34,6 +34,15 @@ as.FLAbstractCol.FLVector <- function(object,indexCol=FALSE){
 				columnName=vcolnames))
 }
 
+as.FLAbstractCol.FLSimpleVector <- function(object,indexCol=FALSE){
+	if(!indexCol)
+		vcolnames <- c(valueColumn="vectorValueColumn")
+	else vcolnames <- c(indexColumn="vectorIndexColumn",
+						valueColumn="vectorValueColumn")
+	return(new("FLAbstractColumn",
+				columnName=vcolnames))
+}
+
 as.FLAbstractCol.FLMatrix <- function(object,indexCol=FALSE){
 	if(!indexCol)
 		vcolnames <- c(valueColumn="valueColumn")

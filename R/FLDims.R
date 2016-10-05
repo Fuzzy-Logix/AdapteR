@@ -102,7 +102,7 @@ dim<-function(object){
 #' @export
 dim.default <- base::dim
 #' @export
-dim.FLMatrix <- function(object)
+dim.FLIndexedValues <- function(object)
 {
 	 return(object@dims)
 }
@@ -120,11 +120,6 @@ dim.FLTable <- function(object)
 	 return(c(nrow(object),ncol(object)))
 }
 
-#' @export
-dim.FLVector <- function(object)
-{
-	 return(c(nrow(object),ncol(object)))
-}
 
 
 #' @export

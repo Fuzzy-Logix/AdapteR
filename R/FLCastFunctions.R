@@ -50,6 +50,10 @@ as.vector.FLVector <- function(object,mode="any")
     return(x)
 }
 
+as.vector.FLSkalarAggregate <- function(object,mode="any"){
+    do.call(object@func,lapply(object@arguments,as.vector))
+}
+
 #' Converts in-database objects to a data frame in R
 #' 
 #' Caution: data is fetched into R session
