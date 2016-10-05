@@ -217,73 +217,28 @@ setMethod("wt.mean",signature(x="ANY"),
 #' @export
 setGeneric("sd",function(x,na.rm=TRUE)
                 standardGeneric("sd"))
-sd.FLAbstractColumn <- function(x,na.rm=TRUE){
-    return(paste0(" FLStdDev(",
-                paste0(x@columnName,collapse=","),") "))
+FLaggregate <- function(x,na.rm=TRUE,FLfunc){
+    return(paste0(" ",FLfunc,"(", getValueSQLExpression(x),") "))
 }
-setMethod("sd",signature(x="FLVector"),
+setMethod("sd",signature(x="FLIndexedValues"),
     function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=sd.FLAbstractColumn))})
-setMethod("sd",signature(x="FLAbstractColumn"),
-    function(x,na.rm=TRUE){
-        return(sd.FLAbstractColumn(object=x,na.rm=na.rm))})
-setMethod("sd",signature(x="FLMatrix"),
-    function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=sd.FLAbstractColumn))})
-setMethod("sd",signature(x="FLTable"),
-    function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=sd.FLAbstractColumn))})
+        return(genAggregateFunCall(object=x, func=FLaggregate,FLfunc="FLStdDev"))})
 
 ########################## FLSdP ##################################
 #' @export
 setGeneric("FLSdP",function(x,na.rm=TRUE)
                 standardGeneric("FLSdP"))
-FLSdP.FLAbstractColumn <- function(x,na.rm=TRUE){
-    return(paste0(" FLStdDevP(",
-                paste0(x@columnName,collapse=","),") "))
-}
-setMethod("FLSdP",signature(x="FLVector"),
+setMethod("FLSdP",signature(x="FLIndexedValues"),
     function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=FLSdP.FLAbstractColumn))})
-setMethod("FLSdP",signature(x="FLAbstractColumn"),
-    function(x,na.rm=TRUE){
-        return(FLSdP.FLAbstractColumn(object=x,na.rm=na.rm))})
-setMethod("FLSdP",signature(x="FLMatrix"),
-    function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=FLSdP.FLAbstractColumn))})
-setMethod("FLSdP",signature(x="FLTable"),
-    function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=FLSdP.FLAbstractColumn))})
+        return(genAggregateFunCall(object=x,func=FLaggregate,FLfunc="FLStdDevP"))})
 
 ######################## skewness #####################################
 #' @export
 setGeneric("skewness",function(x,na.rm=FALSE)
                 standardGeneric("skewness"))
-skewness.FLAbstractColumn <- function(x,na.rm=TRUE){
-    return(paste0(" FLSkewness(",
-                paste0(x@columnName,collapse=","),") "))
-}
-setMethod("skewness",signature(x="FLVector"),
+setMethod("skewness",signature(x="FLIndexedValues"),
     function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=skewness.FLAbstractColumn))})
-setMethod("skewness",signature(x="FLAbstractColumn"),
-    function(x,na.rm=TRUE){
-        return(skewness.FLAbstractColumn(object=x,na.rm=na.rm))})
-setMethod("skewness",signature(x="FLMatrix"),
-    function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=skewness.FLAbstractColumn))})
-setMethod("skewness",signature(x="FLTable"),
-    function(x,na.rm=TRUE){
-        return(genAggregateFunCall(object=x,
-                                func=skewness.FLAbstractColumn))})
+        return(genAggregateFunCall(object=x, func=FLaggregate,FLfunc="FLSkewness"))})
 setMethod("skewness",signature(x="ANY"),
     function(x,na.rm=TRUE){
         return(moments::skewness(x=x,na.rm=na.rm))})
@@ -292,89 +247,42 @@ setMethod("skewness",signature(x="ANY"),
 #' @export
 setGeneric("kurtosis",function(x,na.rm=FALSE)
                 standardGeneric("kurtosis"))
-kurtosis.FLAbstractColumn <- function(x,na.rm=FALSE){
-    return(paste0(" FLKurtosis(",
-                paste0(x@columnName,collapse=","),") "))
-}
-setMethod("kurtosis",signature(x="FLVector"),
+setMethod("kurtosis",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=kurtosis.FLAbstractColumn))})
-setMethod("kurtosis",signature(x="FLAbstractColumn"),
-    function(x,na.rm=FALSE){
-        return(kurtosis.FLAbstractColumn(object=x,na.rm=na.rm))})
-setMethod("kurtosis",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=kurtosis.FLAbstractColumn))})
-setMethod("kurtosis",signature(x="FLTable"),
-    function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=kurtosis.FLAbstractColumn))})
+        return(genAggregateFunCall(object=x, func=FLaggregate,FLfunc="FLKurtosis"))})
 setMethod("kurtosis",signature(x="ANY"),
     function(x,na.rm=FALSE){
         return(moments::kurtosis(x=x,na.rm=na.rm))})
 
+## gk: refactor sum and prod to a expression object
 ######################### prod ############################################
-prod.FLAbstractColumn <- function(x,na.rm=FALSE){
-    return(paste0(" FLProd(",
-                        paste0(x@columnName,collapse=","),") "))
+mixedAggregate <- function(...,Rfun,FLfun,na.rm=FALSE){
+    vtemp <- lapply(list(...), function(x){
+        if(inherits(x,"FLIndexedValues")){
+            return(genAggregateFunCall(object=x,
+                                       func=FLaggregate,FLfun=FLfun))
+        }
+        else {
+            fn <- strsplit(Rfun, "::")[[1]]
+            myfun <- if (length(fn)==1) fn[[1]] else get(fn[[2]], asNamespace(fn[[1]]))
+            return(do.call(myfun,list(x,na.rm=na.rm)))
+        }
+    })
+    if(length(vtemp)==1)
+        return(vtemp[[1]])
+    else
+        return(new("FLSkalarAggregate",func=Rfun,arguments=vtemp))
 }
 
 #' @export
-prod <- function(...,na.rm=FALSE){
-    #browser()
-    vlist <- list(...)
-    vtemp <- unlist(lapply(vlist,function(x)is.FL(x)))
-    if(!any(vtemp))
-    return(base::prod(...,na.rm=na.rm))
-
-    vprod <- sapply(list(...),function(x){
-                if(is.FLAbstractColumn(x)){
-                    return(prod.FLAbstractColumn(x=x,
-                                    na.rm=na.rm))
-                }
-                else if(is.FL(x)){
-                    return(genAggregateFunCall(object=x,
-                                func=prod.FLAbstractColumn))
-                }
-                else return(base::prod(x))
-            })
-    return(base::prod(vprod,na.rm=na.rm))
-}
-
+prod <- function(...,na.rm=FALSE) mixedAggregate(...,Rfun="base::prod",FLfun="FLProd")
 ####################### sum ###############################################
-sum.FLAbstractColumn <- function(x,na.rm=FALSE,...){
-    return(paste0(" FLSUM(",
-                        paste0(x@columnName,collapse=","),") "))
-}
-
 #' @export
-sum <- function(...,na.rm=FALSE){
-    #browser()
-    vlist <- list(...)
-    vtemp <- unlist(lapply(vlist,function(x)is.FL(x)))
-    if(!any(vtemp))
-    return(base::sum(...,na.rm=na.rm))
-
-    vprod <- sapply(list(...),function(x){
-                if(is.FLAbstractColumn(x)){
-                    return(sum.FLAbstractColumn(x=x,
-                                    na.rm=na.rm))
-                }
-                else if(is.FL(x)){
-                    return(genAggregateFunCall(object=x,
-                                func=sum.FLAbstractColumn))
-                }
-                else return(base::sum(x))
-            })
-    return(base::sum(vprod,na.rm=na.rm))
-}
+sum <- function(...,na.rm=FALSE) mixedAggregate(...,Rfun="base::sum",FLfun="FLSum")
 
 ######################### max #############################################
 max.FLAbstractColumn <- function(x,na.rm=FALSE,...){
-    return(paste0(" FLMax(",
-                        paste0(x@columnName,collapse=","),") "))
+    return(paste0(" FLMax(",getValueSQLExpression(x),") "))
 }
 
 #' @export
@@ -400,8 +308,7 @@ max <- function(...,na.rm=FALSE){
 
 ####################### min ##################################################
 min.FLAbstractColumn <- function(x,na.rm=FALSE){
-    return(paste0(" FLMin(",
-                        paste0(x@columnName,collapse=","),") "))
+    return(paste0(" FLMin(",getValueSQLExpression(x),") "))
 }
 
 #' @export
@@ -484,25 +391,10 @@ setMethod("which.min",signature(x="FLTable"),
 #' @export
 setGeneric("geometric.mean",function(x,na.rm=TRUE)
                 standardGeneric("geometric.mean"))
-geometric.mean.FLAbstractColumn <- function(x,na.rm=FALSE){
-    return(paste0(" FLGeoMean(",
-                paste0(x@columnName,collapse=","),") "))
-}
-setMethod("geometric.mean",signature(x="FLVector"),
+setMethod("geometric.mean",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=geometric.mean.FLAbstractColumn))})
-setMethod("geometric.mean",signature(x="FLAbstractColumn"),
-    function(x,na.rm=FALSE){
-        return(geometric.mean.FLAbstractColumn(x,na.rm=na.rm))})
-setMethod("geometric.mean",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=geometric.mean.FLAbstractColumn))})
-setMethod("geometric.mean",signature(x="FLTable"),
-    function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=geometric.mean.FLAbstractColumn))})
+    return(genAggregateFunCall(object=x,
+                               func=FLaggregate,FLfunc="FLGeoMean"))})
 setMethod("geometric.mean",signature(x="ANY"),
     function(x,na.rm=FALSE){
         if (!requireNamespace("psych", quietly = TRUE)){
@@ -516,25 +408,10 @@ setMethod("geometric.mean",signature(x="ANY"),
 #' @export
 setGeneric("harmonic.mean",function(x,na.rm=TRUE)
                 standardGeneric("harmonic.mean"))
-harmonic.mean.FLAbstractColumn <- function(x,na.rm=FALSE){
-    return(paste0(" FLHarMean(",
-                paste0(x@columnName,collapse=","),") "))
-}
-setMethod("harmonic.mean",signature(x="FLVector"),
+setMethod("harmonic.mean",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
         return(genAggregateFunCall(object=x,
-                                func=harmonic.mean.FLAbstractColumn))})
-setMethod("harmonic.mean",signature(x="FLAbstractColumn"),
-    function(x,na.rm=FALSE){
-        return(harmonic.mean.FLAbstractColumn(x,na.rm=na.rm))})
-setMethod("harmonic.mean",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=harmonic.mean.FLAbstractColumn))})
-setMethod("harmonic.mean",signature(x="FLTable"),
-    function(x,na.rm=FALSE){
-        return(genAggregateFunCall(object=x,
-                                func=harmonic.mean.FLAbstractColumn))})
+                                func=FLaggregate,FLfunc="FLHarMean"))})
 setMethod("harmonic.mean",signature(x="ANY"),
     function(x,na.rm=FALSE){
         if (!requireNamespace("psych", quietly = TRUE)){
@@ -552,11 +429,10 @@ getDescStatsUDT <- function(object,
                             outFLVector=FALSE){
     
     if(is.FLTable(object) && !object@isDeep)
-    object <- wideToDeep(object)[["table"]]
-
+        object <- wideToDeep(object)[["table"]]
     sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
                     " SELECT ",paste0(viewCols,collapse=",")," \n ",
-                    " FROM(",constructSelect(object),") a) \n ",
+                    " FROM(",constructSelect(object,order=FALSE),") a) \n ",
                     " SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                         paste0("a.",outCol," AS ",names(outCol),collapse=",")," \n ",
                     " FROM \n ",
@@ -591,21 +467,13 @@ getDescStatsUDT <- function(object,
 setGeneric("mode",function(x,na.rm=TRUE)
                 standardGeneric("mode"))
 
-setMethod("mode",signature(x="FLVector"),
+setMethod("mode",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
                                 functionName="FLModeUDT",
                                 outCol=c(vectorValueColumn="oMode"),
                                 viewCols=c(pGroupID=1,
-                                        pValue="vectorValueColumn")))})
-
-setMethod("mode",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
-        return(getDescStatsUDT(object=x,
-                                functionName="FLModeUDT",
-                                outCol=c(vectorValueColumn="oMode"),
-                                viewCols=c(pGroupID=1,
-                                    pValue="valueColumn")))})
+                                        pValue=getValueSQLName(x))))})
 
 setMethod("mode",signature(x="FLTable"),
     function(x,na.rm=FALSE){
@@ -628,21 +496,13 @@ setMethod("mode",signature(x="ANY"),
 setGeneric("median",function(x,na.rm=TRUE)
                 standardGeneric("median"))
 
-setMethod("median",signature(x="FLVector"),
+setMethod("median",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
                                 functionName="FLMedianUDT",
                                 outCol=c(vectorValueColumn="oMedian"),
                                 viewCols=c(pGroupID=1,
-                                    pValue="vectorValueColumn")))})
-
-setMethod("median",signature(x="FLMatrix"),
-    function(x,na.rm=FALSE){
-        return(getDescStatsUDT(object=x,
-                                functionName="FLMedianUDT",
-                                outCol=c(vectorValueColumn="oMedian"),
-                                viewCols=c(pGroupID=1,
-                                    pValue="valueColumn")))})
+                                    pValue=getValueSQLName(x))))})
 
 setMethod("median",signature(x="FLTable"),
     function(x,na.rm=FALSE){

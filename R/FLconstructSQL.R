@@ -131,6 +131,60 @@ setClass("FLSimpleVector",
          )
 
 
+setGeneric("getValueSQLName", function(object) {
+    standardGeneric("getValueSQLName")
+})
+setMethod("getValueSQLName",
+          signature(object = "FLMatrix"),
+          function(object) object@dimColumns[[3]])
+setMethod("getValueSQLName",
+          signature(object = "FLVector"),
+          function(object) stop("use FLSimpleVector"))
+setMethod("getValueSQLName",
+          signature(object = "FLSimpleVector"),
+          function(object) object@dimColumns[[2]])
+setMethod("getValueSQLName",
+          signature(object = "FLAbstractColumn"),
+          function(object) object@columnName)
+
+setGeneric("getValueSQLExpression", function(object) {
+    standardGeneric("getValueSQLExpression")
+})
+setMethod("getValueSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object) object@select@variables[[getValueSQLName(object)]])
+setMethod("getValueSQLExpression",
+          signature(object = "FLAbstractColumn"),
+          function(object) object@columnName)
+
+
+
+setGeneric("setValueSQLExpression", function(object, func,...) {
+    standardGeneric("setValueSQLExpression")
+})
+setMethod("setValueSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object,func,...) {
+    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
+    object
+})
+
+
+
+
+setGeneric("getIndexSQLExpressions", function(object) {
+    standardGeneric("getIndexSQLExpressions")
+})
+setMethod("getIndexSQLExpressions",
+          signature(object = "FLMatrix"),
+          function(object) object@dimColumns[1:2])
+setMethod("getIndexSQLExpressions",
+          signature(object = "FLVector"),
+          function(object) stop("use FLSimpleVector"))
+setMethod("getIndexSQLExpressions",
+          signature(object = "FLSimpleVector"),
+          function(object) object@dimColumns[[1]])
+
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
