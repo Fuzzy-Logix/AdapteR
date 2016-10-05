@@ -54,9 +54,9 @@ AS a;")
         res <- list(statistics = c(F = ret$FStat),
                     parameter = c("num df" = ret$DF1,"denom df" = ret$DF2),
                     p.value = ret$P_Value,
-                    conf.int = .95,
-                    estimate = 1,
-                    null.value = NULL,
+                    conf.int = NULL,
+                    estimate = c("ratio of variances"=ret$FStat),
+                    null.value = c("ratio of variances"=1),
                     alternative = alternative,
                     method = "F test to compare two variances",
                     data.name = dname)
