@@ -54,6 +54,7 @@ Suggests:
 License: GPL-2
 LazyData: true
 Collate:
+    'FLconstructSQL.R'
     'platforms.R'
     'FLMatrix.R'
     'FLADTest.R'
@@ -62,6 +63,7 @@ Collate:
     'FLCastFunctions.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'
+    'FLStatFunctions.R'
     'FLCorrel.R'
     'FLTable.R'
     'data_prep.R'
@@ -97,7 +99,6 @@ Collate:
     'FLLogRegrMN.R'
     'FLMatrixArithmetic.R'
     'FLStore.R'
-    'FLconstructSQL.R'
     'FLMatrixBind.R'
     'FLMatrixClasses.R'
     'FLMatrixNorm.R'
@@ -112,7 +113,6 @@ Collate:
     'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
-    'FLStatFunctions.R'
     'FLStringFunctions.R'
     'FLSubsetting.R'
     'FLTableMD.R'
@@ -138,6 +138,8 @@ Collate:
     'survfit.R'
     't.test.R'
     'tcrossprod.R'
+    'univariate.R'
+    'univariateDistributionsCreators.R'
     'wald_wolfowitz.R'
     'wilcox.test.R'
     'z.test.R'
