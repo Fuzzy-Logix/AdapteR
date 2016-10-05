@@ -868,52 +868,6 @@ setMethod("rank",signature(x="FLVector"),
                 ))
         })
 
-# setMethod("rank",signature(x="FLMatrix"),
-#     function(x,na.last=TRUE,
-#             ties.method="average",
-#             rankOrder="A",
-#             ...){
-#         vtemp <- selectRankMethod(rankOrder=rankOrder,
-#                         type=ties.method)
-#         vfunction <- vtemp["vfunction"]
-#         voutcol <- vtemp["voutcol"]
-#         names(vfunction) <- NULL
-#         names(voutcol) <- NULL
-
-#         return(getDescStatsUDTjoin(object=x,
-#                 functionName=vfunction,
-#                 outCol=c(
-#                         vectorValueColumn=voutcol),
-#                 viewCols=c(pGroupID=1,
-#                     pValue="valueColumn",
-#                     pRankOrder=fquote(rankOrder),
-#                     pObsID="ROW_NUMBER()OVER(ORDER BY colIdColumn,rowIdColumn)")
-#                 ))
-#         })
-
-# setMethod("rank",signature(x="FLTable"),
-#     function(x,na.last=TRUE,
-#             ties.method="average",
-#             rankOrder="A",
-#             ...){
-#         vtemp <- selectRankMethod(rankOrder=rankOrder,
-#                         type=ties.method)
-#         vfunction <- vtemp["vfunction"]
-#         voutcol <- vtemp["voutcol"]
-#         names(vfunction) <- NULL
-#         names(voutcol) <- NULL
-        
-#         return(getDescStatsUDTjoin(object=x,
-#                 functionName=vfunction,
-#                 outCol=c(
-#                         vectorValueColumn=voutcol),
-#                 viewCols=c(pGroupID=1,
-#                     pValue="valueColumn",
-#                     pRankOrder=fquote(rankOrder),
-#                     pObsID="ROW_NUMBER()OVER(ORDER BY var_id_colname,obs_id_colname)")
-#                 ))
-#         })
-
 setMethod("rank",signature(x="ANY"),
     function(x,na.last=TRUE,
             ties.method="average",
@@ -943,30 +897,3 @@ setMethod("FLNtile",signature(x="FLVector"),
                     pObsID="vectorIndexColumn")
                 ))
         })
-
-# setMethod("FLNtile",signature(x="FLMatrix"),
-#     function(x,n,...){
-
-#         return(getDescStatsUDTjoin(object=x,
-#                 functionName="FLNtileUDT",
-#                 outCol=c(
-#                         vectorValueColumn="oNTile"),
-#                 viewCols=c(pGroupID=1,
-#                     pValue="valueColumn",
-#                     pRequiredNtile=n,
-#                     pObsID="ROW_NUMBER()OVER(ORDER BY colIdColumn,rowIdColumn)")
-#                 ))
-#         })
-
-# setMethod("FLNtile",signature(x="FLTable"),
-#     function(x,n,...){
-#         return(getDescStatsUDTjoin(object=x,
-#                 functionName="FLNtileUDT",
-#                 outCol=c(
-#                         vectorValueColumn="oNTile"),
-#                 viewCols=c(pGroupID=1,
-#                     pValue="cell_val_colname",
-#                     pRequiredNtile=n,
-#                     pObsID="ROW_NUMBER()OVER(ORDER BY var_id_colname,obs_id_colname)")
-#                 ))
-#         })

@@ -1,5 +1,5 @@
 # Contains the support functions
-#' @include FLMatrix.R
+#' @include platforms.R
 NULL
 
 

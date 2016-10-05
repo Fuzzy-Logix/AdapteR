@@ -17,19 +17,6 @@ setMethod("str",signature(object="FLTable"),
 setMethod("str",signature(object="FLTableQuery"),
           function(object) gsub("[ \n]+"," ",constructSelect(object)))
 
-##' drop a table
-##' 
-##' @param object FLTable object 
-##' @return message if the table is dropped
-##' @export
-drop.FLTable <- function(object)
-{
-    vSqlStr <- paste0(" DROP TABLE ",object@tablename)
-    sqlSendUpdate(getFLConnection(object), vSqlStr)
-    return(paste0(object@select@table_name," DROPPED"))
-}
-
-
 
 setGeneric("getVariables", function(object) {
     standardGeneric("getVariables")
@@ -58,7 +45,6 @@ setMethod("getVariables",
 setMethod("getVariables",
           signature(object = "FLVector"),
           function(object) getVariables(object@select))
-
 
 
 setGeneric("suffixAlias", function(object,suffix,...) {
