@@ -234,8 +234,13 @@ setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")
 })
 
+setMethod("constructSelect", signature(object = "FLSimpleVector"),
+          function(object,...) {
+    return(constructSelect(object@select,...))
+})
+
 setMethod("constructSelect", signature(object = "FLMatrix"),
-          function(object,joinNames=TRUE){
+          function(object,joinNames=TRUE,...){
             if(!"matrix_id" %in% tolower(names(getVariables(object))))
             object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
                                         getVariables(object))
@@ -253,18 +258,18 @@ setMethod("constructSelect", signature(object = "FLMatrix"),
           })
 
 setMethod("constructSelect", signature(object = "FLTableQuery"),
-          function(object) {
+          function(object,...) {
               return(paste0("SELECT ",
                             paste(colnames(object),collapse=", "),
                             " FROM ",tableAndAlias(object),
                             constructWhere(c(constraintsSQL(object))),
-                            paste(object@order,collapse=", "),
+                            constructOrder(orderVars=object@order,...),
                             "\n"))
           })
 
 
 setMethod("constructSelect", signature(object = "FLTable"),
-          function(object) {
+          function(object,...) {
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
             #browser()
@@ -327,7 +332,7 @@ setMethod("constructSelect", signature(object = "FLTable"),
           })
 
 setMethod("constructSelect", signature(object = "FLVector"),
-          function(object,joinNames=TRUE) {
+          function(object,joinNames=TRUE,...) {
             if(class(object@select)=="FLTableFunctionQuery") 
                 return(constructSelect(object@select))
             ## If mapSelect exists join tables
@@ -438,23 +443,15 @@ constructVariables <- function(variables){
 }
 setMethod("constructSelect",
     signature(object = "FLSelectFrom"),
-    function(object) {
+    function(object,...) {
       #browser()
         variables <- getVariables(object)
-        order <- setdiff(object@order,c(NA,""))
-        if(length(order)==0)
-            ordering <- ""
-        else
-            ## ordering <- paste0(" ORDER BY ",paste0(object@obs_id_colname,collapse = ", "))
-            ordering <- paste0("\n ORDER BY ",
-                               paste0(order,
-                                      collapse = ", "))
         return(paste0(
             "SELECT\n",
             constructVariables(variables),
             "\n FROM ",tableAndAlias(object),
             constructWhere(c(constraintsSQL(object))),
-            ordering,
+            constructOrder(orderVars=object@order,...),
             "\n"))
     })
 
@@ -471,7 +468,14 @@ setMethod("constructSelect",
           function(object) return(object))
 
 
-## Phani-- removed \n as it was creating problem in FLCorrel test cases
+constructOrder <- function(orderVars, order=TRUE,...) {
+    orderVars <- setdiff(orderVars,c(NA,""))
+    if(!order | (length(orderVars)==0))
+        return("")
+    paste0("\n ORDER BY ",
+           paste0(orderVars, collapse = ", "))
+}
+
 constructWhere <- function(conditions) {
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)==0)
