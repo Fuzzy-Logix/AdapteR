@@ -2,7 +2,13 @@
 NULL
 
 
-setOldClass("RODBC")
+setClass("FLSkalarAggregate",
+         slots=list(
+             func="character",
+             arguments="list"
+         ))
+
+
 #' Models sparse data objects.
 #' 
 #' Sparse Indexed values objects are table queries with a value column and

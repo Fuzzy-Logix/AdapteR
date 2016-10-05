@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include FLStatFunctions.R
 NULL
 
 #' Correlation.
@@ -244,16 +245,16 @@ var.data.frame <- function(x,y=NULL,...){
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
-var.FLAbstractColumn <- function(object){
-	return(paste0(" FLVar(",
-				paste0(object@columnName,collapse=","),") "))
+var.FLSimpleVector <- function(x,y=NULL,...){
+	if(missing(y)){
+            return(genAggregateFunCall(object=x,fun=FLaggregate,FLfun="FLVar"))
+	}
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
 var.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
-		if(ncol(x)>1 && !x@isDeep)
-		x <- as.FLVector(as.vector(x))
-		return(genAggregateFunCall(x,var.FLAbstractColumn))
+            return(genAggregateFunCall(object=x,fun=Flaggregate,FLfun="FLVar"))
 	}
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
