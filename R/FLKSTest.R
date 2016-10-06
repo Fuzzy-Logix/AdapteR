@@ -42,7 +42,7 @@ setMethod("ks.test",signature(x="FLVector"),
 
           {
               dname <- deparse(substitute(x))
-              
+              ##browser()
               if(!is.FLVector(x))
                   stop("Only take FLVector")
               vviewName <- gen_view_name("kstest1s")
@@ -64,7 +64,7 @@ setMethod("ks.test",signature(x="FLVector"),
              # dname <- as.list(sys.call(sys.parent()))[[2]]
               sqlstr <- paste0("SELECT q.D_STAT AS D,
                                        q.D_PValue AS P_Value
-                               FROM ",ret$OutTable," AS q")
+                               FROM ",ret$ResultTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
               
               if(! class(res_1$P_Value) == "numeric")
@@ -117,7 +117,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
 #              dname <- paste0(vcall[2]," and ",vcall[3])
               sqlstr <- paste0("SELECT q.D_STAT AS D,
                                        q.P_Value AS P_Value
-                               FROM ",ret$OutTable," AS q")
+                               FROM ",ret$ResultTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
 
               if(!class(res_1$P_Value) == "numeric")
