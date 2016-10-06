@@ -256,7 +256,7 @@ FLamendDimnames <- function(flm,map_table) {
         rownames <- vstringdimnames[[1]]
         colnames <- vstringdimnames[[2]]
     if(all(flm@dims==0))
-        flm@dims <- c(length(rownames),length(colnames))
+        flm@dims <- as.integer(c(length(rownames),length(colnames)))
     
     dimnames <- flm@Dimnames <- list(checkNames(rownames),
                                      checkNames(colnames))
@@ -412,7 +412,7 @@ FLMatrix <- function(table_name,
     
     RESULT <- newFLMatrix(
                   select = select,
-                  dims = dims,
+                  dims = as.integer(dims),
                   Dimnames = dimnames,
                   type=type)
     

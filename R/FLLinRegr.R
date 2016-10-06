@@ -1226,7 +1226,7 @@ prepareData.lmGeneric <- function(formula,data,
 							select = tblfunqueryobj,
 							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
-                            dims = c(nrow(object@deeptable),1),
+                            dims = as.integer(c(nrow(object@deeptable),1)),
 							isDeep = FALSE)
 			object@results <- c(object@results,list(y=yvector))
 			assign(parentObject,object,envir=parent.frame())
@@ -1676,7 +1676,7 @@ predict.lmGeneric <- function(object,
 				select = tblfunqueryobj,
 				Dimnames = list(rownames(newdata),
 								"vectorValueColumn"),
-                dims = c(newdata@dims[1],1),
+                dims = as.integer(c(newdata@dims[1],1)),
 				isDeep = FALSE)
 
 	return(flv)

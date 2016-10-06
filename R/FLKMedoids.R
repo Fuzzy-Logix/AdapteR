@@ -892,7 +892,7 @@ silinfo.FLKMedoids <- function(object){
 
 		widthsFLTable <- newFLTable(
                              select = tblfunqueryobj,
-                             dims=c(nrow(object@deeptable), 4),
+                             dims=as.integer(c(nrow(object@deeptable), 4)),
 							Dimnames = list(object@deeptable@Dimnames[[1]],
 											c("obs_id_colname","MedoidID","neighbor","sil_width")),
 							isDeep = FALSE)

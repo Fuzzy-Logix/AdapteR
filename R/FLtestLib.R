@@ -370,7 +370,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   
   flm <- newFLMatrix(
             select = select,
-            dims = c(n,ifelse(isSquare,n,n-1)),
+            dims = as.integer(c(n,ifelse(isSquare,n,n-1))),
             Dimnames = list(NULL,NULL))
 
   return(list(FL=flm,R=as.matrix(flm)))

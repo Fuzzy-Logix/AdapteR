@@ -582,7 +582,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
 
   sqlstr <- paste0(sqlstr,collapse=" UNION ALL ")
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = attr(connection,"name")$name,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
