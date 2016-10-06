@@ -472,7 +472,7 @@ FLanyall <- function(...,na.rm=FALSE,vfunction="all"){
     }
     vlength <- length(vlist)
     getTrueorFalse <- function(x,vfunction){
-    	vrescolumn <- getColumnName(x)
+    	vrescolumn <- getValueSQLName(x)
     	vreqLogic <- ifelse(vfunction=="all",
     						fquote("FALSE"),
     						fquote("TRUE"))
