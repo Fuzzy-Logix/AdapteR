@@ -509,7 +509,7 @@ createTable <- function(pTableName,
     if(!pTemporary & getOption("temporaryTablesFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
-                # stop(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
+                warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
@@ -518,14 +518,15 @@ createTable <- function(pTableName,
     ## gk @ phani: what will this be used for? It never is used actually...
     if("usedbSendUpdate" %in% names(list(...))){
         cat("sending:  ",vsqlstr)
-        return(RJDBC::dbSendUpdate(getFLConnection(),vsqlstr))
+        RJDBC::dbSendUpdate(getFLConnection(),vsqlstr)
+        return(pTableName)
     }
 
     vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
     updateMetaTable(pTableName=pTableName,
                     pType="wideTable",
                     ...)
-    return(vres)
+    return(pTableName)
 }
 
 ## CREATE VIEW
