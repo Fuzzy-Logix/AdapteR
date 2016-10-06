@@ -460,3 +460,14 @@ getTableNameSlot <- function(x){
     return(tryCatch(x@select@table_name,
                     error=function(x)NULL))
 }
+
+## May use FLMod in future.
+## https://app.asana.com/0/98264711960805/148450351472400
+## FLMod related issues
+getMODSQL <- function(pConnection=getFLConnection(),
+                    pColumn1,pColumn2){
+    if(is.TD(pConnection))
+        return(paste0(" ",pColumn1," MOD ",pColumn2," "))
+    else if(is.TDAster(pConnection))
+        return(paste0(" MOD(",pColumn1,",",pColumn2,") "))
+}

@@ -41,37 +41,37 @@ setMethod("store",
 #           function(object,...) store.character(object,returnType,...))
 
 storeVarnameMapping <- function(connection,
-                                tablename,
+                                tablename=getOption("NameMapTableFL"),
                                 matrixId,
                                 dimId,
                                 mynames){
     Ndim <- length(mynames)
     names(mynames) <- 1:Ndim
-    sqlstatements <- paste0(
-        " INSERT INTO ",
-        getOption("NameMapTableFL"),
-        "(TABLENAME, MATRIX_ID, DIM_ID, ",
-        "NAME, NUM_ID",
-        ")",
-        " VALUES (",
-        "'",tablename,"', ",
-        "'",matrixId,"', ",
-        dimId,", ",
-        "'",mynames,"', ",
-        names(mynames),
-        ");")
+    # sqlstatements <- paste0(
+    #     " INSERT INTO ",
+    #     getOption("NameMapTableFL"),
+    #     "(TABLENAME, MATRIX_ID, DIM_ID, ",
+    #     "NAME, NUM_ID",
+    #     ")",
+    #     " VALUES (",
+    #     "'",tablename,"', ",
+    #     "'",matrixId,"', ",
+    #     dimId,", ",
+    #     "'",mynames,"', ",
+    #     names(mynames),
+    #     ");")
 
-    if(class(connection)=="JDBCConnection")
-    {
+    # if(class(connection)=="JDBCConnection")
+    # {
       mdeep <- data.frame(tablename,as.integer(matrixId),as.integer(dimId),
                         as.character(mynames),as.integer(names(mynames)))
       colnames(mdeep) <- c("TABLENAME","MATRIX_ID","DIM_ID","NAME","NUM_ID")
       t <- as.FLTable.data.frame(mdeep,connection,getOption("NameMapTableFL"),2,drop=FALSE)
-    }
-    else
-    retobj<-sqlSendUpdate(connection,
-                          paste(sqlstatements,
-                                collapse="\n"))
+    # }
+    # else
+    # retobj<-sqlSendUpdate(connection,
+    #                       paste(sqlstatements,
+    #                             collapse="\n"))
     return(mynames)
 }
 
@@ -142,9 +142,9 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = object@dimColumns[[1]], 
-            col_id_colname = object@dimColumns[[2]], 
-            cell_val_colname = object@dimColumns[[3]],
+            row_id_colname = object@dimColumns[[2]], 
+            col_id_colname = object@dimColumns[[3]], 
+            cell_val_colname = object@dimColumns[[4]],
             dims=dim(object),
             dimnames=dimnames(object),
             type=typeof(object)

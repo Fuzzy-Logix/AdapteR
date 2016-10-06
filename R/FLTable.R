@@ -57,7 +57,7 @@ FLTable <- function(table,
         cols <- cleanNames(sort(sqlQuery(connection,
                                          paste0("SELECT DISTINCT(",
                                                 var_id_colnames,") as VarID FROM ",tableAndAlias(table),
-                                                " ",constructWhere(whereconditions)))$VarID))
+                                                " ",constructWhere(whereconditions)))[[1]]))
         ncol <- length(cols)
         if(!is.null(list(...)[["ObsID"]]))
           rows <- list(...)[["ObsID"]]
@@ -65,7 +65,7 @@ FLTable <- function(table,
           rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",tableAndAlias(table),
-                          " ",constructWhere(whereconditions)))$VarID)
+                          " ",constructWhere(whereconditions)))[[1]])
           rows <- cleanNames(rows)
           nrow <- length(rows)
         } else {
@@ -73,7 +73,7 @@ FLTable <- function(table,
             nrow <- sqlQuery(connection,
                             paste0("SELECT count(DISTINCT(",obs_id_colname,")) as N
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$N
+                                    " ",constructWhere(whereconditions)))[[1]]
         }
 
 
@@ -109,7 +109,7 @@ FLTable <- function(table,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
-        if(!changeAlias(obs_id_colname,"","") %in% cols)
+        if(!changeAlias(obs_id_colname,"","") %in% cols && !is.TDAster())
           stop(paste0(changeAlias(obs_id_colname,"",""),
                       " not a column in table.Please check case Sensitivity \n "))
         if(!is.null(list(...)[["ObsID"]])){
@@ -121,7 +121,7 @@ FLTable <- function(table,
                             paste0("SELECT DISTINCT(",
                                         obs_id_colname,") as VarID
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$VarID)
+                                    " ",constructWhere(whereconditions)))[[1]])
           rows <- cleanNames(rows)
           nrow <- length(rows)
         } else {
@@ -129,7 +129,7 @@ FLTable <- function(table,
             nrow <- sqlQuery(connection,
                             paste0("SELECT count(DISTINCT ",obs_id_colname,") as N
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$N
+                                    " ",constructWhere(whereconditions)))[[1]]
         }
         cols <- cleanNames(cols)
         
@@ -274,11 +274,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     else{
       if(is.na(as.numeric(name)))
       stop("name should be numeric in deep table \n ")
-      sqlstr <- paste0(" INSERT INTO ",vtablename," \n ",
-                    " SELECT a.vectorIndexColumn, \n ",
+      sqlstr <- paste0(" SELECT a.vectorIndexColumn, \n ",
                             name,
                             ", \n a.vectorValueColumn \n ",
-                    " FROM(",constructSelect(value),") a;")
+                        " FROM(",constructSelect(value),") a;")
+      insertIntotbl(pTableName=vtablename,
+                    pSelect=sqlstr)
+      sqlstr <- NULL
       vcolnames <- c(vcolnames,name)
     }
   }
@@ -515,14 +517,15 @@ setMethod("deepToWide",
             if(mapTable=="" || mapTable=="NULL"){
               if(Analysisid!="")
               {
-                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ",
-                                " INSERT INTO ",usedwidetablename," \n ", 
-                                " SELECT a.Final_VarID, \n  
+                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ")
+                sqlSendUpdate(connection,sqlstr1)
+                sqlstr1<-paste0(" SELECT a.Final_VarID, \n  
                                         a.COLUMN_NAME, \n 
                                         a.FROM_TABLE
                                  FROM fzzlRegrDataPrepMap a 
                                  WHERE a.AnalysisID = '",Analysisid,"';")
-                sqlSendUpdate(connection,sqlstr1)
+                insertIntotbl(pTableName=usedwidetablename,
+                            pSelect=sqlstr1)
                 mapTable<-usedwidetablename
                 mapname<- genRandVarName()
               }

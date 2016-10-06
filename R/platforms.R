@@ -32,9 +32,9 @@ getFLConnectionName <- function(...) attr(getFLConnection(...),"name")
 
 ##' @export
 getFLPlatform <- function(connection=getFLConnection()) return(attr(getFLConnection(),"platform"))
-is.TD         <- function() getFLPlatform()=="TD"
-is.TDAster    <- function() getFLPlatform()=="TDAster"
-is.Hadoop     <- function() getFLPlatform()=="Hadoop"
+is.TD         <- function(Connection=getFLConnection()) getFLPlatform()=="TD"
+is.TDAster    <- function(Connection=getFLConnection()) getFLPlatform()=="TDAster"
+is.Hadoop     <- function(Connection=getFLConnection()) getFLPlatform()=="Hadoop"
 
 ##' @export
 setGeneric("getRConnection", function(object) {

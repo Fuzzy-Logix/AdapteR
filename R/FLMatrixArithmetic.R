@@ -43,55 +43,67 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 		dimnames <- dimnames(pObj1)
         dims <- dim(pObj1)
 
-		if(pOperator %in% c("%%","*","**"))
+		if(pOperator %in% c("*","**"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn,",
-                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn,",
-                               a,".",pObj1@dimColumns[[3]],
-                               ifelse(pOperator=="%%"," MOD ",pOperator)," ",
-                               b,".",pObj2@dimColumns[[3]]," AS valueColumn 
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn,",
+                               a,".",pObj1@dimColumns[[3]]," AS colIdColumn,",
+                               a,".",pObj1@dimColumns[[4]]," ",
+                               pOperator," ",
+                               b,".",pObj2@dimColumns[[4]]," AS valueColumn 
 	            		    FROM ( ",constructSelect(pObj1),") AS ",a,
                             ",( ",constructSelect(pObj2),") AS ",b,
-	            			constructWhere(c(paste0(a,".", pObj1@dimColumns[[1]]," = ", b,".",pObj2@dimColumns[[1]],""),
-                                             paste0( a,".",pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]]," "),
-                                             ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[3]],"<>0")))))
-
+	            			constructWhere(c(paste0(a,".", pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]],""),
+                                             paste0( a,".",pObj1@dimColumns[[3]]," = ", b,".",pObj2@dimColumns[[3]]," "),
+                                             ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[4]],"<>0")))))
+        else if(pOperator %in% c("%%"))
+            sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[3]]," AS colIdColumn, \n ",
+                               getMODSQL(pConnection=getFLConnection(pObj1),
+                                        pColumn1=paste0(a,".",pObj1@dimColumns[[4]]),
+                                        pColumn2=paste0(b,".",pObj2@dimColumns[[4]])),
+                               " AS valueColumn \n ",
+                            " FROM ( ",constructSelect(pObj1),") AS ",a,
+                            ",( ",constructSelect(pObj2),") AS ",b,
+                            constructWhere(c(paste0(a,".", pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]],""),
+                                             paste0( a,".",pObj1@dimColumns[[3]]," = ", b,".",pObj2@dimColumns[[3]]," "),
+                                             paste0(b,".",pObj2@dimColumns[[4]],"<>0"))))
 		else if(pOperator %in% c("/"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
-                               a,".",pObj1@dimColumns[[2]]," AS colIdColumn, \n ",
-                               "CAST(",a,".",pObj1@dimColumns[[3]]," AS FLOAT) ",pOperator," ",
-                               b,".",pObj2@dimColumns[[3]]," AS valueColumn \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[3]]," AS colIdColumn, \n ",
+                               "CAST(",a,".",pObj1@dimColumns[[4]]," AS FLOAT) ",pOperator," ",
+                               b,".",pObj2@dimColumns[[4]]," AS valueColumn \n ",
                                " FROM ( ",constructSelect(pObj1),") AS ",a,
                                ",( ",constructSelect(pObj2),") AS ",b,
-                               constructWhere(c(paste0(a,".", pObj1@dimColumns[[1]]," = ", b,".",pObj2@dimColumns[[1]],""),
-                                                paste0( a,".",pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]]," "),
-                                                ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[3]],"<>0")))))
+                               constructWhere(c(paste0(a,".", pObj1@dimColumns[[2]]," = ", b,".",pObj2@dimColumns[[2]],""),
+                                                paste0( a,".",pObj1@dimColumns[[3]]," = ", b,".",pObj2@dimColumns[[3]]," "),
+                                                ifelse(pOperator=="**","",paste0(b,".",pObj2@dimColumns[[4]],"<>0")))))
 
 		else if(pOperator %in% c("%/%"))
             sqlstr <-   paste0(" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                               a,".",pObj1@dimColumns[[1]]," AS rowIdColumn, \n ",
-                               a,".",pObj1@dimColumns[[2]],"  AS colIdColumn, \n ",
-                               "CASE WHEN ((",a,".",pObj1@dimColumns[[3]],"/",b,".",pObj2@dimColumns[[3]],")<0) ",
-                               " THEN CAST( ",a,".",pObj1@dimColumns[[3]]," / ",
-                               b,".",pObj2@dimColumns[[3]]," AS INT ) - 1 ",
-                               " ELSE CAST( ",a,".",pObj1@dimColumns[[3]]," / ",
-                               b,".",pObj2@dimColumns[[3]]," AS INT ) END AS valueColumn \n ",
+                               a,".",pObj1@dimColumns[[2]]," AS rowIdColumn, \n ",
+                               a,".",pObj1@dimColumns[[3]],"  AS colIdColumn, \n ",
+                               "CASE WHEN ((",a,".",pObj1@dimColumns[[4]],"/",b,".",pObj2@dimColumns[[4]],")<0) ",
+                               " THEN FLTrunc( ",a,".",pObj1@dimColumns[[4]]," / ",
+                               b,".",pObj2@dimColumns[[4]],",0) - 1 ",
+                               " ELSE FLTrunc( ",a,".",pObj1@dimColumns[[4]]," / ",
+                               b,".",pObj2@dimColumns[[4]],",0) END AS valueColumn \n ",
                                " FROM ( ",constructSelect(pObj1),") AS ",a,
                                ",( ",constructSelect(pObj2),") AS ",b,
-                               constructWhere(c(paste0(a,".",pObj1@dimColumns[[1]]," = ",b,".",pObj2@dimColumns[[1]],""),
-                                                paste0(a,".",pObj1@dimColumns[[2]],"  = ", b,".",pObj2@dimColumns[[2]]," "),
-                                                paste0(b,".",pObj2@dimColumns[[3]],"<>0"))))
+                               constructWhere(c(paste0(a,".",pObj1@dimColumns[[2]]," = ",b,".",pObj2@dimColumns[[2]],""),
+                                                paste0(a,".",pObj1@dimColumns[[3]],"  = ", b,".",pObj2@dimColumns[[3]]," "),
+                                                paste0(b,".",pObj2@dimColumns[[4]],"<>0"))))
 
 		else if(pOperator %in% c("%*%"))
 		{
 			sqlstr <-paste0(" SELECT '%insertIDhere%' AS MATRIX_ID,",
-                            a,".",pObj1@dimColumns[[1]]," AS rowIdColumn,",
-                            b,".",pObj2@dimColumns[[2]]," AS colIdColumn,
-									 FLSumProd(",a,".",pObj1@dimColumns[[3]],",",b,".",pObj2@dimColumns[[3]],") AS valueColumn  
+                            a,".",pObj1@dimColumns[[2]]," AS rowIdColumn,",
+                            b,".",pObj2@dimColumns[[3]]," AS colIdColumn,
+									 FLSumProd(",a,".",pObj1@dimColumns[[4]],",",b,".",pObj2@dimColumns[[4]],") AS valueColumn  
 									 FROM (",constructSelect(pObj1),") AS ",a,
                             ",(",constructSelect(pObj2),") AS ",b,
-	                        constructWhere(paste0( a,".",pObj1@dimColumns[[2]],"  = ",b,".",pObj2@dimColumns[[1]],"")),
+	                        constructWhere(paste0( a,".",pObj1@dimColumns[[3]],"  = ",b,".",pObj2@dimColumns[[2]],"")),
 	                        " GROUP BY 1,2,3")
 			dimnames <- list(dimnames(pObj1)[[1]],
                              dimnames(pObj2)[[2]])
@@ -108,15 +120,15 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                              "    "," FLSum(",a,".valueColumn) AS valueColumn \n",
                              " FROM (\n",
                              "       SELECT \n",
-                             "               a.",pObj1@dimColumns[[1]]," AS rowIdColumn,\n",
-                             "               a.",pObj1@dimColumns[[2]]," AS colIdColumn,\n",
-                             "               a.",pObj1@dimColumns[[3]]," AS valueColumn\n",
+                             "               a.",pObj1@dimColumns[[2]]," AS rowIdColumn,\n",
+                             "               a.",pObj1@dimColumns[[3]]," AS colIdColumn,\n",
+                             "               a.",pObj1@dimColumns[[4]]," AS valueColumn\n",
                              "       FROM(",constructSelect(pObj1),") AS a \n",
                              "       UNION ALL \n",
                              "       SELECT \n",
-                             "               b.",pObj2@dimColumns[[1]]," AS rowIdColumn,\n",
-                             "               b.",pObj2@dimColumns[[2]]," AS colIdColumn,\n",
-                             "               b.",pObj2@dimColumns[[3]],"*(",pOperator,"1) AS valueColumn\n",
+                             "               b.",pObj2@dimColumns[[2]]," AS rowIdColumn,\n",
+                             "               b.",pObj2@dimColumns[[3]]," AS colIdColumn,\n",
+                             "               b.",pObj2@dimColumns[[4]],"*(",pOperator,"1) AS valueColumn\n",
                              "       FROM(",constructSelect(pObj2),") AS b\n",
                              "       ) AS ",a,"\n",
 							 " GROUP BY ",a,".rowIdColumn,", a,".colIdColumn ")
@@ -286,25 +298,34 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                                      1:vmaxlen," AS vectorIndexColumn, \n ",
                                      "CASE WHEN (a.",newColnames1,
                                      "/ b.",newColnames2,") < 0 \n ",
-                                     "THEN CAST( a.",newColnames1,
-                                     "/ b.",newColnames2," AS INT ) - 1 \n ",
-                                     "ELSE CAST( a.",newColnames1,
-                                     "/ b.",newColnames2," AS INT ) \n ",
+                                     "THEN FLTrunc( a.",newColnames1,
+                                     "/ b.",newColnames2,",0) - 1 \n ",
+                                     "ELSE FLTrunc( a.",newColnames1,
+                                     "/ b.",newColnames2,",0) \n ",
                                      " END AS vectorValueColumn \n ",
                                      " FROM (",constructSelect(pObj1),") AS a, \n ",
                                      "(",constructSelect(pObj2),") AS b \n ",
                                      collapse=" UNION ALL ")
 
-                else if(pOperator %in% c("+","-","%%","*","**"))
+                else if(pOperator %in% c("+","-","*","**"))
                     sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                      1:vmaxlen," AS vectorIndexColumn, \n ",
                                      "a.",newColnames1,
-                                     ifelse(pOperator=="%%"," MOD ",pOperator),
+                                     " ",pOperator," ",
                                      "b.",newColnames2," AS vectorValueColumn \n ",
                                      " FROM (",constructSelect(pObj1),") AS a, \n ", 
                                      " (",constructSelect(pObj2),") AS b \n ",
                                      collapse=" UNION ALL ")
-
+                else if(pOperator %in% c("%%"))
+                    sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+                                     1:vmaxlen," AS vectorIndexColumn, \n ",
+                                     getMODSQL(pConnection=getFLConnection(pObj1),
+                                        pColumn1=paste0("a.",newColnames1),
+                                        pColumn2=paste0("b.",newColnames2)),
+                                     " AS vectorValueColumn \n ",
+                                     " FROM (",constructSelect(pObj1),") AS a, \n ", 
+                                     " (",constructSelect(pObj2),") AS b \n ",
+                                     collapse=" UNION ALL ")
                 else if(pOperator %in% c("/"))
                     sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                      1:vmaxlen," AS vectorIndexColumn, \n ",
@@ -361,33 +382,65 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                         sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                          vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
                                          "CASE WHEN ((a.vectorValueColumn*b.vectorValueColumn)<0) \n ",
-                                         "THEN CAST(a.vectorValueColumn / b.vectorValueColumn AS INT) -1 \n ",
-                                         "ELSE CAST(a.vectorValueColumn / b.vectorValueColumn AS INT) \n ",
+                                         "THEN FLTrunc(a.vectorValueColumn / b.vectorValueColumn,0) -1 \n ",
+                                         "ELSE FLTrunc(a.vectorValueColumn / b.vectorValueColumn,0) \n ",
                                          "END AS vectorValueColumn \n ",
                                          " FROM (",constructSelect(pObj1),") AS a, \n ",
                                          "(",constructSelect(pObj2),") AS b \n ",
                                          ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
-                                         " WHERE CAST((a.vectorIndexColumn MOD ",
-                                         vminlen,") AS INT) = ",
+                                         " WHERE CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="a.vectorIndexColumn",
+                                                    pColumn2=vminlen),") AS INT) = ",
                                          ## "CAST(FLMOD(b.vectorIndexColumn,",
-                                         "CAST((b.vectorIndexColumn MOD ",
-                                         vminlen,") AS INT)")
+                                         " CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="b.vectorIndexColumn",
+                                                    pColumn2=vminlen),
+                                         ") AS INT) ")
 
-                    else if(pOperator %in% c("+","-","%%","*","**"))
+                    else if(pOperator %in% c("+","-","*","**"))
                         
                         sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                          vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
                                          "a.vectorValueColumn ",
-                                         ifelse(pOperator=="%%"," MOD ",pOperator),
-                                         "b.vectorValueColumn AS vectorValueColumn \n ",
+                                         pOperator,
+                                         " b.vectorValueColumn AS vectorValueColumn \n ",
                                          " FROM (",constructSelect(pObj1),") AS a, \n ",
                                          "(",constructSelect(pObj2),") AS b \n ",
                                          ##" WHERE CAST(FLMOD(a.vectorIndexColumn,",
-                                         " WHERE CAST((a.vectorIndexColumn MOD ",
-                                         vminlen,") AS INT) = ",
-                                         ##"CAST(FLMOD(b.vectorIndexColumn,",
-                                         "CAST((b.vectorIndexColumn MOD ",
-                                         vminlen,") AS INT)")
+                                         " WHERE CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="a.vectorIndexColumn",
+                                                    pColumn2=vminlen),") AS INT) = ",
+                                         ## "CAST(FLMOD(b.vectorIndexColumn,",
+                                         " CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="b.vectorIndexColumn",
+                                                    pColumn2=vminlen),
+                                         ") AS INT) ")
+                    
+                    else if(pOperator %in% c("%%"))
+                        
+                        sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+                                         vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
+                                         getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="a.vectorValueColumn",
+                                                    pColumn2="b.vectorValueColumn"),
+                                         " AS vectorValueColumn \n ",
+                                         " FROM (",constructSelect(pObj1),") AS a, \n ",
+                                         "(",constructSelect(pObj2),") AS b \n ",
+                                         ##" WHERE CAST(FLMOD(a.vectorIndexColumn,",
+                                         " WHERE CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="a.vectorIndexColumn",
+                                                    pColumn2=vminlen),") AS INT) = ",
+                                         ## "CAST(FLMOD(b.vectorIndexColumn,",
+                                         " CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="b.vectorIndexColumn",
+                                                    pColumn2=vminlen),
+                                         ") AS INT) ")
 
                     else if(pOperator %in% c("/"))
                         
@@ -398,11 +451,16 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                                          " FROM (",constructSelect(pObj1),") AS a, \n ",
                                          "(",constructSelect(pObj2),") AS b \n ",
                                          ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
-                                         " WHERE CAST((a.vectorIndexColumn MOD ",
-                                         vminlen,") AS INT) = ",
-                                         ##"CAST(FLMOD(b.vectorIndexColumn,",
-                                         "CAST((b.vectorIndexColumn MOD ",
-                                         vminlen,") AS INT)")
+                                         " WHERE CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="a.vectorIndexColumn",
+                                                    pColumn2=vminlen),") AS INT) = ",
+                                         ## "CAST(FLMOD(b.vectorIndexColumn,",
+                                         " CAST((",
+                                            getMODSQL(pConnection=getFLConnection(pObj1),
+                                                    pColumn1="b.vectorIndexColumn",
+                                                    pColumn2=vminlen),
+                                         ") AS INT) ")
 
                     else if(pOperator %in% vcompvector)
                         sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -415,8 +473,15 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                                          "(",constructSelect(pObj2),") AS b \n ",
                                          ## constructWhere(c(paste0(" FLMOD(a.vectorIndexColumn,",vminlen,
                                          ## ") = FLMOD(b.vectorIndexColumn,",vminlen,")"))))
-                                         constructWhere(c(paste0(" (a.vectorIndexColumn MOD ",vminlen,
-                                                                 ") = (b.vectorIndexColumn MOD ",vminlen,")"))))
+                                         constructWhere(c(paste0(" (",
+                                                        getMODSQL(pConnection=getFLConnection(pObj1),
+                                                                pColumn1="a.vectorIndexColumn",
+                                                                pColumn2=vminlen),
+                                                            ") = (",
+                                                        getMODSQL(pConnection=getFLConnection(pObj1),
+                                                                pColumn1="b.vectorIndexColumn",
+                                                                pColumn2=vminlen),
+                                                            ") "))))
 
                     dimnames <- list(vmaxrownames,"vectorValueColumn")
                 }

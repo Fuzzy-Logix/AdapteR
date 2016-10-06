@@ -257,12 +257,17 @@ prepareData.coxph <- function(formula,data,
 		vtablename <- deepx@select@table_name
 		vtablename1 <- data@select@table_name
 		vobsid <- getVariables(data)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
-						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
-						" -2 AS var_id_colname,","\n               ",
-						vStatus," AS cell_val_colname","\n               ",
-						" FROM ",vtablename1)
-		t <- sqlSendUpdate(getFLConnection(),sqlstr)
+		# sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+		# 				" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+		# 				" -2 AS var_id_colname,","\n               ",
+		# 				vStatus," AS cell_val_colname","\n               ",
+		# 				" FROM ",vtablename1)
+		# t <- sqlSendUpdate(getFLConnection(),sqlstr)
+        t <- insertIntotbl(pTableName=vtablename,
+                           pSelect=paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+                                                    " -2 AS var_id_colname, \n ",
+                                                    vStatus," AS cell_val_colname \n ",
+                                           " FROM ",vtablename1))
 		deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
@@ -429,12 +434,17 @@ predict.FLCoxPH <-function(object,
 
 		vtablename1 <- newdata@select@table_name
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
-						paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
-										vVaridVec," AS var_id_colname, \n ",
-										vCellValVec," AS cell_val_colname \n  ",
-								" FROM ",vfromtbl,collapse=" UNION ALL "))
-		t <- sqlSendUpdate(getFLConnection(),sqlstr)
+		# sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
+		# 				paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
+		# 								vVaridVec," AS var_id_colname, \n ",
+		# 								vCellValVec," AS cell_val_colname \n  ",
+		# 						" FROM ",vfromtbl,collapse=" UNION ALL "))
+		# t <- sqlSendUpdate(getFLConnection(),sqlstr)
+        t <- insertIntotbl(pTableName=vtablename1,
+                            pSelect=paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+                                                      vVaridVec," AS var_id_colname, \n ",
+                                                      vCellValVec," AS cell_val_colname \n  ",
+                                            " FROM ",vfromtbl,collapse=" UNION ALL "))
 		newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 	}
 	vtable <- newdata@select@table_name

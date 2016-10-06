@@ -85,14 +85,24 @@ setClass("FLMatrix",
              type       = "character",
              Dimnames = "ANY"
          ), prototype = prototype(
-             dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
+             dimColumns=c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn"),
              type="double")
          )
 
 
+setClass("FLMatrix.Hadoop", contains = "FLMatrix")
+setClass("FLMatrix.TD", contains = "FLMatrix")
+setClass("FLMatrix.TDAster", contains = "FLMatrix")
+
 newFLMatrix <- function(...) {
-    new(paste0("FLMatrix.",getFLPlatform()),
-        ...)
+  vtemp <- list(...)
+  if(is.TDAster()){
+      vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
+                              "colidcolumn","valuecolumn")
+  }
+  return(do.call("new",
+                c(Class=paste0("FLMatrix.",getFLPlatform()),
+                  vtemp)))
 }
 
 #' An S4 class to represent FLVector
@@ -117,11 +127,6 @@ setClass("FLVector.TDAster", contains = "FLVector")
 newFLVector <- function(...) {
     new(paste0("FLVector.",getFLPlatform()), ...)
 }
-
-
-setClass("FLMatrix.Hadoop", contains = "FLMatrix")
-setClass("FLMatrix.TD", contains = "FLMatrix")
-setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
 #' An S4 class to represent FLVector
 #'
@@ -280,9 +285,6 @@ FLSerial <- function(min,max){
         )
 }
 
-
-
-
 ##' constructs a sql statement returning the
 ##' deep table representation of the object.
 ##' 
@@ -304,17 +306,18 @@ setMethod("constructSelect", signature(object = "FLMatrix"),
             if(!"matrix_id" %in% tolower(names(getVariables(object))))
             object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
                                         getVariables(object))
-
-              if(!FLNamesMappedP(object) | !joinNames)
-                  return(constructSelect(object@select))
-              select <- object@select
-              select@variables <- c(select@variables,
+            if(!is.null(object@dimColumns))
+                names(object@select@variables) <- object@dimColumns
+            if(!FLNamesMappedP(object) | !joinNames)
+                return(constructSelect(object@select))
+            select <- object@select
+            select@variables <- c(select@variables,
                                     object@mapSelect@variables)
-              select@table_name <- c(select@table_name,
+            select@table_name <- c(select@table_name,
                                      object@mapSelect@table_name)
-              select@whereconditions <- c(select@whereconditions,
+            select@whereconditions <- c(select@whereconditions,
                                           object@mapSelect@whereconditions)
-              return(constructSelect(select))
+            return(constructSelect(select))
           })
 
 setMethod("constructSelect", signature(object = "FLTableQuery"),

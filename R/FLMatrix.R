@@ -275,7 +275,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","rnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables[[flm@dimColumns[[1]]]]),
+                      paste0(flm@select@variables[[flm@dimColumns[[2]]]]),
                       "rnmap.NUM_ID"),
                   equalityConstraint("rnmap.DIM_ID","1"))
         }
@@ -288,7 +288,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","cnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables[[flm@dimColumns[[2]]]]),
+                      paste0(flm@select@variables[[flm@dimColumns[[3]]]]),
                       "cnmap.NUM_ID"),
                   equalityConstraint("cnmap.DIM_ID","2"))
         }
