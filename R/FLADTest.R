@@ -35,7 +35,7 @@ setMethod("ad.test",signature(x="FLVector"),
           function(x, mean = NULL, sd = NULL, ...)
 
           {
-              dname <- as.list(sys.call())
+              dname <- deparse(substitute(x))
               vviewName <- gen_view_name("adtest")
               sqlstr <- paste0("SELECT p.vectorValueColumn AS Num_Val
                                 FROM (",constructSelect(x),") AS p")
@@ -56,16 +56,16 @@ setMethod("ad.test",signature(x="FLVector"),
                                        q.P_VALUE AS P_Value
                                FROM ",ret$OutTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
+              result <- list(statistics = c(A = res_1$TStat))
               if(!class(res_1$P_Value) == "numeric"){
-                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))}
-              else
-                  pval <- res_1$P_Value
-              
-              result <- list(statistics = c(A = res_1$TStat),
-                             p.value = pval,
-                             method = "Anderson-Darling normality test"
-                            # data.name = dname                             
-                             )
+                  result$p.value <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
+                  result$alternative <- paste0("Note: rounded p-value ", res_1$P_Value)
+              } else {
+                  result$p.value <- res_1$P_Value
+              }
+              result$method = "Anderson-Darling normality test"
+              result$data.name = dname
+
               class(result) <- "htest"
               dropView(vviewName)
               return(result)
