@@ -94,7 +94,7 @@ coeffList <- coef(lmfit)
 summaryList <- summary(lmfit)
 test_that("Check for dimensions of coefficients and summary for wideTable ",{
          expect_equal(names(coeffList),
-                    paste0("Model",flMDObject@dimnames[[3]]))
+                    paste0("Model",flMDObject@Dimnames[[3]]))
          expect_equal(names(coeffList),
                     names(summaryList))
          vcoeffnames <- all.vars(vformula)
@@ -111,7 +111,7 @@ coeffList <- coef(lmfit)
 summaryList <- summary(lmfit)
 test_that("Check for dimensions of coefficients and summary for DeepTable ",{
          expect_equal(names(coeffList),
-                    paste0("Model",flMDObjectDeep@dimnames[[3]]))
+                    paste0("Model",flMDObjectDeep@Dimnames[[3]]))
          expect_equal(names(coeffList),
                     names(summaryList))
          vlenCoeffs <- colnames(flMDObjectDeep)[[1]]
@@ -138,16 +138,16 @@ test_that("Check for dimensions of x Matrix ",{
                     )
 })
 
-deeptable <- FLTable("FL_DEMO.myLinRegrSmall",
-                    "ObsID","VarID","Num_Val",
-                    whereconditions=c("ObsID>10","ObsID<1001"))
-object <- lm(NULL,deeptable)
 test_that("Check for dimensions of x Matrix ",{
-        expect_equal(nrow(object$x),nrow(deeptable))
-        expect_equal(colnames(object$x),
-                    c("(Intercept)",paste0("var",colnames(deeptable)[c(-1,-2)])))
-        expect_equal(dimnames(object$model),
-                    list(as.character(rownames(deeptable)),
-                        c("varY",paste0("var",colnames(deeptable)[c(-1,-2)]))
-                        ))
+    deeptable <- FLTable("FL_DEMO.myLinRegrSmall",
+                         "ObsID","VarID","Num_Val",
+                         whereconditions=c("ObsID>10","ObsID<1001"))
+    object <- lm(NULL,deeptable)
+    expect_equal(nrow(object$x),nrow(deeptable))
+    expect_equal(colnames(object$x),
+                 c("(Intercept)",paste0("var",colnames(deeptable)[c(-1,-2)])))
+    expect_equal(dimnames(object$model),
+                 list(as.character(rownames(deeptable)),
+                      c("varY",paste0("var",colnames(deeptable)[c(-1,-2)]))
+                      ))
 })

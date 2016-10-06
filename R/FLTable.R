@@ -857,21 +857,21 @@ setMethod("FLRegrDataPrep",
 
             updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
 
-            if(is.FLTable(object))
-              table <- FLTable(deeptablename,
-                               outObsIDCol,
-                               outVarIDCol,
-                               outValueCol,
-                               # ObsID=rownames(object)
-                               fetchIDs=FALSE
-                              )
-            else if(is.FLTableMD(object))
+            if(is.FLTableMD(object))
               table <- FLTableMD(deeptablename,
                                outGroupIDCol,
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
                                group_id=object@Dimnames[[3]]
+                              )
+            else if(is.FLTable(object))
+              table <- FLTable(deeptablename,
+                               outObsIDCol,
+                               outVarIDCol,
+                               outValueCol,
+                               # ObsID=rownames(object)
+                               fetchIDs=FALSE
                               )
             return(list(table=table,
                         AnalysisID=dataprepID))
