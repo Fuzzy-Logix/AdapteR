@@ -67,7 +67,7 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
                select= tblfunqueryobj,
                Dimnames=list(dimnames(object)[[1]][(-1*ExclIdx)],
                              dimnames(object)[[2]][(-1*ExclIdx)]),
-               dims=vdim,
+               dims=as.integer(vdim)
                #dimColumns=c("OutputRowNum","OutputColNum","OutputVal")
                )
 
