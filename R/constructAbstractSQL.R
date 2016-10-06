@@ -416,7 +416,7 @@ createTable <- function(pTableName,
                                      temporaryTable = pTemporary)
 
     if(pDrop)
-        dropTable(pTableName)
+        tryCatch(dropTable(pTableName), error=function(e) warning("not dropping error"))
     vtempKeyword <- c(TD="VOLATILE",
                       Hadoop="TEMPORARY",
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
@@ -509,7 +509,8 @@ createTable <- function(pTableName,
     if(!pTemporary & getOption("temporaryTablesFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
-                warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
+                if(getOption("debugSQL"))
+                   warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
