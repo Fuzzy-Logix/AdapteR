@@ -13,8 +13,7 @@ test_that("Wilcox Signed Rank Test ",{
   expectation = "t",
   check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
-  
+  verbose = FALSE
   )
 }) 
 
@@ -60,7 +59,7 @@ test_that("Wilcoxon Signed-Rank Test ",{
   expectation = "z",
   check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = FALSE
   )
 }) 
 
@@ -82,7 +81,7 @@ test_that("Mann-Whitney Wilcoxon Test ",{
   expectation = "t",
   check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = FALSE
   )
 })
 
@@ -120,7 +119,7 @@ test_that("Mann-Whitney Wilcoxon Test ",{
   expectation = "q",
   check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = F
   )
   }) 
 

@@ -100,7 +100,7 @@ test_that("Mann-Whitney Wilcoxon Test: correct p.value and statistic",{
   expectation = c("p.value", "W"),
   check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = F
   )
   }) 
 
@@ -140,7 +140,7 @@ test_that("Mann-Whitney Wilcoxon Test ",{
   expectation = c("p.value", "W"),
   check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = F
   )
   }) 
 
