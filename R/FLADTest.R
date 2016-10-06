@@ -12,10 +12,8 @@ NULL
 #' set.seed(200)
 #' a <- as.FL(rnorm(100, mean = 5, sd = 3))
 #' res <- ad.test(a)
-#' 
-
-
-
+#'
+#' @export
 setGeneric("ad.test",function(x, ...)
     standardGeneric("ad.test"))
 
@@ -56,7 +54,7 @@ setMethod("ad.test",signature(x="FLVector"),
                                    )
               sqlstr <- paste0("SELECT q.TEST_STAT AS TStat,
                                        q.P_VALUE AS P_Value
-                               FROM ",ret$OutTable," AS q")
+                               FROM ",ret$ResultTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
               if(!class(res_1$P_Value) == "numeric"){
                   pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))}
