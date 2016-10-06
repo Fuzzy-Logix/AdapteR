@@ -138,7 +138,7 @@ setGeneric("qr.Q",function(qr,complete=FALSE,...)
 
 setMethod("qr.Q",signature(qr="list"),
     function(qr,complete=FALSE,...){
-        if(class(qr$qr)=="FLMatrix" &&
+        if(is.FLMatrix(qr$qr) &&
             !is.null(qr$Q))
         return(qr$Q)
         else return(base::qr.Q(qr=qr,
@@ -157,7 +157,7 @@ setGeneric("qr.R",function(qr,complete=FALSE,...)
 
 setMethod("qr.R",signature(qr="list"),
     function(qr,complete=FALSE,...){
-        if(class(qr$qr)=="FLMatrix" &&
+        if(is.FLMatrix(qr$qr) &&
             !is.null(qr$R))
         return(qr$R)
         else return(base::qr.R(qr=qr,
@@ -176,7 +176,7 @@ setGeneric("qr.X",function(qr,complete=FALSE,...)
 #' @export
 setMethod("qr.X",signature(qr="list"),
     function(qr,complete=FALSE){
-        if(class(qr$qr)=="FLMatrix" &&
+        if(is.FLMatrix(qr$qr) &&
             !is.null(qr$X))
         return(qr$X)
         else return(base::qr.X(qr=qr,
@@ -193,7 +193,7 @@ setGeneric("qr.coef",function(qr,y)
   standardGeneric("qr.coef"))
 
 setMethod("qr.coef",signature(qr="list"),
-  function(qr,y){
+          function(qr,y){
     if(!is.FLMatrix(qr$qr))
     return(base::qr.coef(qr=qr,y=y))
 
@@ -233,7 +233,7 @@ setGeneric("qr.fitted",function(qr,y)
   standardGeneric("qr.fitted"))
 
 setMethod("qr.fitted",signature(qr="list"),
-  function(qr,y){
+          function(qr,y){
     if(!is.FLMatrix(qr$qr))
     return(base::qr.fitted(qr=qr,y=y))
 
