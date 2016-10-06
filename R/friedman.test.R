@@ -172,7 +172,7 @@ friedman.test.FLMatrix <- function(y,...){
 #                              WhereClause = list(...)[["whereconditions"]],
 #                              GroupBy = vgrp,
 #                              TableOutput = 1,
-#                              outputParameter = c(ResultTable = 'a')
+#                              outputParameter = c(OutTable = 'a')
 #                             )
 #         ret <- as.character(ret[1,1])
 
@@ -322,7 +322,7 @@ setMethod("friedman.test",
                                          WhereClause = list(...)[["whereconditions"]],
                                          GroupBy = vgrp,
                                          TableOutput = 1,
-                                         outputParameter = c(ResultTable = 'a')
+                                         outputParameter = c(OutTable = 'a')
                                         )
                     ret <- as.character(ret[1,1])
 

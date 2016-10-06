@@ -26,7 +26,7 @@ setMethod("SiegelTukeyTest",signature(c(x="FLVector")),
 							               	WhereClause=NULL,
               								GroupBy="datasetid",
 			               					TableOutput=1,
-						              		outputParameter=c(ResultTable="resTable"))
+						              		outputParameter=c(OutTable="resTable"))
     	query<-paste0("Select * from ",vres[1,1])
     	res<-sqlQuery(connection,query)
       dropView(viewname)

@@ -169,8 +169,8 @@ setMethod("FLStringDist",
 
               flm <- newFLMatrix(
                                select= tblfunqueryobj,
-                               dims=c(length(xsource),
-                                     length(targets)),
+                               dims=as.integer(c(length(xsource),
+                                     length(targets))),
                                Dimnames = list(
                                    names(xsource),
                                    names(targets)))

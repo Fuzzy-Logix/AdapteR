@@ -59,12 +59,12 @@ setMethod("ks.test",signature(x="FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
              # dname <- as.list(sys.call(sys.parent()))[[2]]
               sqlstr <- paste0("SELECT q.D_STAT AS D,
                                        q.D_PValue AS P_Value
-                               FROM ",ret$ResultTable," AS q")
+                               FROM ",ret$OutTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
               
               if(! class(res_1$P_Value) == "numeric")
@@ -111,13 +111,13 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
               vcall <- as.list(sys.call(sys.parent()))
 #              dname <- paste0(vcall[2]," and ",vcall[3])
               sqlstr <- paste0("SELECT q.D_STAT AS D,
                                        q.P_Value AS P_Value
-                               FROM ",ret$ResultTable," AS q")
+                               FROM ",ret$OutTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
 
               if(!class(res_1$P_Value) == "numeric")

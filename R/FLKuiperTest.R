@@ -33,11 +33,11 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                          WhereClause = NULL,
                          GroupBy = NULL,
                          TableOutput = 1,
-                         outputParameter = c(ResultTable = 'a')
+                         outputParameter = c(OutTable = 'a')
                          )
     sqlstr <- paste0("SELECT q.TEST_STAT AS TStat,
                                        q.P_VALUE AS P_Value
-                               FROM ",ret$ResultTable," AS q")
+                               FROM ",ret$OutTable," AS q")
     res_1 <- sqlQuery(connection, sqlstr)
     if(!class(res_1$P_Value) == "numeric")
     {                    pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
