@@ -7,8 +7,9 @@ groupb = rep(0:1,each = 10)
 weight <- c(ctl, trt)
 dataframe = data.frame(weight = weight,groupf =groupf,groupb =groupb)
 rownames(dataframe) <- 1:nrow(dataframe)
-Renv$dataframe <- dataframe
 FLenv = as.FL(Renv)
+Renv$dataframe <- dataframe
+FLenv$dataframe <- as.FLTable(dataframe,temporary=F)
 
 test_that("lm: execution",{
     result = eval_expect_equal({

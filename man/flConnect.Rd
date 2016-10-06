@@ -7,7 +7,7 @@ the FL session tables.}
 \usage{
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
   jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL,
-  driverClass = NULL, verbose = FALSE, ...)
+  driverClass = NULL, temporary = FALSE, verbose = FALSE, ...)
 }
 \arguments{
 \item{host}{}
@@ -28,6 +28,8 @@ Issues can occur unless you provide the fully qualified path.}
 \item{odbcSource}{}
 
 \item{driverClass}{}
+
+\item{temporary}{TRUE if result tables are to be created as volatile tables}
 
 \item{verbose}{print debugging messages}
 

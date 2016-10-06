@@ -210,7 +210,6 @@ expect_flequal <- function(a,b,...){
 #' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
-  #browser()
   if(n>1000000)
   stop("maximum n allowed is 1000000 \n ")
   else if(!isRowVec){
@@ -278,7 +277,7 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                               " SELECT ",vmaxId," AS vectorIdColumn, \n ",
                                         " a.serialval AS vectorIndexColumn, \n ",
                                         #CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                                        "a.RANDVAL AS vectorValueColumn \n ",
+                                        "a.RANDVAL +1 AS vectorValueColumn \n ",
                               " FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a \n ",
                               " WHERE a.serialval <=  ",n)))
 

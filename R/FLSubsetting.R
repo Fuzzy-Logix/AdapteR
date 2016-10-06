@@ -80,6 +80,7 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
+    ##browser()
     vtype <- typeof(object)
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
@@ -137,7 +138,7 @@ NULL
                               newcolnames))
         }
         object@Dimnames = list(newrownames, newcolnames)
-        object@dims[[2]] <- length(newrownames)
+        object@dims[[1]] <- length(newrownames)
         object@dims[[2]] <- length(newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
@@ -146,7 +147,7 @@ NULL
       vrownames <- object@Dimnames[[1]]
       newnames <- NULL
       if(ncol(object)==1 && 
-        (!all(vrownames==(1:nrow(object)))))
+        (!all(vrownames==(1:length(vrownames)))))
       {
         MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",

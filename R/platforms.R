@@ -63,6 +63,7 @@ setMethod("getRConnection",
 ##' @param CHARSET 
 ##' @param odbcSource 
 ##' @param driverClass 
+##' @param temporary TRUE if result tables are to be created as volatile tables
 ##' @param verbose print debugging messages
 ##' @param ... include platform here. Use TD for Teradata.
 ##' platform is mandatory for odbc connection
@@ -93,6 +94,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       jdbc.options="",# "TMODE=TERA,CHARSET=ASCII",
                       odbcSource=NULL,
                       driverClass=NULL,
+                      temporary=FALSE,
                       verbose=FALSE,
                       ...){
 
@@ -193,7 +195,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
-    FLStartSession(connection=connection,database=database,...)
+    FLStartSession(connection=connection,database=database,temporary = temporary,...)
     return(connection)
 }
 
@@ -205,13 +207,13 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
 #' NameMapTableFL, ResultSparseMatrixTableFL
 #' @param connection ODBC/JDBC connection object
 #' @param database name of current database
-#' @param temporaryTables TRUE if result tables are to be created as volatile tables
+#' @param temporary TRUE if result tables are to be created as volatile tables
 #' @param drop logical to specify to drop result tables if already existing
 #' @param tableoptions options used to create result tables
 #' @export
 FLStartSession <- function(connection,
                            database=getOption("ResultDatabaseFL"),
-                           temporaryTables=TRUE,
+                           temporary=TRUE,
                            drop=FALSE,
                            debug=FALSE,
                            tableoptions=NULL,
@@ -267,7 +269,7 @@ FLStartSession <- function(connection,
             vtype <- "VARCHAR(100)"
             else vtype <- "FLOAT"
             genCreateResulttbl(tablename=vtable,
-                                temporaryTable=temporaryTables,
+                                temporaryTable=temporary,
                                 tableoptions=tableoptions,
                                 vclass=vclass,
                                 type=vtype,
@@ -284,7 +286,7 @@ FLStartSession <- function(connection,
                 pTableOptions=tableoptions,
                 pPrimaryKey=c("TABLENAME","MATRIX_ID",
                             "DIM_ID","NAME"),
-                pTemporary=temporaryTables,
+                pTemporary=temporary,
                 pDrop=drop)
 
     ## Create system table for TablesMetadataInfo
