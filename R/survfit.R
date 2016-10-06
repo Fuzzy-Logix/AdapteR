@@ -119,7 +119,7 @@ survfit.formula <- function(formula, data, weights,
             vFLtbl <- newFLTable(
                           select=vselect,
                           Dimnames=list(ObsID,VarID),
-                          dims=c(length(ObsID),length(VarID)),
+                          dims=as.integer(c(length(ObsID),length(VarID))),
                           type="double",
                           isDeep=FALSE)
             return(vFLtbl[,colName])

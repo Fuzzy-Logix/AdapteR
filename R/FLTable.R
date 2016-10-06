@@ -100,7 +100,7 @@ FLTable <- function(table,
         newFLTable(
             select = select,
             Dimnames = list(rows,cols),
-            dims = c(nrow,ncol),
+            dims = as.integer(c(nrow,ncol)),
             isDeep = TRUE,
             type=type)
 	}
@@ -154,7 +154,7 @@ FLTable <- function(table,
         T <- newFLTable( 
                  select = select,
                  Dimnames = mydimnames,
-                 dims = c(nrow,ncol),
+                 dims = as.integer(c(nrow,ncol)),
                  isDeep = FALSE,
                  type=type)
 	}

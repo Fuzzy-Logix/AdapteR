@@ -279,7 +279,7 @@ getXMatrix <- function(object,
 
   modelframe <- newFLMatrix(
                   select=vselect,
-                  dims=c(nrow(modelframe),length(vcolnames)),
+                  dims=as.integer(c(nrow(modelframe),length(vcolnames))),
                   Dimnames=list(NULL,vcolnames))
   #dimnames(modelframe) <- vdimnames
 

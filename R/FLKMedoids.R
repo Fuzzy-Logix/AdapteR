@@ -476,8 +476,8 @@ medoids.FLKMedoids<-function(object)
 
 		  	medoidsmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dims=c(object@centers,
-					            	length(object@deeptable@Dimnames[[2]])),
+					            dims=as.integer(c(object@centers,
+                                                                      length(object@deeptable@Dimnames[[2]]))),
 					            Dimnames=list(1:object@centers,
 					            			object@deeptable@Dimnames[[2]]))
 		}
@@ -1049,8 +1049,8 @@ diss.FLKMedoids<-function(object)
 
 		  	dissmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dims=c(length(object@deeptable@Dimnames[[1]]),
-					            	length(object@deeptable@Dimnames[[1]])),
+					            dims=as.integer(c(length(object@deeptable@Dimnames[[1]]),
+					            	length(object@deeptable@Dimnames[[1]]))),
 					            Dimnames=list(object@deeptable@Dimnames[[1]],
 					            			object@deeptable@Dimnames[[1]]))
 

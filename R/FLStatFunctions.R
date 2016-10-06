@@ -41,7 +41,7 @@ FLStatsDist <- function(x,method="euclidean",
                         SQLquery=sqlstr)
         flm <- newFLMatrix(
                            select= tblfunqueryobj,
-                           dims=c(x@dims[1],x@dims[1]),
+                           dims=as.integer(c(x@dims[1],x@dims[1])),
                            Dimnames=list(rownames(x),rownames(x)))
 
         return(ensureQuerySize(pResult=flm,

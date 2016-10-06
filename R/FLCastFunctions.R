@@ -608,7 +608,7 @@ as.FLMatrix.FLVector <- function(object,sparse=TRUE,
 
   flm <- newFLMatrix(
               select= tblfunqueryobj,
-              dims = c(rows,cols),
+              dims = as.integer(c(rows,cols)),
               Dimnames=list(1:rows,1:cols),
               type=typeof(object))
   return(flm)
