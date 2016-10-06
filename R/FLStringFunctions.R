@@ -641,9 +641,9 @@ setMethod("stringdistmatrix",
 ## move to file stringdist.R
 FLStringDistFunctionsClassCheck <- function(a,b)
 {
-  if(!(class(a)=="FLVector" || is.character(a)))
-  stop(" a should be FLVector or character ")
-  if(!(class(b)=="FLVector" || is.character(b)))
+  if(!(is.FLVector(a) || is.character(a)))
+      stop(" a should be FLVector or character ")
+  if(!(is.FLVector(b) || is.character(b)))
   stop(" a should be FLVector or character ")
 }
 
