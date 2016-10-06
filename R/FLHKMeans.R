@@ -381,11 +381,11 @@ centers.FLHKMeans<-function(object)
                         SQLquery=sqlstr)
 
 	  	centersmatrix <- newFLMatrix(
-				            select= tblfunqueryobj,
-				            dims=as.integer(c(object@centers),
-				            	length(vColnames)),
-				            Dimnames=list(1:object@centers,
-				            			vColnames))
+                    select= tblfunqueryobj,
+                    dims=as.integer(c(object@centers,
+                                      length(vColnames))),
+                    Dimnames=list(1:object@centers,
+                                  vColnames))
 
 	  	centersmatrix <- tryCatch(as.matrix(centersmatrix),
       						error=function(e){centersmatrix})
