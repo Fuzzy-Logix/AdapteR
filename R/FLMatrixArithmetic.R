@@ -165,7 +165,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                    select= tblfunqueryobj,
                    dims=dims,
                    Dimnames=dimnames,
-                   dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
+                   dimColumns=c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn"),
                    type=vtype)
 
 		return(ensureQuerySize(pResult=flm,

@@ -159,7 +159,7 @@ restrictFLMatrix <-
         if(is.FLTableFunctionQuery(object@select))
           object <- store(object)
         ## if there is a mapping table, use indices instead of dimnames
-        vars <- object@select@variables[object@dimColumns]
+        vars <- object@select@variables[getIndexSQLName(object)]
         for(i in 1:2)
             if(conditionDims[[i]])
                 whereconditions <-
@@ -275,7 +275,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","rnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables[[flm@dimColumns[[2]]]]),
+                      paste0(flm@select@variables[[getIndexSQLName(flm,1)]]),
                       "rnmap.NUM_ID"),
                   equalityConstraint("rnmap.DIM_ID","1"))
         }
@@ -288,7 +288,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","cnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables[[flm@dimColumns[[3]]]]),
+                      paste0(flm@select@variables[[getIndexSQLName(flm,2)]]),
                       "cnmap.NUM_ID"),
                   equalityConstraint("cnmap.DIM_ID","2"))
         }

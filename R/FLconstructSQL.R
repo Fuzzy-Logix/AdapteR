@@ -147,10 +147,10 @@ setGeneric("getValueSQLName", function(object) {
 })
 setMethod("getValueSQLName",
           signature(object = "FLMatrix"),
-          function(object) object@dimColumns[[3]])
+          function(object) object@dimColumns[[4]])
 setMethod("getValueSQLName",
           signature(object = "FLVector"),
-          function(object) stop("use FLSimpleVector"))
+          function(object) "vectorValueColumn") ## gk @ phani -- is that currently really constant??
 setMethod("getValueSQLName",
           signature(object = "FLSimpleVector"),
           function(object) object@dimColumns[[2]])
@@ -181,20 +181,42 @@ setMethod("setValueSQLExpression",
 })
 
 
-
-
-setGeneric("getIndexSQLExpressions", function(object) {
-    standardGeneric("getIndexSQLExpressions")
+setGeneric("getIndexSQLExpression", function(object,margin=1) {
+    standardGeneric("getIndexSQLExpression")
 })
-setMethod("getIndexSQLExpressions",
+setMethod("getIndexSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object,margin=1)
+              object@select@variables[[getIndexSQLExpressions(object=object,margin=margin)]])
+setMethod("getIndexSQLExpression",
+          signature(object = "FLAbstractColumn"),
+          function(object,margin=1) object@columnName)
+
+setGeneric("getIndexSQLName", function(object,margin) {
+    standardGeneric("getIndexSQLName")
+})
+setMethod("getIndexSQLName",
           signature(object = "FLMatrix"),
-          function(object) object@dimColumns[1:2])
-setMethod("getIndexSQLExpressions",
+          function(object,margin=1:2) object@dimColumns[2:3][margin])
+setMethod("getIndexSQLName",
           signature(object = "FLVector"),
-          function(object) stop("use FLSimpleVector"))
-setMethod("getIndexSQLExpressions",
+          function(object,margin=1) stop("use FLSimpleVector"))
+setMethod("getIndexSQLName",
           signature(object = "FLSimpleVector"),
-          function(object) object@dimColumns[[1]])
+          function(object,margin=1) object@dimColumns[[1]])
+
+
+setGeneric("setValueSQLExpression", function(object, func,...) {
+    standardGeneric("setValueSQLExpression")
+})
+setMethod("setValueSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object,func,...) {
+    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
+    object
+})
+
+
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
