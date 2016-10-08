@@ -886,7 +886,7 @@ FLSampleData <- function(pTableName,
                                                 "Train"),
                          pTestTableName=paste0(pTableName,
                                               "Test"),
-                         pTemporary=getOption("temporaryTablesFL"),
+                         pTemporary=getOption("temporaryFL"),
                          pDrop=TRUE
                          ){
 

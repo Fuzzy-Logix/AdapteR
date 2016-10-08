@@ -237,7 +237,7 @@ FLStartSession <- function(connection,
     # }
     #browser()
     options(InteractiveFL             = TRUE)
-    options(temporaryTablesFL         = temporaryTables)
+    options(temporaryFL               = temporary)
     options(ResultVectorTableFL       = gen_table_name("tblVectorResult"))
     options(ResultMatrixTableFL       = gen_table_name("tblMatrixMultiResult"))
     options(ResultSparseMatrixTableFL = gen_table_name("tblMatrixMultiSparseResult"))

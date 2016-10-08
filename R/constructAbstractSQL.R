@@ -364,7 +364,7 @@ setCurrentDatabase <- function(pDBName){
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName,
-                               temporaryTable=getOption("temporaryTablesFL")) {
+                               temporaryTable=getOption("temporaryFL")) {
     if(is.null(databaseName) 
         || temporaryTable 
         || databaseName==getOption("ResultDatabaseFL"))
@@ -401,7 +401,7 @@ createTable <- function(pTableName,
                         pPrimaryKey=pColNames[1],
                         pFromTableName=NULL,
                         pWithData=TRUE,
-                        pTemporary=getOption("temporaryTablesFL"),
+                        pTemporary=getOption("temporaryFL"),
                         pDrop=FALSE,
                         pDatabase=getOption("ResultDatabaseFL"),
                         pSelect=NULL,
@@ -506,7 +506,7 @@ createTable <- function(pTableName,
         }
     }
     vsqlstr <- paste0(vsqlstr,";")
-    if(!pTemporary & getOption("temporaryTablesFL")){
+    if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
                 if(getOption("debugSQL"))
