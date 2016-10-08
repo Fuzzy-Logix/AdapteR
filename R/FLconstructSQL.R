@@ -289,9 +289,20 @@ setClass("FLTableMD",
              Dimnames = "list",
              dims = "numeric",
              isDeep = "logical",
-             mapSelect = "FLSelectFrom"
+             mapSelect = "FLSelectFrom",
+             type       = "character"
          )
          )
+
+setClass("FLTableMD.Hadoop", contains = "FLTableMD")
+setClass("FLTableMD.TD", contains = "FLTableMD")
+setClass("FLTableMD.TDAster", contains = "FLTableMD")
+
+newFLTableMD <- function(...) {
+    new(paste0("FLTableMD.",getFLPlatform()),
+        ...)
+}
+
 
 #' computes the length of FLVector object.
 #' @param obj is a FLVector object.

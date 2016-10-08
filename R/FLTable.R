@@ -43,15 +43,6 @@ FLTable <- function(table,
                                    c(getTablename(table),
                                      oldalias))
     names(table) <- "flt"
-
-    cleanNames <- function(x){
-        ##change factors to strings
-        if(is.factor(x) || class(x)=="Date")
-            x <- as.character(x)
-        if(is.character(x))
-            x <- gsub("^ +| +$","",x)
-        x
-    }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- cleanNames(sort(sqlQuery(connection,

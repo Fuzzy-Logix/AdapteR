@@ -6,6 +6,15 @@ NULL
 setOldClass("RODBC")
 
 
+cleanNames <- function(x){
+    ##change factors to strings
+    if(is.factor(x) || class(x)=="Date")
+        x <- as.character(x)
+    if(is.character(x))
+        x <- gsub("^ +| +$","",x)
+    x
+}
+
 sqlError <- function(e){
     warning(e)
     sys.call()
