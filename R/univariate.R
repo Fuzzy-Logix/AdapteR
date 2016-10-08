@@ -12,8 +12,9 @@ setMethod('rbinom', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rbinom'
   n@select@variables[[1]] <- paste0('FLSimBinomial(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     prob,',',size,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -28,8 +29,9 @@ setMethod('rbeta', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rbeta'
   n@select@variables[[1]] <- paste0('FLSimBeta(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     0,',',0,',',shap1,',',shape2,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -41,8 +43,9 @@ setMethod('rbradford', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rbradford'
   n@select@variables[[1]] <- paste0('FLSimBradford(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowbd,',',uppbd,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -57,8 +60,9 @@ setMethod('rburr', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rburr'
   n@select@variables[[1]] <- paste0('FLSimBurr(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowbd=0,',',scale,',',shape1,',',shape2,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -73,8 +77,9 @@ setMethod('rcauchy', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rcauchy'
   n@select@variables[[1]] <- paste0('FLSimCauchy(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',', scale,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -86,8 +91,9 @@ setMethod('rchi', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rchi'
   n@select@variables[[1]] <- paste0('FLSimChi(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowBD,',',scale,',',df,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -102,8 +108,9 @@ setMethod('rchisq', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rchisq'
   n@select@variables[[1]] <- paste0('FLSimChiSq(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     df,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -115,8 +122,9 @@ setMethod('rcosine', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rcosine'
   n@select@variables[[1]] <- paste0('FLSimCosine(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',scale,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -128,8 +136,9 @@ setMethod('rdoublegamma', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rdoublegamma'
   n@select@variables[[1]] <- paste0('FLSimDoubleGamma(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -141,8 +150,9 @@ setMethod('rdoubleweibull', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rdoubleweibull'
   n@select@variables[[1]] <- paste0('FLSimDoubleWeibull(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -154,8 +164,9 @@ setMethod('rerlang', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rerlang'
   n@select@variables[[1]] <- paste0('FLSimErlang(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowBD,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -170,8 +181,9 @@ setMethod('rexp', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rexp'
   n@select@variables[[1]] <- paste0('FLSimExp(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     0,',',rate,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -183,8 +195,9 @@ setMethod('rextremeLB', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rextremeLB'
   n@select@variables[[1]] <- paste0('FLSimExtremeLB(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowBD,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -196,8 +209,9 @@ setMethod('rfisk', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rfisk'
   n@select@variables[[1]] <- paste0('FLSimFisk(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowBD,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -209,8 +223,9 @@ setMethod('rfoldnormal', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rfoldnormal'
   n@select@variables[[1]] <- paste0('FLSimFoldedNormal(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     mean,',',sd,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -225,8 +240,9 @@ setMethod('rgamma', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rgamma'
   n@select@variables[[1]] <- paste0('FLSimGamma(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     0,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -241,8 +257,9 @@ setMethod('rglogis', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rglogis'
   n@select@variables[[1]] <- paste0('FLSimGenLogistic(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -257,8 +274,9 @@ setMethod('rgeom', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rgeom'
   n@select@variables[[1]] <- paste0('FLSimGeometric(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     prob,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -273,8 +291,9 @@ setMethod('rgumbel', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rgumbel'
   n@select@variables[[1]] <- paste0('FLSimGumbel(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     mu,',',sigma,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -286,8 +305,9 @@ setMethod('rHyperbolicSecant', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rHyperbolicSecant'
   n@select@variables[[1]] <- paste0('FLSimHypSecant(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',scale,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -302,8 +322,9 @@ setMethod('rinvgamma', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rinvgamma'
   n@select@variables[[1]] <- paste0('FLSimInvGamma(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     beta,',',alpha,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -315,8 +336,9 @@ setMethod('rInvNorm', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rInvNorm'
   n@select@variables[[1]] <- paste0('FLSimInvNormal(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     mu,',',lambda,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -331,8 +353,9 @@ setMethod('rlaplace', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rlaplace'
   n@select@variables[[1]] <- paste0('FLSimLaplace(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     mu,',',sigma,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -347,8 +370,9 @@ setMethod('rlgser', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rlgser'
   n@select@variables[[1]] <- paste0('FLSimLaplace(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     theta,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -363,8 +387,9 @@ setMethod('rlogis', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rlogis'
   n@select@variables[[1]] <- paste0('FLSimLogistic(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',scale,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -379,8 +404,9 @@ setMethod('rlnorm', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rlnorm'
   n@select@variables[[1]] <- paste0('FLSimLogNormal(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     meanlog,',',sdlog,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -395,8 +421,9 @@ setMethod('rmaxwell', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rmaxwell'
   n@select@variables[[1]] <- paste0('FLSimMaxwell(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     a,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -411,8 +438,9 @@ setMethod('rnbinom', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rnbinom'
   n@select@variables[[1]] <- paste0('FLSimNegBinomial(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     prob,',',size,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -427,8 +455,9 @@ setMethod('rnorm', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rnorm'
   n@select@variables[[1]] <- paste0('FLSimNormal(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     mean,',',sd,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -443,8 +472,9 @@ setMethod('rpareto', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rpareto'
   n@select@variables[[1]] <- paste0('FLSimPareto(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     b,',',a,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -459,8 +489,9 @@ setMethod('rpois', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rpois'
   n@select@variables[[1]] <- paste0('FLSimPoisson(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lambda,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -475,8 +506,9 @@ setMethod('rplcon', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rplcon'
   n@select@variables[[1]] <- paste0('FLSimPower(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     alpha) ##??,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -491,8 +523,9 @@ setMethod('rrayleigh', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rrayleigh'
   n@select@variables[[1]] <- paste0('FLSimRayleigh(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     sigma,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -504,8 +537,9 @@ setMethod('rreciprocal', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rreciprocal'
   n@select@variables[[1]] <- paste0('FLSimReciprocal(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     lowbd,',',upbd,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -517,8 +551,9 @@ setMethod('rsemicircular', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rsemicircular'
   n@select@variables[[1]] <- paste0('FLSimSemicircular(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location,',',radius,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -533,8 +568,9 @@ setMethod('rt', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rt'
   n@select@variables[[1]] <- paste0('FLSimStudentsT(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     0,',',1,',',df,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -549,8 +585,9 @@ setMethod('rtrbeta', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rtrbeta'
   n@select@variables[[1]] <- paste0('FLSimTransBeta(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     scale,',',shape1,',',shape2,',',shape3,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -565,8 +602,9 @@ setMethod('rtriang', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rtriang'
   n@select@variables[[1]] <- paste0('FLSimTriangular(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     a,',',b,',',c,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -581,8 +619,9 @@ setMethod('runif', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_runif'
   n@select@variables[[1]] <- paste0('FLSimUniform(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     min,',',max,')')
+  n@type <- 'numeric'
   n
 })
 
@@ -597,8 +636,9 @@ setMethod('rweibull', signature(n='FLSimpleVector'),
 {
   names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_rweibull'
   n@select@variables[[1]] <- paste0('FLSimWeibull(',
-                                    n@select@variables[[1]],',',
+                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',
                                     location=0,',',scale,',',shape,')')
+  n@type <- 'numeric'
   n
 })
 
