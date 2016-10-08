@@ -257,7 +257,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
                                   pValue=value)
         }
     }
-    if(!is.FLVector(value))
+    if(!is.FLVector(value) & !inherits(value,"FLSimpleVector"))
         value <- as.FLVector(value)
     sqlstr <- paste0("UPDATE ",vtablename," \n ",
                     " FROM(",constructSelect(value),") a \n ",
