@@ -16,8 +16,8 @@ setClass("FLSkalarAggregate",
 #'
 #' The name of the values column
 setClass("FLIndexedValues", slots=list(
-                                dims = "integer"
-                       ## dimColumns = "character" gk: todo: this needs some refactoring for FLVector
+                                dims = "integer",
+                                dimColumns = "character" ## gk: todo: this needs some refactoring for FLVector
                        ))
 
 setClass("FLAbstractColumn",
@@ -81,7 +81,7 @@ setClass("FLMatrix",
          slots = list(
              select = "FLTableQuery",
              mapSelect  = "FLSelectFrom",
-             dimColumns = "character",
+             ##dimColumns = "character",
              type       = "character",
              Dimnames = "ANY"
          ), prototype = prototype(
@@ -135,11 +135,32 @@ setClass("FLSimpleVector",
          contains="FLIndexedValues",
          slots = list(
              select = "FLTableQuery",
-             dimColumns = "character",
-             names = "ANY",
+             ##dimColumns = "character",
+             ## names = "ANY",
              type       = "character"
          ),prototype = prototype(type="double")
          )
+
+
+#' An S4 class to represent FLTable, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @method names FLTable
+#' @param object retrieves the column names of FLTable object
+#' @export
+setClass("FLSimpleWideTable",
+         contains="FLIndexedValues",
+         slots = list(
+             select = "FLTableQuery",
+             ##dimColumns = "character",
+             Dimnames = "list",
+             dims = "integer",
+             ##mapSelect = "FLSelectFrom",
+             type       = "character"
+         ))
+
 
 
 setGeneric("getValueSQLName", function(object) {
@@ -186,8 +207,12 @@ setGeneric("getIndexSQLExpression", function(object,margin=1) {
 })
 setMethod("getIndexSQLExpression",
           signature(object = "FLIndexedValues"),
-          function(object,margin=1)
-              object@select@variables[[getIndexSQLExpressions(object=object,margin=margin)]])
+          function(object,margin=1){
+    nam <- getIndexSQLName(object=object,margin=margin)
+    expr <- object@select@variables[[nam]]
+    if(is.null(expr)) return(nam)
+    expr
+})
 setMethod("getIndexSQLExpression",
           signature(object = "FLAbstractColumn"),
           function(object,margin=1) object@columnName)
@@ -202,8 +227,8 @@ setMethod("getIndexSQLName",
           signature(object = "FLVector"),
           function(object,margin=1) stop("use FLSimpleVector"))
 setMethod("getIndexSQLName",
-          signature(object = "FLSimpleVector"),
-          function(object,margin=1) object@dimColumns[[1]])
+          signature(object = "FLIndexedValues"),
+          function(object,margin=1) object@dimColumns[[margin]])
 
 
 setGeneric("setValueSQLExpression", function(object, func,...) {
@@ -301,7 +326,7 @@ FLSerial <- function(min,max){
                    whereconditions=c(paste("serialVal>=",min),paste("serialVal<=",max)),
                    order="serialVal"),
         dimColumns = c("serialVal","serialVal"),
-        names=NULL,
+        ##names=NULL,
         dims    = as.integer(max-min+1),
         type       = "integer"
         )
@@ -319,6 +344,11 @@ setGeneric("constructSelect", function(object,...) {
 })
 
 setMethod("constructSelect", signature(object = "FLSimpleVector"),
+          function(object,...) {
+    return(constructSelect(object@select,...))
+})
+
+setMethod("constructSelect", signature(object = "FLSimpleWideTable"),
           function(object,...) {
     return(constructSelect(object@select,...))
 })
