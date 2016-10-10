@@ -33,17 +33,15 @@ setMethod("getVariables",
               names(variables) <- gsub("\\*","",names(variables))
               return(variables)
           })
-setMethod("getVariables",
-          signature(object = "FLMatrix"),
+setMethod("getVariables", signature(object = "FLMatrix"),
           function(object) getVariables(object@select))
-setMethod("getVariables",
-          signature(object = "FLTable"),
+setMethod("getVariables", signature(object = "FLTable"),
           function(object) getVariables(object@select))
-setMethod("getVariables",
-          signature(object = "FLTableMD"),
+setMethod("getVariables", signature(object = "FLSimpleWideTable"),
           function(object) getVariables(object@select))
-setMethod("getVariables",
-          signature(object = "FLVector"),
+setMethod("getVariables", signature(object = "FLTableMD"),
+          function(object) getVariables(object@select))
+setMethod("getVariables", signature(object = "FLVector"),
           function(object) getVariables(object@select))
 
 
@@ -455,6 +453,10 @@ setMethod("constraintsSQL", signature(object = "FLMatrix"),
               return(constraintsSQL(object@select))
           })
 setMethod("constraintsSQL", signature(object = "FLTable"),
+          function(object) {
+              return(constraintsSQL(object@select))
+          })
+setMethod("constraintsSQL", signature(object = "FLSimpleWideTable"),
           function(object) {
               return(constraintsSQL(object@select))
           })

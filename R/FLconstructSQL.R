@@ -331,10 +331,10 @@ as.vector.FLSimpleVector <- function(object,mode="any")
 FLSerial <- function(min,max){
     new("FLSimpleVector",
         select=new("FLSelectFrom",
-                   table_name="fzzlSerial",
+                   table_name=c(fzzlSerial="fzzlSerial"),
                    connectionName=getFLConnectionName(),
-                   variables=list(serialVal="serialVal"),
-                   whereconditions=c(paste("serialVal>=",min),paste("serialVal<=",max)),
+                   variables=list(serialVal="fzzlSerial.serialVal"),
+                   whereconditions=c(paste("fzzlSerial.serialVal>=",min),paste("fzzlSerial.serialVal<=",max)),
                    order="serialVal"),
         dimColumns = c("serialVal","serialVal"),
         ##names=NULL,
