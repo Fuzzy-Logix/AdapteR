@@ -699,8 +699,9 @@ setMethod("FLRegrDataPrep",
                   classSpec=list(),
                   whereconditions="",
                   inAnalysisID="",
-                  outGroupIDCol="group_id_colname"
-                  # ,...
+                  outGroupIDCol="group_id_colname",
+                  fetchIDs=TRUE
+                                        # ,...
                   )
           {
             if(object@isDeep) return(list(table=object))
@@ -854,15 +855,16 @@ setMethod("FLRegrDataPrep",
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               group_id=object@Dimnames[[3]]
+                               group_id=object@Dimnames[[3]],
+                               fetchIDs=fetchIDs
                               )
             else if(is.FLTable(object))
               table <- FLTable(deeptablename,
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               # ObsID=rownames(object)
-                               fetchIDs=FALSE
+                               # ObsID=rownames(object),
+                               fetchIDs=fetchIDs
                               )
             return(list(table=table,
                         AnalysisID=dataprepID))

@@ -723,8 +723,8 @@ prepareData.lmGeneric <- function(formula,data,
 								maxiter=25,
 								offset="",
 								pRefLevel=NULL,
+                                fetchIDs=TRUE,
                                 ...){
-	#browser()
     data <- setAlias(data,"")
 	if(data@isDeep){
 		vallVars <- colnames(data)
@@ -902,7 +902,6 @@ prepareData.lmGeneric <- function(formula,data,
     vRegrDataPrepSpecs <- list()
 	if(!data@isDeep)
 	{
-        ## gk: can't we use prepareData.lmGeneric here?
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								outDeepTableName="",
 								outObsIDCol="",
@@ -918,7 +917,8 @@ prepareData.lmGeneric <- function(formula,data,
 								excludeCols=vexcludeCols,
 								classSpec=classSpec,
 								whereconditions=whereconditions,
-								inAnalysisID="")
+								inAnalysisID="",
+                                fetchIDs=fetchIDs)
 
         vRegrDataPrepSpecs <- list(outDeepTableName="",
                                 outObsIDCol="",
@@ -990,8 +990,7 @@ prepareData.lmGeneric <- function(formula,data,
 		deepx <- FLTable(deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
-                  )
+                   "cell_val_colname")
 		deepx <- setAlias(setAlias,"")
 		whereconditions <- ""
 		vmapping <- colnames(deepx)
