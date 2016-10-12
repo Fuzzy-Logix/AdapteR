@@ -20,3 +20,4 @@ test_that("two sample t test",{
 	expectation=c("obj","obj2")
         )
 })
+
