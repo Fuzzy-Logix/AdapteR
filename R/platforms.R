@@ -277,34 +277,35 @@ FLStartSession <- function(connection,
         })
 
     ## Create names mapping table
-    createTable(pTableName=getOption("NameMapTableFL"),
-                pColNames=c("TABLENAME","MATRIX_ID",
-                            "DIM_ID","NAME","NUM_ID"),
-                pColTypes=c("VARCHAR(100)","INT",
-                            "INT","VARCHAR(100)",
-                            "INT"),
-                pTableOptions=tableoptions,
-                pPrimaryKey=c("TABLENAME","MATRIX_ID",
-                            "DIM_ID","NAME"),
-                pTemporary=temporary,
-                pDrop=drop)
-
+    if(!checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
+        createTable(pTableName=getOption("NameMapTableFL"),
+                    pColNames=c("TABLENAME","MATRIX_ID",
+                                "DIM_ID","NAME","NUM_ID"),
+                    pColTypes=c("VARCHAR(100)","INT",
+                                "INT","VARCHAR(100)",
+                                "INT"),
+                    pTableOptions=tableoptions,
+                    pPrimaryKey=c("TABLENAME","MATRIX_ID",
+                                  "DIM_ID","NAME"),
+                    pTemporary=temporary,
+                    pDrop=drop)
+    
     ## Create system table for TablesMetadataInfo
-    createTable(pTableName="fzzlAdapteRTablesInfo",
-                pColNames=c("TimeInfo","DateInfo",
-                            "UserName","DatabaseName",
-                            "TableName","ElementID",
-                            "ObjType",
-                            "Comments"),
-                pColTypes=c("VARCHAR(100)","VARCHAR(100)",
-                            "VARCHAR(100)","VARCHAR(100)",
-                            "VARCHAR(100)","INT","VARCHAR(100)",
-                            "VARCHAR(100)"),
-                pTableOptions=tableoptions,
-                pPrimaryKey="UserName",
-                pTemporary=FALSE,
-                pDrop=FALSE)
-
+    if(!checkRemoteTableExistence(tableName="fzzlAdapteRTablesInfo"))
+        createTable(pTableName="fzzlAdapteRTablesInfo",
+                    pColNames=c("TimeInfo","DateInfo",
+                                "UserName","DatabaseName",
+                                "TableName","ElementID",
+                                "ObjType",
+                                "Comments"),
+                    pColTypes=c("VARCHAR(100)","VARCHAR(100)",
+                                "VARCHAR(100)","VARCHAR(100)",
+                                "VARCHAR(100)","INT","VARCHAR(100)",
+                                "VARCHAR(100)"),
+                    pTableOptions=tableoptions,
+                    pPrimaryKey="UserName",
+                    pTemporary=FALSE,
+                    pDrop=FALSE)
     genSessionID()
     cat("Session Started..\n")
 }
@@ -315,6 +316,8 @@ genCreateResulttbl <- function(tablename,
                                vclass,
                                type,
                                pDrop){
+    if(checkRemoteTableExistence(tableName=tablename))
+        return()
     if(vclass=="matrix"){
         createTable(pTableName=tablename,
                     pColNames=c("MATRIX_ID","rowIdColumn",
