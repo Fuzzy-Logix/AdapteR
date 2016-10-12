@@ -96,8 +96,12 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       driverClass=NULL,
                       temporary=FALSE,
                       verbose=FALSE,
+                      tablePrefix=NULL,
                       ...){
-
+    if(is.null(tablePrefix) & temporary)
+        tablePrefix <- user
+    if(is.null(tablePrefix) & temporary)
+        tablePrefix <- genRandVarName()
     options(ResultDatabaseFL=database)
     options(FLUsername=user)
     connection <- NULL
@@ -195,7 +199,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
-    FLStartSession(connection=connection,database=database,temporary = temporary,...)
+    FLStartSession(connection=connection,database=database,temporary = temporary,tablePrefix=tablePrefix,...)
     return(connection)
 }
 
@@ -217,6 +221,7 @@ FLStartSession <- function(connection,
                            drop=FALSE,
                            debug=FALSE,
                            tableoptions=NULL,
+                           tablePrefix=NULL,
                            ...)
 {
     options(debugSQL=debug)
@@ -234,27 +239,31 @@ FLStartSession <- function(connection,
     #         sapply(getOption("FLTempViews"),dropView)
     #     options(FLTempViews=character())
     #     options(FLTempTables=character())
-    # }
-    #browser()
+    ## }
+    ##browser()
     options(InteractiveFL             = TRUE)
     options(temporaryFL               = temporary)
-    options(ResultVectorTableFL       = gen_table_name("tblVectorResult"))
-    options(ResultMatrixTableFL       = gen_table_name("tblMatrixMultiResult"))
-    options(ResultSparseMatrixTableFL = gen_table_name("tblMatrixMultiSparseResult"))
-    options(NameMapTableFL            = gen_table_name("tblNameMapping"))
-    options(ResultCharVectorTableFL   = gen_table_name("tblCharVectorResult"))
-    options(ResultCharMatrixTableFL   = gen_table_name("tblCharMatrixMultiResult"))
-    options(ResultIntMatrixTableFL    = gen_table_name("tblIntMatrixMultiResult"))
-    options(ResultIntVectorTableFL    = gen_table_name("tblIntVectorResult"))
-    options(ResultByteIntVectorTableFL    = gen_table_name("tblByteIntVectorResult"))
+    resultTables <- c(
+        "ResultVectorTableFL" = "tblVectorResult",
+        "ResultMatrixTableFL" = "tblMatrixMultiResult",
+        "ResultSparseMatrixTableFL"= "tblMatrixMultiSparseResult",
+        "NameMapTableFL" = "tblNameMapping",
+        "ResultCharVectorTableFL" = "tblCharVectorResult",
+        "ResultCharMatrixTableFL" = "tblCharMatrixMultiResult",
+        "ResultIntMatrixTableFL" = "tblIntMatrixMultiResult",
+        "ResultIntVectorTableFL" = "tblIntVectorResult",
+        "ResultByteIntVectorTableFL" = "tblByteIntVectorResult")
+    vresultTables <- names(resultTables)
+    if(!temporary)
+        resultTables <- paste0(database,".",resultTables)
+    else
+        resultTables <- paste0(tablePrefix,resultTables)
+    names(resultTables) <- vresultTables
+    eval(parse(text=paste0("options(",names(resultTables),"='",resultTables,"')", collapse="\n")))
 
     options(scipen=999)
     #options(stringsAsFactors=FALSE)
 
-    vresultTables <- c("ResultMatrixTableFL","ResultSparseMatrixTableFL",
-                        "ResultCharMatrixTableFL","ResultIntMatrixTableFL",
-                        "ResultVectorTableFL","ResultCharVectorTableFL",
-                        "ResultIntVectorTableFL","ResultByteIntVectorTableFL")
     sapply(vresultTables,
         function(x){
             vtable <- getOption(x)
@@ -316,6 +325,7 @@ genCreateResulttbl <- function(tablename,
                                vclass,
                                type,
                                pDrop){
+    ##browser()
     if(checkRemoteTableExistence(tableName=tablename))
         return()
     if(vclass=="matrix"){

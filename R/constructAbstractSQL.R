@@ -416,7 +416,10 @@ createTable <- function(pTableName,
                                      temporaryTable = pTemporary)
 
     if(pDrop)
-        tryCatch(dropTable(pTableName), error=function(e) if(options("debugSQL")) warning(paste0("not dropping table ",pTableName,,": ",e)))
+        tryCatch({dropTable(pTableName)},
+                 error=function(e)
+            if(getOption("debugSQL"))
+                warning(paste0("not dropping table ",pTableName,": ",e)))
     vtempKeyword <- c(TD="VOLATILE",
                       Hadoop="TEMPORARY",
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
