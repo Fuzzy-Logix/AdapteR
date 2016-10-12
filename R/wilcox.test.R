@@ -64,14 +64,14 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                            FROM ",ret$ResultTable," AS q")
             result <-  sqlQuery(connection,sqlstr)
             if(result$W_Pos > result$W_Neg) {
-                stats = c(V = result$W_Pos)
+                stats = c(V = result$W_Neg) ## gk: please check and write a test case for both conditions
             } else
-                stats <- c(W = result$W_Pos)
+                stats <- c(V = result$W_Pos)  
             ##
             res <- list(statistic = stats,
                         parameter = NULL,
                         p.value = result$p,
-                        null.value = 0,
+                        null.value = c("location shift"=0),
                         alternative = "two.sided",
                         method = "Wilcoxon signed rank test",
                         data.name =dname
@@ -111,7 +111,7 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
             res <- list(statistic = c(W = result$W),
                         parameter = NULL,
                         p.value = result$P,
-                        null.value = 0,
+                        null.value = c("location shift"=0),
                         alternative = "two.sided",
                         method = "Wilcoxon rank sum test",
                         data.name = dname
@@ -122,3 +122,4 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
         }
     }
 }
+
