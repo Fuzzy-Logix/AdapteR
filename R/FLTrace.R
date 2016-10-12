@@ -33,9 +33,9 @@ tr.default <- function(object,...){
 
 #' @export
 tr.FLMatrix<-function(object,...){
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
 	
-	flag3Check(connection)
+	## flag3Check(connection)
 
 	sqlstr<-paste0( " SELECT 
 					  FLMatrixTrace(",getVariables(object)$rowId,

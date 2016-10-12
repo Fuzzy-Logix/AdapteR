@@ -267,14 +267,16 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	pTerms <- terms(formula(vformula))
 	## Storing FLGAMParams
 	#return(vgamParams)
-	vsqlstr <- base::apply(vgamParams,1,function(x){
-		paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".fzzlGAMParams VALUES(",
-			paste0(x,collapse=","),");")})
-	vsqlstr <- paste0(vsqlstr,collapse="\n")
+	# vsqlstr <- base::apply(vgamParams,1,function(x){
+	# 	paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".fzzlGAMParams VALUES(",
+	# 		paste0(x,collapse=","),");")})
+	# vsqlstr <- paste0(vsqlstr,collapse="\n")
 
-	sqlSendUpdate(getOption("connectionFL"),vsqlstr)
+	# sqlSendUpdate(getFLConnection(),vsqlstr)
+    insertIntotbl(pTableName="fzzlGAMParams",
+                pValues=vgamParams)
 	
-	vresult <- sqlStoredProc(getOption("connectionFL"),
+	vresult <- sqlStoredProc(getFLConnection(),
 							"FLGAM",
 							outputParameter=c(AnalysisID="a"),
 							TableName=data@select@table_name,
@@ -294,7 +296,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	# 							maxiter,",",
 	# 							fquote(genNote("gam")),",AnalysisID);")
 
-	# vresult <- sqlQuery(getOption("connectionFL"),vsqlstr,
+	# vresult <- sqlQuery(getFLConnection(),vsqlstr,
 	# 				AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("gam")))
 	vresult <- checkSqlQueryOutput(vresult)
 	vanalysisId <- as.character(vresult[1,1])
@@ -483,7 +485,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 			sqlstr <- paste0("SELECT * FROM fzzlGAMKnots WHERE ",
 							" analysisID='",object@AnalysisID,"'",
 							" ORDER BY 2,3,4")
-			knotsdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			knotsdataframe <- sqlQuery(getFLConnection(),sqlstr)
 			knotsdataframe <- checkSqlQueryOutput(knotsdataframe)
 			object@results <- c(object@results,list(knots=knotsdataframe))
 			assign(parentObject,object,envir=parent.frame())
@@ -502,7 +504,7 @@ coefficients.FLGAM <- function(object)
 	{
 		##Since Currently only 1000 coeffs are supported
 		## by FLGAM, fetch them.
-		coeffVector <- sqlQuery(getOption("connectionFL"),
+		coeffVector <- sqlQuery(getFLConnection(),
 			paste0("SELECT * FROM fzzlGAMCoeffs where AnalysisID=",fquote(object@AnalysisID),
 					" ORDER BY CoeffID"))
 
@@ -582,7 +584,7 @@ residuals.FLGAM <- function(object)
 									object@scoreTable,".",vobsid)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -590,9 +592,9 @@ residuals.FLGAM <- function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		residualsvector <- new("FLVector",
+		residualsvector <- newFLVector(
 								select = tblfunqueryobj,
-								dimnames = list(rownames(object@table),
+								Dimnames = list(rownames(object@table),
 												"vectorValueColumn"),
 								isDeep = FALSE)
 
@@ -631,7 +633,7 @@ deviance.FLGAM <- function(object)
 						"(SELECT CASE WHEN z.vlog> 0 ",
 							" THEN (z.yval * LOG(vlog))-(z.yval-z.pred) ELSE z.pred END AS vLL from z) as a")
 
-		deviancevector <- sqlQuery(getOption("connectionFL"),sqlstr)
+		deviancevector <- sqlQuery(getFLConnection(),sqlstr)
 		deviancevector <- checkSqlQueryOutput(deviancevector)[[1]]
 		object@results <- c(object@results,list(deviance=deviancevector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -663,7 +665,7 @@ sig2.FLGAM <- function(object)
 						" FROM ",object@scoreTable,",",vtablename,
 						" WHERE ",vtablename,".",obs_id_colname," = ",
 									object@scoreTable,".ObsID) AS a")
-		sig2vector <- sqlQuery(getOption("connectionFL"),sqlstr)[[1]]
+		sig2vector <- sqlQuery(getFLConnection(),sqlstr)[[1]]
 
 		object@results <- c(object@results,list(sig2=sig2vector))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -702,7 +704,7 @@ model.FLGAM <- function(object)
 			vsqlstr <- paste0("SELECT ",paste0(vcolnames,collapse=","),
 							 " FROM ",vtablename,
 							 " ORDER BY ",obs_id_colname)
-			modelframe <- sqlQuery(getOption("connectionFL"),vsqlstr)
+			modelframe <- sqlQuery(getFLConnection(),vsqlstr)
 			modelframe <- checkSqlQueryOutput(modelframe)
 		}
 		colnames(modelframe) <- vallVars
@@ -750,7 +752,7 @@ offset.FLGAM <- function(object)
 							" FROM ",vtablename)
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getOption("connectionFL"),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -758,9 +760,9 @@ offset.FLGAM <- function(object)
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-			offsetvector <- new("FLVector",
+			offsetvector <- newFLVector(
 									select = tblfunqueryobj,
-									dimnames = list(1:nrow(object@table),
+									Dimnames = list(1:nrow(object@table),
 													"vectorValueColumn"),
 									isDeep = FALSE)
 		}
@@ -796,7 +798,7 @@ var.summary.FLGAM <- function(object)
 								"Median(",vcolnames,") AS median1,",
 								"FLMax(",vcolnames,") AS max1 ",
 							 " FROM ",vtablename,collapse=" UNION ALL ")
-			modelframe <- sqlQuery(getOption("connectionFL"),vsqlstr)
+			modelframe <- sqlQuery(getFLConnection(),vsqlstr)
 			modelframe <- checkSqlQueryOutput(modelframe)
 			modelframe <- as.data.frame(t(as.matrix(modelframe)))
 			colnames(modelframe) <- vcolnames
@@ -835,7 +837,7 @@ y.FLGAM <- function(object)
 							" FROM ",vtablename)
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getOption("connectionFL"),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -843,9 +845,9 @@ y.FLGAM <- function(object)
 	                        order = "",
 	                        SQLquery=sqlstr)
 
-			yvector <- new("FLVector",
+			yvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(1:nrow(object@table),
+							Dimnames = list(1:nrow(object@table),
 											"vectorValueColumn"),
 							isDeep = FALSE)
 		}
@@ -872,15 +874,20 @@ predict.FLGAM <- function(object,
 			"termidparam","varname",
 			"byvarvalparam","varval") %in% names(args))){
 		vspecid <- genRandVarName()
-		vsqlstr <- paste0("INSERT INTO fzzlGAMScoreParams \n ",
-							"VALUES(",fquote(vspecid),",",
-									args[["termidparam"]],",",
-									fquote(args[["varname"]]),",",
-									fquote(args[["varname"]]),",",
-									args[["termidparam"]],",",
-									fquote(args[["varname"]]),
-								")",collapse=";")
-		sqlSendUpdate(getOption(connectionFL),vsqlstr)
+		# vsqlstr <- paste0("INSERT INTO fzzlGAMScoreParams \n ",
+		# 					"VALUES(",fquote(vspecid),",",
+		# 							args[["termidparam"]],",",
+		# 							fquote(args[["varname"]]),",",
+		# 							fquote(args[["varname"]]),",",
+		# 							args[["termidparam"]],",",
+		# 							fquote(args[["varname"]]),
+		# 						")",collapse=";")
+		# sqlSendUpdate(getOption(getFLConnection()),vsqlstr)
+        vdf <- data.frame(vspecid,args[["termidparam"]],
+                        args[["varname"]],args[["varname"]],
+                        args[["termidparam"]],args[["varname"]])
+        insertIntotbl(pTableName="fzzlGAMScoreParams",
+                    pValues=vdf)
 		vinputCols <- c(vinputCols,
 						InTableName="NULL",
 						ObsIDCol="NULL",
@@ -913,7 +920,7 @@ predict.FLGAM <- function(object,
 	vinputCols <- c(vinputCols,
 					scoreTable=scoreTable,
 					Note=genNote("Scoring gam"))
-	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
+	AnalysisID <- sqlStoredProc(getFLConnection(),
 								"FLGAMScore",
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputCols
@@ -929,7 +936,7 @@ predict.FLGAM <- function(object,
 	# 									fquote(genNote("Scoring gam")),
 	# 									",AnalysisID);")
 
-	# AnalysisID <- sqlQuery(getOption("connectionFL"),
+	# AnalysisID <- sqlQuery(getFLConnection(),
 	# 				sqlstr,
 	# 				AnalysisIDQuery=genAnalysisIDQuery("fzzlGAMInfo",genNote("Scoring gam")))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
@@ -940,7 +947,7 @@ predict.FLGAM <- function(object,
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -948,9 +955,9 @@ predict.FLGAM <- function(object,
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:nrow(newdata),
+				Dimnames = list(1:nrow(newdata),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 

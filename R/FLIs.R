@@ -4,33 +4,20 @@
 #' Check if the object is an FLMatrix object
 #' @export
 is.FLMatrix <- function(object)
-{
-    if (class(object) == "FLMatrix" |
-        class(object) == "FLMatrixBind")
-        return (TRUE)
-	else return (FALSE)
-}
+    class(object) == "FLMatrixBind" || inherits(object,"FLMatrix")
 
 #' Check if the object is an FLVector object
 #' @export
 is.FLVector <- function(object)
-{
-	ifelse(class(object)=="FLVector",TRUE,FALSE)
-	
-}
+    inherits(object,"FLVector")
 
 #' Check if the object is an FLTable object
 #' @export
 is.FLTable <- function(object)
-{
-	ifelse(class(object)=="FLTable",TRUE,FALSE)
-}
-
+    inherits(object,"FLTable")
 #' @export
 is.FLTableMD <- function(object)
-{
-    ifelse(class(object)=="FLTableMD",TRUE,FALSE)
-}
+    inherits(object,"FLTableMD")
 
 is.FLAbstractColumn <- function(object){
     if(class(object)=="FLAbstractColumn")
@@ -52,21 +39,18 @@ is.wideFLTable <- function(pObject){
     else return(!pObject@isDeep)
 }
 
-is.FLSelectFrom <- function(pObj){
-  if(class(pObj)=="FLSelectFrom")
-  return(TRUE)
-  else return(FALSE)
-}
+is.FLSelectFrom <- function(pObj)
+  class(pObj)=="FLSelectFrom"
 
 #' @export
 is.FL <- function(x){
-    if(class(x) %in% c("FLMatrix",
-                        "FLVector",
-                        "FLTable",
-                        "FLTableQuery",
-                        "FLSelectFrom",
-                        "FLTableFunctionQuery",
-                        "FLTableMD"))
+    if(inherits(x,c("FLMatrix",
+                    "FLVector",
+                    "FLTable",
+                    "FLTableQuery",
+                    "FLSelectFrom",
+                    "FLTableFunctionQuery",
+                    "FLTableMD")))
     return(TRUE)
     else return(FALSE)
 }
@@ -83,23 +67,6 @@ is.RSparseMatrix <- function(object){
     return(FALSE)
 }
 
-is.TD <- function(){
-    if(getOption("FLPlatform")=="TD")
-    return(TRUE)
-    else return(FALSE)
-}
-
-is.TDAster <- function(){
-    if(getOption("FLPlatform")=="TDAster")
-    return(TRUE)
-    else return(FALSE)
-}
-
-is.Hadoop <- function(){
-    if(getOption("FLPlatform")=="Hadoop")
-    return(TRUE)
-    else return(FALSE)
-}
 
 isDotFormula <- function(pFormula){
     if(!is.formula(pFormula))
@@ -128,4 +95,20 @@ isContinuous <- function(x){
     if(all(abs(diff(x))==1))
         return(TRUE)
     else return(FALSE)
+}
+
+is.FLConnection <- function(pObject){
+    return(class(pObject)=="FLConnection")
+}
+
+is.ODBC <- function(pObject=getFLConnection()){
+    if(is.FLConnection(pObject))
+        pObject <- getRConnection(pObject)
+    return(class(pObject)=="RODBC")
+}
+
+is.JDBC <- function(pObject=getFLConnection()){
+    if(is.FLConnection(pObject))
+        pObject <- getRConnection(pObject)
+    return(class(pObject)=="JDBCConnection")
 }

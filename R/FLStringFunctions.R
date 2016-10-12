@@ -47,7 +47,7 @@ setMethod("FLStringDist",
             else if(is.numeric(caseFlag) && (caseFlag==0 ||caseFlag==1)) caseFlag<-caseFlag
             else stop("caseFlag must be numeric 0,1 or logical")
 
-            if(length(targets@dimnames[[2]])>1 && targets@isDeep==FALSE)
+            if(length(dimnames(targets)[[2]])>1 && targets@isDeep==FALSE)
             #targets <- store(targets)
             stop("row Vectors not supported for string operations")
 
@@ -80,7 +80,7 @@ setMethod("FLStringDist",
                              " FROM(",constructSelect(targets),") AS ",a)
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -88,9 +88,9 @@ setMethod("FLStringDist",
                         order = "",
                         SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(targets@dimnames[[1]],
+                            Dimnames = list(dimnames(targets)[[1]],
                                           "vectorValueColumn"),
                             isDeep = FALSE)
             return(resultvec)
@@ -120,10 +120,10 @@ setMethod("FLStringDist",
             else if(is.numeric(caseFlag) && (caseFlag==0 ||caseFlag==1)) caseFlag<-caseFlag
             else stop("caseFlag must be numeric 0,1 or logical")
 
-            if(length(targets@dimnames[[2]])>1 && targets@isDeep==FALSE)
+            if(length(dimnames(targets)[[2]])>1 && targets@isDeep==FALSE)
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
-            if(length(xsource@dimnames[[2]])>1 && xsource@isDeep==FALSE)
+            if(length(dimnames(xsource)[[2]])>1 && xsource@isDeep==FALSE)
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
 
@@ -158,7 +158,7 @@ setMethod("FLStringDist",
                                       constructSelect(targets),") AS b ")
 
               tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = getOption("connectionFL"),
+                    connectionName = getFLConnectionName(),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -167,11 +167,11 @@ setMethod("FLStringDist",
                     order = "",
                     SQLquery=sqlstr)
 
-              flm <- new("FLMatrix",
+              flm <- newFLMatrix(
                                select= tblfunqueryobj,
-                               dim=c(length(xsource),
-                                     length(targets)),
-                               dimnames = list(
+                               dims=as.integer(c(length(xsource),
+                                     length(targets))),
+                               Dimnames = list(
                                    names(xsource),
                                    names(targets)))
               return(flm)
@@ -222,7 +222,7 @@ setMethod("FLStringDist",
                                     "CAST((b.vectorIndexColumn MOD ",
                                     vminlen,") AS INT)")
                tblfunqueryobj <- new("FLTableFunctionQuery",
-                      connection = getOption("connectionFL"),
+                      connectionName = getFLConnectionName(),
                       variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -230,9 +230,9 @@ setMethod("FLStringDist",
                       order = "",
                       SQLquery=sqlstr)
 
-                return(new("FLVector",
+                return(newFLVector(
                           select = tblfunqueryobj,
-                          dimnames =list(vmaxrownames,"vectorValueColumn"),
+                          Dimnames =list(vmaxrownames,"vectorValueColumn"),
                           isDeep = FALSE))
             }
           })
@@ -641,9 +641,9 @@ setMethod("stringdistmatrix",
 ## move to file stringdist.R
 FLStringDistFunctionsClassCheck <- function(a,b)
 {
-  if(!(class(a)=="FLVector" || is.character(a)))
-  stop(" a should be FLVector or character ")
-  if(!(class(b)=="FLVector" || is.character(b)))
+  if(!(is.FLVector(a) || is.character(a)))
+      stop(" a should be FLVector or character ")
+  if(!(is.FLVector(b) || is.character(b)))
   stop(" a should be FLVector or character ")
 }
 
@@ -668,7 +668,7 @@ setMethod("FLStrCommon",
             vtype <- list(...)$type
           else vtype <- "character"
           a <- genRandVarName()
-          if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+          if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
           stop("row Vectors not supported for string operations")
 
           if(is.null(delimiter)||is.na(delimiter)||length(delimiter)==0)
@@ -701,7 +701,7 @@ setMethod("FLStrCommon",
                              " FROM(",constructSelect(object),") AS ",a)
           }
           tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -709,9 +709,9 @@ setMethod("FLStrCommon",
                         order = "",
                         SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(object@dimnames[[1]],
+                            Dimnames = list(object@Dimnames[[1]],
                                           "vectorValueColumn"),
                             isDeep = FALSE,
                             type=vtype)
@@ -771,7 +771,7 @@ setMethod("FLConcatString",
                              " GROUP BY 1,2")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -779,9 +779,9 @@ setMethod("FLConcatString",
                         order = "",
                         SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(1,
+                            Dimnames = list(1,
                                           "vectorValueColumn"),
                             isDeep = FALSE)
             return(resultvec)
@@ -1117,7 +1117,7 @@ setMethod("grep",
             a <- genRandVarName()
             b <- genRandVarName()
             object <- x
-            if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
             stop("row Vectors not supported for string operations")
 
             sqlstr <- paste0("SELECT COUNT(",b,".vectorIndexColumn) AS vlength",
@@ -1128,7 +1128,7 @@ setMethod("grep",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL AND ",
                                       b,".vectorValueColumn ",ifelse(invert,"=","<>")," -1")
 
-            vlength <- sqlQuery(getOption("connectionFL"),sqlstr)[1,1]
+            vlength <- sqlQuery(getFLConnection(),sqlstr)[1,1]
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
                                     "ROW_NUMBER()OVER(ORDER BY CAST(",b,".vectorIndexColumn AS INT)) AS vectorIndexColumn,",
                                     b,ifelse(value,".vectorIdColumn",".vectorIndexColumn")," AS vectorValueColumn",
@@ -1139,7 +1139,7 @@ setMethod("grep",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL AND ",
                                       b,".vectorValueColumn ",ifelse(invert,"=","<>")," -1")
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                                connection = getOption("connectionFL"),
+                                connectionName = getFLConnectionName(),
                                 variables = list(
                                 obs_id_colname = "vectorIndexColumn",
                                 cell_val_colname = "vectorValueColumn"),
@@ -1147,9 +1147,9 @@ setMethod("grep",
                                 order = "",
                                 SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(1:vlength,
+                            Dimnames = list(1:vlength,
                                           "vectorValueColumn"),
                             isDeep = FALSE,
                             type="integer")
@@ -1213,7 +1213,7 @@ setMethod("grepl",
             a <- genRandVarName()
             b <- genRandVarName()
             object <- x
-            if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
             stop("row Vectors not supported for string operations")
 
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -1226,7 +1226,7 @@ setMethod("grepl",
                             " WHERE ",b,".vectorValueColumn IS NOT NULL ")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
-                                connection = getOption("connectionFL"),
+                                connectionName = getFLConnectionName(),
                                 variables = list(
                                 obs_id_colname = "vectorIndexColumn",
                                 cell_val_colname = "vectorValueColumn"),
@@ -1234,9 +1234,9 @@ setMethod("grepl",
                                 order = "",
                                 SQLquery=sqlstr)
 
-            resultvec <- new("FLVector",
+            resultvec <- newFLVector(
                             select = tblfunqueryobj,
-                            dimnames = list(object@dimnames[[1]],
+                            Dimnames = list(object@Dimnames[[1]],
                                           "vectorValueColumn"),
                             isDeep = FALSE,
                             type="logical")
@@ -1417,7 +1417,7 @@ setMethod("FLParseXML",
             object="FLVector"),
           function(object)
           {
-            if(length(object@dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
             stop("row Vectors not supported for string operations")
             sqlstr <- paste0("WITH tw (GroupID, pXML)
                               AS (
@@ -1432,5 +1432,5 @@ setMethod("FLParseXML",
                               ) AS d
                               ORDER BY 1,2;")
 
-            return(sqlQuery(getOption("connectionFL"),sqlstr))
+            return(sqlQuery(getFLConnection(),sqlstr))
         })

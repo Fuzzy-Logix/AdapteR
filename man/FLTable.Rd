@@ -6,7 +6,7 @@
 \usage{
 FLTable(table, obs_id_colname, var_id_colnames = character(0),
   cell_val_colname = character(0), whereconditions = character(0),
-  connection = NULL, type = "double", fetchIDs = TRUE, ...)
+  connection = getFLConnection(), type = "double", fetchIDs = TRUE, ...)
 }
 \arguments{
 \item{table}{name of the table}

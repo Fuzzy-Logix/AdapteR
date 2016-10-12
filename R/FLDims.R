@@ -25,9 +25,9 @@ nrow.FLMatrixBind<-function(object)
 }
 
 #' @export
-nrow.FLTable<-function(object)	return(object@dim[[1]])
+nrow.FLTable<-function(object)	return(object@dims[[1]])
 #' @export
-nrow.FLVector<-function(object)	return(length(object@dimnames[[1]]))
+nrow.FLVector<-function(object)	return(length(object@Dimnames[[1]]))
 
 #' @export
 NROW<-function(x, ...){
@@ -67,9 +67,9 @@ ncol.FLMatrixBind<-function(object)
         return(ncol(object@parts[[1]]))
 }
 #' @export
-ncol.FLTable<-function(object) 	return(object@dim[[2]])
+ncol.FLTable<-function(object) 	return(object@dims[[2]])
 #' @export
-ncol.FLVector<-function(object) return(length(object@dimnames[[2]]))
+ncol.FLVector<-function(object) return(length(object@Dimnames[[2]]))
 
 #' @export
 NCOL<-function(x, ...){
@@ -102,9 +102,9 @@ dim<-function(object){
 #' @export
 dim.default <- base::dim
 #' @export
-dim.FLMatrix <- function(object)
+dim.FLIndexedValues <- function(object)
 {
-	 return(object@dim)
+	 return(object@dims)
 }
 
 # Returns the dimensions of the object
@@ -120,10 +120,20 @@ dim.FLTable <- function(object)
 	 return(c(nrow(object),ncol(object)))
 }
 
+
+
 #' @export
-dim.FLVector <- function(object)
-{
-	 return(c(nrow(object),ncol(object)))
-}
-
-
+dimnames.FLMatrix <- function(object)
+  return(object@Dimnames)
+  #' @export
+dimnames.FLVector <- function(object)
+  return(object@Dimnames)
+#' @export
+dimnames.FLTable <- function(object)
+  return(object@Dimnames)
+#' @export
+dimnames.FLTableMD <- function(object)
+  return(object@Dimnames)
+#' @export
+dimnames.FLAbstractTable <- function(object)
+  return(object@Dimnames)

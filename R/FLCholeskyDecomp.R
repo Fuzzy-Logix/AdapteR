@@ -26,8 +26,8 @@ chol <- function (object, ...){
 #' @export
 chol.FLMatrix<-function(object,...)
 {
-    connection<-getConnection(object)
-    flag1Check(connection)
+    connection<-getFLConnection(object)
+    ##flag1Check(connection)
 
     sqlstr<-paste0(
         viewSelectMatrix(object,"a",withName="z"),
@@ -36,7 +36,7 @@ chol.FLMatrix<-function(object,...)
     )
     
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                          connection = connection,
+                          connectionName = attr(connection,"name"),
                           variables=list(
                               rowIdColumn="OutputColNum",
                               colIdColumn="OutputRowNum",
@@ -45,10 +45,10 @@ chol.FLMatrix<-function(object,...)
                           order = "",
                           SQLquery=sqlstr)
 
-    flm <- new("FLMatrix",
+    flm <- newFLMatrix(
                select= tblfunqueryobj,
-               dim=dim(object),
-               dimnames=dimnames(object))
+               dims=dim(object),
+               Dimnames=dimnames(object))
 
     ## gk: todo: a JIRA ticket should investigate, because A %*% t(A) is definition of A=chol(object), not t(A) %*% A
     return(t(flm))

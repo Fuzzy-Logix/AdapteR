@@ -15,7 +15,7 @@ test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     expectation = c("q"),
     check.attributes=F,
     tolerance = .0001,
-    verbose = TRUE
+    verbose = FALSE
     )
 }
 )
@@ -33,7 +33,7 @@ test_that("Kolmogorov-Smirnov Test 1s:", {
     expectation = "val",
     check.attributes = T,
     tolerance = .0001,
-    verbose = TRUE
+    verbose = FALSE
     )
     })
 
@@ -51,7 +51,7 @@ test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
     expectation = c("a"),
     check.attributes=F,
     tolerance = .0001,
-    verbose = TRUE
+    verbose = FALSE
     )
 }
 )
@@ -74,7 +74,7 @@ test_that("Kolmogorov-Smirnov Test 2S:DBLytix Example ",{
     expectation = c("a"),
     check.attributes= T,
     tolerance = .0001,
-    verbose = TRUE
+    verbose = FALSE
     )
 }
 )

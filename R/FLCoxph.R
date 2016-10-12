@@ -121,7 +121,7 @@ coxph.FLTable <- function(formula,data, ...)
     
 	deeptable <- deepx@select@table_name
 
-	retobj <- sqlStoredProc(getOption("connectionFL"),
+	retobj <- sqlStoredProc(getFLConnection(),
 							"FLCoxPH",
 							outputParameter=c(AnalysisID="a"),
 							INPUT_TABLE=deeptable,
@@ -137,7 +137,7 @@ coxph.FLTable <- function(formula,data, ...)
 	# 				 				fquote(getVariables(deepx)[["cell_val_colname"]]),
 	# 				 				",\n15,\n",fquote(genNote("coxph")),",\nAnalysisID );")
 	
-	# retobj <- sqlQuery(getOption("connectionFL"),sqlstr,
+	# retobj <- sqlQuery(getFLConnection(),sqlstr,
  #                       AnalysisIDQuery=genAnalysisIDQuery("fzzlCoxPHInfo",genNote("coxph")))
 	
 	retobj <- checkSqlQueryOutput(retobj)
@@ -257,13 +257,18 @@ prepareData.coxph <- function(formula,data,
 		vtablename <- deepx@select@table_name
 		vtablename1 <- data@select@table_name
 		vobsid <- getVariables(data)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
-						" SELECT ",vobsid," AS obs_id_colname,","\n               ",
-						" -2 AS var_id_colname,","\n               ",
-						vStatus," AS cell_val_colname","\n               ",
-						" FROM ",vtablename1)
-		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
-		deepx@dimnames[[2]] <- c("-2",deepx@dimnames[[2]])
+		# sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
+		# 				" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+		# 				" -2 AS var_id_colname,","\n               ",
+		# 				vStatus," AS cell_val_colname","\n               ",
+		# 				" FROM ",vtablename1)
+		# t <- sqlSendUpdate(getFLConnection(),sqlstr)
+        t <- insertIntotbl(pTableName=vtablename,
+                           pSelect=paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+                                                    " -2 AS var_id_colname, \n ",
+                                                    vStatus," AS cell_val_colname \n ",
+                                           " FROM ",vtablename1))
+		deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		whereconditions <- ""
 		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
 	}
@@ -429,20 +434,25 @@ predict.FLCoxPH <-function(object,
 
 		vtablename1 <- newdata@select@table_name
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
-		sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
-						paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
-										vVaridVec," AS var_id_colname, \n ",
-										vCellValVec," AS cell_val_colname \n  ",
-								" FROM ",vfromtbl,collapse=" UNION ALL "))
-		t <- sqlSendUpdate(getOption("connectionFL"),sqlstr)
-		newdata@dimnames[[2]] <- c("-1","-2",newdata@dimnames[[2]])
+		# sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
+		# 				paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
+		# 								vVaridVec," AS var_id_colname, \n ",
+		# 								vCellValVec," AS cell_val_colname \n  ",
+		# 						" FROM ",vfromtbl,collapse=" UNION ALL "))
+		# t <- sqlSendUpdate(getFLConnection(),sqlstr)
+        t <- insertIntotbl(pTableName=vtablename1,
+                            pSelect=paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+                                                      vVaridVec," AS var_id_colname, \n ",
+                                                      vCellValVec," AS cell_val_colname \n  ",
+                                            " FROM ",vfromtbl,collapse=" UNION ALL "))
+		newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 	}
 	vtable <- newdata@select@table_name
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-	AnalysisID <- sqlStoredProc(getOption("connectionFL"),
+	AnalysisID <- sqlStoredProc(getFLConnection(),
 								"FLCoxPHScore",
 								outputParameter=c(AnalysisID="a"),
 								INPUT_TABLE=newdata@select@table_name,
@@ -463,7 +473,7 @@ predict.FLCoxPH <-function(object,
 	# 										 fquote(genNote("Scoring coxph")),
 	# 										 ",oAnalysisID);")
 
-	# AnalysisID <- sqlQuery(getOption("connectionFL"),
+	# AnalysisID <- sqlQuery(getFLConnection(),
  #                           sqlstr,
  #                           AnalysisIDQuery=genAnalysisIDQuery("fzzlCoxPHInfo",genNote("Scoring coxph")))
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
@@ -474,7 +484,7 @@ predict.FLCoxPH <-function(object,
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -482,9 +492,9 @@ predict.FLCoxPH <-function(object,
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(rownames(newdata),
+				Dimnames = list(rownames(newdata),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 
@@ -492,7 +502,7 @@ predict.FLCoxPH <-function(object,
 	sqlstr <- paste0(limitRowsSQL(paste0("SELECT * from ",
 								survivalCurveTable),100),
 								" ORDER BY 1")
-	vSurvival <- sqlQuery(getOption("connectionFL"),sqlstr)
+	vSurvival <- sqlQuery(getFLConnection(),sqlstr)
 	return(list(score=vScore,
 				survival=vSurvival))
 }
@@ -540,7 +550,7 @@ predict.FLCoxPH <-function(object,
 		# 	if(!checkYorN(vinput))
 		# 	vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable," ORDER BY 1")
 		# }
-		# vsurvivaldata <- sqlQuery(getOption("connectionFL"),vsqlstr)
+		# vsurvivaldata <- sqlQuery(getFLConnection(),vsqlstr)
 		vsurvivaldata <- object@results[["FLSurvivalData"]]
 		assign(parentObject,object,envir=parent.frame())
 		return(vsurvivaldata)
@@ -554,7 +564,7 @@ predict.FLCoxPH <-function(object,
 			sqlstr <- paste0("SELECT * FROM fzzlCoxPHStats\n",
 							" WHERE AnalysisID=",fquote(object@AnalysisID))
 
-			statsdataframe <- sqlQuery(getOption("connectionFL"),sqlstr)
+			statsdataframe <- sqlQuery(getFLConnection(),sqlstr)
 			object@results <- c(object@results,list(FLCoxPHStats=statsdataframe))
 			assign(parentObject,object,envir=parent.frame())
 			return(statsdataframe)
@@ -648,7 +658,7 @@ predict.FLCoxPH <-function(object,
 							" FROM ",deeptablename," GROUP BY ",var_id_colname,
 							" \n WHERE ",var_id_colname," NOT IN('-1','0','-2')\n",
 							" ORDER BY ",var_id_colname)
-			meansvector <- sqlQuery(getOption("connectionFL"),vsqlstr)[["meanval"]]
+			meansvector <- sqlQuery(getFLConnection(),vsqlstr)[["meanval"]]
 			names(meansvector) <- vcolnames
 			object@results <- c(object@results,list(means=meansvector))
 			assign(parentObject,object,envir=parent.frame())
@@ -691,11 +701,11 @@ coefficients.FLCoxPH <- function(object){
                                     FLCoeffupperlimit="UPPERLIMIT"),
                         pIntercept=FALSE)
 		# if(object@table@isDeep)
-		# coeffVector <- sqlQuery(getOption("connectionFL"),
+		# coeffVector <- sqlQuery(getFLConnection(),
 		# 	paste0("SELECT * FROM fzzlCoxPHCoeffs where AnalysisID=",fquote(object@AnalysisID),
 		# 			" ORDER BY CoeffID"))
 		# else
-		# coeffVector <- sqlQuery(getOption("connectionFL"),
+		# coeffVector <- sqlQuery(getFLConnection(),
 		# 	paste0("SELECT CASE WHEN a.Catvalue IS NOT NULL THEN \n",
 		# 			"a.COLUMN_NAME || a.Catvalue ELSE \n",
 		# 			"a.Column_name END AS CoeffName,b.* \n",
@@ -837,7 +847,7 @@ plot.FLCoxPH <- function(object,nobs=5,...){
 	vsqlstr <- paste0("SELECT * FROM ",survivalCurveTable,
 					" \nWHERE ",obs_id_colname," <= ",nobs," ORDER BY 1")
 
-	vsurvivaldata <- sqlQuery(getOption("connectionFL"),vsqlstr)
+	vsurvivaldata <- sqlQuery(getFLConnection(),vsqlstr)
 	colnames(vsurvivaldata) <- toupper(colnames(vsurvivaldata))
 
 	parentObject <- unlist(strsplit(unlist(
@@ -870,7 +880,7 @@ prepareSurvivalFormula <- function(data,
                                             " AS ",vTimeVal,",b.* FROM ",vtablename1," AS b ")
                     )
         
-        data@dimnames[[2]] <- c(data@dimnames[[2]],vTimeVal)
+        data@Dimnames[[2]] <- c(data@Dimnames[[2]],vTimeVal)
         data@select@table_name <- vtablename
         vallVars <- base::all.vars(formula)
         vallVars <- vallVars[!vallVars %in% c(vTimeVal1,vTimeVal2)]

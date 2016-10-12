@@ -1,16 +1,16 @@
 Renv = new.env(parent = globalenv())
-
+FLenv <- as.FL(Renv)
 Renv$irisdata <- iris
 Renv$testdf <- data.frame(mylogic=c(TRUE,FALSE,TRUE),
                           myinteg=1:3,
                           myfloat=1:3/3,
                           myfact=as.factor(c("a","b","a")),
                           mychar=c("one","two","three"))
-
 rownames(Renv$irisdata) <- 1:nrow(Renv$irisdata)
 colnames(Renv$irisdata) <- gsub("\\.","",colnames(Renv$irisdata),fixed = FALSE)
-FLenv <- as.FL(Renv)
 
+FLenv$irisdata <- as.FLTable.data.frame(Renv$irisdata,temporary=FALSE)
+FLenv$testdf <- as.FLTable.data.frame(Renv$testdf,temporary=FALSE)
 
 ##options(debugSQL=TRUE)
 test_that("FLTable in-database transformations, type double -- ALTER TABLE, adding new columns",{

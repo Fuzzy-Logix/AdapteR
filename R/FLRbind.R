@@ -25,7 +25,7 @@ rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)
 rbind.FLMatrixBind <- rbind.FLMatrix
 ## {
 ## 	objectVec<-list(object,...)
-## 	connection<-getConnection(object)
+## 	connection<-getFLConnection(object)
 
 ## 	ncol <-0
 
@@ -212,14 +212,14 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = rowCount,
 ## 				   ncol = ncol,
-## 				   dimnames = list(c(),c())))
+## 				   Dimnames = list(c(),c())))
 ## 	}
 ## }
 
 ## rbind.FLVector <- function(object,...)
 ## {
 ## 	objectVec<-list(object,...)
-## 	connection<-getConnection(object)
+## 	connection<-getFLConnection(object)
 
 ## 	ncol <-0
 
@@ -332,7 +332,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = 1,
 ## 				   ncol = ncol,
-## 				   dimnames = list(c(),c())))
+## 				   Dimnames = list(c(),c())))
 ## 	}
 
 ## 	else if (length(objectVec) > 1)
@@ -544,7 +544,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = rowCount,
 ## 				   ncol = ncol,
-## 				   dimnames = list(c(),c())))
+## 				   Dimnames = list(c(),c())))
 ## 	}
 ## }
 
@@ -750,7 +750,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = rowCount,
 ## 				   ncol = ncol,
-## 				   dimnames = list(c(),c())))
+## 				   Dimnames = list(c(),c())))
 ## 	}
 ## }
 
@@ -976,7 +976,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = rowCount,
 ## 				   ncol = ncol,
-## 				   dimnames = list(c(),c())))
+## 				   Dimnames = list(c(),c())))
 ## 	}
 ## }
 
@@ -1182,6 +1182,6 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## 				   cell_val_colname = "valueColumn",
 ## 				   nrow = rowCount,
 ## 				   ncol = ncol,
-## 				   dimnames = list(c(),c())))
+## 				   Dimnames = list(c(),c())))
 ## 	}
 ## }

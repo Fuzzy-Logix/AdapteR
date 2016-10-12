@@ -33,7 +33,7 @@ eigen.FLMatrix<-function(x,symmetric=FALSE,
                 only.values = FALSE, 
                 EISPACK = FALSE)
 {
-    connection<-getConnection(x)
+    connection<-getFLConnection(x)
     if(only.values)
     retobj <- list(values = FLEigenValues(x),
                    vectors = NULL)
@@ -53,8 +53,8 @@ FLEigenValues<-function(object,...)
 FLEigenValues.FLMatrix<-function(object,...)
 {
 	
-	connection<-getConnection(object)
-	flag3Check(connection)
+	connection<-getFLConnection(object)
+    ## flag3Check(connection)
 
 	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLEigenValueUdt",viewName="z",
@@ -68,7 +68,7 @@ FLEigenValues.FLMatrix<-function(object,...)
                    )
 	
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -76,9 +76,9 @@ FLEigenValues.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:nrow(object),
+				Dimnames = list(1:nrow(object),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 
@@ -97,8 +97,8 @@ FLEigenVectors<-function(object,...)
 #' @export
 FLEigenVectors.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
-	flag1Check(connection)
+	connection<-getFLConnection(object)
+	## flag1Check(connection)
 
 	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
                     outputSelectMatrix("FLEigenVectorUdt",viewName="z",localName="a",includeMID=TRUE,
@@ -106,7 +106,7 @@ FLEigenVectors.FLMatrix<-function(object,...)
                    )
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",
@@ -115,10 +115,10 @@ FLEigenVectors.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  	flm <- new("FLMatrix",
+  	flm <- newFLMatrix(
             select= tblfunqueryobj,
-            dim=dim(object),
-            dimnames=dimnames(object))
+            dims=dim(object),
+            Dimnames=dimnames(object))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object),

@@ -84,9 +84,9 @@ lu.default <- Matrix::lu
 #' @export
 lu.FLMatrix<-function(object,...)
 {
-	connection<-getOption("connectionFL")
-	flag3Check(connection)
-	flag1Check(connection)
+	connection<-getFLConnection()
+	## flag3Check(connection)
+	## flag1Check(connection)
 	
     MID1 <- getMaxMatrixId(connection)
 
@@ -125,7 +125,7 @@ lu.FLMatrix<-function(object,...)
 				   		" AND OutputValU IS NOT NULL ")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -134,10 +134,10 @@ lu.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstrLU)
 
-	flm <- new("FLMatrix",
+	flm <- newFLMatrix(
                select= tblfunqueryobj,
-               dim=dim(object),
-	            dimnames=dimnames(object))
+               dims=dim(object),
+	            Dimnames=dimnames(object))
 
   	LUMatrix <- store(object=flm)
 
@@ -193,7 +193,7 @@ lu.FLMatrix<-function(object,...)
 					 constructWhere(constraintsSQL(LUMatrix)))
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -201,9 +201,9 @@ lu.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstrX)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:length(LUMatrix),
+				Dimnames = list(1:length(LUMatrix),
 								"vectorValueColumn"),
 				isDeep = FALSE)
 

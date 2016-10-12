@@ -31,9 +31,9 @@ svd.default<-base::svd
 #' @export
 svd.FLMatrix<-function(object,nu=c(),nv=c())
 {
-	connection<-getConnection(object)
-	flag1Check(connection)
-	flag3Check(connection)
+	connection<-getFLConnection(object)
+	## flag1Check(connection)
+	## flag3Check(connection)
 
     sqlstr <- paste0(
                      viewSelectMatrix(object, "a","z"),

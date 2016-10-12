@@ -64,7 +64,7 @@ setMethod("cochran.qtest",
                 p.method="fdr",
                 ...){
                     data <- setAlias(data,"")
-                    connection <- getOption("connectionFL")
+                    connection <- getFLConnection()
                     if(data@isDeep)
                         stop("input table must be wide \n ")
                     vallVars <- all.vars(formula)

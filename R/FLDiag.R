@@ -32,14 +32,14 @@ diag.default <- base::diag
 diag.FLMatrix<-function(object,...)
 {
     
-    connection<-getConnection(object)
-    flag3Check(connection)
+    connection<-getFLConnection(object)
+    ## flag3Check(connection)
 
     table <- FLTable(table=object@select@table_name,
-                     obs_id_colname = getVariables(object)[[object@dimColumns[[1]]]],
+                     obs_id_colname = getVariables(object)[[object@dimColumns[[2]]]],
                      whereconditions=c(object@select@whereconditions,
-                                       paste0(getVariables(object)[[object@dimColumns[[1]]]],
-                                              "=",getVariables(object)[[object@dimColumns[[2]]]])))
+                                       paste0(getVariables(object)[[object@dimColumns[[2]]]],
+                                              "=",getVariables(object)[[object@dimColumns[[3]]]])))
 
     valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
 
@@ -53,12 +53,12 @@ diag.FLMatrix<-function(object,...)
 #' @export
 diag.FLVector <- function(object,...)
 {
-    connection <- getConnection(object)
-    flag1Check(connection)
+    connection <- getFLConnection(object)
+    ## flag1Check(connection)
 
     if(length(object)==1)
     {
-        flag1Check(connection)
+        ## flag1Check(connection)
         value <- as.vector(object)
         MID <- getMaxMatrixId(connection)
 
@@ -99,7 +99,7 @@ diag.FLVector <- function(object,...)
 
         else
         {
-            if(length(object@dimnames[[1]])==1)
+            if(length(object@Dimnames[[1]])==1)
             {
                 MID <- getMaxMatrixId(connection)
                 sqlstr <- paste(sapply(1:length(object),FUN=function(i){
@@ -111,7 +111,7 @@ diag.FLVector <- function(object,...)
                            " SELECT ",MID,",",
                            i,",",
                            i,",",
-                           paste0(vpatch,object@dimnames[[2]][i]),
+                           paste0(vpatch,object@Dimnames[[2]][i]),
                            " FROM ",tableAndAlias(object),
                            constructWhere(constraintsSQL(object)))
                     }),collapse=";")
@@ -134,7 +134,7 @@ diag.FLVector <- function(object,...)
                      matrix_id_colname = "", 
                      row_id_colname = getVariables(object)$obs_id_colname, 
                      col_id_colname = getVariables(object)$obs_id_colname, 
-                     cell_val_colname = object@dimnames[[2]],
+                     cell_val_colname = object@Dimnames[[2]],
                      whereconditions = object@select@whereconditions,
                      connection = connection
                  ))

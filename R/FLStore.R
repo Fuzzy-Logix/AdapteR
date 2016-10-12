@@ -41,37 +41,37 @@ setMethod("store",
 #           function(object,...) store.character(object,returnType,...))
 
 storeVarnameMapping <- function(connection,
-                                tablename,
+                                tablename=getOption("NameMapTableFL"),
                                 matrixId,
                                 dimId,
                                 mynames){
     Ndim <- length(mynames)
     names(mynames) <- 1:Ndim
-    sqlstatements <- paste0(
-        " INSERT INTO ",
-        getOption("NameMapTableFL"),
-        "(TABLENAME, MATRIX_ID, DIM_ID, ",
-        "NAME, NUM_ID",
-        ")",
-        " VALUES (",
-        "'",tablename,"', ",
-        "'",matrixId,"', ",
-        dimId,", ",
-        "'",mynames,"', ",
-        names(mynames),
-        ");")
+    # sqlstatements <- paste0(
+    #     " INSERT INTO ",
+    #     getOption("NameMapTableFL"),
+    #     "(TABLENAME, MATRIX_ID, DIM_ID, ",
+    #     "NAME, NUM_ID",
+    #     ")",
+    #     " VALUES (",
+    #     "'",tablename,"', ",
+    #     "'",matrixId,"', ",
+    #     dimId,", ",
+    #     "'",mynames,"', ",
+    #     names(mynames),
+    #     ");")
 
-    if(class(connection)=="JDBCConnection")
-    {
+    # if(class(connection)=="JDBCConnection")
+    # {
       mdeep <- data.frame(tablename,as.integer(matrixId),as.integer(dimId),
                         as.character(mynames),as.integer(names(mynames)))
       colnames(mdeep) <- c("TABLENAME","MATRIX_ID","DIM_ID","NAME","NUM_ID")
       t <- as.FLTable.data.frame(mdeep,connection,getOption("NameMapTableFL"),2,drop=FALSE)
-    }
-    else
-    retobj<-sqlSendUpdate(connection,
-                          paste(sqlstatements,
-                                collapse="\n"))
+    # }
+    # else
+    # retobj<-sqlSendUpdate(connection,
+    #                       paste(sqlstatements,
+    #                             collapse="\n"))
     return(mynames)
 }
 
@@ -135,17 +135,17 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
       #                        constructSelect(object,joinNames=FALSE)),
       #                   "\n")
 
-      # sqlSendUpdate(getConnection(object),
+      # sqlSendUpdate(getFLConnection(object),
       #               vSqlStr)
       return(FLMatrix(
-            connection = getConnection(object),
+            connection = getFLConnection(object),
             table_name = vtableName1, 
             matrix_id_value = MID1,
             matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = object@dimColumns[[1]], 
-            col_id_colname = object@dimColumns[[2]], 
-            cell_val_colname = object@dimColumns[[3]],
-            dim=dim(object),
+            row_id_colname = object@dimColumns[[2]], 
+            col_id_colname = object@dimColumns[[3]], 
+            cell_val_colname = object@dimColumns[[4]],
+            dims=dim(object),
             dimnames=dimnames(object),
             type=typeof(object)
             ))
@@ -155,7 +155,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
 #' @export
 store.FLVector <- function(object,pTableName=NULL,...)
 {
-  connection <- getConnection(object)
+  connection <- getFLConnection(object)
   if(length(colnames(object))>1 && object@isDeep==FALSE)
   {
     object <- as.vector(object)
@@ -200,10 +200,10 @@ store.FLVector <- function(object,pTableName=NULL,...)
   #                   "\n",
   #                  gsub("'%insertIDhere%'",VID,constructSelect(object)),
   #                   "\n")
-  # sqlSendUpdate(getConnection(object),
+  # sqlSendUpdate(getFLConnection(object),
   #                 vSqlStr)
   select <- new("FLSelectFrom",
-                connection = connection, 
+                connectionName = attr(connection,"name"), 
                 table_name = vtableName1,
                 variables = list(
                         obs_id_colname = "vectorIndexColumn"),
@@ -213,9 +213,9 @@ store.FLVector <- function(object,pTableName=NULL,...)
 
   if(ncol(object)==1) vindex <- rownames(object)
   else vindex <- colnames(object)
-  return(new("FLVector",
+  return(newFLVector(
                 select=select,
-                dimnames=list(vindex,"vectorValueColumn"),
+                Dimnames=list(vindex,"vectorValueColumn"),
                 isDeep=FALSE,
                 type=typeof(object)))
 }
@@ -223,7 +223,7 @@ store.FLVector <- function(object,pTableName=NULL,...)
 #' @export
 store.FLTable <- function(object,pTableName=NULL,...)
 {
-  connection <- getConnection(object)
+  connection <- getFLConnection(object)
   if(is.null(pTableName))
     table_name <- gen_unique_table_name("store")
   else table_name <- pTableName

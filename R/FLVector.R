@@ -22,7 +22,7 @@ FLVector <- function(table,
     V <- NULL
 	if(table@isDeep) {
         if(length(val_col_name)) { ## column vector deep table
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = table@variables$valueColumn,
                      whereconditions = c(whereconditions,
@@ -30,7 +30,7 @@ FLVector <- function(table,
                                              table@var_id_colname,val_col_name)))
             ##V <- V[val_row_name]
         } else if(length(val_row_name)) { ## column vector deep table
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = table@variables$valueColumn,
                      whereconditions = c(whereconditions,
@@ -39,13 +39,13 @@ FLVector <- function(table,
         }
     } else if(!table@isDeep) {
         if(length(val_col_name)) { 
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = val_col_name,
                      whereconditions = c(whereconditions))
             ##V <- V[val_row_name]
         } else if(length(val_row_name)) { ## column vector deep table
-            V <- new("FLVector",
+            V <- newFLVector(
                      table = table, 
                      val_col_name = names(table),
                      whereconditions = c(whereconditions,
@@ -76,12 +76,12 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
     
     if(ncol(x)==1)
     ifelse(is.FLVector(value),
-        x@dimnames[[1]] <- value,
-        x@dimnames[[1]] <- as.character(value))
+        x@Dimnames[[1]] <- value,
+        x@Dimnames[[1]] <- as.character(value))
     else if(ncol(x)>1)
     ifelse(is.FLVector(value),
-        x@dimnames[[2]] <- value,
-        x@dimnames[[2]] <- as.character(value))
+        x@Dimnames[[2]] <- value,
+        x@Dimnames[[2]] <- as.character(value))
     return(x)
 }
 
@@ -94,9 +94,9 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
 names.FLVector <- function(x)
 {
     if(ncol(x)==1)
-    vnames <- x@dimnames[[1]]
+    vnames <- x@Dimnames[[1]]
     else if(ncol(x)>1)
-    vnames <- x@dimnames[[2]]
+    vnames <- x@Dimnames[[2]]
 
     if(all(vnames==1:length(vnames)))
     return(NULL)

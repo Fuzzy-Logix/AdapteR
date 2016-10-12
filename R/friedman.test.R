@@ -133,7 +133,7 @@ friedman.test.FLMatrix <- function(y,...){
 #                                     ...))
 #     else{
 #         data <- setAlias(data,"")
-#         connection <- getOption("connectionFL")
+#         connection <- getFLConnection()
 #         if(data@isDeep){
 #             vBlockColname <- getVariables(data)[["obs_id_colname"]]
 #             vGroupColname <- getVariables(data)[["var_id_colname"]]
@@ -172,7 +172,7 @@ friedman.test.FLMatrix <- function(y,...){
 #                              WhereClause = list(...)[["whereconditions"]],
 #                              GroupBy = vgrp,
 #                              TableOutput = 1,
-#                              outputParameter = c(ResultTable = 'a')
+#                              outputParameter = c(OutTable = 'a')
 #                             )
 #         ret <- as.character(ret[1,1])
 
@@ -283,7 +283,7 @@ setMethod("friedman.test",
                                                     ...))
                     }
                     data <- setAlias(data,"")
-                    connection <- getOption("connectionFL")
+                    connection <- getFLConnection()
                     if(data@isDeep){
                         vBlockColname <- getVariables(data)[["obs_id_colname"]]
                         vGroupColname <- getVariables(data)[["var_id_colname"]]
@@ -322,7 +322,7 @@ setMethod("friedman.test",
                                          WhereClause = list(...)[["whereconditions"]],
                                          GroupBy = vgrp,
                                          TableOutput = 1,
-                                         outputParameter = c(ResultTable = 'a')
+                                         outputParameter = c(OutTable = 'a')
                                         )
                     ret <- as.character(ret[1,1])
 

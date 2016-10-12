@@ -27,9 +27,9 @@ FLJordan<-function(object, ...){
 #' @export
 FLJordan.FLMatrix<-function(object,...)
 {
-	connection<-getConnection(object)
-	flag1Check(connection)
-	flag3Check(connection)
+	connection<-getFLConnection(object)
+	## flag1Check(connection)
+	## flag3Check(connection)
 	
 
         sqlstr <- paste0(

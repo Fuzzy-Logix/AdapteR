@@ -128,7 +128,7 @@ hkmeans.FLTable<-function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
@@ -214,7 +214,7 @@ hkmeans.FLTable<-function(x,
 
 	cols <- sqlQuery(connection,sqlstr)[["vectorIndexColumn"]]
 
-	deepx@dimnames <- list(rows,cols)
+	deepx@Dimnames <- list(rows,cols)
 
 	if(levels>1)
 	{
@@ -304,8 +304,8 @@ cluster.FLHKMeans<-function(object)
 	return(object@results[["cluster"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						    "     ObsID AS vectorIndexColumn, \n ",
@@ -316,7 +316,7 @@ cluster.FLHKMeans<-function(object)
 						" ORDER BY ObsID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -324,9 +324,9 @@ cluster.FLHKMeans<-function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		clustervector <- new("FLVector",
+		clustervector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
 							isDeep = FALSE)
 
@@ -348,8 +348,8 @@ centers.FLHKMeans<-function(object)
 	return(object@results[["centers"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag1Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
 						    "  DENSE_RANK()OVER(ORDER BY ClusterID) AS rowIdColumn, \n ",
@@ -371,7 +371,7 @@ centers.FLHKMeans<-function(object)
                                 " ORDER BY varID "))[[1]]
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -380,12 +380,12 @@ centers.FLHKMeans<-function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-	  	centersmatrix <- new("FLMatrix",
-				            select= tblfunqueryobj,
-				            dim=c(object@centers,
-				            	length(vColnames)),
-				            dimnames=list(1:object@centers,
-				            			vColnames))
+	  	centersmatrix <- newFLMatrix(
+                    select= tblfunqueryobj,
+                    dims=as.integer(c(object@centers,
+                                      length(vColnames))),
+                    Dimnames=list(1:object@centers,
+                                  vColnames))
 
 	  	centersmatrix <- tryCatch(as.matrix(centersmatrix),
       						error=function(e){centersmatrix})
@@ -402,7 +402,7 @@ tot.withinss.FLHKMeans<-function(object){
 	return(object@results[["tot.withinss"]])
 	else
 	{
-		# connection <- getConnection(object@table)
+		# connection <- getFLConnection(object@table)
 		# deeptablename <- object@deeptable@select@table_name
 		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		# var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -439,8 +439,8 @@ withinss.FLHKMeans<-function(object){
 	return(object@results[["withinss"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -463,7 +463,7 @@ withinss.FLHKMeans<-function(object){
 						" GROUP BY fzzlKMeansClusterID.ClusterID ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -471,9 +471,9 @@ withinss.FLHKMeans<-function(object){
                         order = "",
                         SQLquery=sqlstr)
 
-		withinssvector <- new("FLVector",
+		withinssvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(1:object@centers,
+							Dimnames = list(1:object@centers,
 											"vectorValueColumn"),
 							isDeep = FALSE)
 
@@ -494,7 +494,7 @@ betweenss.FLHKMeans<-function(object){
 	return(object@results[["betweenss"]])
 	else
 	{
-		# connection <- getConnection(object@table)
+		# connection <- getFLConnection(object@table)
 		# flag3Check(connection)
 		# deeptablename <- object@deeptable@select@table_name
 		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -537,8 +537,8 @@ totss.FLHKMeans<-function(object){
 	return(object@results[["totss"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -574,8 +574,8 @@ size.FLHKMeans<-function(object)
 	return(object@results[["size"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						    "     DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorIndexColumn, \n ",
 							"	 COUNT(ObsID) AS vectorValueColumn \n ",
@@ -585,7 +585,7 @@ size.FLHKMeans<-function(object)
 	                      " GROUP BY ClusterID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -593,9 +593,9 @@ size.FLHKMeans<-function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		sizevector <- new("FLVector",
+		sizevector <- newFLVector(
 					select = tblfunqueryobj,
-					dimnames = list(1:object@centers,
+					Dimnames = list(1:object@centers,
 									"vectorValueColumn"),
 					isDeep = FALSE)
 
@@ -690,7 +690,7 @@ fitted.FLHKMeans <- function(object,method="centers",...){
 					" AND a.ClusterID = b.ClusterID ")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -699,12 +699,12 @@ fitted.FLHKMeans <- function(object,method="centers",...){
                     order = "",
                     SQLquery=sqlstr)
 
-  	centersmatrix <- new("FLMatrix",
+  	centersmatrix <- newFLMatrix(
 			            select= tblfunqueryobj,
-			            dim=c(nrow(object@deeptable),
+			            dims=as.integer(c(nrow(object@deeptable)),
 			            	ncol(object@deeptable)),
-			            dimnames=list(object$cluster,
-			            			object@deeptable@dimnames[[2]]))
+			            Dimnames=list(object$cluster,
+			            			object@deeptable@Dimnames[[2]]))
   	return(centersmatrix)
 }
 

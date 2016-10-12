@@ -7,8 +7,9 @@ Renv$dataf<- data.frame(var1 = rnorm(200),
                         offset=1)
 #rownames(var4) <- 1:nrow(var4)
 FLenv$dataf <- as.FLTable(Renv$dataf,
-                        tableName="ARBaseTestTempTable",
-                        drop=TRUE)
+                          tableName="ARBaseTestTempTable",
+                          temporary=FALSE,
+                          drop=TRUE)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({

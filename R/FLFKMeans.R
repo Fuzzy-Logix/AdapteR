@@ -182,7 +182,7 @@ fanny.FLTable <- function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
@@ -389,8 +389,8 @@ clustering.FLFKMeans <- function(object)
 	return(object@results[["clustering"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						    "    ObsID AS vectorIndexColumn, \n ",
@@ -400,7 +400,7 @@ clustering.FLFKMeans <- function(object)
 						"HypothesisID = 1 ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -408,9 +408,9 @@ clustering.FLFKMeans <- function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-		clusteringvector <- new("FLVector",
+		clusteringvector <- newFLVector(
 							select = tblfunqueryobj,
-							dimnames = list(object@deeptable@dimnames[[1]],
+							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
 							isDeep = FALSE)
 		clusteringvector <- tryCatch(as.vector(clusteringvector),
@@ -431,8 +431,8 @@ membership.FLFKMeans<-function(object)
 	return(object@results[["membership"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag1Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
@@ -444,7 +444,7 @@ membership.FLFKMeans<-function(object)
 						" AND a.HypothesisID=1")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -453,11 +453,11 @@ membership.FLFKMeans<-function(object)
                         order = "",
                         SQLquery=sqlstr)
 
-	  	membershipmatrix <- new("FLMatrix",
+	  	membershipmatrix <- newFLMatrix(
 				            select= tblfunqueryobj,
-				            dim=c(nrow(object@deeptable),
-				            	object@centers),
-				            dimnames=list(
+				            dims=as.integer(c(nrow(object@deeptable),
+                                                              object@centers)),
+				            Dimnames=list(
                                                 rownames(object@deeptable),
                                                 1:object@centers))
 
@@ -478,8 +478,8 @@ coeff.FLFKMeans<-function(object){
 	else
 	{
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		k<-1/object@centers
 
 		sqlstr <- paste0("SELECT FLSum(a.Weight*a.Weight)/COUNT(DISTINCT a.ObsID) AS dunn_coeff, \n ",
@@ -507,8 +507,8 @@ objective.FLFKMeans <- function(object){
 	{
 		##Phani-- Query needs to be optimized.
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+            ## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -548,8 +548,8 @@ k.crisp.FLFKMeans<-function(object){
 	return(object@results[["k.crisp"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		k<-1/object@centers
 
 		sqlstr <- paste0("SELECT COUNT(DISTINCT a.ObsID) as nonCrispClusters \n FROM \n ",
@@ -592,8 +592,8 @@ silinfo.FLFKMeans <- function(object){
 	return(object@results[["silinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
-		flag3Check(connection)
+		connection <- getFLConnection(object@table)
+		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
@@ -614,8 +614,10 @@ silinfo.FLFKMeans <- function(object){
 										WITH DATA
 									    ON 
 										COMMIT  PRESERVE ROWS;"))
-		u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
-										" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
+		# u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
+		# 								" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
+        u <- insertIntotbl(pTableName=b,
+                           pSelect=paste0(" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
 
 
 				

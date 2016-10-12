@@ -6,9 +6,8 @@
 \usage{
 createTable(pTableName, pColNames = NULL, pColTypes = NULL,
   pTableOptions = NULL, pPrimaryKey = pColNames[1], pFromTableName = NULL,
-  pWithData = TRUE, pTemporary = getOption("temporaryTablesFL"),
-  pDrop = FALSE, pDatabase = getOption("ResultDatabaseFL"),
-  pSelect = NULL, ...)
+  pWithData = TRUE, pTemporary = getOption("temporaryFL"), pDrop = FALSE,
+  pDatabase = getOption("ResultDatabaseFL"), pSelect = NULL, ...)
 }
 \arguments{
 \item{pTableName}{}

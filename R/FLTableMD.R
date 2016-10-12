@@ -37,14 +37,16 @@ FLTableMD <- function(table,
                       obs_id_colname,
                       var_id_colnames=character(0), 
                       cell_val_colname=character(0),
-                      connection=NULL,
-                      group_id=c())
+                      connection=getFLConnection(),
+                      group_id=c(),
+                      fetchIDs=TRUE,
+                      ...
+                      )
 {
     whereconditions <- ""
     vgrp <- group_id
     if(length(vgrp)>0)
         vgrp <- sort(vgrp)
-    if(is.null(connection)) connection <- getConnection(NULL)
     ## If alias already exists, change it to flt.
     if(length(names(table))>0)
     oldalias <- names(table)[1]
@@ -67,63 +69,86 @@ FLTableMD <- function(table,
     names(table) <- "flt"
     if(length(var_id_colnames) && length(cell_val_colname))
     {
-        #browser()
-        ## Wrong Assumption
-        ## ObsIDs can be non-continuous
-        vdims <- sqlQuery(connection,
-                         paste0("SELECT ",group_id_colname," AS grpID, \n ",
-                                        "MIN(",var_id_colnames,") AS MinID, \n ",
-                                        "Max(",var_id_colnames,") AS MaxID \n ",
-                                " FROM ",tableAndAlias(table),
-                                constructWhere(whereconditions)," \n ",
-                                " GROUP BY ",group_id_colname,
-                                " ORDER BY ",group_id_colname))
+        if(!fetchIDs) {
+            warning("todo: implement fetcching of IDs in MD deep case")
+            ## gk @ phani:  this needs serious optimization!
+            ##browser()
+            rows <- NULL
+            cols <- NULL
+            vgrp <- NULL
+            vdims <- sqlQuery(connection,
+                              paste0("SELECT ",group_id_colname," AS grpID, \n ",
+                                     "MIN(",var_id_colnames,") AS MinID, \n ",
+                                     "Max(",var_id_colnames,") AS MaxID \n ",
+                                     " FROM ",tableAndAlias(table),
+                                     constructWhere(whereconditions)," \n ",
+                                     " GROUP BY ",group_id_colname,
+                                     " ORDER BY ",group_id_colname))
+            if(length(vgrp)==0)
+                vgrp <- unique(vdims[["grpID"]])
+            cols<-dlply(vdims,"grpID",
+                        function(x){
+                c(vdims[["MinID"]],vdims[["MaxID"]])
+            })
+            names(cols)<-as.character(vgrp)
+        } else {
+                                        #browser()
+            ## Wrong Assumption
+            ## ObsIDs can be non-continuous
+            vdims <- sqlQuery(connection,
+                              paste0("SELECT ",group_id_colname," AS grpID, \n ",
+                                     "MIN(",var_id_colnames,") AS MinID, \n ",
+                                     "Max(",var_id_colnames,") AS MaxID \n ",
+                                     " FROM ",tableAndAlias(table),
+                                     constructWhere(whereconditions)," \n ",
+                                     " GROUP BY ",group_id_colname,
+                                     " ORDER BY ",group_id_colname))
 
-        vdims1 <- sqlQuery(connection,
-                         paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
-                                        obs_id_colname," AS ObsID \n ",
-                                " FROM ",tableAndAlias(table),
-                                constructWhere(whereconditions)," \n ",
-                                " ORDER BY ",group_id_colname,",",obs_id_colname))
-        # if(length(unique(vdims[["MinID"]]))!=1 
-        #     ||length(unique(vdims[["MaxID"]]))!=1)
-        #     stop("currently each set should have same columns \n ")
+            vdims1 <- sqlQuery(connection,
+                               paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
+                                      obs_id_colname," AS ObsID \n ",
+                                      " FROM ",tableAndAlias(table),
+                                      constructWhere(whereconditions)," \n ",
+                                      " ORDER BY ",group_id_colname,",",obs_id_colname))
+                                        # if(length(unique(vdims[["MinID"]]))!=1 
+                                        #     ||length(unique(vdims[["MaxID"]]))!=1)
+                                        #     stop("currently each set should have same columns \n ")
 
-        if(length(vgrp)==0)
-            vgrp <- unique(vdims[["grpID"]])
+            if(length(vgrp)==0)
+                vgrp <- unique(vdims[["grpID"]])
 
-        cols<-dlply(vdims,"grpID",
-                    function(x){
-                        c(x[["MinID"]],x[["MaxID"]])
-                    })
-        attributes(cols)<-NULL
-        names(cols)<-as.character(vgrp)
+            cols<-dlply(vdims,"grpID",
+                        function(x){
+                c(x[["MinID"]],x[["MaxID"]])
+            })
+            attributes(cols)<-NULL
+            names(cols)<-as.character(vgrp)
 
-        rows<-dlply(vdims1,"grpID",
-                    function(x){
-                        if(is.factor(x[["ObsID"]]))
-                            return(as.character(x[["ObsID"]]))
-                        else return(x[["ObsID"]])
-                    })
-        attributes(rows)<-NULL
-        # cols <- gsub("^ +| +$","",cols)
-        # rows <- gsub("^ +| +$","",rows)
+            rows<-dlply(vdims1,"grpID",
+                        function(x){
+                if(is.factor(x[["ObsID"]]))
+                    return(as.character(x[["ObsID"]]))
+                else return(x[["ObsID"]])
+            })
+            attributes(rows)<-NULL
+                                        # cols <- gsub("^ +| +$","",cols)
+                                        # rows <- gsub("^ +| +$","",rows)
 
-        ##change factors to strings
-        # vdimnames <- lapply(list(rows,cols),
-        #                           function(x){
-        #                               if(is.factor(x))
-        #                               as.numeric(x)
-        #                               else x
-        #                           })
-        # rows <- vdimnames[[1]]
-        # cols <- vdimnames[[2]]
+            ##change factors to strings
+                                        # vdimnames <- lapply(list(rows,cols),
+                                        #                           function(x){
+                                        #                               if(is.factor(x))
+                                        #                               as.numeric(x)
+                                        #                               else x
+                                        #                           })
+                                        # rows <- vdimnames[[1]]
+                                        # cols <- vdimnames[[2]]
 
-        # if(is.character(rows) || is.character(cols))
-        #     stop("obsIDs and varIDs cannot be characters \n ")
-
+                                        # if(is.character(rows) || is.character(cols))
+                                        #     stop("obsIDs and varIDs cannot be characters \n ")
+        }
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           group_id_colname= group_id_colname,
@@ -132,10 +157,9 @@ FLTableMD <- function(table,
                           cell_val_colname = cell_val_colname),
                       whereconditions=whereconditions,
                       order = "")
-
         new("FLTableMD",
             select = select,
-            dimnames = list(rows,cols,vgrp),
+            Dimnames = list(rows,cols,vgrp),
             isDeep = TRUE)
     }
     else
@@ -144,50 +168,73 @@ FLTableMD <- function(table,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
-        vdims <- sqlQuery(connection,
-                         paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
-                                        obs_id_colname," AS ObsID \n ",
-                                " FROM ",tableAndAlias(table),
-                                constructWhere(whereconditions)," \n ",
-                                " ORDER BY ",group_id_colname,",",obs_id_colname))
-        rows<-dlply(vdims,"grpID",
-                    function(x){
-                        if(is.factor(x[["ObsID"]]))
-                            return(as.character(x[["ObsID"]]))
-                        else return(x[["ObsID"]])
-                    })
-        attributes(rows)<-NULL
-        # ##change factors to strings
-        # vdimnames <- lapply(list(rows,cols),
-        #                           function(x){
-        #                               if(is.factor(x))
-        #                               as.numeric(x)
-        #                               else x
-        #                           })
-        # rows <- vdimnames[[1]]
-        # cols <- vdimnames[[2]]
-        if(length(vgrp)==0)
-            vgrp <- unique(vdims[["grpID"]])
-        # if(is.character(rows))
-        #     stop("obsIDs cannot be characters \n ")
 
-        cols <- setdiff(cols,changeAlias(obs_id_colname,"","flt"))
+        if(!is.null(list(...)[["ObsID"]])){
+          rows <- list(...)[["ObsID"]]
+          nrow <- length(rows)
+        }
+        else if(fetchIDs) {
+          rows <- sort(sqlQuery(connection,
+                            paste0("SELECT DISTINCT(",
+                                        obs_id_colname,") as VarID
+                                    FROM ",tableAndAlias(table),
+                                    " ",constructWhere(whereconditions)))[[1]])
+          rows <- cleanNames(rows)
+          nrow <- length(rows)
+          vdims <- sqlQuery(connection,
+                            paste0("SELECT DISTINCT ",group_id_colname," AS grpID, \n ",
+                                   obs_id_colname," AS ObsID \n ",
+                                   " FROM ",tableAndAlias(table),
+                                   constructWhere(whereconditions)," \n ",
+                                   " ORDER BY ",group_id_colname,",",obs_id_colname))
+          rows<-dlply(vdims,"grpID",
+                      function(x){
+              if(is.factor(x[["ObsID"]]))
+                  return(as.character(x[["ObsID"]]))
+              else return(x[["ObsID"]])
+          })
+          attributes(rows)<-NULL
+          if(length(vgrp)==0)
+              vgrp <- unique(vdims[["grpID"]])
+        } else {
+            rows <- NULL
+            vdims <- sqlQuery(connection,
+                            paste0("SELECT count(DISTINCT ",obs_id_colname,") as nrows,
+                                           count(DISTINCT ",group_id_colname,") as ngroups
+                                    FROM ",tableAndAlias(table),
+                                   " ",constructWhere(whereconditions)))
+            nrow <- vdims$nrows
+            nMD <- vdims$ngroups
+            vgrp <- NULL
+        }
+        cols <- cleanNames(cols)
+        
+        if(length(var_id_colnames)==0)
+            var_id_colnames <- cols
+        if(length(setdiff(var_id_colnames,cols)))
+            stop(paste0("columns do not exist: "))
+
+        ncol <- length(var_id_colnames)
+
+        mydimnames <- list(rows,var_id_colnames)
 
         select <- new("FLSelectFrom",
-                      connection = connection, 
+                      connectionName = attr(connection,"name"), 
                       table_name = table, 
                       variables = list(
                           group_id_colname=group_id_colname,
                           obs_id_colname = obs_id_colname,
-                                        #var_id_colname = var_id_colnames,
                           cell_val_colname = cell_val_colname),
                       whereconditions=whereconditions,
                       order = "")
 
-        T <- new("FLTableMD", 
+        T <- newFLTableMD( 
                  select = select,
-                 dimnames = list(rows,cols,vgrp),
-                 isDeep = FALSE)
+                 Dimnames = list(rows,cols,vgrp),
+                 dims = as.integer(c(nrow,ncol,nMD)),
+                 isDeep = FALSE
+            ##type=type ## todo
+        )
     }
 }
 

@@ -23,8 +23,8 @@ FLTriDiag <- function (object, ...){
 FLTriDiag.FLMatrix<-function(object,...)
 {
 
-	connection<-getConnection(object)
-	flag1Check(connection)
+	connection<-getFLConnection(object)
+    ## flag1Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLTridiagUdt",viewName="z",
@@ -32,7 +32,7 @@ FLTriDiag.FLMatrix<-function(object,...)
                    )
 	
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",
@@ -41,10 +41,10 @@ FLTriDiag.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  	flm <- new("FLMatrix",
+  	flm <- newFLMatrix(
             select= tblfunqueryobj,
-            dim=dim(object),
-            dimnames=dimnames(object))
+            dims=dim(object),
+            Dimnames=dimnames(object))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object),

@@ -42,7 +42,7 @@ setMethod("ks.test",signature(x="FLVector"),
 
           {
               dname <- deparse(substitute(x))
-              
+              ##browser()
               if(!is.FLVector(x))
                   stop("Only take FLVector")
               vviewName <- gen_view_name("kstest1s")
@@ -59,7 +59,7 @@ setMethod("ks.test",signature(x="FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
              # dname <- as.list(sys.call(sys.parent()))[[2]]
               sqlstr <- paste0("SELECT q.D_STAT AS D,
@@ -78,6 +78,7 @@ setMethod("ks.test",signature(x="FLVector"),
                              method = "One-sample Kolmogorov-Smirnov test",
                              data.name = as.character(dname))
               class(result) <- "htest"
+              dropView(vviewName)
               return(result)              
           }
           )
@@ -110,7 +111,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
               vcall <- as.list(sys.call(sys.parent()))
 #              dname <- paste0(vcall[2]," and ",vcall[3])
@@ -132,6 +133,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                              data.name = dname                             
                              )
               class(result) <- "htest"
+              dropView(vviewName)
               return(result)            
           }
           )

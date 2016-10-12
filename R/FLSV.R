@@ -23,8 +23,8 @@ FLSV <- function (object, ...){
 FLSV.FLMatrix<-function(object,...)
 {
 	#checkSquare(object)
-	connection<-getConnection(object)
-	flag3Check(connection)
+	connection<-getFLConnection(object)
+    ## flag3Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLSVUdt",includeMID=FALSE,
@@ -35,7 +35,7 @@ FLSV.FLMatrix<-function(object,...)
                    )
 
 	 tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",
                       cell_val_colname = "vectorValueColumn"),
@@ -43,9 +43,9 @@ FLSV.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  flv <- new("FLVector",
+  flv <- newFLVector(
         select = tblfunqueryobj,
-        dimnames = list(1:nrow(object),
+        Dimnames = list(1:nrow(object),
                         "vectorValueColumn"),
         isDeep = FALSE)
 

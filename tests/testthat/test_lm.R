@@ -7,8 +7,9 @@ groupb = rep(0:1,each = 10)
 weight <- c(ctl, trt)
 dataframe = data.frame(weight = weight,groupf =groupf,groupb =groupb)
 rownames(dataframe) <- 1:nrow(dataframe)
-Renv$dataframe <- dataframe
 FLenv = as.FL(Renv)
+Renv$dataframe <- dataframe
+FLenv$dataframe <- as.FLTable(dataframe,temporary=F)
 
 test_that("lm: execution",{
     result = eval_expect_equal({
@@ -26,21 +27,17 @@ test_that("lm: coefficient names https://app.asana.com/0/143316600934101/1569893
     expectation="C")
 })
 
+
 test_that("lm: equality of coefficients, residuals, fitted.values, rank and terms",{
     result = eval_expect_equal({
-        sapply(c("coefficients","residuals",
-                 "fitted.values","df.residual",
-                 "rank","terms"),
-               function(i){
-            ##cat(paste0("getting lmobj$",i,"\n"))
-            assign(i,do.call("$",list(lmobj,i)))
-        })
+        mycoefffs <- lmobj$coefficients
+        myres <- lmobj$residuals
+        myfitted.values <- lmobj$fitted.values
+        mydf.res <- lmobj$df.residual
+        myrank <- lmobj$rank
+        myterms <- lmobj$terms
         modelDim <- dim(lmobj$model)
-    },Renv,FLenv,
-    noexpectation = "lmobj",
-    expectation = c(c("coefficients","residuals",
-                      "fitted.values","df.residual",
-                      "rank","terms"),"modelDim"))
+    },Renv,FLenv)
 })
 
 
@@ -97,7 +94,7 @@ coeffList <- coef(lmfit)
 summaryList <- summary(lmfit)
 test_that("Check for dimensions of coefficients and summary for wideTable ",{
          expect_equal(names(coeffList),
-                    paste0("Model",flMDObject@dimnames[[3]]))
+                    paste0("Model",flMDObject@Dimnames[[3]]))
          expect_equal(names(coeffList),
                     names(summaryList))
          vcoeffnames <- all.vars(vformula)
@@ -114,7 +111,7 @@ coeffList <- coef(lmfit)
 summaryList <- summary(lmfit)
 test_that("Check for dimensions of coefficients and summary for DeepTable ",{
          expect_equal(names(coeffList),
-                    paste0("Model",flMDObjectDeep@dimnames[[3]]))
+                    paste0("Model",flMDObjectDeep@Dimnames[[3]]))
          expect_equal(names(coeffList),
                     names(summaryList))
          vlenCoeffs <- colnames(flMDObjectDeep)[[1]]
@@ -133,22 +130,24 @@ test_that("Check for dimensions of x Matrix ",{
         expect_equal(nrow(object$x),nrow(widetable))
         expect_equal(colnames(object$x),
                     c("(Intercept)","Height","Diameter"))
-        expect_equal(dimnames(object$model),
-                    list(rownames(widetable),
-                        c("Rings","Height","Diameter")
-                        ))
+        expect_equal(rownames(object$model),
+                     as.character(rownames(widetable))
+                    )
+        expect_equal(colnames(object$model),
+                     c("Rings","Height","Diameter")
+                    )
 })
 
-deeptable <- FLTable("FL_DEMO.myLinRegrSmall",
-                    "ObsID","VarID","Num_Val",
-                    whereconditions=c("ObsID>10","ObsID<1001"))
-object <- lm(NULL,deeptable)
 test_that("Check for dimensions of x Matrix ",{
-        expect_equal(nrow(object$x),nrow(deeptable))
-        expect_equal(colnames(object$x),
-                    c("(Intercept)",paste0("var",colnames(deeptable)[c(-1,-2)])))
-        expect_equal(dimnames(object$model),
-                    list(as.character(rownames(deeptable)),
-                        c("varY",paste0("var",colnames(deeptable)[c(-1,-2)]))
-                        ))
+    deeptable <- FLTable("FL_DEMO.myLinRegrSmall",
+                         "ObsID","VarID","Num_Val",
+                         whereconditions=c("ObsID>10","ObsID<1001"))
+    object <- lm(NULL,deeptable)
+    expect_equal(nrow(object$x),nrow(deeptable))
+    expect_equal(colnames(object$x),
+                 c("(Intercept)",paste0("var",colnames(deeptable)[c(-1,-2)])))
+    expect_equal(dimnames(object$model),
+                 list(as.character(rownames(deeptable)),
+                      c("varY",paste0("var",colnames(deeptable)[c(-1,-2)]))
+                      ))
 })

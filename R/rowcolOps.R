@@ -2,8 +2,8 @@
 NULL
 
 rowcolOps<-function(object,margin,operation,...){
-    connection<-getConnection(object)
-    flag3Check(connection)
+    connection<-getFLConnection(object)
+    ## flag3Check(connection)
     var <- genRandVarName()
     
     if(!margin %in% c("1","2")) stop("Please enter 1 for row and 2 for column")
@@ -23,15 +23,15 @@ rowcolOps<-function(object,margin,operation,...){
 	else stop("Please enter either \"Sum\" or \"Mean\"")
 	
 	sqlstr<-paste0( " SELECT '%insertIDhere%' AS vectorIdColumn ",#getMaxVectorId(connection),
-                   ",",var,".",object@dimColumns[[margin]]," AS vectorIndexColumn",
-			        ", (",opt,"(",var,".",object@dimColumns[[3]],"))/",div," AS vectorValueColumn 
+                   ",",var,".",object@dimColumns[[margin+1]]," AS vectorIndexColumn",
+			        ", (",opt,"(",var,".",object@dimColumns[[4]],"))/",div," AS vectorValueColumn 
 					FROM ",
 					"( ",constructSelect(object),
 					" ) AS ",var,
-					" GROUP BY ",var,".",object@dimColumns[[margin]])
+					" GROUP BY ",var,".",object@dimColumns[[margin+1]])
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -39,9 +39,9 @@ rowcolOps<-function(object,margin,operation,...){
                         order = "",
                         SQLquery=sqlstr)
 
-	flv <- new("FLVector",
+	flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = list(1:res,
+				Dimnames = list(1:res,
 								"vectorValueColumn"),
 				isDeep = FALSE)
 

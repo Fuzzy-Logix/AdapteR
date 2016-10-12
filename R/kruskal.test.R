@@ -108,7 +108,7 @@ setMethod("kruskal.test",
                 na.action=getOption("na.action"),
                 ...){
                     data <- setAlias(data,"")
-                    connection <- getOption("connectionFL")
+                    connection <- getFLConnection()
                     if(data@isDeep){
                         vSampleIDColname <- getVariables(data)[["var_id_colname"]]
                         vValueColname <- getVariables(data)[["cell_val_colname"]]

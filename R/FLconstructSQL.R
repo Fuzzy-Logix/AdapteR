@@ -2,8 +2,346 @@
 NULL
 
 
-setOldClass("RODBC")
+setClass("FLSkalarAggregate",
+         slots=list(
+             func="character",
+             arguments="list"
+         ))
 
+
+#' Models sparse data objects.
+#' 
+#' Sparse Indexed values objects are table queries with a value column and
+#' one (vectors), two (matrices) or several (arrays) index columns.
+#'
+#' The name of the values column
+setClass("FLIndexedValues", slots=list(
+                                dims = "integer",
+                                dimColumns = "character" ## gk: todo: this needs some refactoring for FLVector
+                       ))
+
+setClass("FLAbstractColumn",
+	slots=list(
+            columnName = "character"))
+
+#' A table query models a select or a table result of a sql statement.
+#' 
+#' 
+#' @slot connectionName character variable not used right now, will be used for future support of working with several connections (to different platforms possibly)
+#' @slot variables list Named list of variables for the table query: values are rownames, names (keys) are result column names.
+#' @slot whereconditions character vector of strings restricting the select query (if any)
+#' @slot order character ordering statements (if any)
+#' @export
+setClass("FLTableQuery",
+         slots=list(
+             variables  = "list",
+             connectionName = "character",
+             whereconditions="character",
+             order = "character"
+         ))
+
+##' A selectFrom models a select from a table.
+##'
+##' @slot table_name character the name of the table to select from (possibly fully qualified, i.e. with database)
+##' @export
+setClass("FLSelectFrom",
+         contains="FLTableQuery",
+         slots=list(
+             table_name = "character"
+         ))
+
+##' A TableFunctionQuery models a select from an arbitrary query
+##'
+##' @slot SQLquery character The free SQL query returning a table.
+##' @export
+setClass("FLTableFunctionQuery",
+         contains="FLTableQuery",
+         slots=list(
+             SQLquery = "character"
+         ))
+
+setClass("FLAbstractTable",
+    slots = list(
+        select = "FLTableQuery",
+        Dimnames = "list",
+        isDeep = "logical",
+        mapSelect = "FLSelectFrom"
+    )
+)
+
+##' An S4 class to represent FLMatrix.
+##' A Matrix can be either based off a query from a deep table (customizable by any where-condition)
+##' -- or based off an arbitrary SQL statement returning a deep table.
+##'
+##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
+##' @slot dim list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R
+##' @export
+setClass("FLMatrix",
+         contains="FLIndexedValues",
+         slots = list(
+             select = "FLTableQuery",
+             mapSelect  = "FLSelectFrom",
+             ##dimColumns = "character",
+             type       = "character",
+             Dimnames = "ANY"
+         ), prototype = prototype(
+             dimColumns=c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn"),
+             type="double")
+         )
+
+
+setClass("FLMatrix.Hadoop", contains = "FLMatrix")
+setClass("FLMatrix.TD", contains = "FLMatrix")
+setClass("FLMatrix.TDAster", contains = "FLMatrix")
+
+newFLMatrix <- function(...) {
+  vtemp <- list(...)
+  if(is.TDAster()){
+      vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
+                              "colidcolumn","valuecolumn")
+  }
+  return(do.call("new",
+                c(Class=paste0("FLMatrix.",getFLPlatform()),
+                  vtemp)))
+}
+
+#' An S4 class to represent FLVector
+#'
+#' @export
+setClass("FLVector",
+         contains="FLIndexedValues",
+         slots = list(
+             select = "FLTableQuery",
+             Dimnames = "list",
+             isDeep= "logical",
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         ),
+         prototype = prototype(type="double")
+         )
+
+setClass("FLVector.Hadoop", contains = "FLVector")
+setClass("FLVector.TD", contains = "FLVector")
+setClass("FLVector.TDAster", contains = "FLVector")
+
+newFLVector <- function(...) {
+    new(paste0("FLVector.",getFLPlatform()), ...)
+}
+
+#' An S4 class to represent FLVector
+#'
+#' @export
+setClass("FLSimpleVector",
+         contains="FLIndexedValues",
+         slots = list(
+             select = "FLTableQuery",
+             ##dimColumns = "character",
+             ## names = "ANY",
+             type       = "character"
+         ),prototype = prototype(type="double")
+         )
+
+
+#' An S4 class to represent FLTable, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @method names FLTable
+#' @param object retrieves the column names of FLTable object
+#' @export
+setClass("FLSimpleWideTable",
+         contains="FLIndexedValues",
+         slots = list(
+             select = "FLTableQuery",
+             ##dimColumns = "character",
+             Dimnames = "list",
+             dims = "integer",
+             ##mapSelect = "FLSelectFrom",
+             type       = "character"
+         ))
+
+
+
+setGeneric("getValueSQLName", function(object) {
+    standardGeneric("getValueSQLName")
+})
+setMethod("getValueSQLName",
+          signature(object = "FLMatrix"),
+          function(object) object@dimColumns[[4]])
+setMethod("getValueSQLName",
+          signature(object = "FLVector"),
+          function(object) "vectorValueColumn") ## gk @ phani -- is that currently really constant??
+setMethod("getValueSQLName",
+          signature(object = "FLSimpleVector"),
+          function(object) object@dimColumns[[2]])
+setMethod("getValueSQLName",
+          signature(object = "FLAbstractColumn"),
+          function(object) object@columnName)
+
+setGeneric("getValueSQLExpression", function(object) {
+    standardGeneric("getValueSQLExpression")
+})
+setMethod("getValueSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object) object@select@variables[[getValueSQLName(object)]])
+setMethod("getValueSQLExpression",
+          signature(object = "FLAbstractColumn"),
+          function(object) object@columnName)
+
+
+
+setGeneric("setValueSQLExpression", function(object, func,...) {
+    standardGeneric("setValueSQLExpression")
+})
+setMethod("setValueSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object,func,...) {
+    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
+    object
+})
+
+
+setGeneric("getIndexSQLExpression", function(object,margin=1) {
+    standardGeneric("getIndexSQLExpression")
+})
+setMethod("getIndexSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object,margin=1){
+    nam <- getIndexSQLName(object=object,margin=margin)
+    expr <- object@select@variables[[nam]]
+    if(is.null(expr)) return(nam)
+    expr
+})
+setMethod("getIndexSQLExpression",
+          signature(object = "FLAbstractColumn"),
+          function(object,margin=1) object@columnName)
+
+setGeneric("getIndexSQLName", function(object,margin) {
+    standardGeneric("getIndexSQLName")
+})
+setMethod("getIndexSQLName",
+          signature(object = "FLMatrix"),
+          function(object,margin=1:2) object@dimColumns[2:3][margin])
+setMethod("getIndexSQLName",
+          signature(object = "FLVector"),
+          function(object,margin=1) stop("use FLSimpleVector"))
+setMethod("getIndexSQLName",
+          signature(object = "FLIndexedValues"),
+          function(object,margin=1) object@dimColumns[[margin]])
+
+
+setGeneric("setValueSQLExpression", function(object, func,...) {
+    standardGeneric("setValueSQLExpression")
+})
+setMethod("setValueSQLExpression",
+          signature(object = "FLIndexedValues"),
+          function(object,func,...) {
+    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
+    object
+})
+
+
+
+#' An S4 class to represent FLTable, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @method names FLTable
+#' @param object retrieves the column names of FLTable object
+#' @export
+setClass("FLTable",
+         slots = list(
+             select = "FLTableQuery",
+             Dimnames = "list",
+             dims = "numeric",
+             isDeep = "logical",
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         ),
+         prototype = prototype(type="double")
+        )
+
+
+setClass("FLTable.Hadoop", contains = "FLTable")
+setClass("FLTable.TD", contains = "FLTable")
+setClass("FLTable.TDAster", contains = "FLTable")
+
+newFLTable <- function(...) {
+    new(paste0("FLTable.",getFLPlatform()),
+        ...)
+}
+
+
+#' An S4 class to represent FLTableMD, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @slot mapSelect \code{FLSelectFrom} object which contains the 
+#' mapping information if any
+#' @export
+setClass("FLTableMD",
+         contains="FLTable",
+         slots = list(
+             select = "FLTableQuery",
+             Dimnames = "list",
+             dims = "numeric",
+             isDeep = "logical",
+             mapSelect = "FLSelectFrom",
+             type       = "character"
+         )
+         )
+
+setClass("FLTableMD.Hadoop", contains = "FLTableMD")
+setClass("FLTableMD.TD", contains = "FLTableMD")
+setClass("FLTableMD.TDAster", contains = "FLTableMD")
+
+newFLTableMD <- function(...) {
+    new(paste0("FLTableMD.",getFLPlatform()),
+        ...)
+}
+
+
+#' computes the length of FLVector object.
+#' @param obj is a FLVector object.
+#' @return \code{length} returns a R Vector giving the length of input object.
+#' @export
+length.FLSimpleVector <- function(obj) obj@dims
+
+#' Get names of a FLVector
+#'
+#' @param x FLVector
+#' @return character vector of names
+#' of FLVector if exists. Else NULL
+#' @export
+names.FLSimpleVector <- function(x) x@names
+
+
+#' Converts FLVector object to vector in R
+#' @export
+as.vector.FLSimpleVector <- function(object,mode="any")
+{
+    x <- sqlQuery(connection,constructSelect(object))
+    return(x[[object@dimColumns[[2]]]])
+}
+
+#' @export
+FLSerial <- function(min,max){
+    new("FLSimpleVector",
+        select=new("FLSelectFrom",
+                   table_name=c(fzzlSerial="fzzlSerial"),
+                   connectionName=getFLConnectionName(),
+                   variables=list(serialVal="fzzlSerial.serialVal"),
+                   whereconditions=c(paste("fzzlSerial.serialVal>=",min),paste("fzzlSerial.serialVal<=",max)),
+                   order="serialVal"),
+        dimColumns = c("serialVal","serialVal"),
+        ##names=NULL,
+        dims    = as.integer(max-min+1),
+        type       = "integer"
+        )
+}
 
 ##' constructs a sql statement returning the
 ##' deep table representation of the object.
@@ -16,37 +354,48 @@ setGeneric("constructSelect", function(object,...) {
     standardGeneric("constructSelect")
 })
 
+setMethod("constructSelect", signature(object = "FLSimpleVector"),
+          function(object,...) {
+    return(constructSelect(object@select,...))
+})
+
+setMethod("constructSelect", signature(object = "FLSimpleWideTable"),
+          function(object,...) {
+    return(constructSelect(object@select,...))
+})
+
 setMethod("constructSelect", signature(object = "FLMatrix"),
-          function(object,joinNames=TRUE){
+          function(object,joinNames=TRUE,...){
             if(!"matrix_id" %in% tolower(names(getVariables(object))))
             object@select@variables <- c(list(MATRIX_ID= "'%insertIDhere%'"),
                                         getVariables(object))
-
-              if(!FLNamesMappedP(object) | !joinNames)
-                  return(constructSelect(object@select))
-              select <- object@select
-              select@variables <- c(select@variables,
+            if(!is.null(object@dimColumns))
+                names(object@select@variables) <- object@dimColumns
+            if(!FLNamesMappedP(object) | !joinNames)
+                return(constructSelect(object@select))
+            select <- object@select
+            select@variables <- c(select@variables,
                                     object@mapSelect@variables)
-              select@table_name <- c(select@table_name,
+            select@table_name <- c(select@table_name,
                                      object@mapSelect@table_name)
-              select@whereconditions <- c(select@whereconditions,
+            select@whereconditions <- c(select@whereconditions,
                                           object@mapSelect@whereconditions)
-              return(constructSelect(select))
+            return(constructSelect(select))
           })
 
 setMethod("constructSelect", signature(object = "FLTableQuery"),
-          function(object) {
+          function(object,...) {
               return(paste0("SELECT ",
                             paste(colnames(object),collapse=", "),
                             " FROM ",tableAndAlias(object),
                             constructWhere(c(constraintsSQL(object))),
-                            paste(object@order,collapse=", "),
+                            constructOrder(orderVars=object@order,...),
                             "\n"))
           })
 
 
 setMethod("constructSelect", signature(object = "FLTable"),
-          function(object) {
+          function(object,...) {
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
             #browser()
@@ -109,7 +458,7 @@ setMethod("constructSelect", signature(object = "FLTable"),
           })
 
 setMethod("constructSelect", signature(object = "FLVector"),
-          function(object,joinNames=TRUE) {
+          function(object,joinNames=TRUE,...) {
             if(class(object@select)=="FLTableFunctionQuery") 
                 return(constructSelect(object@select))
             ## If mapSelect exists join tables
@@ -119,9 +468,9 @@ setMethod("constructSelect", signature(object = "FLVector"),
             # {
             #   # if(ncol(object)==1) newnames <- rownames(object)
             #   # else newnames <- colnames(object)
-            #   # namesflvector <- new("FLVector",
+            #   # namesflvector <- newFLVector(
             #   #           select=object@mapSelect,
-            #   #           dimnames=list(newnames,"NAME"),
+            #   #           Dimnames=list(newnames,"NAME"),
             #   #           isDeep=FALSE)
             #   mapTable <- paste0(",(",constructSelect(object@mapSelect),") AS b ")
             # }
@@ -220,23 +569,15 @@ constructVariables <- function(variables){
 }
 setMethod("constructSelect",
     signature(object = "FLSelectFrom"),
-    function(object) {
+    function(object,...) {
       #browser()
         variables <- getVariables(object)
-        order <- setdiff(object@order,c(NA,""))
-        if(length(order)==0)
-            ordering <- ""
-        else
-            ## ordering <- paste0(" ORDER BY ",paste0(object@obs_id_colname,collapse = ", "))
-            ordering <- paste0("\n ORDER BY ",
-                               paste0(order,
-                                      collapse = ", "))
         return(paste0(
             "SELECT\n",
             constructVariables(variables),
             "\n FROM ",tableAndAlias(object),
             constructWhere(c(constraintsSQL(object))),
-            ordering,
+            constructOrder(orderVars=object@order,...),
             "\n"))
     })
 
@@ -253,7 +594,14 @@ setMethod("constructSelect",
           function(object) return(object))
 
 
-## Phani-- removed \n as it was creating problem in FLCorrel test cases
+constructOrder <- function(orderVars, order=TRUE,...) {
+    orderVars <- setdiff(orderVars,c(NA,""))
+    if(!order | (length(orderVars)==0))
+        return("")
+    paste0("\n ORDER BY ",
+           paste0(orderVars, collapse = ", "))
+}
+
 constructWhere <- function(conditions) {
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)==0)
@@ -266,6 +614,7 @@ constructWhere <- function(conditions) {
     else
         ""
 }
+
 
 setGeneric("viewSelectMatrix", function(object,localName, withName) {
     standardGeneric("viewSelectMatrix")

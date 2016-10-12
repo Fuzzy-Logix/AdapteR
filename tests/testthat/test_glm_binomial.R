@@ -6,9 +6,14 @@ Renv$dataf<- data.frame(var1 = rnorm(200),
                         var3 = sample( c(0, 1), 200, replace = TRUE),
                         offset=1)
 #rownames(var4) <- 1:nrow(var4)
+FLenv <- as.FL(Renv)
+dataf <- FLenv$dataf
+
 FLenv$dataf <- as.FLTable(Renv$dataf,
-                        tableName="ARBaseTestTempTable",
-                        drop=TRUE)
+                          tableName="ARBaseTestTempTable",
+                          temporary=FALSE,
+                          drop=TRUE)
+
 
 test_that("glm: execution for binomial ",{
   result = eval_expect_equal({

@@ -21,10 +21,11 @@ t<-function(object, ...){
 
 #' @export
 t.FLMatrix<-function(object,...){
-    object@dimColumns[1:2] <- rev(object@dimColumns[1:2])
-    object@dim <- rev(object@dim)
-    if(!is.null(object@dimnames))
-        object@dimnames <- rev(object@dimnames)
+    object@dimColumns[2:3] <- rev(object@dimColumns[2:3])
+    object@select@variables[2:3] <- rev(object@select@variables[2:3])
+    object@dims <- rev(object@dims)
+    if(!is.null(object@Dimnames))
+        object@Dimnames <- rev(object@Dimnames)
     return(object)
 }
 

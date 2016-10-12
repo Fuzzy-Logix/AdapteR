@@ -31,10 +31,14 @@ setMethod("FLexpect_equal",
             return(testthat::expect_equal(object,
                         as.dist(as.matrix(expected))
                         ,...))
-
             testthat::expect_equal(object,
                                      as.matrix(expected),...)
           })
+setMethod("FLexpect_equal",
+          signature(object="FLSimpleVector",expected="vector"),
+          function(object,expected,...)
+              testthat::expect_equal(as.vector(object),
+                                     expected,...))
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="vector"),
           function(object,expected,...)
@@ -57,11 +61,21 @@ setMethod("FLexpect_equal",signature(object="list",expected="list"),
                         FLexpect_equal(object[[i]],
                                        expected[[i]],...)))
 setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLSimpleVector"),
+          function(object,expected,...){
+            if(is.numeric(object) || is.integer(object) || is.vector(object)){
+                return(FLexpect_equal(expected,object,...))
+            }
+            else FLexpect_equal(as.FLVector(object),
+                                expected,...)
+          })
+setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
           function(object,expected,...){
             if(is.numeric(object) || is.integer(object) || is.vector(object)){
-                object <- as.vector(object)
-                return(testthat::expect_equal(object,as.R(expected),...))
+                # object <- as.vector(object)
+                # return(testthat::expect_equal(object,as.R(expected),...))
+                return(FLexpect_equal(expected,object,...))
             }
             else FLexpect_equal(as.FLVector(object),
                                 expected,...)
@@ -196,22 +210,21 @@ expect_flequal <- function(a,b,...){
 #' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
-  #browser()
   if(n>1000000)
   stop("maximum n allowed is 1000000 \n ")
   else if(!isRowVec){
     if(type=="float")
     {
       select <- new("FLSelectFrom",
-                    connection = getOption("connectionFL"), 
+                    connectionName = getFLConnectionName(), 
                     ##database = getOption("ResultDatabaseFL"), 
                     table_name = "fzzlserial",
                     variables = list(obs_id_colname="SERIALVAL"),
                     whereconditions=paste0(getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE),".SERIALVAL < ",n+1),
                     order = "")
-      flv <- new("FLVector",
+      flv <- newFLVector(
                 select=select,
-                dimnames=list(1:n,"RANDVAL"),
+                Dimnames=list(1:n,"RANDVAL"),
                 isDeep=FALSE)
     }
     # else if(is.null(getOption("FLTestVectorTable")) ||
@@ -241,14 +254,14 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       }
       # options(FLTestVectorTable=TRUE)
       select <- new("FLSelectFrom",
-                    connection = getOption("connectionFL"), 
+                    connectionName = getFLConnectionName(), 
                     table_name = vtableName,
                     variables = list(obs_id_colname="vectorIndexColumn"),
                     whereconditions=paste0(vtableName,".vectorIndexColumn < ",n+1),
                     order = "")
-      flv <- new("FLVector",
+      flv <- newFLVector(
                   select=select,
-                  dimnames=list(1:n,"vectorValueColumn"),
+                  Dimnames=list(1:n,"vectorValueColumn"),
                   isDeep=FALSE)
     }
   }
@@ -259,16 +272,19 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
     }
     else{
       vmaxId <- getMaxVectorId()
-      sqlSendUpdate(getOption("connectionFL"),
+      sqlSendUpdate(getFLConnection(),
                           c(paste0("INSERT INTO ",getOption("ResultVectorTableFL")," \n ",
-                              " SELECT ",vmaxId," AS VECTOR_ID,a.serialval AS VECTOR_INDEX,
-                                CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
-                              FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a 
-                              WHERE a.serialval <=  ",n)))
+                              " SELECT ",vmaxId," AS vectorIdColumn, \n ",
+                                        " a.serialval AS vectorIndexColumn, \n ",
+                                        #CAST(RANDOM(0,100) AS FLOAT)AS VECTOR_VALUE  
+                                        "a.RANDVAL +1 AS vectorValueColumn \n ",
+                              " FROM ", getRemoteTableName(tableName = "fzzlserial", temporaryTable=FALSE)," a \n ",
+                              " WHERE a.serialval <=  ",n)))
 
       table <- FLTable(getOption("ResultVectorTableFL"),
                        "vectorIndexColumn",
-                       whereconditions=paste0(getOption("ResultVectorTableFL"),".vectorIdColumn = ",vmaxId)
+                       whereconditions=paste0(getOption("ResultVectorTableFL"),
+                                            ".vectorIdColumn = ",vmaxId)
                      )
       flv <- table[,"vectorValueColumn"]
     }
@@ -344,7 +360,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
             ARTestIntMatrixTable="int")
   vtableName <- names(vtemp)[vtemp==type]
   select <- new("FLSelectFrom",
-                connection = getOption("connectionFL"),
+                connectionName = getFLConnectionName(),
                 table_name = c(mtrx=vtableName),
                 variables=list(MATRIX_ID="'%insertIDhere%'",
                                rowIdColumn=paste0("mtrx.rowIdColumn"),
@@ -354,10 +370,10 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                   paste0("mtrx.colIdColumn < ",ifelse(isSquare,n+1,n))),
                 order = "")
   
-  flm <- new("FLMatrix",
+  flm <- newFLMatrix(
             select = select,
-            dim = c(n,ifelse(isSquare,n,n-1)),
-            dimnames = list(NULL,NULL))
+            dims = as.integer(c(n,ifelse(isSquare,n,n-1))),
+            Dimnames = list(NULL,NULL))
 
   return(list(FL=flm,R=as.matrix(flm)))
 }

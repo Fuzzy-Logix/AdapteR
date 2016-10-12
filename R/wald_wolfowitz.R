@@ -49,12 +49,13 @@ WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
         sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
                          ret$ResultTable," AS q")
         res_1 <- sqlQuery(connection , sqlstr)
-        result <- list(statistics = c(Z = res_1$Z),
+        result <- list(statistic = c(Z = res_1$Z),
                        p.value = res_1$P,
                        data.name = as.character(vcall),
                        method = "Wald Wolfowitz test"
                        )
         class(result) <- "htest"
+        dropView(vviewName)
         return(result)      
     }
 }
@@ -91,12 +92,13 @@ WaldWolftest2s <- function(vFLvector, vFLvector2)
                              r.P_VALUE AS P_Value
                      FROM ",ret$ResultTable," AS r")
     res_1 <- sqlQuery(connection, sqlstr)
-    result <- list(statistics = c(Z = res_1$Z),
+    result <- list(statistic = c(Z = res_1$Z),
                    p.value = res_1$P_Value,
                    alternative = "two-sided",
                    method = "Two-sample Wald-Wolfowitz test",
                    data.name = dname                             
                    )
     class(result) <- "htest"
+    dropView(vviewName)
     return(result)
 }

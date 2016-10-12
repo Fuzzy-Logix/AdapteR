@@ -48,7 +48,7 @@ FLInv <- function(x,...)
                 )
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getOption("connectionFL"),
+                        connectionName = getFLConnectionName(),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",
@@ -57,10 +57,10 @@ FLInv <- function(x,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  flm <- new("FLMatrix",
+  flm <- newFLMatrix(
              select= tblfunqueryobj,
-             dim=rev(dim(x)),
-             dimnames=rev(dimnames(x)))
+             dims=rev(dim(x)),
+             Dimnames=rev(dimnames(x)))
 
    return(ensureQuerySize(pResult=flm,
             pInput=list(x),

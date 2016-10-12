@@ -14,8 +14,8 @@ NULL
 
 kuip.test <- function(vFLvector1, vFLvector2)          {
     dname <- as.list(sys.call())
+        vcall <- paste0(dname[2], " and ", dname[3])
     vviewName <- gen_view_name("kuiptest")
-    
     t <- constructUnionSQL(pFrom =c(a = constructSelect(vFLvector1),
                                     b = constructSelect(vFLvector2)),
                            pSelect = list(a = c(GroupID = 1,
@@ -33,11 +33,11 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                          WhereClause = NULL,
                          GroupBy = NULL,
                          TableOutput = 1,
-                         outputParameter = c(ResultTable = 'a')
+                         outputParameter = c(OutTable = 'a')
                          )
     sqlstr <- paste0("SELECT q.TEST_STAT AS TStat,
                                        q.P_VALUE AS P_Value
-                               FROM ",ret$ResultTable," AS q")
+                               FROM ",ret$OutTable," AS q")
     res_1 <- sqlQuery(connection, sqlstr)
     if(!class(res_1$P_Value) == "numeric")
     {                    pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
@@ -47,9 +47,10 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
     
     result <- list(statistics = c(Stat = res_1$TStat),
                    p.value = pval,
-                   method = "2-Sample Kuiper Test"
-                                        # data.name = dname                             
+                   method = "2-Sample Kuiper Test",
+                   data.name = vcall                             
                    )
     class(result) <- "htest"
+    dropView(vviewName)
     return(result)            
 }

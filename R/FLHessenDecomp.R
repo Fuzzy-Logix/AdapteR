@@ -28,8 +28,8 @@ FLHessen<-function(object, ...){
 FLHessen.FLMatrix<-function(object,...)
 {
 	#checkSquare(object,"FLHessen")
-	connection<-getConnection(object)
-	flag1Check(connection)
+	connection<-getFLConnection(object)
+    ## flag1Check(connection)
 
 
     sqlstr <- paste0(

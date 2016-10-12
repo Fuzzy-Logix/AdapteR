@@ -66,7 +66,7 @@ FLVarCluster.FLTable<-function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
@@ -153,7 +153,7 @@ FLVarCluster.FLTable<-function(x,
 					" FROM ",outputTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -161,9 +161,9 @@ FLVarCluster.FLTable<-function(x,
                         order = "",
                         SQLquery=sqlstr)
 
-	clustervector <- new("FLVector",
+	clustervector <- newFLVector(
 						select = tblfunqueryobj,
-						dimnames = list(deepx@dimnames[[2]],
+						Dimnames = list(deepx@Dimnames[[2]],
 										"vectorValueColumn"),
 						isDeep = FALSE)
 
@@ -184,7 +184,7 @@ FLVarCluster.FLTable<-function(x,
 			sqlstr <- paste0(" SELECT a.columnName AS vcolnames \n ",
                             " FROM ",mapTable," a,",outputTable," b \n ",
                             " WHERE a.vectorIndexColumn=b.vectorIndexColumn ")
-			names(clustervector) <- sqlQuery(getOption("connectionFL"),sqlstr)[["vcolnames"]]
+			names(clustervector) <- sqlQuery(getFLConnection(),sqlstr)[["vcolnames"]]
 			t <- sqlSendUpdate(" DROP TABLE ",mapTable)
 		}
 	return(clustervector)

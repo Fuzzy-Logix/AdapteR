@@ -33,8 +33,8 @@ ginv.default <- function(object,...){
 ginv.FLMatrix<-function(object,...)
 {
 
-	connection<-getConnection(object)
-	flag1Check(connection)
+	connection<-getFLConnection(object)
+    ## flag1Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
                    outputSelectMatrix("FLMatrixPseudoInvUdt",viewName="z",
@@ -42,7 +42,7 @@ ginv.FLMatrix<-function(object,...)
                    )
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",
@@ -51,10 +51,10 @@ ginv.FLMatrix<-function(object,...)
                         order = "",
                         SQLquery=sqlstr)
 
-  flm <- new("FLMatrix",
+  flm <- newFLMatrix(
              select= tblfunqueryobj,
-             dim=rev(dim(object)),
-            dimnames=list(NULL,NULL))
+             dims=rev(dim(object)),
+            Dimnames=list(NULL,NULL))
 
   return(ensureQuerySize(pResult=flm,
             pInput=list(object,...),

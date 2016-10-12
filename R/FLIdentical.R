@@ -35,23 +35,37 @@ identical.default <- base::identical
 #' @export
 identical.FLMatrix <- function(pObj1, pObj2)
 {
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
 		if(!all(dim(pObj1)==dim(pObj2)))
 		return(FALSE)
 
-		sqlstr <- paste0(" SELECT a.rowIdColumn AS rowIdColumn, \n ",
-								"a.colIdColumn AS colIdColumn, \n ",
-								" CASE WHEN FLSum(a.valueColumn)<>0 THEN 'FALSE' ELSE 'TRUE' END AS EqualityColumn \n ",
-								" FROM(",constructSelect(pObj1,joinNames=FALSE)," UNION ALL ",
-									" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-									" b.rowIdColumn AS rowIdColumn, \n ",
-									" b.colIdColumn AS colIdColumn, \n ",
-									" b.valueColumn*(-1) AS valueColumn \n ",
-									" FROM(",constructSelect(pObj2),") AS b) AS a \n ",
-							 " GROUP BY a.rowIdColumn,a.colIdColumn \n ",
-							 " HAVING EqualityColumn = 'FALSE' ")
+		# sqlstr <- paste0(" SELECT a.rowIdColumn AS rowIdColumn, \n ",
+		# 						"a.colIdColumn AS colIdColumn, \n ",
+		# 						" CASE WHEN FLSum(a.valueColumn)<>0 THEN 'FALSE' ELSE 'TRUE' END AS EqualityColumn \n ",
+		# 						" FROM(",constructSelect(pObj1,joinNames=FALSE)," UNION ALL ",
+		# 							" SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+		# 							" b.rowIdColumn AS rowIdColumn, \n ",
+		# 							" b.colIdColumn AS colIdColumn, \n ",
+		# 							" b.valueColumn*(-1) AS valueColumn \n ",
+		# 							" FROM(",constructSelect(pObj2),") AS b) AS a \n ",
+		# 					 " GROUP BY a.rowIdColumn,a.colIdColumn \n ",
+		# 					 " HAVING EqualityColumn = 'FALSE' ")
+        
+        ## Having on aliased column is not working on Aster.
+        sqlstr <- paste0(" SELECT 1 FROM \n ",
+                            "(SELECT a.rowIdColumn AS rowIdColumn, \n ",
+                                "a.colIdColumn AS colIdColumn, \n ",
+                                " CASE WHEN FLSum(a.valueColumn)<>0 THEN 'FALSE' ELSE 'TRUE' END AS EqualityColumn \n ",
+                                " FROM(",constructSelect(pObj1,joinNames=FALSE)," UNION ALL ",
+                                    " SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
+                                    " b.rowIdColumn AS rowIdColumn, \n ",
+                                    " b.colIdColumn AS colIdColumn, \n ",
+                                    " b.valueColumn*(-1) AS valueColumn \n ",
+                                    " FROM(",constructSelect(pObj2),") AS b) AS a \n ",
+                             " GROUP BY a.rowIdColumn,a.colIdColumn) AS a \n ",
+                             " WHERE a.EqualityColumn = 'FALSE' ")
 
 		sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(pObj1,pObj2),
@@ -80,7 +94,7 @@ identical.FLMatrix <- function(pObj1, pObj2)
 #' @export
 identical.FLVector <- function(pObj1, pObj2)
 {
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLVector(pObj2))
 	{
 		if(length(pObj1) != length(pObj2)) return(FALSE)
@@ -194,7 +208,7 @@ NULL
 #' @export
 `==.FLMatrix` <- function(pObj1, pObj2)
 {
-	connection <- getConnection(pObj1)
+	connection <- getFLConnection(pObj1)
 	if(is.FLMatrix(pObj2))
 	{
 		checkSameDims(pObj1,pObj2)
@@ -212,7 +226,7 @@ NULL
 							 " GROUP BY 1,2,3 ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -221,10 +235,10 @@ NULL
                         order = "",
                         SQLquery=sqlstr)
 
-	    flm <- new("FLMatrix",
+	    flm <- newFLMatrix(
 	            select= tblfunqueryobj,
-	            dim=dim(pObj1),
-	            dimnames=dimnames(pObj1))
+	            dims=dim(pObj1),
+	            Dimnames=dimnames(pObj1))
 
 	    flm <- ensureQuerySize(pResult=flm,
 		            pInput=list(pObj1,pObj2),
@@ -264,7 +278,7 @@ NULL
 {
 	if(is.FLVector(pObj2))
 	{
-		connection <- getOption("connectionFL")
+		connection <- getFLConnection()
 		if(checkQueryLimits(pObj1))
 		pObj1 <- store(pObj1)
 		if(checkQueryLimits(pObj2))
@@ -327,7 +341,7 @@ NULL
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -335,9 +349,9 @@ NULL
                         order = "",
                         SQLquery=sqlstr)
 
-		flv <- new("FLVector",
+		flv <- newFLVector(
 				select = tblfunqueryobj,
-				dimnames = dimnames,
+				Dimnames = dimnames,
 				isDeep = FALSE)
 
 		flv <- ensureQuerySize(pResult=flv,
@@ -458,7 +472,7 @@ FLanyall <- function(...,na.rm=FALSE,vfunction="all"){
     }
     vlength <- length(vlist)
     getTrueorFalse <- function(x,vfunction){
-    	vrescolumn <- getColumnName(x)
+    	vrescolumn <- getValueSQLName(x)
     	vreqLogic <- ifelse(vfunction=="all",
     						fquote("FALSE"),
     						fquote("TRUE"))
@@ -466,7 +480,7 @@ FLanyall <- function(...,na.rm=FALSE,vfunction="all"){
     				" FROM (",constructSelect(x),") AS a \n ",
     				" WHERE a.",vrescolumn," = ",vreqLogic
     				)
-    	vresult <- sqlQuery(getOption("connectionFL"),
+    	vresult <- sqlQuery(getFLConnection(),
     				vsqlstr)
     	if(nrow(vresult)>0){
 	    	if(vfunction=="all") return(FALSE)

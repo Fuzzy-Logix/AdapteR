@@ -28,6 +28,10 @@ option_list = list(
     make_option(c("-J", "--jarDir"),
                 default="/Users/gregor/fuzzylogix/Teradata/jdbc", 
                 help="directory with jar files to load [default= %default]",
+                type="character"),
+    make_option(c("-P", "--platform"),
+                default="TD",
+                help="TDAster,TD and Hadoop supported",
                 type="character")
 )
 
@@ -76,13 +80,12 @@ if(grepl("^jdbc",opt$host)){
             ##    terajdbc4.jar tdgssconfig.jar
             ## CAVE: fully qualified PATH required
             jdbc.jarsDir = opt$jarDir,
-            driverClass = "com.teradata.jdbc.TeraDriver",
             debug=T,
             verbose=TRUE)
 } else {
     connection <- flConnect(odbcSource=opt$host,
               database=opt$database,
-              platform="TD")
+              platform=opt$platform)
 }
 
 setupls <- ls()

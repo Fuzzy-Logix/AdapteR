@@ -47,7 +47,7 @@ survfit.formula <- function(formula, data, weights,
                                         ...))
     else{
         data <- setAlias(data,"")
-        connection <- getOption("connectionFL")
+        connection <- getFLConnection()
         if(data@isDeep)
             stop("input table must be wide \n ")
         vtemp <- prepareSurvivalFormula(data=data,
@@ -110,16 +110,16 @@ survfit.formula <- function(formula, data, weights,
                                         " IN (",fquote(grpValues),
                                         ")")
             vselect <- new("FLSelectFrom",
-                          connection = connection, 
+                          connectionName = attr(connection,"name"), 
                           table_name = ret,
                           variables = list(
                               obs_id_colname = "TimeIndex"),
                           whereconditions=vwhereConds,
                           order = "")
-            vFLtbl <- new("FLTable",
+            vFLtbl <- newFLTable(
                           select=vselect,
-                          dimnames=list(ObsID,VarID),
-                          dim=c(length(ObsID),length(VarID)),
+                          Dimnames=list(ObsID,VarID),
+                          dims=as.integer(c(length(ObsID),length(VarID))),
                           type="double",
                           isDeep=FALSE)
             return(vFLtbl[,colName])

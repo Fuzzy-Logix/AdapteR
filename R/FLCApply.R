@@ -20,16 +20,16 @@ NULL
 FLCApply <- function(data,FUN,column)
 {
 	if(class(data)!="FLTable") stop(" input FLTable object as data")
-	connection <- getConnection(data)
+	connection <- getFLConnection(data)
 	if(is.numeric(column))
 	{
-		column <- data@dimnames[[2]][column]
+		column <- data@Dimnames[[2]][column]
 		if(is.na(column) || is.null(column))
 		stop(" null dimnames or column not found")
 	}
 	else if(is.character(column))
 	{
-		if(!(column %in% data@dimnames[[2]]))
+		if(!(column %in% data@Dimnames[[2]]))
 		stop(" null dimnames or column not found")
 	}
 	sqlstr <- paste0("SELECT DISTINCT a.",column,

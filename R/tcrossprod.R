@@ -97,7 +97,7 @@ setMethod("tcrossprod",
                if(ncol(x)!=ncol(y))
                stop("non-conformable dimensions")
                else{
-               x <- as.FLMatrix(x,getConnection(y))
+               x <- as.FLMatrix(x,getFLConnection(y))
                return(do.call(tcrossprod,list(x,y)))
                }
            })
@@ -109,7 +109,7 @@ setMethod("tcrossprod",
                if(length(y)!=nrow(x))
                stop("non-conformable dimensions")
                else{
-               x <- as.FLMatrix(x,getConnection(y))
+               x <- as.FLMatrix(x,getFLConnection(y))
                return(do.call(tcrossprod,list(x,y)))
                }
            })
