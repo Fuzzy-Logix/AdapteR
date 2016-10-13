@@ -1,4 +1,3 @@
-
 ## Overloading problems..
 ## Cannot call default R function
 NULL
@@ -32,7 +31,7 @@ NULL
 #' summary(resultList[[1]])
 #' plot(resultList[[1]])
 #' @export
-survfit.formula <- function(formula, data, weights, 
+FLsurvfit <- function(formula, data, weights, 
                             subset, na.action,
                             etype, id, istate,...){
     if(!is.FL(data))
