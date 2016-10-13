@@ -16,7 +16,7 @@ setClass("FLSkalarAggregate",
 #'
 #' The name of the values column
 setClass("FLIndexedValues", slots=list(
-                                dims = "integer",
+                                dims = "numeric",
                                 dimColumns = "character" ## gk: todo: this needs some refactoring for FLVector
                        ))
 

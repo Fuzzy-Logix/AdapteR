@@ -1,31 +1,24 @@
-#' Returns the dimensions of the object
-#'
-#' @param object FLMatrix, FLVector or FLTable object
-#' @return R vector giving dimensions of input object
-#' @export
-dim<-function(object){
-	UseMethod("dim",object)
-}
+# Gives the dimensions of the objects
 
-#' @export
-dim.default <- base::dim
+## #' @export
+## dim.default <- base::dim
 #' @export
 dim.FLIndexedValues <- function(object)
 {
-	 return(object@dims)
+    return(object@dims)
 }
 
 # Returns the dimensions of the object
 #' @export
 dim.FLMatrixBind <- function(object)
 {
-	 return(c(nrow(object),ncol(object)))
+    return(c(nrow(object),ncol(object)))
 }
 
 #' @export
 dim.FLTable <- function(object)
 {
-	 return(c(nrow(object),ncol(object)))
+    return(object@dims)
 }
 
 
