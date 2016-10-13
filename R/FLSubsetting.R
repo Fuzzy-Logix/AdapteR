@@ -260,10 +260,9 @@ NULL
 
 `[.FLVector` <- function(object,pSet=1:length(object))
 {
-  #browser()
+  ##browser()
   if(FLNamesMappedP(object) 
-      || class(object@select)
-      =="FLTableFunctionQuery") 
+      || class(object@select)=="FLTableFunctionQuery") 
     object <- store(object)
   if(!isAliasSet(object))
   object <- setAlias(object,"flt")
@@ -272,8 +271,7 @@ NULL
   vvaluecolumn <- getValueColumn(object)
   newrownames <- rownames(object)
   newcolnames <- colnames(object)
-  if(ncol(object)==1) namesvector <- rownames(object)
-  else namesvector <- colnames(object)
+  namesvector <- names(object)
 
   if(is.FLVector(pSet) 
     && (is.RowFLVector(pSet) || is.RowFLVector(object)))
@@ -336,7 +334,7 @@ NULL
         }
     }
     else{
-      pSet <- as.vector(pSet)
+        pSet <- as.vector(pSet)
       if((is.numeric(pSet) && (any(pSet>length(object))
           || any(pSet<=0)))) stop("index out of bounds")
       
@@ -376,15 +374,16 @@ NULL
         }
         return(object)
       }
-      if(is.numeric(pSet) && 
-        !all(pSet %in% base::charmatch(namesvector,base::unique(namesvector)))) 
-      stop("index out of bounds or duplicates in names of vector")
-      if(is.character(pSet) && !all(pSet %in% namesvector))
-      stop("index out of bounds")
-      if(is.character(pSet) && 
-        base::identical(as.character(namesvector),as.character(1:length(object))))
-      stop("vector names not assigned or same as indices")
-
+        if(!is.null(namesvector)){
+            if(is.numeric(pSet) && 
+               !all(pSet %in% base::charmatch(namesvector,base::unique(namesvector)))) 
+                stop("index out of bounds or duplicates in names of vector")
+            if(is.character(pSet) && !all(pSet %in% namesvector))
+                stop("index out of bounds")
+            if(is.character(pSet) && 
+               base::identical(as.character(namesvector),as.character(1:length(object))))
+                stop("vector names not assigned or same as indices")
+        }
       charpSet <- pSet
       if(is.character(pSet) ||
         !base::identical(as.character(namesvector),as.character(1:length(object))))

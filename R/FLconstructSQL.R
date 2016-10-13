@@ -125,7 +125,13 @@ setClass("FLVector.TD", contains = "FLVector")
 setClass("FLVector.TDAster", contains = "FLVector")
 
 newFLVector <- function(...) {
-    new(paste0("FLVector.",getFLPlatform()), ...)
+  vtemp <- list(...)
+  if(is.null(vtemp$dims)){
+      vtemp$dims <- sapply(vtemp$Dimnames,length)
+  }
+  return(do.call("new",
+                 c(Class=paste0("FLVector.",getFLPlatform()),
+                   vtemp)))
 }
 
 #' An S4 class to represent FLVector
