@@ -21,6 +21,11 @@ option_list = list(
                 default="Fl_demo", 
                 help="database [default= %default]",
                 type="character"),
+    make_option(c("-c", "--dropTables"),
+                action="store_true",
+                default="TRUE", 
+                help="drop AdapteR tables when starting the session [default= %default]",
+                type="logical"),
     make_option(c("-t", "--temporary"),
                 action="store_true",
                 default="TRUE", 
@@ -86,6 +91,7 @@ if(grepl("^jdbc",opt$host)){
             ## CAVE: fully qualified PATH required
             jdbc.jarsDir = opt$jarDir,
             debug=T,
+            drop=opt$dropTables,
             verbose=TRUE,
             temporary=opt$temporary)
 } else {
