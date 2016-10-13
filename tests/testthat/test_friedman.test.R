@@ -40,14 +40,14 @@ FLenv$wb <- as.FLTable(Renv$wb,
 
 test_that("Friedman Test on FLMatrix: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            fit <- FLfriedman.test(RoundingTimes)
+            fit <- friedman.test(RoundingTimes)
     },Renv,FLenv,
     expectation=c("fit"))
 })
 
 test_that("Friedman Test on FLVectors: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            fit <- FLfriedman.test(wb$x,wb$w,wb$t)
+            fit <- friedman.test(wb$x,wb$w,wb$t)
     },Renv,FLenv,
     expectation=c("fit"))
 })
@@ -55,8 +55,10 @@ test_that("Friedman Test on FLVectors: R example: checking Result Equality witho
 
 test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            fit <- FLfriedman.test(x~w|t, data = wb)
+            fit <- friedman.test(x~w|t, data = wb)
     },Renv,FLenv,
-    verbose=T,
+    verbose=F,
     expectation=c("fit"))
 })
+
+

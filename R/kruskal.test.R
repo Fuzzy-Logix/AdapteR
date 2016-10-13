@@ -37,7 +37,8 @@ NULL
 #' result2 <- kruskal.test(Ozone ~ Month, data = FLTableObj)
 #' print(result2)
 #' @export
-FLkruskal.test.FLVector <- function(x,g,...){
+#' @method kruskal.test FLVector
+kruskal.test.FLVector <- function(x,g,...){
     if(!is.FLVector(g) && is.numeric(g))
         g <- as.FLVector(g)
     if(!is.FLVector(g))
@@ -64,48 +65,30 @@ FLkruskal.test.FLVector <- function(x,g,...){
     vtable <- FLTableMD(vView,
                         group_id_colname="DatasetID",
                         obs_id_colname="ObsID")
-    return(FLkruskal.test(Num_Val~groupID,
-                        data=vtable,
+    return(kruskal.test(data=vtable,
+                        formula=Num_Val~groupID,
                         data.name=DNAME))
 }
 
 
-## S3 overload not working for default R calls:
-## Error: Evaluation nested deeply.
-## Becasuse stats comes after AdapteR in search path.
-
-
-## S4 implementation because S3 not working for formula input case.
 #' @export
-setGeneric("FLkruskal.test",
-    function(formula, data,
-             x=NULL, g=NULL,
-             ...)
-        standardGeneric("FLkruskal.test"))
-
-
-## Not working: Environments related error.
-## In the default R implementation, environments
-## are used.
-#' @export
-setMethod("FLkruskal.test",
-        signature(formula="formula", 
-                  data="ANY"),
-        function(formula, data,
-                ...){
-                    return(kruskal.test(formula=formula,
-                                        data=data,
-                                        ...))
-                })
+#' @method kruskal.test formula
+kruskal.test.formula <- function(formula, data,
+                                  ...){
+    if(!is.FL(data)){
+        return(stats:::kruskal.test.formula(formula=formula,
+                                            data=data,...))
+    } else
+        UseMethod("kruskal.test", data)
+}
 
 #' @export
-setMethod("FLkruskal.test",
-        signature(formula="formula", 
-                  data="FLTable"),
-        function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"),
-                ...){
+#' @method kruskal.test FLTable
+kruskal.test.FLTable <- function(formula,data,
+                                 subset=TRUE, 
+                                 na.action=getOption("na.action"),
+                                 x=NULL,
+                                 ...){
                     data <- setAlias(data,"")
                     connection <- getFLConnection()
                     if(data@isDeep){
@@ -187,12 +170,4 @@ setMethod("FLkruskal.test",
                         vresList <- vresList[[1]]
                     ##vtemp <- dropView(getTableNameSlot(data))
                     return(vresList)
-})
-
-#' @export
-setMethod("FLkruskal.test",
-          signature(formula="missing",
-                    data="missing",
-                    x="FLVector",
-                    g="FLVector"),
-          FLkruskal.test.FLVector)
+}
