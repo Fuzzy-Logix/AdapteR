@@ -128,7 +128,15 @@ vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 require(gplots)
 ## install.packages("gplots")
 
-metaInfo <- read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+metaInfo <- tryCatch({
+    read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+}, error=function(e) NULL)
+
+if(is.null(metaInfo))
+    metaInfo <- tryCatch({
+        read.csv("https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+    }, error=function(e) NULL)
+
 
 M <- cor(eqnRtn[,intersect(
     metaInfo$Symbol[metaInfo$Sector %in% c("Basic Industries")],
