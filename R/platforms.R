@@ -268,21 +268,25 @@ FLStartSession <- function(connection,
         function(x){
             vtable <- getOption(x)
             if(grepl("matrix",tolower(vtable)))
-            vclass <- "matrix"
-            else vclass <- "vector"
+                vclass <- "matrix"
+            else if(grepl("vector",tolower(vtable)))
+                vclass <- "vector"
+            else
+                vclass <- NULL
             if(grepl("byteint",tolower(vtable)))
-            vtype <- "BYTEINT"
+                vtype <- "BYTEINT"
             else if(grepl("int",tolower(vtable)))
-            vtype <- "INT"
+                vtype <- "INT"
             else if(grepl("char",tolower(vtable)))
-            vtype <- "VARCHAR(100)"
+                vtype <- "VARCHAR(100)"
             else vtype <- "FLOAT"
-            genCreateResulttbl(tablename=vtable,
-                                temporaryTable=temporary,
-                                tableoptions=tableoptions,
-                                vclass=vclass,
-                                type=vtype,
-                                pDrop=drop)
+            if(!is.null(vclass))
+                genCreateResulttbl(tablename=vtable,
+                                   temporaryTable=temporary,
+                                   tableoptions=tableoptions,
+                                   vclass=vclass,
+                                   type=vtype,
+                                   pDrop=drop)
         })
 
     ## Create names mapping table
