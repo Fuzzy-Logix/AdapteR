@@ -31,8 +31,9 @@ test_that("lm: coefficient names https://app.asana.com/0/143316600934101/1569893
 test_that("lm: equality of coefficients, residuals, fitted.values, rank and terms",{
     result = eval_expect_equal({
         mycoefffs <- lmobj$coefficients
-        myres <- lmobj$residuals
-        myfitted.values <- lmobj$fitted.values
+        myres <- as.vector(lmobj$residuals)
+        myfitted.values <- as.vector(lmobj$fitted.values)
+        names(myres) <- names(myfitted.values) <- NULL ## todo: support names in AdapteR
         mydf.res <- lmobj$df.residual
         myrank <- lmobj$rank
         myterms <- lmobj$terms

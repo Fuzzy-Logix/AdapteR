@@ -28,8 +28,9 @@ test_that("glm: execution for poisson ",{
 test_that("glm: equality of coefficients, residuals, fitted.values, df.residual for poisson",{
     result = eval_expect_equal({
         coeffs2 <- glmobj$coefficients
-        res <- glmobj$residuals
-        fitteds <- glmobj$fitted.values
+        res <- as.vector(glmobj$residuals)
+        fitteds <- as.vector(glmobj$fitted.values)
+        names(res) <- names(fitted) <- NULL ## todo: support names in AdapteR
         dfres <- glmobj$df.residual
     },Renv,FLenv,
     expectation=c("coeffs2","res",
