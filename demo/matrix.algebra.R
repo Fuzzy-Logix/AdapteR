@@ -8,14 +8,14 @@
 ## AdapteR package of Fuzzy Logix is
 ## providing transparent matrix algebra with
 ## the DB Lytix(TM) in-database library.
-vtemp <- readline("This demo is about transparent in-database matrix algebra.\nPress <ENTER> to start.")
-
 if(!exists("connection")) {
     vtemp <- readline("Check if connection exists:")
     cat("connection object not found \n ")
     cat("using connecting demo \n ")
     demo("connecting", package="AdapteR")
 }
+
+vtemp <- readline("This demo is about transparent in-database matrix algebra.\nPress <ENTER> to start.")
 
 ###########################################################
 ############# Comparing (SQL from R) with AdapteR ############

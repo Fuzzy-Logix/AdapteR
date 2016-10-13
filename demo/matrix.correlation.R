@@ -173,7 +173,8 @@ run.FLCorrelationShiny <- function (){
             unique(c(input$stocks,
                      metastocks)),
             colnames(eqnRtn))
-
+        if(length(stocks)==0)
+            return(NULL)
         ## compute correlation matrix
         flCorr <- as.matrix(cor(eqnRtn[,stocks]))
 
@@ -223,7 +224,10 @@ run.FLCorrelationShiny <- function (){
 
 assign("metaInfo",metaInfo,envir=environment(run.FLCorrelationShiny))
 
-vtemp <- readline("To explore correlations interactively, we defined a function above. \n Simply execute\n> run.FLCorrelationShiny()\nafter ending the Demo.\nEnd the demo now:")
 
-### END ####
+## To explore correlations interactively, we defined a function above.
+## Simply execute now
+## > run.FLCorrelationShiny()
+## (When you want to end the interactive demo, shut the shiny web server by pressing <ctrl-c> twice here in the R terminal.)
+## End of the scripted demo.
 ### Thank You ####
