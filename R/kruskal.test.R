@@ -37,7 +37,7 @@ NULL
 #' result2 <- kruskal.test(Ozone ~ Month, data = FLTableObj)
 #' print(result2)
 #' @export
-kruskal.test.FLVector <- function(x,g,...){
+FLkruskal.test.FLVector <- function(x,g,...){
     if(!is.FLVector(g) && is.numeric(g))
         g <- as.FLVector(g)
     if(!is.FLVector(g))
@@ -55,7 +55,7 @@ kruskal.test.FLVector <- function(x,g,...){
                                                 groupID=1,
                                                 Num_Val="a.vectorValueColumn"),
                                               b=c(DatasetID=1,
-                                                ObsID="a.vectorIndexColumn",
+                                                ObsID="b.vectorIndexColumn",
                                                 groupID=2,
                                                 Num_Val="b.vectorValueColumn")))
 
@@ -64,7 +64,7 @@ kruskal.test.FLVector <- function(x,g,...){
     vtable <- FLTableMD(vView,
                         group_id_colname="DatasetID",
                         obs_id_colname="ObsID")
-    return(friedman.test(Num_Val~groupID,
+    return(FLkruskal.test(Num_Val~groupID,
                         data=vtable,
                         data.name=DNAME))
 }
@@ -76,31 +76,27 @@ kruskal.test.FLVector <- function(x,g,...){
 
 
 ## S4 implementation because S3 not working for formula input case.
-setGeneric("kruskal.test",
+setGeneric("FLkruskal.test",
     function(formula, data,
-            subset=TRUE, 
-            na.action=getOption("na.action"),
-            ...)
-        standardGeneric("kruskal.test"))
+             x=NULL, g=NULL,
+             ...)
+        standardGeneric("FLkruskal.test"))
+
 
 ## Not working: Environments related error.
 ## In the default R implementation, environments
 ## are used.
-setMethod("kruskal.test",
+setMethod("FLkruskal.test",
         signature(formula="formula", 
                   data="ANY"),
         function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"),
                 ...){
-                    return(stats::kruskal.test(formula=formula,
-                                            data=data,
-                                            subset=subset,
-                                            na.action=na.action,
-                                            ...))
+                    return(kruskal.test(formula=formula,
+                                        data=data,
+                                        ...))
                 })
 
-setMethod("kruskal.test",
+setMethod("FLkruskal.test",
         signature(formula="formula", 
                   data="FLTable"),
         function(formula, data,
@@ -135,6 +131,7 @@ setMethod("kruskal.test",
                     if(!length(vgroupCols)>0)
                         vgrp <- NULL
 
+                    ##browser()
                     ret <- sqlStoredProc(connection,
                                          "FLKWTest",
                                          TableName = getTableNameSlot(data),
@@ -161,6 +158,7 @@ setMethod("kruskal.test",
                                             )
                                     )
                     vdf <- vdf[[1]]
+                    ##browser()
                     vres <- sqlQuery(connection,
                                     paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
                                             "FROM ",ret," \n ",
@@ -184,6 +182,13 @@ setMethod("kruskal.test",
                     names(vresList) <- 1:length(vresList)
                     if(length(vresList)==1)
                         vresList <- vresList[[1]]
-                    vtemp <- dropView(getTableNameSlot(data))
+                    ##vtemp <- dropView(getTableNameSlot(data))
                     return(vresList)
-    })
+})
+
+setMethod("FLkruskal.test",
+          signature(formula="missing",
+                    data="missing",
+                    x="FLVector",
+                    g="FLVector"),
+          FLkruskal.test.FLVector)

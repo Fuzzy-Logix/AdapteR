@@ -34,7 +34,7 @@ test_that("stringdist: string, string, Damerau-Levenshtein",{
 test_that("stringdistmatrix: vector, Damerau-Levenshtein",{
     result2=eval_expect_equal({
         test2<-stringdistmatrix(a,method="dl")
-        print(test2)
+        ##print(test2)
         ##plot(hclust(test2))
     },Renv,FLenv,
     expectation=c("test1"),

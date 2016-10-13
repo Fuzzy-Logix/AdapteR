@@ -7,7 +7,8 @@ the FL session tables.}
 \usage{
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
   jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL,
-  driverClass = NULL, temporary = FALSE, verbose = FALSE, ...)
+  driverClass = NULL, temporary = FALSE, verbose = FALSE,
+  tablePrefix = NULL, ...)
 }
 \arguments{
 \item{host}{}

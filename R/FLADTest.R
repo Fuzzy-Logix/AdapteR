@@ -56,16 +56,17 @@ setMethod("ad.test",signature(x="FLVector"),
                                        q.P_VALUE AS P_Value
                                FROM ",ret$OutTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
-              result <- list(statistics = c(A = res_1$TStat))
               if(!class(res_1$P_Value) == "numeric"){
-                  result$p.value <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
-                  result$alternative <- paste0("Note: rounded p-value ", res_1$P_Value)
+                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
               } else {
-                  result$p.value <- res_1$P_Value
+                  pval <- res_1$P_Value
               }
-              result$method = "Anderson-Darling normality test"
-              result$data.name = dname
-
+              result <- list(statistics = c(A = res_1$TStat),
+                             p.value=pval,
+                             method="Anderson-Darling normality test",
+                             data.name = dname)
+              if(!class(res_1$P_Value) == "numeric")
+                  result$note <- paste0("Note: rounded p-value ", res_1$P_Value)
               class(result) <- "htest"
               dropView(vviewName)
               return(result)
