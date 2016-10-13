@@ -1,7 +1,7 @@
 
 cint<-function(x,conf.level,alternative="two.sided"){
     if (alternative=="two.sided")
-    {
+    {   browser()
         df<-length(x)-1
         sd<-sd(x)/sqrt(length(x))
         qt<-qt(conf.level+(1-conf.level)/2,df)*sd
