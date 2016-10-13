@@ -1,3 +1,4 @@
+require(testthat)
                                         # Problems with data.name,
                                         # p.value error computed is wrong.
                                         # Kolmogorov-Smirnov (KS) Test 1S
@@ -15,7 +16,7 @@ test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     expectation = c("q"),
     check.attributes=F,
     tolerance = .0001,
-    verbose = FALSE
+    verbose = T
     )
 }
 )

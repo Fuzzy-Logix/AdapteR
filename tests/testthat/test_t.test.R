@@ -19,7 +19,7 @@ test_that("two sample t test: conf-int wrong https://app.asana.com/0/14331660093
 	},Renv,FLenv,
         tolerance=1e-4,
 	expectation=c("obj","obj2"),
-        verbose=T
+        verbose=F
         )
 })
 
