@@ -76,6 +76,7 @@ FLkruskal.test.FLVector <- function(x,g,...){
 
 
 ## S4 implementation because S3 not working for formula input case.
+#' @export
 setGeneric("FLkruskal.test",
     function(formula, data,
              x=NULL, g=NULL,
@@ -86,6 +87,7 @@ setGeneric("FLkruskal.test",
 ## Not working: Environments related error.
 ## In the default R implementation, environments
 ## are used.
+#' @export
 setMethod("FLkruskal.test",
         signature(formula="formula", 
                   data="ANY"),
@@ -96,6 +98,7 @@ setMethod("FLkruskal.test",
                                         ...))
                 })
 
+#' @export
 setMethod("FLkruskal.test",
         signature(formula="formula", 
                   data="FLTable"),
@@ -186,6 +189,7 @@ setMethod("FLkruskal.test",
                     return(vresList)
 })
 
+#' @export
 setMethod("FLkruskal.test",
           signature(formula="missing",
                     data="missing",

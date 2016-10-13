@@ -111,6 +111,7 @@ FLfriedman.test.FLVector <- function(y,groups,blocks,...){
     return(result)
 }
 
+#' @export
 FLfriedman.test.FLMatrix <- function(y,...){
     DNAME <- deparse(substitute(y))
     vView <- gen_view_name("Friedman")
@@ -140,9 +141,13 @@ FLfriedman.test.formula <- function(formula, data,
 	UseMethod("FLfriedman.test.formula", data)
 }
 
+#' @export
 FLfriedman.test.formula.default <- stats::friedman.test
+
+#' @export
 FLfriedman.test.default <- stats::friedman.test
 
+#' @export
 FLfriedman.test.formula.FLTable <- function(formula, data,
                                   subset=TRUE, 
                                   na.action=getOption("na.action"),
