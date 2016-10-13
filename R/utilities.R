@@ -4,6 +4,7 @@ NULL
 
 
 setOldClass("RODBC")
+setOldClass("FLConnection")
 
 
 cleanNames <- function(x){
