@@ -229,6 +229,7 @@ Functions in these packages provide the reference implementations for AdapteR fu
   install.packages("moments")
   install.packages("stringdist")
   install.packages("PASWR")
+  install.packages("nortest")
 #+END_SRC
 
 These packages are required to run the test suite:
