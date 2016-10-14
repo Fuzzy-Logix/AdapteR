@@ -261,6 +261,7 @@ FLStartSession <- function(connection,
         resultTables <- paste0(database,".",resultTables)
     else
         resultTables <- paste0(tablePrefix,resultTables)
+    options(resultTablesFL=resultTables)
     names(resultTables) <- vresultTables
     eval(parse(text=paste0("options(",names(resultTables),"='",resultTables,"')", collapse="\n")))
 
@@ -333,7 +334,7 @@ genCreateResulttbl <- function(tablename,
                                type,
                                pDrop){
     ##browser()
-    if(checkRemoteTableExistence(tableName=tablename))
+    if(!pDrop & checkRemoteTableExistence(tableName=tablename))
         return()
     if(vclass=="matrix"){
         createTable(pTableName=tablename,

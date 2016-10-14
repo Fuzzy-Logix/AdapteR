@@ -562,15 +562,15 @@ createView <- function(pViewName,
 }
 
 ## DROP VIEW
-dropView <- function(pViewName){
+dropView <- function(pViewName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP VIEW ",pViewName,";"))
+                paste0("DROP VIEW ",pViewName,";"),warn=warn)
 }
 
 ## DROP TABLE
-dropTable <- function(pTableName){
+dropTable <- function(pTableName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP TABLE ",pTableName,";"))
+                  paste0("DROP TABLE ",pTableName,";"),warn=warn)
 }
 
 ## Insert Into Table

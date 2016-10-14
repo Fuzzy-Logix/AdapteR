@@ -69,7 +69,7 @@ sqlStoredProc.FLConnection <- function(connection,query,outputParameter,...) {
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
+sqlSendUpdate.JDBCConnection <- function(connection,query,warn=TRUE,...) {
     verrflag<-sapply(query, function(q){
                             ##browser()
                             if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
@@ -84,7 +84,7 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
                                 return(TRUE)
                             },
                             error=function(e){
-                                sqlError(e)
+                                if(warn) sqlError(e)
                                 return(FALSE)
                                 })
                         })
@@ -97,7 +97,7 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.RODBC <- function(connection,query,...){
+sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
     if(!is.TDAster())
     RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
     else RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
@@ -114,7 +114,8 @@ sqlSendUpdate.RODBC <- function(connection,query,...){
                                 else
                                 {
                                     RODBC::odbcEndTran(connection, commit = FALSE)
-                                    print(errmsg)
+                                    ##print(sys.calls())
+                                    if(warn) sqlError(errmsg)
                                     verrflag <- FALSE
                                 }
                                 RODBC::odbcClearError(connection)
@@ -556,8 +557,10 @@ checkValidFormula <- function(pObject,pData)
 }
 
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
-                                    tableName)
+                                      tableName)
 {
+    ## shortcut in case of a results table -- setup during session start, assumed to not having been dropped
+    if(tableName %in% getOption("resultTablesFL")) return(TRUE)
     ## check if tableName has database
     if(grepl(".",tableName,fixed=TRUE)){
         vdb <- strsplit(tableName,".",fixed=TRUE)[[1]][1]
