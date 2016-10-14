@@ -235,6 +235,7 @@ Functions in these packages provide the reference implementations for AdapteR fu
 These packages are required to run the test suite:
 #+BEGIN_SRC R :eval no
   install.packages("devtools")
+  install.packages("roxygen2")
   install.packages("testthat")
   install.packages("optparse")
 #+END_SRC
