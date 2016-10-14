@@ -23,7 +23,7 @@ test_that("kmeans(FLMatrix): results on simulated 2-cluster data with clusters f
         size <- cl$size
     },Renv,FLenv,
     noexpectation=c("cl"),
-    tolerance=e1-6,
+    tolerance=1e-6,
     check.attributes=FALSE
   )
 })
