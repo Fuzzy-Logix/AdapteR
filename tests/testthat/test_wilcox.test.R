@@ -1,4 +1,5 @@
-# Wilcox Signed-Rank Test
+
+## Wilcox Signed-Rank Test
 # Source:http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/BS704_Nonparametric/BS704_Nonparametric6.html
 Renv = new.env(parent = globalenv())
 Renv$a <- c(85,70,40,65,80,75,55,20)
@@ -6,22 +7,17 @@ Renv$b <- c(75,50,50,40,20,65,40,25)
 FLenv = as.FL(Renv)
 
 
-test_that("Wilcox Signed Rank Test ",{
+
+test_that("wilcox.test: paired Wilcox Signed Rank Test: statistic and p-value ",{
   result = eval_expect_equal({
-      t <- wilcox.test(a, b, paired = TRUE)
+      wilcox.fit <- wilcox.test(a, b, paired = TRUE,correct=FALSE)
   },Renv,FLenv,
-  expectation = "t",
-  check.attributes=F,
-  tolerance = .000001,
-  verbose = TRUE
-  
+  verbose=T,
+  tolerance = .000001
   )
 }) 
 
-
-
-
-                                        #wilcox Signed-Rank Test:
+##wilcox Signed-Rank Test:
 #Source: https://www.wavemetrics.com/products/igorpro/dataanalysis/statistics/tests/statistics_pxp34.htm
 
                                         #Results Match
@@ -53,17 +49,14 @@ Renv$t <- a[c(TRUE,FALSE)]
 Renv$q <- a[c(FALSE,TRUE)]
 FLenv = as.FL(Renv)
 
-test_that("Wilcoxon Signed-Rank Test ",{
+
+test_that("wilcox.test: unpaired Wilcoxon Signed-Rank Test: correct p.value and statistic",{
   result = eval_expect_equal({
-      z <- wilcox.test(t, q, paired = TRUE)
+      z <- wilcox.test(t, q, paired = FALSE)
   },Renv,FLenv,
-  expectation = "z",
-  check.attributes=F,
-  tolerance = .000001,
-  verbose = TRUE
+  tolerance = .000001
   )
 }) 
-
 
 
 
@@ -75,17 +68,15 @@ Renv$b = c(7, 10, 4, 3, 5, 6)
 FLenv = as.FL(Renv)
 
 
-test_that("Mann-Whitney Wilcoxon Test ",{
+test_that("wilcox.test: unpaired Mann-Whitney Wilcoxon Test: correct p.value and statistic",{
   result = eval_expect_equal({
       t <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
   },Renv,FLenv,
-  expectation = "t",
-  check.attributes=F,
+  #check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = F
   )
-})
-
+  }) 
 
 
                                         #Mann - Whitney Test
@@ -113,20 +104,12 @@ Renv$a[8] <- 70.19
 FLenv = as.FL(Renv)
 
 
-test_that("Mann-Whitney Wilcoxon Test ",{
+test_that("wilcox.test: unpaired Mann-Whitney Wilcoxon Test ",{
   result = eval_expect_equal({
       q <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
   },Renv,FLenv,
-  expectation = "q",
-  check.attributes=F,
+  ##check.attributes=F,
   tolerance = .000001,
-  verbose = TRUE
+  verbose = F
   )
   }) 
-
-
-
-
-
-
-

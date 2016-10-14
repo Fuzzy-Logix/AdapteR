@@ -171,7 +171,7 @@ agnes.FLTable <- function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
@@ -391,7 +391,7 @@ height.FLAggClust <- function(object)
 	return(object@results[["height"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -448,7 +448,7 @@ height.FLAggClust <- function(object)
 						" GROUP BY a.ClusterID,b.ClusterID,a.LevelID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -491,7 +491,7 @@ ac.FLAggClust <- function(object){
 	return(object@results[["ac"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -593,7 +593,7 @@ merge.FLAggClust <- function(object){
 	return(object@results[["merge"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -642,7 +642,7 @@ merge.FLAggClust <- function(object){
 			error=function(e) stop("cannot fetch data. Try this to view merge:-",sqlstr))
 		mergematrix[["NewLevel"]] <- NULL
 		mergematrix <- as.matrix(mergematrix)
-		dimnames(mergematrix) <- list(NULL,NULL)
+		dimnames(mergematrix) <- NULL
 
 		object@results <- c(object@results,list(merge = mergematrix))
 		##Drop temptables created if all components have already used them

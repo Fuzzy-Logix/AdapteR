@@ -267,12 +267,14 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	pTerms <- terms(formula(vformula))
 	## Storing FLGAMParams
 	#return(vgamParams)
-	vsqlstr <- base::apply(vgamParams,1,function(x){
-		paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".fzzlGAMParams VALUES(",
-			paste0(x,collapse=","),");")})
-	vsqlstr <- paste0(vsqlstr,collapse="\n")
+	# vsqlstr <- base::apply(vgamParams,1,function(x){
+	# 	paste0(" INSERT INTO ",getOption("ResultDatabaseFL"),".fzzlGAMParams VALUES(",
+	# 		paste0(x,collapse=","),");")})
+	# vsqlstr <- paste0(vsqlstr,collapse="\n")
 
-	sqlSendUpdate(getFLConnection(),vsqlstr)
+	# sqlSendUpdate(getFLConnection(),vsqlstr)
+    insertIntotbl(pTableName="fzzlGAMParams",
+                pValues=vgamParams)
 	
 	vresult <- sqlStoredProc(getFLConnection(),
 							"FLGAM",
@@ -582,7 +584,7 @@ residuals.FLGAM <- function(object)
 									object@scoreTable,".",vobsid)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -750,7 +752,7 @@ offset.FLGAM <- function(object)
 							" FROM ",vtablename)
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getFLConnection(),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -835,7 +837,7 @@ y.FLGAM <- function(object)
 							" FROM ",vtablename)
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = getFLConnection(),
+	                        connectionName = getFLConnectionName(),
 	                        variables = list(
 				                obs_id_colname = "vectorIndexColumn",
 				                cell_val_colname = "vectorValueColumn"),
@@ -872,15 +874,20 @@ predict.FLGAM <- function(object,
 			"termidparam","varname",
 			"byvarvalparam","varval") %in% names(args))){
 		vspecid <- genRandVarName()
-		vsqlstr <- paste0("INSERT INTO fzzlGAMScoreParams \n ",
-							"VALUES(",fquote(vspecid),",",
-									args[["termidparam"]],",",
-									fquote(args[["varname"]]),",",
-									fquote(args[["varname"]]),",",
-									args[["termidparam"]],",",
-									fquote(args[["varname"]]),
-								")",collapse=";")
-		sqlSendUpdate(getOption(getFLConnection()),vsqlstr)
+		# vsqlstr <- paste0("INSERT INTO fzzlGAMScoreParams \n ",
+		# 					"VALUES(",fquote(vspecid),",",
+		# 							args[["termidparam"]],",",
+		# 							fquote(args[["varname"]]),",",
+		# 							fquote(args[["varname"]]),",",
+		# 							args[["termidparam"]],",",
+		# 							fquote(args[["varname"]]),
+		# 						")",collapse=";")
+		# sqlSendUpdate(getOption(getFLConnection()),vsqlstr)
+        vdf <- data.frame(vspecid,args[["termidparam"]],
+                        args[["varname"]],args[["varname"]],
+                        args[["termidparam"]],args[["varname"]])
+        insertIntotbl(pTableName="fzzlGAMScoreParams",
+                    pValues=vdf)
 		vinputCols <- c(vinputCols,
 						InTableName="NULL",
 						ObsIDCol="NULL",
@@ -940,7 +947,7 @@ predict.FLGAM <- function(object,
 					" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = getFLConnection(),
+                        connectionName = getFLConnectionName(),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

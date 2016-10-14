@@ -84,10 +84,10 @@ kmeans.FLMatrix <- function(x,
 {
 	x <- as.FLTable(x)
 	return(kmeans(x=x,
-				centers=centers,
-				iter.max =iter.max,
-				nstart = nstart,
-				excludeCols = excludeCols,
-				classSpec = classSpec,
-				whereconditions = whereconditions))
+                  centers=centers,
+                  iter.max =iter.max,
+                  nstart = nstart,
+                  excludeCols = excludeCols,
+                  classSpec = classSpec,
+                  whereconditions = whereconditions))
 }

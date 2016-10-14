@@ -189,7 +189,7 @@ pam.FLTable <- function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	vcall <- match.call()
@@ -288,11 +288,12 @@ pam.FLTable <- function(x,
 	AnalysisID <- as.character(retobj[1,1])
 
 	## medoid points are necessary for calculating some results
-	sqlstr0 <- paste0("INSERT INTO fzzlKMedoidsCluster \n ",
-						" SELECT AnalysisID,MedoidID,MedoidID \n ", 
-						" FROM fzzlKMedoidsMedoidIDs \n ",
-						" WHERE AnalysisID='",AnalysisID,"' ")
-	sqlSendUpdate(connection,sqlstr0)
+	sqlstr0 <- paste0(" SELECT AnalysisID,MedoidID,MedoidID \n ", 
+                        " FROM fzzlKMedoidsMedoidIDs \n ",
+                        " WHERE AnalysisID='",AnalysisID,"' ")
+    # sqlSendUpdate(connection,sqlstr0)
+    insertIntotbl(pTableName="fzzlKMedoidsCluster",
+                pSelect=sqlstr0)
 	
 	FLKMedoidsobject <- new("FLKMedoids",
 						centers=k,
@@ -394,7 +395,7 @@ clustering.FLKMedoids <- function(object)
 	return(object@results[["clustering"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -409,7 +410,7 @@ clustering.FLKMedoids <- function(object)
 						" \n  AND a.MedoidID=b.MedoidID")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -444,7 +445,7 @@ medoids.FLKMedoids<-function(object)
 		medoidsmatrix <- id.med.FLKMedoids(object)
 		else
 		{
-			connection <- getConnection(object@table)
+			connection <- getFLConnection(object@table)
 			## flag1Check(connection)
 			AnalysisID <- object@AnalysisID
 			deeptablename <- object@deeptable@select@table_name
@@ -464,7 +465,7 @@ medoids.FLKMedoids<-function(object)
 							" WHERE a.",obs_id_colname," = b.MedoidID")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = connection,
+	                        connectionName = attr(connection,"name"),
 	                        variables=list(
 	                            rowIdColumn="rowIdColumn",
 	                            colIdColumn="colIdColumn",
@@ -475,8 +476,8 @@ medoids.FLKMedoids<-function(object)
 
 		  	medoidsmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dims=c(object@centers,
-					            	length(object@deeptable@Dimnames[[2]])),
+					            dims=as.integer(c(object@centers,
+                                                                      length(object@deeptable@Dimnames[[2]]))),
 					            Dimnames=list(1:object@centers,
 					            			object@deeptable@Dimnames[[2]]))
 		}
@@ -502,7 +503,7 @@ id.med.FLKMedoids<-function(object){
 	else
 	{
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 						        " ROW_NUMBER() OVER(ORDER BY ",a,".MedoidID) AS vectorIndexColumn, \n ",
@@ -511,7 +512,7 @@ id.med.FLKMedoids<-function(object){
 						" WHERE ",a,".AnalysisID = '",object@AnalysisID,"'")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -544,7 +545,7 @@ objective.FLKMedoids <- function(object){
 		## DBLytix TotalCost is the average;R cost is absolute.
 		## The idea is the same,i.e to see improvement from build to swap
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
             ## flag3Check(connection)
 		n <- nrow(object@deeptable)
 
@@ -573,7 +574,7 @@ isolation.FLKMedoids <- function(object){
 	return(object@results[["isolation"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -688,7 +689,7 @@ clusinfo.FLKMedoids <- function(object){
 	return(object@results[["clusinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -805,7 +806,7 @@ silinfo.FLKMedoids <- function(object){
 	return(object@results[["silinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -883,7 +884,7 @@ silinfo.FLKMedoids <- function(object){
 						" where a.ObsIDX=b.ObsIDX \n  and a.MedoidIDX=b.MedoidIDX) as a")
 		
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "obs_id_colname"),
                         whereconditions="",
@@ -892,7 +893,7 @@ silinfo.FLKMedoids <- function(object){
 
 		widthsFLTable <- newFLTable(
                              select = tblfunqueryobj,
-                             dims=c(nrow(object@deeptable), 4),
+                             dims=as.integer(c(nrow(object@deeptable), 4)),
 							Dimnames = list(object@deeptable@Dimnames[[1]],
 											c("obs_id_colname","MedoidID","neighbor","sil_width")),
 							isDeep = FALSE)
@@ -933,7 +934,7 @@ silinfo.FLKMedoids <- function(object){
 		clus.avg.widthsvector <- tryCatch(sqlQuery(connection,sqlstr)[["vectorValueColumn"]],
 										 error=function(e){
 										 	tblfunqueryobj <- new("FLTableFunctionQuery",
-										                        connection = connection,
+										                        connectionName = attr(connection,"name"),
 										                        variables = list(
 													                obs_id_colname = "vectorIndexColumn",
 													                cell_val_colname = "vectorValueColumn"),
@@ -1006,7 +1007,7 @@ diss.FLKMedoids<-function(object)
 	return(object@results[["diss"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 		deeptablename <- object@deeptable@select@table_name
@@ -1037,7 +1038,7 @@ diss.FLKMedoids<-function(object)
 		}
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connection = connection,
+	                        connectionName = attr(connection,"name"),
 	                        variables=list(
 	                            rowIdColumn="rowIdColumn",
 	                            colIdColumn="colIdColumn",
@@ -1048,8 +1049,8 @@ diss.FLKMedoids<-function(object)
 
 		  	dissmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dims=c(length(object@deeptable@Dimnames[[1]]),
-					            	length(object@deeptable@Dimnames[[1]])),
+					            dims=as.integer(c(length(object@deeptable@Dimnames[[1]]),
+					            	length(object@deeptable@Dimnames[[1]]))),
 					            Dimnames=list(object@deeptable@Dimnames[[1]],
 					            			object@deeptable@Dimnames[[1]]))
 

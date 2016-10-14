@@ -182,7 +182,7 @@ fanny.FLTable <- function(x,
 	classList <- list(x = "FLTable")
 	validate_args(argList, typeList, classList)
 
-    connection <- getConnection(x)
+    connection <- getFLConnection(x)
     wideToDeepAnalysisId <- ""
     mapTable <- ""
 	
@@ -389,7 +389,7 @@ clustering.FLFKMeans <- function(object)
 	return(object@results[["clustering"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		AnalysisID <- object@AnalysisID
 		sqlstr<-paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
@@ -400,7 +400,7 @@ clustering.FLFKMeans <- function(object)
 						"HypothesisID = 1 ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),
@@ -431,7 +431,7 @@ membership.FLFKMeans<-function(object)
 	return(object@results[["membership"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
 
@@ -444,7 +444,7 @@ membership.FLFKMeans<-function(object)
 						" AND a.HypothesisID=1")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="rowIdColumn",
                             colIdColumn="colIdColumn",
@@ -455,8 +455,8 @@ membership.FLFKMeans<-function(object)
 
 	  	membershipmatrix <- newFLMatrix(
 				            select= tblfunqueryobj,
-				            dims=c(nrow(object@deeptable),
-				            	object@centers),
+				            dims=as.integer(c(nrow(object@deeptable),
+                                                              object@centers)),
 				            Dimnames=list(
                                                 rownames(object@deeptable),
                                                 1:object@centers))
@@ -478,7 +478,7 @@ coeff.FLFKMeans<-function(object){
 	else
 	{
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		k<-1/object@centers
 
@@ -507,7 +507,7 @@ objective.FLFKMeans <- function(object){
 	{
 		##Phani-- Query needs to be optimized.
 		a <- genRandVarName()
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
             ## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -548,7 +548,7 @@ k.crisp.FLFKMeans<-function(object){
 	return(object@results[["k.crisp"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		k<-1/object@centers
 
@@ -592,7 +592,7 @@ silinfo.FLFKMeans <- function(object){
 	return(object@results[["silinfo"]])
 	else
 	{
-		connection <- getConnection(object@table)
+		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
 		deeptablename <- object@deeptable@select@table_name
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
@@ -614,12 +614,14 @@ silinfo.FLFKMeans <- function(object){
 										WITH DATA
 									    ON 
 										COMMIT  PRESERVE ROWS;"))
-		u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
-										" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
+		# u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
+		# 								" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
+        u <- insertIntotbl(pTableName=b,
+                           pSelect=paste0(" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
 
 
 				
-			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, a.ClusIDX AS ClusID, B2_i.Neighbour AS Neighbour,
+			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, CAST(a.ClusIDX as INT) AS ClusID, CAST(B2_i.Neighbour AS INT) AS Neighbour,
 
 													CASE WHEN FLMean(a.Dist) >  B2_i.val 
 													THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist)
@@ -648,12 +650,15 @@ silinfo.FLFKMeans <- function(object){
 													GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val 
 													ORDER BY 1,2"))
 																						}	
-	        sili_table <- sili_table[order(sili_table$ClusID, -sili_table$siliwidth), ]
-        clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
-																		mean(sili_table$siliwidth[sili_table$ClusID == i])
-																			}))
-		silinfolist <- list(widths = sili_table, clus.avg.widths = clus.avg.width)
-		return(silinfolist)																	
+    sili_matrix <- as.matrix(sili_table[,c("ClusID","Neighbour","siliwidth")])
+    colnames(sili_matrix) <- c("cluster","neighbor","sil_width")
+    rownames(sili_matrix) <- sili_table$ObsID
+    
+    clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
+        mean(sili_table$siliwidth[sili_table$ClusID == i])
+    }))
+    silinfolist <- list(widths = sili_matrix, clus.avg.widths = clus.avg.width)
+    return(silinfolist)																	
 }
 
 ## move to file FLFKMeans.R

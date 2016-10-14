@@ -8,5 +8,6 @@ test_that("Testing prod", {
         test1<-prod(a)
         test2 <- prod(b)
         test3 <- prod(b,a)
-    },Renv,FLenv)
+    },Renv,FLenv,
+    tolerance=1e-7)
 })

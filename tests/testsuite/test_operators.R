@@ -64,11 +64,11 @@ test_that("-: vector and matrix subtraction",
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
   M2 <- FLMatrix("tblmatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10))
+  V1 <- as.FLVector(sample(1:100,5))
   V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
+  V2 <- as.FLVector(sample(1:100,5))
   V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   FLexpect_equal(M1$FL-M2,M1$R-M2R,check.attributes=FALSE)
   FLexpect_equal(V1-V2,V1R-V2R,check.attributes=FALSE)
   FLexpect_equal(P1$FL-P1$FL,P1$R-P1$R,check.attributes=FALSE)
@@ -109,11 +109,11 @@ test_that("check result for M_IntegerDivision",
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
   M2 <- FLMatrix("tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10))
+  V1 <- as.FLVector(sample(1:100,5))
   V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
+  V2 <- as.FLVector(sample(1:100,5))
   V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   FLexpect_equal((M1$FL%/%M2),M1$R%/%M2R,check.attributes=FALSE)
   FLexpect_equal((V1%/%V2),V1R%/%V2R,check.attributes=FALSE)
   FLexpect_equal((P1$FL%/%P1$FL),P1$R%/%P1$R,check.attributes=FALSE)
@@ -163,8 +163,8 @@ test_that("check result for M_CrossProduct",
   FLexpect_equal((P1$FL%*%V1),P1$R%*%V1R,check.attributes=FALSE)
     FLexpect_equal((M2%*%V2),M2R%*%V2R,check.attributes=FALSE)
     FLexpect_equal((M2%*%P1$FL),M2R%*%P1$R,check.attributes=FALSE)
-    FLexpect_equal((V1%*%M1$FL),V1R%*%M1$R,check.attributes=FALSE)
-    FLexpect_equal((P1$FL%*%M1$FL),P1$R%*%M1$R,check.attributes=FALSE)
+    FLexpect_equal((V1%*%M1$FL),V1R%*%M1$R,check.attributes=FALSE) ## Fails in Aster!
+    FLexpect_equal((P1$FL%*%M1$FL),P1$R%*%M1$R,check.attributes=FALSE) ## Fails in Aster!
 })
 
 
@@ -196,11 +196,11 @@ test_that("check result for M_Addition",
                   5, "MATRIX_ID",
                   "ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10))
+  V1 <- as.FLVector(sample(1:100,5))
   V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
+  V2 <- as.FLVector(sample(1:100,5))
   V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   FLexpect_equal(M1$FL+M2,
                M1$R+M2R,
                check.attributes=FALSE)
@@ -244,14 +244,11 @@ test_that("check result for M_Division",
     M2 <- FLMatrix("tblmatrixMulti",
               5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
     M2R <- as.matrix(M2)
-    V1 <- as.FLVector(sample(1:100,
-                             10))
+    V1 <- as.FLVector(sample(1:100, 5))
     V1R <- as.vector(V1)
-    V2 <- as.FLVector(sample(1:100,
-                             10))
+    V2 <- as.FLVector(sample(1:100, 5))
     V2R <- as.vector(V2)
-    P1 <- initF.FLVector(n=10,
-                         isRowVec=TRUE)
+    P1 <- initF.FLVector(n=5, isRowVec=TRUE)
     FLexpect_equal((M1$FL/M2), M1$R/M2R, check.attributes=FALSE)
     ##FLexpect_equal((V1/V2), V1R/V2R, check.attributes=FALSE)
     FLexpect_equal((P1$FL/P1$FL), P1$R/P1$R, check.attributes=FALSE)
@@ -271,11 +268,11 @@ test_that("check result for M_Multiplication",
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
   M2 <- FLMatrix("tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10))
+  V1 <- as.FLVector(sample(1:100,5))
   V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
+  V2 <- as.FLVector(sample(1:100,5))
   V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   ##
   FLexpect_equal(M1$FL*M2,M1$R*M2R,check.attributes=FALSE)
   FLexpect_equal(V1*V2,V1R*V2R,check.attributes=FALSE)
@@ -301,11 +298,11 @@ test_that("check result for identical",
   M3 <- as.FLMatrix(as.matrix(M2))
   M3R <- as.matrix(M2)
   M2R <- as.matrix(M2)
-  V1 <- as.FLVector(sample(1:100,10))
+  V1 <- as.FLVector(sample(1:100,5))
   V1R <- as.vector(V1)
-  V2 <- as.FLVector(sample(1:100,10))
+  V2 <- as.FLVector(sample(1:100,5))
   V2R <- as.vector(V2)
-  P1 <- initF.FLVector(n=10,isRowVec=TRUE)
+  P1 <- initF.FLVector(n=5,isRowVec=TRUE)
   ##
   FLexpect_equal(identical(M1$FL,M2),identical(M1$R,M2R),check.attributes=FALSE)
   FLexpect_equal(identical(M1$FL,M1$FL),identical(M1$R,M1$R),check.attributes=FALSE)
@@ -313,7 +310,7 @@ test_that("check result for identical",
   FLexpect_equal(identical(V1,V1R),identical(V1R,V1R),check.attributes=FALSE)
   FLexpect_equal(identical(P1$FL,P1$FL),identical(P1$R,P1$R),check.attributes=FALSE)
   FLexpect_equal(identical(V1,P1$FL),identical(V1R,P1$R),check.attributes=FALSE)
-  FLexpect_equal(identical(P1$FL,P1$R),identical(P1$R,P1$R),check.attributes=FALSE)
+  expect_true(identical(V1,V1R))
   FLexpect_equal(identical(M1$FL,V2),identical(M1$R,V2R),check.attributes=FALSE)
   FLexpect_equal(identical(M1$FL,P1$FL),identical(M1$R,P1$R),check.attributes=FALSE)
   FLexpect_equal(identical(V1,V1),identical(V1R,V1R),check.attributes=FALSE)
@@ -324,9 +321,9 @@ test_that("check result for identical",
 ## testing M_Subtraction with different length vectors
 test_that("-: fzzlSerial column vectors of different length",
 {
-  flt <- FLTable("FL_DEMO.fzzlSerial","SerialVal", whereconditions = "serialval<100")
-  flv1 <- flt[1:8,"RandVal"]
-  flv <- flt[1:10,"RandVal"]
+  flt <- FLTable("fzzlSerial","SERIALVAL", whereconditions = "SERIALVAL<100")
+  flv1 <- flt[1:8,"RANDVAL"]
+  flv <- flt[1:10,"RANDVAL"]
   flv1R <- as.vector(flv1)
   flvR <- as.vector(flv)
   FLexpect_equal(flv-flv1,flvR-flv1R,check.attributes=FALSE)

@@ -29,7 +29,7 @@ FLMatrixNorm <- function (object,NormMethod){
 FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 {
 
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag3Check(connection)
 
 	if(NormMethod > 4 || NormMethod < 1)

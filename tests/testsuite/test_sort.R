@@ -1,6 +1,6 @@
 Renv <- new.env(parent = globalenv())
 Renv$x <- swiss$Education[1:25]
-Renv$x1 <- rnorm(10)
+Renv$x1 <- round(rnorm(10,sd=100))
 Renv$x2 <- c(10:3, 2:12)
 FLenv <- as.FL(Renv)
 

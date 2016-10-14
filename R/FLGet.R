@@ -11,10 +11,11 @@ getObsIdColname <- function(object){
 ## returns INT for integers or bool,VARCHAR(255)
 ## for characters and FLOAT for numeric
 getFLColumnType <- function(x,columnName=NULL){
-    if(!is.FL(x)) stop("Input is not FL object. Use typeof. \n ")
+    # if(!is.FL(x)) stop("Input is not FL object. Use typeof. \n ")
     vmapping <- c(VARCHAR="character",
                   INT="integer",
                   FLOAT="double",
+                  FLOAT="numeric",
                   VARCHAR="logical")
     vresult <- names(vmapping)[vmapping==typeof(x)]
     if(vresult=="VARCHAR") 
@@ -29,7 +30,7 @@ setMethod("typeof",signature(x="ANY"),
       function(x){
         return (base::typeof(x))
         })
-setMethod("typeof",signature(x="FLMatrix"),
+setMethod("typeof",signature(x="FLIndexedValues"),
       function(x){
         return(x@type)
         })
@@ -253,7 +254,7 @@ getXMatrix <- function(object,
 
   # }
   vselect <- new("FLTableFunctionQuery",
-          connection=getConnection(object),
+          connectionName = getFLConnectionName(object),
           variables=list(MATRIX_ID="MATRIX_ID",
                   rowIdColumn="rowIdColumn",
                   colIdColumn="colIdColumn",
@@ -279,7 +280,7 @@ getXMatrix <- function(object,
 
   modelframe <- newFLMatrix(
                   select=vselect,
-                  dims=c(nrow(modelframe),length(vcolnames)),
+                  dims=as.integer(c(nrow(modelframe),length(vcolnames))),
                   Dimnames=list(NULL,vcolnames))
   #dimnames(modelframe) <- vdimnames
 
@@ -305,7 +306,7 @@ calcLinearPred <- function(object,...){
                           " AS vectorValueColumn \n ",
                       " FROM (",constructSelect(vfit),") a ")
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                         obs_id_colname = "vectorIndexColumn",
                         cell_val_colname = "vectorValueColumn"),
@@ -405,7 +406,7 @@ calcResiduals <- function(object,
   }
 
   tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables = list(
                         obs_id_colname = "vectorIndexColumn",
                         cell_val_colname = "vectorValueColumn"),
@@ -459,4 +460,15 @@ getDatabase <- function(x) {
 getTableNameSlot <- function(x){
     return(tryCatch(x@select@table_name,
                     error=function(x)NULL))
+}
+
+## May use FLMod in future.
+## https://app.asana.com/0/98264711960805/148450351472400
+## FLMod related issues
+getMODSQL <- function(pConnection=getFLConnection(),
+                    pColumn1,pColumn2){
+    if(is.TD(pConnection))
+        return(paste0(" ",pColumn1," MOD ",pColumn2," "))
+    else if(is.TDAster(pConnection))
+        return(paste0(" MOD(",pColumn1,",",pColumn2,") "))
 }

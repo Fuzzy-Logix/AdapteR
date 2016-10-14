@@ -1,24 +1,8 @@
-#setGeneric("ks.test",function(x,y=NULL,mean = NULL, sd = NULL, ...,
- #                             alternative="two.sided",
-  #                            exact=NULL)
-  #  standardGeneric("ks.test"))
-
-#setMethod("ks.test",signature(x="ANY", y="ANY"),
-#          function(x,
-#                   y, ...,
-#                   alternative = c("two.sided", "less", "greater"),
-#                   exact = NULL)
-#          {
-#              return(stats::ks.test(x = x,
-#                                    y = y, ...,
-#                                    alternative = alternative,
-#                                    exact = exact)
-#                     )
-#          }
-#          )
-
 NULL
-#' KS TEst
+
+
+#' Kolmogorov-Smirnov test
+#'
 #' Perform a one- or two-sample Kolmogorov-Smirnov test.
 #' @param x a FLVector of data values.
 #' @param y either a FLVector of data values, or a character string naming a cumulative distribution function or 
@@ -33,7 +17,28 @@ NULL
 #' If y is a FLVector, a two-sample test of the null hypothesis that x and y were drawn from the same continuous distribution is performed.
 #' Alternatively, y can be a character string naming a continuous (cumulative) distribution function, or such a function. 
 #' In this case, a one-sample test is carried out of the null that the distribution function which generated x is distribution y with parameters.
+#' @export
+setGeneric("ks.test",function(x,y=NULL,mean = NULL, sd = NULL, ...,
+                              alternative="two.sided",
+                              exact=NULL)
+    standardGeneric("ks.test"))
 
+#' @export
+setMethod("ks.test",signature(x="ANY", y="ANY"),
+         function(x,
+                  y, ...,
+                  alternative = c("two.sided", "less", "greater"),
+                  exact = NULL)
+         {
+             return(stats::ks.test(x = x,
+                                   y = y, ...,
+                                   alternative = alternative,
+                                   exact = exact)
+                    )
+         }
+         )
+
+#' @export
 setMethod("ks.test",signature(x="FLVector"),
           function(x,
                    y,
@@ -42,7 +47,7 @@ setMethod("ks.test",signature(x="FLVector"),
 
           {
               dname <- deparse(substitute(x))
-              
+              ##browser()
               if(!is.FLVector(x))
                   stop("Only take FLVector")
               vviewName <- gen_view_name("kstest1s")
@@ -59,7 +64,7 @@ setMethod("ks.test",signature(x="FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
              # dname <- as.list(sys.call(sys.parent()))[[2]]
               sqlstr <- paste0("SELECT q.D_STAT AS D,
@@ -78,10 +83,12 @@ setMethod("ks.test",signature(x="FLVector"),
                              method = "One-sample Kolmogorov-Smirnov test",
                              data.name = as.character(dname))
               class(result) <- "htest"
+              dropView(vviewName)
               return(result)              
           }
           )
 
+#' @export
 setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
           function(x,
                    y,
@@ -110,7 +117,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
               vcall <- as.list(sys.call(sys.parent()))
 #              dname <- paste0(vcall[2]," and ",vcall[3])
@@ -132,6 +139,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                              data.name = dname                             
                              )
               class(result) <- "htest"
+              dropView(vviewName)
               return(result)            
           }
           )

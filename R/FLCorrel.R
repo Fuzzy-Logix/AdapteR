@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include FLStatFunctions.R
 NULL
 
 #' Correlation.
@@ -244,16 +245,16 @@ var.data.frame <- function(x,y=NULL,...){
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
-var.FLAbstractColumn <- function(object){
-	return(paste0(" FLVar(",
-				paste0(object@columnName,collapse=","),") "))
+var.FLSimpleVector <- function(x,y=NULL,...){
+	if(missing(y)){
+            return(genAggregateFunCall(object=x,fun=FLaggregate,FLfun="FLVar"))
+	}
+	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
 #' @export
 var.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
-		if(ncol(x)>1 && !x@isDeep)
-		x <- as.FLVector(as.vector(x))
-		return(genAggregateFunCall(x,var.FLAbstractColumn))
+            return(genAggregateFunCall(object=x,fun=FLaggregate,FLfun="FLVar"))
 	}
 	else return(FLCorGeneric(x=x,y=y,functionName="FLCovar",...))
 }
@@ -358,7 +359,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 {
 	if(is.null(y))
 	y <- x
-	connection <- getConnection(x)
+	connection <- getFLConnection(x)
 	pStoreResult <- FALSE
     ##browser()
     if(is.FLMatrix(y))
@@ -374,17 +375,18 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 		vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 		if(is.null(sqlstr))
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-								a,".",x@dimColumns[[2]]," AS rowIdColumn,",
-								b,".",y@dimColumns[[2]]," AS colIdColumn,",
-                                 functionName,"(",a,".",x@dimColumns[[3]],",",
-                                 b,".",y@dimColumns[[3]],") AS valueColumn 
+								a,".",getIndexSQLName(x,2)," AS rowIdColumn,",
+								b,".",getIndexSQLName(y,2)," AS colIdColumn,",
+                                 functionName,"(",a,".",getValueSQLName(x),",",
+                                 b,".",getValueSQLName(y),") AS valueColumn 
 						FROM ( ",constructSelect(x),") AS ",a,
 		                  ",( ",constructSelect(y),") AS ",b,
-            			constructWhere(c(paste0(a,".",x@dimColumns[[1]]," = ",b,".",y@dimColumns[[1]],""))),
-            			" GROUP BY ",a,".",x@dimColumns[[2]],",",b,".",y@dimColumns[[2]])
+                                 constructWhere(c(paste0(a,".",getIndexSQLName(x,1)," = ",
+                                                         b,".",getIndexSQLName(y,1),""))),
+            			" GROUP BY ",a,".",getIndexSQLName(x,2),",",b,".",getIndexSQLName(y,2))
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-                connection = connection,
+                connectionName = attr(connection,"name"),
                 variables=list(
                     rowIdColumn="rowIdColumn",
                     colIdColumn="colIdColumn",
@@ -395,7 +397,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 
 		flm <- newFLMatrix(
                            select= tblfunqueryobj,
-                           dims=c(ncol(x),ncol(y)),
+                           dims=as.integer(c(ncol(x),ncol(y))),
 		            Dimnames = list(
                                 colnames(x),
                                 colnames(y)))
@@ -461,17 +463,18 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 			vstoreFlag <- ifelse(is.null(sqlstr),FALSE,TRUE)
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
-									a,".",x@dimColumns[[2]]," AS rowIdColumn,
+									a,".",getIndexSQLName(x,2)," AS rowIdColumn,
 									 1 AS colIdColumn,",
-                                        functionName,"(",a,".",x@dimColumns[[3]],",",
+                                        functionName,"(",a,".",getValueSQLName(x),",",
                                          b,".vectorValueColumn) AS valueColumn 
 							FROM ( ",constructSelect(x),") AS ",a,
 			                  ",( ",constructSelect(y),") AS ",b,
-	            			constructWhere(c(paste0(a,".",x@dimColumns[[1]]," = ",b,".vectorIndexColumn"))),
-	            			" GROUP BY ",a,".",x@dimColumns[[2]])
+	            			constructWhere(c(paste0(a,".",getIndexSQLName(x,1)," = ",
+                                                                b,".vectorIndexColumn"))),
+	            			" GROUP BY ",a,".",getIndexSQLName(x,2))
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -482,7 +485,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 
 			flm <- newFLMatrix(
                        select= tblfunqueryobj,
-                       dims=c(ncol(x),1),
+                       dims=as.integer(c(ncol(x),1)),
 			            Dimnames = list(
                           colnames(x),
                           "1"))
@@ -626,7 +629,7 @@ FLCorGeneric.FLVector <- function(x,y=NULL,
 	if(is.null(y))
 	y <- x
 
-	connection <- getConnection(x)
+	connection <- getFLConnection(x)
 
 	if(is.FLVector(y))
 	{
@@ -713,7 +716,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	}
 	else vnullFlag <- 0
 
-	connection <- getConnection(x)
+	connection <- getFLConnection(x)
 	if(is.FLTable(y))
 	{
 		if(nrow(x) != nrow(y)) stop("incompatible dimensions")
@@ -739,7 +742,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
                                          " GROUP BY ",a,".var_id_colname,",b,".var_id_colname")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -750,7 +753,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 
 			flm <- newFLMatrix(
 			            select= tblfunqueryobj,
-                       dims=c(ncol(x),ncol(y)),
+                       dims=as.integer(c(ncol(x),ncol(y))),
 			            Dimnames = list(
                           colnames(x),
                           colnames(y)))
@@ -833,16 +836,17 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			if(is.null(sqlstr))
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID,",
                                          a,".var_id_colname AS rowIdColumn,",
-                                         b,".",y@dimColumns[[2]]," AS colIdColumn,",
+                                         b,".",getIndexSQLName(y,2)," AS colIdColumn,",
                                          functionName,"(",a,".cell_val_colname,",
-                                         b,".",y@dimColumns[[3]],") AS valueColumn 
+                                         b,".",getValueSQLName(y),") AS valueColumn 
 								FROM ( ",constructSelect(x),") AS ",a,
                                          ",( ",constructSelect(y),") AS ",b,
-                                         constructWhere(c(paste0(a,".obs_id_colname = ",b,".",y@dimColumns[[1]]))),
-                                         " GROUP BY ",a,".var_id_colname,",b,".",y@dimColumns[[2]])
+                                         constructWhere(c(paste0(a,".obs_id_colname = ",
+                                                                 b,".",getIndexSQLName(y,1)))),
+                                         " GROUP BY ",a,".var_id_colname,",b,".",getIndexSQLName(y,2))
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -853,7 +857,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 
 			flm <- newFLMatrix(
 			            select= tblfunqueryobj,
-                       dims=c(ncol(x),ncol(y)),
+                       dims=as.integer(c(ncol(x),ncol(y))),
 			            Dimnames = list(
                           colnames(x),
                           colnames(y)))
@@ -926,7 +930,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	            			" GROUP BY ",a,".var_id_colname")
 
 			tblfunqueryobj <- new("FLTableFunctionQuery",
-                    connection = connection,
+                    connectionName = attr(connection,"name"),
                     variables=list(
                         rowIdColumn="rowIdColumn",
                         colIdColumn="colIdColumn",
@@ -938,7 +942,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			
 			flm <- newFLMatrix(
                        select= tblfunqueryobj,
-                       dims=c(ncol(x),1),
+                       dims=as.integer(c(ncol(x),1)),
                        Dimnames = list(
                            colnames(x),
                            "1"))
@@ -1037,7 +1041,7 @@ cov.wtGeneric <- function(x,
             			" GROUP BY a.",colIdColumn,",b.",colIdColumn)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
-                connection = connection,
+                connectionName = attr(connection,"name"),
                 variables=list(
                     rowIdColumn="rowIdColumn",
                     colIdColumn="colIdColumn",
@@ -1048,7 +1052,7 @@ cov.wtGeneric <- function(x,
 
 	flm <- newFLMatrix(
                        select= tblfunqueryobj,
-                       dims=c(ncol(x),ncol(x)),
+                       dims=as.integer(c(ncol(x),ncol(x))),
 	            	   Dimnames = list(
                             colnames(x),
                             colnames(x)))
@@ -1066,7 +1070,7 @@ cov.wtGeneric <- function(x,
 						" GROUP BY 1,2")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
-	                    connection = connection,
+	                    connectionName = attr(connection,"name"),
 	                    variables = list(
 			                obs_id_colname = "vectorIndexColumn",
 			                cell_val_colname = "vectorValueColumn"),

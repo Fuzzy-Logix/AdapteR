@@ -25,7 +25,7 @@ rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)
 rbind.FLMatrixBind <- rbind.FLMatrix
 ## {
 ## 	objectVec<-list(object,...)
-## 	connection<-getConnection(object)
+## 	connection<-getFLConnection(object)
 
 ## 	ncol <-0
 
@@ -219,7 +219,7 @@ rbind.FLMatrixBind <- rbind.FLMatrix
 ## rbind.FLVector <- function(object,...)
 ## {
 ## 	objectVec<-list(object,...)
-## 	connection<-getConnection(object)
+## 	connection<-getFLConnection(object)
 
 ## 	ncol <-0
 

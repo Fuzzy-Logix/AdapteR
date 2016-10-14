@@ -41,3 +41,15 @@ test_that("FLTable new columns from transformations: logical",{
     irisFL$SepalLongerThanWide2 <- irisFL$SepalLength > irisFL$SepalWidth*2
     FLexpect_equal(irisFL$SepalLongerThanWide2, iris$Sepal.Length   > iris$Sepal.Width*2)
 })
+
+test_that("kmeans(FLTable): iris dataset, deep-to-wide on subset of wide table ",{
+    eval_expect_equal({
+        (cl <- kmeans(iris[,2:5], 2))
+        ## plot(x, col = cl$cluster)
+        ## points(cl$centers, col = 1:2, pch = 8, cex = 2)
+        clusterDim <- length(cl$cluster)
+        centersDim <- dim(cl$centers)
+    },Renv,FLenv,
+    expectation=c("clusterDim","centersDim"),
+    noexpectation="cl")
+})

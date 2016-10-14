@@ -23,6 +23,7 @@ NULL
 #' y <- as.FLVector(rnorm(30, mean = 1, sd = 1))
 #' var.test(x, y, "two.sided")
 #' @export
+#' @method var.test FLVector
 var.test.FLVector <- function(x, y, ratio = 1, alternative = "two.sided", conf.level = .95){
     if(!is.FLVector(x) || !is.FLVector(y))
         print("only takes FLVector")
@@ -41,7 +42,8 @@ var.test.FLVector <- function(x, y, ratio = 1, alternative = "two.sided", conf.l
         p <- createTable(tName,pSelect=t)
         vcall <- as.list(sys.call())
         dname <- paste0(vcall[[2]]," and ",vcall[[3]])
-        # gk: please use a generator function
+        ## gk: please use a generator function
+        ## constructUDTSQL("DataSetID, GroupID, Num_Val", "FLFTestUdt", "*")
         str <- paste0("WITH z(DataSetID, GroupID, Num_Val) AS
                                  (SELECT q.* FROM ",p," AS q)
 SELECT a.* FROM TABLE (FLFTestUdt(z.DataSetID, '",vmapping[alternative],"', z.GroupID, z.Num_Val)
@@ -53,9 +55,9 @@ AS a;")
         res <- list(statistics = c(F = ret$FStat),
                     parameter = c("num df" = ret$DF1,"denom df" = ret$DF2),
                     p.value = ret$P_Value,
-                    conf.int = .95,
-                    estimate = 1,
-                    null.value = NULL,
+                    conf.int = NULL,
+                    estimate = c("ratio of variances"=ret$FStat),
+                    null.value = c("ratio of variances"=1),
                     alternative = alternative,
                     method = "F test to compare two variances",
                     data.name = dname)

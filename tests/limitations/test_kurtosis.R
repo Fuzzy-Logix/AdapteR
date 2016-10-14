@@ -1,6 +1,6 @@
 Renv <- new.env(parent=globalenv())
 set.seed(1234)
-Renv$x <- rnorm(1000)
+Renv$x <- rnorm(100)
 
 FLenv <- as.FL(Renv)
 

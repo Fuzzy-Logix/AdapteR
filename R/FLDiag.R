@@ -32,14 +32,14 @@ diag.default <- base::diag
 diag.FLMatrix<-function(object,...)
 {
     
-    connection<-getConnection(object)
+    connection<-getFLConnection(object)
     ## flag3Check(connection)
 
     table <- FLTable(table=object@select@table_name,
-                     obs_id_colname = getVariables(object)[[object@dimColumns[[1]]]],
+                     obs_id_colname = getVariables(object)[[object@dimColumns[[2]]]],
                      whereconditions=c(object@select@whereconditions,
-                                       paste0(getVariables(object)[[object@dimColumns[[1]]]],
-                                              "=",getVariables(object)[[object@dimColumns[[2]]]])))
+                                       paste0(getVariables(object)[[object@dimColumns[[2]]]],
+                                              "=",getVariables(object)[[object@dimColumns[[3]]]])))
 
     valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
 
@@ -53,7 +53,7 @@ diag.FLMatrix<-function(object,...)
 #' @export
 diag.FLVector <- function(object,...)
 {
-    connection <- getConnection(object)
+    connection <- getFLConnection(object)
     ## flag1Check(connection)
 
     if(length(object)==1)

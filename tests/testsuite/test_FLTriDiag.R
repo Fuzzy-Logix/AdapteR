@@ -5,7 +5,7 @@ test_that("Check for FLTriDiag function which calculates Hessenberg upper diagno
     testmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
     result <- FLTriDiag(testmatrix)
     ##    print(result)
-    print(paste0("Class of result is :",class(result)))
+    ##print(paste0("Class of result is :",class(result)))
 })
 
 ## Testing FLTriDiag

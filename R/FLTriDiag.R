@@ -23,7 +23,7 @@ FLTriDiag <- function (object, ...){
 FLTriDiag.FLMatrix<-function(object,...)
 {
 
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag1Check(connection)
 
 	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
@@ -32,7 +32,7 @@ FLTriDiag.FLMatrix<-function(object,...)
                    )
 	
 	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connection = connection,
+                        connectionName = attr(connection,"name"),
                         variables=list(
                             rowIdColumn="OutputRowNum",
                             colIdColumn="OutputColNum",

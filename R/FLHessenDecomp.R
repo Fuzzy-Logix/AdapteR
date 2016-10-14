@@ -28,7 +28,7 @@ FLHessen<-function(object, ...){
 FLHessen.FLMatrix<-function(object,...)
 {
 	#checkSquare(object,"FLHessen")
-	connection<-getConnection(object)
+	connection<-getFLConnection(object)
     ## flag1Check(connection)
 
 
