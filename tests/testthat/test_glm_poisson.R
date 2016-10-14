@@ -1,15 +1,9 @@
 Renv = new.env(parent = globalenv())
-FLenv <- as.FL(Renv)
-
 Renv$dataf<- data.frame(var1 = rnorm(200),
                         var2 = rnorm(200), 
-                        var3 = sample( c(0, 1), 200, replace = TRUE),
+                        var3 = sample( c(0, 10), 200, replace = TRUE),
                         offset=1)
-#rownames(var4) <- 1:nrow(var4)
-FLenv$dataf <- as.FLTable(Renv$dataf,
-                          tableName="ARBaseTestTempTable",
-                          temporary=FALSE,
-                          drop=TRUE)
+FLenv <- as.FL(Renv)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({
