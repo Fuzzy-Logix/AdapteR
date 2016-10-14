@@ -29,12 +29,11 @@ cint<-function(x,y=NULL,conf.level=0.95,mu=0,var.equal=FALSE,alternative="two.si
           res<- qt(1 - alpha/2, df)
           res<- tstat + c(-res,res)
           res<-mu+res*stder
+          result<-c(res,df)
+          return(result)
         }
+      }
     }
-    else stop("Not available for others")
-    result<-c(res,df)
-    return(result)
-}
 
 ## gk: please use constructUnionSQL
 ## Joining two FLVectors and creating a volatile table.

@@ -1,5 +1,7 @@
 #' @include FLMatrix.R
+#' @include FLconstructSQL.R
 NULL
+
 #' Student's t-Test
 #'
 #' Performs one and two sample t-tests on vectors of data.
@@ -18,6 +20,7 @@ NULL
 #' t.test(flx,fly)
 #' t.test(flx,fly,var.equal=F)
 #' @export
+#' @method t.test FLVector
 t.test.FLVector <- function(x,
                             y=NULL,
                             mu = 0,
@@ -52,9 +55,10 @@ t.test.FLVector <- function(x,
             if(var.equal==TRUE) {
                     var<-"EQUAL_VAR"
                     method<-" Two Sample t-test"}
-            else{
+            else {
                 var<-"UNEQUAL_VAR"
-                method<-"Welch Two Sample t-test"}
+                method<-"Welch Two Sample t-test"
+            }
             vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
                                               pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
                                                            b=c(groupID=2,num_val="b.vectorValueColumn")))

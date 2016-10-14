@@ -4,6 +4,7 @@ NULL
 
 
 setOldClass("RODBC")
+setOldClass("FLConnection")
 
 
 cleanNames <- function(x){
@@ -30,6 +31,8 @@ sqlError <- function(e){
 #' @param query SQLQuery to be sent
 #' @export
 sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
+
+#' @export
 sqlSendUpdate.FLConnection <- function(connection,query,...) 
     sqlSendUpdate(connection$connection,query,...)
 
@@ -39,6 +42,8 @@ sqlSendUpdate.FLConnection <- function(connection,query,...)
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
+
+#' @export
 sqlQuery.FLConnection <- function(connection,query,...)
     sqlQuery(connection$connection,query,...)
 
@@ -49,6 +54,8 @@ sqlQuery.FLConnection <- function(connection,query,...)
 #' @param query SQLQuery to be sent
 #' @export
 sqlStoredProc <- function(connection, query, outputParameter, ...) UseMethod("sqlStoredProc")
+
+#' @export
 sqlStoredProc.FLConnection <- function(connection,query,outputParameter,...) {
     sqlStoredProc(connection=getRConnection(connection),
                 query=query,

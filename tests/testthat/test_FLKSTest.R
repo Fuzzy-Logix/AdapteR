@@ -15,7 +15,7 @@ test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     expectation = c("q"),
     check.attributes=F,
     tolerance = .0001,
-    verbose = FALSE
+    verbose = T
     )
 }
 )
@@ -60,11 +60,11 @@ test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
                                         # Kolmogorov-Smirnov (KS) Test 2S
 
 sqlstr <- paste0("SELECT * FROM tblKSTest")
-t <- sqlQuery(connection, sqlstr)
+mt <- sqlQuery(connection, sqlstr)
 Renv = new.env(parent = globalenv())
 
-Renv$m <- t$NUM_VAL[t$GROUPID == 1]
-Renv$n <- t$NUM_VAL[t$GROUPID == 2]
+Renv$m <- mt$NUM_VAL[mt$GROUPID == 1]
+Renv$n <- mt$NUM_VAL[mt$GROUPID == 2]
 FLenv = as.FL(Renv)
 
 test_that("Kolmogorov-Smirnov Test 2S:DBLytix Example ",{

@@ -6,16 +6,16 @@
 
 ## This demo shows how the
 ## AdapteR package of Fuzzy Logix is
-## providing transparent matrix algrbra with
+## providing transparent matrix algebra with
 ## the DB Lytix(TM) in-database library.
-vtemp <- readline("What this demo is about:")
-
 if(!exists("connection")) {
     vtemp <- readline("Check if connection exists:")
     cat("connection object not found \n ")
     cat("using connecting demo \n ")
     demo("connecting", package="AdapteR")
 }
+
+vtemp <- readline("This demo is about transparent in-database matrix algebra.\nPress <ENTER> to start.")
 
 ###########################################################
 ############# Comparing (SQL from R) with AdapteR ############
@@ -40,24 +40,25 @@ FROM TABLE (
 ) AS a
 ORDER BY 1,2,3;")
 
-vtemp <- readline("Matrix inversion output (SQL from R) is in deep format:")
 print(vresult)
+vtemp <- readline("Ceck above that Matrix inversion output (SQL from R) is in deep format!\nPress <ENTER> to continue.")
 
-vtemp <- readline("You can use AdapteR with R syntax for inversion.  First we define the remote matrix:")
 m <- FLMatrix(table_name        = "tblMatrixMulti",
               matrix_id_colname = "Matrix_ID",
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
               col_id_colname    = "Col_ID",
               cell_val_colname  = "Cell_Val")
+vtemp <- readline("You can use AdapteR with R syntax for inversion.  Above we define the remote matrix.\nPress <ENTER> to continue.")
 
-vtemp <- readline("Compute the inverse in-database:")
 ms <- solve(m)
+vtemp <- readline("Compute the inverse in-database with R syntax.\nPress <ENTER> to continue.")
 
-vtemp <- readline("Output is also a FLMatrix and data is not fetched:")
 print(class(ms))
+vtemp <- readline("Output is also a FLMatrix and data is not fetched.\nPress <ENTER> to fetch and show the data.")
+ms
 
-vtemp <- readline("You can check with the R in-memory computation after fetching the matrix with a cast:")
+vtemp <- readline("\nPress <ENTER> to check with the R in-memory computation after fetching the matrix with a cast.")
 
 ## Casting downloads data of the matrix and creates a R in-memory object
 rm <- as.matrix(m)
@@ -69,35 +70,32 @@ solve(rm)
 ms
 
 
-vtemp <- readline("in-databse matrix multiplication with inverse
-results in the identity matrix:")
+vtemp <- readline("In-databse matrix multiplication with inverse results in the identity matrix:")
 round(m %*% ms,3)
 
-vtemp <- readline("check if R and DB Lytix results match up:")
+require(testthat)
 expect_equal(as.matrix(ms),
              solve(rm),
              check.attributes=FALSE)
+vtemp <- readline("AdapteR uses unit-tests with expect_equal to check if R and DB Lytix results match up for most of the R documentation examples of supported functions.\nPress <ENTER> to continue.")
 
-vtemp <- readline("Push R matrix into database:")
 flM <- as.FLMatrix(matrix(runif(25),5))
-vtemp <- readline("Print the matrix:")
-flM
+vtemp <- readline("Casting functions let you push an R matrix into database.\nPress <ENTER> to continue.")
 
-vtemp <- readline("in-database addition of FLMatrices:")
 result <- flM + flM
+vtemp <- readline("Operator override is used to do in-database addition of FLMatrices.\nPress <ENTER> to show the result.")
 
-vtemp <- readline("Result is fetched only when printed:")
 result
+vtemp <- readline("Result is fetched only when printed:")
 
-vtemp <- readline("in-database solution of expressions:")
 result1 <- flM + flM/flM - flM*flM
 result2 <- flM %*% flM
 result <- result1+result2
+vtemp <- readline("Operator override is used to do in-database addition of FLMatrices.\nPress <ENTER> to show the result.")
 
-vtemp <- readline("Result is fetched only when printed:")
 result
+vtemp <- readline("Result is fetched only when printed:")
 
-vtemp <- readline("Check if Results match up:")
 rM <- as.matrix(flM)
 flResult <- solve(flM) %*% flM - flM
 rResult <- solve(rM) %*% rM -rM
@@ -105,6 +103,6 @@ rResult <- solve(rM) %*% rM -rM
 flResult
 
 rResult
-
+vtemp <- readline("Check if Results match up. \nPress <ENTER> to end the demo.")
 ### END ###
 ### Thank You ####

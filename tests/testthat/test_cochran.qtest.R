@@ -1,7 +1,6 @@
 Renv = new.env(parent = globalenv())
 FLenv = as.FL(Renv)
 
-require(RVAideMemoire)
 
 ## data1 is DBLytix example
 ## data2 is R example
@@ -13,9 +12,7 @@ Renv$data <- data.frame(response=Renv$response,
                         fact=Renv$fact)
 
 ## Explicitly assigning in FLenv so that same table is re-used
-dropFLTestTable()
-FLenv$data <- as.FLTable(Renv$data,
-    tableName="ARBaseTestTempTable")
+FLenv$data <- as.FLTable(Renv$data)
 
 ## Results dont match for p.value
 ## FL does not have p.value.multcomp

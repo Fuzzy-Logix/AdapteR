@@ -275,10 +275,11 @@ order <- function(...,na.last=TRUE,decreasing=FALSE)
                         SQLquery=vsqlstr)
 
     flv <- newFLVector(
-                select = tblfunqueryobj,
-                Dimnames = list(1:length(vlist[[1]]),
-                                "vectorValueColumn"),
-                isDeep = FALSE)
+        select = tblfunqueryobj,
+        dims=vlist[[1]]@dims,
+        Dimnames = list(1:length(vlist[[1]]),
+                        "vectorValueColumn"),
+        isDeep = FALSE)
 
     return(ensureQuerySize(pResult=flv,
                         pInput=list(...,

@@ -96,8 +96,12 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       driverClass=NULL,
                       temporary=FALSE,
                       verbose=FALSE,
+                      tablePrefix=NULL,
                       ...){
-
+    if(is.null(tablePrefix) & temporary)
+        tablePrefix <- user
+    if(is.null(tablePrefix) & temporary)
+        tablePrefix <- genRandVarName()
     options(ResultDatabaseFL=database)
     options(FLUsername=user)
     connection <- NULL
@@ -195,7 +199,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
-    FLStartSession(connection=connection,database=database,temporary = temporary,...)
+    FLStartSession(connection=connection,database=database,temporary = temporary,tablePrefix=tablePrefix,...)
     return(connection)
 }
 
@@ -217,6 +221,7 @@ FLStartSession <- function(connection,
                            drop=FALSE,
                            debug=FALSE,
                            tableoptions=NULL,
+                           tablePrefix=NULL,
                            ...)
 {
     options(debugSQL=debug)
@@ -234,77 +239,86 @@ FLStartSession <- function(connection,
     #         sapply(getOption("FLTempViews"),dropView)
     #     options(FLTempViews=character())
     #     options(FLTempTables=character())
-    # }
-    #browser()
+    ## }
+    ##browser()
     options(InteractiveFL             = TRUE)
     options(temporaryFL               = temporary)
-    options(ResultVectorTableFL       = gen_table_name("tblVectorResult"))
-    options(ResultMatrixTableFL       = gen_table_name("tblMatrixMultiResult"))
-    options(ResultSparseMatrixTableFL = gen_table_name("tblMatrixMultiSparseResult"))
-    options(NameMapTableFL            = gen_table_name("tblNameMapping"))
-    options(ResultCharVectorTableFL   = gen_table_name("tblCharVectorResult"))
-    options(ResultCharMatrixTableFL   = gen_table_name("tblCharMatrixMultiResult"))
-    options(ResultIntMatrixTableFL    = gen_table_name("tblIntMatrixMultiResult"))
-    options(ResultIntVectorTableFL    = gen_table_name("tblIntVectorResult"))
-    options(ResultByteIntVectorTableFL    = gen_table_name("tblByteIntVectorResult"))
+    resultTables <- c(
+        "ResultVectorTableFL" = "tblVectorResult",
+        "ResultMatrixTableFL" = "tblMatrixMultiResult",
+        "ResultSparseMatrixTableFL"= "tblMatrixMultiSparseResult",
+        "NameMapTableFL" = "tblNameMapping",
+        "ResultCharVectorTableFL" = "tblCharVectorResult",
+        "ResultCharMatrixTableFL" = "tblCharMatrixMultiResult",
+        "ResultIntMatrixTableFL" = "tblIntMatrixMultiResult",
+        "ResultIntVectorTableFL" = "tblIntVectorResult",
+        "ResultByteIntVectorTableFL" = "tblByteIntVectorResult")
+    vresultTables <- names(resultTables)
+    if(!temporary)
+        resultTables <- paste0(database,".",resultTables)
+    else
+        resultTables <- paste0(tablePrefix,resultTables)
+    names(resultTables) <- vresultTables
+    eval(parse(text=paste0("options(",names(resultTables),"='",resultTables,"')", collapse="\n")))
 
     options(scipen=999)
     #options(stringsAsFactors=FALSE)
 
-    vresultTables <- c("ResultMatrixTableFL","ResultSparseMatrixTableFL",
-                        "ResultCharMatrixTableFL","ResultIntMatrixTableFL",
-                        "ResultVectorTableFL","ResultCharVectorTableFL",
-                        "ResultIntVectorTableFL","ResultByteIntVectorTableFL")
     sapply(vresultTables,
         function(x){
             vtable <- getOption(x)
             if(grepl("matrix",tolower(vtable)))
-            vclass <- "matrix"
-            else vclass <- "vector"
+                vclass <- "matrix"
+            else if(grepl("vector",tolower(vtable)))
+                vclass <- "vector"
+            else
+                vclass <- NULL
             if(grepl("byteint",tolower(vtable)))
-            vtype <- "BYTEINT"
+                vtype <- "BYTEINT"
             else if(grepl("int",tolower(vtable)))
-            vtype <- "INT"
+                vtype <- "INT"
             else if(grepl("char",tolower(vtable)))
-            vtype <- "VARCHAR(100)"
+                vtype <- "VARCHAR(100)"
             else vtype <- "FLOAT"
-            genCreateResulttbl(tablename=vtable,
-                                temporaryTable=temporary,
-                                tableoptions=tableoptions,
-                                vclass=vclass,
-                                type=vtype,
-                                pDrop=drop)
+            if(!is.null(vclass))
+                genCreateResulttbl(tablename=vtable,
+                                   temporaryTable=temporary,
+                                   tableoptions=tableoptions,
+                                   vclass=vclass,
+                                   type=vtype,
+                                   pDrop=drop)
         })
 
     ## Create names mapping table
-    createTable(pTableName=getOption("NameMapTableFL"),
-                pColNames=c("TABLENAME","MATRIX_ID",
-                            "DIM_ID","NAME","NUM_ID"),
-                pColTypes=c("VARCHAR(100)","INT",
-                            "INT","VARCHAR(100)",
-                            "INT"),
-                pTableOptions=tableoptions,
-                pPrimaryKey=c("TABLENAME","MATRIX_ID",
-                            "DIM_ID","NAME"),
-                pTemporary=temporary,
-                pDrop=drop)
-
+    if(!checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
+        createTable(pTableName=getOption("NameMapTableFL"),
+                    pColNames=c("TABLENAME","MATRIX_ID",
+                                "DIM_ID","NAME","NUM_ID"),
+                    pColTypes=c("VARCHAR(100)","INT",
+                                "INT","VARCHAR(100)",
+                                "INT"),
+                    pTableOptions=tableoptions,
+                    pPrimaryKey=c("TABLENAME","MATRIX_ID",
+                                  "DIM_ID","NAME"),
+                    pTemporary=temporary,
+                    pDrop=drop)
+    
     ## Create system table for TablesMetadataInfo
-    createTable(pTableName="fzzlAdapteRTablesInfo",
-                pColNames=c("TimeInfo","DateInfo",
-                            "UserName","DatabaseName",
-                            "TableName","ElementID",
-                            "ObjType",
-                            "Comments"),
-                pColTypes=c("VARCHAR(100)","VARCHAR(100)",
-                            "VARCHAR(100)","VARCHAR(100)",
-                            "VARCHAR(100)","INT","VARCHAR(100)",
-                            "VARCHAR(100)"),
-                pTableOptions=tableoptions,
-                pPrimaryKey="UserName",
-                pTemporary=FALSE,
-                pDrop=FALSE)
-
+    if(!checkRemoteTableExistence(tableName="fzzlAdapteRTablesInfo"))
+        createTable(pTableName="fzzlAdapteRTablesInfo",
+                    pColNames=c("TimeInfo","DateInfo",
+                                "UserName","DatabaseName",
+                                "TableName","ElementID",
+                                "ObjType",
+                                "Comments"),
+                    pColTypes=c("VARCHAR(100)","VARCHAR(100)",
+                                "VARCHAR(100)","VARCHAR(100)",
+                                "VARCHAR(100)","INT","VARCHAR(100)",
+                                "VARCHAR(100)"),
+                    pTableOptions=tableoptions,
+                    pPrimaryKey="UserName",
+                    pTemporary=FALSE,
+                    pDrop=FALSE)
     genSessionID()
     cat("Session Started..\n")
 }
@@ -315,6 +329,9 @@ genCreateResulttbl <- function(tablename,
                                vclass,
                                type,
                                pDrop){
+    ##browser()
+    if(checkRemoteTableExistence(tableName=tablename))
+        return()
     if(vclass=="matrix"){
         createTable(pTableName=tablename,
                     pColNames=c("MATRIX_ID","rowIdColumn",

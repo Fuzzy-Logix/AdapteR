@@ -50,6 +50,9 @@ results$testsuite <- llply(
     ask=FALSE,
     runonly=checkagain)
 
-results$limitations <- llply(find_test_scripts("limitations"),
-      runMyTestFile)
+results$limitations <- llply(
+    find_test_scripts("limitations"),
+    runMyTestFile,
+    ask=FALSE,
+    runonly=checkagain)
 

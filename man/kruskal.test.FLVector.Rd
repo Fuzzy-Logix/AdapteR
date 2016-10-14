@@ -4,7 +4,7 @@
 \alias{kruskal.test.FLVector}
 \title{Kruskal-Wallis Rank Sum Test}
 \usage{
-kruskal.test.FLVector(x, g, ...)
+\method{kruskal.test}{FLVector}(x, g, ...)
 }
 \arguments{
 \item{x}{FLVector with data values}

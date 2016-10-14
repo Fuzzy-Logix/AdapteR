@@ -196,6 +196,7 @@ FLTableMD <- function(table,
           attributes(rows)<-NULL
           if(length(vgrp)==0)
               vgrp <- unique(vdims[["grpID"]])
+            nMD <- length(vgrp)
         } else {
             rows <- NULL
             vdims <- sqlQuery(connection,

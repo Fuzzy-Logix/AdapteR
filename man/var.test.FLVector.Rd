@@ -4,7 +4,7 @@
 \alias{var.test.FLVector}
 \title{F Test.}
 \usage{
-\method{var}{test.FLVector}(x, y, ratio = 1, alternative = "two.sided",
+\method{var.test}{FLVector}(x, y, ratio = 1, alternative = "two.sided",
   conf.level = 0.95)
 }
 \arguments{

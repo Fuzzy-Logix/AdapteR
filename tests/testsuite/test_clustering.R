@@ -9,12 +9,13 @@ FLenv <- as.FL(Renv)
 test_that("Kmeans compare R and FL Manually ",{
     eval_expect_equal({
         cl <- kmeans(x, 2)
-        for(property in c("totss","withinss","tot.withinss","betweenss","size")){
-          cat(property," : \n ")
-          print(do.call("$",list(cl,property)))
-        }
-        cat(" \n \n ")
+        kmeans.totSS <- cl$totss
+        kmeans.withinSS <- cl$withinss
+        kmeans.tot.withinSS <- cl$tot.withinss
+        kmeans.betweenss <- cl$betweenss
+        kmeans.size <- cl$size
     },Renv,FLenv,
+    ##verbose=T,
     noexpectation=c("cl","property"))
 })
 
@@ -23,28 +24,28 @@ test_that("Kmeans compare R and FL Manually ",{
 ## The difference is not AdapteR specific as result is fetched
 ## from fzzlkmedoidstotalCost table.
 ## The main idea is the same,i.e to see improvement from build to swap.
-test_that("kmedoids compare R and FL Manually ",{
+test_that("pam: kmedoids results",{
     eval_expect_equal({
         cl <- pam(x, 2)
-        for(property in c("objective","isolation","clusinfo","silinfo","id.med")){
-          cat(property," : \n ")
-          print(do.call("$",list(cl,property)))
-        }
-        cat(" \n \n ")
+        pam.objective <- cl$objective
+        pam.isolation <- cl$isolation
+        pam.clusinfo <- cl$clusinfo
+        pam.silinfo <- cl$silinfo
+        pam.idmed <- cl$id.med
     },Renv,FLenv,
     noexpectation=c("cl","property"))
 })
 
 ## In convergence component, NA returned in iterations
 ## as that info is not available in DB-Lytix.
-test_that("FKMeans compare R and FL Manually ",{
+test_that("fanny: Fuzzy kmeans results ",{
     eval_expect_equal({
         cl <- fanny(x, 2)
-        for(property in c("k.crisp","objective","coeff","silinfo","convergence")){
-          cat(property," : \n ")
-          print(do.call("$",list(cl,property)))
-        }
-        cat(" \n \n ")
+        fanny.k.crisp <- cl$k.crisp
+        fanny.objective <- cl$objective
+        fanny.coeff <- cl$coeff
+        fanny.silinfo <- cl$silinfo
+        fanny.convergence <- cl$convergence
     },Renv,FLenv,
     noexpectation=c("cl","property"))
 })
@@ -52,14 +53,13 @@ test_that("FKMeans compare R and FL Manually ",{
 ## Height component differs.
 ## Height gives distance between merging clusters
 ## at each stage. Somehow AdapeR height is monotonously increasing.
-test_that("Agnes compare R and FL Manually ",{
+test_that("agnes results",{
     eval_expect_equal({
         cl <- agnes(x)
-        for(property in c("order","merge","ac","height")){
-          cat(property," : \n ")
-          print(do.call("$",list(cl,property)))
-        }
-        cat(" \n \n ")
+        agnes.order <- cl$order
+        agnes.merge <- cl$merge
+        agnes.ac <- cl$ac
+        agnes.height <- cl$height
     },Renv,FLenv,
     noexpectation=c("cl","property"))
 })

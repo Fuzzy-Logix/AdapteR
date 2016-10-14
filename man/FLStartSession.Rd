@@ -6,7 +6,7 @@
 \usage{
 FLStartSession(connection, database = getOption("ResultDatabaseFL"),
   temporary = TRUE, drop = FALSE, debug = FALSE, tableoptions = NULL,
-  ...)
+  tablePrefix = NULL, ...)
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection object}
