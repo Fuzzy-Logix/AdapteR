@@ -394,6 +394,7 @@ NULL
 ##' @param pSelect 
 ##' @param ... 
 ##' @return The fully qualified table name for referring to this table.
+##' @export
 createTable <- function(pTableName,
                         pColNames=NULL,
                         pColTypes=NULL,
@@ -562,12 +563,14 @@ createView <- function(pViewName,
 }
 
 ## DROP VIEW
+##' @export
 dropView <- function(pViewName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
                 paste0("DROP VIEW ",pViewName,";"),warn=warn)
 }
 
 ## DROP TABLE
+##' @export
 dropTable <- function(pTableName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
                   paste0("DROP TABLE ",pTableName,";"),warn=warn)

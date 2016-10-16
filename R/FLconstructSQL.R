@@ -227,6 +227,7 @@ setMethod("getIndexSQLExpression",
           signature(object = "FLAbstractColumn"),
           function(object,margin=1) object@columnName)
 
+#' @export
 setGeneric("getIndexSQLName", function(object,margin) {
     standardGeneric("getIndexSQLName")
 })
