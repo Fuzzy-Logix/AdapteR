@@ -169,7 +169,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         })
     } else if (!is.null(odbcSource)){
         if (!requireNamespace("RODBC", quietly = TRUE)){
-            stop("psych package needed for geometric.mean. Please install it.",
+            stop("RODBC package needed for using ODBC connections. Please install it.",
                  call. = FALSE)
         }
         tryCatch({
