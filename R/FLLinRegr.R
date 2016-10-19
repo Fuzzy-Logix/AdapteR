@@ -133,7 +133,7 @@ lm.default <- stats::lm
 
 ## move to file lm.R
 #' @export
-lm.FLTable <- function(formula,data,...)
+lm.FLTable <- function(formula,data,SF=FALSE,...)
 {
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
@@ -141,6 +141,7 @@ lm.FLTable <- function(formula,data,...)
                      data=data,
                      callObject=vcallObject,
                      familytype="linear",
+                     SF=SF,
                      ...))
 }
 
@@ -429,6 +430,7 @@ lmGeneric <- function(formula,data,
                       specID=list(),
                       direction="",
                       trace=1,
+                      SF=SF,
                       ...)
 {
 	#browser()
@@ -528,6 +530,7 @@ lmGeneric <- function(formula,data,
 						VARID_COL=getVariables(deepx)[["var_id_colname"]],
 						VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
 						)
+	if(SF==FALSE){
 	if(familytype %in% "multinomial")
 	vinputCols <- c(vinputCols,
 					pRefLevel=pThreshold)
@@ -568,10 +571,13 @@ lmGeneric <- function(formula,data,
 						THRESHOLD=pThreshold)
 		if(familytype %in% "logistic")
 		vinputCols <- c(vinputCols,
-					MAX_ITER=maxiter)
+						MAX_ITER=maxiter)
 		vinputCols <- c(vinputCols,
 						TOPN=topN,
-						HIGHESTPALLOW1=highestpAllow1)
+						HIGHESTPALLOW1=highestpAllow1)	
+	}}
+	else{
+		vfuncName<-paste0(functionName,"SF")
 	}
 	vinputCols <- c(vinputCols,
 					NOTE=vnote)
@@ -583,7 +589,15 @@ lmGeneric <- function(formula,data,
 
 	retobj <- checkSqlQueryOutput(retobj)
 	AnalysisID <- as.character(retobj[1,1])
-
+	#browser()
+	if(SF==TRUE){
+		sqlstr<-paste0("SELECT a.*,b.* FROM ",coefftablename," a, ",statstablename," b ",
+						"WHERE a.analysisid = ",fquote(AnalysisID)," AND a.analysisid=b.analysisid",
+						" AND a.modelid=a.coeffid ORDER BY 2,3")
+		ret<-sqlQuery(connection,sqlstr)
+		print(ret)
+		return(ret)
+	}
 	##Find the max modelID to avoid joins later.
 	##For forward find best fit model id.
 	vmaxModelID <- NULL
