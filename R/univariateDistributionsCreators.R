@@ -39,9 +39,10 @@ FLcreateUnivariateMethodCode <- function(definition){
        function(",sig,")\n{\n",
        "  names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_",funName,"'\n",
        "  n@select@variables[[1]] <- paste0('",FLfunName,"(',\n",
-       "                                    n@select@variables[[1]],',',\n",
+       "                                    n@select@variables[[1]],'+',round(runif(1)*10000),',',\n",
        "                                    ",
        paste0(FLfargs[-1], collapse=",',',"),",')')\n",
+       "  n@type <- 'numeric'\n", ## todo: extend to support custom type
        "  n\n",
        "})\n")
     paste0("\n\n#' @export\n",generic,RMethod,FLMethod)

@@ -168,9 +168,12 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             connection <- myConnect()
         })
     } else if (!is.null(odbcSource)){
-        require(RODBC)
+        if (!requireNamespace("RODBC", quietly = TRUE)){
+            stop("RODBC package needed for using ODBC connections. Please install it.",
+                 call. = FALSE)
+        }
         tryCatch({
-            connection <- odbcConnect(odbcSource)
+            connection <- RODBC::odbcConnect(odbcSource)
         },error=function(e)e)
     }
     if(is.null(connection))
@@ -258,6 +261,7 @@ FLStartSession <- function(connection,
         resultTables <- paste0(database,".",resultTables)
     else
         resultTables <- paste0(tablePrefix,resultTables)
+    options(resultTablesFL=resultTables)
     names(resultTables) <- vresultTables
     eval(parse(text=paste0("options(",names(resultTables),"='",resultTables,"')", collapse="\n")))
 
@@ -268,21 +272,25 @@ FLStartSession <- function(connection,
         function(x){
             vtable <- getOption(x)
             if(grepl("matrix",tolower(vtable)))
-            vclass <- "matrix"
-            else vclass <- "vector"
+                vclass <- "matrix"
+            else if(grepl("vector",tolower(vtable)))
+                vclass <- "vector"
+            else
+                vclass <- NULL
             if(grepl("byteint",tolower(vtable)))
-            vtype <- "BYTEINT"
+                vtype <- "BYTEINT"
             else if(grepl("int",tolower(vtable)))
-            vtype <- "INT"
+                vtype <- "INT"
             else if(grepl("char",tolower(vtable)))
-            vtype <- "VARCHAR(100)"
+                vtype <- "VARCHAR(100)"
             else vtype <- "FLOAT"
-            genCreateResulttbl(tablename=vtable,
-                                temporaryTable=temporary,
-                                tableoptions=tableoptions,
-                                vclass=vclass,
-                                type=vtype,
-                                pDrop=drop)
+            if(!is.null(vclass))
+                genCreateResulttbl(tablename=vtable,
+                                   temporaryTable=temporary,
+                                   tableoptions=tableoptions,
+                                   vclass=vclass,
+                                   type=vtype,
+                                   pDrop=drop)
         })
 
     ## Create names mapping table
@@ -326,7 +334,7 @@ genCreateResulttbl <- function(tablename,
                                type,
                                pDrop){
     ##browser()
-    if(checkRemoteTableExistence(tableName=tablename))
+    if(!pDrop & checkRemoteTableExistence(tableName=tablename))
         return()
     if(vclass=="matrix"){
         createTable(pTableName=tablename,

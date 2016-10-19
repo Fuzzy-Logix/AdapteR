@@ -7,7 +7,6 @@ Renv <- new.env(parent = globalenv())
 Renv$x <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
                  matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2))
 Renv$iris <- iris
-
 FLenv <- as.FL(Renv)
 ## gk @phani:  please make rownames invisible as FLtable column, expose only through rownames()
 Renv$iris <- cbind(rownames=1:nrow(Renv$iris),Renv$iris)
@@ -24,6 +23,7 @@ test_that("kmeans(FLMatrix): results on simulated 2-cluster data with clusters f
         size <- cl$size
     },Renv,FLenv,
     noexpectation=c("cl"),
+    tolerance=1e-6,
     check.attributes=FALSE
   )
 })

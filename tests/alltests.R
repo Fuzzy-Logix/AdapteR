@@ -1,5 +1,7 @@
+## You can run the test suite by executing the full file in any R session after doing flConnect.
+## Prerequisite is to change directory to the AdapteR tests directory.
+
 library(testthat)
-library(AdapteR)
 library(plyr)
 
 ##' runs a test file.
@@ -27,7 +29,7 @@ runMyTestFile <- function(f, ask=FALSE, runonly=NULL, skip=NULL,...){
         run <- TRUE
     if(run)
         tryCatch({
-            options(debugSQL=FALSE)
+            ## options(debugSQL=FALSE)
             test_file(f,...)
         },
         error=function(e) print(e))

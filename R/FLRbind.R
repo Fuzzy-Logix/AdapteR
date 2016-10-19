@@ -15,7 +15,6 @@ rbind.default <- base::rbind
 #' Input matrices, FLMatrices and data frames should have same number of columns.
 #' @return \code{rbind} returns a FLMatrix object which is the row wise combination of input arguments.
 #' @examples
-#' library(RODBC)
 #' flmatrix <- FLMatrix("tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 #' @export

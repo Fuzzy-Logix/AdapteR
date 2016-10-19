@@ -1,4 +1,3 @@
-require(testthat)
                                         # Problems with data.name,
                                         # p.value error computed is wrong.
                                         # Kolmogorov-Smirnov (KS) Test 1S
@@ -11,7 +10,6 @@ FLenv = as.FL(Renv)
 test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     result = eval_expect_equal({
         q <- ks.test(a,'pnorm', 3.5, 11.5)
-#        class(q) <- "list"
     },Renv,FLenv,
     expectation = c("q"),
     check.attributes=F,
@@ -61,11 +59,11 @@ test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
                                         # Kolmogorov-Smirnov (KS) Test 2S
 
 sqlstr <- paste0("SELECT * FROM tblKSTest")
-t <- sqlQuery(connection, sqlstr)
+mt <- sqlQuery(connection, sqlstr)
 Renv = new.env(parent = globalenv())
 
-Renv$m <- t$NUM_VAL[t$GROUPID == 1]
-Renv$n <- t$NUM_VAL[t$GROUPID == 2]
+Renv$m <- mt$NUM_VAL[mt$GROUPID == 1]
+Renv$n <- mt$NUM_VAL[mt$GROUPID == 2]
 FLenv = as.FL(Renv)
 
 test_that("Kolmogorov-Smirnov Test 2S:DBLytix Example ",{

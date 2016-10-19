@@ -3,12 +3,6 @@ NULL
 
 
 
-#' @export
-FLfriedman.test <- function(...){
-	UseMethod("FLfriedman.test")
-}
-
-
 #' Friedman Rank Sum Test
 #'
 #' Performs a Friedman rank sum test with unreplicated blocked data.
@@ -72,8 +66,14 @@ FLfriedman.test <- function(...){
 #' fltMD <- FLTableMD("tblFriedmanTest","datasetid","obsid","groupid","num_val")
 #' result4 <- friedman.test(x~w|t, data = fltMD)
 #' print(result4)
+#' @export friedman.test
+friedman.test <- function(...){
+	UseMethod("friedman.test")
+}
+
 #' @export
-FLfriedman.test.FLVector <- function(y,groups,blocks,...){
+#' @method friedman.test FLVector
+friedman.test.FLVector <- function(y,groups,blocks,...){
     if(!is.FLVector(groups) && is.numeric(groups))
         if(is.FLVector(blocks) || is.numeric(blocks))
         groups <- as.FLVector(groups)
@@ -104,14 +104,16 @@ FLfriedman.test.FLVector <- function(y,groups,blocks,...){
                         obs_id_colname="ObsID",
                         var_id_colname="VarID",
                         cell_val_colname="Num_Val")
-    result <- FLfriedman.test(Num_Val~ObsID|VarID,
+    result <- friedman.test(Num_Val~ObsID|VarID,
                               data=vtable,
                               data.name=DNAME)
     dropView(vtemp)
     return(result)
 }
 
-FLfriedman.test.FLMatrix <- function(y,...){
+#' @export
+#' @method friedman.test FLMatrix
+friedman.test.FLMatrix <- function(y,...){
     DNAME <- deparse(substitute(y))
     vView <- gen_view_name("Friedman")
     vtemp <- createView(vView,
@@ -123,7 +125,7 @@ FLfriedman.test.FLMatrix <- function(y,...){
                         obs_id_colname="rowIdColumn",
                         var_id_colname="colIdColumn",
                         cell_val_colname="valueColumn")
-    result <- FLfriedman.test(valueColumn~colIdColumn|rowIdColumn,
+    result <- friedman.test(valueColumn~colIdColumn|rowIdColumn,
                               data=vtable,
                               data.name=DNAME)
     dropView(vtemp)
@@ -132,29 +134,27 @@ FLfriedman.test.FLMatrix <- function(y,...){
 
 
 #' @export
-FLfriedman.test.formula <- function(formula, data,
-                                  subset=TRUE, 
-                                  na.action=getOption("na.action"),
-                                  y=NULL,
-                                  ...){
-	UseMethod("FLfriedman.test.formula", data)
-}
-
-FLfriedman.test.formula.default <- stats::friedman.test
-FLfriedman.test.default <- stats::friedman.test
-
-FLfriedman.test.formula.FLTable <- function(formula, data,
-                                  subset=TRUE, 
-                                  na.action=getOption("na.action"),
-                                  y=NULL,
+#' @method friedman.test formula
+friedman.test.formula <- function(formula, data,
                                   ...){
     if(!is.FL(data)){
-        return(stats::friedman.test(formula=formula,
-                                    data=data,
-                                    subset=subset,
-                                    na.action=na.action,
-                                    ...))
-    }
+        return(stats:::friedman.test.formula(formula=formula,
+                                             data=data,...))
+    } else
+        UseMethod("friedman.test", data)
+}
+
+#' @export
+#' @method friedman.test default
+friedman.test.default <- stats:::friedman.test.default
+
+#' @export
+#' @method friedman.test FLTable
+friedman.test.FLTable <- function(formula, data,
+                                            subset=TRUE, 
+                                            na.action=getOption("na.action"),
+                                            y=NULL,
+                                            ...){
     data <- setAlias(data,"")
     connection <- getFLConnection()
     if(data@isDeep){

@@ -12,23 +12,16 @@ FLenv <- as.FL(Renv)
 
 test_that("kruskal Test on FLVectors: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            fit <- FLkruskal.test(x=x,g=g)
+            fit <- kruskal.test(x=x,g=g)
             # fit$p.value <- NULL
-            fit$data.name <- NULL
-            class(fit) <- "list"
     },Renv,FLenv,
     expectation=c("fit"))
 })
 
 test_that("kruskal Test on FLTable: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            fit <- FLkruskal.test(Ozone ~ theMonth, data = mydata)
-            # fit$p.value <- NULL
-            ## fit$data.name <- NULL
-            ##class(fit) <- "list"
+            fit <- kruskal.test(formula=Ozone ~ theMonth,data = mydata)
     },Renv,FLenv,
     verbose=T,
     expectation=c("fit"))
 })
-
-

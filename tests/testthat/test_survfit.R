@@ -1,6 +1,5 @@
 Renv = new.env(parent = globalenv())
 FLenv = as.FL(Renv)
-require(survival)
 
 Renv$data <- sqlQuery(connection,paste0("SELECT DataSetID,Gender,TIME_VAL,STATUS ",
                                         " FROM vwWHAS100 ORDER by 1,2"))
@@ -11,6 +10,7 @@ Renv$fit <- dlply(Renv$data,c("DataSetID","Gender"),
                                         conf.type="plain"))
 
 FLenv$data <- FLTableMD("vwWHAS100","DataSetID","ObsID")
+
 FLenv$fit <- survfit(Surv(TIME_VAL,STATUS)~1,
                     data=FLenv$data,
                     GroupBy="Gender")
@@ -21,9 +21,7 @@ colnames(dat) <- c("ftime","fstatus","x")
 Renv$data2 <- dat
 
 # dropFLTestTable()
-FLenv$data2 <- as.FLTable(Renv$data2,
-                        tableName="ARBaseTestTempTable",
-                        drop=TRUE)
+FLenv$data2 <- as.FLTable(Renv$data2)
 
 FLenv$fit2 <- survfit(Surv(ftime, fstatus) ~ 1, 
                     data = FLenv$data2)
@@ -50,7 +48,7 @@ for(i in 1:2){
         },Renv,FLenv,
         noexpectation="res1")
     })
-
+    ##
     ## NAN in R <=> 0 in FL!
     test_that("Kaplan-Meier with groupBy and dlply result equality: upper and lower",{
         vtemp <- lapply(1:length(Renv$res1),
@@ -63,7 +61,7 @@ for(i in 1:2){
                         expect_equal(Rlower[!is.na(Rlower)],FLlower[!is.na(Rlower)])
                     })
     })
-
+    ##
     test_that("Kaplan-Meier with groupBy and dlply result equality: Without upper and lower",{
         result = eval_expect_equal({
                  # if(class(res1)!="list")

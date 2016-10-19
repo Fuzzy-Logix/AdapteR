@@ -31,7 +31,8 @@ test_that(
   {
     result5=eval_expect_equal({
      test5<-diag(z)
-     },Renv,FLenv)
+    },Renv,FLenv,
+    tolerance=1e-7)
     ##print(result5)
   })
 

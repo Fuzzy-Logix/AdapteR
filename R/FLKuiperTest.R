@@ -8,10 +8,7 @@ NULL
 #' @param vFLvector1 a FLVector of data values
 #' @param vFLvector2 a FLVector of data values
 #' @return A list with class "htest".
-#' @examples
-
-
-
+#' @export
 kuip.test <- function(vFLvector1, vFLvector2)          {
     dname <- as.list(sys.call())
         vcall <- paste0(dname[2], " and ", dname[3])
