@@ -847,12 +847,12 @@ setMethod("as.FLTable",signature(object="FLMatrix"),
 
 
 as.FLTable.FLMatrix <- function(object=object,...){
-  object <- setAlias(object,"")
-  return(FLTable(table=object@select@table_name,
-                obs_id_colname=getVariables(object)[["rowIdColumn"]],
-                var_id_colnames=getVariables(object)[["colIdColumn"]],
-                cell_val_colname=getVariables(object)[["valueColumn"]],
-                whereconditions=object@select@whereconditions))
+    object <- setAlias(object,"")
+    return(FLTable(table=object@select@table_name,
+                   obs_id_colname=getVariables(object)[["rowIdColumn"]],
+                   var_id_colnames=getVariables(object)[["colIdColumn"]],
+                   cell_val_colname=getVariables(object)[["valueColumn"]],
+                   whereconditions=object@select@whereconditions))
 }
 #' @export
 as.FLTable.data.frame <- function(object,
@@ -861,36 +861,37 @@ as.FLTable.data.frame <- function(object,
                                   uniqueIdColumn=0,
                                   drop=TRUE,
                                   batchSize=10000,
-                                  temporary=TRUE){
-  if(missing(tableName))
-  tableName <- genRandVarName()
-  if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
-  stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
-  if(uniqueIdColumn==0){
-    vrownames <- rownames(object)
-    if(!any(is.na(as.numeric(vrownames))))
-        vrownames <- as.numeric(vrownames)
-    object <- base::cbind(rownames=vrownames,object)
-    obsIdColname <- "rownames"
-  }
-  else if(is.numeric(uniqueIdColumn)){
-    uniqueIdColumn <- as.integer(uniqueIdColumn)
-    if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
-        stop("uniqueIdColumn is out of bounds")
-    else
-        obsIdColname <- colnames(object)[uniqueIdColumn]
-  }
-  else if(is.character(uniqueIdColumn)){
-    if(!uniqueIdColumn %in% colnames(object))
-        stop("uniqueIdColumn is out of bounds")
-    else
-        obsIdColname <- uniqueIdColumn
-  }
+                                  temporary=getOption("temporaryFL")){
+    ##browser()
+    if(missing(tableName))
+        tableName <- genRandVarName()
+    if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
+        stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
+    if(uniqueIdColumn==0){
+        vrownames <- rownames(object)
+        if(!any(is.na(as.numeric(vrownames))))
+            vrownames <- as.numeric(vrownames)
+        object <- base::cbind(rownames=vrownames,object)
+        obsIdColname <- "rownames"
+    }
+    else if(is.numeric(uniqueIdColumn)){
+        uniqueIdColumn <- as.integer(uniqueIdColumn)
+        if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
+            stop("uniqueIdColumn is out of bounds")
+        else
+            obsIdColname <- colnames(object)[uniqueIdColumn]
+    }
+    else if(is.character(uniqueIdColumn)){
+        if(!uniqueIdColumn %in% colnames(object))
+            stop("uniqueIdColumn is out of bounds")
+        else
+            obsIdColname <- uniqueIdColumn
+    }
 
-  ## A copy of connection is needed as in Aster, if query fails
-  ## connection becomes unusable until end of transaction block.
-  vconnection <- getRConnection(connection)
-  vcols <- ncol(object)
+    ## A copy of connection is needed as in Aster, if query fails
+    ## connection becomes unusable until end of transaction block.
+    vconnection <- getRConnection(connection)
+    vcols <- ncol(object)
     #vcolnames <- apply(object,2,class) ## wrong results with apply!
     vcolnames <- c()
     #browser()
@@ -913,25 +914,18 @@ as.FLTable.data.frame <- function(object,
     if(!all(vcolnamesCopy %in% c(" VARCHAR(255) "," INT "," FLOAT "))==TRUE)
     stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
 
-    if(drop)
+    
+    if(!checkRemoteTableExistence(tableName=tableName))
+        tryCatch({
+            t <- createTable(pTableName=tableName,
+                             pColNames=names(vcolnamesCopy),
+                             pColTypes=vcolnamesCopy,
+                             pTemporary=temporary,
+                             pDrop=drop
+                             )},
+            error=function(e)NULL)
+    if(is.ODBC(vconnection))
     {
-      # if(RJDBC::dbExistsTable(connection,tableName))
-      # t<-sqlSendUpdate(connection,paste0("drop table ",tableName,";"))
-      # vstr <- paste0(names(vcolnamesCopy)," ",vcolnamesCopy,collapse=",")
-      t <- createTable(pTableName=tableName,
-                      pColNames=names(vcolnamesCopy),
-                      pColTypes=vcolnamesCopy,
-                      pTemporary=temporary,
-                      pDrop=drop
-                      )
-      # sql <- paste0("create table ",getOption("ResultDatabaseFL"),".",tableName,"(",vstr,");")
-      # if (getOption("debugSQL")) cat(sql)
-      # t<-RJDBC::dbSendUpdate(connection,sql)
-      # updateMetaTable(pTableName=t,
-      #               pType="wideTable")
-    }
-  if(is.ODBC(vconnection))
-  {
     ## SqlSave uses parameterized sql which is slow for odbc.
     ## SqlSave does not include distribute by during table creation.
     ## SqlSave with append=TRUE crashes R session for Aster.

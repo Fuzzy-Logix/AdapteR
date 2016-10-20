@@ -115,8 +115,8 @@ modifyXforTrim <- function(x,trim=0){
     if (trim > 0 && n){
         if(!is.FLVector(x))
             stop("trim supported for FLVector objects only. \n ")
-        if (trim >= 0.5) 
-            return(median(x))
+        if (trim >= 0.5)
+            stop("only trim values between 0 and 0.5 are supported")
         lo <- floor(n * trim) + 1
         hi <- n + 1 - lo
         x <- sort(x)[lo:hi]
@@ -135,7 +135,7 @@ mean.FLIndexedValues <- function(x,...){
 	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
     x <- modifyXforTrim(x,...)
     return(genAggregateFunCall(x,func=FLaggregate,
-                               FLfun=paste0(1/do.call(base::prod,as.list(dim(x))),"*FLSum"),...))
+                               FLfun=paste0(1/length(x),"*FLSum")))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 

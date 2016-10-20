@@ -80,6 +80,7 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
+    ##browser()
     vtype <- typeof(object)
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
@@ -137,7 +138,7 @@ NULL
                               newcolnames))
         }
         object@Dimnames = list(newrownames, newcolnames)
-        object@dims[[2]] <- length(newrownames)
+        object@dims[[1]] <- length(newrownames)
         object@dims[[2]] <- length(newcolnames)
     }
     if(drop & (ncol(object)==1 | nrow(object) == 1))
@@ -146,7 +147,7 @@ NULL
       vrownames <- object@Dimnames[[1]]
       newnames <- NULL
       if(ncol(object)==1 && 
-        (!all(vrownames==(1:nrow(object)))))
+        (!all(vrownames==(1:length(vrownames)))))
       {
         MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
@@ -259,10 +260,9 @@ NULL
 
 `[.FLVector` <- function(object,pSet=1:length(object))
 {
-  #browser()
+  ##browser()
   if(FLNamesMappedP(object) 
-      || class(object@select)
-      =="FLTableFunctionQuery") 
+      || class(object@select)=="FLTableFunctionQuery") 
     object <- store(object)
   if(!isAliasSet(object))
   object <- setAlias(object,"flt")
@@ -271,8 +271,7 @@ NULL
   vvaluecolumn <- getValueColumn(object)
   newrownames <- rownames(object)
   newcolnames <- colnames(object)
-  if(ncol(object)==1) namesvector <- rownames(object)
-  else namesvector <- colnames(object)
+  namesvector <- names(object)
 
   if(is.FLVector(pSet) 
     && (is.RowFLVector(pSet) || is.RowFLVector(object)))
@@ -335,7 +334,7 @@ NULL
         }
     }
     else{
-      pSet <- as.vector(pSet)
+        pSet <- as.vector(pSet)
       if((is.numeric(pSet) && (any(pSet>length(object))
           || any(pSet<=0)))) stop("index out of bounds")
       
@@ -375,15 +374,16 @@ NULL
         }
         return(object)
       }
-      if(is.numeric(pSet) && 
-        !all(pSet %in% base::charmatch(namesvector,base::unique(namesvector)))) 
-      stop("index out of bounds or duplicates in names of vector")
-      if(is.character(pSet) && !all(pSet %in% namesvector))
-      stop("index out of bounds")
-      if(is.character(pSet) && 
-        base::identical(as.character(namesvector),as.character(1:length(object))))
-      stop("vector names not assigned or same as indices")
-
+        if(!is.null(namesvector)){
+            if(is.numeric(pSet) && 
+               !all(pSet %in% base::charmatch(namesvector,base::unique(namesvector)))) 
+                stop("index out of bounds or duplicates in names of vector")
+            if(is.character(pSet) && !all(pSet %in% namesvector))
+                stop("index out of bounds")
+            if(is.character(pSet) && 
+               base::identical(as.character(namesvector),as.character(1:length(object))))
+                stop("vector names not assigned or same as indices")
+        }
       charpSet <- pSet
       if(is.character(pSet) ||
         !base::identical(as.character(namesvector),as.character(1:length(object))))
@@ -502,6 +502,8 @@ appendTableName <- function(object,tablename){
     }))
   else object
 }
+
+#' @export
 changeAlias <- function(object,newalias,oldalias){
   object <- object[object!=""]
   if(!length(object)>0) return(object)
@@ -525,6 +527,8 @@ changeAlias <- function(object,newalias,oldalias){
     }))
   return(result)
 }
+
+#' @export
 setAlias <- function(object,newalias){
   if(isAliasSet(object))
   oldalias <- names(object@select@table_name)
@@ -541,6 +545,7 @@ setAlias <- function(object,newalias){
   object@select@whereconditions <- constraintsSQL(object)
   return(object)
 }
+
 isAliasSet <- function(object){
   if(length(names(object@select@table_name))>0)
   return(TRUE) else return(FALSE)

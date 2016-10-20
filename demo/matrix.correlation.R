@@ -128,7 +128,15 @@ vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 require(gplots)
 ## install.packages("gplots")
 
-metaInfo <- read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+metaInfo <- tryCatch({
+    read.csv("http://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+}, error=function(e) NULL)
+
+if(is.null(metaInfo))
+    metaInfo <- tryCatch({
+        read.csv("https://raw.githubusercontent.com/aaronpk/Foursquare-NASDAQ/master/companylist.csv")
+    }, error=function(e) NULL)
+
 
 M <- cor(eqnRtn[,intersect(
     metaInfo$Symbol[metaInfo$Sector %in% c("Basic Industries")],
@@ -165,7 +173,8 @@ run.FLCorrelationShiny <- function (){
             unique(c(input$stocks,
                      metastocks)),
             colnames(eqnRtn))
-
+        if(length(stocks)==0)
+            return(NULL)
         ## compute correlation matrix
         flCorr <- as.matrix(cor(eqnRtn[,stocks]))
 
@@ -215,7 +224,10 @@ run.FLCorrelationShiny <- function (){
 
 assign("metaInfo",metaInfo,envir=environment(run.FLCorrelationShiny))
 
-vtemp <- readline("To explore correlations interactively, we defined a function above. \n Simply execute\n> run.FLCorrelationShiny()\nafter ending the Demo.\nEnd the demo now:")
 
-### END ####
+## To explore correlations interactively, we defined a function above.
+## Simply execute now
+## > run.FLCorrelationShiny()
+## (When you want to end the interactive demo, shut the shiny web server by pressing <ctrl-c> twice here in the R terminal.)
+## End of the scripted demo.
 ### Thank You ####

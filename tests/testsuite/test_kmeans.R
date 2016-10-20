@@ -7,12 +7,11 @@ Renv <- new.env(parent = globalenv())
 Renv$x <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
                  matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2))
 Renv$iris <- iris
-
 FLenv <- as.FL(Renv)
 ## gk @phani:  please make rownames invisible as FLtable column, expose only through rownames()
 Renv$iris <- cbind(rownames=1:nrow(Renv$iris),Renv$iris)
 
-test_that("kmeans: results on simulated 2-cluster data with clusters far apart",{
+test_that("kmeans(FLMatrix): results on simulated 2-cluster data with clusters far apart",{
     eval_expect_equal({
         cl <- kmeans(x,2)
         cluster <- cl$cluster
@@ -24,22 +23,10 @@ test_that("kmeans: results on simulated 2-cluster data with clusters far apart",
         size <- cl$size
     },Renv,FLenv,
     noexpectation=c("cl"),
+    tolerance=1e-6,
     check.attributes=FALSE
   )
 })
-
-test_that("Kmeans returns objects correctly",{
-    eval_expect_equal({
-        (cl <- kmeans(iris[,2:5], 2))
-        ## plot(x, col = cl$cluster)
-        ## points(cl$centers, col = 1:2, pch = 8, cex = 2)
-        clusterDim <- length(cl$cluster)
-        centersDim <- dim(cl$centers)
-    },Renv,FLenv,
-    expectation=c("clusterDim","centersDim"),
-    noexpectation="cl")
-})
-
 
 # test_that("Kmeans returns numerical correct results",{
 #     eval_expect_equal({

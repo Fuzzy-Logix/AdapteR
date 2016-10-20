@@ -1,6 +1,8 @@
 
 NULL
 
+
+
 #' Friedman Rank Sum Test
 #'
 #' Performs a Friedman rank sum test with unreplicated blocked data.
@@ -64,7 +66,13 @@ NULL
 #' fltMD <- FLTableMD("tblFriedmanTest","datasetid","obsid","groupid","num_val")
 #' result4 <- friedman.test(x~w|t, data = fltMD)
 #' print(result4)
+#' @export friedman.test
+friedman.test <- function(...){
+	UseMethod("friedman.test")
+}
+
 #' @export
+#' @method friedman.test FLVector
 friedman.test.FLVector <- function(y,groups,blocks,...){
     if(!is.FLVector(groups) && is.numeric(groups))
         if(is.FLVector(blocks) || is.numeric(blocks))
@@ -96,11 +104,15 @@ friedman.test.FLVector <- function(y,groups,blocks,...){
                         obs_id_colname="ObsID",
                         var_id_colname="VarID",
                         cell_val_colname="Num_Val")
-    return(friedman.test(Num_Val~ObsID|VarID,
-                        data=vtable,
-                        data.name=DNAME))
+    result <- friedman.test(Num_Val~ObsID|VarID,
+                              data=vtable,
+                              data.name=DNAME)
+    dropView(vtemp)
+    return(result)
 }
 
+#' @export
+#' @method friedman.test FLMatrix
 friedman.test.FLMatrix <- function(y,...){
     DNAME <- deparse(substitute(y))
     vView <- gen_view_name("Friedman")
@@ -113,12 +125,120 @@ friedman.test.FLMatrix <- function(y,...){
                         obs_id_colname="rowIdColumn",
                         var_id_colname="colIdColumn",
                         cell_val_colname="valueColumn")
-    return(friedman.test(valueColumn~colIdColumn|rowIdColumn,
-                        data=vtable,
-                        data.name=DNAME))
+    result <- friedman.test(valueColumn~colIdColumn|rowIdColumn,
+                              data=vtable,
+                              data.name=DNAME)
+    dropView(vtemp)
+    return(result)
 }
 
 
+#' @export
+#' @method friedman.test formula
+friedman.test.formula <- function(formula, data,
+                                  ...){
+    if(!is.FL(data)){
+        return(stats:::friedman.test.formula(formula=formula,
+                                             data=data,...))
+    } else
+        UseMethod("friedman.test", data)
+}
+
+#' @export
+#' @method friedman.test default
+friedman.test.default <- stats:::friedman.test.default
+
+#' @export
+#' @method friedman.test FLTable
+friedman.test.FLTable <- function(formula, data,
+                                            subset=TRUE, 
+                                            na.action=getOption("na.action"),
+                                            y=NULL,
+                                            ...){
+    data <- setAlias(data,"")
+    connection <- getFLConnection()
+    if(data@isDeep){
+        vBlockColname <- getVariables(data)[["obs_id_colname"]]
+        vGroupColname <- getVariables(data)[["var_id_colname"]]
+        vValueColname <- getVariables(data)[["cell_val_colname"]]
+    }
+    else{
+        vallVars <- all.vars(formula)
+        if(any(!vallVars %in% colnames(data)))
+            stop("columns specified in formula not in data \n ")
+        vBlockColname <- vallVars[3]
+        vGroupColname <- vallVars[2]
+        vValueColname <- vallVars[1]
+    }
+    vdata.name <- list(...)[["data.name"]]
+    if(is.null(vdata.name))
+        vdata.name <- paste0(vValueColname," and ",vGroupColname,
+                             " and ",vBlockColname)
+    vobsIDCol <- getVariables(data)[["obs_id_colname"]]
+    
+                                        # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
+    vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
+                           list(...)[["GroupBy"]]))
+                    if(is.wideFLTable(data) &&
+                        any(!setdiff(vgroupCols,vobsIDCol) %in% colnames(data)))
+                        stop("columns specified in GroupBy not in data \n ")
+                    vgrp <- paste0(vgroupCols,collapse=",")
+                    if(!length(vgroupCols)>0)
+                        vgrp <- NULL
+    
+    ret <- sqlStoredProc(connection,
+                         "FLFriedmanTest",
+                         TableName = getTableNameSlot(data),
+                         ValueColname = vValueColname,
+                         ObsIDColName= vBlockColname,
+                         SampleIDColName = vGroupColname,
+                         WhereClause = list(...)[["whereconditions"]],
+                         GroupBy = vgrp,
+                         TableOutput = 1,
+                         outputParameter = c(OutTable = 'a')
+                         )
+    ret <- as.character(ret[1,1])
+
+    ##browser()
+    VarID <- c(statistic="TEST_STAT",
+               p.value="Prob")
+    vdf <- sqlQuery(connection,
+                    paste0("SELECT COUNT(DISTINCT a.",
+                           vGroupColname,")-1 AS df \n ",
+                           " FROM ",getTableNameSlot(data)," a \n ",
+                           constructWhere(list(...)[["whereconditions"]])," \n ",
+                           ifelse(length(setdiff(vgrp,""))>0,
+                                  paste0("GROUP BY ",vgrp, " \n "),""),
+                           ifelse(length(setdiff(vgrp,""))>0,
+                                  paste0("ORDER BY ",vgrp),"")
+                           )
+                    )
+    vdf <- vdf[[1]]
+    vres <- sqlQuery(connection,
+                     paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
+                            "FROM ",ret," \n ",
+                            ifelse(length(setdiff(vgrp,""))>0,
+                                   paste0("ORDER BY ",vgrp),"")))
+    
+    vres <- cbind(groupID=1:nrow(vres),vres)
+    colnames(vres) <- c("groupID",names(VarID))
+    
+    vresList <- dlply(vres,"groupID",
+                      function(x){
+        vtemp <- list(statistic=c("Friedman chi-squared"=x[["statistic"]]),
+                      parameter=c(df=vdf[x[["groupID"]]]),
+                      p.value=x[["p.value"]],
+                      method="Friedman rank sum test",
+                      data.name=vdata.name
+                      )
+        class(vtemp) <- "htest"
+        return(vtemp)
+    })
+    names(vresList) <- 1:length(vresList)
+    if(length(vresList)==1)
+        vresList <- vresList[[1]]
+    return(vresList)
+}
 ## S3 overload not working for default R calls:
 ## Error: Evaluation nested deeply.
 ## Becasuse stats comes after AdapteR in search path.
@@ -218,41 +338,45 @@ friedman.test.FLMatrix <- function(y,...){
 #     }
 # }
 
-## S4 implementation because S3 not working for formula input case.
-#' @export
-setGeneric("friedman.test",
-    function(y,
-            ...)
-        standardGeneric("friedman.test"))
+## ## S4 implementation because S3 not working for formula input case.
+## #' @export
+## setGeneric("friedman.test",
+##     function(y,
+##             ...)
+##         standardGeneric("friedman.test"))
 
-## Not working: Environments related error.
-## In the default R implementation, environments
-## are used.
-setMethod("friedman.test",
-        signature(y="ANY"),
-        function(y,
-                ...){
-                    return(stats::friedman.test(y=y,
-                                    ...))
-                })
+## ## Not working: Environments related error.
+## ## In the default R implementation, environments
+## ## are used.
+## setMethod("friedman.test",
+##         signature(y="ANY"),
+##         function(y,
+##                 ...){
+##                     return(stats::friedman.test(y=y,
+##                                     ...))
+##                 })
 
-setMethod("friedman.test",
-        signature(y="FLVector"),
-        function(y,groups,blocks,
-                ...){
-                    return(friedman.test.FLVector(y=y,
-                                    groups=groups,
-                                    blocks=blocks,
-                                    ...))
-                })
+## setMethod("friedman.test",
+##         signature(y="FLVector"),
+##         function(y,groups,blocks,
+##                 ...){
+##                     return(friedman.test.FLVector(y=y,
+##                                     groups=groups,
+##                                     blocks=blocks,
+##                                     ...))
+##                 })
 
-setMethod("friedman.test",
-        signature(y="FLMatrix"),
-        function(y,
-                ...){
-                    return(friedman.test.FLMatrix(y=y,
-                                    ...))
-                })
+## setMethod("friedman.test",
+##         signature(y="FLMatrix"),
+##         function(y,
+##                 ...){
+##                     return(friedman.test.FLMatrix(y=y,
+##                                     ...))
+##                 })
+
+## setMethod("friedman.test",
+##         signature(formula="formula"),
+##         friedman.test.formula)
 
 # setMethod("friedman.test",
 #         signature(formula="formula", 
@@ -267,105 +391,6 @@ setMethod("friedman.test",
 #                                     na.action=na.action,
 #                                     ...))
 #                 })
-
-setMethod("friedman.test",
-        signature(y="formula"),
-        function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"),
-                y=NULL,
-                ...){
-                    if(!is.FL(data)){
-                        return(stats::friedman.test(formula=formula,
-                                                    data=data,
-                                                    subset=subset,
-                                                    na.action=na.action,
-                                                    ...))
-                    }
-                    data <- setAlias(data,"")
-                    connection <- getFLConnection()
-                    if(data@isDeep){
-                        vBlockColname <- getVariables(data)[["obs_id_colname"]]
-                        vGroupColname <- getVariables(data)[["var_id_colname"]]
-                        vValueColname <- getVariables(data)[["cell_val_colname"]]
-                    }
-                    else{
-                        vallVars <- all.vars(formula)
-                        if(any(!vallVars %in% colnames(data)))
-                            stop("columns specified in formula not in data \n ")
-                        vBlockColname <- vallVars[3]
-                        vGroupColname <- vallVars[2]
-                        vValueColname <- vallVars[1]
-                    }
-                    vdata.name <- list(...)[["data.name"]]
-                    if(is.null(vdata.name))
-                        vdata.name <- paste0(vValueColname,", ",vGroupColname,
-                                            " and ",vBlockColname)
-                    vobsIDCol <- getVariables(data)[["obs_id_colname"]]
-
-                    # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
-                    vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
-                                        list(...)[["GroupBy"]]))
-                    if(is.wideFLTable(data) &&
-                        any(!setdiff(vgroupCols,vobsIDCol) %in% colnames(data)))
-                        stop("columns specified in GroupBy not in data \n ")
-                    vgrp <- paste0(vgroupCols,collapse=",")
-                    if(!length(vgroupCols)>0)
-                        vgrp <- NULL
-
-                    ret <- sqlStoredProc(connection,
-                                         "FLFriedmanTest",
-                                         TableName = getTableNameSlot(data),
-                                         ValueColname = vValueColname,
-                                         ObsIDColName= vBlockColname,
-                                         SampleIDColName = vGroupColname,
-                                         WhereClause = list(...)[["whereconditions"]],
-                                         GroupBy = vgrp,
-                                         TableOutput = 1,
-                                         outputParameter = c(OutTable = 'a')
-                                        )
-                    ret <- as.character(ret[1,1])
-
-                    VarID <- c(statistic="TEST_STAT",
-                                p.value="Prob")
-                    vdf <- sqlQuery(connection,
-                                        paste0("SELECT COUNT(DISTINCT a.",
-                                                    vGroupColname,")-1 AS df \n ",
-                                               " FROM ",getTableNameSlot(data)," a \n ",
-                                               constructWhere(list(...)[["whereconditions"]])," \n ",
-                                               ifelse(length(setdiff(vgrp,""))>0,
-                                                        paste0("GROUP BY ",vgrp, " \n "),""),
-                                               ifelse(length(setdiff(vgrp,""))>0,
-                                                        paste0("ORDER BY ",vgrp),"")
-                                            )
-                                    )
-                    vdf <- vdf[[1]]
-                    vres <- sqlQuery(connection,
-                                    paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
-                                            "FROM ",ret," \n ",
-                                            ifelse(length(setdiff(vgrp,""))>0,
-                                                    paste0("ORDER BY ",vgrp),"")))
-
-                    vres <- cbind(groupID=1:nrow(vres),vres)
-                    colnames(vres) <- c("groupID",names(VarID))
-
-                    vresList <- dlply(vres,"groupID",
-                                    function(x){
-                                        vtemp <- list(statistic=c("Friedman chi-squared"=x[["statistic"]]),
-                                                      parameter=c(df=vdf[x[["groupID"]]]),
-                                                      p.value=x[["p.value"]],
-                                                      method="Friedman rank sum test",
-                                                      data.name=vdata.name
-                                                      )
-                                        class(vtemp) <- "htest"
-                                        return(vtemp)
-                                    })
-                    names(vresList) <- 1:length(vresList)
-                    if(length(vresList)==1)
-                        vresList <- vresList[[1]]
-                    vtemp <- dropView(getTableNameSlot(data))
-                    return(vresList)
-    })
 
 # setMethod("friedman.test",
 #         signature(formula="formula", 

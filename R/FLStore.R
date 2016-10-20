@@ -211,13 +211,12 @@ store.FLVector <- function(object,pTableName=NULL,...)
                                 ".vectorIdColumn = ",VID1),
                 order = "")
 
-  if(ncol(object)==1) vindex <- rownames(object)
-  else vindex <- colnames(object)
   return(newFLVector(
-                select=select,
-                Dimnames=list(vindex,"vectorValueColumn"),
-                isDeep=FALSE,
-                type=typeof(object)))
+      select=select,
+      dims=object@dims,
+      Dimnames=object@Dimnames,
+      isDeep=FALSE,
+      type=typeof(object)))
 }
 
 #' @export

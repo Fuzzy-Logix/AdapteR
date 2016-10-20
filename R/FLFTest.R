@@ -23,6 +23,7 @@ NULL
 #' y <- as.FLVector(rnorm(30, mean = 1, sd = 1))
 #' var.test(x, y, "two.sided")
 #' @export
+#' @method var.test FLVector
 var.test.FLVector <- function(x, y, ratio = 1, alternative = "two.sided", conf.level = .95){
     if(!is.FLVector(x) || !is.FLVector(y))
         print("only takes FLVector")

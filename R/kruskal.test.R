@@ -37,6 +37,7 @@ NULL
 #' result2 <- kruskal.test(Ozone ~ Month, data = FLTableObj)
 #' print(result2)
 #' @export
+#' @method kruskal.test FLVector
 kruskal.test.FLVector <- function(x,g,...){
     if(!is.FLVector(g) && is.numeric(g))
         g <- as.FLVector(g)
@@ -55,7 +56,7 @@ kruskal.test.FLVector <- function(x,g,...){
                                                 groupID=1,
                                                 Num_Val="a.vectorValueColumn"),
                                               b=c(DatasetID=1,
-                                                ObsID="a.vectorIndexColumn",
+                                                ObsID="b.vectorIndexColumn",
                                                 groupID=2,
                                                 Num_Val="b.vectorValueColumn")))
 
@@ -64,49 +65,30 @@ kruskal.test.FLVector <- function(x,g,...){
     vtable <- FLTableMD(vView,
                         group_id_colname="DatasetID",
                         obs_id_colname="ObsID")
-    return(friedman.test(Num_Val~groupID,
-                        data=vtable,
+    return(kruskal.test(data=vtable,
+                        formula=Num_Val~groupID,
                         data.name=DNAME))
 }
 
 
-## S3 overload not working for default R calls:
-## Error: Evaluation nested deeply.
-## Becasuse stats comes after AdapteR in search path.
+#' @export
+#' @method kruskal.test formula
+kruskal.test.formula <- function(formula, data,
+                                  ...){
+    if(!is.FL(data)){
+        return(stats:::kruskal.test.formula(formula=formula,
+                                            data=data,...))
+    } else
+        UseMethod("kruskal.test", data)
+}
 
-
-## S4 implementation because S3 not working for formula input case.
-setGeneric("kruskal.test",
-    function(formula, data,
-            subset=TRUE, 
-            na.action=getOption("na.action"),
-            ...)
-        standardGeneric("kruskal.test"))
-
-## Not working: Environments related error.
-## In the default R implementation, environments
-## are used.
-setMethod("kruskal.test",
-        signature(formula="formula", 
-                  data="ANY"),
-        function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"),
-                ...){
-                    return(stats::kruskal.test(formula=formula,
-                                            data=data,
-                                            subset=subset,
-                                            na.action=na.action,
-                                            ...))
-                })
-
-setMethod("kruskal.test",
-        signature(formula="formula", 
-                  data="FLTable"),
-        function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"),
-                ...){
+#' @export
+#' @method kruskal.test FLTable
+kruskal.test.FLTable <- function(formula,data,
+                                 subset=TRUE, 
+                                 na.action=getOption("na.action"),
+                                 x=NULL,
+                                 ...){
                     data <- setAlias(data,"")
                     connection <- getFLConnection()
                     if(data@isDeep){
@@ -135,6 +117,7 @@ setMethod("kruskal.test",
                     if(!length(vgroupCols)>0)
                         vgrp <- NULL
 
+                    ##browser()
                     ret <- sqlStoredProc(connection,
                                          "FLKWTest",
                                          TableName = getTableNameSlot(data),
@@ -161,6 +144,7 @@ setMethod("kruskal.test",
                                             )
                                     )
                     vdf <- vdf[[1]]
+                    ##browser()
                     vres <- sqlQuery(connection,
                                     paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
                                             "FROM ",ret," \n ",
@@ -184,6 +168,6 @@ setMethod("kruskal.test",
                     names(vresList) <- 1:length(vresList)
                     if(length(vresList)==1)
                         vresList <- vresList[[1]]
-                    vtemp <- dropView(getTableNameSlot(data))
+                    ##vtemp <- dropView(getTableNameSlot(data))
                     return(vresList)
-    })
+}

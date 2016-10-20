@@ -43,15 +43,6 @@ FLTable <- function(table,
                                    c(getTablename(table),
                                      oldalias))
     names(table) <- "flt"
-
-    cleanNames <- function(x){
-        ##change factors to strings
-        if(is.factor(x) || class(x)=="Date")
-            x <- as.character(x)
-        if(is.character(x))
-            x <- gsub("^ +| +$","",x)
-        x
-    }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- cleanNames(sort(sqlQuery(connection,
@@ -257,7 +248,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
                                   pValue=value)
         }
     }
-    if(!is.FLVector(value))
+    if(!is.FLVector(value) & !inherits(value,"FLSimpleVector"))
         value <- as.FLVector(value)
     sqlstr <- paste0("UPDATE ",vtablename," \n ",
                     " FROM(",constructSelect(value),") a \n ",
@@ -708,8 +699,9 @@ setMethod("FLRegrDataPrep",
                   classSpec=list(),
                   whereconditions="",
                   inAnalysisID="",
-                  outGroupIDCol="group_id_colname"
-                  # ,...
+                  outGroupIDCol="group_id_colname",
+                  fetchIDs=TRUE
+                                        # ,...
                   )
           {
             if(object@isDeep) return(list(table=object))
@@ -857,21 +849,22 @@ setMethod("FLRegrDataPrep",
 
             updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
 
-            if(is.FLTable(object))
-              table <- FLTable(deeptablename,
-                               outObsIDCol,
-                               outVarIDCol,
-                               outValueCol,
-                               # ObsID=rownames(object)
-                               fetchIDs=FALSE
-                              )
-            else if(is.FLTableMD(object))
+            if(is.FLTableMD(object))
               table <- FLTableMD(deeptablename,
                                outGroupIDCol,
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               group_id=object@Dimnames[[3]]
+                               group_id=object@Dimnames[[3]],
+                               fetchIDs=fetchIDs
+                              )
+            else if(is.FLTable(object))
+              table <- FLTable(deeptablename,
+                               outObsIDCol,
+                               outVarIDCol,
+                               outValueCol,
+                               # ObsID=rownames(object),
+                               fetchIDs=fetchIDs
                               )
             return(list(table=table,
                         AnalysisID=dataprepID))
@@ -886,7 +879,7 @@ FLSampleData <- function(pTableName,
                                                 "Train"),
                          pTestTableName=paste0(pTableName,
                                               "Test"),
-                         pTemporary=getOption("temporaryTablesFL"),
+                         pTemporary=getOption("temporaryFL"),
                          pDrop=TRUE
                          ){
 

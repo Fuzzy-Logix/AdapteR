@@ -642,7 +642,7 @@ merge.FLAggClust <- function(object){
 			error=function(e) stop("cannot fetch data. Try this to view merge:-",sqlstr))
 		mergematrix[["NewLevel"]] <- NULL
 		mergematrix <- as.matrix(mergematrix)
-		dimnames(mergematrix) <- list(NULL,NULL)
+		dimnames(mergematrix) <- NULL
 
 		object@results <- c(object@results,list(merge = mergematrix))
 		##Drop temptables created if all components have already used them
