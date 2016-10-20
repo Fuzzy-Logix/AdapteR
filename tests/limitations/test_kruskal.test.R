@@ -13,11 +13,15 @@ FLenv$data <- as.FLTable(Renv$data,
                         tableName="ARBaseTestTempTable",
                         drop=TRUE)
 
-FLenv$fit <- kruskal.test.FLVector(FLenv$x,FLenv$g)
-Renv$fit <- stats::kruskal.test(Renv$x,Renv$g)
-test_that("kruskal Test on FLVectors: R example: checking Result Equality without data.name:",{
+
+
+## different results
+FLenv$fit <- kruskal.test(Ozone ~ MonthCol, data = FLenv$data)
+Renv$fit <- stats::kruskal.test(Ozone ~ MonthCol, data = Renv$data)
+
+test_that("kruskal Test on FLTable: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            # fit <- kruskal.test(x,g)
+            # fit <- kruskal.test(Ozone ~ MonthCol, data = data)
             # fit$p.value <- NULL
             fit$data.name <- NULL
             class(fit) <- "list"
@@ -25,11 +29,10 @@ test_that("kruskal Test on FLVectors: R example: checking Result Equality withou
     expectation=c("fit"))
 })
 
-FLenv$fit <- kruskal.test(Ozone ~ MonthCol, data = FLenv$data,subset=FLenv$flv)
-Renv$fit <- stats::kruskal.test(Ozone ~ MonthCol, data = Renv$data,subset=Renv$flv)
+## R default function not called transparently
 test_that("kruskal Test on FLTable using subset: R example: checking Result Equality with subset:",{
     result = eval_expect_equal({
-            # fit <- kruskal.test(Ozone ~ MonthCol, data = data,subset=flv)
+            fit <- kruskal.test(Ozone ~ MonthCol, data = data,subset=flv)
             # fit$p.value <- NULL
             fit$data.name <- NULL
             class(fit) <- "list"

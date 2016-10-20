@@ -33,8 +33,11 @@ NULL
 #' g <- as.FLVector(g)
 #' result1 <- kruskal.test(x, g)
 #' print(result1)
-#' FLTableObj <- as.FLTable(airquality,tableName="ARBaseTestTempTable",drop=TRUE)
-#' result2 <- kruskal.test(Ozone ~ Month, data = FLTableObj)
+#' FLTableObj <- as.FLTable(data.frame(Ozone=airquality$Ozone,
+#'                                     MonthCol=airquality$Month),
+#'                          tableName="ARBaseTestTempTable",
+#'                          drop=TRUE)
+#' result2 <- kruskal.test(Ozone ~ MonthCol, data = FLTableObj)
 #' print(result2)
 #' @export
 kruskal.test.FLVector <- function(x,g,...){
@@ -48,28 +51,140 @@ kruskal.test.FLVector <- function(x,g,...){
     DNAME <- paste0(deparse(substitute(x))," and ",
                     deparse(substitute(g)))
     vView <- gen_view_name("Kruskal")
-    vSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),
-                                        b=constructSelect(g)),
-                                 pSelect=list(a=c(DatasetID=1,
-                                                ObsID="a.vectorIndexColumn",
-                                                groupID=1,
-                                                Num_Val="a.vectorValueColumn"),
-                                              b=c(DatasetID=1,
-                                                ObsID="a.vectorIndexColumn",
-                                                groupID=2,
-                                                Num_Val="b.vectorValueColumn")))
+    # vSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),
+    #                                     b=constructSelect(g)),
+    #                              pSelect=list(a=c(DatasetID=1,
+    #                                             ObsID="a.vectorIndexColumn",
+    #                                             groupID=1,
+    #                                             Num_Val="a.vectorValueColumn"),
+    #                                           b=c(DatasetID=1,
+    #                                             ObsID="b.vectorIndexColumn",
+    #                                             groupID=2,
+    #                                             Num_Val="b.vectorValueColumn")))
+    
+    vSelect <- paste0("SELECT 1 AS DatasetID, \n ",
+                            " a.vectorIndexColumn AS ObsID, \n ",
+                            " b.vectorValueColumn AS groupID, \n ",
+                            " a.vectorValueColumn AS Num_Val \n ",
+                      " FROM (",constructSelect(x),") AS a, \n ",
+                            "(",constructSelect(g),") AS b \n ",
+                      " WHERE a.vectorIndexColumn = b.vectorIndexColumn ")
 
     vtemp <- createView(vView,pSelect=vSelect)
 
     vtable <- FLTableMD(vView,
                         group_id_colname="DatasetID",
                         obs_id_colname="ObsID")
-    return(friedman.test(Num_Val~groupID,
+    return(kruskal.test(Num_Val~groupID,
                         data=vtable,
                         data.name=DNAME))
 }
 
+# kruskal.test.formula <- function(formula,data,
+#                                 subset=TRUE,
+#                                 na.action="na.omit",
+#                                 ...){
+#     if(!is.FL(data))
+#         return(stats::kruskal.test(formula=formula,
+#                                     data=data,
+#                                     subset=subset,
+#                                     na.action=na.action,
+#                                     ...))
+#     else{
+#         data <- setAlias(data,"")
+#         connection <- getFLConnection()
+#         if(data@isDeep){
+#             vSampleIDColname <- getVariables(data)[["var_id_colname"]]
+#             vValueColname <- getVariables(data)[["cell_val_colname"]]
+#         }
+#         else{
+#             vallVars <- all.vars(formula)
+#             if(any(!vallVars %in% colnames(data)))
+#                 stop("columns specified in formula not in data \n ")
+#             vSampleIDColname <- vallVars[2]
+#             vValueColname <- vallVars[1]
+#         }
+#         vdata.name <- list(...)[["data.name"]]
+#         if(is.null(vdata.name))
+#             vdata.name <- paste0(vValueColname," by ",vSampleIDColname)
+#         vobsIDCol <- getVariables(data)[["obs_id_colname"]]
 
+#         vWhereCond <- NULL
+#         if(is.numeric(subset)){
+#             vWhereCond <- paste0(vobsIDCol," IN (",
+#                                 paste0(subset,collapse=","),") ")
+#         }
+#         if(is.FLVector(subset)){
+#             vWhereCond <- paste0(vobsIDCol," IN( SELECT a.vectorValueColumn ",
+#                                 "FROM (",gsub("\n"," ",
+#                                             gsub("'%insertIDhere%'",1,
+#                                                 constructSelect(subset))),") a ) ")
+#         }
+
+#         vWhereCond <- c(vWhereCond,list(...)[["whereconditions"]])
+#         # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
+#         vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
+#                             list(...)[["GroupBy"]]))
+#         if(is.wideFLTable(data) &&
+#             any(!setdiff(vgroupCols,vobsIDCol) %in% colnames(data)))
+#             stop("columns specified in GroupBy not in data \n ")
+#         vgrp <- paste0(vgroupCols,collapse=",")
+#         if(!length(vgroupCols)>0)
+#             vgrp <- NULL
+
+#         ret <- sqlStoredProc(connection,
+#                              "FLKWTest",
+#                              TableName = getTableNameSlot(data),
+#                              ValueColname = vValueColname,
+#                              SampleIDColName = vSampleIDColname,
+#                              WhereClause = constructWhere(vWhereCond),
+#                              GroupBy = vgrp,
+#                              TableOutput = 1,
+#                              outputParameter = c(ResultTable = 'a')
+#                             )
+#         ret <- as.character(ret[1,1])
+
+#         VarID <- c(statistic="TEST_STAT",
+#                     p.value="P_VALUE")
+#         vdf <- sqlQuery(connection,
+#                             paste0("SELECT COUNT(DISTINCT a.",
+#                                         vSampleIDColname,")-1 AS df \n ",
+#                                    " FROM ",getTableNameSlot(data)," a \n ",
+#                                    constructWhere(list(...)[["whereconditions"]])," \n ",
+#                                    ifelse(length(setdiff(vgrp,""))>0,
+#                                             paste0("GROUP BY ",vgrp, " \n "),""),
+#                                    ifelse(length(setdiff(vgrp,""))>0,
+#                                             paste0("ORDER BY ",vgrp),"")
+#                                 )
+#                         )
+#         vdf <- vdf[[1]]
+#         vres <- sqlQuery(connection,
+#                         paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
+#                                 "FROM ",ret," \n ",
+#                                 ifelse(length(setdiff(vgrp,""))>0,
+#                                         paste0("ORDER BY ",vgrp),"")))
+
+#         vres <- cbind(groupID=1:nrow(vres),vres)
+#         colnames(vres) <- c("groupID",names(VarID))
+
+#         vresList <- dlply(vres,"groupID",
+#                         function(x){
+#                             vtemp <- list(statistic=c("Kruskal-Wallis chi-squared"=x[["statistic"]]),
+#                                           parameter=c(df=vdf[x[["groupID"]]]),
+#                                           p.value=x[["p.value"]],
+#                                           method="Kruskal-Wallis rank sum test",
+#                                           data.name=vdata.name
+#                                           )
+#                             class(vtemp) <- "htest"
+#                             return(vtemp)
+#                         })
+#         names(vresList) <- 1:length(vresList)
+#         if(length(vresList)==1)
+#             vresList <- vresList[[1]]
+#         #vtemp <- dropView(getTableNameSlot(data))
+#         return(vresList)
+#     }
+# }
 ## S3 overload not working for default R calls:
 ## Error: Evaluation nested deeply.
 ## Becasuse stats comes after AdapteR in search path.
@@ -83,9 +198,9 @@ setGeneric("kruskal.test",
             ...)
         standardGeneric("kruskal.test"))
 
-## Not working: Environments related error.
-## In the default R implementation, environments
-## are used.
+# Not working: Environments related error.
+# In the default R implementation, environments
+# are used.
 setMethod("kruskal.test",
         signature(formula="formula", 
                   data="ANY"),
@@ -125,6 +240,19 @@ setMethod("kruskal.test",
                         vdata.name <- paste0(vValueColname," by ",vSampleIDColname)
                     vobsIDCol <- getVariables(data)[["obs_id_colname"]]
 
+                    vWhereCond <- NULL
+                    if(is.numeric(subset)){
+                        vWhereCond <- paste0(vobsIDCol," IN (",
+                                            paste0(subset,collapse=","),") ")
+                    }
+                    if(is.FLVector(subset)){
+                        vWhereCond <- paste0(vobsIDCol," IN( SELECT a.vectorValueColumn ",
+                                            "FROM (",gsub("\n"," ",
+                                                        gsub("'%insertIDhere%'",1,
+                                                            constructSelect(subset))),") a ) ")
+                    }
+
+                    vWhereCond <- c(vWhereCond,list(...)[["whereconditions"]])
                     # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
                     vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
                                         list(...)[["GroupBy"]]))
@@ -140,7 +268,7 @@ setMethod("kruskal.test",
                                          TableName = getTableNameSlot(data),
                                          ValueColname = vValueColname,
                                          SampleIDColName = vSampleIDColname,
-                                         WhereClause = list(...)[["whereconditions"]],
+                                         WhereClause = constructWhere(vWhereCond),
                                          GroupBy = vgrp,
                                          TableOutput = 1,
                                          outputParameter = c(ResultTable = 'a')
@@ -153,7 +281,7 @@ setMethod("kruskal.test",
                                         paste0("SELECT COUNT(DISTINCT a.",
                                                     vSampleIDColname,")-1 AS df \n ",
                                                " FROM ",getTableNameSlot(data)," a \n ",
-                                               constructWhere(list(...)[["whereconditions"]])," \n ",
+                                               constructWhere(vWhereCond)," \n ",
                                                ifelse(length(setdiff(vgrp,""))>0,
                                                         paste0("GROUP BY ",vgrp, " \n "),""),
                                                ifelse(length(setdiff(vgrp,""))>0,
@@ -184,6 +312,6 @@ setMethod("kruskal.test",
                     names(vresList) <- 1:length(vresList)
                     if(length(vresList)==1)
                         vresList <- vresList[[1]]
-                    vtemp <- dropView(getTableNameSlot(data))
+                    #vtemp <- dropView(getTableNameSlot(data))
                     return(vresList)
     })

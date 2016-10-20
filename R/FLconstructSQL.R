@@ -96,6 +96,7 @@ setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
 newFLMatrix <- function(...) {
   vtemp <- list(...)
+  ## Results in Aster are not case-sensitive
   if(is.TDAster()){
       vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
                               "colidcolumn","valuecolumn")

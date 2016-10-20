@@ -870,8 +870,8 @@ as.FLTable.data.frame <- function(object,
     vrownames <- rownames(object)
     if(!any(is.na(as.numeric(vrownames))))
         vrownames <- as.numeric(vrownames)
-    object <- base::cbind(rownames=vrownames,object)
-    obsIdColname <- "rownames"
+    object <- base::cbind(ObsID=vrownames,object)
+    obsIdColname <- "ObsID"
   }
   else if(is.numeric(uniqueIdColumn)){
     uniqueIdColumn <- as.integer(uniqueIdColumn)
@@ -944,6 +944,9 @@ as.FLTable.data.frame <- function(object,
     ## This bulk insertion may fail for very big data
     ## as there size of query fired may exceed odbc limits!
     ## These cases will be handled by Parameterized sql
+
+    ## Replace NAs with NULL
+    object[is.na(object)] <- ''
     vresult <- tryCatch(insertIntotbl(pTableName=tableName,
                                     pValues=object),
                         error=function(e){

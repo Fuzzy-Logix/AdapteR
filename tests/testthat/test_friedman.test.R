@@ -26,6 +26,7 @@ Renv$RoundingTimes <- matrix(c(5.40, 5.50, 5.55,
                          byrow = TRUE,
                          dimnames = list(1 : 22,
                                          c("Round Out", "Narrow Angle", "Wide Angle")))
+flv <- 1:6
 FLenv <- as.FL(Renv)
 
 Renv$wb <- aggregate(warpbreaks$breaks,
@@ -57,12 +58,29 @@ test_that("Friedman Test on FLVectors: R example: checking Result Equality witho
     expectation=c("fit"))
 })
 
-## Fails to properly evaluate default R function due to
-## some environments used in R's implementation
+
+Renv$fit <- stats::friedman.test(x~w|t, data = Renv$wb)
+FLenv$fit <- friedman.test(x~w|t, data = FLenv$wb)
+
 test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-            fit <- friedman.test(x~w|t, data = wb)
-            # fit$p.value <- NULL
+            fit$data.name <- NULL
+            class(fit) <- "list"
+    },Renv,FLenv,
+    expectation=c("fit"))
+})
+
+## Replicate same data and then subset
+Renv$wb <- rbind(Renv$wb,Renv$wb)
+FLenv$wb <- as.FLTable(Renv$wb,
+                       tableName="ARBaseTestTempTable",
+                       drop=TRUE)
+
+Renv$fit <- stats::friedman.test(x~w|t, data = Renv$wb, subset=flv)
+FLenv$fit <- friedman.test(x~w|t, data = FLenv$wb, subset=flv)
+
+test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
+    result = eval_expect_equal({
             fit$data.name <- NULL
             class(fit) <- "list"
     },Renv,FLenv,

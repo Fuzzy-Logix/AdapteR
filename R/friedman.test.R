@@ -115,7 +115,8 @@ friedman.test.FLMatrix <- function(y,...){
                         cell_val_colname="valueColumn")
     return(friedman.test(valueColumn~colIdColumn|rowIdColumn,
                         data=vtable,
-                        data.name=DNAME))
+                        data.name=DNAME,
+                        ...))
 }
 
 
@@ -225,16 +226,14 @@ setGeneric("friedman.test",
             ...)
         standardGeneric("friedman.test"))
 
-## Not working: Environments related error.
-## In the default R implementation, environments
-## are used.
-setMethod("friedman.test",
-        signature(y="ANY"),
-        function(y,
-                ...){
-                    return(stats::friedman.test(y=y,
-                                    ...))
-                })
+
+# setMethod("friedman.test",
+#         signature(y="ANY"),
+#         function(y,
+#                 ...){
+#                     return(stats::friedman.test(y=y,
+#                                     ...))
+#                 })
 
 setMethod("friedman.test",
         signature(y="FLVector"),
@@ -268,20 +267,40 @@ setMethod("friedman.test",
 #                                     ...))
 #                 })
 
+## Not working: Environments related error.
+## In the default R implementation, environments
+## are used.
+
 setMethod("friedman.test",
-        signature(y="formula"),
-        function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"),
+        signature(y="ANY"),
+        function(
                 y=NULL,
                 ...){
-                    if(!is.FL(data)){
-                        return(stats::friedman.test(formula=formula,
-                                                    data=data,
-                                                    subset=subset,
-                                                    na.action=na.action,
+                    vlist <- list(...)
+                    if(!is.formula(y) || !is.FL(vlist$data))
+                        return(stats::friedman.test(y=y,
                                                     ...))
-                    }
+                    # if(!is.FL(data) && is.null(y) && !is.null(formula)){
+                    #     return(stats::friedman.test(formula=formula,
+                    #                                 data=data,
+                    #                                 subset=subset,
+                    #                                 na.action=na.action,
+                    #                                 y=y,
+                    #                                 ...))
+                    # }
+                    # else if(!is.FL(data) || is.null(formula) && !is.null(y)){
+                    #     return(stats::friedman.test(y=y,
+                    #                                 formula=formula,
+                    #                                 data=data,
+                    #                                 subset=subset,
+                    #                                 na.action=na.action,
+                    #                                 ...))
+                    # }
+                    # else if(!is.FL(data) && is.null(y) && is.null(fromula))
+                    #     stop("invalid arguments \n ")
+                    data <- vlist$data
+                    subset <- vlist$subset
+                    formula <- y
                     data <- setAlias(data,"")
                     connection <- getFLConnection()
                     if(data@isDeep){
@@ -303,6 +322,20 @@ setMethod("friedman.test",
                                             " and ",vBlockColname)
                     vobsIDCol <- getVariables(data)[["obs_id_colname"]]
 
+                    vWhereCond <- NULL
+                    if(is.numeric(subset)){
+                        vWhereCond <- paste0(vobsIDCol," IN (",
+                                            paste0(subset,collapse=","),") ")
+                    }
+                    if(is.FLVector(subset)){
+                        vWhereCond <- paste0(vobsIDCol," IN( SELECT a.vectorValueColumn ",
+                                            "FROM (",gsub("\n"," ",
+                                                        gsub("'%insertIDhere%'",1,
+                                                            constructSelect(subset))),") a ) ")
+                    }
+
+                    vWhereCond <- c(vWhereCond,list(...)[["whereconditions"]])
+
                     # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
                     vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
                                         list(...)[["GroupBy"]]))
@@ -319,7 +352,7 @@ setMethod("friedman.test",
                                          ValueColname = vValueColname,
                                          ObsIDColName= vBlockColname,
                                          SampleIDColName = vGroupColname,
-                                         WhereClause = list(...)[["whereconditions"]],
+                                         WhereClause = constructWhere(vWhereCond),
                                          GroupBy = vgrp,
                                          TableOutput = 1,
                                          outputParameter = c(OutTable = 'a')
@@ -332,7 +365,7 @@ setMethod("friedman.test",
                                         paste0("SELECT COUNT(DISTINCT a.",
                                                     vGroupColname,")-1 AS df \n ",
                                                " FROM ",getTableNameSlot(data)," a \n ",
-                                               constructWhere(list(...)[["whereconditions"]])," \n ",
+                                               constructWhere(vWhereCond)," \n ",
                                                ifelse(length(setdiff(vgrp,""))>0,
                                                         paste0("GROUP BY ",vgrp, " \n "),""),
                                                ifelse(length(setdiff(vgrp,""))>0,
@@ -363,7 +396,7 @@ setMethod("friedman.test",
                     names(vresList) <- 1:length(vresList)
                     if(length(vresList)==1)
                         vresList <- vresList[[1]]
-                    vtemp <- dropView(getTableNameSlot(data))
+                    # vtemp <- dropView(getTableNameSlot(data))
                     return(vresList)
     })
 
