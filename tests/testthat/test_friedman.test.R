@@ -34,9 +34,7 @@ Renv$wb <- aggregate(warpbreaks$breaks,
                             t = warpbreaks$tension),
                   FUN = mean)
 
-FLenv$wb <- as.FLTable(Renv$wb,
-                    tableName="ARBaseTestTempTable",
-                    drop=TRUE)
+FLenv$wb <- as.FLTable(Renv$wb)
 
 test_that("Friedman Test on FLMatrix: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({

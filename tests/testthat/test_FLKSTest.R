@@ -10,7 +10,6 @@ FLenv = as.FL(Renv)
 test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     result = eval_expect_equal({
         q <- ks.test(a,'pnorm', 3.5, 11.5)
-#        class(q) <- "list"
     },Renv,FLenv,
     expectation = c("q"),
     check.attributes=F,

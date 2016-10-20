@@ -46,7 +46,7 @@ setMethod("cochran.qtest",
                 ...){
                     if(!requireNamespace("RVAideMemoire", 
                                         quietly = TRUE)){
-                        stop("survival package needed for coxph. Please install it.",
+                        stop("RVAideMemoire package needed for cochran.qtest. Please install it.",
                             call. = FALSE)
                     }
                     return(RVAideMemoire::cochran.qtest(formula=formula,

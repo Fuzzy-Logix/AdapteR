@@ -502,6 +502,8 @@ appendTableName <- function(object,tablename){
     }))
   else object
 }
+
+#' @export
 changeAlias <- function(object,newalias,oldalias){
   object <- object[object!=""]
   if(!length(object)>0) return(object)
@@ -525,6 +527,8 @@ changeAlias <- function(object,newalias,oldalias){
     }))
   return(result)
 }
+
+#' @export
 setAlias <- function(object,newalias){
   if(isAliasSet(object))
   oldalias <- names(object@select@table_name)
@@ -541,6 +545,7 @@ setAlias <- function(object,newalias){
   object@select@whereconditions <- constraintsSQL(object)
   return(object)
 }
+
 isAliasSet <- function(object){
   if(length(names(object@select@table_name))>0)
   return(TRUE) else return(FALSE)

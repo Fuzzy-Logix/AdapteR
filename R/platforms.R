@@ -168,9 +168,12 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             connection <- myConnect()
         })
     } else if (!is.null(odbcSource)){
-        require(RODBC)
+        if (!requireNamespace("RODBC", quietly = TRUE)){
+            stop("RODBC package needed for using ODBC connections. Please install it.",
+                 call. = FALSE)
+        }
         tryCatch({
-            connection <- odbcConnect(odbcSource)
+            connection <- RODBC::odbcConnect(odbcSource)
         },error=function(e)e)
     }
     if(is.null(connection))
@@ -258,6 +261,7 @@ FLStartSession <- function(connection,
         resultTables <- paste0(database,".",resultTables)
     else
         resultTables <- paste0(tablePrefix,resultTables)
+    options(resultTablesFL=resultTables)
     names(resultTables) <- vresultTables
     eval(parse(text=paste0("options(",names(resultTables),"='",resultTables,"')", collapse="\n")))
 
@@ -330,7 +334,7 @@ genCreateResulttbl <- function(tablename,
                                type,
                                pDrop){
     ##browser()
-    if(checkRemoteTableExistence(tableName=tablename))
+    if(!pDrop & checkRemoteTableExistence(tableName=tablename))
         return()
     if(vclass=="matrix"){
         createTable(pTableName=tablename,

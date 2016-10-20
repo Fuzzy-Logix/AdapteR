@@ -28,7 +28,7 @@ option_list = list(
                 type="logical"),
     make_option(c("-t", "--temporary"),
                 action="store_true",
-                default="TRUE", 
+                default="FALSE", 
                 help="temporary session [default= %default]",
                 type="logical"),
     make_option(c("-A", "--AdapteR"),

@@ -19,9 +19,6 @@ FLenv$data <- as.FLTable(Renv$data)
 test_that("cochran-Q Test on FLTable: R example: checking Result Equality without p.value:",{
     result = eval_expect_equal({
             fit <- cochran.qtest(response~fact|block,data=data)
-            fit$p.value <- NULL
-            fit$p.value.multcomp <- NULL
-            class(fit) <- "list"
     },Renv,FLenv,
     expectation=c("fit"))
 })

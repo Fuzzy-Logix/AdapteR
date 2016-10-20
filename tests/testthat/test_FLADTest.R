@@ -28,7 +28,6 @@ Renv = as.R(FLenv)
 test_that("Anderson-Darling Test: DBLytix Example", {
     result = eval_expect_equal({
         res <- ad.test(val)
-        res$alternative <- NULL
     },Renv,FLenv,
     expectation = "res",
     check.attributes = T,

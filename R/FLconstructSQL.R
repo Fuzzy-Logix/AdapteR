@@ -169,6 +169,7 @@ setClass("FLSimpleWideTable",
 
 
 
+#' @export
 setGeneric("getValueSQLName", function(object) {
     standardGeneric("getValueSQLName")
 })
@@ -185,6 +186,7 @@ setMethod("getValueSQLName",
           signature(object = "FLAbstractColumn"),
           function(object) object@columnName)
 
+#' @export
 setGeneric("getValueSQLExpression", function(object) {
     standardGeneric("getValueSQLExpression")
 })
@@ -197,6 +199,7 @@ setMethod("getValueSQLExpression",
 
 
 
+#' @export
 setGeneric("setValueSQLExpression", function(object, func,...) {
     standardGeneric("setValueSQLExpression")
 })
@@ -208,6 +211,7 @@ setMethod("setValueSQLExpression",
 })
 
 
+#' @export
 setGeneric("getIndexSQLExpression", function(object,margin=1) {
     standardGeneric("getIndexSQLExpression")
 })
@@ -223,6 +227,7 @@ setMethod("getIndexSQLExpression",
           signature(object = "FLAbstractColumn"),
           function(object,margin=1) object@columnName)
 
+#' @export
 setGeneric("getIndexSQLName", function(object,margin) {
     standardGeneric("getIndexSQLName")
 })
@@ -235,19 +240,6 @@ setMethod("getIndexSQLName",
 setMethod("getIndexSQLName",
           signature(object = "FLIndexedValues"),
           function(object,margin=1) object@dimColumns[[margin]])
-
-
-setGeneric("setValueSQLExpression", function(object, func,...) {
-    standardGeneric("setValueSQLExpression")
-})
-setMethod("setValueSQLExpression",
-          signature(object = "FLIndexedValues"),
-          function(object,func,...) {
-    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
-    object
-})
-
-
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'

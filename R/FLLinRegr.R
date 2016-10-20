@@ -699,6 +699,7 @@ lmGeneric <- function(formula,data,
 }
 
 ## move to file lmGeneric.R
+#' @export
 prepareData.lmGeneric <- function(formula,data,
 								callObject=NULL,
 								familytype="linear",
