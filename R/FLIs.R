@@ -25,6 +25,8 @@ is.FLAbstractColumn <- function(object){
     else return(FALSE)
 }
 
+is.FLSimpleVector <- function(object)
+    class(object)=="FLSimpleVector"
 is.RowFLVector <- function(pObject){
     if(is.FLVector(pObject) && 
         !pObject@isDeep && 
@@ -34,7 +36,9 @@ is.RowFLVector <- function(pObject){
 }
 
 is.wideFLTable <- function(pObject){
-    if(!is.FLTable(pObject) && !is.FLTableMD(pObject))
+    if(!is.FLTable(pObject) 
+        && !is.FLTableMD(pObject)
+        && !is.FLVector(pObject))
     return(FALSE)
     else return(!pObject@isDeep)
 }
@@ -83,8 +87,16 @@ is.formula <- function(pObject){
     return(class(pObject)=="formula")
 }
 
-is.FLTableFunctionQuery <- function(pObject)
+is.QueryVector <- function(pObject){
+    return(tryCatch({
+            if(!is.null(pObject@select))
+                return(is.FLTableFunctionQuery(pObject@select))},
+            error=function(e) return(is.FLTableFunctionQuery(pObject))))
+}
+
+is.FLTableFunctionQuery <- function(pObject){
     return(class(pObject)=="FLTableFunctionQuery")
+}
 
 isContinuous <- function(x){
     if(any(suppressWarnings(is.na(as.numeric(x)))))

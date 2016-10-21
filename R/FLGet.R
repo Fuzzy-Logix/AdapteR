@@ -51,6 +51,11 @@ setMethod("typeof",signature(x="FLVector"),
         }
         return(vtype)
       })
+setMethod("typeof",signature(x="FLSimpleVector"),
+    function(x){
+        class(x) <- "FLVector"
+        return(typeof(x))
+        })
 setMethod("typeof",signature(x="FLTable"),
       function(x){
         if(x@isDeep){
@@ -458,6 +463,29 @@ getDatabase <- function(x) {
 
 getTableNameSlot <- function(x){
     return(tryCatch(x@select@table_name,
+                    error=function(x)NULL))
+}
+
+getSelectSlot <- function(x){
+    return(tryCatch(x@select,
+                    error=function(x)NULL))
+}
+
+getWhereConditionsSlot <- function(x){
+    return(tryCatch(x@whereconditions,
+                error=function(e)
+                        return(getWhereConditionsSlot(x@select))))
+}
+getIndexMappingSlot <- function(x){
+    return(tryCatch(x@indexMapping,
+                    error=function(x)NULL))
+}
+getDimsSlot <- function(x){
+    return(tryCatch(x@dims,
+                    error=function(x)NULL))
+}
+getTypeSlot <- function(x){
+    return(tryCatch(x@type,
                     error=function(x)NULL))
 }
 

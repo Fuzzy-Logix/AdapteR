@@ -519,7 +519,7 @@ changeAlias <- function(object,newalias,oldalias){
     else result <- object
   }
   result <- as.vector(sapply(result,function(x){
-    if(!grepl(newalias,x))
+    if(!grepl(newalias,x,fixed=TRUE))
       paste0(newalias,x)
     else x
     }))
@@ -544,4 +544,84 @@ setAlias <- function(object,newalias){
 isAliasSet <- function(object){
   if(length(names(object@select@table_name))>0)
   return(TRUE) else return(FALSE)
+}
+
+
+#' @examples
+#' flSimple <- FLSerial(1,5)
+#' subset <- as.FL(3:2)
+#' flv <- flSimple[subset]
+#' @export
+`[.FLSimpleVector` <- function(object,pSet=1:length(object))
+{
+    if(!is.FLSimpleVector(pSet)){
+        if(!is.vector(pSet) && !is.FLVector(pSet)) 
+            stop("pSet must be vector, FLVector or FLSimpleVector \n ")
+        warning("subset must be FLSimpleVector for efficient subsetting \n ")
+        if(missing(pSet))
+            pSet <- FLSerial(1,length(object))
+        else{
+          if(is.vector(pSet)) pSet <- as.FLVector(pSet)
+            pSet <- as.FLSimpleVector(pSet)
+        }
+    }
+
+    if(!typeof(pSet)=="character"){
+        if(is.null(getIndexMappingSlot(object)))
+            object <- setIndexMapping(object,pSet)
+        else{
+            obj <- setAlias(getIndexMappingSlot(object),genRandVarName())
+            pSet <- setAlias(pSet,genRandVarName())
+            vmapVector <-  new("FLSimpleVector",
+                                select=new("FLSelectFrom",
+                                           table_name=c(getTableNameSlot(obj),
+                                                        getTableNameSlot(pSet)),
+                                           connectionName=getFLConnectionName(),
+                                           variables=list(indexCol=getIndexSQLExpression(pSet),
+                                                          valueCol=getValueSQLExpression(obj)),
+                                           whereconditions=c(getWhereConditionsSlot(obj),
+                                                            getWhereConditionsSlot(pSet),
+                                                            paste0(getValueSQLExpression(pSet),"=",
+                                                                   getIndexSQLExpression(obj))),
+                                           order="indexCol"),
+                                dimColumns = c("indexCol","valueCol"),
+                                names=NULL,
+                                dims    = getDimsSlot(pSet),
+                                type       = getTypeSlot(obj)
+                                )
+            object <- setIndexMapping(object,vmapVector)
+        }
+    }
+
+    return(object)
+}
+
+#' @examples
+#' flv <- as.FL(1:5)
+#' flsimpleVec <- as.FLSimpleVector(flv)
+#' print(flsimpleVec)
+#' @export
+setGeneric("as.FLSimpleVector", function(pObject,...) {
+    standardGeneric("as.FLSimpleVector")
+})
+setMethod("as.FLSimpleVector", signature(pObject = "FLVector"),
+          function(pObject,...)
+            as.FLSimpleVector.FLVector(pObject=pObject,...))
+
+as.FLSimpleVector.FLVector <- function(pObject,...){
+    if(is.QueryVector(pObject) 
+        || is.RowFLVector(pObject)
+        || !is.wideFLTable(pObject))
+        stop("conversion not supported \n ")
+    pObject <- setAlias(pObject,"")
+    pObject@select@variables <- list("idColumn"=getVariables(pObject)[["obs_id_colname"]],
+                                    "valColumn"=colnames(pObject)[1])
+    pObject@select@order <- "idColumn"
+    return(new("FLSimpleVector",
+                select= getSelectSlot(pObject),
+                dimColumns = c("idColumn","valColumn"),
+                names=names(pObject),
+                dims    = length(pObject),
+                type       = pObject@type
+                ))
 }

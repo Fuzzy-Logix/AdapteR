@@ -138,8 +138,10 @@ setClass("FLSimpleVector",
              select = "FLTableQuery",
              dimColumns = "character",
              names = "ANY",
-             type       = "character"
-         ),prototype = prototype(type="double")
+             type       = "character",
+             indexMapping = "ANY"
+         ),prototype = prototype(type="double",
+                                indexMapping=NULL)
          )
 
 
@@ -188,7 +190,7 @@ setGeneric("getIndexSQLExpression", function(object,margin=1) {
 setMethod("getIndexSQLExpression",
           signature(object = "FLIndexedValues"),
           function(object,margin=1)
-              object@select@variables[[getIndexSQLExpressions(object=object,margin=margin)]])
+              object@select@variables[[getIndexSQLName(object=object,margin=margin)]])
 setMethod("getIndexSQLExpression",
           signature(object = "FLAbstractColumn"),
           function(object,margin=1) object@columnName)
@@ -217,7 +219,16 @@ setMethod("setValueSQLExpression",
     object
 })
 
-
+setGeneric("setIndexMapping", function(object, mapVector,...) {
+    standardGeneric("setIndexMapping")
+})
+setMethod("setIndexMapping",
+          signature(object = "FLSimpleVector",
+                    mapVector = "FLSimpleVector"),
+          function(object,mapVector,...) {
+            object@indexMapping <- mapVector
+            object
+})
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
@@ -304,7 +315,8 @@ FLSerial <- function(min,max){
         dimColumns = c("serialVal","serialVal"),
         names=NULL,
         dims    = as.integer(max-min+1),
-        type       = "integer"
+        type       = "integer",
+        indexMapping = NULL
         )
 }
 
