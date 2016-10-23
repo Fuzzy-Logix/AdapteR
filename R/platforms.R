@@ -294,7 +294,7 @@ FLStartSession <- function(connection,
         })
 
     ## Create names mapping table
-    if(!checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
+    if(drop | !checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
         createTable(pTableName=getOption("NameMapTableFL"),
                     pColNames=c("TABLENAME","MATRIX_ID",
                                 "DIM_ID","NAME","NUM_ID"),
