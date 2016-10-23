@@ -364,7 +364,7 @@ setCurrentDatabase <- function(pDBName){
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName,
-                               temporaryTable=getOption("temporaryTablesFL")) {
+                               temporaryTable=getOption("temporaryFL")) {
     if(is.null(databaseName) 
         || temporaryTable 
         || databaseName==getOption("ResultDatabaseFL"))
@@ -394,6 +394,7 @@ NULL
 ##' @param pSelect 
 ##' @param ... 
 ##' @return The fully qualified table name for referring to this table.
+##' @export
 createTable <- function(pTableName,
                         pColNames=NULL,
                         pColTypes=NULL,
@@ -401,7 +402,7 @@ createTable <- function(pTableName,
                         pPrimaryKey=pColNames[1],
                         pFromTableName=NULL,
                         pWithData=TRUE,
-                        pTemporary=getOption("temporaryTablesFL"),
+                        pTemporary=getOption("temporaryFL"),
                         pDrop=FALSE,
                         pDatabase=getOption("ResultDatabaseFL"),
                         pSelect=NULL,
@@ -416,7 +417,10 @@ createTable <- function(pTableName,
                                      temporaryTable = pTemporary)
 
     if(pDrop)
-        dropTable(pTableName)
+        tryCatch({dropTable(pTableName)},
+                 error=function(e)
+            if(getOption("debugSQL"))
+                warning(paste0("not dropping table ",pTableName,": ",e)))
     vtempKeyword <- c(TD="VOLATILE",
                       Hadoop="TEMPORARY",
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
@@ -506,10 +510,11 @@ createTable <- function(pTableName,
         }
     }
     vsqlstr <- paste0(vsqlstr,";")
-    if(!pTemporary & getOption("temporaryTablesFL")){
+    if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
-                # stop(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
+                if(getOption("debugSQL"))
+                   warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
@@ -518,10 +523,14 @@ createTable <- function(pTableName,
     ## gk @ phani: what will this be used for? It never is used actually...
     if("usedbSendUpdate" %in% names(list(...))){
         cat("sending:  ",vsqlstr)
-        return(RJDBC::dbSendUpdate(getFLConnection(),vsqlstr))
+        RJDBC::dbSendUpdate(getFLConnection(),vsqlstr)
+        return(pTableName)
     }
 
-    sqlSendUpdate(getFLConnection(),vsqlstr)
+    vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    updateMetaTable(pTableName=pTableName,
+                    pType="wideTable",
+                    ...)
     return(pTableName)
 }
 
@@ -554,18 +563,21 @@ createView <- function(pViewName,
 }
 
 ## DROP VIEW
-dropView <- function(pViewName){
+##' @export
+dropView <- function(pViewName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP VIEW ",pViewName,";"))
+                paste0("DROP VIEW ",pViewName,";"),warn=warn)
 }
 
 ## DROP TABLE
-dropTable <- function(pTableName){
+##' @export
+dropTable <- function(pTableName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP TABLE ",pTableName,";"))
+                  paste0("DROP TABLE ",pTableName,";"),warn=warn)
 }
 
 ## Insert Into Table
+## TODO: add pConnection as input
 insertIntotbl <- function(pTableName,
                           pColNames=NULL,
                           pValues=NULL,
@@ -582,15 +594,56 @@ insertIntotbl <- function(pTableName,
             vsqlstr <- paste0(vsqlstr,"(",
                         paste0(pColNames,collapse=","),
                         ") ")
-        pValues <- sapply(pValues,
-                    function(x){
-                        if(is.character(x) && !grepl("'",x))
-                        return(fquote(x))
-                        else return(x)
-                    })
-        vsqlstr <- paste0(vsqlstr," VALUES (",
-                            paste0(pValues,collapse=","),
-                            ");")
+        vsqlstr <- paste0(vsqlstr," \n VALUES ")
+        if(is.vector(pValues))
+            pValues <- matrix(pValues,1,length(pValues))
+        if(is.TD())
+            vsqlstr <- paste0(apply(pValues,1,
+                                function(x){
+                                  paste0(vsqlstr,"(",
+                                      paste0(sapply(x,
+                                            function(y){
+                                                if(is.logical(y)||
+                                                  is.factor(y))
+                                                    y <- as.character(y)
+                                                suppressWarnings(if(!is.na(as.numeric(y)))
+                                                    y <- as.numeric(y))
+                                                if((is.character(y) && !grepl("'",y))
+                                                    || is.null(y)){
+                                                    if(y=="NULL" || is.null(y)){
+                                                        if(is.TD())
+                                                            return("NULL")
+                                                        else return("''")
+                                                    }
+                                                    return(fquote(y))
+                                                }
+                                                else return(y)}),
+                                        collapse = ","),")")}),
+                            collapse = ";")
+            # vsqlstr <- paste0(apply(pValues,1,
+            #                 function(x)
+            #                     paste0(vsqlstr,"(",paste0(fquote(x),collapse=","),")")),collapse = ";")
+        else if(is.TDAster()){
+            vappend <- paste0(apply(pValues,1,
+                                function(x){
+                                  paste0("(",
+                                      paste0(sapply(x,
+                                            function(y){
+                                                if(is.logical(y)||
+                                                  is.factor(y)) 
+                                                    y <- as.character(y)
+                                                suppressWarnings(if(!is.na(as.numeric(y)))
+                                                                 y <- as.numeric(y))
+                                                if(is.character(y) && !grepl("'",y))
+                                                    y <- fquote(y)
+                                                else y}),
+                                        collapse = ","),")")}),
+                            collapse = ",")
+            # vappend <- paste0(apply(pValues,1,
+            #                 function(x)
+            #                     paste0("(",paste0(fquote(x),collapse=","),")")),collapse = ",")
+            vsqlstr <- paste0(vsqlstr,vappend)
+        }
     }
     else if(!is.null(pSelect)){
         vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
@@ -619,15 +672,15 @@ updateMetaTable <- function(pTableName,
                             "UserName","DatabaseName",
                             "TableName","ElementID",
                             "ObjType","Comments"),
-                  pValues=list(fquote(as.character(as.POSIXlt(Sys.time(),tz="GMT"))),
-                            fquote(as.character(Sys.Date())),
-                            fquote(ifelse(is.null(getOption("FLUsername")),
-                                "default",getOption("FLUsername"))),
-                            fquote(vdatabase),
-                            fquote(pTableName),
+                  pValues=list(as.character(as.POSIXlt(Sys.time(),tz="GMT")),
+                            as.character(Sys.Date()),
+                            ifelse(is.null(getOption("FLUsername")),
+                                "default",getOption("FLUsername")),
+                            vdatabase,
+                            pTableName,
                             as.integer(pElementID),
                             as.character(pType),
-                            fquote(pNote)
+                            pNote
                         ))
 }
 

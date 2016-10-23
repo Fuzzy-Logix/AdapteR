@@ -23,6 +23,7 @@ NULL
 #' y <- as.FLVector(rnorm(30, mean = 1, sd = 1))
 #' var.test(x, y, "two.sided")
 #' @export
+#' @method var.test FLVector
 var.test.FLVector <- function(x, y, ratio = 1, alternative = "two.sided", conf.level = .95){
     if(!is.FLVector(x) || !is.FLVector(y))
         print("only takes FLVector")
@@ -54,9 +55,9 @@ AS a;")
         res <- list(statistics = c(F = ret$FStat),
                     parameter = c("num df" = ret$DF1,"denom df" = ret$DF2),
                     p.value = ret$P_Value,
-                    conf.int = .95,
-                    estimate = 1,
-                    null.value = NULL,
+                    conf.int = NULL,
+                    estimate = c("ratio of variances"=ret$FStat),
+                    null.value = c("ratio of variances"=1),
                     alternative = alternative,
                     method = "F test to compare two variances",
                     data.name = dname)

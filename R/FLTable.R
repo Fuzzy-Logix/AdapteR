@@ -43,21 +43,12 @@ FLTable <- function(table,
                                    c(getTablename(table),
                                      oldalias))
     names(table) <- "flt"
-
-    cleanNames <- function(x){
-        ##change factors to strings
-        if(is.factor(x) || class(x)=="Date")
-            x <- as.character(x)
-        if(is.character(x))
-            x <- gsub("^ +| +$","",x)
-        x
-    }
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
         cols <- cleanNames(sort(sqlQuery(connection,
                                          paste0("SELECT DISTINCT(",
                                                 var_id_colnames,") as VarID FROM ",tableAndAlias(table),
-                                                " ",constructWhere(whereconditions)))$VarID))
+                                                " ",constructWhere(whereconditions)))[[1]]))
         ncol <- length(cols)
         if(!is.null(list(...)[["ObsID"]]))
           rows <- list(...)[["ObsID"]]
@@ -65,7 +56,7 @@ FLTable <- function(table,
           rows <- sort(sqlQuery(connection,
                          paste0("SELECT DISTINCT(",
                                 obs_id_colname,") as VarID FROM ",tableAndAlias(table),
-                          " ",constructWhere(whereconditions)))$VarID)
+                          " ",constructWhere(whereconditions)))[[1]])
           rows <- cleanNames(rows)
           nrow <- length(rows)
         } else {
@@ -73,7 +64,7 @@ FLTable <- function(table,
             nrow <- sqlQuery(connection,
                             paste0("SELECT count(DISTINCT(",obs_id_colname,")) as N
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$N
+                                    " ",constructWhere(whereconditions)))[[1]]
         }
 
 
@@ -100,7 +91,7 @@ FLTable <- function(table,
         newFLTable(
             select = select,
             Dimnames = list(rows,cols),
-            dims = c(nrow,ncol),
+            dims = as.integer(c(nrow,ncol)),
             isDeep = TRUE,
             type=type)
 	}
@@ -109,7 +100,7 @@ FLTable <- function(table,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
-        if(!changeAlias(obs_id_colname,"","") %in% cols)
+        if(!changeAlias(obs_id_colname,"","") %in% cols && !is.TDAster())
           stop(paste0(changeAlias(obs_id_colname,"",""),
                       " not a column in table.Please check case Sensitivity \n "))
         if(!is.null(list(...)[["ObsID"]])){
@@ -121,7 +112,7 @@ FLTable <- function(table,
                             paste0("SELECT DISTINCT(",
                                         obs_id_colname,") as VarID
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$VarID)
+                                    " ",constructWhere(whereconditions)))[[1]])
           rows <- cleanNames(rows)
           nrow <- length(rows)
         } else {
@@ -129,7 +120,7 @@ FLTable <- function(table,
             nrow <- sqlQuery(connection,
                             paste0("SELECT count(DISTINCT ",obs_id_colname,") as N
                                     FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))$N
+                                    " ",constructWhere(whereconditions)))[[1]]
         }
         cols <- cleanNames(cols)
         
@@ -154,7 +145,7 @@ FLTable <- function(table,
         T <- newFLTable( 
                  select = select,
                  Dimnames = mydimnames,
-                 dims = c(nrow,ncol),
+                 dims = as.integer(c(nrow,ncol)),
                  isDeep = FALSE,
                  type=type)
 	}
@@ -257,7 +248,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
                                   pValue=value)
         }
     }
-    if(!is.FLVector(value))
+    if(!is.FLVector(value) & !inherits(value,"FLSimpleVector"))
         value <- as.FLVector(value)
     sqlstr <- paste0("UPDATE ",vtablename," \n ",
                     " FROM(",constructSelect(value),") a \n ",
@@ -274,11 +265,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
     else{
       if(is.na(as.numeric(name)))
       stop("name should be numeric in deep table \n ")
-      sqlstr <- paste0(" INSERT INTO ",vtablename," \n ",
-                    " SELECT a.vectorIndexColumn, \n ",
+      sqlstr <- paste0(" SELECT a.vectorIndexColumn, \n ",
                             name,
                             ", \n a.vectorValueColumn \n ",
-                    " FROM(",constructSelect(value),") a;")
+                        " FROM(",constructSelect(value),") a;")
+      insertIntotbl(pTableName=vtablename,
+                    pSelect=sqlstr)
+      sqlstr <- NULL
       vcolnames <- c(vcolnames,name)
     }
   }
@@ -515,14 +508,15 @@ setMethod("deepToWide",
             if(mapTable=="" || mapTable=="NULL"){
               if(Analysisid!="")
               {
-                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ",
-                                " INSERT INTO ",usedwidetablename," \n ", 
-                                " SELECT a.Final_VarID, \n  
+                sqlstr1<-paste0("DELETE FROM ",usedwidetablename,"; \n ")
+                sqlSendUpdate(connection,sqlstr1)
+                sqlstr1<-paste0(" SELECT a.Final_VarID, \n  
                                         a.COLUMN_NAME, \n 
                                         a.FROM_TABLE
                                  FROM fzzlRegrDataPrepMap a 
                                  WHERE a.AnalysisID = '",Analysisid,"';")
-                sqlSendUpdate(connection,sqlstr1)
+                insertIntotbl(pTableName=usedwidetablename,
+                            pSelect=sqlstr1)
                 mapTable<-usedwidetablename
                 mapname<- genRandVarName()
               }
@@ -705,8 +699,9 @@ setMethod("FLRegrDataPrep",
                   classSpec=list(),
                   whereconditions="",
                   inAnalysisID="",
-                  outGroupIDCol="group_id_colname"
-                  # ,...
+                  outGroupIDCol="group_id_colname",
+                  fetchIDs=TRUE
+                                        # ,...
                   )
           {
             if(object@isDeep) return(list(table=object))
@@ -854,21 +849,22 @@ setMethod("FLRegrDataPrep",
 
             updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
 
-            if(is.FLTable(object))
-              table <- FLTable(deeptablename,
-                               outObsIDCol,
-                               outVarIDCol,
-                               outValueCol,
-                               # ObsID=rownames(object)
-                               fetchIDs=FALSE
-                              )
-            else if(is.FLTableMD(object))
+            if(is.FLTableMD(object))
               table <- FLTableMD(deeptablename,
                                outGroupIDCol,
                                outObsIDCol,
                                outVarIDCol,
                                outValueCol,
-                               group_id=object@Dimnames[[3]]
+                               group_id=object@Dimnames[[3]],
+                               fetchIDs=fetchIDs
+                              )
+            else if(is.FLTable(object))
+              table <- FLTable(deeptablename,
+                               outObsIDCol,
+                               outVarIDCol,
+                               outValueCol,
+                               # ObsID=rownames(object),
+                               fetchIDs=fetchIDs
                               )
             return(list(table=table,
                         AnalysisID=dataprepID))
@@ -883,7 +879,7 @@ FLSampleData <- function(pTableName,
                                                 "Train"),
                          pTestTableName=paste0(pTableName,
                                               "Test"),
-                         pTemporary=getOption("temporaryTablesFL"),
+                         pTemporary=getOption("temporaryFL"),
                          pDrop=TRUE
                          ){
 

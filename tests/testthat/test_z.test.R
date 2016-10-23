@@ -1,5 +1,5 @@
-
-## require(PASWR)
+## requires "PASWR" package
+## link to the package: https://cran.r-project.org/web/packages/PASWR/PASWR.pdf
 a<-rnorm(50)
 b<-sample(c(0,1),replace = T,size =50)
 c<-rnorm(50)

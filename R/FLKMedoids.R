@@ -288,11 +288,12 @@ pam.FLTable <- function(x,
 	AnalysisID <- as.character(retobj[1,1])
 
 	## medoid points are necessary for calculating some results
-	sqlstr0 <- paste0("INSERT INTO fzzlKMedoidsCluster \n ",
-						" SELECT AnalysisID,MedoidID,MedoidID \n ", 
-						" FROM fzzlKMedoidsMedoidIDs \n ",
-						" WHERE AnalysisID='",AnalysisID,"' ")
-	sqlSendUpdate(connection,sqlstr0)
+	sqlstr0 <- paste0(" SELECT AnalysisID,MedoidID,MedoidID \n ", 
+                        " FROM fzzlKMedoidsMedoidIDs \n ",
+                        " WHERE AnalysisID='",AnalysisID,"' ")
+    # sqlSendUpdate(connection,sqlstr0)
+    insertIntotbl(pTableName="fzzlKMedoidsCluster",
+                pSelect=sqlstr0)
 	
 	FLKMedoidsobject <- new("FLKMedoids",
 						centers=k,
@@ -475,8 +476,8 @@ medoids.FLKMedoids<-function(object)
 
 		  	medoidsmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dims=c(object@centers,
-					            	length(object@deeptable@Dimnames[[2]])),
+					            dims=as.integer(c(object@centers,
+                                                                      length(object@deeptable@Dimnames[[2]]))),
 					            Dimnames=list(1:object@centers,
 					            			object@deeptable@Dimnames[[2]]))
 		}
@@ -892,7 +893,7 @@ silinfo.FLKMedoids <- function(object){
 
 		widthsFLTable <- newFLTable(
                              select = tblfunqueryobj,
-                             dims=c(nrow(object@deeptable), 4),
+                             dims=as.integer(c(nrow(object@deeptable), 4)),
 							Dimnames = list(object@deeptable@Dimnames[[1]],
 											c("obs_id_colname","MedoidID","neighbor","sil_width")),
 							isDeep = FALSE)
@@ -1048,8 +1049,8 @@ diss.FLKMedoids<-function(object)
 
 		  	dissmatrix <- newFLMatrix(
 					            select= tblfunqueryobj,
-					            dims=c(length(object@deeptable@Dimnames[[1]]),
-					            	length(object@deeptable@Dimnames[[1]])),
+					            dims=as.integer(c(length(object@deeptable@Dimnames[[1]]),
+					            	length(object@deeptable@Dimnames[[1]]))),
 					            Dimnames=list(object@deeptable@Dimnames[[1]],
 					            			object@deeptable@Dimnames[[1]]))
 

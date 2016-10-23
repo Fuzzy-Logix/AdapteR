@@ -381,11 +381,11 @@ centers.FLHKMeans<-function(object)
                         SQLquery=sqlstr)
 
 	  	centersmatrix <- newFLMatrix(
-				            select= tblfunqueryobj,
-				            dims=c(object@centers,
-				            	length(vColnames)),
-				            Dimnames=list(1:object@centers,
-				            			vColnames))
+                    select= tblfunqueryobj,
+                    dims=as.integer(c(object@centers,
+                                      length(vColnames))),
+                    Dimnames=list(1:object@centers,
+                                  vColnames))
 
 	  	centersmatrix <- tryCatch(as.matrix(centersmatrix),
       						error=function(e){centersmatrix})
@@ -701,7 +701,7 @@ fitted.FLHKMeans <- function(object,method="centers",...){
 
   	centersmatrix <- newFLMatrix(
 			            select= tblfunqueryobj,
-			            dims=c(nrow(object@deeptable),
+			            dims=as.integer(c(nrow(object@deeptable)),
 			            	ncol(object@deeptable)),
 			            Dimnames=list(object$cluster,
 			            			object@deeptable@Dimnames[[2]]))

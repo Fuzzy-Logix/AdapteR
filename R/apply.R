@@ -25,7 +25,17 @@ as.FLAbstractCol.FLAbstractColumn <- function(object,indexCol=FALSE){
 	return(object)
 }
 
+
 as.FLAbstractCol.FLVector <- function(object,indexCol=FALSE){
+	if(!indexCol)
+		vcolnames <- c(valueColumn="vectorValueColumn")
+	else vcolnames <- c(indexColumn="vectorIndexColumn",
+						valueColumn="vectorValueColumn")
+	return(new("FLAbstractColumn",
+				columnName=vcolnames))
+}
+
+as.FLAbstractCol.FLSimpleVector <- function(object,indexCol=FALSE){
 	if(!indexCol)
 		vcolnames <- c(valueColumn="vectorValueColumn")
 	else vcolnames <- c(indexColumn="vectorIndexColumn",
@@ -51,46 +61,62 @@ as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
 	return(new("FLAbstractColumn",
 				columnName=vcolnames))
 }
-genAggregateFunCall <- function(object,func,indexCol=FALSE,...){
-	##If FLMatrix or FLTable and indexCol may be needed for function
-	if(is.FLTable(object) && !object@isDeep)
-	object <- wideToDeep(object)[["table"]]
-	if(indexCol && 
-		(is.FLMatrix(object)||
-			is.FLTable(object))){
-			voldAbsCol <- as.FLAbstractCol(object=object,
-									indexCol=indexCol)
-			vnewObsCol <- new("FLAbstractColumn",
-								columnName=c(indexColumn="indexColumn",
-										valueColumn="valueColumn"))
-		
-		sqlstr <- paste0(" SELECT ",
-						func(vnewObsCol,...),
-						" FROM (SELECT ",voldAbsCol@columnName[["indexColumn"]]," AS indexColumn, \n ",
-							voldAbsCol@columnName[["valueColumn"]]," AS valueColumn \n ",
-							" FROM (",constructSelect(object),") a) b ")
-	}
-	else
-    sqlstr <- paste0(" SELECT ",func(as.FLAbstractCol(object=object,
-    												indexCol=indexCol)
-    								,...),
-                     "\n FROM(",constructSelect(object),") AS a")
 
+setGeneric("genAggregateFunCall", function(object,func,...) {
+    standardGeneric("genAggregateFunCall")
+})
+
+
+## gk: todo support of margins/group by
+setMethod("genAggregateFunCall",
+          signature(object = "FLSimpleVector"),
+          function(object,func,...){
+    object <- setValueSQLExpression(object=object,func=func,...)
+    object@dims <- 1L
+    object@select@order <- character()
+    object
+})
+
+FLoldGenAggregateFunCall <- function(object,func,indexCol=FALSE,...){
+    ##If FLMatrix or FLTable and indexCol may be needed for function
+    if(is.FLTable(object) && !object@isDeep)
+	object <- wideToDeep(object)[["table"]]
+    if(indexCol && 
+       (is.FLMatrix(object)||
+        is.FLTable(object))){
+        voldAbsCol <- as.FLAbstractCol(object=object,
+                                       indexCol=indexCol)
+        vnewObsCol <- new("FLAbstractColumn",
+                          columnName=c(indexColumn="indexColumn",
+                                       valueColumn="valueColumn"))
+        sqlstr <- paste0(" SELECT ",
+                         func(vnewObsCol,...),
+                         " FROM (SELECT ",voldAbsCol@columnName[["indexColumn"]]," AS indexColumn, \n ",
+                         voldAbsCol@columnName[["valueColumn"]]," AS valueColumn \n ",
+                         " FROM (",constructSelect(object),") a) b ")
+    }
+    else
+        sqlstr <- paste0(" SELECT ",func(as.FLAbstractCol(object=object,
+                                                          indexCol=indexCol)
+                                        ,...),
+                         "\n FROM(",constructSelect(object),") AS a")
     return(sqlQuery(getFLConnection(),sqlstr)[1,1])
 }
 
-#' @export
-mean.FLAbstractColumn <- function(x, trim = 0, na.rm = FALSE, ...){
-	return(paste0(" FLMean(",
-				paste0(x@columnName,collapse=","),") "))
-}
+setMethod("genAggregateFunCall",
+          signature(object = "FLMatrix"),
+          FLoldGenAggregateFunCall)
+setMethod("genAggregateFunCall",
+          signature(object = "FLVector"),
+          FLoldGenAggregateFunCall)
+
 modifyXforTrim <- function(x,trim=0){
     n <- length(x)
     if (trim > 0 && n){
         if(!is.FLVector(x))
             stop("trim supported for FLVector objects only. \n ")
-        if (trim >= 0.5) 
-            return(median(x))
+        if (trim >= 0.5)
+            stop("only trim values between 0 and 0.5 are supported")
         lo <- floor(n * trim) + 1
         hi <- n + 1 - lo
         x <- sort(x)[lo:hi]
@@ -102,37 +128,14 @@ modifyXforTrim <- function(x,trim=0){
 }
 
 #' @export
-mean.FLVector <- function(x,...){
+mean.FLIndexedValues <- function(x,...){
     # vFuncArgs <- list(...)
     # vFuncArgs <- c(vFuncArgs,count=length(x))
     # vFuncArgs <- unlist(vFuncArgs)
 	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
     x <- modifyXforTrim(x,...)
-    if(!is.FL(x)) return(x)
-    return(genAggregateFunCall(x,mean.FLAbstractColumn,
-                                count=length(x),...))
-}
-#' @export
-mean.FLMatrix <- function(x,...){
-    # vFuncArgs <- list(...)
-    # vFuncArgs <- c(vFuncArgs,count=length(x))
-    # vFuncArgs <- unlist(vFuncArgs)
-	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
-    x <- modifyXforTrim(x,...)
-    if(!is.FL(x)) return(x)
-    return(genAggregateFunCall(x,mean.FLAbstractColumn,
-                                count=length(x),...))
-}
-#' @export
-mean.FLTable <- function(x,...){
-    # vFuncArgs <- list(...)
-    # vFuncArgs <- c(vFuncArgs,count=prod(dim(x)))
-    # vFuncArgs <- unlist(vFuncArgs)
-	# return(genAggregateFunCall(x,mean.FLAbstractColumn,vFuncArgs))
-    x <- modifyXforTrim(x,...)
-    if(!is.FL(x)) return(x)
-    return(genAggregateFunCall(x,mean.FLAbstractColumn,
-                                count=length(x),...))
+    return(genAggregateFunCall(x,func=FLaggregate,
+                               FLfun=paste0(1/length(x),"*FLSum")))
 }
 
 # function (.data, .variables, .fun = NULL, ..., .progress = "none", 

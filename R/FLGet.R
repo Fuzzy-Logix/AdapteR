@@ -15,6 +15,7 @@ getFLColumnType <- function(x,columnName=NULL){
     vmapping <- c(VARCHAR="character",
                   INT="integer",
                   FLOAT="double",
+                  FLOAT="numeric",
                   VARCHAR="logical")
     vresult <- names(vmapping)[vmapping==typeof(x)]
     if(vresult=="VARCHAR") 
@@ -29,7 +30,7 @@ setMethod("typeof",signature(x="ANY"),
       function(x){
         return (base::typeof(x))
         })
-setMethod("typeof",signature(x="FLMatrix"),
+setMethod("typeof",signature(x="FLIndexedValues"),
       function(x){
         return(x@type)
         })
@@ -279,7 +280,7 @@ getXMatrix <- function(object,
 
   modelframe <- newFLMatrix(
                   select=vselect,
-                  dims=c(nrow(modelframe),length(vcolnames)),
+                  dims=as.integer(c(nrow(modelframe),length(vcolnames))),
                   Dimnames=list(NULL,vcolnames))
   #dimnames(modelframe) <- vdimnames
 
@@ -459,4 +460,15 @@ getDatabase <- function(x) {
 getTableNameSlot <- function(x){
     return(tryCatch(x@select@table_name,
                     error=function(x)NULL))
+}
+
+## May use FLMod in future.
+## https://app.asana.com/0/98264711960805/148450351472400
+## FLMod related issues
+getMODSQL <- function(pConnection=getFLConnection(),
+                    pColumn1,pColumn2){
+    if(is.TD(pConnection))
+        return(paste0(" ",pColumn1," MOD ",pColumn2," "))
+    else if(is.TDAster(pConnection))
+        return(paste0(" MOD(",pColumn1,",",pColumn2,") "))
 }

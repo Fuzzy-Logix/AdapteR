@@ -1,8 +1,6 @@
-
 ## Overloading problems..
 ## Cannot call default R function
 NULL
-
 #' Compute a Survival Curve for Censored Data
 #'
 #' Computes an estimate of a survival curve for censored data
@@ -32,20 +30,28 @@ NULL
 #' summary(resultList[[1]])
 #' plot(resultList[[1]])
 #' @export
-survfit.formula <- function(formula, data, weights, 
+survfit <- function(...) UseMethod("survfit")
+
+#' @export
+survfit.formula <- function(formula,data,...){
+    if(!is.FL(data))
+        if (!requireNamespace("survival", quietly = TRUE)){
+            stop("survival package needed for geometric.mean. Please install it.",
+            call. = FALSE)
+            }
+        else
+            return(survival::survfit.formula(formula=formula,
+                                        data=data,
+                                        ...))
+    else return(FLsurvfit(formula=formula,data=data,...))
+}
+
+
+#' @export
+FLsurvfit <- function(formula, data, weights, 
                             subset, na.action,
                             etype, id, istate,...){
-    if(!is.FL(data))
-        return(survival::survfit.formula(formula=formula,
-                                        data=data,
-                                        weights=weights,
-                                        subset=subset,
-                                        na.action=na.action,
-                                        etype=etype,
-                                        id=id,
-                                        istate=istate,
-                                        ...))
-    else{
+    
         data <- setAlias(data,"")
         connection <- getFLConnection()
         if(data@isDeep)
@@ -119,7 +125,7 @@ survfit.formula <- function(formula, data, weights,
             vFLtbl <- newFLTable(
                           select=vselect,
                           Dimnames=list(ObsID,VarID),
-                          dims=c(length(ObsID),length(VarID)),
+                          dims=as.integer(c(length(ObsID),length(VarID))),
                           type="double",
                           isDeep=FALSE)
             return(vFLtbl[,colName])
@@ -160,7 +166,7 @@ survfit.formula <- function(formula, data, weights,
             vresList <- vresList[[1]]
         return(vresList)
     }
-}
+
 
 #' @export
 fFetchFLSurvfit <- function(pObject){

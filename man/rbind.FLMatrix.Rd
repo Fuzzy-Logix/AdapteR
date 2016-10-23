@@ -24,7 +24,6 @@ combines them by rows and makes a FLMatrix.
 Input matrices, FLMatrices and data frames should have same number of columns.
 }
 \examples{
-library(RODBC)
 flmatrix <- FLMatrix("tblMatrixMulti", 5)
 resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 }

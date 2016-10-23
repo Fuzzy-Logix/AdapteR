@@ -1,164 +1,7 @@
 #' @include platforms.R
+#' @include FLconstructSQL.R
 NULL
 
-
-setOldClass("RODBC")
-
-
-
-#' A table query models a select or a table result of a sql statement.
-#' 
-#' 
-#' @slot connectionName character variable not used right now, will be used for future support of working with several connections (to different platforms possibly)
-#' @slot variables list Named list of variables for the table query: values are rownames, names (keys) are result column names.
-#' @slot whereconditions character vector of strings restricting the select query (if any)
-#' @slot order character ordering statements (if any)
-#' @export
-setClass("FLTableQuery",
-         slots=list(
-             variables  = "list",
-             connectionName = "character",
-             whereconditions="character",
-             order = "character"
-         ))
-
-
-
-##' A selectFrom models a select from a table.
-##'
-##' @slot table_name character the name of the table to select from (possibly fully qualified, i.e. with database)
-##' @export
-setClass("FLSelectFrom",
-         contains="FLTableQuery",
-         slots=list(
-             table_name = "character"
-         ))
-
-setClass("FLAbstractTable",
-    slots = list(
-        select = "FLTableQuery",
-        Dimnames = "list",
-        isDeep = "logical",
-        mapSelect = "FLSelectFrom"
-    )
-)
-
-setClass("FLAbstractColumn",
-	slots=list(
-            columnName = "character"))
-
-##' A TableFunctionQuery models a select from an arbitrary query
-##'
-##' @slot SQLquery character The free SQL query returning a table.
-##' @export
-setClass("FLTableFunctionQuery",
-         contains="FLTableQuery",
-         slots=list(
-             SQLquery = "character"
-         ))
-
-##' An S4 class to represent FLMatrix.
-##' A Matrix can be either based off a query from a deep table (customizable by any where-condition)
-##' -- or based off an arbitrary SQL statement returning a deep table.
-##'
-##' @slot dimnames list of 2 elements with row, column names of FLMatrix object
-##' @slot dim list of 2 FLTableQuery instances (or NULL) that map row_ids in the select to row-names in R
-##' @export
-setClass("FLMatrix",
-         slots = list(
-             select = "FLTableQuery",
-             mapSelect  = "FLSelectFrom",
-             dimColumns = "character",
-             type       = "character",
-             dims = "ANY",
-             Dimnames = "ANY"
-         ), prototype = prototype(
-             dimColumns=c("rowIdColumn","colIdColumn","valueColumn"),
-             type="double")
-         )
-
-
-setClass("FLMatrix.Hadoop", contains = "FLMatrix")
-setClass("FLMatrix.TD", contains = "FLMatrix")
-setClass("FLMatrix.TDAster", contains = "FLMatrix")
-
-newFLMatrix <- function(...) {
-    new(paste0("FLMatrix.",getFLPlatform()),
-        ...)
-}
-
-#' An S4 class to represent FLTable, an in-database data.frame.
-#'
-#' @slot select FLTableQuery the select statement for the table.
-#' @slot dimnames the observation id and column names
-#' @slot isDeep logical (currently ignored)
-#' @method names FLTable
-#' @param object retrieves the column names of FLTable object
-#' @export
-setClass("FLTable",
-         slots = list(
-             select = "FLTableQuery",
-             Dimnames = "list",
-             dims = "numeric",
-             isDeep = "logical",
-             mapSelect = "FLSelectFrom",
-             type       = "character"
-         ),
-         prototype = prototype(type="double")
-        )
-
-
-setClass("FLTable.Hadoop", contains = "FLTable")
-setClass("FLTable.TD", contains = "FLTable")
-setClass("FLTable.TDAster", contains = "FLTable")
-
-newFLTable <- function(...) {
-    new(paste0("FLTable.",getFLPlatform()),
-        ...)
-}
-
-
-#' An S4 class to represent FLTableMD, an in-database data.frame.
-#'
-#' @slot select FLTableQuery the select statement for the table.
-#' @slot dimnames the observation id and column names
-#' @slot isDeep logical (currently ignored)
-#' @slot mapSelect \code{FLSelectFrom} object which contains the 
-#' mapping information if any
-#' @export
-setClass("FLTableMD",
-         contains="FLTable",
-         slots = list(
-             select = "FLTableQuery",
-             Dimnames = "list",
-             dims = "numeric",
-             isDeep = "logical",
-             mapSelect = "FLSelectFrom"
-         )
-         )
-
-#' An S4 class to represent FLVector
-#'
-#' @export
-setClass("FLVector",
-         slots = list(
-             select = "FLTableQuery",
-             Dimnames = "list",
-             dims = "numeric",
-             isDeep= "logical",
-             mapSelect = "FLSelectFrom",
-             type       = "character"
-         ),
-         prototype = prototype(type="double")
-         )
-
-setClass("FLVector.Hadoop", contains = "FLVector")
-setClass("FLVector.TD", contains = "FLVector")
-setClass("FLVector.TDAster", contains = "FLVector")
-
-newFLVector <- function(...) {
-    new(paste0("FLVector.",getFLPlatform()), ...)
-}
 
 setMethod("str",signature(object="FLVector"),
           function(object) cat(paste0("FLVector [",length(object),"] ", object@type, "\n   ",str(object@select),"\n")))
@@ -173,19 +16,6 @@ setMethod("str",signature(object="FLTable"),
                                       )))
 setMethod("str",signature(object="FLTableQuery"),
           function(object) gsub("[ \n]+"," ",constructSelect(object)))
-
-##' drop a table
-##' 
-##' @param object FLTable object 
-##' @return message if the table is dropped
-##' @export
-drop.FLTable <- function(object)
-{
-    vSqlStr <- paste0(" DROP TABLE ",object@tablename)
-    sqlSendUpdate(getFLConnection(object), vSqlStr)
-    return(paste0(object@select@table_name," DROPPED"))
-}
-
 
 
 setGeneric("getVariables", function(object) {
@@ -203,19 +33,16 @@ setMethod("getVariables",
               names(variables) <- gsub("\\*","",names(variables))
               return(variables)
           })
-setMethod("getVariables",
-          signature(object = "FLMatrix"),
+setMethod("getVariables", signature(object = "FLMatrix"),
           function(object) getVariables(object@select))
-setMethod("getVariables",
-          signature(object = "FLTable"),
+setMethod("getVariables", signature(object = "FLTable"),
           function(object) getVariables(object@select))
-setMethod("getVariables",
-          signature(object = "FLTableMD"),
+setMethod("getVariables", signature(object = "FLSimpleWideTable"),
           function(object) getVariables(object@select))
-setMethod("getVariables",
-          signature(object = "FLVector"),
+setMethod("getVariables", signature(object = "FLTableMD"),
           function(object) getVariables(object@select))
-
+setMethod("getVariables", signature(object = "FLVector"),
+          function(object) getVariables(object@select))
 
 
 setGeneric("suffixAlias", function(object,suffix,...) {
@@ -330,7 +157,7 @@ restrictFLMatrix <-
         if(is.FLTableFunctionQuery(object@select))
           object <- store(object)
         ## if there is a mapping table, use indices instead of dimnames
-        vars <- object@select@variables[object@dimColumns]
+        vars <- object@select@variables[getIndexSQLName(object)]
         for(i in 1:2)
             if(conditionDims[[i]])
                 whereconditions <-
@@ -427,7 +254,7 @@ FLamendDimnames <- function(flm,map_table) {
         rownames <- vstringdimnames[[1]]
         colnames <- vstringdimnames[[2]]
     if(all(flm@dims==0))
-        flm@dims <- c(length(rownames),length(colnames))
+        flm@dims <- as.integer(c(length(rownames),length(colnames)))
     
     dimnames <- flm@Dimnames <- list(checkNames(rownames),
                                      checkNames(colnames))
@@ -446,7 +273,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","rnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables[[flm@dimColumns[[1]]]]),
+                      paste0(flm@select@variables[[getIndexSQLName(flm,1)]]),
                       "rnmap.NUM_ID"),
                   equalityConstraint("rnmap.DIM_ID","1"))
         }
@@ -459,7 +286,7 @@ FLamendDimnames <- function(flm,map_table) {
                 c(mConstraint,
                   gsub("mtrx","cnmap", flm@select@whereconditions),
                   equalityConstraint(
-                      paste0(flm@select@variables[[flm@dimColumns[[2]]]]),
+                      paste0(flm@select@variables[[getIndexSQLName(flm,2)]]),
                       "cnmap.NUM_ID"),
                   equalityConstraint("cnmap.DIM_ID","2"))
         }
@@ -583,7 +410,7 @@ FLMatrix <- function(table_name,
     
     RESULT <- newFLMatrix(
                   select = select,
-                  dims = dims,
+                  dims = as.integer(dims),
                   Dimnames = dimnames,
                   type=type)
     
@@ -626,6 +453,10 @@ setMethod("constraintsSQL", signature(object = "FLMatrix"),
               return(constraintsSQL(object@select))
           })
 setMethod("constraintsSQL", signature(object = "FLTable"),
+          function(object) {
+              return(constraintsSQL(object@select))
+          })
+setMethod("constraintsSQL", signature(object = "FLSimpleWideTable"),
           function(object) {
               return(constraintsSQL(object@select))
           })

@@ -699,6 +699,7 @@ lmGeneric <- function(formula,data,
 }
 
 ## move to file lmGeneric.R
+#' @export
 prepareData.lmGeneric <- function(formula,data,
 								callObject=NULL,
 								familytype="linear",
@@ -723,8 +724,8 @@ prepareData.lmGeneric <- function(formula,data,
 								maxiter=25,
 								offset="",
 								pRefLevel=NULL,
+                                fetchIDs=TRUE,
                                 ...){
-	#browser()
     data <- setAlias(data,"")
 	if(data@isDeep){
 		vallVars <- colnames(data)
@@ -902,7 +903,6 @@ prepareData.lmGeneric <- function(formula,data,
     vRegrDataPrepSpecs <- list()
 	if(!data@isDeep)
 	{
-        ## gk: can't we use prepareData.lmGeneric here?
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								outDeepTableName="",
 								outObsIDCol="",
@@ -918,7 +918,8 @@ prepareData.lmGeneric <- function(formula,data,
 								excludeCols=vexcludeCols,
 								classSpec=classSpec,
 								whereconditions=whereconditions,
-								inAnalysisID="")
+								inAnalysisID="",
+                                fetchIDs=fetchIDs)
 
         vRegrDataPrepSpecs <- list(outDeepTableName="",
                                 outObsIDCol="",
@@ -944,12 +945,12 @@ prepareData.lmGeneric <- function(formula,data,
 			vtablename <- deepx@select@table_name
 			vtablename1 <- data@select@table_name
 			vobsid <- getVariables(data)[["obs_id_colname"]]
-			sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
-							" SELECT ",vobsid," AS obs_id_colname,","\n               ",
+			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname,","\n               ",
 							" -2 AS var_id_colname,","\n               ",
 							ifelse(offset!="",offset,0)," AS cell_val_colname","\n        ",
 							" FROM ",vtablename1)
-			t <- sqlSendUpdate(getFLConnection(),sqlstr)
+			t <- insertIntotbl(pTableName=vtablename,
+                                pSelect=sqlstr)
 			deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		}
 		
@@ -990,8 +991,7 @@ prepareData.lmGeneric <- function(formula,data,
 		deepx <- FLTable(deeptablename1,
                    "obs_id_colname",
                    "var_id_colname",
-                   "cell_val_colname"
-                  )
+                   "cell_val_colname")
 		deepx <- setAlias(setAlias,"")
 		whereconditions <- ""
 		vmapping <- colnames(deepx)
@@ -1041,7 +1041,7 @@ prepareData.lmGeneric <- function(formula,data,
 		&& direction %in% c("UFbackward","Fbackward","backward"))
 	{
 		vspecID <- genRandVarName()
-		sqlstr <- c()
+		vdf <- NULL
 		vspecIDTable <- getRemoteTableName(tableName=ifelse(familytype=="linear","fzzlLinRegrModelVarSpec",
                                                             "fzzlLogRegrModelVarSpec"),temporaryTable=FALSE)
 		if(!is.null(specID[["include"]]))
@@ -1052,19 +1052,23 @@ prepareData.lmGeneric <- function(formula,data,
 			if(is.null(vinclude) || length(vinclude) < 1)
 			stop("columns in lower are not in deeptable.",
 				" Might be due to variable reduction during data preparation")
-			sqlstr <- c(sqlstr,paste0("INSERT INTO ", vspecIDTable," VALUES(",fquote(vspecID),",",
-							vinclude,",","'I')"))
+			# sqlstr <- c(sqlstr,paste0("INSERT INTO ", vspecIDTable," VALUES(",fquote(vspecID),",",
+			# 				vinclude,",","'I')"))
+            vdf <- rbind(vdf,data.frame(vspecID,vinclude,"I"))
 		}
 		if(!is.null(specID[["exclude"]]))
 		{
 			vexclude <- vmapping[charmatch(specID[["exclude"]],names(vmapping))]
 			vexclude <- vexclude[!is.na(vexclude)]
 			if(length(vexclude)>0 && vexclude!="")
-			sqlstr <- c(sqlstr,paste0("INSERT INTO ",vspecIDTable," VALUES(",fquote(vspecID),",",
-							vexclude,",","'X')"))
+			# sqlstr <- c(sqlstr,paste0("INSERT INTO ",vspecIDTable," VALUES(",fquote(vspecID),",",
+			# 				vexclude,",","'X')"))
+            vdf <- rbind(vdf,data.frame(vspecID,vexclude,"X"))
 		}
-		if(!is.null(sqlstr))
-                    t <- sqlSendUpdate(getFLConnection(),paste0(sqlstr,collapse=";"))
+		if(!is.null(vdf))
+            t <- insertIntotbl(pTableName=vspecIDTable,
+                                pValues=vdf)
+  #                   t <- sqlSendUpdate(getFLConnection(),paste0(sqlstr,collapse=";"))
 	}
 
 	return(list(deepx=deepx,
@@ -1226,7 +1230,7 @@ prepareData.lmGeneric <- function(formula,data,
 							select = tblfunqueryobj,
 							Dimnames = list(object@deeptable@Dimnames[[1]],
 											"vectorValueColumn"),
-                            dims = c(nrow(object@deeptable),1),
+                            dims = as.integer(c(nrow(object@deeptable),1)),
 							isDeep = FALSE)
 			object@results <- c(object@results,list(y=yvector))
 			assign(parentObject,object,envir=parent.frame())
@@ -1620,12 +1624,12 @@ predict.lmGeneric <- function(object,
 			vtablename1 <- newdata@select@table_name
 
 			vobsid <- getVariables(object@table)[["obs_id_colname"]]
-			sqlstr <- paste0("INSERT INTO ",vtablename1," \n ",
-							paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
 											vVaridCols," AS var_id_colname, \n ",
 											vcellValCols," AS cell_val_colname \n  ",
-									" FROM ",vtablename,collapse=" UNION ALL "))
-			t <- sqlSendUpdate(getFLConnection(),sqlstr)
+							" FROM ",vtablename,collapse=" UNION ALL ")
+			t <- insertIntotbl(pTableName=vtablename1,
+                                pSelect=sqlstr)
 			newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 		}
 	}
@@ -1676,7 +1680,7 @@ predict.lmGeneric <- function(object,
 				select = tblfunqueryobj,
 				Dimnames = list(rownames(newdata),
 								"vectorValueColumn"),
-                dims = c(newdata@dims[1],1),
+                dims = as.integer(c(newdata@dims[1],1)),
 				isDeep = FALSE)
 
 	return(flv)

@@ -12,10 +12,8 @@ NULL
 #' set.seed(200)
 #' a <- as.FL(rnorm(100, mean = 5, sd = 3))
 #' res <- ad.test(a)
-#' 
-
-
-
+#'
+#' @export
 setGeneric("ad.test",function(x, ...)
     standardGeneric("ad.test"))
 
@@ -37,7 +35,7 @@ setMethod("ad.test",signature(x="FLVector"),
           function(x, mean = NULL, sd = NULL, ...)
 
           {
-              dname <- as.list(sys.call())
+              dname <- deparse(substitute(x))
               vviewName <- gen_view_name("adtest")
               sqlstr <- paste0("SELECT p.vectorValueColumn AS Num_Val
                                 FROM (",constructSelect(x),") AS p")
@@ -52,22 +50,23 @@ setMethod("ad.test",signature(x="FLVector"),
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
-                                   outputParameter = c(ResultTable = 'a')
+                                   outputParameter = c(OutTable = 'a')
                                    )
               sqlstr <- paste0("SELECT q.TEST_STAT AS TStat,
                                        q.P_VALUE AS P_Value
                                FROM ",ret$OutTable," AS q")
               res_1 <- sqlQuery(connection, sqlstr)
               if(!class(res_1$P_Value) == "numeric"){
-                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))}
-              else
+                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
+              } else {
                   pval <- res_1$P_Value
-              
+              }
               result <- list(statistics = c(A = res_1$TStat),
-                             p.value = pval,
-                             method = "Anderson-Darling normality test"
-                            # data.name = dname                             
-                             )
+                             p.value=pval,
+                             method="Anderson-Darling normality test",
+                             data.name = dname)
+              if(!class(res_1$P_Value) == "numeric")
+                  result$note <- paste0("Note: rounded p-value ", res_1$P_Value)
               class(result) <- "htest"
               dropView(vviewName)
               return(result)

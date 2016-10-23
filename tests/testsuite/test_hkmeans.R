@@ -3,11 +3,11 @@ FLenv <- new.env(parent = globalenv())
 
 FLenv$data  <- FLTable("tblAutoMpg","ObsID")
 test_that("check HKMeans output dimensions ",{
-    centers=3
-    levels=2
+    Ncenters=3
+    Nlevels=2
     FLenv$hkmeansobject <- hkmeans(x=FLenv$data,
-                            centers=centers,
-                            levels=levels,
+                            centers=Ncenters,
+                            levels=Nlevels,
                             iter.max=20,
                             nstart=1,
                             excludeCols="CarName,CarNum")
@@ -16,13 +16,15 @@ test_that("check HKMeans output dimensions ",{
     ## two levels and 3 centers => 3^2
     ## 2 excludeCols and 1 obsID
     FLexpect_equal(dim(FLenv$hkmeansobject$centers),
-                    c(centers^levels,ncol(FLenv$data)-3))
+                    c(Ncenters^Nlevels,ncol(FLenv$data)-3))
     FLexpect_equal(length(FLenv$hkmeansobject$tot.withinss),
                     1)
     FLexpect_equal(length(FLenv$hkmeansobject$withinss),
-                    centers^levels)
+                    Ncenters^Nlevels)
     FLexpect_equal(length(FLenv$hkmeansobject$size),
-                    centers^levels)
+                    Ncenters^Nlevels)
     FLexpect_equal(dim(FLenv$hkmeansobject$mapping),
                     c(ncol(FLenv$data)-3,3))
 })
+
+

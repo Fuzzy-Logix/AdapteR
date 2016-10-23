@@ -13,8 +13,8 @@ test_that("FLFKMeans dimension check for components ",{
         k_crisp <- length(fannyx$k.crisp)
         coeff <- length(fannyx$coeff)
         silinfo_width <- dim(fannyx$silinfo$widths)
-        silinfo_width1 <- length(fannyx$silinfo$clus.avg.widths)
-        silinfo_width2 <- length(fannyx$silinfo$avg.width)
+        silinfo_clus.avg.width <- sort(fannyx$silinfo$clus.avg.widths)
+        ## silinfo_avg.width <- fannyx$silinfo$avg.width ## gk: put into limitation
     },Renv,FLenv,
     noexpectation = c("fannyx"))
     FLexpect_equal(dim(FLenv$fannyx$diss),

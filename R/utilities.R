@@ -1,10 +1,20 @@
 # Contains the support functions
-#' @include FLMatrix.R
+#' @include platforms.R
 NULL
 
 
 setOldClass("RODBC")
+setOldClass("FLConnection")
 
+
+cleanNames <- function(x){
+    ##change factors to strings
+    if(is.factor(x) || class(x)=="Date")
+        x <- as.character(x)
+    if(is.character(x))
+        x <- gsub("^ +| +$","",x)
+    x
+}
 
 sqlError <- function(e){
     warning(e)
@@ -21,6 +31,8 @@ sqlError <- function(e){
 #' @param query SQLQuery to be sent
 #' @export
 sqlSendUpdate <- function(connection,query,...) UseMethod("sqlSendUpdate")
+
+#' @export
 sqlSendUpdate.FLConnection <- function(connection,query,...) 
     sqlSendUpdate(connection$connection,query,...)
 
@@ -30,6 +42,8 @@ sqlSendUpdate.FLConnection <- function(connection,query,...)
 #' @param query SQLQuery to be sent
 #' @export
 sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
+
+#' @export
 sqlQuery.FLConnection <- function(connection,query,...)
     sqlQuery(connection$connection,query,...)
 
@@ -40,6 +54,8 @@ sqlQuery.FLConnection <- function(connection,query,...)
 #' @param query SQLQuery to be sent
 #' @export
 sqlStoredProc <- function(connection, query, outputParameter, ...) UseMethod("sqlStoredProc")
+
+#' @export
 sqlStoredProc.FLConnection <- function(connection,query,outputParameter,...) {
     sqlStoredProc(connection=getRConnection(connection),
                 query=query,
@@ -53,7 +69,7 @@ sqlStoredProc.FLConnection <- function(connection,query,outputParameter,...) {
 #' @param channel JDBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
+sqlSendUpdate.JDBCConnection <- function(connection,query,warn=TRUE,...) {
     verrflag<-sapply(query, function(q){
                             ##browser()
                             if(getOption("debugSQL")) cat(paste0("SENDING SQL: \n",gsub(" +"," ",q),"\n"))
@@ -68,7 +84,7 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
                                 return(TRUE)
                             },
                             error=function(e){
-                                sqlError(e)
+                                if(warn) sqlError(e)
                                 return(FALSE)
                                 })
                         })
@@ -81,7 +97,7 @@ sqlSendUpdate.JDBCConnection <- function(connection,query,...) {
 #' @param channel ODBC connection object
 #' @param query SQLQuery to be sent
 #' @export
-sqlSendUpdate.RODBC <- function(connection,query,...){
+sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
     if(!is.TDAster())
     RODBC::odbcSetAutoCommit(connection, autoCommit = FALSE)
     else RODBC::odbcSetAutoCommit(connection, autoCommit = TRUE)
@@ -98,7 +114,8 @@ sqlSendUpdate.RODBC <- function(connection,query,...){
                                 else
                                 {
                                     RODBC::odbcEndTran(connection, commit = FALSE)
-                                    print(errmsg)
+                                    ##print(sys.calls())
+                                    if(warn) sqlError(errmsg)
                                     verrflag <- FALSE
                                 }
                                 RODBC::odbcClearError(connection)
@@ -254,13 +271,13 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
         warning(paste0("Use of AnalysisIDQuery is deprecated. Please use sqlStoredProc!\n",query))
     if(length(query)==1){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",query,"\n"))
-            resd <- RODBC::sqlQuery(connection, query,...)
+            resd <- RODBC::sqlQuery(connection, query, stringsAsFactors = FALSE,...)
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     }
     lapply(query, function(q){
         if(getOption("debugSQL")) cat(paste0("QUERY SQL: \n",q,"\n"))
-            resd <- RODBC::sqlQuery(connection, q,...)
+            resd <- RODBC::sqlQuery(connection, q, stringsAsFactors = FALSE,...)
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     })
@@ -540,8 +557,10 @@ checkValidFormula <- function(pObject,pData)
 }
 
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
-                                    tableName)
+                                      tableName)
 {
+    ## shortcut in case of a results table -- setup during session start, assumed to not having been dropped
+    if(tableName %in% getOption("resultTablesFL")) return(TRUE)
     ## check if tableName has database
     if(grepl(".",tableName,fixed=TRUE)){
         vdb <- strsplit(tableName,".",fixed=TRUE)[[1]][1]

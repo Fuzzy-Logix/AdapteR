@@ -4,43 +4,20 @@
 #' Check if the object is an FLMatrix object
 #' @export
 is.FLMatrix <- function(object)
-{
-    if (class(object) == "FLMatrix" |
-        class(object) == "FLMatrixBind" ||
-        inherits(object,"FLMatrix"))
-        return (TRUE)
-	else return (FALSE)
-}
+    class(object) == "FLMatrixBind" || inherits(object,"FLMatrix")
 
 #' Check if the object is an FLVector object
 #' @export
 is.FLVector <- function(object)
-{
-	ifelse(class(object)=="FLVector" ||
-            inherits(object,"FLVector"),
-            TRUE,
-            FALSE)
-	
-}
+    inherits(object,"FLVector")
 
 #' Check if the object is an FLTable object
 #' @export
 is.FLTable <- function(object)
-{
-	ifelse(class(object)=="FLTable" ||
-            inherits(object,"FLTable"),
-            TRUE,
-            FALSE)
-}
-
+    inherits(object,"FLTable")
 #' @export
 is.FLTableMD <- function(object)
-{
-    ifelse(class(object)=="FLTableMD" ||
-            inherits(object,"FLTableMD"),
-            TRUE,
-            FALSE)
-}
+    inherits(object,"FLTableMD")
 
 is.FLAbstractColumn <- function(object){
     if(class(object)=="FLAbstractColumn")
@@ -62,11 +39,8 @@ is.wideFLTable <- function(pObject){
     else return(!pObject@isDeep)
 }
 
-is.FLSelectFrom <- function(pObj){
-  if(class(pObj)=="FLSelectFrom")
-  return(TRUE)
-  else return(FALSE)
-}
+is.FLSelectFrom <- function(pObj)
+  class(pObj)=="FLSelectFrom"
 
 #' @export
 is.FL <- function(x){

@@ -8,10 +8,7 @@ NULL
 #' @param vFLvector1 a FLVector of data values
 #' @param vFLvector2 a FLVector of data values
 #' @return A list with class "htest".
-#' @examples
-
-
-
+#' @export
 kuip.test <- function(vFLvector1, vFLvector2)          {
     dname <- as.list(sys.call())
         vcall <- paste0(dname[2], " and ", dname[3])
@@ -33,11 +30,11 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                          WhereClause = NULL,
                          GroupBy = NULL,
                          TableOutput = 1,
-                         outputParameter = c(ResultTable = 'a')
+                         outputParameter = c(OutTable = 'a')
                          )
     sqlstr <- paste0("SELECT q.TEST_STAT AS TStat,
                                        q.P_VALUE AS P_Value
-                               FROM ",ret$ResultTable," AS q")
+                               FROM ",ret$OutTable," AS q")
     res_1 <- sqlQuery(connection, sqlstr)
     if(!class(res_1$P_Value) == "numeric")
     {                    pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
