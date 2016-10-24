@@ -15,6 +15,7 @@ getFLColumnType <- function(x,columnName=NULL){
     vmapping <- c(VARCHAR="character",
                   INT="integer",
                   FLOAT="double",
+                  FLOAT="numeric",
                   VARCHAR="logical")
     vresult <- names(vmapping)[vmapping==typeof(x)]
     if(vresult=="VARCHAR") 
@@ -29,7 +30,7 @@ setMethod("typeof",signature(x="ANY"),
       function(x){
         return (base::typeof(x))
         })
-setMethod("typeof",signature(x="FLMatrix"),
+setMethod("typeof",signature(x="FLIndexedValues"),
       function(x){
         return(x@type)
         })

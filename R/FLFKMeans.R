@@ -621,7 +621,7 @@ silinfo.FLFKMeans <- function(object){
 
 
 				
-			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, a.ClusIDX AS ClusID, B2_i.Neighbour AS Neighbour,
+			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, CAST(a.ClusIDX as INT) AS ClusID, CAST(B2_i.Neighbour AS INT) AS Neighbour,
 
 													CASE WHEN FLMean(a.Dist) >  B2_i.val 
 													THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist)
@@ -650,12 +650,15 @@ silinfo.FLFKMeans <- function(object){
 													GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val 
 													ORDER BY 1,2"))
 																						}	
-	        sili_table <- sili_table[order(sili_table$ClusID, -sili_table$siliwidth), ]
-        clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
-																		mean(sili_table$siliwidth[sili_table$ClusID == i])
-																			}))
-		silinfolist <- list(widths = sili_table, clus.avg.widths = clus.avg.width)
-		return(silinfolist)																	
+    sili_matrix <- as.matrix(sili_table[,c("ClusID","Neighbour","siliwidth")])
+    colnames(sili_matrix) <- c("cluster","neighbor","sil_width")
+    rownames(sili_matrix) <- sili_table$ObsID
+    
+    clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
+        mean(sili_table$siliwidth[sili_table$ClusID == i])
+    }))
+    silinfolist <- list(widths = sili_matrix, clus.avg.widths = clus.avg.width)
+    return(silinfolist)																	
 }
 
 ## move to file FLFKMeans.R

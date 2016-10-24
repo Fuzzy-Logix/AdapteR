@@ -21,9 +21,19 @@ option_list = list(
                 default="Fl_demo", 
                 help="database [default= %default]",
                 type="character"),
+    make_option(c("-c", "--dropTables"),
+                action="store_true",
+                default="TRUE", 
+                help="drop AdapteR tables when starting the session [default= %default]",
+                type="logical"),
+    make_option(c("-t", "--temporary"),
+                action="store_true",
+                default="FALSE", 
+                help="temporary session [default= %default]",
+                type="logical"),
     make_option(c("-A", "--AdapteR"),
-                default="require", 
-                help="if 'require' load installed AdapteR version, otherwise load from git repository in --directoy [default= %default]",
+                default=".", 
+                help="if 'require' load installed AdapteR version, otherwise load from git repository provided [default= %default]",
                 type="character"),
     make_option(c("-J", "--jarDir"),
                 default="/Users/gregor/fuzzylogix/Teradata/jdbc", 
@@ -51,6 +61,7 @@ print(opt$directory)
 # basedir <- gsub("/[^/]*$","",opt$directory)
 # print(packagedir)
 # print(basedir)
+library(survival)
 
 # cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 if(opt$AdapteR=="require"){
@@ -65,7 +76,7 @@ if(opt$AdapteR=="require"){
     # setwd(packagedir)
     # system2("git", c("pull", "fuzzylogix", "master"),stdout = TRUE)
     # setwd(basedir)
-    devtools::load_all(packagedir)
+    devtools::load_all(packagedir,export_all = FALSE)
 }
 
 if(grepl("^jdbc",opt$host)){
@@ -81,7 +92,9 @@ if(grepl("^jdbc",opt$host)){
             ## CAVE: fully qualified PATH required
             jdbc.jarsDir = opt$jarDir,
             debug=T,
-            verbose=TRUE)
+            drop=opt$dropTables,
+            verbose=TRUE,
+            temporary=opt$temporary)
 } else {
     connection <- flConnect(odbcSource=opt$host,
               database=opt$database,

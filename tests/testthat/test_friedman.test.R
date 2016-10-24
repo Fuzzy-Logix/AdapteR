@@ -1,3 +1,4 @@
+
 Renv = new.env(parent = globalenv())
 
 Renv$RoundingTimes <- matrix(c(5.40, 5.50, 5.55,
@@ -34,16 +35,11 @@ Renv$wb <- aggregate(warpbreaks$breaks,
                             t = warpbreaks$tension),
                   FUN = mean)
 
-FLenv$wb <- as.FLTable(Renv$wb,
-                    tableName="ARBaseTestTempTable",
-                    drop=TRUE)
+FLenv$wb <- as.FLTable(Renv$wb)
 
 test_that("Friedman Test on FLMatrix: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
             fit <- friedman.test(RoundingTimes)
-            # fit$p.value <- NULL
-            fit$data.name <- NULL
-            class(fit) <- "list"
     },Renv,FLenv,
     expectation=c("fit"))
 })
@@ -51,13 +47,9 @@ test_that("Friedman Test on FLMatrix: R example: checking Result Equality withou
 test_that("Friedman Test on FLVectors: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
             fit <- friedman.test(wb$x,wb$w,wb$t)
-            # fit$p.value <- NULL
-            fit$data.name <- NULL
-            class(fit) <- "list"
     },Renv,FLenv,
     expectation=c("fit"))
 })
-
 
 Renv$fit <- stats::friedman.test(x~w|t, data = Renv$wb)
 FLenv$fit <- friedman.test(x~w|t, data = FLenv$wb)
@@ -84,5 +76,16 @@ test_that("Friedman Test on FLTable: R example: checking Result Equality without
             fit$data.name <- NULL
             class(fit) <- "list"
     },Renv,FLenv,
+    verbose=F,
     expectation=c("fit"))
 })
+
+test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
+    result = eval_expect_equal({
+            fit <- friedman.test(x~w|t, data = wb)
+    },Renv,FLenv,
+    verbose=F,
+    expectation=c("fit"))
+})
+
+

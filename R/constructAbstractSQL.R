@@ -364,7 +364,7 @@ setCurrentDatabase <- function(pDBName){
 
 getRemoteTableName <- function(databaseName=getOption("ResultDatabaseFL"),
                                tableName,
-                               temporaryTable=getOption("temporaryTablesFL")) {
+                               temporaryTable=getOption("temporaryFL")) {
     if(is.null(databaseName) 
         || temporaryTable 
         || databaseName==getOption("ResultDatabaseFL"))
@@ -394,6 +394,7 @@ NULL
 ##' @param pSelect 
 ##' @param ... 
 ##' @return The fully qualified table name for referring to this table.
+##' @export
 createTable <- function(pTableName,
                         pColNames=NULL,
                         pColTypes=NULL,
@@ -401,7 +402,7 @@ createTable <- function(pTableName,
                         pPrimaryKey=pColNames[1],
                         pFromTableName=NULL,
                         pWithData=TRUE,
-                        pTemporary=getOption("temporaryTablesFL"),
+                        pTemporary=getOption("temporaryFL"),
                         pDrop=FALSE,
                         pDatabase=getOption("ResultDatabaseFL"),
                         pSelect=NULL,
@@ -416,7 +417,10 @@ createTable <- function(pTableName,
                                      temporaryTable = pTemporary)
 
     if(pDrop)
-        dropTable(pTableName)
+        tryCatch({dropTable(pTableName)},
+                 error=function(e)
+            if(getOption("debugSQL"))
+                warning(paste0("not dropping table ",pTableName,": ",e)))
     vtempKeyword <- c(TD="VOLATILE",
                       Hadoop="TEMPORARY",
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
@@ -506,10 +510,11 @@ createTable <- function(pTableName,
         }
     }
     vsqlstr <- paste0(vsqlstr,";")
-    if(!pTemporary & getOption("temporaryTablesFL")){
+    if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
-                warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
+                if(getOption("debugSQL"))
+                   warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
@@ -558,15 +563,17 @@ createView <- function(pViewName,
 }
 
 ## DROP VIEW
-dropView <- function(pViewName){
+##' @export
+dropView <- function(pViewName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP VIEW ",pViewName,";"))
+                paste0("DROP VIEW ",pViewName,";"),warn=warn)
 }
 
 ## DROP TABLE
-dropTable <- function(pTableName){
+##' @export
+dropTable <- function(pTableName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP TABLE ",pTableName,";"))
+                  paste0("DROP TABLE ",pTableName,";"),warn=warn)
 }
 
 ## Insert Into Table

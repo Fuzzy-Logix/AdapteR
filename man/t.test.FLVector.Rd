@@ -4,7 +4,7 @@
 \alias{t.test.FLVector}
 \title{Student's t-Test}
 \usage{
-\method{t}{test.FLVector}(x, y = NULL, mu = 0, tails = 2,
+\method{t.test}{FLVector}(x, y = NULL, mu = 0, tails = 2,
   conf.level = 0.95, var.equal = FALSE, alternative = "two.sided", ...)
 }
 \arguments{

@@ -34,7 +34,7 @@ test_that("stringdist: string, string, Damerau-Levenshtein",{
 test_that("stringdistmatrix: vector, Damerau-Levenshtein",{
     result2=eval_expect_equal({
         test2<-stringdistmatrix(a,method="dl")
-        print(test2)
+        ##print(test2)
         ##plot(hclust(test2))
     },Renv,FLenv,
     expectation=c("test1"),
@@ -73,7 +73,6 @@ test_that("stringdist: string distance",{
 })
 
 
-
 ## # Non-unit weights for insertion and deletion makes the distance metric asymetric
 ## stringdist(ca,abc)
 ## stringdist(abc,ca)
@@ -84,8 +83,8 @@ test_that("stringdist: string distance",{
     result9=eval_expect_equal({
         test9<-stringdist(ca,abc,method="dl")
         test10<-stringdist(abc,ca,method="dl")
-        test11<-stringdist(ca,abc,weighta,method="dl")
-        test12<-stringdist(abc,ca,weighta,method="dl")
+        test11<-stringdist(ca,abc,weighta,method="dl",useBytes=TRUE)
+        test12<-stringdist(abc,ca,weighta,method="dl",useBytes=TRUE)
     },Renv,FLenv)
 })
 
@@ -118,9 +117,9 @@ test_that("testing R and FL Results for String Functions for different methods "
 
 test_that("stringdistmatrix R and FL results match ",{
   result2=eval_expect_equal({
-    test1<-stringdistmatrix(a)
-    test3<-stringdist(a,b)
-    test4<-stringdistmatrix(a,b)
-    test5<-stringdistmatrix("baro",b)
+    test1<-stringdistmatrix(a,method="dl")
+    test3<-stringdist(a,b,method="dl")
+    test4<-stringdistmatrix(a,b,method="dl")
+    test5<-stringdistmatrix("baro",b,method="dl")
   },Renv,FLenv,check.attributes=FALSE)
 })

@@ -1,5 +1,7 @@
 #' @include FLMatrix.R
+#' @include FLconstructSQL.R
 NULL
+
 #' Student's t-Test
 #'
 #' Performs one and two sample t-tests on vectors of data.
@@ -18,6 +20,7 @@ NULL
 #' t.test(flx,fly)
 #' t.test(flx,fly,var.equal=F)
 #' @export
+#' @method t.test FLVector
 t.test.FLVector <- function(x,
                             y=NULL,
                             mu = 0,
@@ -45,17 +48,17 @@ t.test.FLVector <- function(x,
                                         pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
                                         pGroupBy = "c.FLStatistic")
         vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
-        alter<-paste0("true mean is not equal to ",mu )
         estimate<-c("mean of x"=mean(x))
         method<-"One Sample t-test"}                                         
            
         else{
             if(var.equal==TRUE) {
                     var<-"EQUAL_VAR"
-                    method<-"Two Sample t-test"}
-            else{
+                    method<-" Two Sample t-test"}
+            else {
                 var<-"UNEQUAL_VAR"
-                method<-"Welch Two Sample t-test"}
+                method<-"Welch Two Sample t-test"
+            }
             vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
                                               pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
                                                            b=c(groupID=2,num_val="b.vectorValueColumn")))
@@ -72,19 +75,23 @@ t.test.FLVector <- function(x,
                                         pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
                                         pGroupBy="c.FLStatistic")
             vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
-            alter<-"true difference in means is not equal to 0 "
             estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))
-            }  
-    result <<- sqlQuery(connection, sqlstr)
-    cint<-cint(x,conf.level,alternative)
+            }
+    result <- sqlQuery(connection, sqlstr)
+    names(mu)<-if(!is.null(y)) "difference in means" else "mean"
+    cint<-cint(x,y,conf.level,mu,var.equal,alternative)
+    df<-cint[3]
+    cint<-cint[1:2]
     attr(cint,"conf.level") <- conf.level
-    res <- list(data.name = vcall,
-                statistic =c(t = as.numeric(result[1,1])),
-                p.value=   c("p-value"=as.numeric(result[2,1])),
-                alternative=alter,
+    res <- list(statistic =c(t = as.numeric(result[1,1])),
+                parameter= c(df=df),
+                p.value=   c(as.vector(result[2,1])),
+                conf.int = cint,
                 estimate =estimate,
+                null.value=mu,
+                alternative=alternative,
                 method=method,
-                conf.int = cint)                
+                data.name = vcall)                
     class(res) <- "htest"
     return(res)
 }

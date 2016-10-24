@@ -4,7 +4,7 @@
 \alias{sqlSendUpdate.JDBCConnection}
 \title{Send a query to database}
 \usage{
-\method{sqlSendUpdate}{JDBCConnection}(connection, query, ...)
+\method{sqlSendUpdate}{JDBCConnection}(connection, query, warn = TRUE, ...)
 }
 \arguments{
 \item{query}{SQLQuery to be sent}

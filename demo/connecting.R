@@ -15,7 +15,7 @@
 
 ## The Documentation for flConnect can be found using ?flConnect
 ## ?flConnect
-vtemp <- readline("Teradata:Connecting to FL_TRAIN database:")
+vtemp <- readline("This demo shows how to connect to the FL_TRAIN database.\nIf the demo fails, please set the variables mentioned in the error message which are required for connecting with this demo.\n\nPress <ENTER> to connect to your database.")
 
 if(!exists("yourPlatform"))
     yourPlatform <- "TD"
@@ -61,7 +61,6 @@ if(!exists("connection")){
         stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
 
-vtemp <- readline("Checking if the connection is working:")
 
 ## .......................#################..................
 ## ....Trying to Fetch a matrix from FL_TRAIN.tblmatrixmulti using sqlQuery......
@@ -71,5 +70,5 @@ sqlQuery(connection,paste0("SELECT * \n FROM FL_TRAIN.tblmatrixmulti a \n ",
                             "WHERE a.Matrix_ID=1 \n ",
                             "ORDER BY 1,2,3"))
 
-### END ###
-### Thank You ####
+## You are connected if the query above has resulted in a table output
+## Thank You
