@@ -5,10 +5,11 @@ FLrpart<-function(data,
 				  cp=0.95),
 				  method="class",
 				  ...){
+	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(data@isDeep){
-		if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
-		if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(data@isDeep){	
 		tablename<-data@select@table_name
 		deepx<-data
 	}
@@ -51,5 +52,17 @@ FLrpart<-function(data,
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
 	ret<-sqlQuery(connection,sql)
-	return(ret)	
+	dropView(deeptablename)
+	frame<-list()
+	frame$n<-ret$NodeSize
+	frame$prob<-ret$PredictClassProb
+	frame$yval<-ret$PredictClass
+	frame$var<-ret$SplitVarID
+	outobj<-list(frame=frame,
+				 method=method,
+				 control=control,
+				 where=ret$NodeID,
+				 call=call)
+	#class(outobj)<-"rpart": Amal: Some issues with printing the 'rpart' object. 
+	return(outobj)
 }
