@@ -861,7 +861,7 @@ as.FLTable.data.frame <- function(object,
                                   uniqueIdColumn=0,
                                   drop=TRUE,
                                   batchSize=10000,
-                                  getOption("temporaryFL")){
+                                  temporary=getOption("temporaryFL")){
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)

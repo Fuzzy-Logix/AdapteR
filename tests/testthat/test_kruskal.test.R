@@ -7,32 +7,27 @@ Renv$gfactor <- factor(Renv$g,
                             "Subjects with obstructive airway disease",
                             "Subjects with asbestosis"))
 Renv$flv <- c(1:3,62:64)
-Renv$mydata <- as.data.frame(airquality)
-names(Renv$mydata) <- c("Ozone", "SolarR", "Wind", "Temperature", "theMonth", "theDay")
 FLenv <- as.FL(Renv)
-Renv$data <- data.frame(Ozone=airquality$Ozone,
-                        MonthCol=airquality$Month)
-FLenv$data <- as.FLTable(Renv$data,
+Renv$mydata <- as.data.frame(airquality)
+colnames(Renv$mydata) <- c("Ozone", "SolarR", "Wind", "Temperature", "theMonth", "theDay")
+FLenv$mydata <- as.FLTable(Renv$mydata,
                         tableName="ARBaseTestTempTable",
                         drop=TRUE)
 
-FLenv$fit <- kruskal.test.FLVector(FLenv$x,FLenv$g)
-Renv$fit <- stats::kruskal.test(Renv$x,Renv$g)
+# FLenv$fit <- kruskal.test.FLVector(FLenv$x,FLenv$g)
+# Renv$fit <- stats::kruskal.test(Renv$x,Renv$g)
 test_that("kruskal Test on FLVectors: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
-                #fit <- kruskal.test(x=x,g=g)
+                fit <- kruskal.test(x=x,g=g)
                 fit$data.name <- NULL
                 class(fit) <- "list"
     },Renv,FLenv,
     expectation=c("fit"))
 })
 
-
-FLenv$fit <- kruskal.test(Ozone ~ MonthCol, data = FLenv$data,subset=FLenv$flv)
-Renv$fit <- stats::kruskal.test(Ozone ~ MonthCol, data = Renv$data,subset=Renv$flv)
 test_that("kruskal Test on FLTable using subset: R example: checking Result Equality with subset:",{
     result = eval_expect_equal({
-            # fit <- kruskal.test(Ozone ~ MonthCol, data = data,subset=flv)
+            fit <- kruskal.test(Ozone ~ theMonth, data = mydata,subset=flv)
             # fit$p.value <- NULL
             fit$data.name <- NULL
             class(fit) <- "list"

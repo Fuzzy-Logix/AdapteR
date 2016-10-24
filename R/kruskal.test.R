@@ -67,7 +67,8 @@ kruskal.test.FLVector <- function(x,g,...){
                         obs_id_colname="ObsID")
     return(kruskal.test(data=vtable,
                         formula=Num_Val~groupID,
-                        data.name=DNAME))
+                        data.name=DNAME,
+                        ...))
 }
 
 
@@ -107,6 +108,19 @@ kruskal.test.FLTable <- function(formula,data,
                         vdata.name <- paste0(vValueColname," by ",vSampleIDColname)
                     vobsIDCol <- getVariables(data)[["obs_id_colname"]]
 
+                    vWhereCond <- NULL
+                    if(is.numeric(subset)){
+                        vWhereCond <- paste0(vobsIDCol," IN (",
+                                            paste0(subset,collapse=","),") ")
+                    }
+                    if(is.FLVector(subset)){
+                        vWhereCond <- paste0(vobsIDCol," IN( SELECT a.vectorValueColumn ",
+                                            "FROM (",gsub("\n"," ",
+                                                        gsub("'%insertIDhere%'",1,
+                                                            constructSelect(subset))),") a ) ")
+                    }
+                    vWhereCond <- c(vWhereCond,list(...)[["whereconditions"]])
+    
                     # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
                     vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
                                         list(...)[["GroupBy"]]))
@@ -123,7 +137,7 @@ kruskal.test.FLTable <- function(formula,data,
                                          TableName = getTableNameSlot(data),
                                          ValueColname = vValueColname,
                                          SampleIDColName = vSampleIDColname,
-                                         WhereClause = list(...)[["whereconditions"]],
+                                         WhereClause = constructWhere(vWhereCond),
                                          GroupBy = vgrp,
                                          TableOutput = 1,
                                          outputParameter = c(ResultTable = 'a')
@@ -136,7 +150,7 @@ kruskal.test.FLTable <- function(formula,data,
                                         paste0("SELECT COUNT(DISTINCT a.",
                                                     vSampleIDColname,")-1 AS df \n ",
                                                " FROM ",getTableNameSlot(data)," a \n ",
-                                               constructWhere(list(...)[["whereconditions"]])," \n ",
+                                              constructWhere(vWhereCond)," \n ",
                                                ifelse(length(setdiff(vgrp,""))>0,
                                                         paste0("GROUP BY ",vgrp, " \n "),""),
                                                ifelse(length(setdiff(vgrp,""))>0,
