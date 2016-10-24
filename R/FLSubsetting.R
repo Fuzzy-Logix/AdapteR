@@ -551,6 +551,12 @@ isAliasSet <- function(object){
 #' flSimple <- FLSerial(1,5)
 #' subset <- as.FL(3:2)
 #' flv <- flSimple[subset]
+#' flv1 <- as.FL(1)
+#' flv[flv1]
+#' names(flSimple) <- letters[1:5]
+#' subset <- as.FL(letters[3:2])
+#' flv <- flSimple[subset]
+#' flv[flv1]
 #' @export
 `[.FLSimpleVector` <- function(object,pSet=1:length(object))
 {
@@ -565,37 +571,103 @@ isAliasSet <- function(object){
             pSet <- as.FLSimpleVector(pSet)
         }
     }
-
-    if(!typeof(pSet)=="character"){
-        if(is.null(getIndexMappingSlot(object)))
-            object <- setIndexMapping(object,pSet)
-        else{
-            obj <- setAlias(getIndexMappingSlot(object),genRandVarName())
-            pSet <- setAlias(pSet,genRandVarName())
-            vmapVector <-  new("FLSimpleVector",
-                                select=new("FLSelectFrom",
-                                           table_name=c(getTableNameSlot(obj),
-                                                        getTableNameSlot(pSet)),
-                                           connectionName=getFLConnectionName(),
-                                           variables=list(indexCol=getIndexSQLExpression(pSet),
-                                                          valueCol=getValueSQLExpression(obj)),
-                                           whereconditions=c(getWhereConditionsSlot(obj),
-                                                            getWhereConditionsSlot(pSet),
-                                                            paste0(getValueSQLExpression(pSet),"=",
-                                                                   getIndexSQLExpression(obj))),
-                                           order="indexCol"),
-                                dimColumns = c("indexCol","valueCol"),
-                                names=NULL,
-                                dims    = getDimsSlot(pSet),
-                                type       = getTypeSlot(obj)
-                                )
-            object <- setIndexMapping(object,vmapVector)
-        }
+    obj <- object
+    if(!isAliasSet(obj))
+        obj <- setAlias(obj,genRandVarName())
+    if(!isAliasSet(pSet)){
+        pSet <- setAlias(pSet,genRandVarName())
+        pSet1 <- setAlias(pSet,genRandVarName())
     }
+    
+    if(!is.null(getNamesSlot(obj)) &&
+        !getTypeSlot(pSet)=="character")
+        obj <- setNamesSlot(obj,getNamesSlot(obj)[pSet1])
+    if(getTypeSlot(pSet)=="character"){
+        if(is.null(getNamesSlot(obj)))
+            stop("vector not named.Subscript out of bounds. \n ")
+        vnames <- getNamesSlot(obj)
+        if(!isAliasSet(vnames))
+        vnames <- setAlias(vnames,genRandVarName())
 
-    return(object)
+        obj <- setNamesSlot(obj,pSet1)
+        pSet <-  new("FLSimpleVector",
+                            select=new("FLSelectFrom",
+                                       table_name=rmDupTables(c(getTableNameSlot(vnames),
+                                                                getTableNameSlot(pSet))),
+                                       connectionName=getFLConnectionName(),
+                                       variables=list(indexCol=getIndexSQLExpression(pSet),
+                                                      valueCol=getIndexSQLExpression(vnames)),
+                                       whereconditions=c(getWhereConditionsSlot(vnames),
+                                                        getWhereConditionsSlot(pSet),
+                                                        paste0(getValueSQLExpression(pSet),"=",
+                                                               getValueSQLExpression(vnames))),
+                                       order="indexCol"),
+                            dimColumns = c("indexCol","valueCol"),
+                            names=NULL,
+                            dims    = getDimsSlot(pSet),
+                            type       = "integer"
+                            )
+    }
+    obj <-  new("FLSimpleVector",
+                select=new("FLSelectFrom",
+                           table_name=rmDupTables(c(getTableNameSlot(obj),
+                                                    getTableNameSlot(pSet))),
+                           connectionName=getFLConnectionName(),
+                           variables=list(indexCol=getIndexSQLExpression(pSet),
+                                          valueCol=getValueSQLExpression(obj)),
+                           whereconditions=c(getWhereConditionsSlot(obj),
+                                            getWhereConditionsSlot(pSet),
+                                            paste0(getValueSQLExpression(pSet),"=",
+                                                   getIndexSQLExpression(obj))),
+                           order="indexCol"),
+                dimColumns = c("indexCol","valueCol"),
+                names=getNamesSlot(obj),
+                dims    = getDimsSlot(pSet),
+                type       = getTypeSlot(obj)
+                )
+    return(obj)
 }
 
+rmDupTables <- function(pTableNames){
+    vTableNames <- paste0(names(pTableNames),"___",pTableNames)
+    return(pTableNames[gsub("___.*$","",vTableNames)])
+}
+#' Assign names to FLSimpleVectors
+#' 
+#' @param x FLSimpleVector
+#' @param value a vector of length same as
+#' FLSimpleVector
+#' @return named FLSimpleVector
+#' @examples
+#' flv <- FLSerial(1,5)
+#' names(flv) <- letters[1:5]
+#' print(flv)
+#' @export
+`names<-.FLSimpleVector` <- function(x,value)
+{
+    if(length(value)!=length(x))
+    stop("names should be of same length as FLVector")
+    else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
+    
+    if(is.vector(value))
+        value <- as.FLVector(value)
+    if(is.FLVector(value))
+        value <- as.FLSimpleVector(value)
+    if(!is.FLSimpleVector(value))
+        stop("names vector should be vector \n ")
+    return(setNamesSlot(x,value))
+}
+
+#' Get names of a FLSimpleVector
+#'
+#' @param x FLSimpleVector
+#' @return character vector of names
+#' of FLSimpleVector if exists. Else NULL
+#' @export
+names.FLSimpleVector <- function(x)
+{
+    getNamesSlot(x)
+}
 #' @examples
 #' flv <- as.FL(1:5)
 #' flsimpleVec <- as.FLSimpleVector(flv)

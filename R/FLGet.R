@@ -476,10 +476,6 @@ getWhereConditionsSlot <- function(x){
                 error=function(e)
                         return(getWhereConditionsSlot(x@select))))
 }
-getIndexMappingSlot <- function(x){
-    return(tryCatch(x@indexMapping,
-                    error=function(x)NULL))
-}
 getDimsSlot <- function(x){
     return(tryCatch(x@dims,
                     error=function(x)NULL))
@@ -488,7 +484,15 @@ getTypeSlot <- function(x){
     return(tryCatch(x@type,
                     error=function(x)NULL))
 }
-
+getNamesSlot <- function(x){
+    return(tryCatch(x@names,
+                    error=function(x)NULL))
+}
+setNamesSlot <- function(x,value){
+    tryCatch(x@names <- value,
+                    error=function(x)NULL)
+    x
+}
 ## May use FLMod in future.
 ## https://app.asana.com/0/98264711960805/148450351472400
 ## FLMod related issues
