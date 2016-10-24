@@ -724,7 +724,7 @@ prepareData.lmGeneric <- function(formula,data,
 								maxiter=25,
 								offset="",
 								pRefLevel=NULL,
-                                fetchIDs=TRUE,
+                                fetchIDs=FALSE,
                                 ...){
     data <- setAlias(data,"")
 	if(data@isDeep){
