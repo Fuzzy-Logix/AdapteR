@@ -1,3 +1,11 @@
+setClass(
+	"FLrpart",
+	slots=list(frame="list",
+			   method="character",
+			   control="list",
+			   where="integer",
+			   call="call"))
+
 FLrpart<-function(data,
 				  formula,
 				  control=rpart.control(minsplit=10,
@@ -54,15 +62,38 @@ FLrpart<-function(data,
 	ret<-sqlQuery(connection,sql)
 	dropView(deeptablename)
 	frame<-list()
+	frame$NodeID<-ret$NodeID
 	frame$n<-ret$NodeSize
 	frame$prob<-ret$PredictClassProb
 	frame$yval<-ret$PredictClass
 	frame$var<-ret$SplitVarID
-	outobj<-list(frame=frame,
-				 method=method,
-				 control=control,
-				 where=ret$NodeID,
-				 call=call)
-	#class(outobj)<-"rpart": Amal: Some issues with printing the 'rpart' object. 
-	return(outobj)
+	frame$SplitVal<-ret$SplitVal
+	frame$leftson<-ret$ChildNodeLeft
+	frame$rightson<-ret$ChildNodeRight
+	
+	## class(outobj)<-"rpart": Amal: Some issues with printing the 'rpart' object. 
+	return(new(Class="FLrpart",
+			   frame=frame,
+			   method=method,
+			   control=control,
+			   where=ret$NodeID,
+			   call=call))
+}
+
+summary.FLrpart<-function(x,...){
+	cat("Call:\n")
+	dput(x@call)
+	cat(" n=",x@frame$n[1],"\n\n")
+	## should have cp table here which we do not get from DBLytix
+	for(i in 1:length(x@frame$NodeID)){
+		cat("\n\nNode number ", x@frame$NodeID[i], ": ", x@frame$n[i], " observations", sep = "")
+		cat("\n predicted class=",x@frame$yval[i])
+		cat("\n probability:",x@frame$prob[i])
+		if(!is.null(x@frame$SplitVal[i])&&!is.na(x@frame$SplitVal[i])){
+			cat("\n left son=",x@frame$leftson[i],"  right son=",x@frame$rightson[i])
+			cat("\n Split:")
+			cat("\n ",x@frame$var[i]," < ",x@frame$SplitVal[i])
+		}
+	}
+
 }
