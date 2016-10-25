@@ -489,6 +489,14 @@ getNamesSlot <- function(x){
     return(tryCatch(x@names,
                     error=function(x)NULL))
 }
+getGroupSlot <- function(x){
+    return(tryCatch(x@group,
+                    error=function(x)NULL))
+}
+getOrderSlot <- function(x){
+    return(tryCatch(x@order,
+                    error=function(x)NULL))
+}
 setNamesSlot <- function(x,value){
     tryCatch(x@names <- value,
                     error=function(x)NULL)
