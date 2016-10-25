@@ -33,10 +33,8 @@ vtemp <- readline("Above: the number of rows and columns of the table \n ")
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
 head(FLtbl,n=10,display=TRUE)
-vtemp <- readline("Above: Head is supported to examine structure of data \n ")
+vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to fit an lm model on data\n(automatically running data prep only if a wide table is provided.)\n ")
 
-
-vtemp <- readline("Below: Fitting lm model on data \n ")
 vresFL <- lm(Buzz_Magnitude~.,data=FLtbl)
 
 ####
