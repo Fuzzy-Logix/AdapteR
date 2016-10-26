@@ -130,30 +130,26 @@ sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
 sqlStoredProc.RODBC <- function(connection, query, 
                                 outputParameter,
                                 ...) {
-    #browser()
-    sqlstr <- constructStoredProcSQL(pConnection=connection,
-                                    pFuncName=query,
-                                    pOutputParameter=outputParameter,
-                                    ...)
-    # args <- list(...)
-    # ## Setting up input parameter value
-    # pars <- character()
-    # ai <- 1L
-    # for(a in args){
-    #     if(is.character(a)){
-    #         if(a=="NULL")
-    #             pars[ai] <- "NULL"
-    #         else
-    #             pars[ai] <- fquote(a)
-    #     } else
-    #         pars[ai] <- a
-    #     ai <- ai+1L
-    # }
-    # sqlstr <- paste0("CALL ",query,"(",
-    #                  paste0(pars, collapse=", \n "),
-    #                  ",",
-    #                  paste0(names(outputParameter), collapse=", \n "),
-    #                  ")")
+    args <- list(...)
+    if("pInputParams" %in% names(args))
+        args <- args[["pInputParams"]]
+    else if(length(args)==1 && is.list(args[[1]]))
+        args <- args[[1]]
+
+    spMap <- getStoredProcMapping(query)
+    if(!is.null(spMap)){
+        query <- spMap$storedProcPlatform
+        if(length(spMap$argsPlatform)>0){
+            args <- args[spMap$argsPlatform]
+            names(args) <- names(spMap$argsPlatform)
+        }
+    }
+
+    sqlstr <- do.call("constructStoredProcSQL",
+                      append(list(pConnection=connection,
+                                  pFuncName=query,
+                                  pOutputParameter=outputParameter),
+                             args))
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }
@@ -171,23 +167,32 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
         args <- args[["pInputParams"]]
     else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
-    # query <- paste0("CALL ",query, "(",
-    #                 paste0(rep("?", length(args)+length(outputParameter)),
-    #                        collapse=","),
-    #                  ")")
-    if(getOption("debugSQL")) cat(paste0("CALLING Stored Proc: \n",
-                                         gsub(" +","    ",
-                                              constructStoredProcSQL(pConnection="string",
-                                                                     pFuncName=query,
-                                                                     pOutputParameter=outputParameter,
-                                                                     ...)),"\n"))
-    query <- constructStoredProcSQL(pConnection=connection,
-                                    pFuncName=query,
-                                    pOutputParameter=outputParameter,
-                                    ...)
+
+    spMap <- getStoredProcMapping(query)
+    if(!is.null(spMap)){
+        query <- spMap$storedProcPlatform
+        if(length(spMap$argsPlatform)>0){
+            args <- args[spMap$argsPlatform]
+            names(args) <- names(spMap$argsPlatform)
+        }
+    }
+    
+    if(getOption("debugSQL")) {
+        sqlstr <- do.call("constructStoredProcSQL",
+                          append(list(pConnection="string",
+                                      pFuncName=query,
+                                      pOutputParameter=outputParameter),
+                                 args))        
+        cat(paste0("CALLING Stored Proc: \n",
+                   gsub(" +","    ", sqlstr),"\n"))
+    }
+    query <- do.call("constructStoredProcSQL",
+                      append(list(pConnection=connection,
+                                  pFuncName=query,
+                                  pOutputParameter=outputParameter),
+                             args))        
     cStmt = .jcall(connection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",query)
     ##CallableStatement cStmt = con.prepareCall(sCall);
-
     ## Setting up input parameter value
     ai <- 1L
     for(a in args){
@@ -215,7 +220,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
         else if(is.numeric(a))
             a <- .jfield("java/sql/Types",,"FLOAT")
         .jcall(cStmt,"V","registerOutParameter",ai,a)
-        ai <- ai+1
+        ai <- ai+1L
     }
     ## Making a procedure call
     exR <- .jcall(cStmt,"I","executeUpdate")
