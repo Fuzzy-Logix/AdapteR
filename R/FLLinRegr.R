@@ -1549,11 +1549,11 @@ summary.FLLinRegr <- function(object,
 
 
 
-
+## Amal: If this generic gets defined here, predict doesn't work for rpart
 #' @export
-predict<-function(object,newdata,...){
-	UseMethod("predict",object)
-}
+#predict<-function(object,newdata,...){
+#	UseMethod("predict",object)
+#}
 
 ## move to file lm.R
 #' @export
