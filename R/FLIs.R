@@ -54,7 +54,9 @@ is.FL <- function(x){
                     "FLTableQuery",
                     "FLSelectFrom",
                     "FLTableFunctionQuery",
-                    "FLTableMD")))
+                    "FLTableMD",
+                    "FLIndexedValues",
+                    "FLAbstractColumn")))
     return(TRUE)
     else return(FALSE)
 }

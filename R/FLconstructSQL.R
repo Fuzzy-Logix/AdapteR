@@ -37,7 +37,8 @@ setClass("FLTableQuery",
              variables  = "list",
              connectionName = "character",
              whereconditions="character",
-             order = "character"
+             order = "character",
+             group = "character"
          ))
 
 ##' A selectFrom models a select from a table.
@@ -143,7 +144,7 @@ setClass("FLSimpleVector",
          slots = list(
              select = "FLTableQuery",
              ##dimColumns = "character",
-             ## names = "ANY",
+             names = "ANY",
              type       = "character"
          ),prototype = prototype(type="double")
          )
@@ -207,8 +208,13 @@ setGeneric("setValueSQLExpression", function(object, func,...) {
 setMethod("setValueSQLExpression",
           signature(object = "FLIndexedValues"),
           function(object,func,...) {
-    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
-    object
+            vres <- func(object,...)
+            if(is.FLSimpleVector(vres))
+                return(vres)
+            else{
+                object@select@variables[[getValueSQLName(object)]] <- vres 
+                object
+            }
 })
 
 
@@ -335,10 +341,10 @@ FLSerial <- function(min,max){
         select=new("FLSelectFrom",
                    table_name=c(fzzlSerial="fzzlSerial"),
                    connectionName=getFLConnectionName(),
-                   variables=list(serialVal="fzzlSerial.serialVal"),
+                   variables=list(indexVal="fzzlSerial.serialVal"),
                    whereconditions=c(paste("fzzlSerial.serialVal>=",min),paste("fzzlSerial.serialVal<=",max)),
-                   order="serialVal"),
-        dimColumns = c("serialVal","serialVal"),
+                   order="indexVal"),
+        dimColumns = c("indexVal","indexVal"),
         ##names=NULL,
         dims    = as.integer(max-min+1),
         type       = "integer"
@@ -391,6 +397,7 @@ setMethod("constructSelect", signature(object = "FLTableQuery"),
                             paste(colnames(object),collapse=", "),
                             " FROM ",tableAndAlias(object),
                             constructWhere(c(constraintsSQL(object))),
+                            constructGroupBy(GroupByVars=getGroupSlot(object),...),
                             constructOrder(orderVars=object@order,...),
                             "\n"))
           })
@@ -579,7 +586,8 @@ setMethod("constructSelect",
             constructVariables(variables),
             "\n FROM ",tableAndAlias(object),
             constructWhere(c(constraintsSQL(object))),
-            constructOrder(orderVars=object@order,...),
+            constructGroupBy(GroupByVars=getGroupSlot(object),...),
+            constructOrder(orderVars=getOrderSlot(object),...),
             "\n"))
     })
 
@@ -602,6 +610,13 @@ constructOrder <- function(orderVars, order=TRUE,...) {
         return("")
     paste0("\n ORDER BY ",
            paste0(orderVars, collapse = ", "))
+}
+constructGroupBy <- function(GroupByVars,...) {
+    GroupByVars <- setdiff(GroupByVars,c(NA,""))
+    if(length(GroupByVars)>0)
+        paste0("\n GROUP BY ",
+           paste0(GroupByVars, collapse = ", "))
+    else return("")
 }
 
 constructWhere <- function(conditions) {
