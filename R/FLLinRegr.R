@@ -90,6 +90,15 @@ rlm.default <- return(MASS::rlm)
 
 
 #' @export
+#' library(MASS)
+#' options(debugSQL =TRUE)
+#' table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
+#' q <- rlm(a~., data = widetable)
+#' predict(q)
+#' residuals(q)
+#' q$fitted.values
+#' summary(q)
+#' still to work on plot(q)
 rlm.formula <- function(formula,data,...)
 {
 
