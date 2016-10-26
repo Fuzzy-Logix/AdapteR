@@ -45,7 +45,7 @@ deepTableName <- "tblTwitterBuzzDeepARDemo"
 ## here we drop the table
 dropTable(deepTableName)
 
-if(!existsRemoteTable(tableName=deepTableName))
+if(!existsRemoteTable(tableName=deepTableName)){
     FLdeepTable <- prepareData(formula         = Buzz_Magnitude ~ . ,
                                data            = FLwideTable,
                                outDeepTable    = deepTableName,
@@ -54,13 +54,14 @@ if(!existsRemoteTable(tableName=deepTableName))
                                minStdDev       = .01,
                                maxCorrel       = .8,
                                fetchIDs        = FALSE)
-else ## or you can use an already created deep table again:
+} else {
+    ## or you can use an already created deep table again:
     FLdeepTable <- FLTable(deepTableName,
                            obs_id_colname   = 'obs_id_colname',    
                            var_id_colnames  = 'var_id_colname', 
                            cell_val_colname = 'cell_val_colname',
                            fetchIDs = FALSE)
-
+}
 vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
 
 ## NOTE:
