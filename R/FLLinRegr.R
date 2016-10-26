@@ -452,8 +452,10 @@ lmGeneric <- function(formula,data,
                                           direction=direction,
                                           trace=trace,
                                           ...)
-    else if(inherits(data,"FLpreparedData"))
-            prepData <- data
+    else if(inherits(data,"FLpreparedData")){
+        prepData <- data
+        data <- prepData$wideTable
+    }
 	for(i in names(prepData))
 	assign(i,prepData[[i]])
 	# deepx <- prepData[["deepx"]]
@@ -1088,6 +1090,7 @@ prepareData.lmGeneric <- function(formula,data,
 	}
 
     result <- list(deepx=deepx,
+                   wideTable=data, ## todo: in case a deep table was passed this is not a wideTable
                    wideToDeepAnalysisId=wideToDeepAnalysisId,
                    formula=formula,
                    vmapping=vmapping,
