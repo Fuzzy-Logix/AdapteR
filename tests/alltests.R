@@ -29,7 +29,7 @@ runMyTestFile <- function(f, ask=FALSE, runonly=NULL, skip=NULL,...){
         run <- TRUE
     if(run)
         tryCatch({
-            ## options(debugSQL=FALSE)
+            options(debugSQL=FALSE)
             test_file(f,...)
         },
         error=function(e) print(e))

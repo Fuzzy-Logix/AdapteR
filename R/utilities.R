@@ -599,6 +599,13 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
     }
 }
 
+
+#' @export
+existsRemoteTable <- function(tableName,
+                              databaseName=getOption("ResultDatabaseFL"))
+    checkRemoteTableExistence(databaseName,tableName)
+
+
 rearrangeInputCols <- function(pInputCols,
                                 pIndex){
     return(pInputCols[pIndex])
