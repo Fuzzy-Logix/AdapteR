@@ -104,6 +104,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         tablePrefix <- genRandVarName()
     options(ResultDatabaseFL=database)
     options(FLUsername=user)
+    options(DSN=list(...)$DSN)
     connection <- NULL
 
     if(!is.null(host)){
@@ -385,7 +386,9 @@ FLcreatePlatformsMapping <- function(definitions='data/platformStoredProcs.RFL')
     storedProcMappings$preArgs.Hadoop=""
 
     storedProcMappings$extraPars.TD=c()
-    storedProcMappings$extraPars.TDAster=c(DSN=fquote(getOption("DSN")))
+    storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
+                                                    "NULL",
+                                                    getOption("DSN")))
     storedProcMappings$extraPars.Hadoop=c()
 
     storedProcMappings$withOutputPars.TD=TRUE
@@ -398,8 +401,8 @@ FLcreatePlatformsMapping <- function(definitions='data/platformStoredProcs.RFL')
     storedProcMappings$withArgNames.Hadoop="="
 
 
-    storedProcMappings$valueMapping.TDAster <- 
-        storedProcMappings$valueMapping.Hadoop <- list("NULL"="")
+    storedProcMappings$valueMapping.TDAster <- list("NULL"="")
+    storedProcMappings$valueMapping.Hadoop <- list("NULL"="")
 
     is.character(NULL)
     options(storedProcMappingsFL=storedProcMappings)

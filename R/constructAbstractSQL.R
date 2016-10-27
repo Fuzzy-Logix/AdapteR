@@ -167,8 +167,6 @@ constructStoredProcSQL.default <- function(pConnection,
     names(pars) <- names(args)
     output <- pOutputParameter
     pars <- c(pars,getStoredProcMapping("extraPars"))
-    if(getStoredProcMapping("withOutputPars"))
-        pars <- c(pars,output)
 
     valMaps <- getStoredProcMapping("valueMapping")
     if(is.null(valMaps)) valMaps <- list()
@@ -183,6 +181,9 @@ constructStoredProcSQL.default <- function(pConnection,
         }
         else return(a)
     })
+
+    if(getStoredProcMapping("withOutputPars"))
+        pars <- c(pars,output)
 
     argNames <- getStoredProcMapping("withArgNames")
     if(argNames=="()")

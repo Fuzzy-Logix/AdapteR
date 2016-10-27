@@ -329,7 +329,9 @@ names.FLSimpleVector <- function(x) x@names
 as.vector.FLSimpleVector <- function(object,mode="any")
 {
     x <- sqlQuery(connection,constructSelect(object))
-    vres <- x[[object@dimColumns[[2]]]]
+    ## Required as in Aster output cols are always lowercase
+    colnames(x) <- toupper(colnames(x))
+    vres <- x[[toupper(object@dimColumns[[2]])]]
     if(!is.null(names(object)))
         names(vres) <- as.vector(names(object))
     return(vres)
