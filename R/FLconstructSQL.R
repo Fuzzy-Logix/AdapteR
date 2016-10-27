@@ -98,10 +98,10 @@ setClass("FLMatrix.TDAster", contains = "FLMatrix")
 newFLMatrix <- function(...) {
   vtemp <- list(...)
   ## Results in Aster are not case-sensitive
-  if(is.TDAster()){
-      vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
-                              "colidcolumn","valuecolumn")
-  }
+  # if(is.TDAster()){
+  #     vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
+  #                             "colidcolumn","valuecolumn")
+  # }
   return(do.call("new",
                 c(Class=paste0("FLMatrix.",getFLPlatform()),
                   vtemp)))
@@ -189,6 +189,38 @@ setMethod("getValueSQLName",
           function(object) object@columnName)
 
 #' @export
+setGeneric("setValueSQLName", function(object,value) {
+    standardGeneric("setValueSQLName")
+})
+setMethod("setValueSQLName",
+          signature(object = "FLMatrix"),
+          function(object,value){
+          t <- names(object@select@variables)
+          t[t==object@dimColumns[[4]]] <- value
+          names(object@select@variables) <- t
+          object@dimColumns[[4]] <- value
+          object
+          })
+# setMethod("setValueSQLName",
+#           signature(object = "FLVector"),
+#           function(object) "vectorValueColumn")
+setMethod("setValueSQLName",
+          signature(object = "FLSimpleVector"),
+          function(object,value){
+          t <- names(object@select@variables)
+          t[t==object@dimColumns[[2]]] <- value
+          names(object@select@variables) <- t
+          object@dimColumns[[2]] <- value
+          object
+          })
+setMethod("setValueSQLName",
+          signature(object = "FLAbstractColumn"),
+          function(object,value){
+          object@columnName <- value
+          object
+          })
+
+#' @export
 setGeneric("getValueSQLExpression", function(object) {
     standardGeneric("getValueSQLExpression")
 })
@@ -247,6 +279,32 @@ setMethod("getIndexSQLName",
 setMethod("getIndexSQLName",
           signature(object = "FLIndexedValues"),
           function(object,margin=1) object@dimColumns[[margin]])
+
+#' @export
+setGeneric("setIndexSQLName", function(object,margin,value) {
+    standardGeneric("setIndexSQLName")
+})
+setMethod("setIndexSQLName",
+          signature(object = "FLMatrix"),
+          function(object,margin,value){
+            t <- names(object@select@variables)
+            t[t==object@dimColumns[2:3][margin]] <- value
+            names(object@select@variables) <- t
+            object@dimColumns[2:3][margin] <- value
+            object
+            })
+setMethod("setIndexSQLName",
+          signature(object = "FLVector"),
+          function(object,margin,value) stop("use FLSimpleVector"))
+setMethod("setIndexSQLName",
+          signature(object = "FLIndexedValues"),
+          function(object,margin,value){
+            t <- names(object@select@variables)
+            t[t==object@dimColumns[margin]] <- value
+            names(object@select@variables) <- t
+            object@dimColumns[[margin]] <- value
+            object
+            })
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'

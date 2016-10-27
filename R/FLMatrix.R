@@ -479,7 +479,7 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
                   for(ti in 1:length(tablenames)){
                       tname <- tablenames[ti]
                       talias <- names(tablenames)[ti]
-                      constraints <- gsub(paste0("[^ ]*",tname,"\\."),
+                      constraints <- gsub(paste0("[^ ,=]*",tname,"\\."),
                                           paste0(" ",talias,"."),
                                           constraints)
                   }

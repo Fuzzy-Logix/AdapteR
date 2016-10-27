@@ -186,7 +186,7 @@ as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
 ## #' Converts input FLMatrix object to matrix in R
 #' @export
 as.matrix.FLMatrix <- function(object,sparse=FALSE) {
-    m <- as.sparseMatrix.FLMatrix(object)
+    m <- as.sparseMatrix(object)
     if(sparse)
         m
     dn <- dimnames(m)
@@ -456,6 +456,9 @@ as.FLEnvironment <- function(Renv){
     FLenv
 }
 
+#' @export
+as.sparseMatrix <- function(object)
+    UseMethod("as.sparseMatrix")
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
@@ -515,7 +518,14 @@ as.sparseMatrix.FLMatrix <- function(object) {
                         dimnames = dn)
   return(m)
 }
-
+#' @export
+as.sparseMatrix.FLMatrix.TDAster <- function(object){
+    object <- setValueSQLName(object,tolower(getValueSQLName(object)))
+    object <- setIndexSQLName(object=object,
+                            margin=1:2,
+                            value=tolower(getIndexSQLName(object,margin=1:2)))
+    as.sparseMatrix.FLMatrix(object)
+}
 #' @export
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)

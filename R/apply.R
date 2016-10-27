@@ -74,6 +74,7 @@ setMethod("genAggregateFunCall",
     object <- setValueSQLExpression(object=object,func=func,...)
     object@dims <- 1L
     # object@select@order <- character()
+    object <- setNamesSlot(object,NULL)
     object
 })
 
@@ -100,16 +101,19 @@ setMethod("genAggregateFunCall",
                                        variables=list(indexCol=getIndexSQLExpression(object,MARGIN),
                                                       valueCol=getValueSQLExpression(object)),
                                        whereconditions=getWhereConditionsSlot(object),
-                                       group="indexCol",
+                                       # group="indexCol", ## CANNOT USE ALIAS NAME IN GROUPBY IN ASTER!
+                                       group=getIndexSQLExpression(object,MARGIN),
                                        order="indexCol"),
                             dimColumns = c("indexCol","valueCol"),
-                            names=vrownames,
+                            names=NULL,
                             dims = getDimsSlot(object)[setdiff(c(1,2),MARGIN)],
                             type = "double"
                             )
-                return(genAggregateFunCall(object=obj,
+                vres <- genAggregateFunCall(object=obj,
                                             func=func,
-                                            ...))
+                                            ...)
+                vres <- setNamesSlot(vres,vrownames)
+                return(vres)
                 # return(func(obj,...))
             })
 
