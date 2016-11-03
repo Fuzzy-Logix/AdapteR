@@ -330,7 +330,7 @@ FLStartSession <- function(connection,
     cat("Session Started..\n")
 }
 
-parsePlatformStoredProcMapping <- function(definition){
+parsePlatformMapping <- function(definition){
     if(grepl("^ *$",definition)) return(NULL)
     if(grepl("^ *#.*",definition)) return(NULL)
     lhs <- gsub(" *<-.*","",definition)
@@ -352,9 +352,9 @@ parsePlatformStoredProcMapping <- function(definition){
         names(r) <- x[[1]]
         r
     })
-    result <- list(storedProc=funName,
+    result <- list(funcName=funName,
                    platform=platform,
-                   storedProcPlatform=storedProcPlatform,
+                   funcNamePlatform=storedProcPlatform,
                    args=args,
                    argsPlatform=argsPlatform)
     return(result)
@@ -364,17 +364,25 @@ parsePlatformStoredProcMapping <- function(definition){
 ## gk: todo document
 getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
-#' Function to generate platforms mappings for stored procs from definitions file.
+#' Function to generate platforms mappings for stored procs and UDTs from definitions file.
 #'
 #' The definitions file has one definition per line
 #' <TD_FNAME>.<PLATFORM>(<TD_ARGS>) <- <PLATFORM_FNAME>(<PLATFORM_ARGS>)
-FLcreatePlatformsMapping <- function(definitions='data/platformStoredProcs.RFL'){
-    defs <- readLines(system.file(definitions, package='AdapteR'))
+#' The definitions file for UDTs has one definition per line
+#' <TD_FNAME>.<PLATFORM>(<TD_OUTPUTCOLS>) <- <PLATFORM_FNAME>(<PLATFORM_OUTPUTCOLS>)
+# FLcreatePlatformMatrixUDTMapping <- function(definitions='data/platformMatrixUDT.RFL'){
+#     defs <- readLines(system.file(definitions, package='AdapteR'))
+
+    
+# }
+FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL',
+                                                    'data/platformMatrixUDT.RFL')){
+    defs <- readLines(system.file(definitions[1], package='AdapteR'))
 
     storedProcMappings <- lapply(defs,
-        parsePlatformStoredProcMapping)
+                                parsePlatformMapping)
     names(storedProcMappings) <- sapply(storedProcMappings,
-                                        function(x) paste0(x$storedProc,".",x$platform))
+                                        function(x) paste0(x$funcName,".",x$platform))
 
     storedProcMappings$prefix.TD="CALL "
     storedProcMappings$prefix.TDAster="SELECT * FROM "
@@ -404,10 +412,53 @@ FLcreatePlatformsMapping <- function(definitions='data/platformStoredProcs.RFL')
     storedProcMappings$valueMapping.TDAster <- list("NULL"="")
     storedProcMappings$valueMapping.Hadoop <- list("NULL"="")
 
-    is.character(NULL)
     options(storedProcMappingsFL=storedProcMappings)
-
+    defs <- readLines(system.file(definitions[2], package='AdapteR'))
+    
+    MatrixUDTMappings <- lapply(defs,
+                                parsePlatformMapping)
+    names(MatrixUDTMappings) <- sapply(MatrixUDTMappings,
+                                        function(x) 
+                                            paste0(x$funcName,".",x$platform))
+    options(MatrixUDTMappingsFL=MatrixUDTMappings)
 }
+
+# parsePlatformMatrixUDTMapping <- function(definition){
+#     browser()
+#     if(grepl("^ *$",definition)) return(NULL)
+#     if(grepl("^ *#.*",definition)) return(NULL)
+#     lhs <- gsub(" *<-.*","",definition)
+#     rhs <- gsub(".*<- *","",definition)
+#     lhsArgs <- gsub(".*\\(|\\).*","", lhs)
+#     if(lhsArgs==lhs) lhsArgs <- ""
+#     rhsArgs <- gsub(".*\\(|\\).*","", rhs)
+#     if(rhsArgs==rhs) rhsArgs <- ""
+#     ##
+#     funNameFull <- gsub(" *\\(.*\\) *","",lhs)
+#     funName <- gsub("\\..*","",funNameFull)
+#     platform <- gsub("^.*\\.","",funNameFull)
+#     storedProcPlatform <- gsub(" *\\(.*\\) *","",rhs)
+#     args <- unlist(strsplit(lhsArgs," *, *"))
+#     SargsPlatform <- unlist(strsplit(rhsArgs," *, *"))
+#     argsPlatform <- sapply(strsplit(SargsPlatform," *= *"),
+#                            function(x){
+#         r <- x[[length(x)]]
+#         names(r) <- x[[1]]
+#         r
+#     })
+#     result <- list(storedProc=funName,
+#                    platform=platform,
+#                    storedProcPlatform=storedProcPlatform,
+#                    args=args,
+#                    argsPlatform=argsPlatform)
+#     return(result)
+# }
+
+
+## gk: todo document
+getMatrixUDTMapping <- function(query) 
+    getOption("MatrixUDTMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
+
 
 genCreateResulttbl <- function(tablename,
                                temporaryTable=TRUE,

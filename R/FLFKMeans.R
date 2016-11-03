@@ -482,11 +482,12 @@ coeff.FLFKMeans<-function(object){
 		## flag3Check(connection)
 		k<-1/object@centers
 
-		sqlstr <- paste0("SELECT FLSum(a.Weight*a.Weight)/COUNT(DISTINCT a.ObsID) AS dunn_coeff, \n ",
-						 "(dunn_coeff-",k,")/",k," AS normalized \n ",
+		sqlstr <- paste0("SELECT a.dunn_coeff, (a.dunn_coeff-",k,")/",k," AS normalized ",
+                        " FROM ( \n ",
+                        " SELECT FLSum(a.Weight*a.Weight)/COUNT(DISTINCT a.ObsID) AS dunn_coeff \n ",
 						" FROM fzzlKMeansMembership a \n ",
 						" WHERE a.AnalysisID= '",object@AnalysisID,"' \n ",
-						" AND a.HypothesisID=1")
+						" AND a.HypothesisID=1 \n ) a ")
 
 		coeffvector <- sqlQuery(connection,sqlstr)
 		coeffvector <- c(coeffvector[["dunn_coeff"]],coeffvector[["normalized"]])
@@ -515,8 +516,8 @@ objective.FLFKMeans <- function(object){
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 
 		sqlstr <- paste0(" SELECT FLSum(a.dist/b.den) AS objective  \n FROM \n ",
-						"(SELECT b.ClusterID, FLSum(b.Weight**",object@memb.exp," * c.Weight**",
-								object@memb.exp," * a.Dist) AS dist  \n FROM  \n ",
+						"(SELECT b.ClusterID, FLSum(power(b.Weight,",object@memb.exp,") * power(c.Weight,",
+								object@memb.exp,") * a.Dist) AS dist  \n FROM  \n ",
 						"(SELECT a.",obs_id_colname," AS ObsIDX, \n ",
 								"c.",obs_id_colname," AS ObsIDY, \n ",
 								"FLEuclideanDist(a.",cell_val_colname,", c.",cell_val_colname,") AS Dist  \n ",
@@ -552,7 +553,7 @@ k.crisp.FLFKMeans<-function(object){
 		## flag3Check(connection)
 		k<-1/object@centers
 
-		sqlstr <- paste0("SELECT COUNT(DISTINCT a.ObsID) as nonCrispClusters \n FROM \n ",
+		sqlstr <- paste0("SELECT COUNT(DISTINCT a.ObsID) as noncrispclusters \n FROM \n ",
 						"(SELECT a.ObsID, COUNT(DISTINCT a.ClusterID) AS clusters \n ",
 						" FROM fzzlKMeansMembership a \n ",
 						" WHERE a.AnalysisID= '",object@AnalysisID,"' \n ",
@@ -561,7 +562,7 @@ k.crisp.FLFKMeans<-function(object){
 						"  \n GROUP BY a.ObsID) as a \n ",
 						" WHERE a.clusters=",object@centers)
 
-		n <- sqlQuery(connection,sqlstr)[["nonCrispClusters"]]
+		n <- sqlQuery(connection,sqlstr)[["noncrispclusters"]]
 		if(n!=0) k.crispvector<- object@centers-1
 		else k.crispvector <- object@centers
 
@@ -601,19 +602,23 @@ silinfo.FLFKMeans <- function(object){
 		b <- gen_unique_table_name("3") ## gk: refactor!
 
 		##Ensure required temptables exist
-		t <- sqlSendUpdate(connection, paste0("CREATE  MULTISET VOLATILE TABLE ",b," AS (
-										SELECT  a.",obs_id_colname," AS ObsIDX, b.",obs_id_colname," AS ObsIDY, p.clusterid AS ClusIDX , q.Clusterid AS ClusIDY,
-                                        FLEuclideanDist(a.",cell_val_colname,", b.",cell_val_colname,") AS Dist
-                                        FROM ",deeptablename," a, ",deeptablename," b, fzzlkmeansclusterid p, fzzlkmeansclusterid q
-                                        WHERE a.",var_id_colname," = b.",var_id_colname," AND a.",obs_id_colname," < b.",obs_id_colname," 
-                                        AND p.obsid = a.",obs_id_colname," AND q.Obsid = b.",obs_id_colname, 
-                                        " AND q.AnalysisID = '",object@AnalysisID,"' AND q.HypothesisID = 1  AND p.AnalysisID = '",object@AnalysisID,"'
-                                        AND p.HypothesisID = 1
-                                        GROUP BY a.",obs_id_colname,", b.",obs_id_colname,", p.clusterid, q.clusterid
-										)
-										WITH DATA
-									    ON 
-										COMMIT  PRESERVE ROWS;"))
+		t <- createTable(pTableName=b,
+                        pSelect=paste0("SELECT  a.",obs_id_colname," AS ObsIDX, b.",
+                                                obs_id_colname," AS ObsIDY, \n p.clusterid AS ClusIDX , ",
+                                                " q.Clusterid AS ClusIDY , \n ",
+                                                " FLEuclideanDist(a.",cell_val_colname,
+                                                                ", b.",cell_val_colname,") AS Dist \n ",
+                                        " FROM ",deeptablename," a, ",
+                                                deeptablename," b, fzzlkmeansclusterid p, fzzlkmeansclusterid q \n ",
+                                        " WHERE a.",var_id_colname," = b.",var_id_colname,
+                                                " AND a.",obs_id_colname," < b.",obs_id_colname,
+                                                " \n  AND p.obsid = a.",obs_id_colname,
+                                                " \n AND q.Obsid = b.",obs_id_colname, 
+                                                " \n AND q.AnalysisID = '",object@AnalysisID,
+                                                "' AND q.HypothesisID = 1  AND p.AnalysisID = '",
+                                                object@AnalysisID,"'AND p.HypothesisID = 1 \n ",
+                                        " GROUP BY a.",obs_id_colname,", b.",
+                                                        obs_id_colname,", p.clusterid, q.clusterid "))
 		# u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
 		# 								" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
         u <- insertIntotbl(pTableName=b,
@@ -621,7 +626,7 @@ silinfo.FLFKMeans <- function(object){
 
 
 				
-			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, CAST(a.ClusIDX as INT) AS ClusID, CAST(B2_i.Neighbour AS INT) AS Neighbour,
+		sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, CAST(a.ClusIDX as INT) AS ClusID, CAST(B2_i.Neighbour AS INT) AS Neighbour,
 
 													CASE WHEN FLMean(a.Dist) >  B2_i.val 
 													THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist)

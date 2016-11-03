@@ -138,7 +138,7 @@ sqlStoredProc.RODBC <- function(connection, query,
 
     spMap <- getStoredProcMapping(query)
     if(!is.null(spMap)){
-        query <- spMap$storedProcPlatform
+        query <- spMap$funcNamePlatform
         if(length(spMap$argsPlatform)>0){
             args <- args[spMap$argsPlatform]
             names(args) <- names(spMap$argsPlatform)
@@ -170,7 +170,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
 
     spMap <- getStoredProcMapping(query)
     if(!is.null(spMap)){
-        query <- spMap$storedProcPlatform
+        query <- spMap$funcNamePlatform
         if(length(spMap$argsPlatform)>0){
             args <- args[spMap$argsPlatform]
             names(args) <- names(spMap$argsPlatform)

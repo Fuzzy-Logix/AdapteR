@@ -497,6 +497,10 @@ getOrderSlot <- function(x){
     return(tryCatch(x@order,
                     error=function(x)NULL))
 }
+getDimColumnsSlot <- function(x){
+    return(tryCatch(x@dimColumns,
+                    error=function(x)NULL))
+}
 setNamesSlot <- function(x,value){
     tryCatch(x@names <- value,
                     error=function(x)NULL)

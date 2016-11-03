@@ -1,0 +1,2 @@
+FLMatrixInvUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixInvUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,matrix_inv=OutputVal)
+FLMatrixInvUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixInvUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
