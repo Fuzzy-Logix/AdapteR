@@ -35,27 +35,27 @@ t.test.FLVector <- function(x,
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
 
         if(length(y)==0){
-            sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
-                                            pFuncArgs = c("c.FLStatistic",
-                                                          mu,
-                                                          "a.vectorValueColumn",
-                                                          tails),
-                                            pAddSelect = c(stat="c.FLStatistic"),
-                                            pFrom = c(a = constructSelect(x),
-                                                      c = "fzzlARHypTestStatsMap"),
-                                            pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
-                                            pGroupBy = "c.FLStatistic")
-            vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
-            alter<-"two.sided"
-            estimate<-c("mean of x"=mean(x))
-            method<-"One Sample t-test"
-            nullval <- c(mean=0)
-            parameter <- c(df=length(x)-1)
-        } else {
+        sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
+                                        pFuncArgs = c("c.FLStatistic",
+                                                        mu,
+                                                      "a.vectorValueColumn",
+                                                       tails),
+                                        pAddSelect = c(stat="c.FLStatistic",
+                                                       df = "COUNT(DISTINCT a.vectorValueColumn)"),
+                                                                              
+                                        pFrom = c(a = constructSelect(x),
+                                                  c = "fzzlARHypTestStatsMap"),
+                                        pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
+                                        pGroupBy = "c.FLStatistic")
+        vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
+        estimate<-c("mean of x"=mean(x))
+        method<-"One Sample t-test"}                                         
+           
+        else{
             if(var.equal==TRUE) {
                     var<-"EQUAL_VAR"
-                    method<-" Two Sample t-test" ## note: space at start of string is present in R, possibly for formatting output
-            } else {
+                    method<-" Two Sample t-test"}
+            else {
                 var<-"UNEQUAL_VAR"
                 method<-"Welch Two Sample t-test"
             }
@@ -75,24 +75,24 @@ t.test.FLVector <- function(x,
                                         pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
                                         pGroupBy="c.FLStatistic")
             vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
-            alter<-"two.sided"
             estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))
-            nullval <- c("difference in means"=0)
-            parameter <- c(df=length(x)+length(y)-2)
-        }  
-        result <- sqlQuery(connection, sqlstr)
-        rcint <- cint(x,conf.level,alter)
-        attr(cint,"conf.level") <- conf.level
-        res <- list(statistic =c(t = as.numeric(result[1,1])),
-                    parameter=parameter,
-                    p.value=   as.numeric(result[2,1]),
-                    conf.int = rcint,
-                    estimate =estimate,
-                    null.value = nullval,
-                    alternative=alter,
-                    method=method,
-                    data.name = vcall)
-        class(res) <- "htest"
+            }
+    result <- sqlQuery(connection, sqlstr)
+    names(mu)<-if(!is.null(y)) "difference in means" else "mean"
+    cint<-cint(x,y,conf.level,mu,var.equal,alternative)
+    df<-cint[3]
+    cint<-cint[1:2]
+    attr(cint,"conf.level") <- conf.level
+    res <- list(statistic =c(t = as.numeric(result[1,1])),
+                parameter= c(df=df),
+                p.value=   c(as.vector(result[2,1])),
+                conf.int = cint,
+                estimate =estimate,
+                null.value=mu,
+                alternative=alternative,
+                method=method,
+                data.name = vcall)                
+    class(res) <- "htest"
     return(res)
 }
 

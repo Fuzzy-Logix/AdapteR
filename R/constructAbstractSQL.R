@@ -127,92 +127,81 @@ constructStoredProcSQL <- function (pConnection,
     UseMethod("constructStoredProcSQL")
 }
 
-
-
 constructStoredProcSQL.FLConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
                                                 ...){
+    constructStoredProcSQL(getRConnection(pConnection),
+                           pFuncName,pOutputParameter,...)
+}
+constructStoredProcSQL.JDBCConnection <- function(pConnection,
+                                                pFuncName,
+                                                pOutputParameter,
+                                                ...){
+    args <- list(...)
+    pars <- rep("?",length(args))
+    names(pars) <- names(args)
+
+    pout <- rep("?",length(pOutputParameter))
+    names(pout) <- names(pOutputParameter)
+    result <- do.call("constructStoredProcSQL.default",
+                      append(
+                          list(pConnection=pConnection,
+                               pFuncName=pFuncName,
+                               pOutputParameter=pout),
+                          pars))
+    gsub("'\\?'","?",result)
+}
+constructStoredProcSQL.default <- function(pConnection,
+                                             pFuncName,
+                                             pOutputParameter,
+                                             ...){
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
     else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
     ## Setting up input parameter value
-    pars <- character()
-    ## Construct input params 
-    ## NULL in TD == '' in others
-    ## gk: refactor conditionals to class methods
-    if(is.ODBC(pConnection) || is.character(pConnection)){
-        pars <- sapply(args,
-                    function(a){
-                        if(is.character(a)){
-                            if(a=="NULL"){
-                                if(is.TD())
-                                    return("NULL")
-                                else return("''")
-                            }
-                            else
-                                return(fquote(a))
-                        } 
-                        else return(a)
-                    })
-        # ai <- 1L
-        # for(a in unlist(args)){
-        #     if(is.character(a)){
-        #         if(a=="NULL"){
-        #             if(is.TD())
-        #             pars[ai] <- "NULL"
-        #             else pars[ai] <- "''"
-        #         }
-        #         else
-        #             pars[ai] <- fquote(a)
-        #     } else
-        #         pars[ai] <- a
-        #     ai <- ai+1L
-        # }
-    } else {
-        pars <- rep("?",length(args))
-        if(is.TD())
-            names(pOutputParameter)<-"?"
-    }
-
+    pars <- args
+    ## Construct input params
     names(pars) <- names(args)
+    output <- pOutputParameter
+    pars <- c(pars,getStoredProcMapping("extraPars"))
+    if(getStoredProcMapping("withOutputPars"))
+        pars <- c(pars,output)
 
-    vCall <- c(TD="CALL ",
-                TDAster="SELECT * FROM ",
-                Hadoop="SELECT ")
-    vCall <- vCall[[getFLPlatform()]]
-    if(is.TDAster()){
-        pars <- c(pars,
-                DSN=fquote(getOption("DSN")))
-        return(paste0(vCall," ",pFuncName,
-                "( ON (SELECT 1 ) PARTITION BY 1 ",
-                    paste0(names(pars),"(",
-                            pars,")",
-                            collapse=" \n "),
-                    ")"
-                )
-        )
-    }
-    else
-    return(paste0(vCall," ",pFuncName,
-                    "(",
-                    paste0(pars,
-                            collapse=", \n "),
-                    ifelse(is.TD(),
-                        paste0(",",
-                            paste0(names(pOutputParameter), 
-                                collapse=", \n ")),
-                        ""),
-                    ")"
-                )
-        )
+    valMaps <- getStoredProcMapping("valueMapping")
+    if(is.null(valMaps)) valMaps <- list()
+    pars <- sapply(pars,
+                   function(a){
+        if(is.character(a)){
+            b <- valMaps[[a]]
+            if(!is.null(b))
+                a <- b
+            if(a!="NULL")
+                return(fquote(a))
+        }
+        else return(a)
+    })
+
+    argNames <- getStoredProcMapping("withArgNames")
+    if(argNames=="()")
+        pars <- paste0(names(pars),"(",pars,")")
+    if(argNames=="=")
+        pars <- paste0(names(pars),argNames,pars)
+    argSep <- getStoredProcMapping("argSeparator")
+    if(is.null(argSep))
+        argSep <- ", \n "
+    return(paste0(getStoredProcMapping("prefix")," ",
+                  pFuncName,
+                  "(",
+                  getStoredProcMapping("preArgs"),
+                  paste0(pars, collapse=argSep),
+                  ")\n"
+                  ))
 }
 
-constructStoredProcSQL.character <- constructStoredProcSQL.FLConnection
-constructStoredProcSQL.RODBC <- constructStoredProcSQL.FLConnection
-constructStoredProcSQL.JDBCConnection <- constructStoredProcSQL.FLConnection
+
 ############################### Aggregates ############################
 ## should already work
 

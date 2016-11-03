@@ -31,7 +31,7 @@ setMethod("getFLConnection", signature(object = "missing"), function(object) get
 getFLConnectionName <- function(...) attr(getFLConnection(...),"name")
 
 ##' @export
-getFLPlatform <- function(connection=getFLConnection()) return(attr(getFLConnection(),"platform"))
+getFLPlatform <- function(connection=getFLConnection()) return(attr(connection,"platform"))
 is.TD         <- function(Connection=getFLConnection()) getFLPlatform()=="TD"
 is.TDAster    <- function(Connection=getFLConnection()) getFLPlatform()=="TDAster"
 is.Hadoop     <- function(Connection=getFLConnection()) getFLPlatform()=="Hadoop"
@@ -294,7 +294,7 @@ FLStartSession <- function(connection,
         })
 
     ## Create names mapping table
-    if(!checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
+    if(drop | !checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
         createTable(pTableName=getOption("NameMapTableFL"),
                     pColNames=c("TABLENAME","MATRIX_ID",
                                 "DIM_ID","NAME","NUM_ID"),
@@ -324,7 +324,86 @@ FLStartSession <- function(connection,
                     pTemporary=FALSE,
                     pDrop=FALSE)
     genSessionID()
+
+    FLcreatePlatformsMapping()
     cat("Session Started..\n")
+}
+
+parsePlatformStoredProcMapping <- function(definition){
+    if(grepl("^ *$",definition)) return(NULL)
+    if(grepl("^ *#.*",definition)) return(NULL)
+    lhs <- gsub(" *<-.*","",definition)
+    rhs <- gsub(".*<- *","",definition)
+    lhsArgs <- gsub(".*\\(|\\).*","", lhs)
+    if(lhsArgs==lhs) lhsArgs <- ""
+    rhsArgs <- gsub(".*\\(|\\).*","", rhs)
+    if(rhsArgs==rhs) rhsArgs <- ""
+    ##
+    funNameFull <- gsub(" *\\(.*\\) *","",lhs)
+    funName <- gsub("\\..*","",funNameFull)
+    platform <- gsub("^.*\\.","",funNameFull)
+    storedProcPlatform <- gsub(" *\\(.*\\) *","",rhs)
+    args <- unlist(strsplit(lhsArgs," *, *"))
+    SargsPlatform <- unlist(strsplit(rhsArgs," *, *"))
+    argsPlatform <- sapply(strsplit(SargsPlatform," *= *"),
+                           function(x){
+        r <- x[[length(x)]]
+        names(r) <- x[[1]]
+        r
+    })
+    result <- list(storedProc=funName,
+                   platform=platform,
+                   storedProcPlatform=storedProcPlatform,
+                   args=args,
+                   argsPlatform=argsPlatform)
+    return(result)
+}
+
+
+## gk: todo document
+getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
+
+#' Function to generate platforms mappings for stored procs from definitions file.
+#'
+#' The definitions file has one definition per line
+#' <TD_FNAME>.<PLATFORM>(<TD_ARGS>) <- <PLATFORM_FNAME>(<PLATFORM_ARGS>)
+FLcreatePlatformsMapping <- function(definitions='data/platformStoredProcs.RFL'){
+    defs <- readLines(system.file(definitions, package='AdapteR'))
+
+    storedProcMappings <- lapply(defs,
+        parsePlatformStoredProcMapping)
+    names(storedProcMappings) <- sapply(storedProcMappings,
+                                        function(x) paste0(x$storedProc,".",x$platform))
+
+    storedProcMappings$prefix.TD="CALL "
+    storedProcMappings$prefix.TDAster="SELECT * FROM "
+    storedProcMappings$prefix.Hadoop="SELECT "
+
+
+    storedProcMappings$preArgs.TD=""
+    storedProcMappings$preArgs.TDAster="ON (SELECT 1 ) PARTITION BY 1 \n"
+    storedProcMappings$preArgs.Hadoop=""
+
+    storedProcMappings$extraPars.TD=c()
+    storedProcMappings$extraPars.TDAster=c(DSN=fquote(getOption("DSN")))
+    storedProcMappings$extraPars.Hadoop=c()
+
+    storedProcMappings$withOutputPars.TD=TRUE
+    storedProcMappings$withOutputPars.TDAster=FALSE
+    storedProcMappings$withOutputPars.Hadoop=TRUE
+
+    storedProcMappings$withArgNames.TD="none"
+    storedProcMappings$withArgNames.TDAster="()"
+    storedProcMappings$argSeparator.TDAster="\n"
+    storedProcMappings$withArgNames.Hadoop="="
+
+
+    storedProcMappings$valueMapping.TDAster <- 
+        storedProcMappings$valueMapping.Hadoop <- list("NULL"="")
+
+    is.character(NULL)
+    options(storedProcMappingsFL=storedProcMappings)
+
 }
 
 genCreateResulttbl <- function(tablename,
