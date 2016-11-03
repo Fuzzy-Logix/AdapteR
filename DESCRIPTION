@@ -120,7 +120,6 @@ Collate:
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
-    'FLrpart.R'
     'FLtestLib.R'
     'SiegelTukeyTest.R'
     'apply.R'

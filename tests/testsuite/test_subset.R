@@ -9,3 +9,11 @@ test_that("check vector subsetting",
                     function(x) do.call("[",list(x)),
                     function(x) do.call("[",list(x)),n=5)  
 })
+
+test_that("Reccursively check FLSimpleVector subsetting:",
+{
+  ## Testing result
+  flSimple <- FLSerial(1,10)
+  names(flSimple) <- letters[10:1]
+  expect_equal_FLSimpleVector_RVector(flSimple)
+})

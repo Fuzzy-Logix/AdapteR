@@ -40,31 +40,20 @@ solve.FLMatrix <- function(a,b=NULL,...)
 FLInv <- function(x,...)
 {
 
-  sqlstr<-paste0(viewSelectMatrix(x, "mtrx", withName="z"),
-                 outputSelectMatrix("FLMatrixInvUdt",
-                                    viewName="z",
-                                    localName="mtrx",
-                                    includeMID=TRUE)
-                )
-
-  tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = getFLConnectionName(),
-                        variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-
-  flm <- newFLMatrix(
-             select= tblfunqueryobj,
-             dims=rev(dim(x)),
-             Dimnames=rev(dimnames(x)))
-
-   return(ensureQuerySize(pResult=flm,
-            pInput=list(x),
-            pOperator="FLInv",
-            pStoreResult=TRUE))
-
+  # sqlstr<-paste0(viewSelectMatrix(x, "mtrx", withName="z"),
+  #                outputSelectMatrix("FLMatrixInvUdt",
+  #                                   viewName="z",
+  #                                   localName="mtrx",
+  #                                   includeMID=TRUE)
+  #               )
+    
+    flm <- constructMatrixUDTSQL(pObject=x,
+                                 pFuncName="FLMatrixInvUdt",
+                                 pdims=rev(getDimsSlot(x)),
+                                 pdimnames=rev(dimnames(x))
+                                 )
+    return(ensureQuerySize(pResult=flm,
+                            pInput=list(x),
+                            pOperator="FLInv",
+                            pStoreResult=TRUE))
 }

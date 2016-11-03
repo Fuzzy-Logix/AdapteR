@@ -303,31 +303,29 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-setGeneric("wideToDeep", function(object,excludeCols,classSpec,whereconditions,
-                                  outDeepTableName,
-                                  outObsIDCol,outVarIDCol,outValueCol) {
+setGeneric("wideToDeep", 
+    function(object,
+              excludeCols="",
+              classSpec=list(),
+              whereconditions="",
+              outDeepTableName="",
+              outObsIDCol="",
+              outVarIDCol="",
+              outValueCol="") {
     standardGeneric("wideToDeep")
 })
 
 ## move to file FLWidetoDeep.R
 setMethod("wideToDeep",
-          signature(object = "FLTable",
-                    excludeCols="character",
-                    classSpec="list",
-                    whereconditions="character",
-                    outDeepTableName="character",
-                    outObsIDCol="character",
-                    outVarIDCol="character",
-                    outValueCol="character"
-                    ),
+          signature(object = "FLTable"),
           function(object,
-                  excludeCols,
-                  classSpec,
-                  whereconditions,
-                  outDeepTableName,
-                  outObsIDCol,
-                  outVarIDCol,
-                  outValueCol)
+                  excludeCols="",
+                  classSpec=list(),
+                  whereconditions="",
+                  outDeepTableName="",
+                  outObsIDCol="",
+                  outVarIDCol="",
+                  outValueCol="")
           {
             if(object@isDeep) return(list(table=object))
             connection <- getFLConnection(object)
@@ -375,16 +373,16 @@ setMethod("wideToDeep",
             retobj <- sqlStoredProc(
                               connection,
                               "FLWideToDeep",
-                              outputParameter=c(AnalysisID="a"),
+                              outputParameter=c(AnalysisID="AnalysisID"),
                               InWideTable=object@select@table_name,
                               ObsIDCol=getVariables(object)[["obs_id_colname"]],
                               OutDeepTable=deeptablename,
                               OutObsIDCol=outObsIDCol,
-                              outVarIDCol=outVarIDCol,
-                              outValueCol=outValueCol,
-                              excludeCols=excludeCols,
-                              classSpec=classSpec,
-                              whereClause=whereClause)
+                              OutVarIDCol=outVarIDCol,
+                              OutValueCol=outValueCol,
+                              ExcludeCols=excludeCols,
+                              ClassSpec=classSpec,
+                              WhereClause=whereClause)
             # sqlstr<-paste0("CALL FLWideToDeep('",object@select@database,".",object@select@table_name,"','",
             #                                   getVariables(object)[["obs_id_colname"]],"','",
             #                                   outDeepTableDatabase,".",deeptablename,
@@ -413,45 +411,45 @@ setMethod("wideToDeep",
           }
         )
 
-## move to file FLWidetoDeep.R
-setMethod("wideToDeep",
-          signature(object = "FLTable",
-                    excludeCols="missing",
-                    classSpec="missing",
-                    whereconditions="missing",
-                    outDeepTableName="missing",
-                    outObsIDCol="missing",
-                    outVarIDCol="missing",
-                    outValueCol="missing"),
-          function(object)
-          wideToDeep(object,
-                    excludeCols="",
-                    classSpec=list(),
-                    whereconditions="",
-                    outDeepTableName="",
-                    outObsIDCol="",
-                    outVarIDCol="",
-                    outValueCol=""))
+# ## move to file FLWidetoDeep.R
+# setMethod("wideToDeep",
+#           signature(object = "FLTable",
+#                     excludeCols="missing",
+#                     classSpec="missing",
+#                     whereconditions="missing",
+#                     outDeepTableName="missing",
+#                     outObsIDCol="missing",
+#                     outVarIDCol="missing",
+#                     outValueCol="missing"),
+#           function(object)
+#           wideToDeep(object,
+#                     excludeCols="",
+#                     classSpec=list(),
+#                     whereconditions="",
+#                     outDeepTableName="",
+#                     outObsIDCol="",
+#                     outVarIDCol="",
+#                     outValueCol=""))
 
-## move to file FLWidetoDeep.R
-setMethod("wideToDeep",
-          signature(object = "FLTable",
-                    excludeCols="character",
-                    classSpec="list",
-                    whereconditions="character",
-                    outDeepTableName="missing",
-                    outObsIDCol="missing",
-                    outVarIDCol="missing",
-                    outValueCol="missing"),
-          function(object,excludeCols,classSpec,whereconditions)
-          wideToDeep(object,
-                    excludeCols=excludeCols,
-                    classSpec=classSpec,
-                    whereconditions=whereconditions,
-                    outDeepTableName="",
-                    outObsIDCol="",
-                    outVarIDCol="",
-                    outValueCol=""))
+# ## move to file FLWidetoDeep.R
+# setMethod("wideToDeep",
+#           signature(object = "FLTable",
+#                     excludeCols="character",
+#                     classSpec="list",
+#                     whereconditions="character",
+#                     outDeepTableName="missing",
+#                     outObsIDCol="missing",
+#                     outVarIDCol="missing",
+#                     outValueCol="missing"),
+#           function(object,excludeCols,classSpec,whereconditions)
+#           wideToDeep(object,
+#                     excludeCols=excludeCols,
+#                     classSpec=classSpec,
+#                     whereconditions=whereconditions,
+#                     outDeepTableName="",
+#                     outObsIDCol="",
+#                     outVarIDCol="",
+#                     outValueCol=""))
 
 ## move to file FLDeepToWide.R
 #' Convert Deep Table to Wide Table
@@ -473,30 +471,24 @@ setMethod("wideToDeep",
 #' analysisID <- resultList$AnalysisID
 #' @export
 setGeneric("deepToWide", function(object,
-                                  whereconditions,
-                                  mapTable,
-                                  mapName,
-                                  outWideTableName,
-                                  Analysisid
+                                whereconditions="",
+                                mapTable="",
+                                mapName="",
+                                outWideTableName="",
+                                Analysisid = ""
                                   ) {
     standardGeneric("deepToWide")
 })
 
 ## move to file FLDeepToWide.R
 setMethod("deepToWide",
-          signature(object = "FLTable",
-                    whereconditions="character",
-                    mapTable="character",
-                    mapName="character",
-                    outWideTableName="character",
-                    Analysisid = "character"),
+          signature(object = "FLTable"),
           function(object,
-                  whereconditions,
-                  mapTable,
-                  mapName,
-                  outWideTableName,
-                  Analysisid
-                  )
+                    whereconditions="",
+                    mapTable="",
+                    mapName="",
+                    outWideTableName="",
+                    Analysisid = "")
           {
             #browser()
             if(!object@isDeep) return(list(table=object))
@@ -560,8 +552,8 @@ setMethod("deepToWide",
             message <- sqlStoredProc(
                               connection,
                               "FLDeepToWide",
-                              outputParameter=c(MESSAGE="a"),
-                              InDeepTable=object@select@table_name,
+                              outputParameter=c(Message="Message"),
+                              DeepTable=object@select@table_name,
                               ObsIDCol="obs_id_colname",
                               VarIDCol="var_id_colname",
                               ValueCol="cell_val_colname",
@@ -592,23 +584,23 @@ setMethod("deepToWide",
           }
         )
 
-## move to file FLDeepToWide.R
-setMethod("deepToWide",
-          signature(object = "FLTable",
-                    whereconditions="missing",
-                    mapTable="missing",
-                    mapName="missing",
-                    outWideTableName="missing",
-                    Analysisid = "missing"
-                   ),
-          function(object)
-          deepToWide(object,
-                    whereconditions="",
-                    mapTable="",
-                    mapName="",
-                    outWideTableName="",
-                    Analysisid = ""
-                    ))
+# ## move to file FLDeepToWide.R
+# setMethod("deepToWide",
+#           signature(object = "FLTable",
+#                     whereconditions="missing",
+#                     mapTable="missing",
+#                     mapName="missing",
+#                     outWideTableName="missing",
+#                     Analysisid = "missing"
+#                    ),
+#           function(object)
+#           deepToWide(object,
+#                     whereconditions="",
+#                     mapTable="",
+#                     mapName="",
+#                     outWideTableName="",
+#                     Analysisid = ""
+#                     ))
 
 
 ## move to file FLRegrDataPrep.R
@@ -654,7 +646,6 @@ setMethod("deepToWide",
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-
 setGeneric("FLRegrDataPrep", function(object,
                                   depCol,
                                   # outDeepTableName,
@@ -687,7 +678,7 @@ setMethod("FLRegrDataPrep",
                   outDeepTableName=gen_deep_table_name(object@select@table_name),
                   outObsIDCol="obs_id_colname",
                   outVarIDCol="var_id_colname",
-                  outValueCol="var_id_colname",
+                  outValueCol="cell_val_colname",
                   catToDummy=0,
                   performNorm=0,
                   performVarReduc=0,
@@ -808,7 +799,7 @@ setMethod("FLRegrDataPrep",
                                 MakeDataSparse=makeDataSparse,
                                 MinStdDev=minStdDev,
                                 MaxCorrel=maxCorrel,
-                                TrainOrtest=trainOrTest,
+                                TrainOrTest=trainOrTest,
                                 ExcludeCols=excludeCols,
                                 ClassSpec=classSpec,
                                 WhereClause=whereClause,
@@ -841,7 +832,7 @@ setMethod("FLRegrDataPrep",
 
             retobj <- sqlStoredProc(connection,
                                     query=vfunName,
-                                    outputParameter=c(AnalysisID="a"),
+                                    outputParameter=c(AnalysisID="AnalysisID"),
                                     pInputParams=vinputParams
                                     )
                 
@@ -902,26 +893,6 @@ SampleData <- function(pTableName,
                       pTemporary=pTemporary,
                       pDrop=pDrop,
                       pSelect=vsqlstr)
-
-  # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
-  #                   pTrainTableName," AS  ( ",
-  #                   " SELECT  a.* FROM ",pTableName," a ",
-  #                   " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
-  #                     pTrainDataRatio,") WITH DATA ",
-  #                     " PRIMARY INDEX (",pObsIDColumn,")",
-  #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ","")
-  #                     )
-  # vtemp <- sqlSendUpdate(getFLConnection(),vsqlstr)
-
-  # vsqlstr <- paste0("CREATE ",ifelse(pTempTables,"VOLATILE TABLE ","TABLE "),
-  #                   pTestTableName," \n AS  ( \n ",
-  #                   " SELECT  a.* FROM ",pTableName," a \n ",
-  #                   " WHERE NOT EXISTS \n (SELECT 1 FROM ",
-  #                     pTableName," b WHERE b.",
-  #                     pObsIDColumn,"=a.",pObsIDColumn," \n ) \n )",
-  #                   " WITH DATA \n PRIMARY INDEX(",pObsIDColumn,")",
-  #                     ifelse(pTempTables," ON COMMIT PRESERVE ROWS ",""))
-  # vtemp <- sqlSendUpdate(getFLConnection(),vsqlstr)
   return(c(TrainTableName=pTrainTableName,
           TestTableName=pTestTableName))
 }
