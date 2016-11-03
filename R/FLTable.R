@@ -850,29 +850,30 @@ setMethod("FLRegrDataPrep",
             updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
 
             if(is.FLTableMD(object))
-              table <- FLTableMD(deeptablename,
-                               outGroupIDCol,
-                               outObsIDCol,
-                               outVarIDCol,
-                               outValueCol,
-                               group_id=object@Dimnames[[3]],
-                               fetchIDs=fetchIDs
-                              )
+                table <- FLTableMD(deeptablename,
+                                   outGroupIDCol,
+                                   outObsIDCol,
+                                   outVarIDCol,
+                                   outValueCol,
+                                   group_id=object@Dimnames[[3]],
+                                   fetchIDs=fetchIDs
+                                   )
             else if(is.FLTable(object))
-              table <- FLTable(deeptablename,
-                               outObsIDCol,
-                               outVarIDCol,
-                               outValueCol,
-                               # ObsID=rownames(object),
-                               fetchIDs=fetchIDs
-                              )
+                table <- FLTable(deeptablename,
+                                 outObsIDCol,
+                                 outVarIDCol,
+                                 outValueCol,
+                                        # ObsID=rownames(object),
+                                 fetchIDs=fetchIDs
+                                 )
+#            print(dataprepID)
             return(list(table=table,
                         AnalysisID=dataprepID))
           }
-        )
+          )
 
 #' @export
-FLSampleData <- function(pTableName,
+SampleData <- function(pTableName,
                          pObsIDColumn,
                          pTrainDataRatio=0.7,
                          pTrainTableName=paste0(pTableName,

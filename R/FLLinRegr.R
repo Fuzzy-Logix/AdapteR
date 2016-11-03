@@ -60,45 +60,28 @@ setClass(
 
 
 
-## pls Regression.
-
-mvr.default <- return(pls::mvr)
-
-mvr <- function(formula, data, ...)
-{
-    print(match.call())
-    if(is.FL(data))    {
-        vcallObject <- match.call()
-        data <- setAlias(data,"")
-        return(lmGeneric(formula=formula,
-                         data=data,
-                         callObject=vcallObject,
-                         familytype="pls",
-                         ...))
-    }
-
-
-
-}
-
 
 ##Robust Regression.
 # performs robust regression
 
 #' @export
-rlm.default <- return(MASS::rlm)
-
-
-#' @export
+#' Example for deeptbl:
 #' library(MASS)
 #' options(debugSQL =TRUE)
 #' table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
-#' q <- rlm(a~., data = widetable)
+#' q <- rlm(a~., data = table)
 #' predict(q)
 #' residuals(q)
 #' q$fitted.values
 #' summary(q)
 #' still to work on plot(q)
+#'Example for widetable:
+#' widetbl <- FLTable("tblautompg", "ObsID")
+#' t <- rlm(Weight~ Acceleration , data = widetbl)
+#' summary(t)
+#' coefficients(t)
+#' residuals(t)
+
 rlm.formula <- function(formula,data,...)
 {
 
@@ -114,7 +97,7 @@ rlm.formula <- function(formula,data,...)
                          ...))
     }
     else
-        return(MASS::rlm(formula, data))
+        MASS::rlm(formula, data)
 }
 
 
@@ -484,7 +467,7 @@ step.FLTable <- function(object, scope, scale = 0,
 					trace=trace,
 					...))
 }
-
+   
 ## move to file lmGeneric.R
 lmGeneric <- function(formula,data,
                       callObject=NULL,
@@ -588,7 +571,6 @@ lmGeneric <- function(formula,data,
                                                      cortablename = "fzzlRobustRegrVarCov",
                                                      scoretablename="FLLinRegrScore"
                                                      )
-    #ALPHA
         else if(familytype == "pls") vfcalls <- c(functionName="FLPLSRegr",
                                                  infotableName="fzzlPLSRegrInfo",
                                                  note="plsregr",
@@ -966,14 +948,14 @@ prepareData.lmGeneric <- function(formula,data,
 
     if(!data@isDeep){
     	unused_cols <- setdiff(vcolnames,c(all.vars(formula),specID[["exclude"]]))
-		unused_cols <- setdiff(unused_cols,
-								c(getVariables(data)[["obs_id_colname"]],
-								getVariables(data)[["group_id_colname"]]))
-		## Detect factors and assign classSpec
-		vfirstRow <- sqlQuery(getFLConnection(),
-							limitRowsSQL(paste0("SELECT * FROM (",
-									constructSelect(data),") a "),1))
-		vfactorCols <- list()
+        unused_cols <- setdiff(unused_cols,
+                               c(getVariables(data)[["obs_id_colname"]],
+                                 getVariables(data)[["group_id_colname"]]))
+        ## Detect factors and assign classSpec
+        vfirstRow <- sqlQuery(getFLConnection(),
+                              limitRowsSQL(paste0("SELECT * FROM (",
+                                                  constructSelect(data),") a "),1))
+        vfactorCols <- list()
 		## apply(t,2,function(x){class(x[[1]])}) gives all character
 		for(i in setdiff(colnames(vfirstRow),
 						c(unused_cols,names(classSpec),
@@ -1057,8 +1039,8 @@ prepareData.lmGeneric <- function(formula,data,
 								excludeCols=vexcludeCols,
 								classSpec=classSpec,
 								whereconditions=whereconditions,
-								inAnalysisID="")
-
+                                        inAnalysisID="")
+            
         vRegrDataPrepSpecs <- list(outDeepTableName="",
                                 outObsIDCol="",
                                 outVarIDCol="",
@@ -1072,7 +1054,7 @@ prepareData.lmGeneric <- function(formula,data,
                                 trainOrTest=0,
                                 excludeCols=vexcludeCols,
                                 classSpec=classSpec)
-
+          
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
@@ -1685,9 +1667,9 @@ summary.FLLinRegr <- function(object,
             
             vcoeff <- coefficients(object)
             vresiduals <- as.vector(object$residuals)
-            vdf <- c(length(q@deeptable@Dimnames[[2]]),
-                     length(q@deeptable@Dimnames[[1]]) + 1 - length(q@deeptable@Dimnames[[2]]),
-                    length(q@deeptable@Dimnames[[2]]))
+            vdf <- c(length(object@deeptable@Dimnames[[2]]),
+                     length(object@deeptable@Dimnames[[1]]) + 1 - length(object@deeptable@Dimnames[[2]]),
+                    length(object@deeptable@Dimnames[[2]]))
     
     reqList <- list(call = object$call,
                     residuals=vresiduals,
@@ -1758,14 +1740,17 @@ predict.FLLinRegr <- function(object,
     if(object@vfcalls["functionName"] %in% "FLRobustRegr")
     {
                                         #vobsid <- getVariables(object@table)[["obs_id_colname"]]
+        ObsID <- getVariables(object@deeptable)$obs_id_colname
+        VarID <- getVariables(object@deeptable)$var_id_colname
+        Num_Val <- getVariables(object@deeptable)$cell_val_colname
         
         str <- paste0(" SELECT  '%insertIDhere%' AS vectorIdColumn,
-                                 b.ObsID AS VectorIndexColumn,
-                                 SUM(b.Num_Val*a.Est) AS vectorValueColumn FROM ",
+                                 b.",ObsID," AS VectorIndexColumn,
+                                 SUM(b.",Num_Val,"*a.Est) AS vectorValueColumn FROM ",
                                  object@vfcalls["coefftablename"]," a,",
                                  object@deeptable@select@table_name," b
-                         WHERE a.VarID  = b.VarID AND a.AnalysisID = '",object@AnalysisID,"'
-                         GROUP BY b.ObsID")
+                         WHERE a.VarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
+                         GROUP BY b.",ObsID,"")
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = getFLConnectionName(),
