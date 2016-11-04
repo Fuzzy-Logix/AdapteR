@@ -1,7 +1,6 @@
 #' @include utilities.R
 #' @include data_prep.R
 #' @include FLTable.R
-
 NULL
 
 ## move to file datamining.R
@@ -57,14 +56,9 @@ setClass(
 	slots=list(offset="character",
 				vfcalls="character"))
 
-
-
-
-
-##Robust Regression.
-# performs robust regression
-
-#' @export
+#' Robust Regression.
+#' 
+#' performs robust regression
 #' Example for deeptbl:
 #' library(MASS)
 #' options(debugSQL =TRUE)
@@ -75,19 +69,25 @@ setClass(
 #' q$fitted.values
 #' summary(q)
 #' still to work on plot(q)
-#'Example for widetable:
+#' Example for widetable:
 #' widetbl <- FLTable("tblautompg", "ObsID")
 #' t <- rlm(Weight~ Acceleration , data = widetbl)
 #' summary(t)
 #' coefficients(t)
 #' residuals(t)
+#' @export
+rlm <- function (formula,data=list(),...) {
+	UseMethod("rlm", data)
+}
 
-rlm.formula <- function(formula,data,...)
+## move to file rlm.R
+#' @export
+rlm.default <- MASS::rlm
+
+## move to file rlm.R
+#' @export
+rlm.FLpreparedData <- function(formula,data,...)
 {
-
-    print(match.call())
-    
-    if(is.FL(data))    {
         vcallObject <- match.call()
         data <- setAlias(data,"")
         return(lmGeneric(formula=formula,
@@ -95,10 +95,16 @@ rlm.formula <- function(formula,data,...)
                          callObject=vcallObject,
                          familytype="robust",
                          ...))
-    }
-    else
-        MASS::rlm(formula, data)
 }
+
+## move to file rlm.R
+#' @export
+rlm.FLTable <- rlm.FLpreparedData
+
+## move to file rlm.R
+#' @export
+rlm.FLTableMD <- rlm.FLpreparedData
+
 
 
 
@@ -171,7 +177,7 @@ rlm.formula <- function(formula,data,...)
 #' @export
 lm <- function (formula,data=list(),...) {
 	UseMethod("lm", data)
- }
+}
 
 ## move to file lm.R
 #' @export
@@ -203,16 +209,7 @@ lm.FLTable <- function(formula,data,...)
 }
 
 #' @export
-lm.FLTableMD <- function(formula,data,...)
-{
-	vcallObject <- match.call()
-	data <- setAlias(data,"")
-	return(lmGeneric(formula=formula,
-                     data=data,
-                     callObject=vcallObject,
-                     familytype="linear",
-                     ...))
-}
+lm.FLTableMD <- lm.FLTable
 
 ## move to file step.R
 #' Choose a model.
