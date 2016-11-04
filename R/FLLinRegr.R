@@ -133,6 +133,18 @@ lm.default <- stats::lm
 
 ## move to file lm.R
 #' @export
+lm.FLpreparedData <- function(formula,data,...)
+{
+	vcallObject <- match.call()
+	return(lmGeneric(formula=formula,
+                     data=data,
+                     callObject=vcallObject,
+                     familytype="linear",
+                     ...))
+}
+
+## move to file lm.R
+#' @export
 lm.FLTable <- function(formula,data,...)
 {
 	vcallObject <- match.call()
@@ -431,14 +443,19 @@ lmGeneric <- function(formula,data,
                       trace=1,
                       ...)
 {
-	#browser()
-	prepData <- prepareData.lmGeneric(formula,data,
-									callObject=callObject,
-									familytype=familytype,
-									specID=specID,
-									direction=direction,
-									trace=trace,
-									...)
+    ##browser()
+    if(inherits(data,"FLTable"))
+        prepData <- prepareData.lmGeneric(formula,data,
+                                          callObject=callObject,
+                                          familytype=familytype,
+                                          specID=specID,
+                                          direction=direction,
+                                          trace=trace,
+                                          ...)
+    else if(inherits(data,"FLpreparedData")){
+        prepData <- data
+        data <- prepData$wideTable
+    }
 	for(i in names(prepData))
 	assign(i,prepData[[i]])
 	# deepx <- prepData[["deepx"]]
@@ -724,7 +741,8 @@ prepareData.lmGeneric <- function(formula,data,
 								maxiter=25,
 								offset="",
 								pRefLevel=NULL,
-                                fetchIDs=TRUE,
+                                fetchIDs=FALSE,
+                                outDeepTableName="",
                                 ...){
     data <- setAlias(data,"")
 	if(data@isDeep){
@@ -904,7 +922,7 @@ prepareData.lmGeneric <- function(formula,data,
 	if(!data@isDeep)
 	{
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
-								outDeepTableName="",
+								outDeepTableName=outDeepTableName,
 								outObsIDCol="",
 								outVarIDCol="",
 								outValueCol="",
@@ -921,7 +939,7 @@ prepareData.lmGeneric <- function(formula,data,
 								inAnalysisID="",
                                 fetchIDs=fetchIDs)
 
-        vRegrDataPrepSpecs <- list(outDeepTableName="",
+        vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
                                 outObsIDCol="",
                                 outVarIDCol="",
                                 outValueCol="",
@@ -1071,25 +1089,32 @@ prepareData.lmGeneric <- function(formula,data,
   #                   t <- sqlSendUpdate(getFLConnection(),paste0(sqlstr,collapse=";"))
 	}
 
-	return(list(deepx=deepx,
-				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				formula=formula,
-				vmapping=vmapping,
-				mapTable=mapTable,
-				vspecID=vspecID,
-				highestpAllow1=highestpAllow1,
-				highestpAllow2=highestpAllow2,
-				topN=topN,
-				vexclude=vexclude,
-				vallVars=vallVars,
-				stepWiseDecrease=stepWiseDecrease,
-				eventweight=eventweight,
-				noneventweight=noneventweight,
-				maxiter=maxiter,
-				pThreshold=pThreshold,
-				offset=offset,
-                RegrDataPrepSpecs=vRegrDataPrepSpecs))
+    result <- list(deepx=deepx,
+                   wideTable=data, ## todo: in case a deep table was passed this is not a wideTable
+                   wideToDeepAnalysisId=wideToDeepAnalysisId,
+                   formula=formula,
+                   vmapping=vmapping,
+                   mapTable=mapTable,
+                   vspecID=vspecID,
+                   highestpAllow1=highestpAllow1,
+                   highestpAllow2=highestpAllow2,
+                   topN=topN,
+                   vexclude=vexclude,
+                   vallVars=vallVars,
+                   stepWiseDecrease=stepWiseDecrease,
+                   eventweight=eventweight,
+                   noneventweight=noneventweight,
+                   maxiter=maxiter,
+                   pThreshold=pThreshold,
+                   offset=offset,
+                   RegrDataPrepSpecs=vRegrDataPrepSpecs)
+    class(result) <- "FLpreparedData"
+	return(result)
 }
+
+#' @export
+prepareData <- prepareData.lmGeneric
+
 
 ## move to file lm.R
 #' @export

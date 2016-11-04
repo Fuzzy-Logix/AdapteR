@@ -654,7 +654,6 @@ setMethod("deepToWide",
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-
 setGeneric("FLRegrDataPrep", function(object,
                                   depCol,
                                   # outDeepTableName,

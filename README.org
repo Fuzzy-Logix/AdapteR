@@ -46,16 +46,13 @@ We recommend to
 :END:
 1. Open R-Studio or an R terminal
 2. The recommended way to install (or update) the package is through github and the convenience function =install_github= function in the =devtools= package:
-   1. Install devtools package using "install.packages("devtools")"
       #+BEGIN_SRC R :eval no
+      ## 1. Install devtools package using "install.packages("devtools")"
       install.packages("devtools") ## Required for install_github
-      #+END_SRC
-   2. Load devtools using
-      #+BEGIN_SRC R :eval no
+
+      ## 2. Load devtools using
       require(devtools)
-      #+END_SRC
-   3. Install AdapteR from github
-      #+BEGIN_SRC R :eval no
+      ## 3. Install AdapteR from github
       install_github("Fuzzy-Logix/AdapteR")
       #+END_SRC
       This automatically installs dependencies. 
@@ -95,7 +92,7 @@ library(RODBC)
 
 ** JDBC
 *** Java JDK
-- Windows: 
+- Windows: *Please make sure you install the 64 bit version of java when you use 64 bit R*.
   1. (re-)install the jdk, and set the path variable in R
   : Sys.setenv(JAVA_HOME="yourPathTojdk")
   (https://docs.oracle.com/cd/E19182-01/820-7851/inst_cli_jdk_javahome_t/)
@@ -117,8 +114,8 @@ In order to use jdbc with AdapteR, you need to install rJava
 install.packages("rJava") ## Required for RJDBC
 install.packages("RJDBC") ## Required for JDBC connection
 library(RJDBC)            ## check if RJDBC can be loaded
-
 #+END_SRC
+
 *** JDBC connectors
 Also, you need to download and use the jdbc connector jar files either in the java load path or provide them when calling =flConnect=
 the java development toolkit (jdbc).
@@ -137,7 +134,7 @@ install_github("Fuzzy-Logix/AdapteR")
 require(AdapteR)
 #+END_SRC
 
-To start a demo, first set your connection info with ODBC ([[https://github.com/Fuzzy-Logix/AdapteR#or-set-your-connection-info-with-jdbc][If you use JDBC, see below how to set your connection info with JDBC]])
+To start a demo, first establish your connection info with ODBC ([[https://github.com/Fuzzy-Logix/AdapteR#or-set-your-connection-info-with-jdbc][If you use JDBC, see below how to set your connection info with JDBC]])
 #+BEGIN_SRC R :session r_fl :results output :exports both
 yourODBCSource <- "Gandalf" ## please make sure you use a 64 bit ODBC driver on a 64 bit R session
 yourPlatform <- "TD"
