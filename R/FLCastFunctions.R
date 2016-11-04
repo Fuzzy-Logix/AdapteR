@@ -186,7 +186,7 @@ as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
 ## #' Converts input FLMatrix object to matrix in R
 #' @export
 as.matrix.FLMatrix <- function(object,sparse=FALSE) {
-    m <- as.sparseMatrix.FLMatrix(object)
+    m <- as.sparseMatrix(object)
     if(sparse)
         m
     dn <- dimnames(m)
@@ -456,6 +456,9 @@ as.FLEnvironment <- function(Renv){
     FLenv
 }
 
+#' @export
+as.sparseMatrix <- function(object)
+    UseMethod("as.sparseMatrix")
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
@@ -515,7 +518,14 @@ as.sparseMatrix.FLMatrix <- function(object) {
                         dimnames = dn)
   return(m)
 }
-
+#' @export
+as.sparseMatrix.FLMatrix.TDAster <- function(object){
+    object <- setValueSQLName(object,tolower(getValueSQLName(object)))
+    object <- setIndexSQLName(object=object,
+                            margin=1:2,
+                            value=tolower(getIndexSQLName(object,margin=1:2)))
+    as.sparseMatrix.FLMatrix(object)
+}
 #' @export
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
@@ -862,31 +872,30 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
-    ##browser()
-    if(missing(tableName))
-        tableName <- genRandVarName()
-    if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
-        stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
-    if(uniqueIdColumn==0){
-        vrownames <- rownames(object)
-        if(!any(is.na(as.numeric(vrownames))))
-            vrownames <- as.numeric(vrownames)
-        object <- base::cbind(rownames=vrownames,object)
-        obsIdColname <- "rownames"
-    }
-    else if(is.numeric(uniqueIdColumn)){
-        uniqueIdColumn <- as.integer(uniqueIdColumn)
-        if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
-            stop("uniqueIdColumn is out of bounds")
-        else
-            obsIdColname <- colnames(object)[uniqueIdColumn]
-    }
-    else if(is.character(uniqueIdColumn)){
-        if(!uniqueIdColumn %in% colnames(object))
-            stop("uniqueIdColumn is out of bounds")
-        else
-            obsIdColname <- uniqueIdColumn
-    }
+  if(missing(tableName))
+  tableName <- genRandVarName()
+  if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
+  stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
+  if(uniqueIdColumn==0){
+    vrownames <- rownames(object)
+    if(!any(is.na(as.numeric(vrownames))))
+        vrownames <- as.numeric(vrownames)
+    object <- base::cbind(ObsID=vrownames,object)
+    obsIdColname <- "ObsID"
+  }
+  else if(is.numeric(uniqueIdColumn)){
+    uniqueIdColumn <- as.integer(uniqueIdColumn)
+    if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
+        stop("uniqueIdColumn is out of bounds")
+    else
+        obsIdColname <- colnames(object)[uniqueIdColumn]
+  }
+  else if(is.character(uniqueIdColumn)){
+    if(!uniqueIdColumn %in% colnames(object))
+        stop("uniqueIdColumn is out of bounds")
+    else
+        obsIdColname <- uniqueIdColumn
+  }
 
     ## A copy of connection is needed as in Aster, if query fails
     ## connection becomes unusable until end of transaction block.
@@ -938,6 +947,9 @@ as.FLTable.data.frame <- function(object,
     ## This bulk insertion may fail for very big data
     ## as there size of query fired may exceed odbc limits!
     ## These cases will be handled by Parameterized sql
+
+    ## Replace NAs with NULL
+    object[is.na(object)] <- ''
     vresult <- tryCatch(insertIntotbl(pTableName=tableName,
                                     pValues=object),
                         error=function(e){

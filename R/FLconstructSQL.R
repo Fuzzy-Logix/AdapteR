@@ -37,7 +37,8 @@ setClass("FLTableQuery",
              variables  = "list",
              connectionName = "character",
              whereconditions="character",
-             order = "character"
+             order = "character",
+             group = "character"
          ))
 
 ##' A selectFrom models a select from a table.
@@ -96,10 +97,11 @@ setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
 newFLMatrix <- function(...) {
   vtemp <- list(...)
-  if(is.TDAster()){
-      vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
-                              "colidcolumn","valuecolumn")
-  }
+  ## Results in Aster are not case-sensitive
+  # if(is.TDAster()){
+  #     vtemp[["dimColumns"]]=c("matrix_id","rowidcolumn",
+  #                             "colidcolumn","valuecolumn")
+  # }
   return(do.call("new",
                 c(Class=paste0("FLMatrix.",getFLPlatform()),
                   vtemp)))
@@ -142,7 +144,7 @@ setClass("FLSimpleVector",
          slots = list(
              select = "FLTableQuery",
              ##dimColumns = "character",
-             ## names = "ANY",
+             names = "ANY",
              type       = "character"
          ),prototype = prototype(type="double")
          )
@@ -187,6 +189,38 @@ setMethod("getValueSQLName",
           function(object) object@columnName)
 
 #' @export
+setGeneric("setValueSQLName", function(object,value) {
+    standardGeneric("setValueSQLName")
+})
+setMethod("setValueSQLName",
+          signature(object = "FLMatrix"),
+          function(object,value){
+          t <- names(object@select@variables)
+          t[t==object@dimColumns[[4]]] <- value
+          names(object@select@variables) <- t
+          object@dimColumns[[4]] <- value
+          object
+          })
+# setMethod("setValueSQLName",
+#           signature(object = "FLVector"),
+#           function(object) "vectorValueColumn")
+setMethod("setValueSQLName",
+          signature(object = "FLSimpleVector"),
+          function(object,value){
+          t <- names(object@select@variables)
+          t[t==object@dimColumns[[2]]] <- value
+          names(object@select@variables) <- t
+          object@dimColumns[[2]] <- value
+          object
+          })
+setMethod("setValueSQLName",
+          signature(object = "FLAbstractColumn"),
+          function(object,value){
+          object@columnName <- value
+          object
+          })
+
+#' @export
 setGeneric("getValueSQLExpression", function(object) {
     standardGeneric("getValueSQLExpression")
 })
@@ -206,8 +240,13 @@ setGeneric("setValueSQLExpression", function(object, func,...) {
 setMethod("setValueSQLExpression",
           signature(object = "FLIndexedValues"),
           function(object,func,...) {
-    object@select@variables[[getValueSQLName(object)]] <- func(object,...)
-    object
+            vres <- func(object,...)
+            if(is.FLSimpleVector(vres))
+                return(vres)
+            else{
+                object@select@variables[[getValueSQLName(object)]] <- vres 
+                object
+            }
 })
 
 
@@ -240,6 +279,32 @@ setMethod("getIndexSQLName",
 setMethod("getIndexSQLName",
           signature(object = "FLIndexedValues"),
           function(object,margin=1) object@dimColumns[[margin]])
+
+#' @export
+setGeneric("setIndexSQLName", function(object,margin,value) {
+    standardGeneric("setIndexSQLName")
+})
+setMethod("setIndexSQLName",
+          signature(object = "FLMatrix"),
+          function(object,margin,value){
+            t <- names(object@select@variables)
+            t[t==object@dimColumns[2:3][margin]] <- value
+            names(object@select@variables) <- t
+            object@dimColumns[2:3][margin] <- value
+            object
+            })
+setMethod("setIndexSQLName",
+          signature(object = "FLVector"),
+          function(object,margin,value) stop("use FLSimpleVector"))
+setMethod("setIndexSQLName",
+          signature(object = "FLIndexedValues"),
+          function(object,margin,value){
+            t <- names(object@select@variables)
+            t[t==object@dimColumns[margin]] <- value
+            names(object@select@variables) <- t
+            object@dimColumns[[margin]] <- value
+            object
+            })
 
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
@@ -322,7 +387,12 @@ names.FLSimpleVector <- function(x) x@names
 as.vector.FLSimpleVector <- function(object,mode="any")
 {
     x <- sqlQuery(connection,constructSelect(object))
-    return(x[[object@dimColumns[[2]]]])
+    ## Required as in Aster output cols are always lowercase
+    colnames(x) <- toupper(colnames(x))
+    vres <- x[[toupper(object@dimColumns[[2]])]]
+    if(!is.null(names(object)))
+        names(vres) <- as.vector(names(object))
+    return(vres)
 }
 
 #' @export
@@ -331,10 +401,10 @@ FLSerial <- function(min,max){
         select=new("FLSelectFrom",
                    table_name=c(fzzlSerial="fzzlSerial"),
                    connectionName=getFLConnectionName(),
-                   variables=list(serialVal="fzzlSerial.serialVal"),
+                   variables=list(indexVal="fzzlSerial.serialVal"),
                    whereconditions=c(paste("fzzlSerial.serialVal>=",min),paste("fzzlSerial.serialVal<=",max)),
-                   order="serialVal"),
-        dimColumns = c("serialVal","serialVal"),
+                   order="indexVal"),
+        dimColumns = c("indexVal","indexVal"),
         ##names=NULL,
         dims    = as.integer(max-min+1),
         type       = "integer"
@@ -387,6 +457,7 @@ setMethod("constructSelect", signature(object = "FLTableQuery"),
                             paste(colnames(object),collapse=", "),
                             " FROM ",tableAndAlias(object),
                             constructWhere(c(constraintsSQL(object))),
+                            constructGroupBy(GroupByVars=getGroupSlot(object),...),
                             constructOrder(orderVars=object@order,...),
                             "\n"))
           })
@@ -575,7 +646,8 @@ setMethod("constructSelect",
             constructVariables(variables),
             "\n FROM ",tableAndAlias(object),
             constructWhere(c(constraintsSQL(object))),
-            constructOrder(orderVars=object@order,...),
+            constructGroupBy(GroupByVars=getGroupSlot(object),...),
+            constructOrder(orderVars=getOrderSlot(object),...),
             "\n"))
     })
 
@@ -598,6 +670,13 @@ constructOrder <- function(orderVars, order=TRUE,...) {
         return("")
     paste0("\n ORDER BY ",
            paste0(orderVars, collapse = ", "))
+}
+constructGroupBy <- function(GroupByVars,...) {
+    GroupByVars <- setdiff(GroupByVars,c(NA,""))
+    if(length(GroupByVars)>0)
+        paste0("\n GROUP BY ",
+           paste0(GroupByVars, collapse = ", "))
+    else return("")
 }
 
 constructWhere <- function(conditions) {

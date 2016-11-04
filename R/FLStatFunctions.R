@@ -281,29 +281,40 @@ prod <- function(...,na.rm=FALSE) mixedAggregate(...,Rfun="base::prod",FLfun="FL
 sum <- function(...,na.rm=FALSE) mixedAggregate(...,Rfun="base::sum",FLfun="FLSum")
 
 ######################### max #############################################
-max.FLAbstractColumn <- function(x,na.rm=FALSE,...){
+FLMax <- function(x,na.rm=FALSE,...)
+    UseMethod("FLMax")
+FLMax.FLAbstractColumn <- function(x,na.rm=FALSE,...){
     return(paste0(" FLMax(",getValueSQLExpression(x),") "))
+}
+
+FLMax.FLIndexedValues <- function(x,...){
+    x <- genAggregateFunCall(x,func=FLaggregate,
+                               FLfun="FLMax")
+    return(x)
+}
+
+
+FLMax.FLMatrix <- function(x,...){
+    return(genAggregateFunCall(x,func=FLMax))
 }
 
 #' @export
 max <- function(...,na.rm=FALSE){
-    vlist <- list(...)
-    vtemp <- unlist(lapply(vlist,function(x)is.FL(x)))
-    if(!any(vtemp))
-    return(base::max(...,na.rm=na.rm))
+    mixedAggregate(...,Rfun="base::max",FLfun="FLMax")
+    # vlist <- list(...)
+    # vtemp <- unlist(lapply(vlist,function(x)is.FL(x)))
+    # if(!any(vtemp))
+    # return(base::max(...,na.rm=na.rm))
 
-    vprod <- sapply(list(...),function(x){
-                if(is.FLAbstractColumn(x)){
-                    return(max.FLAbstractColumn(x=x,
-                                    na.rm=na.rm))
-                }
-                else if(is.FL(x)){
-                    return(genAggregateFunCall(object=x,
-                                func=max.FLAbstractColumn))
-                }
-                else return(base::max(x,na.rm=na.rm))
-            })
-    return(base::max(vprod,na.rm=na.rm))
+    # vprod <- lapply(list(...),function(x){
+    #             if(is.FL(x)){
+    #                 return(FLMax(x,na.rm=na.rm))
+    #             }
+    #             else return(base::max(x,na.rm=na.rm))
+    #         })
+    # return(vprod[[1]])
+    # vprod <- lapply(vprod,as.vector)
+    # return(do.call(base::max,vprod))
 }
 
 ####################### min ##################################################

@@ -43,6 +43,9 @@ setMethod("getVariables", signature(object = "FLTableMD"),
           function(object) getVariables(object@select))
 setMethod("getVariables", signature(object = "FLVector"),
           function(object) getVariables(object@select))
+setMethod("getVariables",
+          signature(object = "FLSimpleVector"),
+          function(object) getVariables(object@select))
 
 
 setGeneric("suffixAlias", function(object,suffix,...) {
@@ -464,6 +467,10 @@ setMethod("constraintsSQL", signature(object = "FLVector"),
           function(object) {
               return(constraintsSQL(object@select))
           })
+setMethod("constraintsSQL", signature(object = "FLSimpleVector"),
+          function(object) {
+              return(constraintsSQL(object@select))
+          })
 setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
           function(object) {
               constraints <- object@whereconditions
@@ -472,7 +479,7 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
                   for(ti in 1:length(tablenames)){
                       tname <- tablenames[ti]
                       talias <- names(tablenames)[ti]
-                      constraints <- gsub(paste0("[^ ]*",tname,"\\."),
+                      constraints <- gsub(paste0("[^ ,=]*",tname,"\\."),
                                           paste0(" ",talias,"."),
                                           constraints)
                   }
