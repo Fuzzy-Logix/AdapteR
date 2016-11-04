@@ -5,7 +5,7 @@
 \title{Starts Session and Creates temp Tables for result storage}
 \usage{
 FLStartSession(connection, database = getOption("ResultDatabaseFL"),
-  temporary = TRUE, drop = FALSE, debug = FALSE, tableoptions = NULL,
+  temporary = TRUE, drop = TRUE, debug = FALSE, tableoptions = NULL,
   tablePrefix = NULL, ...)
 }
 \arguments{
