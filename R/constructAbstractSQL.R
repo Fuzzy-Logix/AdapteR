@@ -444,7 +444,7 @@ constructUnionSQL <- function(pFrom,
 ## Set Database
 setCurrentDatabase <- function(pDBName){
     if(is.Hadoop())
-        vsqlstr <- paste0("USE ",pDBName,";")
+        vsqlstr <- paste0("USE ",pDBName)
     else if(is.TD())
         vsqlstr <- c(paste0("DATABASE ",pDBName,";"),
                     "SET ROLE ALL;")
@@ -604,7 +604,7 @@ createTable <- function(pTableName,
                                     paste0(pTableOptions,collapse=" ")))
         }
     }
-    vsqlstr <- paste0(vsqlstr,";")
+    #vsqlstr <- paste0(vsqlstr,";")
     if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
@@ -646,7 +646,7 @@ createView <- function(pViewName,
         pStore <- list(...)$pStore
     else pStore <- TRUE
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
-                        " AS ",pSelect,";")
+                        " AS ",pSelect)
     res <- sqlSendUpdate(getFLConnection(),vsqlstr)
     if(pStore)
     updateMetaTable(pTableName=pViewName,
@@ -661,22 +661,32 @@ createView <- function(pViewName,
 ##' @export
 dropView <- function(pViewName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP VIEW ",pViewName,";"),warn=warn)
+                paste0("DROP VIEW ",pViewName),warn=warn)
 }
 
 ## DROP TABLE
 ##' @export
 dropTable <- function(pTableName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                  paste0("DROP TABLE ",pTableName,";"),warn=warn)
+                  paste0("DROP TABLE ",pTableName),warn=warn)
 }
 
 ## Insert Into Table
 ## TODO: add pConnection as input
+## @phani: I think we need separate connection classes for
+## each platform.eg- JDBCAster
+# setGeneric("insertIntotbl",
+#     function(pTableName,
+#             pColNames=NULL,
+#             pValues=NULL,
+#             pSelect=NULL,
+#             pConnection=getFLConnection()))
+
 insertIntotbl <- function(pTableName,
                           pColNames=NULL,
                           pValues=NULL,
-                          pSelect=NULL){
+                          pSelect=NULL,
+                          pConnection=getFLConnection()){
 
     # if(!grepl(".",pTableName,fixed=TRUE))
     # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
@@ -685,7 +695,7 @@ insertIntotbl <- function(pTableName,
     vsqlstr <- paste0("INSERT INTO ",pTableName)
 
     if(!is.null(pValues)){
-        if(!is.null(pColNames))
+        if(!is.null(pColNames) && !is.Hadoop())
             vsqlstr <- paste0(vsqlstr,"(",
                         paste0(pColNames,collapse=","),
                         ") ")
@@ -706,11 +716,9 @@ insertIntotbl <- function(pTableName,
                                                 if((is.character(y) && !grepl("'",y))
                                                     || is.null(y)){
                                                     if(y=="NULL" || is.null(y)){
-                                                        if(is.TD())
-                                                            return("NULL")
-                                                        else return("''")
+                                                        return("NULL")
                                                     }
-                                                    return(fquote(y))
+                                                    else return(fquote(y))
                                                 }
                                                 else return(y)}),
                                         collapse = ","),")")}),
@@ -718,7 +726,7 @@ insertIntotbl <- function(pTableName,
             # vsqlstr <- paste0(apply(pValues,1,
             #                 function(x)
             #                     paste0(vsqlstr,"(",paste0(fquote(x),collapse=","),")")),collapse = ";")
-        else if(is.TDAster()){
+        else if(!is.TD()){
             vappend <- paste0(apply(pValues,1,
                                 function(x){
                                   paste0("(",
@@ -741,7 +749,7 @@ insertIntotbl <- function(pTableName,
         }
     }
     else if(!is.null(pSelect)){
-        vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
+        vsqlstr <- paste0(vsqlstr,"  ",pSelect)
     }
     ##print(vsqlstr)
     sqlSendUpdate(getFLConnection(),vsqlstr)
@@ -757,7 +765,7 @@ updateMetaTable <- function(pTableName,
 
     if("pNote" %in% names(list(...)))
         pNote <- list(...)$pNote
-    else pNote <- "NA"
+    else pNote <- "NotSpecified"
 
     if(is.null(pElementID))
         pElementID <- -1
@@ -766,7 +774,7 @@ updateMetaTable <- function(pTableName,
                   pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
-                            "ObjType","Comments"),
+                            "ObjType","UserComments"),
                   pValues=list(as.character(as.POSIXlt(Sys.time(),tz="GMT")),
                             as.character(Sys.Date()),
                             ifelse(is.null(getOption("FLUsername")),
