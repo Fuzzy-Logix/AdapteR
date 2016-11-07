@@ -94,7 +94,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       jdbc.options="",# "TMODE=TERA,CHARSET=ASCII",
                       odbcSource=NULL,
                       driverClass=NULL,
-                      temporary=FALSE,
+                      temporary=TRUE,
                       verbose=FALSE,
                       tablePrefix=NULL,
                       ...){

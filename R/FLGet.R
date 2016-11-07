@@ -341,7 +341,7 @@ calcResiduals <- function(object,
   if(vtype=="partial")
     stop("partial type is not supported currently \n ")
   if(object@vfcalls["functionName"]=="FLLinRegr"
-    || vtype=="response"){
+    || vtype=="response"|| object@vfcalls["functionName"] =="FLRobustRegr"){
     sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                 "a.vectorIndexColumn AS vectorIndexColumn, \n ",
                                 "(a.vectorValueColumn-b.vectorValueColumn)",
