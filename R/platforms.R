@@ -247,6 +247,7 @@ FLStartSession <- function(connection,
     ##browser()
     options(InteractiveFL             = TRUE)
     options(temporaryFL               = temporary)
+    options(NameMapTableFL="tblNameMapping")
     ## Create system table for TablesMetadataInfo
     if(!checkRemoteTableExistence(tableName="fzzlAdapteRTablesInfo"))
         createTable(pTableName="fzzlAdapteRTablesInfo",
@@ -264,8 +265,8 @@ FLStartSession <- function(connection,
                     pTemporary=FALSE,
                     pDrop=TRUE)
     ## Create names mapping table
-    if(drop | !checkRemoteTableExistence(tableName=getOption("NameMapTableFL")))
-        createTable(pTableName=getOption("NameMapTableFL"),
+    if(drop | !checkRemoteTableExistence(tableName="tblNameMapping"))
+        createTable(pTableName="tblNameMapping",
                     pColNames=c("TABLENAME","MATRIX_ID",
                                 "DIM_ID","NAME","NUM_ID"),
                     pColTypes=c("VARCHAR(100)","INT",
@@ -280,7 +281,6 @@ FLStartSession <- function(connection,
         "ResultVectorTableFL" = "tblVectorResult",
         "ResultMatrixTableFL" = "tblMatrixMultiResult",
         "ResultSparseMatrixTableFL"= "tblMatrixMultiSparseResult",
-        "NameMapTableFL" = "tblNameMapping",
         "ResultCharVectorTableFL" = "tblCharVectorResult",
         "ResultCharMatrixTableFL" = "tblCharMatrixMultiResult",
         "ResultIntMatrixTableFL" = "tblIntMatrixMultiResult",
