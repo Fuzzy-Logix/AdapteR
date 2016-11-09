@@ -47,32 +47,6 @@ sqlQuery <- function(connection,query,...) UseMethod("sqlQuery")
 sqlQuery.FLConnection <- function(connection,query,...)
     sqlQuery(connection$connection,query,...)
 
-
-#' Send a query to database
-#' Result is returned as data.frame
-#' @param channel ODBC/JDBC connection object
-#' @param query SQLQuery to be sent
-#' @export
-sqlStoredProc <- function(connection, 
-                        query, 
-                        outputParameter, 
-                        ...) 
-                    UseMethod("sqlStoredProc")
-
-#' @export
-sqlStoredProc.FLConnection <- function(connection,
-                                        query,
-                                        outputParameter,
-                                        ...) {
-    if(is.TDAster(connection=connection) && 
-        class(getRConnection(connection))=="JDBCConnection")
-        class(connection$connection) <- "JDBCTDAster"
-    sqlStoredProc(connection=getRConnection(connection),
-                query=query,
-                outputParameter=outputParameter,
-                ...)
-}
-
 #' Send a query to database
 #' 
 #' No result is returned
@@ -156,6 +130,32 @@ constructStoredProcArgs <- function(query,
     }
     return(list(args=args,
                 query=query))
+}
+
+
+#' Send a query to database
+#' Result is returned as data.frame
+#' @param channel ODBC/JDBC connection object
+#' @param query SQLQuery to be sent
+#' @export
+sqlStoredProc <- function(connection, 
+                        query, 
+                        outputParameter, 
+                        ...) 
+                    UseMethod("sqlStoredProc")
+
+#' @export
+sqlStoredProc.FLConnection <- function(connection,
+                                        query,
+                                        outputParameter,
+                                        ...) {
+    if((is.TDAster(connection=connection)||is.Hadoop(connection=connection)) && 
+        class(getRConnection(connection))=="JDBCConnection")
+        class(connection$connection) <- "JDBCTDAster"
+    sqlStoredProc(connection=getRConnection(connection),
+                query=query,
+                outputParameter=outputParameter,
+                ...)
 }
 
 #' @export
@@ -252,7 +252,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
             a <- .jfield("java/sql/Types",,"BIGINT")
         else if(is.numeric(a))
             a <- .jfield("java/sql/Types",,"FLOAT")
-        .jcall(cStmt,"V","registerOutParameter",ai,a)
+        .jcall(cStmt,"V","registerOutParameter",ai,a) ## Error Hadoop:- method registerOutParameter with signature (II)V not found 
         ai <- ai+1L
     }
     ## Making a procedure call
