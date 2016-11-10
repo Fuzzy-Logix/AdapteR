@@ -15,7 +15,7 @@ FLrpart<-function(data,
 				  maxdepth=5,
 				  cp=0.95),
 				  method="class",
-				  ...){browser()
+				  ...){#browser()
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
@@ -110,7 +110,7 @@ summary.FLrpart<-function(x,...){
 predict.FLrpart<-function(object,
 						  newdata=object@deeptable,
 						  scoreTable="",
-						  ...){
+						  ...){browser()
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
