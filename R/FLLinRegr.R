@@ -1,7 +1,6 @@
 #' @include utilities.R
 #' @include data_prep.R
 #' @include FLTable.R
-
 NULL
 
 ## move to file datamining.R
@@ -57,14 +56,9 @@ setClass(
 	slots=list(offset="character",
 				vfcalls="character"))
 
-
-
-
-
-##Robust Regression.
-# performs robust regression
-
-#' @export
+#' Robust Regression.
+#' 
+#' performs robust regression
 #' Example for deeptbl:
 #' library(MASS)
 #' options(debugSQL =TRUE)
@@ -75,19 +69,25 @@ setClass(
 #' q$fitted.values
 #' summary(q)
 #' still to work on plot(q)
-#'Example for widetable:
+#' Example for widetable:
 #' widetbl <- FLTable("tblautompg", "ObsID")
 #' t <- rlm(Weight~ Acceleration , data = widetbl)
 #' summary(t)
 #' coefficients(t)
 #' residuals(t)
+#' @export
+rlm <- function (formula,data=list(),...) {
+	UseMethod("rlm", data)
+}
 
-rlm.formula <- function(formula,data,...)
+## move to file rlm.R
+#' @export
+rlm.default <- MASS::rlm
+
+## move to file rlm.R
+#' @export
+rlm.FLpreparedData <- function(formula,data,...)
 {
-
-    print(match.call())
-    
-    if(is.FL(data))    {
         vcallObject <- match.call()
         data <- setAlias(data,"")
         return(lmGeneric(formula=formula,
@@ -95,10 +95,16 @@ rlm.formula <- function(formula,data,...)
                          callObject=vcallObject,
                          familytype="robust",
                          ...))
-    }
-    else
-        MASS::rlm(formula, data)
 }
+
+## move to file rlm.R
+#' @export
+rlm.FLTable <- rlm.FLpreparedData
+
+## move to file rlm.R
+#' @export
+rlm.FLTableMD <- rlm.FLpreparedData
+
 
 
 
@@ -171,7 +177,7 @@ rlm.formula <- function(formula,data,...)
 #' @export
 lm <- function (formula,data=list(),...) {
 	UseMethod("lm", data)
- }
+}
 
 ## move to file lm.R
 #' @export
@@ -203,16 +209,7 @@ lm.FLTable <- function(formula,data,...)
 }
 
 #' @export
-lm.FLTableMD <- function(formula,data,...)
-{
-	vcallObject <- match.call()
-	data <- setAlias(data,"")
-	return(lmGeneric(formula=formula,
-                     data=data,
-                     callObject=vcallObject,
-                     familytype="linear",
-                     ...))
-}
+lm.FLTableMD <- lm.FLTable
 
 ## move to file step.R
 #' Choose a model.
@@ -699,13 +696,16 @@ lmGeneric <- function(formula,data,
              nCoeffEstim = "EST",
              nID = "VarID"
              )  }
-                                        #ALPHA PLS:
+
     if(familytype %in% "pls")
     {
         functionName <- "FLLinRegr"
-        nfactor <- 15
+        if(!list(...)$nfactor )
+        {print(list(...)$nfactor)
+            nfactor <- 15}
         vinputCols <- c(vinputCols,
-                        NumOfFactors = nfactor)
+                        NumOfFactors = list(...)$nfactor)
+        mod <- c(mod, ncomp = list(...)$nfactor)
     }
     
     
@@ -720,105 +720,107 @@ lmGeneric <- function(formula,data,
 
     retobj <- checkSqlQueryOutput(retobj)
     AnalysisID <- as.character(retobj[1,1])
-	##Find the max modelID to avoid joins later.
-	##For forward find best fit model id.
-	vmaxModelID <- NULL
-	vmaxLevelID <- NULL
-	if(direction=="" && familytype!="poisson" 
-		&&!is.FLTableMD(data)){
-		vmaxModelID <- 1
-		vmaxLevelID <- 1
-	}
-	else if(!direction %in% "forward" && familytype!="poisson" && !is.FLTableMD(data)){
-		vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
-							ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
-							" FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
-		vtemp <- sqlQuery(getFLConnection(),vsqlstr)
-		vmaxModelID <- vtemp[["ModelID"]]
-		vmaxLevelID <- vtemp[["LevelID"]]
-	}
-	
-	if(trace>0 && !direction %in% c("","forward"))
-	{
-		vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
-						" FROM ",coefftablename," a,",statstablename," c \n",
-						" WHERE NOT EXISTS(SELECT 1 FROM ",coefftablename," b ",
-							" WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
-							" AND a.coeffid = b.coeffid ",ifelse(!is.null(vmaxLevelID),
-							" AND a.LevelID = b.LevelID ",""),")\n",
-						" AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
-						" AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
-						ifelse(!is.null(vmaxLevelID),paste0(" AND a.LevelID = ",vmaxLevelID),""),
-						" \n UNION ALL\n",
-						" SELECT 0,a.* FROM ",statstablename," a \n",
-						" WHERE a.AnalysisID=",fquote(AnalysisID),
-						" AND a.ModelID=",vmaxModelID,"\n",
-						" ORDER BY 3")
-		d <- sqlQuery(getFLConnection(),vsqlstr)
-		colnames(d)<-toupper(colnames(d))
-		d[["ANALYSISID"]] <- NULL
-		vdroppedCols <- c()
-		if(!data@isDeep)vdroppedCols <- specID[["exclude"]]
-		if(nrow(d)>1){
-			for(i in unique(setdiff(d[["MODELID"]],vmaxModelID)))
-			{
-				if(familytype=="linear")
-				cat("Step:    RSQUARED = ",d[d[,"MODELID"]==i,"RSQUARED"][1],"\n")
-				else if(familytype=="logistic")
-				cat("Step:    Gini Coefficient = ",d[d[,"MODELID"]==i,"GINICOEFF"][1],"\n")
-				#browser()
-				vdropped <- as.numeric(d[d[,"MODELID"]==i,"COEFFID"])
-				vcolnames <- names(vmapping)
-				vdroppedCols1 <- sapply(vdropped,function(x) vcolnames[as.numeric(vmapping)==x])
-				if(!data@isDeep)vdroppedCols <- c(vdroppedCols1,vdroppedCols)
-				if(data@isDeep){
-					vallVars <- all.vars(formula)
-					vfr <- genDeepFormula(c(vdropped))
-					vdroppedCols <- c(vdroppedCols,all.vars(vfr)[-1])
-					vdroppedCols1 <- all.vars(genDeepFormula(specID[["exclude"]]))[-1]
-					vcolnames <- vallVars[!vallVars %in% vdroppedCols1]
-				}
-				cat(vallVars[1],"~",paste0(vcolnames[!toupper(vcolnames) %in% c(toupper(vdroppedCols)
-					,toupper(vallVars[1]))],
-					collapse=" + "),"\n")
-				vdataframe <- rbind(d[d[,"MODELID"]==i,][1,],d[d[,"MODELID"]==i+1,][1,])
-				rownames(vdataframe) <- c(" - None",paste0(" - ",paste0(vdroppedCols,collapse=" + ")))
-				print(vdataframe[,!colnames(vdataframe) %in% c("COEFFID","BPSTAT","SIGBPSTAT")])
-				cat("\n\n\n")
-			}
-		}
-	}
-	else if(direction %in% c("forward"))
-	{
-		if(familytype=="linear")
-		vsqlstr <- paste0("SELECT TOP 1 a.*,b.maxPValue \n",
-						  " FROM ",statstablename," a,( \n",
-						  		" SELECT a.ModelID,",
-						  		" MAX(a.PValue) AS maxPValue \n",
-								" FROM ",coefftablename," a \n",
-								" WHERE a.AnalysisID = ",fquote(AnalysisID),
-								" GROUP BY a.ModelID) AS b \n",
-								" WHERE b.ModelID = a.ModelID \n",
-								" AND a.AnalysisID = ",fquote(AnalysisID),
-								" AND b.MaxPValue < 0.10 \n",
-								" ORDER BY 3 DESC, 2;\n")
-		else if(familytype=="logistic")
-		vsqlstr <- paste0("SELECT TOP 1 a.*\n",
-						  " FROM ",statstablename," a\n",
-								" WHERE a.AnalysisID = ",fquote(AnalysisID),
-								" AND a.HighestPValue < 0.10 \n",
-								" ORDER BY 3 DESC, 2;\n")
+    ##Find the max modelID to avoid joins later.
+    ##For forward find best fit model id.
+    vmaxModelID <- NULL
+    vmaxLevelID <- NULL
+    if(direction=="" && familytype!="poisson" 
+       &&!is.FLTableMD(data)){
+        vmaxModelID <- 1
+        vmaxLevelID <- 1
+    }
+    else if(!direction %in% "forward" && familytype!="poisson" && !is.FLTableMD(data)){
+        vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
+                          ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
+                          " FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
+        vtemp <- sqlQuery(getFLConnection(),vsqlstr)
+        vmaxModelID <- vtemp[["ModelID"]]
+        vmaxLevelID <- vtemp[["LevelID"]]
+    }
+    
+    if(trace>0 && !direction %in% c("","forward"))
+    {
+        vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
+                          " FROM ",coefftablename," a,",statstablename," c \n",
+                          " WHERE NOT EXISTS(SELECT 1 FROM ",coefftablename," b ",
+                          " WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
+                          " AND a.coeffid = b.coeffid ",ifelse(!is.null(vmaxLevelID),
+                                                               " AND a.LevelID = b.LevelID ",""),")\n",
+                          " AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
+                          " AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
+                          ifelse(!is.null(vmaxLevelID),paste0(" AND a.LevelID = ",vmaxLevelID),""),
+                          " \n UNION ALL\n",
+                          " SELECT 0,a.* FROM ",statstablename," a \n",
+                          " WHERE a.AnalysisID=",fquote(AnalysisID),
+                          " AND a.ModelID=",vmaxModelID,"\n",
+                          " ORDER BY 3")
+        d <- sqlQuery(getFLConnection(),vsqlstr)
+        colnames(d)<-toupper(colnames(d))
+        d[["ANALYSISID"]] <- NULL
+        vdroppedCols <- c()
+        if(!data@isDeep)vdroppedCols <- specID[["exclude"]]
+        if(nrow(d)>1){
+            for(i in unique(setdiff(d[["MODELID"]],vmaxModelID)))
+            {
+                if(familytype=="linear")
+                    cat("Step:    RSQUARED = ",d[d[,"MODELID"]==i,"RSQUARED"][1],"\n")
+                else if(familytype=="logistic")
+                    cat("Step:    Gini Coefficient = ",d[d[,"MODELID"]==i,"GINICOEFF"][1],"\n")
+                                        #browser()
+                vdropped <- as.numeric(d[d[,"MODELID"]==i,"COEFFID"])
+                vcolnames <- names(vmapping)
+                vdroppedCols1 <- sapply(vdropped,function(x) vcolnames[as.numeric(vmapping)==x])
+                if(!data@isDeep)vdroppedCols <- c(vdroppedCols1,vdroppedCols)
+                if(data@isDeep){
+                    vallVars <- all.vars(formula)
+                    vfr <- genDeepFormula(c(vdropped))
+                    vdroppedCols <- c(vdroppedCols,all.vars(vfr)[-1])
+                    vdroppedCols1 <- all.vars(genDeepFormula(specID[["exclude"]]))[-1]
+                    vcolnames <- vallVars[!vallVars %in% vdroppedCols1]
+                }
+                cat(vallVars[1],"~",paste0(vcolnames[!toupper(vcolnames) %in% c(toupper(vdroppedCols)
+                                                                               ,toupper(vallVars[1]))],
+                                           collapse=" + "),"\n")
+                vdataframe <- rbind(d[d[,"MODELID"]==i,][1,],d[d[,"MODELID"]==i+1,][1,])
+                rownames(vdataframe) <- c(" - None",paste0(" - ",paste0(vdroppedCols,collapse=" + ")))
+                print(vdataframe[,!colnames(vdataframe) %in% c("COEFFID","BPSTAT","SIGBPSTAT")])
+                cat("\n\n\n")
+            }
+        }
+    }
+    else if(direction %in% c("forward"))
+    {
+        if(familytype=="linear")
+            vsqlstr <- paste0("SELECT TOP 1 a.*,b.maxPValue \n",
+                              " FROM ",statstablename," a,( \n",
+                              " SELECT a.ModelID,",
+                              " MAX(a.PValue) AS maxPValue \n",
+                              " FROM ",coefftablename," a \n",
+                              " WHERE a.AnalysisID = ",fquote(AnalysisID),
+                              " GROUP BY a.ModelID) AS b \n",
+                              " WHERE b.ModelID = a.ModelID \n",
+                              " AND a.AnalysisID = ",fquote(AnalysisID),
+                              " AND b.MaxPValue < 0.10 \n",
+                              " ORDER BY 3 DESC, 2;\n")
+        else if(familytype=="logistic")
+            vsqlstr <- paste0("SELECT TOP 1 a.*\n",
+                              " FROM ",statstablename," a\n",
+                              " WHERE a.AnalysisID = ",fquote(AnalysisID),
+                              " AND a.HighestPValue < 0.10 \n",
+                              " ORDER BY 3 DESC, 2;\n")
 
-		d <- sqlQuery(getFLConnection(),vsqlstr)
-		colnames(d) <- toupper(colnames(d))
-		d[["ANALYSISID"]] <- NULL
-		vmaxModelID <- d[["MODELID"]]
-		if(trace>0) print(d)
-	}
+        d <- sqlQuery(getFLConnection(),vsqlstr)
+        colnames(d) <- toupper(colnames(d))
+        d[["ANALYSISID"]] <- NULL
+        vmaxModelID <- d[["MODELID"]]
+        if(trace>0) print(d)
+    }
+    
 
-	vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
-					"FLLogRegr",functionName)
-	vfuncName <- base::gsub("MultiDataset","",vfuncName)
+    vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
+                        "FLLogRegr",functionName)
+    vfuncName <- base::gsub("MultiDataset","",vfuncName)
+    vfuncName <- ifelse(familytype %in% "pls", "FLPLSRegr", functionName)
 
     return(new(vfuncName,
 				formula=formula,
@@ -827,7 +829,8 @@ lmGeneric <- function(formula,data,
 				table=data,
 				results=list(call=callObject,
                                              modelID=vmaxModelID,
-                                             mod = mod),
+                                             mod = mod
+                                             ),
 				deeptable=deepx,
 				mapTable=mapTable,
 				scoreTable="",
@@ -1688,32 +1691,36 @@ summary.FLLinRegr <- function(object,
         reqList <- summary.FLLinRegrMD(object)
 
     else if (object@vfcalls["functionName"] == "FLRobustRegr")
-        {
+    {
                                         #results part:
                                         #if(object@results)
-            
-            vcoeff <- coefficients(object)
-            vresiduals <- as.vector(object$residuals)
-            vdf <- c(length(object@deeptable@Dimnames[[2]]),
-                     length(object@deeptable@Dimnames[[1]]) + 1 - length(object@deeptable@Dimnames[[2]]),
-                    length(object@deeptable@Dimnames[[2]]))
-    
-    reqList <- list(call = object$call,
-                    residuals=vresiduals,
-                    coefficients = vcoeff,
-                    sigma = object$s,
-                    stddev = NA,
-                    df = vdf,
-                    r.squared = NA,
-                    cov.unscaled = NA,
-                    terms = NA
-                     )
+        str <- paste0("SELECT a.StdDev, a.T_Val FROM ",object@vfcalls["coefftablename"]," a
+                           WHERE a.AnalysisID = ",fquote(object@AnalysisID),"
+                           ")
+        df <- sqlQuery(connection, str)
+        vcoeff <- data.frame(coefficients(object), df)
+        names(vcoeff) <- c("Value", "Std.Error", "t Value")
+        vresiduals <- as.vector(object$residuals)
+        vdf <- c(length(object@deeptable@Dimnames[[2]]),
+                 length(object@deeptable@Dimnames[[1]]) + 1 - length(object@deeptable@Dimnames[[2]]),
+                 length(object@deeptable@Dimnames[[2]]))
+        
+        reqList <- list(call = object$call,
+                        residuals=vresiduals,
+                        coefficients = vcoeff,
+                        sigma = object$s,
+                        stddev = NA,
+                        df = vdf,
+                        r.squared = NA,
+                        cov.unscaled = NA,
+                        terms = NA
+                        )
                                         #print(reqList)
-            class(reqList) <- "summary.rlm"
+        class(reqList) <- "summary.rlm"
 
-        }
+    }
     else
-        {
+    {
         stat <- object$FLLinRegrStats
         coeffframe <- data.frame(object$coefficients,
                                  object$FLCoeffStdErr,
@@ -1751,11 +1758,11 @@ summary.FLLinRegr <- function(object,
 
 
 
-
+## Amal: If this generic gets defined here, predict doesn't work for rpart
 #' @export
-predict<-function(object,newdata,...){
-	UseMethod("predict",object)
-}
+#predict<-function(object,newdata,...){
+#	UseMethod("predict",object)
+#}
 
 ## move to file lm.R
 ## Add deep statment, also problem can be of vobsid

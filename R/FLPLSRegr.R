@@ -1,11 +1,42 @@
 
-
 ##library(pls)
-## deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
-## rtbl <- as.R(deeptbl)
-## names(rtbl) <- letters[1:16]
-## flmod<- pls(A~., data =deeptbl, nfactor = 15 )
-## rmod <- mvr(a~., data = rtbl)
+#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' rtbl <- as.R(deeptbl)
+#' names(rtbl) <- letters[1:16]
+#' flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
+#' rmod <- mvr(a~., data = rtbl)
+#' @export
+#' library(pls)
+mvr <- function (formula,data=list(),...) {
+	UseMethod("mvr", data)
+}
+
+## move to file rlm.R
+#' @export
+mvr.default <- pls::mvr
+
+## move to file rlm.R
+#' @export
+mvr.FLpreparedData <- function(formula, data, ncomp = 4,...)
+{
+    vcallObject <- match.call()
+    data <- setAlias(data,"")
+    return(lmGeneric(formula=formula,
+                     data=data,
+                     callObject=vcallObject,
+                     familytype="pls",
+                     nfactor = ncomp,
+                     ...))
+
+}
+
+## move to file rlm.R
+#' @export
+mvr.FLTable <- mvr.FLpreparedData
+
+## move to file rlm.R
+#' @export
+mvr.FLTableMD <- mvr.FLpreparedData
 
 
 
@@ -16,100 +47,6 @@ setClass(
 	contains="FLRegr",
 	slots=list(offset="character",
 				vfcalls="character"))
-
-
-
-## pls Regression.
-
-mvr.default <- pls::mvr
-
-pls <- function(formula, data, nfactor, ...)
-{
-    print(match.call())
-    if(is.FL(data))    {
-        vcallObject <- match.call()
-        data <- setAlias(data,"")
-
-        return(plsGeneric(formula=formula,
-                        data=data,
-                        callObject=vcallObject,
-                        familytype="pls",
-                        nfactor,
-                        ...))
-    }
-}
-
-
-
-plsGeneric <- function(formula, data,callObject, familytype = "pls", nfactor,nofortho = NULL,...)
-{
-    prepData <- prepareData.lmGeneric(formula,
-                                      data,
-                                      callObject=callObject,
-                                      familytype = familytype
-                                      )
-    
-    for(i in names(prepData))
-        assign(i,prepData[[i]])
-    deeptable <- deepx@select@table_name
-    vfcalls <- c(functionName="FLPLSRegr",
-                 infotableName="fzzlPLSRegrInfo",
-                 note="plsregr",
-                 coefftablename="fzzlPLSRegrCentCoeffs",
-                 statstablename="fzzlPLSRegrConvVec"                                                                        )
-
-
-
-    functionName <- vfcalls["functionName"]
-    infotableName <- vfcalls["infotableName"]
-    vnote <- genNote(vfcalls["note"])
-    coefftablename <- vfcalls["coefftablename"]
-    statstablename <- vfcalls["statstablename"]
-
-    vinputCols <- list()
-    vinputCols <- c(vinputCols,
-                    INPUT_TABLE=deeptable,
-                    OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
-                    VARID_COL=getVariables(deepx)[["var_id_colname"]],
-                    VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
-                    )
-
-    if(familytype %in% "pls")
-    {
-        functionName <- "FLLinRegr"
-        vinputCols <- c(vinputCols,
-                        NumOfFactors = nfactor)
-    }
-    vfuncName <- "FLPLSRegr"
-    
-    
-    vinputCols <- c(vinputCols,
-                    NOTE=vnote)
-
-    retobj <- sqlStoredProc(getFLConnection(),
-                            vfuncName,
-                            outputParameter=c(AnalysisID="a"),
-                            pInputParams=vinputCols
-                            )
-    retobj <- checkSqlQueryOutput(retobj)
-    AnalysisID <- as.character(retobj[1,1])
-    vmaxModelID <- NULL
-    vmaxLevelID <- NULL
-
-    return(new(vfuncName,
-               formula=formula,
-               AnalysisID=AnalysisID,
-               wideToDeepAnalysisId=wideToDeepAnalysisId,
-               table=data,
-               results=list(call=callObject
-                            ),
-               deeptable=deepx,
-               mapTable=mapTable,
-               scoreTable="",
-               vfcalls=vfcalls,
-               offset=as.character(offset),
-               RegrDataPrepSpecs=RegrDataPrepSpecs))   
-}
 
 
 
@@ -132,14 +69,195 @@ GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
         FROM ",object@deeptable@select@table_name," a
                            WHERE a.",getVariables(object@deeptable)$var_id_colname," = -1
                            GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
-            mval <- sqlQuery(connection, str)
-            return(mval)
-        }
+        mval <- sqlQuery(connection, str)
+        return(as.numeric(mval))
+    }
+    else if(property=="coefficients"){
+        coefficientsvector <- coefficients(object)
+        assign(parentObject,object,envir=parent.frame())
+        return(coefficientsvector)
+    }
+    else if(property == "Yscores"){
+        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = 'ScoreY' AND
+                             a.AnalysisID = ",fquote(object@AnalysisID),"
+                       ORDER BY 2,4")
+        dtf <- sqlQuery(connection, str)
+        df2 <- data.frame(
+            lapply(1:5, function(x){
+                dtf$NUM_VAL[dtf$FactorNumber == x]
+            }))
+        colnames(df2) <- paste0("Comp ",1:5)
+        return(df2)
+    }
+    else if(property == "scores"){
+        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = 'ScoreX' AND
+                       a.AnalysisID = '",object@AnalysisID,"'
+                       ORDER BY 2,4")
+        dtf <- sqlQuery(connection, str)
+        df2 <- data.frame(
+            lapply(1:5, function(x){
+                dtf$NUM_VAL[dtf$FactorNumber == x]
+            }))
+        colnames(df2) <- paste0("Comp ",1:5)
+        return(df2)
+        
+    }
+    else if(property == "loadings")
+    {
+        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = 'XBetaT' AND
+                       a.AnalysisID = '",object@AnalysisID,"'
+                       ORDER BY 2,4")
+        dtf <- sqlQuery(connection, str)
+        df2 <- data.frame(
+            lapply(1:5, function(x){
+                dtf$NUM_VAL[dtf$FactorNumber == x]
+            }))
+        colnames(df2) <- paste0("Comp ",1:5)
+        return(df2)
 
+    }
+    else if(property == "loading.weights")
+    {
+        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = 'WeightX' AND
+                       a.AnalysisID = '",object@AnalysisID,"'
+                       ORDER BY 2,4")
+        dtf <- sqlQuery(connection, str)
+        df2 <- data.frame(
+            lapply(1:5, function(x){
+                dtf$NUM_VAL[dtf$FactorNumber == x]
+            }))
+        colnames(df2) <- paste0("Comp ",1:5)
+        return(df2)
+    }
+    else if(property == "WeightYN")
+    {
+        str <- paste0("SELECT a.FactorNumber As ComponentNumber, a.Num_Val AS Weight FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = 'WeightYN' AND
+                       a.AnalysisID = '",object@AnalysisID,"'
+                       ORDER BY a.FactorNumber")
+        dtf <- sqlQuery(connection, str)
+        return(dtf)
+        
+        
+    }
+    else if(property == "Yloadings")
+    {
+        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = 'YBetaU' AND
+                       a.AnalysisID = '",object@AnalysisID,"'
+                       ORDER BY 2,4")
+        dtf <- sqlQuery(connection, str)
+        df2 <- data.frame(
+            lapply(1:5, function(x){
+                dtf$NUM_VAL[dtf$FactorNumber == x]
+            }))
+        colnames(df2) <- paste0("Comp ",1:5)
+        return(df2)       
+    }
+        else if(property=="y")
+    {
+        if(!is.null(object@results[["y"]]))
+            return(object@results[["y"]])
+        else
+        {
+            vtablename <- object@deeptable@select@table_name
+            obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
+            var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
+            cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+
+            sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
+                             obs_id_colname," AS vectorIndexColumn,\n",
+                             cell_val_colname," AS vectorValueColumn\n",
+                             " FROM ",vtablename,
+                             " \nWHERE ",var_id_colname," = -1 \n")
+
+            tblfunqueryobj <- new("FLTableFunctionQuery",
+                                  connectionName = getFLConnectionName(),
+                                  variables = list(
+                                      obs_id_colname = "vectorIndexColumn",
+                                      cell_val_colname = "vectorValueColumn"),
+                                  whereconditions="",
+                                  order = "",
+                                  SQLquery=sqlstr)
+
+            yvector <- newFLVector(
+                select = tblfunqueryobj,
+                Dimnames = list(object@deeptable@Dimnames[[1]],
+                                "vectorValueColumn"),
+                dims = as.integer(c(nrow(object@deeptable),1)),
+                isDeep = FALSE)
+            object@results <- c(object@results,list(y=yvector))
+            assign(parentObject,object,envir=parent.frame())
+            return(yvector)
+        }
+    }    
 }
 
 
 
+#' @export
+coefficients<-function(table){
+	UseMethod("coefficients",table)
+}
 
-#coefficients.FLPLSRegr <- 
+#' @export
+coefficients.FLPLSRegr<-function(object){
+    parentObject <- unlist(strsplit(unlist(strsplit(
+        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    str <- paste0("SELECT *
+FROM ",object@vfcalls["coefftablename"],"
+WHERE AnalysisID = '",object@AnalysisID,"'
+ORDER BY 3, 2;")
+    dtf <- sqlQuery(connection, str)
+    var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
+    vdf <- data.frame(Var = var, coeff = dtf$BetaHat)
+    assign(parentObject,object,envir=parent.frame())
+    return(vdf)   
+}
 
+#' @export
+predict.FLPLSRegr <- function(object,
+                              newdata = object@table) {
+        ObsID <- getVariables(object@deeptable)$obs_id_colname
+        VarID <- getVariables(object@deeptable)$var_id_colname
+        Num_Val <- getVariables(object@deeptable)$cell_val_colname
+        
+        str <- paste0(" SELECT  '%insertIDhere%' AS vectorIdColumn,
+                                 b.",ObsID," AS VectorIndexColumn,
+                                 FLSUMProd(b.",Num_Val,", a.BetaHat) AS vectorValueColumn FROM ",
+                                 object@vfcalls["coefftablename"]," a,",
+                                 object@deeptable@select@table_name," b
+                         WHERE a.XVarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
+                         GROUP BY b.",ObsID,"")
+        dt <- sqlQuery(connection, str)
+
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+                              connectionName = getFLConnectionName(),
+                        variables = list(
+			                obs_id_colname = "vectorIndexColumn",
+			                cell_val_colname = "vectorValueColumn"),
+                        whereconditions="",
+                        order = "",
+                        SQLquery=str)
+        flv <- newFLVector(
+				select = tblfunqueryobj,
+				Dimnames = list(rownames(object@table),
+								"vectorValueColumn"),
+                dims = as.integer(c(newdata@dims[1],1)),
+				isDeep = FALSE)
+	return(flv)
+    }
+
+
+#' @export
+residuals.FLPLSRegr <- function(object)
+{
+    vfit <- predict(object)
+    vyval <- object$y
+    vres <- vfit - vyval
+    return(vres)
+}
