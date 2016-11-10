@@ -43,10 +43,10 @@ mvr.FLTableMD <- mvr.FLpreparedData
 
 #' @export
 setClass(
-	"FLPLSRegr",
-	contains="FLRegr",
-	slots=list(offset="character",
-				vfcalls="character"))
+    "FLPLSRegr",
+    contains="FLRegr",
+    slots=list(offset="character",
+               vfcalls="character"))
 
 
 
@@ -78,87 +78,32 @@ GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
         return(coefficientsvector)
     }
     else if(property == "Yscores"){
-        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
-                       WHERE a.VectorName = 'ScoreY' AND
-                             a.AnalysisID = ",fquote(object@AnalysisID),"
-                       ORDER BY 2,4")
-        dtf <- sqlQuery(connection, str)
-        df2 <- data.frame(
-            lapply(1:5, function(x){
-                dtf$NUM_VAL[dtf$FactorNumber == x]
-            }))
-        colnames(df2) <- paste0("Comp ",1:5)
-        return(df2)
+        return(dfgeneric(object, "ScoreY"))
     }
     else if(property == "scores"){
-        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
-                       WHERE a.VectorName = 'ScoreX' AND
-                       a.AnalysisID = '",object@AnalysisID,"'
-                       ORDER BY 2,4")
-        dtf <- sqlQuery(connection, str)
-        df2 <- data.frame(
-            lapply(1:5, function(x){
-                dtf$NUM_VAL[dtf$FactorNumber == x]
-            }))
-        colnames(df2) <- paste0("Comp ",1:5)
-        return(df2)
-        
+        return(dfgeneric(object, "ScoreX"))        
     }
     else if(property == "loadings")
     {
-        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
-                       WHERE a.VectorName = 'XBetaT' AND
-                       a.AnalysisID = '",object@AnalysisID,"'
-                       ORDER BY 2,4")
-        dtf <- sqlQuery(connection, str)
-        df2 <- data.frame(
-            lapply(1:5, function(x){
-                dtf$NUM_VAL[dtf$FactorNumber == x]
-            }))
-        colnames(df2) <- paste0("Comp ",1:5)
-        return(df2)
+        return(dfgeneric(object, "XBetaT"))        
 
     }
     else if(property == "loading.weights")
-    {
-        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
-                       WHERE a.VectorName = 'WeightX' AND
-                       a.AnalysisID = '",object@AnalysisID,"'
-                       ORDER BY 2,4")
-        dtf <- sqlQuery(connection, str)
-        df2 <- data.frame(
-            lapply(1:5, function(x){
-                dtf$NUM_VAL[dtf$FactorNumber == x]
-            }))
-        colnames(df2) <- paste0("Comp ",1:5)
-        return(df2)
+    {                return(dfgeneric(object, "WeightX"))        
+
     }
     else if(property == "WeightYN")
     {
-        str <- paste0("SELECT a.FactorNumber As ComponentNumber, a.Num_Val AS Weight FROM ",object@vfcalls["statstablename"]," a
-                       WHERE a.VectorName = 'WeightYN' AND
-                       a.AnalysisID = '",object@AnalysisID,"'
-                       ORDER BY a.FactorNumber")
-        dtf <- sqlQuery(connection, str)
-        return(dtf)
-        
+        return(dfgeneric(object, "WeightYN"))
         
     }
     else if(property == "Yloadings")
     {
-        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
-                       WHERE a.VectorName = 'YBetaU' AND
-                       a.AnalysisID = '",object@AnalysisID,"'
-                       ORDER BY 2,4")
-        dtf <- sqlQuery(connection, str)
-        df2 <- data.frame(
-            lapply(1:5, function(x){
-                dtf$NUM_VAL[dtf$FactorNumber == x]
-            }))
-        colnames(df2) <- paste0("Comp ",1:5)
-        return(df2)       
+        
+        return(dfgeneric(object, "YBetaU"))       
+        
     }
-        else if(property=="y")
+    else if(property=="y")
     {
         if(!is.null(object@results[["y"]]))
             return(object@results[["y"]])
@@ -260,4 +205,25 @@ residuals.FLPLSRegr <- function(object)
     vyval <- object$y
     vres <- vfit - vyval
     return(vres)
+}
+
+
+
+
+
+
+dfgeneric <- function(object, vcomp)
+{
+    str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
+                       WHERE a.VectorName = ",fquote(vcomp)," AND
+                       a.AnalysisID = '",object@AnalysisID,"'
+                       ORDER BY 2,4")
+    dtf <- sqlQuery(connection, str)
+    ncomp <- as.numeric(object@results$mod["ncomp"])
+    df2 <- data.frame(
+        lapply(1:ncomp, function(x){
+            dtf$NUM_VAL[dtf$FactorNumber == x]
+        }))
+    colnames(df2) <- paste0("Comp ",1:ncomp)
+    return(df2)
 }
