@@ -1,19 +1,19 @@
-setClass(
-	"FLrpart",
-	slots=list(frame="list",
-			   method="character",
-			   control="list",
-			   where="integer",
-			   call="call",
-			   AnalysisID="character",
-			   deeptable="FLTable",
-			   prepspecs="list"))
+
+setClass("FLrpart",
+         slots=list(frame="list",
+                    method="character",
+                    control="list",
+                    where="integer",
+                    call="call",
+                    AnalysisID="character",
+                    deeptable="FLTable",
+                    prepspecs="list"))
 
 FLrpart<-function(data,
 				  formula,
 				  control=rpart.control(minsplit=10,
-				  maxdepth=5,
-				  cp=0.95),
+                                        maxdepth=5,
+                                        cp=0.95),
 				  method="class",
 				  ...){#browser()
 	call<-match.call()
@@ -67,29 +67,34 @@ FLrpart<-function(data,
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
 	ret<-sqlQuery(connection,sql)
-	frame<-list()
-	frame$NodeID<-ret$NodeID
-	frame$n<-ret$NodeSize
-	frame$prob<-ret$PredictClassProb
-	frame$yval<-ret$PredictClass
-	frame$var<-ret$SplitVarID
-	frame$SplitVal<-ret$SplitVal
-	frame$leftson<-ret$ChildNodeLeft
-	frame$rightson<-ret$ChildNodeRight
+	frame<-data.frame(
+        NodeID   =ret$NodeID,
+        n        =ret$NodeSize,
+        prob     =ret$PredictClassProb,
+        yval     =ret$PredictClass,
+        var      =ret$SplitVarID,
+        SplitVal =ret$SplitVal,
+        leftson  =ret$ChildNodeLeft,
+        rightson =ret$ChildNodeRight,
+        nsurrogate=NA)
 	
 	## class(outobj)<-"rpart": Amal: Some issues with printing the 'rpart' object. 
 	return(new(Class="FLrpart",
 			   frame=frame,
 			   method=method,
 			   control=control,
-			   where=ret$NodeID,
+			   where=as.integer(ret$NodeID),
 			   call=call,
 			   deeptable=deepx,
 			   AnalysisID=AnalysisID,
 			   prepspecs=vprepspecs))
 }
 
+## todo: implement $ operator for all names in a rpart S3 object
+
 summary.FLrpart<-function(x,...){
+    ## todo: create a rpart S3 object xrpart (populate as much as possible)
+    ## print(xrpart)
 	cat("Call:\n")
 	dput(x@call)
 	cat(" n=",x@frame$n[1],"\n\n")
