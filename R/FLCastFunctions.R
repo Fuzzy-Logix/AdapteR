@@ -527,6 +527,8 @@ as.sparseMatrix.FLMatrix.TDAster <- function(object){
     as.sparseMatrix.FLMatrix(object)
 }
 #' @export
+as.sparseMatrix.FLMatrix.Hadoop <- as.sparseMatrix.FLMatrix.TDAster
+#' @export
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
 {
@@ -933,7 +935,7 @@ as.FLTable.data.frame <- function(object,
                              pDrop=drop
                              )},
             error=function(e)NULL)
-    if(is.ODBC(vconnection))
+    if(is.ODBC(vconnection) || is.Hadoop())
     {
     ## SqlSave uses parameterized sql which is slow for odbc.
     ## SqlSave does not include distribute by during table creation.
@@ -953,6 +955,7 @@ as.FLTable.data.frame <- function(object,
     vresult <- tryCatch(insertIntotbl(pTableName=tableName,
                                     pValues=object),
                         error=function(e){
+                            if(!is.ODBC(vconnection)) stop(e)
                             sqlstr <- paste0("INSERT INTO ",tableName,
                                             " VALUES(",paste0(rep("?",vcols),
                                             collapse=","),")")
@@ -972,7 +975,6 @@ as.FLTable.data.frame <- function(object,
                   vsetvector[" INT "] <- "setInt"
                   for(i in 1:length(namedvector))
                   {
-                    #browser()
                     .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
                       if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
                       else if(namedvector[i]==" FLOAT ") .jfloat(x[i])
