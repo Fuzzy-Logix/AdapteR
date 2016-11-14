@@ -12,8 +12,8 @@
 FLrpart<-function(data,
 				  formula,
 				  control=rpart.control(minsplit=10,
-				  maxdepth=5,
-				  cp=0.95),
+                                        maxdepth=5,
+                                        cp=0.95),
 				  method="class",
 				  ...){#browser()
 	call<-match.call()
@@ -74,7 +74,9 @@ FLrpart<-function(data,
 					  var=ret$SplitVarID,
 					  SplitVal=ret$SplitVal,
 					  leftson=ret$ChildNodeLeft,
-					  rightson=ret$ChildNodeRight)
+					  rightson=ret$ChildNodeRight,
+					  dev=1:length(ret$NodeSize),
+					  treelevel=ret$TreeLevel)
 	 
 	retobj<- list(frame=frame,
 			 	  method=method,
@@ -88,7 +90,11 @@ FLrpart<-function(data,
 	return(retobj)
 }
 
+## todo: implement $ operator for all names in a rpart S3 object
+
 summary.FLrpart<-function(x,...){
+    ## todo: create a rpart S3 object xrpart (populate as much as possible)
+    ## print(xrpart)
 	cat("Call:\n")
 	dput(x$call)
 	cat(" n=",x$frame$n[1],"\n\n")
@@ -145,14 +151,58 @@ predict.FLrpart<-function(object,
 	return(result)
 }
 
-print.FLrpart<-function(object){
-	retobj<-list(frame=object$frame,
-			     method=object$method,
-			   	 control=object$control,
-			  	 where=object$where,
-			     call=object$call)
-	class(retobj)<-"rpart"
-	print(retobj)
+print.FLrpart<-function(object){browser()
+	frame <- object$frame
+	depth<-frame$treelevel
+	newframe<-frame
+	newframe[1,]<-frame[1,]
+	newsplit<-c(1:length(depth))
+	frame$split<-newsplit
+	term <- rep(" ", length(depth))
+    for(i in 1:length(depth)){
+    	if(is.na(frame$SplitVal[i])) {
+    		term[i]<-"*"
+    	}
+    	else{
+    		j<-frame$leftson[i]
+    		k<-frame$rightson[i]
+    		newsplit[frame$NodeID==j]<-paste0(frame$var[i],"<",frame$SplitVal[i])
+    		newsplit[frame$NodeID==k]<-paste0(frame$var[i],">=",frame$SplitVal[i])
+    		}
+ 	}
+ 	newsplit[1]<-"root"
+ 	t<-0
+ 	for(i in 1:length(depth)){
+ 		if(!is.na(frame$SplitVal[i])) {
+ 			j<-frame$leftson[i]
+    		k<-frame$rightson[i]
+ 			newframe[i+1,]<-frame[j,]
+    		newframe[i+2,]<-frame[k,]
+ 		}
+ 		else {
+ 			if(newframe$NodeID!=i) newframe[length(depth-t),]<-frame[i]
+ 			t<-t+1
+ 		}
+	 }
+ 	#browser()
+ 	ylevel <- attr(x, "ylevels")
+	node <- as.numeric(row.names(newframe))
+ 	depth <- newframe$treelevel
+ 	spaces<-2
+ 	indent <- paste(rep(" ", spaces * 32L), collapse = "")
+  	indent <- if (length(node) > 1L) {
+    	indent <- substring(indent, 1L, spaces * seq(depth))
+    	paste0(c("", indent[depth]), format(node), ")")}
+    yval<-newframe$yval
+    prob<-newframe$prob
+ 	newframe[length(depth),]<-frame[length(depth),]
+ 	n <-newframe$n
+    retobj <- paste(indent,newsplit, n, yval, prob, term)
+	#class(retobj)<-"rpart"
+	cat("n=", n[1L], "\n\n")
+	cat("node), split, n, yval, (yprob)\n")
+	cat("      * denotes terminal node\n\n")
+  	cat(retobj, sep = "\n")
 }
 
 # `$.FLrpart` <- function(object,property){

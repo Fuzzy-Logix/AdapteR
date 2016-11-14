@@ -536,7 +536,7 @@ lmGeneric <- function(formula,data,
 															"FLLinRegrMultiDataset",
 															"FLLinRegr"),
 										infotableName="fzzlLinRegrInfo",
-										note="linregr",
+										Note="linregr",
 										coefftablename="fzzlLinRegrCoeffs",
 										statstablename="fzzlLinRegrStats",
 										valcolnamescoretable="Y",
@@ -545,14 +545,14 @@ lmGeneric <- function(formula,data,
 																	"FLLogRegrMultiDataset",
 																	"FLLogRegr"),
 										infotableName="fzzlLogRegrInfo",
-										note="logregr",
+										Note="logregr",
 										coefftablename="fzzlLogRegrCoeffs",
 										statstablename="fzzlLogRegrStats",
 										valcolnamescoretable="Y",
 										scoretablename="FLLogRegrScore")
 	else if(familytype=="poisson") vfcalls <- c(functionName="FLPoissonRegr",
 										infotableName="fzzlPoissonRegrInfo",
-										note="poissonregr",
+										Note="poissonregr",
 										coefftablename="fzzlPoissonRegrCoeffs",
 										statstablename="fzzlPoissonRegrStats",
 										valcolnamescoretable="Mu",
@@ -560,7 +560,7 @@ lmGeneric <- function(formula,data,
 	else if(familytype=="logisticwt"){
 		vfcalls <- c(functionName="FLLogRegrWt",
 										infotableName="fzzlLogRegrInfo",
-										note="logregrwt",
+										Note="logregrwt",
 										coefftablename="fzzlLogRegrCoeffs",
 										statstablename="fzzlLogRegrStats",
 										valcolnamescoretable="Y",
@@ -571,7 +571,7 @@ lmGeneric <- function(formula,data,
 	}
 	else if(familytype=="multinomial") vfcalls <- c(functionName="FLLogRegrMN",
 										infotableName="fzzlLogRegrMNInfo",
-										note="logregrMN",
+										Note="logregrMN",
 										coefftablename="fzzlLogRegrMNCoeffs",
 										statstablename="fzzlLogRegrMNStats",
 										valcolnamescoretable="Y",
@@ -579,7 +579,7 @@ lmGeneric <- function(formula,data,
     
         else if(familytype == "robust") vfcalls <- c(functionName="FLRobustRegr",
                                                      infotableName="fzzlRobustRegrInfo",
-                                                     note="robustregr",
+                                                     Note="robustregr",
                                                      coefftablename="fzzlRobustRegrCoeffs",
                                                      statstablename="fzzlRobustRegrStats",
                                                      cortablename = "fzzlRobustRegrVarCov",
@@ -587,7 +587,7 @@ lmGeneric <- function(formula,data,
                                                      )
         else if(familytype == "pls") vfcalls <- c(functionName="FLPLSRegr",
                                                  infotableName="fzzlPLSRegrInfo",
-                                                 note="plsregr",
+                                                 Note="plsregr",
                                                  coefftablename="fzzlPLSRegrCentCoeffs",
                                                  statstablename="fzzlPLSRegrConvVec",                                              
                                                  scoretablename="FLLinRegrScore"
@@ -605,17 +605,17 @@ lmGeneric <- function(formula,data,
 	if(functionName %in% c("FLLinRegrMultiDataset",
 							"FLLogRegrMultiDataset"))
 		vinputCols <- c(vinputCols,
-						INPUT_TABLE=deeptable,
+						TableName=deeptable,
 						GroupIDCol=getVariables(deepx)[["group_id_colname"]],
-						OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
-						VARID_COL=getVariables(deepx)[["var_id_colname"]],
-						VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
+						ObsIDCol=getVariables(deepx)[["obs_id_colname"]],
+						VarIDCol=getVariables(deepx)[["var_id_colname"]],
+						ValueCol=getVariables(deepx)[["cell_val_colname"]]
 						)
 	else vinputCols <- c(vinputCols,
-						INPUT_TABLE=deeptable,
-						OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
-						VARID_COL=getVariables(deepx)[["var_id_colname"]],
-						VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
+						TableName=deeptable,
+						ObsIDCol=getVariables(deepx)[["obs_id_colname"]],
+						VarIDCol=getVariables(deepx)[["var_id_colname"]],
+						ValueCol=getVariables(deepx)[["cell_val_colname"]]
 						)
 	if(familytype %in% "multinomial")
 	vinputCols <- c(vinputCols,
@@ -707,7 +707,7 @@ lmGeneric <- function(formula,data,
     
     
     vinputCols <- c(vinputCols,
-                    NOTE=vnote)
+                    Note=vnote)
 
     retobj <- sqlStoredProc(getFLConnection(),
                             vfuncName,
@@ -1514,7 +1514,7 @@ coefficients.lmGeneric <-function(object,
 	return(object@results[["coefficients"]])
     else
     {
-        ##Since Currently only 1000 Columns are supported
+        ## Since Currently only 1000 Columns are supported
         ## by FLLinRegr, fetch them.
                                         #browser()
                                         # vmapping <- NULL
@@ -1877,10 +1877,10 @@ predict.lmGeneric <- function(object,
 
 	vinputCols <- list()
 	vinputCols <- c(vinputCols,
-					INPUT_TABLE=newdata@select@table_name,
-					OBSID_COL=vobsid,
-					VARID_COL=vvarid,
-					VALUE_COL=vvalue
+					TableName=newdata@select@table_name,
+					ObsIDCol=vobsid,
+					VarIDCol=vvarid,
+					ValueCol=vvalue
 					)
 	if(!object@vfcalls["functionName"]=="FLPoissonRegr")
 	vinputCols <- c(vinputCols,
@@ -1891,7 +1891,7 @@ predict.lmGeneric <- function(object,
 
 	if(!is.Hadoop())
 	vinputCols <- c(vinputCols,
-					NOTE=genNote(paste0("Scoring ",vfcalls["note"])))
+					Note=genNote(paste0("Scoring ",vfcalls["note"])))
 
 	AnalysisID <- sqlStoredProc(getFLConnection(),
 								vfcalls["scoretablename"],

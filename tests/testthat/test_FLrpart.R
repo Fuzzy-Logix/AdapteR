@@ -3,7 +3,7 @@ Renv=new.env(parent= globalenv())
 FLenv= as.FL(Renv)
 Renv$kyphosis<-kyphosis
 colnames(Renv$kyphosis)<-paste0("Col",1:ncol(kyphosis))
-FLenv$kyphosis<-as.FLTable(kyphosis,temporary=FALSE)
+FLenv$kyphosis<-as.FLTable(Renv$kyphosis,temporary=FALSE)
 
 FLenv$deeptable<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 Renv$deeptable<-as.data.frame(deeptable)
