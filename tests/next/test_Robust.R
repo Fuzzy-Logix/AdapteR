@@ -1,9 +1,6 @@
-
-
 ##to-do: 1.)store things in Results,
-##      2.) psi parameter not working.
 ##      3.) correct mapping of t-value with variable.
-
+##      4.) plot, cov.unscaled -> summary.rlm
 ## Robust Regression
 ## Deep Table
 library(MASS)
@@ -27,6 +24,33 @@ eval_expect_equal({
 },Renv,FLenv,
 noexpectation = "fit")
 
+
+##Prediction, Residuals
+FLenv$pred <- predict(FLenv$fit)
+Renv$pred <- predict(Renv$fit)
+FLexpect_equal(FLenv$fitP, Renv$fitP)
+FLexpect_equal(residuals(FLenv$fit), unname(residuals(Renv$fit)))
+
+## Prediction, Residuals, fitted.values: 
+test_that("rlm coefficients, residuals:",{result <- eval_expect_equal({
+    pred <- predict(fit);names(pred) <- NULL
+    fit.val <- fit$fitted.values;names(fit.val) <- NULL
+    res <- residuals(fit);names(res) <- NULL
+  },Renv,FLenv,
+expectation=c("pred"),
+check.attributes=FALSE,
+verboose = TRUE)})
+
+## coefficients: 
+test_that("rlm coefficients:",{result <- eval_expect_equal({
+    fitC <- coefficients(fit)
+    names(fitC) <- NULL
+    
+},Renv,FLenv,
+expectation=c("fitC"),
+check.attributes=FALSE,
+verboose = TRUE)})
+
 ## summary, print.
 test_that("Summary for rlm and print:",{result <- eval_expect_equal({
     fitS <- summary(fit)
@@ -35,29 +59,11 @@ test_that("Summary for rlm and print:",{result <- eval_expect_equal({
 verbose = TRUE,
 expectation = c("fitS"))})
 
-test_that("rlm predict $ fitted.values:",{result <- eval_expect_equal({
-    fitP <- predict(fit)
-    fitPbyname <- fit$fitted.values
-},Renv,FLenv,
-expectation=c("fitP"),
-check.attributes=F)
-})
 
 
-## coefficients and Residuals: 
-test_that("rlm coefficients, residuals:",{result <- eval_expect_equal({
-    fitC <- coefficients(fit)
-    fitR <- residuals(fit)
-},Renv,FLenv,
-expectation=c("fitC","fitR"),
-check.attributes=F,
-tolerance = .01,
-verboose = T)})
 
 
 ## Wide Table:
-
-
 FLenv <- new.env(parent = globalenv())
 FLenv$widetbl <- FLTable("tblautompg", "ObsID")
 Renv <- as.R(FLenv) ## todo: add temporary=FALSE
@@ -66,29 +72,24 @@ eval_expect_equal({
     fit <- rlm(Weight ~ Acceleration , data = widetbl)
 },Renv,FLenv,
 noexpectation=c("fit"),
-check.attributes=F)
-
-
-eval_expect_equal({
-    fitS <- summary(fit)
-    print(fitS)
-},Renv,FLenv)
+check.attributes=FALSE,
+verbose = TRUE)
 
 ##
 eval_expect_equal({
-    fitP <- predict(fit) ## todo: use FLSUMPROD
-    fitPbyname <- fit$fitted.values
+    pred <- predict(fit);names(pred) <- NULL
+    res <- residuals(fit);names(res) <- NULL
 },Renv,FLenv,
-expectation=c("fitP","fitPbyname"),
-check.attributes=F,
+expectation=c("pred","res"),
+check.attributes=FALSE,
 verbose = TRUE)
 
 
 ## 
 eval_expect_equal({
     fitC <- coefficients(fit)
-    fitR <- residuals(fit)
+    names(fitC) <- NULL
 },Renv,FLenv,
-expectation=c("fitC","fitR"),
-check.attributes=F,
-verboose = T)
+expectation=c("fitC"),
+check.attributes=FALSE,
+verboose = TRUE)

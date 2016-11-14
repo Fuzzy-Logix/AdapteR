@@ -76,7 +76,7 @@ setClass(
 #' coefficients(t)
 #' residuals(t)
 #' @export
-rlm <- function (formula,data=list(),...) {
+rlm <- function (formula,data=list(),psi, ...) {
 	UseMethod("rlm", data)
 }
 
@@ -86,7 +86,7 @@ rlm.default <- MASS::rlm
 
 ## move to file rlm.R
 #' @export
-rlm.FLpreparedData <- function(formula,data,...)
+rlm.FLpreparedData <- function(formula,data,psi = "psi.huber", ...)
 {
         vcallObject <- match.call()
         data <- setAlias(data,"")
@@ -94,6 +94,7 @@ rlm.FLpreparedData <- function(formula,data,...)
                          data=data,
                          callObject=vcallObject,
                          familytype="robust",
+                         psi = psi,
                          ...))
 }
 
@@ -586,12 +587,20 @@ lmGeneric <- function(formula,data,
                                                      scoretablename="FLLinRegrScore"
                                                      )
         else if(familytype == "pls") vfcalls <- c(functionName="FLPLSRegr",
-                                                 infotableName="fzzlPLSRegrInfo",
-                                                 note="plsregr",
-                                                 coefftablename="fzzlPLSRegrCentCoeffs",
-                                                 statstablename="fzzlPLSRegrConvVec",                                              
-                                                 scoretablename="FLLinRegrScore"
-                                                 )
+                                                  infotableName="fzzlPLSRegrInfo",
+                                                  note="plsregr",
+                                                  coefftablename="fzzlPLSRegrCoeffs",
+                                                  statstablename="fzzlPLSRegrConvVec",
+                                                  scoretablename="FLLinRegrScore"
+                                                  )
+        else if(familytype == "opls") vfcalls <- c(functionName="FLOPLSRegr",
+                                                  infotableName="fzzlPLSRegrnfo",
+                                                  note="oplsregr",
+                                                  coefftablename="fzzlPLSRegrCentCoeffs",
+                                                  statstablename="fzzlOPLSRegrConvVec",
+                                                  scoretablename="FLLinRegrScore",
+                                                  rcoeff = "fzzlOPLSRegrFactorFit"
+                                                  )
 
 
 
@@ -620,7 +629,7 @@ lmGeneric <- function(formula,data,
 	if(familytype %in% "multinomial")
 	vinputCols <- c(vinputCols,
 					pRefLevel=pThreshold)
-	if(!familytype %in% c("linear", "robust", "pls") && direction!="forward")
+	if(!familytype %in% c("linear", "robust", "pls", "opls") && direction!="forward")
 	vinputCols <- c(vinputCols,
 					MAX_ITER=maxiter)
 	if(base::grepl("logistic",familytype) 
@@ -664,24 +673,24 @@ lmGeneric <- function(formula,data,
 	}
     
     ##for rlm defining psi and tuning constant:
-    weightfn = "huber"
-    if(exists("psi")){
-        if(psi == "psi.huber" || identical(psi, MASS::psi.huber))
-        {weightfn <- "huber"}
-        else
-            if(psi == "psi.bisquare" || identical(psi,MASS::psi.bisquare))
-                weightfn <- "bisquare"
-        else
-            if(psi == "psi.hampel" || identical(psi, MASS::psi.hampel))
-                print("dont compute rlm for hampel function currently computing it for huber")
-        else
-            if(psi %in% c("cauchy", "fair","logistic", "talwar", "andrews", "welsch"))
-                weightfn <- psi
-    }
-    tunconst <- .5
-
     if(familytype %in% "robust")
     {
+        
+        weightfn = "huber"
+        if(list(...)$psi == "psi.bisquare" )
+        {weightfn <- "bisquare";print("check 2")}
+        else if(list(...)$psi == "psi.hampel")
+            print("dont compute rlm for hampel function currently computing it for huber")
+        else if(list(...)$psi %in% c("cauchy", "fair","logistic", "talwar", "andrews", "welsch")
+                )
+            weightfn <- list(...)$psi
+        if(is.null(list(...)$u))
+        {
+            tunconst <- .5
+        }
+        else
+            tunconst <- list(...)$u
+
         vinputCols <- c(vinputCols,
                         WeightFn = weightfn,
                         TuneConstant= tunconst,
@@ -689,13 +698,13 @@ lmGeneric <- function(formula,data,
                         )
         functionName <- "FLLinRegr"
         mod <- c(nCoeffCorrelWithRes="",
-             nCoeffNonZeroDensity="",
-             nCoeffTStat="T_VAL",
-             nCoeffStdErr="STDDEV",
-             nCoeffPValue="P_VAL",
-             nCoeffEstim = "EST",
-             nID = "VarID"
-             )  }
+                 nCoeffNonZeroDensity="",
+                 nCoeffTStat="T_VAL",
+                 nCoeffStdErr="STDDEV",
+                 nCoeffPValue="P_VAL",
+                 nCoeffEstim = "EST",
+                 nID = "VarID"
+                 )  }
 
     if(familytype %in% "pls")
     {
@@ -709,6 +718,25 @@ lmGeneric <- function(formula,data,
     }
     
     
+    if(familytype %in% "opls")
+    {
+        functionName <- "FLLinRegr"
+        if(!list(...)$nfactor)
+        {print("Number of Component is missing insterting default value of 4 ")
+            nfactor <- 4
+        }
+        if(!list(...)$Northo)
+        {
+            print("Number of Ortho is missing insterting default value of 3")
+            northo <- 3 
+        }
+        
+        vinputCols <- c(vinputCols,
+                        NumOfFactors = list(...)$nfactor,
+                        NumOfOrtho = list(...)$Northo)
+        mod <- c(mod, ncomp = list(...)$nfactor, northo = list(...)$Northo)
+    }
+
     vinputCols <- c(vinputCols,
                     NOTE=vnote)
 
@@ -820,7 +848,7 @@ lmGeneric <- function(formula,data,
     vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
                         "FLLogRegr",functionName)
     vfuncName <- base::gsub("MultiDataset","",vfuncName)
-    vfuncName <- ifelse(familytype %in% "pls", "FLPLSRegr", functionName)
+    vfuncName <- ifelse(familytype %in% c("pls", "opls"), "FLPLSRegr", functionName)
 
     return(new(vfuncName,
 				formula=formula,

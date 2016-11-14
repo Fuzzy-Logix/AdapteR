@@ -1,5 +1,4 @@
-##TO-DO:1.)using ncomp from results for loadings
-##      2.)find a better method for prediction.
+# DB-Lytix Example.
 Renv <- new.env(parent = globalenv())
 FLenv <- as.FL(Renv)
 deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
@@ -14,24 +13,42 @@ eval_expect_equal({
 },Renv,FLenv,
 noexpectation = "fit")
 
-## loadings etc....
-test_that("loadings and other parameter:", {eval_expect_equal({
-    fitload <- fit$loadings
+
+## Means, coefficients & scores:
+test_that("Means and coefficients:", {eval_expect_equal({
     ymn <- fit$Ymeans
     xmn <- fit$Xmeans
-},Renv,FLenv,
-verbose = TRUE,
-expectations = c("fitload", "ymn", "xmn"))
-})
-
-
-
-## scores, Yloadings , ...
-test_that("loadings and other parameter:", {eval_expect_equal({
-    yload <- fit$Yloadings
-    load.wt <- fit$loadings.weights
+    yscr <- fit$Yscores
     xscr <- fit$scores
+    
 },Renv,FLenv,
 verbose = TRUE,
-expectations = c("yload", "load.wt", "xscr"))
+check.attributes = FALSE,
+expectations = c("xscr", "yscr", "ymn", "xmn"))
 })
+
+
+## loadings , ...
+test_that("loadings:", {result <- eval_expect_equal({
+    yload <- fit$Yloadings
+    lwt <- fit$loading.weights
+    load <- fit$loadings
+   
+},Renv,FLenv,
+verbose = TRUE,
+expectations = c("yload", "lwt", "load"),
+check.atributes = FALSE)
+})
+
+
+## predict, residuals ....
+
+Renv$pred <- unname(predict(Renv$fit, ncomp = 5))
+Renv$res <- unname(residuals(Renv$fit)[,,5]) 
+FLenv$pred <- predict(FLenv$fit)
+FLenv$res <- residuals(FLenv$fit)
+
+FLexpect_equal(Renv$pred, FLenv$pred)
+FLexpect_equal(Renv$res, FLenv$res)
+
+## R Example:

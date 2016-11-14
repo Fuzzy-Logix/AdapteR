@@ -4,7 +4,7 @@
 #' rtbl <- as.R(deeptbl)
 #' names(rtbl) <- letters[1:16]
 #' flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
-#' rmod <- mvr(a~., data = rtbl)
+#' rmod <- mvr(a~., data = rtbl, ncomp = 5)
 #' @export
 #' library(pls)
 mvr <- function (formula,data=list(),...) {
@@ -40,6 +40,46 @@ mvr.FLTableMD <- mvr.FLpreparedData
 
 
 
+## OPLS Regression
+##note: rsquare not working.
+#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' rtbl <- as.R(deeptbl)
+#' names(rtbl) <- letters[1:16]
+#' flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
+#' rmod <- mvr(a~., data = rtbl, ncomp = 5)
+
+
+
+
+opls <- function (formula,data=list(),...) {
+	UseMethod("opls", data)
+}
+
+
+## move to file rlm.R
+#' @export
+opls.FLpreparedData <- function(formula, data, ncomp = 4,northo = 5, ...)
+{
+    vcallObject <- match.call()
+    data <- setAlias(data,"")
+    return(lmGeneric(formula=formula,
+                     data=data,
+                     callObject=vcallObject,
+                     familytype="opls",
+                     nfactor = ncomp,
+                     Northo = northo, 
+                     ...))
+
+}
+
+## move to file rlm.R
+#' @export
+opls.FLTable <- opls.FLpreparedData
+
+## move to file rlm.R
+#' @export
+opls.FLTableMD <- opls.FLpreparedData
+
 
 #' @export
 setClass(
@@ -72,36 +112,70 @@ GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
         mval <- sqlQuery(connection, str)
         return(as.numeric(mval))
     }
+    else if(property == "methods")
+    {
+        stm <- "FL model"
+        return(stm)
+    }
+    else if(property == "fitted.values")
+    {
+        res <- predict(object)
+        return(res)
+    }
     else if(property=="coefficients"){
         coefficientsvector <- coefficients(object)
         assign(parentObject,object,envir=parent.frame())
         return(coefficientsvector)
     }
     else if(property == "Yscores"){
-        return(dfgeneric(object, "ScoreY"))
+        scr <- dfgeneric(object, "ScoreY")
+        scr <- as.matrix.data.frame(scr)
+        class(scr) <- "scores"
+        return(scr)       
     }
     else if(property == "scores"){
-        return(dfgeneric(object, "ScoreX"))        
+        scr <- dfgeneric(object, "ScoreX")
+        scr <- as.matrix.data.frame(scr)
+        class(scr) <- "scores"
+        return(scr)        
     }
     else if(property == "loadings")
     {
-        return(dfgeneric(object, "XBetaT"))        
-
+        load <- dfgeneric(object, "XBetaT")
+        load <- as.matrix.data.frame(load)
+        class(load) <- "loadings"
+        return(load)        
     }
-    else if(property == "loading.weights")
-    {                return(dfgeneric(object, "WeightX"))        
-
+     else if(property == "loading.weights")
+    {
+        load <- dfgeneric(object, "WeightX")
+        load <- as.matrix.data.frame(load)
+        class(load) <- "loadings"
+        return(load)                
     }
     else if(property == "WeightYN")
     {
         return(dfgeneric(object, "WeightYN"))
-        
     }
     else if(property == "Yloadings")
     {
-        
-        return(dfgeneric(object, "YBetaU"))       
-        
+        load <- dfgeneric(object, "YBetaU")
+        load <- as.matrix.data.frame(load)
+        class(load) <- "loadings"
+        return(load)              
+    }
+    else if(property == "rsquare")
+    {
+        if(object@vfcalls["functionName"]!= "FLOPLSRegr")
+            print("only computed for opls as of now")
+        else
+        {
+            print(object@AnalysisID)
+            dtf <- sqlQuery(connection, "SELECT a.NumOfFactors, a.RSquare
+                                     FROM fzzlOPLSRegrFactorFit AS a
+                                     WHERE a.AnalysisID = '",object@AnalysisID,"'
+                                     ORDER BY a.NumOfFactors")
+        return(dtf)}
     }
     else if(property=="y")
     {
@@ -158,8 +232,9 @@ FROM ",object@vfcalls["coefftablename"],"
 WHERE AnalysisID = '",object@AnalysisID,"'
 ORDER BY 3, 2;")
     dtf <- sqlQuery(connection, str)
+    dtf <- dtf[2:length(dtf), ]
     var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
-    vdf <- data.frame(Var = var, coeff = dtf$BetaHat)
+    vdf <- data.frame(Var = var, coeff = dtf$Beta)
     assign(parentObject,object,envir=parent.frame())
     return(vdf)   
 }
@@ -170,10 +245,13 @@ predict.FLPLSRegr <- function(object,
         ObsID <- getVariables(object@deeptable)$obs_id_colname
         VarID <- getVariables(object@deeptable)$var_id_colname
         Num_Val <- getVariables(object@deeptable)$cell_val_colname
-        
+
+        if(object@vfcalls["functionName"] == "FLOPLSRegr")
+        {cof <- "BetaHat"}
+        else cof <- "Beta"
         str <- paste0(" SELECT  '%insertIDhere%' AS vectorIdColumn,
                                  b.",ObsID," AS VectorIndexColumn,
-                                 FLSUMProd(b.",Num_Val,", a.BetaHat) AS vectorValueColumn FROM ",
+                                 FLSUMProd(b.",Num_Val,", a.",cof,") AS vectorValueColumn FROM ",
                                  object@vfcalls["coefftablename"]," a,",
                                  object@deeptable@select@table_name," b
                          WHERE a.XVarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
@@ -208,10 +286,6 @@ residuals.FLPLSRegr <- function(object)
 }
 
 
-
-
-
-
 dfgeneric <- function(object, vcomp)
 {
     str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a
@@ -227,3 +301,11 @@ dfgeneric <- function(object, vcomp)
     colnames(df2) <- paste0("Comp ",1:ncomp)
     return(df2)
 }
+
+
+plot.FLPLSRegr <- function(object, ...)
+{
+    measured <- as.R(object$y)
+    predicted <- as.R(predict(object))
+    plot(measured, predicted, ...)
+    }
