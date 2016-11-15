@@ -76,7 +76,8 @@ FLrpart<-function(data,
 					  leftson=ret$ChildNodeLeft,
 					  rightson=ret$ChildNodeRight,
 					  dev=1:length(ret$NodeSize),
-					  treelevel=ret$TreeLevel)
+					  treelevel=ret$TreeLevel,
+					  parent=ret$ParentNodeID)
 	 
 	retobj<- list(frame=frame,
 			 	  method=method,
@@ -151,7 +152,7 @@ predict.FLrpart<-function(object,
 	return(result)
 }
 
-print.FLrpart<-function(object){browser()
+print.FLrpart<-function(object){#browser()
 	frame <- object$frame
 	depth<-frame$treelevel
 	newframe<-frame
@@ -171,20 +172,21 @@ print.FLrpart<-function(object){browser()
     		}
  	}
  	newsplit[1]<-"root"
- 	t<-0
- 	for(i in 1:length(depth)){
- 		if(!is.na(frame$SplitVal[i])) {
- 			j<-frame$leftson[i]
-    		k<-frame$rightson[i]
- 			newframe[i+1,]<-frame[j,]
-    		newframe[i+2,]<-frame[k,]
- 		}
- 		else {
- 			if(newframe$NodeID!=i) newframe[length(depth-t),]<-frame[i]
- 			t<-t+1
- 		}
-	 }
+ 	# t<-0
+ 	# for(i in 1:length(depth)){
+ 	# 	if(!is.na(frame$SplitVal[i])) {
+ 	# 		j<-frame$leftson[i]
+  #   		k<-frame$rightson[i]
+ 	# 		newframe[i+1,]<-frame[j,]
+  #   		newframe[i+2,]<-frame[k,]
+ 	# 	}
+ 	# 	else {
+ 	# 		if(newframe$NodeID!=i) newframe[length(depth-t),]<-frame[i]
+ 	# 		t<-t+1
+ 	# 	}
+	 # }
  	#browser()
+ 	newframe<-preorderDataFrame(frame)
  	ylevel <- attr(x, "ylevels")
 	node <- as.numeric(row.names(newframe))
  	depth <- newframe$treelevel
@@ -209,3 +211,79 @@ print.FLrpart<-function(object){browser()
 # 	return(slot(object,property))
 # }
 setMethod("show","FLrpart",print.FLrpart)
+
+preorderDataFrame <- function(df){
+  ind <- c()
+  stack <- c()
+  curr <- getCurrent(df,1)
+  while(1){
+    ind <- c(ind,curr)
+    left <- getLeft(df,curr)
+    right <- getRight(df,curr)
+    if(!is.na(right)){
+      stack <- pushstack(stack,right)
+    }
+    if(!is.na(left))
+      curr <- left
+    else if(length(stack)>0){
+      vlist <- popstack(stack)
+      curr <- vlist[["value"]]
+      stack <- vlist[["stack"]]
+    }
+    else break()
+  }
+  return(df[ind,])
+}
+getCurrent <- function(df,ind){
+  return(df[df[,"NodeID"]==ind,1])
+}
+getLeft <- function(df,ind){
+  return(df[df[,"NodeID"]==ind,"leftson"])
+}
+getRight <- function(df,ind){
+  return(df[df[,"NodeID"]==ind,"rightson"])
+}
+pushstack <- function(stack,value){
+  return(c(stack,value))
+}
+popstack <- function(stack){
+  val <- stack[length(stack)]
+  return(list(stack=stack[-length(stack)],value=val))
+}
+
+plot.FLrpart<-function(x){ browser()
+	newframe<-preorderDataFrame(x$frame)
+	curnode<-c()
+	pxcor<-c()
+	pycor<-c()
+	xcor<-c()
+	ycor<-c()
+	inc<-as.numeric("1.5")
+	treelevel<-newframe$treelevel
+	for(i in 1:length(treelevel)){
+		if(treelevel[i]==0){
+			xcor<-c(xcor,"1.75")
+			ycor<-c(ycor,"1.00")
+			curnode<-c(curnode,"1")
+			pxcor<-c(pxcor,xcor)
+			pycor<-c(pycor,ycor)
+		}
+		else{
+			curnode<-c(curnode,newframe$NodeID[i])
+			pnode<-newframe$parent[i]
+			pxcor<-c(pxcor,as.numeric(xcor[as.numeric(curnode[pnode])]))
+			pycor<-c(pycor,as.numeric(ycor[as.numeric(curnode[pnode])]))
+			ycor<-c(ycor,as.numeric(pycor[i])-treelevel[i]/2)
+			if(newframe$leftson[pnode]==i) xcor<-c(xcor,as.numeric(pxcor[i])-inc)
+			else xcor<-c(xcor,as.numeric(pxcor[i])+inc)
+		}
+	}
+	temp1<-range(xcor)
+	temp2<-range(ycor)
+ 	plot(temp1, temp2, type = "n", axes = TRUE, xlab = "", ylab = "")
+ 	parent<-matrix(c(pxcor,pycor),ncol=2)
+ 	child<-matrix(c(xcor,ycor),ncol=2)
+ 	#if(newframe$)
+ 	lines(c(parent), c(child))
+ 	#invisible(list(x = xcor, y = ycor))
+ }

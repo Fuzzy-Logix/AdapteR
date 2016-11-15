@@ -6,7 +6,7 @@ colnames(Renv$kyphosis)<-paste0("Col",1:ncol(kyphosis))
 FLenv$kyphosis<-as.FLTable(Renv$kyphosis,temporary=FALSE)
 
 FLenv$deeptable<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
-Renv$deeptable<-as.data.frame(deeptable)
+Renv$deeptable<-as.data.frame(FLenv$deeptable)
 
 test_that("FLrpart: test for deep tables",{
 	robj<-rpart(Renv$deeptable,formula= Renv$deeptable$`-1`~.,method="class")
