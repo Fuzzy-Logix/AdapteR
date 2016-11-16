@@ -27,8 +27,8 @@ noexpectation = "fit")
 
 ##Prediction, Residuals
 FLenv$pred <- predict(FLenv$fit)
-Renv$pred <- predict(Renv$fit)
-FLexpect_equal(FLenv$fitP, Renv$fitP)
+Renv$pred <- unname(predict(Renv$fit))
+FLexpect_equal(FLenv$pred, Renv$pred)
 FLexpect_equal(residuals(FLenv$fit), unname(residuals(Renv$fit)))
 
 ## Prediction, Residuals, fitted.values: 
@@ -75,17 +75,25 @@ noexpectation=c("fit"),
 check.attributes=FALSE,
 verbose = TRUE)
 
-##
+##Prediction, Residuals
 eval_expect_equal({
-    pred <- predict(fit);names(pred) <- NULL
-    res <- residuals(fit);names(res) <- NULL
+    pred <- predict(fit)
+    names(pred) <- NULL
+    res <- residuals(fit)
+    names(res) <- NULL
 },Renv,FLenv,
 expectation=c("pred","res"),
 check.attributes=FALSE,
 verbose = TRUE)
 
+##Prediction, Residuals
+FLenv$pred <- predict(FLenv$fit)
+Renv$pred <- unname(predict(Renv$fit))
+FLexpect_equal(FLenv$pred, Renv$pred)
+FLexpect_equal(residuals(FLenv$fit), unname(residuals(Renv$fit)))
 
-## 
+
+## Coefficients:
 eval_expect_equal({
     fitC <- coefficients(fit)
     names(fitC) <- NULL

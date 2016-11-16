@@ -523,12 +523,12 @@ lmGeneric <- function(formula,data,
     deeptable <- deepx@select@table_name
     
                                         #for more generic output:
-    mod <- c(nCoeffCorrelWithRes="CORRELWITHRES",
-             nCoeffNonZeroDensity="NONZERODENSITY",
-             nCoeffTStat="TSTAT",
-             nCoeffStdErr="STDERR",
-             nCoeffPValue="PVALUE",
-             nCoeffEstim = "CoeffValue",
+    mod <- c(FLCoeffCorrelWithRes="CORRELWITHRES",
+             FLCoeffNonZeroDensity="NONZERODENSITY",
+             FLCoeffTStat="TSTAT",
+             FLCoeffStdErr="STDERR",
+             FLCoeffPValue="PVALUE",
+             nCoeffEstim = "COEFFVALUE",
              nID = "CoeffID"
              )
 
@@ -697,11 +697,11 @@ lmGeneric <- function(formula,data,
                         MAX_ITER =maxiter
                         )
         functionName <- "FLLinRegr"
-        mod <- c(nCoeffCorrelWithRes="",
-                 nCoeffNonZeroDensity="",
-                 nCoeffTStat="T_VAL",
-                 nCoeffStdErr="STDDEV",
-                 nCoeffPValue="P_VAL",
+        mod <- c(FLCoeffCorrelWithRes="",
+                 FLCoeffNonZeroDensity="",
+                 FLCoeffTStat="T_VAL",
+                 FLCoeffStdErr="STDDEV",
+                 FLCoeffPValue="P_VAL",
                  nCoeffEstim = "EST",
                  nID = "VarID"
                  )  }
@@ -1529,11 +1529,11 @@ coefficients.FLLinRegr<-function(object){
         coeffVector <- coefficients.FLLinRegrMD(object)
     else 
 	coeffVector <- coefficients.lmGeneric(object,
-                                              FLCoeffStats=c(FLCoeffStdErr=object@results$mod["nCoeffStdErr"],
-                                                             FLCoeffPValue=object@results$mod["nCoeffPValue"],
-                                                             FLCoeffTStat=object@results$mod["nCoeffTStat"],
-                                                             FLCoeffCorrelWithRes=object@results$mod["nCoeffCorrelWithRes"],
-                                                             FLCoeffNonZeroDensity=object@results$mod["nCoeffNonZeroDensity"]))
+                                              FLCoeffStats=c(object@results$mod["FLCoeffStdErr"],
+                                                             object@results$mod["FLCoeffPValue"],
+                                                             object@results$mod["FLCoeffTStat"],
+                                                             object@results$mod["FLCoeffCorrelWithRes"],
+                                                             object@results$mod["FLCoeffNonZeroDensity"]))
     assign(parentObject,object,envir=parent.frame())
     return(coeffVector)
 }
@@ -1601,7 +1601,6 @@ coefficients.lmGeneric <-function(object,
         }
 
         colnames(coeffVector) <- toupper(colnames(coeffVector))
-        
         coeffVector1 <- coeffVector[[object@results$mod["nCoeffEstim"]]]
                                         # vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
         if(!is.null(vcoeffnames)){

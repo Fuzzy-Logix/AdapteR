@@ -51,4 +51,5 @@ FLenv$res <- residuals(FLenv$fit)
 FLexpect_equal(Renv$pred, FLenv$pred)
 FLexpect_equal(Renv$res, FLenv$res)
 
-## R Example:
+
+
