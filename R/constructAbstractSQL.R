@@ -176,6 +176,7 @@ constructStoredProcSQL.default <- function(pConnection,
                                              pFuncName,
                                              pOutputParameter,
                                              ...){
+    ##browser()
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]

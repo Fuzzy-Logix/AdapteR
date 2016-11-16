@@ -173,6 +173,11 @@ sqlStoredProc.JDBCTDAster <- function(connection,
                                   pFuncName=query,
                                   pOutputParameter=outputParameter),
                              args))
+    if(getOption("debugSQL")) {    
+        cat(paste0("CALLING Stored Proc: \n",
+                   gsub(" +","    ", sqlstr),"\n"))
+    }
+
     class(connection) <- "JDBCConnection"
     retobj <- DBI::dbGetQuery(connection,sqlstr)
     return(retobj)
@@ -182,6 +187,7 @@ sqlStoredProc.JDBCTDAster <- function(connection,
 sqlStoredProc.RODBC <- function(connection, query, 
                                 outputParameter,
                                 ...) {
+    ##browser()
     vlist <- constructStoredProcArgs(query=query,
                                     outputParameter=outputParameter,
                                     ...)

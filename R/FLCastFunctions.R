@@ -68,7 +68,7 @@ as.data.frame <- function(x, ...)
 
 #' @export
 as.data.frame.FLTable <- function(x, ...){
-    #browser()
+    ##browser()
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),

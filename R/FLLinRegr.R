@@ -486,7 +486,7 @@ lmGeneric <- function(formula,data,
                       trace=1,
                       ...)
 {
-    ##browser()
+    browser()
     if(inherits(data,"FLTable"))
         prepData <- prepareData.lmGeneric(formula,data,
                                           callObject=callObject,
@@ -533,7 +533,7 @@ lmGeneric <- function(formula,data,
 
 
 	if(familytype=="linear") vfcalls <- c(functionName=ifelse(is.FLTableMD(data),
-															"FLLinRegrMultiDataset",
+															"FLLinRegrMultiDataSet",
 															"FLLinRegr"),
 										infotableName="fzzlLinRegrInfo",
 										Note="linregr",
@@ -542,7 +542,7 @@ lmGeneric <- function(formula,data,
 										valcolnamescoretable="Y",
 										scoretablename="FLLinRegrScore")
 	else if(familytype=="logistic") vfcalls <- c(functionName=ifelse(is.FLTableMD(data),
-																	"FLLogRegrMultiDataset",
+																	"FLLogRegrMultiDataSet",
 																	"FLLogRegr"),
 										infotableName="fzzlLogRegrInfo",
 										Note="logregr",
@@ -602,8 +602,8 @@ lmGeneric <- function(formula,data,
 	statstablename <- vfcalls["statstablename"]
 
 	vinputCols <- list()
-	if(functionName %in% c("FLLinRegrMultiDataset",
-							"FLLogRegrMultiDataset"))
+	if(functionName %in% c("FLLinRegrMultiDataSet",
+							"FLLogRegrMultiDataSet"))
 		vinputCols <- c(vinputCols,
 						TableName=deeptable,
 						GroupIDCol=getVariables(deepx)[["group_id_colname"]],
@@ -815,22 +815,22 @@ lmGeneric <- function(formula,data,
 
 	vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
 					"FLLogRegr",functionName)
-	vfuncName <- base::gsub("MultiDataset","",vfuncName)
+	vfuncName <- base::gsub("MultiDataSet","",vfuncName)
 
     return(new(vfuncName,
-				formula=formula,
-				AnalysisID=AnalysisID,
-				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				table=data,
-				results=list(call=callObject,
-                                             modelID=vmaxModelID,
-                                             mod = mod),
-				deeptable=deepx,
-				mapTable=mapTable,
-				scoreTable="",
-				vfcalls=vfcalls,
-				offset=as.character(offset),
-                RegrDataPrepSpecs=RegrDataPrepSpecs))
+      				formula=formula,
+      				AnalysisID=AnalysisID,
+      				wideToDeepAnalysisId=wideToDeepAnalysisId,
+      				table=data,
+      				results=list(call=callObject,
+                          modelID=vmaxModelID,
+                          mod = mod),
+      				deeptable=deepx,
+      				mapTable=mapTable,
+      				scoreTable="",
+      				vfcalls=vfcalls,
+      				offset=as.character(offset),
+                      RegrDataPrepSpecs=RegrDataPrepSpecs))
 }
 
 ## move to file lmGeneric.R
@@ -933,7 +933,7 @@ prepareData.lmGeneric <- function(formula,data,
     
     if(is.FLTableMD(data)){
     	if(!familytype %in% c("logistic","linear"))
-    		stop("only lm and glm with binomial family supported for MultiDataset\n")
+    		stop("only lm and glm with binomial family supported for MultiDataSet\n")
     	direction <- ""
     }
     if(direction=="UFbackward")
@@ -1041,21 +1041,21 @@ prepareData.lmGeneric <- function(formula,data,
 	{
         ## gk: can't we use prepareData.lmGeneric here?
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
-								outDeepTableName=outDeepTableName,
-								outObsIDCol="",
-								outVarIDCol="",
-								outValueCol="",
-								catToDummy=catToDummy,
-								performNorm=performNorm,
-								performVarReduc=performVarReduc,
-								makeDataSparse=makeDataSparse,
-								minStdDev=minStdDev,
-								maxCorrel=maxCorrel,
-								trainOrTest=0,
-								excludeCols=vexcludeCols,
-								classSpec=classSpec,
-								whereconditions=whereconditions,
-								inAnalysisID="",
+								OutDeepTableName=outDeepTableName,
+								OutObsIDCol="",
+								OutVarIDCol="",
+								OutValueCol="",
+								CatToDummy=catToDummy,
+								PerformNorm=performNorm,
+								PerformVarReduc=performVarReduc,
+								MakeDataSparse=makeDataSparse,
+								MinStdDev=minStdDev,
+								MaxCorrel=maxCorrel,
+								TrainOrTest=0,
+								ExcludeCols=vexcludeCols,
+								ClassSpec=classSpec,
+								WhereClause=whereconditions,
+								InAnalysisID="",
                                 fetchIDs=fetchIDs)
 
         vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
@@ -1825,21 +1825,21 @@ predict.lmGeneric <- function(object,
         vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object@RegrDataPrepSpecs,
                                                             values=list(...))
 		deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
-								outDeepTableName=vRegrDataPrepSpecs$outDeepTableName,
-								outObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
-								outVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
-								outValueCol=vRegrDataPrepSpecs$outValueCol,
-								catToDummy=vRegrDataPrepSpecs$catToDummy,
-								performNorm=vRegrDataPrepSpecs$performNorm,
-								performVarReduc=vRegrDataPrepSpecs$performVarReduc,
-								makeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
-								minStdDev=vRegrDataPrepSpecs$minStdDev,
-								maxCorrel=vRegrDataPrepSpecs$maxCorrel,
-								trainOrTest=1,
-								excludeCols=vRegrDataPrepSpecs$excludeCols,
-								classSpec=vRegrDataPrepSpecs$classSpec,
-								whereconditions=vRegrDataPrepSpecs$whereconditions,
-								inAnalysisID=object@wideToDeepAnalysisId)
+								OutDeepTable=vRegrDataPrepSpecs$outDeepTableName,
+								OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+								OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+								OutValueCol=vRegrDataPrepSpecs$outValueCol,
+								CatToDummy=vRegrDataPrepSpecs$catToDummy,
+								PerformNorm=vRegrDataPrepSpecs$performNorm,
+								PerformVarReduc=vRegrDataPrepSpecs$performVarReduc,
+								MakeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+								MinStdDev=vRegrDataPrepSpecs$minStdDev,
+								MaxCorrel=vRegrDataPrepSpecs$maxCorrel,
+								TrainOrTest=1,
+								ExcludeCols=vRegrDataPrepSpecs$excludeCols,
+								ClassSpec=vRegrDataPrepSpecs$classSpec,
+								WhereClause=vRegrDataPrepSpecs$whereconditions,
+								InAnalysisID=object@wideToDeepAnalysisId)
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")
 
