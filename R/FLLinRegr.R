@@ -63,18 +63,18 @@ setClass(
 #' library(MASS)
 #' options(debugSQL =TRUE)
 #' table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
-#' q <- rlm(a~., data = table)
-#' predict(q)
-#' residuals(q)
-#' q$fitted.values
-#' summary(q)
+#' flmod <- rlm(a~., data = table)
+#' predict(flmod)
+#' residuals(flmod)
+#' flmod$fitted.values
+#' summary(flmod)
 #' still to work on plot(q)
 #' Example for widetable:
 #' widetbl <- FLTable("tblautompg", "ObsID")
-#' t <- rlm(Weight~ Acceleration , data = widetbl)
-#' summary(t)
-#' coefficients(t)
-#' residuals(t)
+#' flmod <- rlm(Weight~ Acceleration , data = widetbl)
+#' summary(flmod)
+#' coefficients(flmod)
+#' residuals(flmod)
 #' @export
 rlm <- function (formula,data=list(),psi, ...) {
 	UseMethod("rlm", data)
@@ -529,7 +529,7 @@ lmGeneric <- function(formula,data,
              FLCoeffStdErr="STDERR",
              FLCoeffPValue="PVALUE",
              nCoeffEstim = "COEFFVALUE",
-             nID = "CoeffID"
+             nID = "COEFFID"
              )
 
 
@@ -703,7 +703,7 @@ lmGeneric <- function(formula,data,
                  FLCoeffStdErr="STDDEV",
                  FLCoeffPValue="P_VAL",
                  nCoeffEstim = "EST",
-                 nID = "VarID"
+                 nID = "VARID"
                  )  }
 
     if(familytype %in% "pls")
@@ -1572,7 +1572,7 @@ coefficients.lmGeneric <-function(object,
                                            " WHERE a.Final_VarID = b.",vID," \n",
                                            " AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
                                            "\n AND b.AnalysisID = ",fquote(object@AnalysisID),
-                                           ifelse(length(object@results[["modelID"]])>0 && vfcalls != "FLRobustRegr" && vfcalls != "FLPLSRegr",
+                                           ifelse(length(object@results[["modelID"]])>0 && object@vfcalls[["functionName"]] != "FLRobustRegr" && object@vfcalls[["functionName"]] != "FLPLSRegr",
                                                   paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
                                            "\n ORDER BY b.",vID))
             
@@ -1633,7 +1633,7 @@ coefficients.lmGeneric <-function(object,
                                  droppedCols=droppedCols),
                             FLCoeffStats)
         object@results[["modelColnames"]]<-vmodelnames
-        object@results[["CoeffID"]] <- as.numeric(coeffVector[["COEFFID"]])
+        object@results[[vID]] <- as.numeric(coeffVector[[vID]])
                                         # object@results[["varIDMapping"]] <- vmapping
         parentObject <- unlist(strsplit(unlist(strsplit(
             as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]

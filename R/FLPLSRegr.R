@@ -131,8 +131,9 @@ setClass(
         str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS Xmeans
                        FROM ",object@deeptable@select@table_name," a
 WHERE a.",getVariables(object@deeptable)$var_id_colname," > -1
-GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
+GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVariables(object@deeptable)$var_id_colname," ")
         mval <- sqlQuery(connection, str)
+        mval <- mval$Xmeans
         return(mval)
     }
     else if(property == "Ymeans"){
@@ -263,11 +264,12 @@ FROM ",object@vfcalls["coefftablename"],"
 WHERE AnalysisID = '",object@AnalysisID,"'
 ORDER BY 3, 2;")
     dtf <- sqlQuery(connection, str)
-    dtf <- dtf[2:length(dtf), ]
+    cof <- dtf$Beta[2:length(dtf$Beta)]
     var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
-    vdf <- data.frame(Var = var, coeff = dtf$Beta)
+    names(cof) <- var
+    cof <- as.array(cof)
     assign(parentObject,object,envir=parent.frame())
-    return(vdf)   
+    return(cof)   
 }
 
 #' @export
