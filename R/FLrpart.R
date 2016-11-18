@@ -11,18 +11,19 @@
 
 FLrpart<-function(data,
 				  formula,
-				  control=rpart.control(minsplit=10,
-                                        maxdepth=5,
-                                        cp=0.95),
+				  control=c(minsplit=10,
+							maxdepth=5,
+                            cp=0.95),
 				  method="class",
 				  ...){#browser()
+	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(data@isDeep){
 		deepx<-data
-		deepx<-setAlias(deepx,"")	
+		deepx<-setAlias(deepx,"")
 		deeptablename<-data@select@table_name
 		vprepspecs<-list()	
 	}
@@ -50,7 +51,20 @@ FLrpart<-function(data,
 	vvalue <- getVariables(deepx)[["cell_val_colname"]]
 	vnote<-genNote("abc")
 	vcolnames<- deepx@select@variables
-	vinputcols<-c(INPUT_TABLE=deeptablename,
+	if(!is.null(list(...)[["mfinal"]])){
+		vinputcols<-list(INPUT_TABLE=deeptablename,
+				  		OBSID=vobsid,
+				  		VARID=vvarid,
+				  		VALUE=vvalue,
+				  		NUMOFTREES=mfinal,
+				  		MINOBS=control["minsplit"],
+				 	    MAXLEVEL=control["maxdepth"],
+				  		PURITY=control["cp"],
+				  		NOTE=vnote)
+		vfuncName<-"FLBagDecisionTree"
+	}
+	else{
+		vinputcols<-list(INPUT_TABLE=deeptablename,
 				  OBSID=vobsid,
 				  VARID=vvarid,
 				  VALUE=vvalue,
@@ -59,14 +73,21 @@ FLrpart<-function(data,
 				  PURITY=control["cp"],
 				  NOTE=vnote)
 	vfuncName<-"FLDecisionTreeMN"
+	}
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
 						  pInputParameters=vinputcols)
 
 	AnalysisID<-as.character(retobj[1,1])
+	if(!is.null(list(...)[["mfinal"]])){
+		sql<-paste0("SELECT * FROM fzzlDecisionTreeMNMD AS a 
+					WHERE AnalysisID = ",fquote(AnalysisID)," ORDER BY 2,4")
+		ret<-sqlQuery(getFLConnection(),sql)
+		return(ret)
+	}
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
-	ret<-sqlQuery(connection,sql)
+	ret<-sqlQuery(getFLConnection(),sql)
 	frame<-data.frame(NodeID=ret$NodeID,
 					  n=ret$NodeSize,
 					  prob=ret$PredictClassProb,
@@ -77,7 +98,8 @@ FLrpart<-function(data,
 					  rightson=ret$ChildNodeRight,
 					  dev=1:length(ret$NodeSize),
 					  treelevel=ret$TreeLevel,
-					  parent=ret$ParentNodeID)
+					  parent=ret$ParentNodeID,
+					  leaf=ret$IsLeaf)
 	 
 	retobj<- list(frame=frame,
 			 	  method=method,
@@ -161,7 +183,7 @@ print.FLrpart<-function(object){ #browser()
 	frame$split<-newsplit
 	term <- rep(" ", length(depth))
     for(i in 1:length(depth)){
-    	if(is.na(frame$SplitVal[i])) {
+    	if(frame$IsLeaf[i]==0) {
     		term[i]<-"*"
     	}
     	else{
@@ -197,7 +219,6 @@ print.FLrpart<-function(object){ #browser()
     	paste0(c("", indent[depth]), format(node), ")")}
     yval<-newframe$yval
     prob<-newframe$prob
- 	newframe[length(depth),]<-frame[length(depth),]
  	n <-newframe$n
     retobj <- paste(indent,newsplit, n, yval, prob, term)
 	#class(retobj)<-"rpart"
@@ -296,7 +317,7 @@ plot.FLrpart<-function(x){ #browser()
   xcor<-c("2.5")
   ycor<-c("2.5")
   for(i in 1:nrow(frame)){
-    if(!is.na(frame$var)){
+    if(frame$IsLeaf[i]==1){
       j<-frame$leftson[i]
       k<-frame$rightson[i]
       if(i==1) {
@@ -319,6 +340,6 @@ plot.FLrpart<-function(x){ #browser()
         segments(pxcor,pycor,xmid,ymid)
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
         }
-  }
+  	}
   }
 }
