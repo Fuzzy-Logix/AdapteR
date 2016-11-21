@@ -61,7 +61,7 @@ FLrpart<-function(data,
 				 	    MAXLEVEL=control["maxdepth"],
 				  		PURITY=control["cp"],
 				  		NOTE=vnote)
-		vfuncName<-"FLBagDecisionTree"
+		return(vinputcols)
 	}
 	else{
 		vinputcols<-list(INPUT_TABLE=deeptablename,
@@ -80,12 +80,6 @@ FLrpart<-function(data,
 						  pInputParameters=vinputcols)
 
 	AnalysisID<-as.character(retobj[1,1])
-	if(!is.null(list(...)[["mfinal"]])){
-		sql<-paste0("SELECT * FROM fzzlDecisionTreeMNMD AS a 
-					WHERE AnalysisID = ",fquote(AnalysisID)," ORDER BY 2,4")
-		ret<-sqlQuery(getFLConnection(),sql)
-		return(ret)
-	}
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
 	ret<-sqlQuery(getFLConnection(),sql)
 	frame<-data.frame(NodeID=ret$NodeID,
@@ -99,7 +93,7 @@ FLrpart<-function(data,
 					  dev=1:length(ret$NodeSize),
 					  treelevel=ret$TreeLevel,
 					  parent=ret$ParentNodeID,
-					  leaf=ret$IsLeaf)
+					  Leaf=ret$IsLeaf)
 	 
 	retobj<- list(frame=frame,
 			 	  method=method,
@@ -174,23 +168,22 @@ predict.FLrpart<-function(object,
 	return(result)
 }
 
-print.FLrpart<-function(object){ #browser()
+print.FLrpart<-function(object){ browser()
 	frame <- object$frame
 	depth<-frame$treelevel
 	newframe<-frame
-	newframe[1,]<-frame[1,]
 	newsplit<-c(1:length(depth))
-	frame$split<-newsplit
 	term <- rep(" ", length(depth))
+	newframe<-preorderDataFrame(frame)
     for(i in 1:length(depth)){
-    	if(frame$IsLeaf[i]==0) {
+    	if(newframe$Leaf[i]==1) {
     		term[i]<-"*"
     	}
     	else{
-    		j<-frame$leftson[i]
-    		k<-frame$rightson[i]
-    		newsplit[frame$NodeID==j]<-paste0(frame$var[i],"<",frame$SplitVal[i])
-    		newsplit[frame$NodeID==k]<-paste0(frame$var[i],">=",frame$SplitVal[i])
+    		j<-newframe$leftson[i]
+    		k<-newframe$rightson[i]
+    		newsplit[newframe$NodeID==j]<-paste0(newframe$var[i],"<",newframe$SplitVal[i])
+    		newsplit[newframe$NodeID==k]<-paste0(newframe$var[i],">=",newframe$SplitVal[i])
     		}
  	}
  	newsplit[1]<-"root"
@@ -208,7 +201,6 @@ print.FLrpart<-function(object){ #browser()
  	# 	}
 	 # }
  	#browser()
- 	newframe<-preorderDataFrame(frame)
  	ylevel <- attr(x, "ylevels")
 	node <- as.numeric(row.names(newframe))
  	depth <- newframe$treelevel
