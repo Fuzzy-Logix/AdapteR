@@ -1,5 +1,11 @@
 ## boost decision trees
-boosting<-function(data,
+boosting<-function(formula,data,...){
+	UseMethod("boosting",data)
+}
+
+boosting.default<-adabag::boosting
+
+boosting.FLTable<-function(data,
 				   formula,
 				   control=c(minsplit=10,
 							 maxdepth=5,
@@ -29,7 +35,31 @@ boosting<-function(data,
 					  Leaf=ret$IsLeaf,
 					  TreeID=ret$Iter,
 					  Weight=ret$Weight)
-	return(list(call,
-				formula,
-				trees))
+	weights<-unique(frame$Weight)
+	ntrees<-unique(frame$TreeID)
+	trees<-list()
+	for(l in 1:length(ntrees)){
+		trees[[l]]<-subset(frame,TreeID==l)
+		class(trees[[l]])<-"FLrpart"	
+	}
+	x<-sqlQuery(getFLConnection(),paste0("SELECT * FROM fzzlBoostDecisionTreePred WHERE AnalysisID = ",
+											 fquote(AnalysisID), "ORDER BY 1, 2, 3"))
+	class<-x$PredictedClass
+	prob<-data.frame(ObsID=x$ObsID,
+					 ObservedClass=x$ObservedClass,
+					 PredictedClass=x$PredictedClass,
+					 PredictClassProb=x$PredictClassProb)
+	votes<-x$PredictClassProb*sum(weights)
+	votes<-data.frame(ObsID=x$ObsID,
+					  PredictedClass=x$PredictedClass,
+					  Votes=votes)
+	retobj<-list(trees=trees,
+				 call=call,
+				 formula=formula,
+				 votes=votes,
+				 class=class,
+				 weights=weights,
+				 prob=prob)
+	class(retobj)<-"FLboosting"
+	return(retobj)
 }

@@ -1,10 +1,16 @@
 ## bag decision tree
-bagging<-function(data,
+bagging<-function(formula,data,...){
+	UseMethod("bagging",data)
+}
+
+bagging.default<-adabag::bagging
+
+bagging.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
 							cp=0.95),
-				  mfinal=5){ #browser()
+				  mfinal=5){#browser()
 	x<-FLrpart(data,formula,control,mfinal=mfinal)
 	vfuncName<-"FLBagDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
@@ -31,39 +37,8 @@ bagging<-function(data,
 	ntrees<-unique(frame$TreeID)
 	trees<-list()
 	for(l in 1:length(ntrees)){
-		subframe<-subset(frame,TreeID==l)
-		newframe<-preorderDataFrame(subframe)
-		term <- rep(" ", nrow(newframe))
-		newsplit<-c(1:nrow(newframe))
-	 	newsplit[1]<-"root"	
-		for(i in 1:nrow(newframe)){
-    	if(newframe$Leaf[i]==1) {
-    		term[i]<-"*" 
-    	}
-    	else{
-    		j<-newframe$leftson[i]
-    		k<-newframe$rightson[i]
-    		newsplit[newframe$NodeID==j]<-paste0(newframe$var[i],"<",newframe$SplitVal[i])
-    		newsplit[newframe$NodeID==k]<-paste0(newframe$var[i],">=",subframe$SplitVal[i])
-    		}
- 		}
- 		newsplit[1]<-"root"
-		node <- as.numeric(row.names(newframe))
-	 	depth <- newframe$treelevel
-	 	spaces<-2
-	 	indent <- paste(rep(" ", spaces * 32L), collapse = "")
-	  	indent <- if (length(node) > 1L) {
-    		indent <- substring(indent, 1L, spaces * seq(depth))
-    		paste0(c("", indent[depth]), format(node), ")")}
-	    yval<-newframe$yval
-		prob<-newframe$prob
-	 	n <-newframe$n
-    	retobj <- paste(indent,newsplit, n, yval, prob, term)
-		trees[[l]]<-paste0("n=", n[1L], "\n\n",
-					"node), split, n, yval, (yprob)\n",
-					"      * denotes terminal node\n\n",
-					retobj, sep = "\n")
-
+		trees[[l]]<-subset(frame,TreeID==l)
+		class(trees[[l]])<-"FLrpart"	
 	}
 	#browser()
 	votes<-sqlQuery(getFLConnection(),paste0("SELECT ObsID, ObservedClass, PredictedClass, NumOfVotes
@@ -75,5 +50,14 @@ bagging<-function(data,
 				 formula=formula,
 				 votes=votes,
 				 class=class)
+	class(retobj)<-"FLbagging"
 	return(retobj)
 }
+
+# print.FLbagging<-function(object){
+# 	for(i in 1:length(object$trees)){
+# 		cat(object$trees[[i]])
+# 	}	
+# }
+
+# setMethod("show","FLbagging",print.FLbagging)

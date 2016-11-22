@@ -168,10 +168,11 @@ predict.FLrpart<-function(object,
 	return(result)
 }
 
-print.FLrpart<-function(object){ browser()
-	frame <- object$frame
+print.FLrpart<-function(object){ #browser()
+	if(is.null(object$frame)) frame<-object
+	else frame <- object$frame
+	class(frame)<-"data.frame"
 	depth<-frame$treelevel
-	newframe<-frame
 	newsplit<-c(1:length(depth))
 	term <- rep(" ", length(depth))
 	newframe<-preorderDataFrame(frame)
@@ -202,7 +203,7 @@ print.FLrpart<-function(object){ browser()
 	 # }
  	#browser()
  	ylevel <- attr(x, "ylevels")
-	node <- as.numeric(row.names(newframe))
+	node <- as.numeric(newframe$NodeID)
  	depth <- newframe$treelevel
  	spaces<-2
  	indent <- paste(rep(" ", spaces * 32L), collapse = "")
