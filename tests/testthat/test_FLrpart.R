@@ -9,13 +9,16 @@ FLenv$deeptable<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 Renv$deeptable<-as.data.frame(FLenv$deeptable)
 
 test_that("FLrpart: test for deep tables",{
+
 	robj<-rpart(Renv$deeptable,formula= Renv$deeptable$`-1`~.,method="class")
 	flobj<-FLrpart(FLenv$deeptable,formula= -1~.)
-	FLexpect_equal(robj,flobj)
+	FLexpect_equal(robj$frame$var,flobj$frame$var)
+	FLexpect_equal(robj$frame$n,flobj$frame$n)
 })
 
 test_that("FLrpart: test for wide tables",{
-	robj<-rpart(Renv$kyphosis,formula= Col1~.)
-	flobj<-FLrpart(FLenv$kyphosis, formula=Col1~.)
-	FLexpect_equal(robj,flobj)
+	robj<-rpart(Renv$kyphosis,formula= Renv$kyphosis$`-1`~.,method="class")
+	flobj<-FLrpart(FLenv$kyphosis,formula= -1~.)
+	FLexpect_equal(robj$frame$var,flobj$frame$var)
+	FLexpect_equal(robj$frame$n,flobj$frame$n)
 })

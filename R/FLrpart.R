@@ -94,7 +94,8 @@ FLrpart<-function(data,
 					  treelevel=ret$TreeLevel,
 					  parent=ret$ParentNodeID,
 					  Leaf=ret$IsLeaf)
-	 
+
+	frame$var[is.na(frame$var)]<-"<leaf>" 
 	retobj<- list(frame=frame,
 			 	  method=method,
 			 	  control=control,
@@ -310,7 +311,7 @@ plot.FLrpart<-function(x){ #browser()
   xcor<-c("2.5")
   ycor<-c("2.5")
   for(i in 1:nrow(frame)){
-    if(frame$IsLeaf[i]==1){
+    if(frame$Leaf[i]==0){
       j<-frame$leftson[i]
       k<-frame$rightson[i]
       if(i==1) {

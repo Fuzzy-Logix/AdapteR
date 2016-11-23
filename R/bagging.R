@@ -10,7 +10,7 @@ bagging.FLTable<-function(data,
 				  control=c(minsplit=10,
 							maxdepth=5,
 							cp=0.95),
-				  mfinal=5){#browser()
+				  mfinal=5){
 	x<-FLrpart(data,formula,control,mfinal=mfinal)
 	vfuncName<-"FLBagDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
