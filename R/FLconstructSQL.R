@@ -7,23 +7,6 @@ setClass("FLSkalarAggregate",
              func="character",
              arguments="list"
          ))
-
-
-#' Models sparse data objects.
-#' 
-#' Sparse Indexed values objects are table queries with a value column and
-#' one (vectors), two (matrices) or several (arrays) index columns.
-#'
-#' The name of the values column
-setClass("FLIndexedValues", slots=list(
-                                dims = "numeric",
-                                dimColumns = "character" ## gk: todo: this needs some refactoring for FLVector
-                       ))
-
-setClass("FLAbstractColumn",
-	slots=list(
-            columnName = "character"))
-
 #' A table query models a select or a table result of a sql statement.
 #' 
 #' 
@@ -40,6 +23,31 @@ setClass("FLTableQuery",
              order = "character",
              group = "character"
          ))
+
+
+
+
+
+#' Models sparse data objects.
+#' 
+#' Sparse Indexed values objects are table queries with a value column and
+#' one (vectors), two (matrices) or several (arrays) index columns.
+#'
+#' The name of the values column
+setClass("FLIndexedValues", slots=list(
+                                select = "FLTableQuery",
+                                Dimnames = "list",
+                                dims = "ANY",
+                                dimColumns = "character",
+                                type = "character"## gk: todo: this needs some refactoring for FLVector
+                            ))
+
+setClass("FLAbstractColumn",
+	slots=list(
+            columnName = "character"))
+
+
+
 
 ##' A selectFrom models a select from a table.
 ##'
@@ -80,14 +88,11 @@ setClass("FLAbstractTable",
 setClass("FLMatrix",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             mapSelect  = "FLSelectFrom",
+             mapSelect  = "FLSelectFrom"
              ##dimColumns = "character",
-             type       = "character",
-             Dimnames = "ANY"
-         ), prototype = prototype(
-             dimColumns=c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn"),
-             type="double")
+             ), prototype = prototype(
+                    dimColumns=c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn"),
+                    type="double")
          )
 
 
@@ -113,11 +118,8 @@ newFLMatrix <- function(...) {
 setClass("FLVector",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             Dimnames = "list",
              isDeep= "logical",
-             mapSelect = "FLSelectFrom",
-             type       = "character"
+             mapSelect = "FLSelectFrom"             
          ),
          prototype = prototype(type="double")
          )
@@ -142,11 +144,8 @@ newFLVector <- function(...) {
 setClass("FLSimpleVector",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             ##dimColumns = "character",
-             names = "ANY",
-             type       = "character"
-         ),prototype = prototype(type="double")
+             names = "ANY"          
+             ),prototype = prototype(type="double")
          )
 
 
@@ -161,13 +160,9 @@ setClass("FLSimpleVector",
 setClass("FLSimpleWideTable",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             ##dimColumns = "character",
-             Dimnames = "list",
-             dims = "integer",
-             ##mapSelect = "FLSelectFrom",
-             type       = "character"
-         ))
+             dims = "integer"
+             ##mapSelect = "FLSelectFrom",          
+             ))
 
 
 

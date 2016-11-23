@@ -1073,7 +1073,8 @@ prepareData.lmGeneric <- function(formula,data,
     vRegrDataPrepSpecs <- list()
 	if(!data@isDeep)
 	{
-        ## gk: can't we use prepareData.lmGeneric here?
+            ## gk: can't we use prepareData.lmGeneric here?
+            browser()
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								outDeepTableName=outDeepTableName,
 								outObsIDCol="",
@@ -1090,7 +1091,10 @@ prepareData.lmGeneric <- function(formula,data,
 								classSpec=classSpec,
 								whereconditions=whereconditions,
 								inAnalysisID="",
-                                fetchIDs=fetchIDs)
+                                        fetchIDs=fetchIDs)
+            print("line 1093")
+
+            print(deepx)
 
         vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
                                 outObsIDCol="",
@@ -1331,7 +1335,7 @@ prepareData <- prepareData.lmGeneric
         t <- sqlQuery(connection, str)
         val <- t[t$Notation == "Mad_S",3]
         object@results <- c(object@results, list(s = val))      
-                                        #ssign(parentObject,object,envir=parent.frame())
+        assign(parentObject,object,envir=parent.frame())
         return(val)
         }
         else if(property=="call")
@@ -2002,28 +2006,28 @@ setMethod("show","FLLinRegr",print.FLLinRegr)
 #' @export
 plot.FLLinRegr <- function(object,...)
 {
-	vqr <- object$qr
-	vqr <- list(qr=as.matrix(vqr$qr),
-				rank=as.integer(as.vector(vqr$rank)),
-				qraux=as.numeric(as.vector(vqr$qraux)),
-				pivot=as.integer(as.vector(vqr$pivot)))
+    vqr <- object$qr
+    vqr <- list(qr=as.matrix(vqr$qr),
+                rank=as.integer(as.vector(vqr$rank)),
+                qraux=as.numeric(as.vector(vqr$qraux)),
+                pivot=as.integer(as.vector(vqr$pivot)))
 
-	class(vqr)<-"qr"
-	reqList <- list(residuals=as.vector(object$residuals),
-					coefficients=object$coefficients,
-					df.residual=object$df.residual,
-					qr=vqr,
-					rank=vqr$rank,
-					call=object$call,
-					xlevels=object$xlevels,
-					model=object$model,
-					terms=object$terms)
-	class(reqList) <- "lm"
+    class(vqr)<-"qr"
+    reqList <- list(residuals=as.vector(object$residuals),
+                    coefficients=object$coefficients,
+                    df.residual=object$df.residual,
+                    qr=vqr,
+                    rank=vqr$rank,
+                    call=object$call,
+                    xlevels=object$xlevels,
+                    model=object$model,
+                    terms=object$terms)
+    class(reqList) <- "lm"
 
-	parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	assign(parentObject,object,envir=parent.frame())
-	plot(reqList,...)
+    parentObject <- unlist(strsplit(unlist(strsplit(
+        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    assign(parentObject,object,envir=parent.frame())
+    plot(reqList,...)
 }
 
 ## move to file lm.R
