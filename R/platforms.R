@@ -406,6 +406,10 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
     storedProcMappings$argSeparator.TDAster="\n"
     storedProcMappings$withArgNames.Hadoop="none"
 
+    storedProcMappings$includeWhere.Hadoop=FALSE
+    storedProcMappings$includeWhere.TDAster=TRUE
+    storedProcMappings$includeWhere.TD=TRUE
+
 
     storedProcMappings$valueMapping.TDAster <- list("NULL"="")
     storedProcMappings$valueMapping.Hadoop <- list("NULL"="")

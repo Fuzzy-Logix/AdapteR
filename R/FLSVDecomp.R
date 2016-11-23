@@ -35,13 +35,21 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 	## flag1Check(connection)
 	## flag3Check(connection)
 
-    sqlstr <- paste0(
-                     viewSelectMatrix(object, "a","z"),
-                     outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",
-                    	outColNames=list("OutputMatrixID","OutputRowNum",
-                    		"OutputColNum","OutUVal","OutSVal","OutVVal"),
-                    	whereClause="")
-                   )
+    # sqlstr <- paste0(
+    #                  viewSelectMatrix(object, "a","z"),
+    #                  outputSelectMatrix("FLSVDUdt",viewName="z",localName="a",
+    #                 	outColNames=list("OutputMatrixID","OutputRowNum",
+    #                 		"OutputColNum","OutUVal","OutSVal","OutVVal"),
+    #                 	whereClause="")
+    #                )
+
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLSVDUdt",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pReturnQuery=TRUE
+                                    )
+
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
@@ -52,24 +60,24 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
                                    pSelect=sqlstr)
 
 	UMatrix <- FLMatrix(connection = connection, 
-        table_name = tempResultTable, 
-            matrix_id_value = "",
-            matrix_id_colname = "", 
-            row_id_colname = "OutputRowNum", 
-            col_id_colname = "OutputColNum", 
-            cell_val_colname = "OutUVal",
-            whereconditions=paste0(tempResultTable,".OutUVal IS NOT NULL ")
-            )
+                        table_name = tempResultTable, 
+                        matrix_id_value = "",
+                        matrix_id_colname = "", 
+                        row_id_colname = "OutputRowNum", 
+                        col_id_colname = "OutputColNum", 
+                        cell_val_colname = "OutUVal",
+                        whereconditions=paste0(tempResultTable,".OutUVal IS NOT NULL ")
+                        )
 
 	VMatrix <- FLMatrix(connection = connection, 
-            table_name = tempResultTable, 
-            matrix_id_value = "",
-            matrix_id_colname = "", 
-            row_id_colname = "OutputRowNum", 
-            col_id_colname = "OutputColNum", 
-            cell_val_colname = "OutVVal",
-            whereconditions= paste0(tempResultTable,".OutVVal IS NOT NULL ")
-            )
+                        table_name = tempResultTable, 
+                        matrix_id_value = "",
+                        matrix_id_colname = "", 
+                        row_id_colname = "OutputRowNum", 
+                        col_id_colname = "OutputColNum", 
+                        cell_val_colname = "OutVVal",
+                        whereconditions= paste0(tempResultTable,".OutVVal IS NOT NULL ")
+                        )
 
 	table <- FLTable(
 		             tempResultTable,

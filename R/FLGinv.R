@@ -33,32 +33,38 @@ ginv.default <- function(object,...){
 ginv.FLMatrix<-function(object,...)
 {
 
-	connection<-getFLConnection(object)
-    ## flag1Check(connection)
+	# connection<-getFLConnection(object)
+ #    ## flag1Check(connection)
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLMatrixPseudoInvUdt",viewName="z",
-                        localName="a",includeMID=TRUE,vconnection=connection)
-                   )
+	# sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+ #                   outputSelectMatrix("FLMatrixPseudoInvUdt",viewName="z",
+ #                        localName="a",includeMID=TRUE,vconnection=connection)
+ #                   )
 
-  tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = attr(connection,"name"),
-                        variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+ #  tblfunqueryobj <- new("FLTableFunctionQuery",
+ #                        connectionName = attr(connection,"name"),
+ #                        variables=list(
+ #                            rowIdColumn="OutputRowNum",
+ #                            colIdColumn="OutputColNum",
+ #                            valueColumn="OutputVal"),
+ #                        whereconditions="",
+ #                        order = "",
+ #                        SQLquery=sqlstr)
 
-  flm <- newFLMatrix(
-             select= tblfunqueryobj,
-             dims=rev(dim(object)),
-            Dimnames=list(NULL,NULL))
-
-  return(ensureQuerySize(pResult=flm,
-            pInput=list(object,...),
-            pOperator="ginv",
-            pStoreResult=TRUE))
+ #  flm <- newFLMatrix(
+ #             select= tblfunqueryobj,
+ #             dims=rev(dim(object)),
+ #            Dimnames=list(NULL,NULL))
+    
+    flm <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLMatrixPseudoInvUdt",
+                                 pdims=rev(getDimsSlot(object)),
+                                 pdimnames=rev(dimnames(object))
+                                 )
+    
+    return(ensureQuerySize(pResult=flm,
+                            pInput=list(object,...),
+                            pOperator="ginv",
+                            pStoreResult=TRUE))
 
 }

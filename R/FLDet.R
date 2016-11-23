@@ -26,19 +26,26 @@ det.default <- base::det
 #' @export
 det.FLMatrix<-function(object,...)
 {
-	connection<-getFLConnection(object)
-	## flag3Check(connection)
+	# connection<-getFLConnection(object)
+	# ## flag3Check(connection)
 
-	sqlstr<-paste0(viewSelectMatrix(object, "a", withName="z"),
-                   outputSelectMatrix("FLMatrixDetUdt", 
-                   	viewName="z", 
-                   	localName="a",
-                   	outColNames=list("OutputDetVal"))
-                   )
-  sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-  sqlstr <- (ensureQuerySize(pResult=sqlstr,
-            pInput=list(object),
-            pOperator="det"))
-
-	return(sqlQuery(connection,sqlstr)[[1]])
+	# sqlstr<-paste0(viewSelectMatrix(object, "a", withName="z"),
+ #                   outputSelectMatrix("FLMatrixDetUdt", 
+ #                   	viewName="z", 
+ #                   	localName="a",
+ #                   	outColNames=list("OutputDetVal"))
+ #                   )
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLMatrixDetUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object),
+                                 pReturnQuery=TRUE
+                                 )
+    sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+    sqlstr <- (ensureQuerySize(pResult=sqlstr,
+                                pInput=list(object),
+                                pOperator="det"))
+    vdf <- sqlQuery(connection,sqlstr)
+    colnames(vdf) <- tolower(colnames(vdf))
+	return(vdf[["outputdetval"]])
 }

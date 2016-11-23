@@ -1,5 +1,3 @@
-table1<-initF.FLTable(rows = 100,col = 2)
-
 
 table2<-FLTable(table= "tblAutoMpg",
                 obs_id_colname = "ObsID")
@@ -12,13 +10,13 @@ dropFLTestTable()
 
 test_that("check if wide to deep works",{
     wideToDeep(object = table2,
-               excludeCols = "HorsePower,Weight",
-               classSpec = list(CarName = "Toyota",Cylinders = "4"),
-               whereconditions="",
-               outDeepTableName="ARBaseTestTempTable",
-               outObsIDCol="ObsID",
-               outVarIDCol="",
-               outValueCol="out_value")
+               ExcludeCols = "HorsePower,Weight",
+               ClassSpec = list(CarName = "Toyota",Cylinders = "4"),
+               WhereClause="",
+               OutDeepTable="ARBaseTestTempTable",
+               OutObsIDCol="ObsID",
+               OutVarIDCol="",
+               OutValueCol="out_value")
 })
 
 dropFLTestTable()

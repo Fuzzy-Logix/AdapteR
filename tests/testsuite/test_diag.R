@@ -22,7 +22,7 @@ test_that("dim of diag for vector of length 1 ",
 test_that(
   "diag for vector of length > 1 ",
   {
-    result2=eval_expect_equal({test2<-diag(10,3,4)},Renv,FLenv)
+    result2=eval_expect_equal({test2<-diag(c)},Renv,FLenv)
     ##print(result2)
   })
 
