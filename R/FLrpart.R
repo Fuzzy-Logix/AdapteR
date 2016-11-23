@@ -11,18 +11,19 @@
 
 FLrpart<-function(data,
 				  formula,
-				  control=rpart.control(minsplit=10,
-                                        maxdepth=5,
-                                        cp=0.95),
+				  control=c(minsplit=10,
+							maxdepth=5,
+                            cp=0.95),
 				  method="class",
 				  ...){#browser()
+	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(data@isDeep){
 		deepx<-data
-		deepx<-setAlias(deepx,"")	
+		deepx<-setAlias(deepx,"")
 		deeptablename<-data@select@table_name
 		vprepspecs<-list()	
 	}
@@ -50,7 +51,20 @@ FLrpart<-function(data,
 	vvalue <- getVariables(deepx)[["cell_val_colname"]]
 	vnote<-genNote("abc")
 	vcolnames<- deepx@select@variables
-	vinputcols<-c(INPUT_TABLE=deeptablename,
+	if(!is.null(list(...)[["mfinal"]])){
+		vinputcols<-list(INPUT_TABLE=deeptablename,
+				  		OBSID=vobsid,
+				  		VARID=vvarid,
+				  		VALUE=vvalue,
+				  		NUMOFTREES=mfinal,
+				  		MINOBS=control["minsplit"],
+				 	    MAXLEVEL=control["maxdepth"],
+				  		PURITY=control["cp"],
+				  		NOTE=vnote)
+		return(vinputcols)
+	}
+	else{
+		vinputcols<-list(INPUT_TABLE=deeptablename,
 				  OBSID=vobsid,
 				  VARID=vvarid,
 				  VALUE=vvalue,
@@ -59,6 +73,7 @@ FLrpart<-function(data,
 				  PURITY=control["cp"],
 				  NOTE=vnote)
 	vfuncName<-"FLDecisionTreeMN"
+	}
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
@@ -66,7 +81,7 @@ FLrpart<-function(data,
 
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
-	ret<-sqlQuery(connection,sql)
+	ret<-sqlQuery(getFLConnection(),sql)
 	frame<-data.frame(NodeID=ret$NodeID,
 					  n=ret$NodeSize,
 					  prob=ret$PredictClassProb,
@@ -77,7 +92,8 @@ FLrpart<-function(data,
 					  rightson=ret$ChildNodeRight,
 					  dev=1:length(ret$NodeSize),
 					  treelevel=ret$TreeLevel,
-					  parent=ret$ParentNodeID)
+					  parent=ret$ParentNodeID,
+					  Leaf=ret$IsLeaf)
 	 
 	retobj<- list(frame=frame,
 			 	  method=method,
@@ -152,23 +168,23 @@ predict.FLrpart<-function(object,
 	return(result)
 }
 
-print.FLrpart<-function(object){#browser()
-	frame <- object$frame
+print.FLrpart<-function(object){ #browser()
+	if(is.null(object$frame)) frame<-object
+	else frame <- object$frame
+	class(frame)<-"data.frame"
 	depth<-frame$treelevel
-	newframe<-frame
-	newframe[1,]<-frame[1,]
 	newsplit<-c(1:length(depth))
-	frame$split<-newsplit
 	term <- rep(" ", length(depth))
+	newframe<-preorderDataFrame(frame)
     for(i in 1:length(depth)){
-    	if(is.na(frame$SplitVal[i])) {
+    	if(newframe$Leaf[i]==1) {
     		term[i]<-"*"
     	}
     	else{
-    		j<-frame$leftson[i]
-    		k<-frame$rightson[i]
-    		newsplit[frame$NodeID==j]<-paste0(frame$var[i],"<",frame$SplitVal[i])
-    		newsplit[frame$NodeID==k]<-paste0(frame$var[i],">=",frame$SplitVal[i])
+    		j<-newframe$leftson[i]
+    		k<-newframe$rightson[i]
+    		newsplit[newframe$NodeID==j]<-paste0(newframe$var[i],"<",newframe$SplitVal[i])
+    		newsplit[newframe$NodeID==k]<-paste0(newframe$var[i],">=",newframe$SplitVal[i])
     		}
  	}
  	newsplit[1]<-"root"
@@ -186,9 +202,8 @@ print.FLrpart<-function(object){#browser()
  	# 	}
 	 # }
  	#browser()
- 	newframe<-preorderDataFrame(frame)
  	ylevel <- attr(x, "ylevels")
-	node <- as.numeric(row.names(newframe))
+	node <- as.numeric(newframe$NodeID)
  	depth <- newframe$treelevel
  	spaces<-2
  	indent <- paste(rep(" ", spaces * 32L), collapse = "")
@@ -197,7 +212,6 @@ print.FLrpart<-function(object){#browser()
     	paste0(c("", indent[depth]), format(node), ")")}
     yval<-newframe$yval
     prob<-newframe$prob
- 	newframe[length(depth),]<-frame[length(depth),]
  	n <-newframe$n
     retobj <- paste(indent,newsplit, n, yval, prob, term)
 	#class(retobj)<-"rpart"
@@ -212,7 +226,7 @@ print.FLrpart<-function(object){#browser()
 # }
 setMethod("show","FLrpart",print.FLrpart)
 
-preorderDataFrame <- function(df){
+preorderDataFrame <- function(df){#browser()
   ind <- c()
   stack <- c()
   curr <- getCurrent(df,1)
@@ -251,39 +265,74 @@ popstack <- function(stack){
   return(list(stack=stack[-length(stack)],value=val))
 }
 
-plot.FLrpart<-function(x){ browser()
-	newframe<-preorderDataFrame(x$frame)
-	curnode<-c()
-	pxcor<-c()
-	pycor<-c()
-	xcor<-c()
-	ycor<-c()
-	inc<-as.numeric("1.5")
-	treelevel<-newframe$treelevel
-	for(i in 1:length(treelevel)){
-		if(treelevel[i]==0){
-			xcor<-c(xcor,"1.75")
-			ycor<-c(ycor,"1.00")
-			curnode<-c(curnode,"1")
-			pxcor<-c(pxcor,xcor)
-			pycor<-c(pycor,ycor)
-		}
-		else{
-			curnode<-c(curnode,newframe$NodeID[i])
-			pnode<-newframe$parent[i]
-			pxcor<-c(pxcor,as.numeric(xcor[as.numeric(curnode[pnode])]))
-			pycor<-c(pycor,as.numeric(ycor[as.numeric(curnode[pnode])]))
-			ycor<-c(ycor,as.numeric(pycor[i])-treelevel[i]/2)
-			if(newframe$leftson[pnode]==i) xcor<-c(xcor,as.numeric(pxcor[i])-inc)
-			else xcor<-c(xcor,as.numeric(pxcor[i])+inc)
-		}
-	}
-	temp1<-range(xcor)
-	temp2<-range(ycor)
- 	plot(temp1, temp2, type = "n", axes = TRUE, xlab = "", ylab = "")
- 	parent<-matrix(c(pxcor,pycor),ncol=2)
- 	child<-matrix(c(xcor,ycor),ncol=2)
- 	#if(newframe$)
- 	lines(c(parent), c(child))
- 	#invisible(list(x = xcor, y = ycor))
+plot.FLrpart<-function(x){ #browser()
+	# newframe<-preorderDataFrame(x$frame)
+	# curnode<-c()
+	# pxcor<-c()
+	# pycor<-c()
+	# xcor<-c()
+	# ycor<-c()
+	# inc<-as.numeric("1.5")
+	# treelevel<-newframe$treelevel
+	# for(i in 1:length(treelevel)){
+	# 	if(treelevel[i]==0){
+	# 		xcor<-c(xcor,"1.75")
+	# 		ycor<-c(ycor,"1.00")
+	# 		curnode<-c(curnode,"1")
+	# 		pxcor<-c(pxcor,xcor)
+	# 		pycor<-c(pycor,ycor)
+	# 	}
+	# 	else{
+	# 		curnode<-c(curnode,newframe$NodeID[i])
+	# 		pnode<-newframe$parent[i]
+	# 		pxcor<-c(pxcor,as.numeric(xcor[curnode==pnode]))
+	# 		pycor<-c(pycor,as.numeric(ycor[curnode==pnode]))
+	# 		ycor<-c(ycor,as.numeric(pycor[i])-treelevel[i]/2)
+	# 		if(newframe$leftson[as.numeric(newframe$NodeID)==pnode]==as.numeric(curnode[i]))
+	# 			xcor<-c(xcor,as.numeric(pxcor[i])-0.25)
+	# 		else xcor<-c(xcor,as.numeric(pxcor[i])+0.25)
+	# 	}
+	# }
+	# #browser()
+	# temp1<-range(xcor)
+	# temp2<-range(ycor)
+ # 	plot(temp1, temp2, type = "n", axes = TRUE, xlab = "", ylab = "")
+ # 	parent<<-matrix(c(pxcor,pycor),ncol=2)
+ # 	child<<-matrix(c(xcor,ycor),ncol=2)
+ # 	#if(newframe$)
+ # 	lines(parent, child)
+ # 	#invisible(list(x = xcor, y = ycor))
+ return(createcor(x$frame))
  }
+
+ createcor<-function(frame){#browser()
+  plot(2.5,2)
+  xcor<-c("2.5")
+  ycor<-c("2.5")
+  for(i in 1:nrow(frame)){
+    if(frame$IsLeaf[i]==1){
+      j<-frame$leftson[i]
+      k<-frame$rightson[i]
+      if(i==1) {
+        xcor[j]<-as.numeric(xcor[i])-0.5
+        xcor[k]<-as.numeric(xcor[i])+0.5
+        ycor[j]<-"2.25"
+        ycor[k]<-"2.25"
+        segments(as.numeric(xcor[1]),as.numeric(ycor[1]),mean(c(as.numeric(xcor[j]),as.numeric(xcor[k]))),mean(c(as.numeric(ycor[j]),as.numeric(ycor[k]))))
+        segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        }
+      else{
+        xcor[j]<-as.numeric(xcor[i])-0.25/frame$treelevel[i]
+        xcor[k]<-as.numeric(xcor[i])+0.25/frame$treelevel[i]
+        ycor[j]<-2.5-as.numeric(frame$treelevel[j])*0.25
+        ycor[k]<-2.5-as.numeric(frame$treelevel[k])*0.25
+        pxcor<-as.numeric(xcor[i])
+        pycor<-as.numeric(ycor[i])
+        xmid<-as.numeric((as.numeric(xcor[j])+as.numeric(xcor[k]))/2)
+        ymid<-as.numeric((as.numeric(ycor[j])+as.numeric(ycor[k]))/2)
+        segments(pxcor,pycor,xmid,ymid)
+        segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        }
+  	}
+  }
+}
