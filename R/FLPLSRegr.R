@@ -1,10 +1,30 @@
+NULL
+
+#' PLS Regression.
+#'
+#' \code{mvr} performs linear regression on FLTable objects.
+#'
+#' The DB Lytix function called is FLPLSRegr. Performs PLS Regression and 
+#' stores the results in predefined tables.
+#'
+#' @seealso \code{\link[stats]{mvr}} for R reference implementation.
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable or FLTableMD.
+#' @param ncomp Number of components for performing pls & opls
+#' @return \code{mvr} returns an object of class \code{FLPLSRegr}
+#' @examples
+#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
+#' predict(flmod); residuals(flmod);plot(flmod)
+#' cof <-coefficients(flmod)
+#' Functions to perform partial least squares regression (PLSR),
+#' canonical powered partial least squares (CPPLS) or principal
+#' component regression (PCR), with a formula interface.
+#' Cross-validation can be used.  Prediction, model extraction, plot,
+#' print and summary methods exist.
+ 
 
 ##library(pls)
-#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
-#' rtbl <- as.R(deeptbl)
-#' names(rtbl) <- letters[1:16]
-#' flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
-#' rmod <- mvr(a~., data = rtbl, ncomp = 5)
 #' @export
 #' library(pls)
 mvr <- function (formula,data=list(),...) {
@@ -39,15 +59,26 @@ mvr.FLTable <- mvr.FLpreparedData
 mvr.FLTableMD <- mvr.FLpreparedData
 
 
-
-## OPLS Regression
-##note: rsquare not working.
+#'OPLS Regression.
+#'
+#' \code{mvr} performs linear regression on FLTable objects.
+#'
+#' The DB Lytix function called is FLOPLSRegr. Performs OPLS Regression and 
+#' stores the results in predefined tables.
+#'
+#' @seealso \code{\link[stats]{opls}} for R reference implementation.
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable or FLTableMD.
+#' @param ncomp Number of components for performing pls & opls.
+#' @param northo Number of orthogonal vectors.
+#' @return \code{opls} returns an object of class \code{FLPLSRegr}
+#' @examples
 #' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
-#' rtbl <- as.R(deeptbl)
-#' names(rtbl) <- letters[1:16]
 #' flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
-#' rmod <- mvr(a~., data = rtbl, ncomp = 5)
+#' cof <- coefficients(flmod)
+#' pred <- predict(flmod);res <- residuals(flmod) 
 
+#' @export
 
 
 
@@ -100,8 +131,9 @@ setClass(
         str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS Xmeans
                        FROM ",object@deeptable@select@table_name," a
 WHERE a.",getVariables(object@deeptable)$var_id_colname," > -1
-GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
+GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVariables(object@deeptable)$var_id_colname," ")
         mval <- sqlQuery(connection, str)
+        mval <- mval$Xmeans
         return(mval)
     }
     else if(property == "Ymeans"){
@@ -232,11 +264,12 @@ FROM ",object@vfcalls["coefftablename"],"
 WHERE AnalysisID = '",object@AnalysisID,"'
 ORDER BY 3, 2;")
     dtf <- sqlQuery(connection, str)
-    dtf <- dtf[2:length(dtf), ]
+    cof <- dtf$Beta[2:length(dtf$Beta)]
     var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
-    vdf <- data.frame(Var = var, coeff = dtf$Beta)
+    names(cof) <- var
+    cof <- as.array(cof)
     assign(parentObject,object,envir=parent.frame())
-    return(vdf)   
+    return(cof)   
 }
 
 #' @export
@@ -302,7 +335,7 @@ dfgeneric <- function(object, vcomp)
     return(df2)
 }
 
-
+#' @export
 plot.FLPLSRegr <- function(object, ...)
 {
     measured <- as.R(object$y)

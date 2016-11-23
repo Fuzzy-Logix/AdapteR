@@ -20,6 +20,7 @@ test_that("Means and coefficients:", {eval_expect_equal({
     xmn <- fit$Xmeans
     yscr <- fit$Yscores
     xscr <- fit$scores
+    cof <- coefficients(fit)
     
 },Renv,FLenv,
 verbose = TRUE,
@@ -51,4 +52,6 @@ FLenv$res <- residuals(FLenv$fit)
 FLexpect_equal(Renv$pred, FLenv$pred)
 FLexpect_equal(Renv$res, FLenv$res)
 
-## R Example:
+
+
+

@@ -63,18 +63,18 @@ setClass(
 #' library(MASS)
 #' options(debugSQL =TRUE)
 #' table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
-#' q <- rlm(a~., data = table)
-#' predict(q)
-#' residuals(q)
-#' q$fitted.values
-#' summary(q)
+#' flmod <- rlm(a~., data = table)
+#' predict(flmod)
+#' residuals(flmod)
+#' flmod$fitted.values
+#' summary(flmod)
 #' still to work on plot(q)
 #' Example for widetable:
 #' widetbl <- FLTable("tblautompg", "ObsID")
-#' t <- rlm(Weight~ Acceleration , data = widetbl)
-#' summary(t)
-#' coefficients(t)
-#' residuals(t)
+#' flmod <- rlm(Weight~ Acceleration , data = widetbl)
+#' summary(flmod)
+#' coefficients(flmod)
+#' residuals(flmod)
 #' @export
 rlm <- function (formula,data=list(),psi, ...) {
 	UseMethod("rlm", data)
@@ -523,13 +523,13 @@ lmGeneric <- function(formula,data,
     deeptable <- deepx@select@table_name
     
                                         #for more generic output:
-    mod <- c(nCoeffCorrelWithRes="CORRELWITHRES",
-             nCoeffNonZeroDensity="NONZERODENSITY",
-             nCoeffTStat="TSTAT",
-             nCoeffStdErr="STDERR",
-             nCoeffPValue="PVALUE",
-             nCoeffEstim = "CoeffValue",
-             nID = "CoeffID"
+    mod <- c(FLCoeffCorrelWithRes="CORRELWITHRES",
+             FLCoeffNonZeroDensity="NONZERODENSITY",
+             FLCoeffTStat="TSTAT",
+             FLCoeffStdErr="STDERR",
+             FLCoeffPValue="PVALUE",
+             nCoeffEstim = "COEFFVALUE",
+             nID = "COEFFID"
              )
 
     ## todo: create a list for this lookup 
@@ -697,13 +697,13 @@ lmGeneric <- function(formula,data,
                         MAX_ITER =maxiter
                         )
         functionName <- "FLLinRegr"
-        mod <- c(nCoeffCorrelWithRes="",
-                 nCoeffNonZeroDensity="",
-                 nCoeffTStat="T_VAL",
-                 nCoeffStdErr="STDDEV",
-                 nCoeffPValue="P_VAL",
+        mod <- c(FLCoeffCorrelWithRes="",
+                 FLCoeffNonZeroDensity="",
+                 FLCoeffTStat="T_VAL",
+                 FLCoeffStdErr="STDDEV",
+                 FLCoeffPValue="P_VAL",
                  nCoeffEstim = "EST",
-                 nID = "VarID"
+                 nID = "VARID"
                  )  }
 
     if(familytype %in% "pls")
@@ -1529,11 +1529,11 @@ coefficients.FLLinRegr<-function(object){
         coeffVector <- coefficients.FLLinRegrMD(object)
     else 
 	coeffVector <- coefficients.lmGeneric(object,
-                                              FLCoeffStats=c(FLCoeffStdErr=object@results$mod["nCoeffStdErr"],
-                                                             FLCoeffPValue=object@results$mod["nCoeffPValue"],
-                                                             FLCoeffTStat=object@results$mod["nCoeffTStat"],
-                                                             FLCoeffCorrelWithRes=object@results$mod["nCoeffCorrelWithRes"],
-                                                             FLCoeffNonZeroDensity=object@results$mod["nCoeffNonZeroDensity"]))
+                                              FLCoeffStats=c(object@results$mod["FLCoeffStdErr"],
+                                                             object@results$mod["FLCoeffPValue"],
+                                                             object@results$mod["FLCoeffTStat"],
+                                                             object@results$mod["FLCoeffCorrelWithRes"],
+                                                             object@results$mod["FLCoeffNonZeroDensity"]))
     assign(parentObject,object,envir=parent.frame())
     return(coeffVector)
 }
@@ -1572,7 +1572,7 @@ coefficients.lmGeneric <-function(object,
                                            " WHERE a.Final_VarID = b.",vID," \n",
                                            " AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
                                            "\n AND b.AnalysisID = ",fquote(object@AnalysisID),
-                                           ifelse(length(object@results[["modelID"]])>0 && vfcalls != "FLRobustRegr" && vfcalls != "FLPLSRegr",
+                                           ifelse(length(object@results[["modelID"]])>0 && object@vfcalls[["functionName"]] != "FLRobustRegr" && object@vfcalls[["functionName"]] != "FLPLSRegr",
                                                   paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
                                            "\n ORDER BY b.",vID))
             
@@ -1601,7 +1601,6 @@ coefficients.lmGeneric <-function(object,
         }
 
         colnames(coeffVector) <- toupper(colnames(coeffVector))
-        
         coeffVector1 <- coeffVector[[object@results$mod["nCoeffEstim"]]]
                                         # vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
         if(!is.null(vcoeffnames)){
@@ -1634,7 +1633,7 @@ coefficients.lmGeneric <-function(object,
                                  droppedCols=droppedCols),
                             FLCoeffStats)
         object@results[["modelColnames"]]<-vmodelnames
-        object@results[["CoeffID"]] <- as.numeric(coeffVector[["COEFFID"]])
+        object@results[[vID]] <- as.numeric(coeffVector[[vID]])
                                         # object@results[["varIDMapping"]] <- vmapping
         parentObject <- unlist(strsplit(unlist(strsplit(
             as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
