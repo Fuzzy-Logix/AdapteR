@@ -34,14 +34,9 @@ NULL
 #' @export
 setClass(
 	"FLAggClust",
+	contains="FLDataMining",
 	slots=list(
-		AnalysisID="character",
-		wideToDeepAnalysisId="character",
-		table="FLTable",
-		results ="list",
-		deeptable="FLTable",
 		temptables="list",
-		mapTable="character",
 		diss="logical"
 	)
 )

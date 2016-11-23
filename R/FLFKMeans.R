@@ -46,16 +46,11 @@ NULL
 #' @param object plots results of agglomerative clustering.
 setClass(
 	"FLFKMeans",
+	contains="FLDataMining",
 	slots=list(
 		centers="numeric",
-		AnalysisID="character",
-		wideToDeepAnalysisId="character",
-		table="FLTable",
 		diss="logical",
-		results ="list",
-		deeptable="FLTable",
 		temptables="list",
-		mapTable="character",
 		memb.exp="numeric",
 		maxit="numeric"
 	)
