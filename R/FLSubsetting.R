@@ -506,6 +506,7 @@ appendTableName <- function(object,tablename){
 #' @export
 changeAlias <- function(object,newalias,oldalias){
   object <- object[object!=""]
+  vnames <- names(object)
   if(!length(object)>0) return(object)
   if(length(newalias)>0 && newalias!="") 
   newalias <- paste0(newalias,".")
@@ -525,6 +526,7 @@ changeAlias <- function(object,newalias,oldalias){
       paste0(newalias,x)
     else x
     }))
+  names(result) <- vnames
   return(result)
 }
 

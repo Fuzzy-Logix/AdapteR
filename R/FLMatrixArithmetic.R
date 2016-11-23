@@ -20,7 +20,7 @@ FLMatrixArithmetic.default <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 {
-    vtype <- getArtihmeticType(pObj1,pObj2,pOperator)
+    vtype <- getArithmeticType(pObj1,pObj2,pOperator)
 	vcompvector <- c("==",">","<",">=","<=","!=")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)
@@ -104,7 +104,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 									 FROM (",constructSelect(pObj1),") AS ",a,
                             ",(",constructSelect(pObj2),") AS ",b,
 	                        constructWhere(paste0( a,".",pObj1@dimColumns[[3]],"  = ",b,".",pObj2@dimColumns[[2]],"")),
-	                        " GROUP BY 1,2,3")
+	                        " GROUP BY ",a,".",pObj1@dimColumns[[2]],",",
+                                       b,".",pObj2@dimColumns[[3]])
 			dimnames <- list(dimnames(pObj1)[[1]],
                              dimnames(pObj2)[[2]])
             dims <- c(dim(pObj1)[[1]],
@@ -149,12 +150,13 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
                              " b.colIdColumn AS colIdColumn, \n ",
                              " b.valueColumn*(-1) AS valueColumn \n ",
                              " FROM(",constructSelect(pObj2),") AS b) AS a \n ",
-							 " GROUP BY 1,2,3 ")
+							 " GROUP BY a.rowIdColumn,a.colIdColumn ")
 		}
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                               connectionName = attr(connection,"name"),
                               variables=list(
+                                  Matrix_ID="%insertIDhere%",
                                   rowIdColumn="rowIdColumn",
                                   colIdColumn="colIdColumn",
                                   valueColumn="valueColumn"),
@@ -225,7 +227,7 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 {
-    vtype <- getArtihmeticType(pObj1,pObj2,pOperator)
+    vtype <- getArithmeticType(pObj1,pObj2,pOperator)
 	vcompvector <- c("==",">","<",">=","<=","<>")
 	if(missing(pObj2)){
 		if(pOperator=="+") return(pObj1)

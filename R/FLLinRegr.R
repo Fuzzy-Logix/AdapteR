@@ -486,7 +486,6 @@ lmGeneric <- function(formula,data,
                       trace=1,
                       ...)
 {
-    browser()
     if(inherits(data,"FLTable"))
         prepData <- prepareData.lmGeneric(formula,data,
                                           callObject=callObject,

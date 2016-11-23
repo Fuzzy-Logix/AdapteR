@@ -223,7 +223,7 @@ NULL
 									" b.colIdColumn AS colIdColumn, \n ",
 									" b.valueColumn*(-1) AS valueColumn \n ",
 									" FROM(",constructSelect(pObj2),") AS b) AS a \n ",
-							 " GROUP BY 1,2,3 ")
+							 " GROUP BY MATRIX_ID,rowIdColumn,colIdColumn ")
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = attr(connection,"name"),
@@ -238,7 +238,8 @@ NULL
 	    flm <- newFLMatrix(
 	            select= tblfunqueryobj,
 	            dims=dim(pObj1),
-	            Dimnames=dimnames(pObj1))
+	            Dimnames=dimnames(pObj1),
+                type="logical")
 
 	    flm <- ensureQuerySize(pResult=flm,
 		            pInput=list(pObj1,pObj2),
@@ -352,7 +353,8 @@ NULL
 		flv <- newFLVector(
 				select = tblfunqueryobj,
 				Dimnames = dimnames,
-				isDeep = FALSE)
+				isDeep = FALSE,
+                type="logical")
 
 		flv <- ensureQuerySize(pResult=flv,
 	            pInput=list(pObj1,pObj2),

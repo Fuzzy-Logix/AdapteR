@@ -90,13 +90,20 @@ lu.FLMatrix<-function(object,...)
 	
     MID1 <- getMaxMatrixId(connection)
 
-    sqlstr <- paste0(
-                     viewSelectMatrix(object, "a","z"),
-                     outputSelectMatrix("FLLUDecompUdt",viewName="z",localName="a",
-                    	outColNames=list("OutputMatrixID","OutputRowNum",
-                    		"OutputColNum","OutputValL","OutputValU","OutputPermut"),
-                    	whereClause="")
-                   )
+    # sqlstr <- paste0(
+    #                  viewSelectMatrix(object, "a","z"),
+    #                  outputSelectMatrix("FLLUDecompUdt",viewName="z",localName="a",
+    #                 	outColNames=list("OutputMatrixID","OutputRowNum",
+    #                 		"OutputColNum","OutputValL","OutputValU","OutputPermut"),
+    #                 	whereClause="")
+    #                )
+    
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLLUDecompUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object),
+                                 pReturnQuery=TRUE
+                                 )
     sqlstr <- gsub("'%insertIDhere%'",MID1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
@@ -111,7 +118,7 @@ lu.FLMatrix<-function(object,...)
 	sqlstrLU <-paste0(" SELECT ",MID1," AS MATRIX_ID, \n ",
 					          "OutputRowNum AS rowIdColumn, \n ",
 					          "OutputColNum AS colIdColumn, \n ",
-					          "CAST(OutputValL AS NUMBER) AS valueColumn \n ",
+					          "CAST(OutputValL AS FLOAT) AS valueColumn \n ",
 					  	" FROM ",tempResultTable,
 					 	" WHERE OutputRowNum > OutputColNum \n ",
 				   		" AND OutputValL IS NOT NULL \n ",
@@ -119,27 +126,45 @@ lu.FLMatrix<-function(object,...)
 				   		" SELECT ",MID1," AS MATRIX_ID, \n ",
 					          " OutputRowNum AS rowIdColumn, \n ",
 					          " OutputColNum AS colIdColumn, \n ",
-					          " CAST(OutputValU AS NUMBER) AS valueColumn \n ", 
+					          " CAST(OutputValU AS FLOAT) AS valueColumn \n ", 
 					  	" FROM ",tempResultTable,
 					 	" WHERE OutputRowNum <= OutputColNum \n ",
 				   		" AND OutputValU IS NOT NULL ")
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = attr(connection,"name"),
-                        variables=list(
-                            rowIdColumn="rowIdColumn",
-                            colIdColumn="colIdColumn",
-                            valueColumn="valueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstrLU)
+    ##@Phani: insert into select with union all not working in hadoop
 
-	flm <- newFLMatrix(
-               select= tblfunqueryobj,
-               dims=dim(object),
-	            Dimnames=dimnames(object))
+    vLUTable <- createTable(pTableName=gen_unique_table_name("LU"),
+                            pSelect=sqlstrLU)
 
-  	LUMatrix <- store(object=flm)
+    flm <- FLMatrix(
+            connection = getFLConnection(object),
+            table_name = vLUTable, 
+            matrix_id_value = MID1,
+            matrix_id_colname = "MATRIX_ID", 
+            row_id_colname = "rowIdColumn", 
+            col_id_colname = "colIdColumn", 
+            cell_val_colname = "valueColumn",
+            dims=dim(object),
+            dimnames=dimnames(object),
+            type=typeof(object)
+            )
+	# tblfunqueryobj <- new("FLTableFunctionQuery",
+ #                        connectionName = attr(connection,"name"),
+ #                        variables=list(
+ #                            rowIdColumn="rowIdColumn",
+ #                            colIdColumn="colIdColumn",
+ #                            valueColumn="valueColumn"),
+ #                        whereconditions="",
+ #                        order = "",
+ #                        SQLquery=sqlstrLU)
+
+	# flm <- newFLMatrix(
+ #               select= tblfunqueryobj,
+ #               dims=dim(object),
+	#             Dimnames=dimnames(object))
+
+  	# LUMatrix <- store(object=flm)
+    LUMatrix <- flm
 
 	# calculating Permutation FLMatrix
     data_perm <- FLMatrix(connection = connection, 
@@ -207,7 +232,8 @@ lu.FLMatrix<-function(object,...)
 								"vectorValueColumn"),
 				isDeep = FALSE)
 
-	x <- store(object=flv)
+	# x <- store(object=flv)
+    x <- flv
 
 	# calculating Dim vector
 	Dim<- dim(data_perm)

@@ -19,7 +19,7 @@ FLenv <- as.FL(Renv)
 
 ## rankMatrix output may not match as noted here -
 ## https://app.asana.com/0/143316600934101/144942913968279
-test_that("qr: rank from qr Decomposition function with tol",{
+test_that("qr: rank from qr Decomposition function with tol: https://app.asana.com/0/143316600934101/144942913968279",{
     result = eval_expect_equal({
         test2 = qr(mat1,tol = 1e-10)$rank
     },Renv,FLenv)

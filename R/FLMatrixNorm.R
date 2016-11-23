@@ -28,24 +28,38 @@ FLMatrixNorm <- function (object,NormMethod){
 #' @export
 FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 {
-
-	connection<-getFLConnection(object)
+	# connection<-getFLConnection(object)
     ## flag3Check(connection)
 
 	if(NormMethod > 4 || NormMethod < 1)
 	stop("NormMethod parameter should be whole number from 1 to 4")
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   " SELECT a.OutputNorm 
-					FROM TABLE (FLMatrixNormUdt(z.Matrix_ID,",NormMethod,", z.Row_ID, z.Col_ID, z.Cell_Val) 
-					HASH BY z.Matrix_ID 
-					LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"
-                   )
+	# sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+ #                   " SELECT a.OutputNorm 
+	# 				FROM TABLE (FLMatrixNormUdt(z.Matrix_ID,",NormMethod,", z.Row_ID, z.Col_ID, z.Cell_Val) 
+	# 				HASH BY z.Matrix_ID 
+	# 				LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"
+ #                   )
+
+    vdimcolumns <- getDimColumnsSlot(object)
+    pViewColnames <- as.list(c(vdimcolumns,NormMethod))
+    names(pViewColnames) <- c(vdimcolumns,"NormMethod")
+
+    pViewColnames <- pViewColnames[c(vdimcolumns[1],"NormMethod",vdimcolumns[-1])]
+
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLMatrixNormUdt",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pNest=TRUE,
+                                    pViewColnames=pViewColnames,
+                                    pReturnQuery=TRUE
+                                    )
 	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
 	sqlstr <- ensureQuerySize(pResult=sqlstr,
-		            pInput=list(object,NormMethod),
-		            pOperator="FLMatrixNorm")
+		                      pInput=list(object,NormMethod),
+		                      pOperator="FLMatrixNorm")
 
-	return(sqlQuery(connection,sqlstr)$"OutputNorm"[1])
+	return(sqlQuery(connection,sqlstr)$"outputnorm"[1])
 }

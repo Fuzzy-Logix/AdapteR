@@ -27,27 +27,43 @@ FLSolveExcl <- function (x,ExclIdx,...){
 FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
 {
 
-    connection<-getFLConnection(object)
+    # connection<-getFLConnection(object)
     ## flag1Check(connection)
 
-    MID <- "'%insertIDhere%'"
+    # MID <- "'%insertIDhere%'"
 
-    sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
-						AS (SELECT 1, 
-								   ",
-                   getVariables(object)$rowId,", 
-								   ",getVariables(object)$colId,", 
-								   ",getVariables(object)$value,",",
-								   ExclIdx, 
-							" \n FROM  ",tableAndAlias(object),
-							constructWhere(c(constraintsSQL(object))),") \n ",
-					" SELECT ",MID," AS MATRIX_ID, \n ",
-					       "a.OutputRowNum AS rowIdColumn, \n ",
-					        "a.OutputColNum AS colIdColumn, \n ",
-					        "a.OutputVal AS valueColumn \n ",
-					" FROM TABLE (FLMatrixInvExclUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val, z.ExclIdx) 
-						 \n HASH BY z.Matrix_ID 
-						 \n LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
+    # sqlstr<-paste0(" WITH z (Matrix_ID, Row_ID, Col_ID, Cell_Val, ExclIdx) 
+				# 		AS (SELECT 1, 
+				# 				   ",
+    #                getVariables(object)$rowId,", 
+				# 				   ",getVariables(object)$colId,", 
+				# 				   ",getVariables(object)$value,",",
+				# 				   ExclIdx, 
+				# 			" \n FROM  ",tableAndAlias(object),
+				# 			constructWhere(c(constraintsSQL(object))),") \n ",
+				# 	" SELECT ",MID," AS MATRIX_ID, \n ",
+				# 	       "a.OutputRowNum AS rowIdColumn, \n ",
+				# 	        "a.OutputColNum AS colIdColumn, \n ",
+				# 	        "a.OutputVal AS valueColumn \n ",
+				# 	" FROM TABLE (FLMatrixInvExclUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.Cell_Val, z.ExclIdx) 
+				# 		 \n HASH BY z.Matrix_ID 
+				# 		 \n LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;")
+
+    vdimcolumns <- getDimColumnsSlot(object)
+    pViewColnames <- as.list(c(vdimcolumns,ExclIdx))
+    names(pViewColnames) <- c(vdimcolumns,"ExclIdx")
+
+    pViewColnames <- pViewColnames[c(vdimcolumns,"ExclIdx")]
+
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLMatrixInvExclUdt",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pNest=TRUE,
+                                    pViewColnames=pViewColnames,
+                                    pReturnQuery=TRUE
+                                    )
+    # sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = attr(connection,"name"),

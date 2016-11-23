@@ -31,7 +31,6 @@ diag.default <- base::diag
 #' @export
 diag.FLMatrix<-function(object,...)
 {
-    
     connection<-getFLConnection(object)
     ## flag3Check(connection)
 
@@ -60,28 +59,29 @@ diag.FLVector <- function(object,...)
     {
         ## flag1Check(connection)
         value <- as.vector(object)
-        MID <- getMaxMatrixId(connection)
+        # MID <- getMaxMatrixId(connection)
 
-        sqlstr <- paste(sapply(1:value,FUN=function(i)
-            paste0(" INSERT INTO ",
-                   getOption("ResultMatrixTableFL"),
-                   " SELECT ",MID,",",
-                   i,",",
-                   i,",",
-                   1)),collapse=";")
+        # sqlstr <- paste(sapply(1:value,FUN=function(i)
+        #     paste0(" INSERT INTO ",
+        #            getOption("ResultMatrixTableFL"),
+        #            " SELECT ",MID,",",
+        #            i,",",
+        #            i,",",
+        #            1)),collapse=";")
 
-        sqlSendUpdate(connection,sqlstr)
+        # sqlSendUpdate(connection,sqlstr)
         
 
-        return(FLMatrix( 
-            table_name = getOption("ResultMatrixTableFL"), 
-            matrix_id_value = MID,
-            matrix_id_colname = "MATRIX_ID", 
-            row_id_colname = "rowIdColumn", 
-            col_id_colname = "colIdColumn", 
-            cell_val_colname = "valueColumn",
-            connection = connection
-        ))
+        # return(FLMatrix( 
+        #     table_name = getOption("ResultMatrixTableFL"), 
+        #     matrix_id_value = MID,
+        #     matrix_id_colname = "MATRIX_ID", 
+        #     row_id_colname = "rowIdColumn", 
+        #     col_id_colname = "colIdColumn", 
+        #     cell_val_colname = "valueColumn",
+        #     connection = connection
+        # ))
+        return(as.FLMatrix(Matrix(base::diag(value),sparse=TRUE)))
 	
     }
     else if(length(object)>1)
@@ -99,24 +99,25 @@ diag.FLVector <- function(object,...)
 
         else
         {
-            if(length(object@Dimnames[[1]])==1)
+            if(length(object@Dimnames[[2]])>1)
             {
                 MID <- getMaxMatrixId(connection)
-                sqlstr <- paste(sapply(1:length(object),FUN=function(i){
-                    if(isAliasSet(object)) 
+                if(isAliasSet(object)) 
                     vpatch <- paste0(getAlias(object),".")
-                    else vpatch <- ""
-                    paste0(" INSERT INTO ",
-                           getOption("ResultMatrixTableFL"),
-                           " SELECT ",MID,",",
-                           i,",",
-                           i,",",
-                           paste0(vpatch,object@Dimnames[[2]][i]),
-                           " FROM ",tableAndAlias(object),
-                           constructWhere(constraintsSQL(object)))
-                    }),collapse=";")
+                else vpatch <- ""
 
-                sqlSendUpdate(connection,sqlstr)
+                vtemp <- sapply(1:length(object),
+                                FUN=function(i){
+                                insertIntotbl(pTableName=getOption("ResultMatrixTableFL"),
+                                            pSelect=paste0(" SELECT ",MID,",",
+                                                           i,",",
+                                                           i,",",
+                                                           paste0(vpatch,object@Dimnames[[2]][i]),
+                                                           " FROM ",tableAndAlias(object),
+                                                           constructWhere(constraintsSQL(object))))
+                            })
+
+                #sqlSendUpdate(connection,sqlstr)
 
                 return(FLMatrix( 
                     table_name = getOption("ResultMatrixTableFL"), 
