@@ -126,6 +126,7 @@ Collate:
     'SiegelTukeyTest.R'
     'apply.R'
     'binom.test.R'
+    'checkConnection.R'
     'chisq.test.R'
     'cochran.qtest.R'
     'constructAbstractSQL.R'
