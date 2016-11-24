@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include FLLinRegr.R
 NULL
 
 ## move to file FLAggClustering.R
