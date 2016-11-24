@@ -46,16 +46,11 @@ NULL
 #' @param object plots results of agglomerative clustering.
 setClass(
 	"FLFKMeans",
+	contains="FLDataMining",
 	slots=list(
 		centers="numeric",
-		AnalysisID="character",
-		wideToDeepAnalysisId="character",
-		table="FLTable",
 		diss="logical",
-		results ="list",
-		deeptable="FLTable",
 		temptables="list",
-		mapTable="character",
 		memb.exp="numeric",
 		maxit="numeric"
 	)
@@ -482,11 +477,12 @@ coeff.FLFKMeans<-function(object){
 		## flag3Check(connection)
 		k<-1/object@centers
 
-		sqlstr <- paste0("SELECT FLSum(a.Weight*a.Weight)/COUNT(DISTINCT a.ObsID) AS dunn_coeff, \n ",
-						 "(dunn_coeff-",k,")/",k," AS normalized \n ",
+		sqlstr <- paste0("SELECT a.dunn_coeff, (a.dunn_coeff-",k,")/",k," AS normalized ",
+                        " FROM ( \n ",
+                        " SELECT FLSum(a.Weight*a.Weight)/COUNT(DISTINCT a.ObsID) AS dunn_coeff \n ",
 						" FROM fzzlKMeansMembership a \n ",
 						" WHERE a.AnalysisID= '",object@AnalysisID,"' \n ",
-						" AND a.HypothesisID=1")
+						" AND a.HypothesisID=1 \n ) a ")
 
 		coeffvector <- sqlQuery(connection,sqlstr)
 		coeffvector <- c(coeffvector[["dunn_coeff"]],coeffvector[["normalized"]])
@@ -515,8 +511,8 @@ objective.FLFKMeans <- function(object){
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 
 		sqlstr <- paste0(" SELECT FLSum(a.dist/b.den) AS objective  \n FROM \n ",
-						"(SELECT b.ClusterID, FLSum(b.Weight**",object@memb.exp," * c.Weight**",
-								object@memb.exp," * a.Dist) AS dist  \n FROM  \n ",
+						"(SELECT b.ClusterID, FLSum(power(b.Weight,",object@memb.exp,") * power(c.Weight,",
+								object@memb.exp,") * a.Dist) AS dist  \n FROM  \n ",
 						"(SELECT a.",obs_id_colname," AS ObsIDX, \n ",
 								"c.",obs_id_colname," AS ObsIDY, \n ",
 								"FLEuclideanDist(a.",cell_val_colname,", c.",cell_val_colname,") AS Dist  \n ",
@@ -552,7 +548,7 @@ k.crisp.FLFKMeans<-function(object){
 		## flag3Check(connection)
 		k<-1/object@centers
 
-		sqlstr <- paste0("SELECT COUNT(DISTINCT a.ObsID) as nonCrispClusters \n FROM \n ",
+		sqlstr <- paste0("SELECT COUNT(DISTINCT a.ObsID) as noncrispclusters \n FROM \n ",
 						"(SELECT a.ObsID, COUNT(DISTINCT a.ClusterID) AS clusters \n ",
 						" FROM fzzlKMeansMembership a \n ",
 						" WHERE a.AnalysisID= '",object@AnalysisID,"' \n ",
@@ -561,7 +557,7 @@ k.crisp.FLFKMeans<-function(object){
 						"  \n GROUP BY a.ObsID) as a \n ",
 						" WHERE a.clusters=",object@centers)
 
-		n <- sqlQuery(connection,sqlstr)[["nonCrispClusters"]]
+		n <- sqlQuery(connection,sqlstr)[["noncrispclusters"]]
 		if(n!=0) k.crispvector<- object@centers-1
 		else k.crispvector <- object@centers
 
@@ -601,19 +597,23 @@ silinfo.FLFKMeans <- function(object){
 		b <- gen_unique_table_name("3") ## gk: refactor!
 
 		##Ensure required temptables exist
-		t <- sqlSendUpdate(connection, paste0("CREATE  MULTISET VOLATILE TABLE ",b," AS (
-										SELECT  a.",obs_id_colname," AS ObsIDX, b.",obs_id_colname," AS ObsIDY, p.clusterid AS ClusIDX , q.Clusterid AS ClusIDY,
-                                        FLEuclideanDist(a.",cell_val_colname,", b.",cell_val_colname,") AS Dist
-                                        FROM ",deeptablename," a, ",deeptablename," b, fzzlkmeansclusterid p, fzzlkmeansclusterid q
-                                        WHERE a.",var_id_colname," = b.",var_id_colname," AND a.",obs_id_colname," < b.",obs_id_colname," 
-                                        AND p.obsid = a.",obs_id_colname," AND q.Obsid = b.",obs_id_colname, 
-                                        " AND q.AnalysisID = '",object@AnalysisID,"' AND q.HypothesisID = 1  AND p.AnalysisID = '",object@AnalysisID,"'
-                                        AND p.HypothesisID = 1
-                                        GROUP BY a.",obs_id_colname,", b.",obs_id_colname,", p.clusterid, q.clusterid
-										)
-										WITH DATA
-									    ON 
-										COMMIT  PRESERVE ROWS;"))
+		t <- createTable(pTableName=b,
+                        pSelect=paste0("SELECT  a.",obs_id_colname," AS ObsIDX, b.",
+                                                obs_id_colname," AS ObsIDY, \n p.clusterid AS ClusIDX , ",
+                                                " q.Clusterid AS ClusIDY , \n ",
+                                                " FLEuclideanDist(a.",cell_val_colname,
+                                                                ", b.",cell_val_colname,") AS Dist \n ",
+                                        " FROM ",deeptablename," a, ",
+                                                deeptablename," b, fzzlkmeansclusterid p, fzzlkmeansclusterid q \n ",
+                                        " WHERE a.",var_id_colname," = b.",var_id_colname,
+                                                " AND a.",obs_id_colname," < b.",obs_id_colname,
+                                                " \n  AND p.obsid = a.",obs_id_colname,
+                                                " \n AND q.Obsid = b.",obs_id_colname, 
+                                                " \n AND q.AnalysisID = '",object@AnalysisID,
+                                                "' AND q.HypothesisID = 1  AND p.AnalysisID = '",
+                                                object@AnalysisID,"'AND p.HypothesisID = 1 \n ",
+                                        " GROUP BY a.",obs_id_colname,", b.",
+                                                        obs_id_colname,", p.clusterid, q.clusterid "))
 		# u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
 		# 								" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
         u <- insertIntotbl(pTableName=b,
@@ -621,41 +621,39 @@ silinfo.FLFKMeans <- function(object){
 
 
 				
-			sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, CAST(a.ClusIDX as INT) AS ClusID, CAST(B2_i.Neighbour AS INT) AS Neighbour,
-
-													CASE WHEN FLMean(a.Dist) >  B2_i.val 
-													THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist)
-													ELSE  (B2_i.val - FLMean(a.Dist) )/B2_i.val
-													END AS siliwidth
-
-													FROM ",b," AS a,
-													(SELECT Bi.ObsID AS ObsIDX , FLMin(Bi.Val) AS q
-													FROM
-
-													(SELECT b.ObsIDX AS ObsID, FLMean(b.Dist) AS val
-													FROM ",b," AS b
-													WHERE b.ClusIDX <> b.ClusIDY
-													GROUP BY b.ObsIDX, b.ClusIDY
-													) AS Bi
-													GROUP BY Bi.ObsID)
-													AS  B1_i, 
-
-													(SELECT b.ObsIDX AS ObsID, b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val
-													FROM ",b," AS b
-													WHERE b.ClusIDX <> b.ClusIDY
-													GROUP BY b.ObsIDX, b.ClusIDY
-													) AS B2_i 
-
-													WHERE B1_i.q= B2_i.val AND B1_i.ObsIDX = B2_i.ObsID AND a.ClusIDX = a.ClusIDY AND a.ObsIDX = B2_i.ObsID
-													GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val 
-													ORDER BY 1,2"))
-																						}	
-    sili_matrix <- as.matrix(sili_table[,c("ClusID","Neighbour","siliwidth")])
+		sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS obsid, \n ",
+                                                    " CAST(a.ClusIDX as INT) AS clusid, \n ",
+                                                    " CAST(B2_i.Neighbour AS INT) AS neighbour, \n ",
+													" CASE WHEN FLMean(a.Dist) >  B2_i.val \n ",
+													" THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist) ",
+													" ELSE  (B2_i.val - FLMean(a.Dist) )/B2_i.val ",
+													" END AS siliwidth \n ",
+													" FROM ",b," AS a \n ,",
+													" (SELECT Bi.ObsID AS ObsIDX , FLMin(Bi.Val) AS q \n ",
+													" FROM \n ",
+													" (SELECT b.ObsIDX AS ObsID, FLMean(b.Dist) AS val \n ",
+													" FROM ",b," AS b \n ",
+													" WHERE b.ClusIDX <> b.ClusIDY \n ",
+													" GROUP BY b.ObsIDX, b.ClusIDY ",
+													" ) AS Bi \n ",
+													" GROUP BY Bi.ObsID) ",
+													" AS  B1_i, \n ",
+													" (SELECT b.ObsIDX AS ObsID, b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val \n ",
+													" FROM ",b," AS b \n ",
+													" WHERE b.ClusIDX <> b.ClusIDY \n ",
+													" GROUP BY b.ObsIDX, b.ClusIDY \n ",
+													" ) AS B2_i \n ",
+													" WHERE B1_i.q= B2_i.val AND B1_i.ObsIDX = B2_i.ObsID \n ",
+                                                    " AND a.ClusIDX = a.ClusIDY AND a.ObsIDX = B2_i.ObsID \n ",
+													" GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val \n ",
+													" ORDER BY 1,2"))
+	}	
+    sili_matrix <- as.matrix(sili_table[,c("clusid","neighbour","siliwidth")])
     colnames(sili_matrix) <- c("cluster","neighbor","sil_width")
-    rownames(sili_matrix) <- sili_table$ObsID
+    rownames(sili_matrix) <- sili_table$obsid
     
     clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
-        mean(sili_table$siliwidth[sili_table$ClusID == i])
+        mean(sili_table$siliwidth[sili_table$clusid == i])
     }))
     silinfolist <- list(widths = sili_matrix, clus.avg.widths = clus.avg.width)
     return(silinfolist)																	

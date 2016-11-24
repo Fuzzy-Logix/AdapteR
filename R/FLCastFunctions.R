@@ -68,7 +68,7 @@ as.data.frame <- function(x, ...)
 
 #' @export
 as.data.frame.FLTable <- function(x, ...){
-    #browser()
+    ##browser()
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
@@ -101,7 +101,7 @@ as.data.frame.FLTable <- function(x, ...){
 as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-    #browser()
+    ##browser()
 
    tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
@@ -115,10 +115,13 @@ as.data.frame.FLVector <- function(x, ...){
     #if(ncol(x)<=1 && class(x@select)!="FLTableFunctionQuery")
     if(ncol(x)<=1)
     {
-      if(is.character(rownames(x)) && !all(rownames(x)==1:length(rownames(x))))
-      vrownames<-1:length(rownames(x))
-      if(is.character(colnames(x)) && !all(colnames(x)==1:length(colnames(x))))
-      vcolnames<-1:length(colnames(x))
+
+        if(length(vrownames)==0 && length(x)>0)
+            vrownames <- 1:length(x)
+        if(is.character(rownames(x)) && !all(rownames(x)==1:length(rownames(x))))
+            vrownames<-1:length(rownames(x))
+        if(is.character(colnames(x)) && !all(colnames(x)==1:length(colnames(x))))
+            vcolnames<-1:length(colnames(x))
     }
 
      i <- charmatch(vrownames,D[[toupper("vectorIndexColumn")]],nomatch=0)
@@ -186,7 +189,7 @@ as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
 ## #' Converts input FLMatrix object to matrix in R
 #' @export
 as.matrix.FLMatrix <- function(object,sparse=FALSE) {
-    m <- as.sparseMatrix.FLMatrix(object)
+    m <- as.sparseMatrix(object)
     if(sparse)
         m
     dn <- dimnames(m)
@@ -456,21 +459,33 @@ as.FLEnvironment <- function(Renv){
     FLenv
 }
 
+#' @export
+as.sparseMatrix <- function(object)
+    UseMethod("as.sparseMatrix")
 
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
     tryCatch(valuedf <- sqlQuery(getFLConnection(object), sqlstr),
       error=function(e){stop(e)})
-    i <- valuedf[[object@dimColumns[[2]]]]
-    j <- valuedf[[object@dimColumns[[3]]]]
+
+    ##@phani: Aster and hadoop return output schema in lower case.
+    colnames(valuedf) <- tolower(colnames(valuedf))
+
+    i <- valuedf[[tolower(object@dimColumns[[2]])]]
+    j <- valuedf[[tolower(object@dimColumns[[3]])]]
     i <- FLIndexOf(i,rownames(object))
     j <- FLIndexOf(j,colnames(object))
 
     dn <- dimnames(object)
     if(any(is.na(c(i,j))))
         browser()
-    values <- valuedf[[object@dimColumns[[4]]]]
+    values <- valuedf[[tolower(object@dimColumns[[4]])]]
+
+    ##@phani:- some connection drivers give boolean as character
+    if(typeof(object)=="logical" &&
+        !any(is.na(as.logical(values))))
+        values <- as.logical(values)
 
   if(is.factor(values))
   return(matrix(values,dim(object),
@@ -515,7 +530,16 @@ as.sparseMatrix.FLMatrix <- function(object) {
                         dimnames = dn)
   return(m)
 }
-
+#' @export
+as.sparseMatrix.FLMatrix.TDAster <- function(object){
+    object <- setValueSQLName(object,tolower(getValueSQLName(object)))
+    object <- setIndexSQLName(object=object,
+                            margin=1:2,
+                            value=tolower(getIndexSQLName(object,margin=1:2)))
+    as.sparseMatrix.FLMatrix(object)
+}
+#' @export
+as.sparseMatrix.FLMatrix.Hadoop <- as.sparseMatrix.FLMatrix.TDAster
 #' @export
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
@@ -862,31 +886,30 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
-    ##browser()
-    if(missing(tableName))
-        tableName <- genRandVarName()
-    if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
-        stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
-    if(uniqueIdColumn==0){
-        vrownames <- rownames(object)
-        if(!any(is.na(as.numeric(vrownames))))
-            vrownames <- as.numeric(vrownames)
-        object <- base::cbind(rownames=vrownames,object)
-        obsIdColname <- "rownames"
-    }
-    else if(is.numeric(uniqueIdColumn)){
-        uniqueIdColumn <- as.integer(uniqueIdColumn)
-        if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
-            stop("uniqueIdColumn is out of bounds")
-        else
-            obsIdColname <- colnames(object)[uniqueIdColumn]
-    }
-    else if(is.character(uniqueIdColumn)){
-        if(!uniqueIdColumn %in% colnames(object))
-            stop("uniqueIdColumn is out of bounds")
-        else
-            obsIdColname <- uniqueIdColumn
-    }
+  if(missing(tableName))
+  tableName <- genRandVarName()
+  if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
+  stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
+  if(uniqueIdColumn==0){
+    vrownames <- rownames(object)
+    if(!any(is.na(as.numeric(vrownames))))
+        vrownames <- as.numeric(vrownames)
+    object <- base::cbind(ObsID=vrownames,object)
+    obsIdColname <- "ObsID"
+  }
+  else if(is.numeric(uniqueIdColumn)){
+    uniqueIdColumn <- as.integer(uniqueIdColumn)
+    if(uniqueIdColumn < 0 || uniqueIdColumn > ncol(object))
+        stop("uniqueIdColumn is out of bounds")
+    else
+        obsIdColname <- colnames(object)[uniqueIdColumn]
+  }
+  else if(is.character(uniqueIdColumn)){
+    if(!uniqueIdColumn %in% colnames(object))
+        stop("uniqueIdColumn is out of bounds")
+    else
+        obsIdColname <- uniqueIdColumn
+  }
 
     ## A copy of connection is needed as in Aster, if query fails
     ## connection becomes unusable until end of transaction block.
@@ -924,7 +947,7 @@ as.FLTable.data.frame <- function(object,
                              pDrop=drop
                              )},
             error=function(e)NULL)
-    if(is.ODBC(vconnection))
+    if(is.ODBC(vconnection) || is.Hadoop())
     {
     ## SqlSave uses parameterized sql which is slow for odbc.
     ## SqlSave does not include distribute by during table creation.
@@ -938,9 +961,13 @@ as.FLTable.data.frame <- function(object,
     ## This bulk insertion may fail for very big data
     ## as there size of query fired may exceed odbc limits!
     ## These cases will be handled by Parameterized sql
+
+    ## Replace NAs with NULL
+    object[is.na(object)] <- ''
     vresult <- tryCatch(insertIntotbl(pTableName=tableName,
                                     pValues=object),
                         error=function(e){
+                            if(!is.ODBC(vconnection)) stop(e)
                             sqlstr <- paste0("INSERT INTO ",tableName,
                                             " VALUES(",paste0(rep("?",vcols),
                                             collapse=","),")")
@@ -960,7 +987,6 @@ as.FLTable.data.frame <- function(object,
                   vsetvector[" INT "] <- "setInt"
                   for(i in 1:length(namedvector))
                   {
-                    #browser()
                     .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
                       if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
                       else if(namedvector[i]==" FLOAT ") .jfloat(x[i])

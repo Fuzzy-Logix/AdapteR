@@ -17,55 +17,90 @@ NULL
 
 constructMatrixUDTSQL <- function(pObject,
                                   pFuncName,
-                                  pOutColnames=list(
-                                      rowIdColumn="row_id",
-                                      colIdColumn="col_id",
-                                      valueColumn="cell_val"),
                                   pWhereConditions="",
-                                  pIncludeMID=TRUE,
+                                  pdims=getDimsSlot(pObject),
+                                  pdimnames=dimnames(pObject),
+                                  pViewColnames=getVariables(pObject),
                                   ...){
 
-    ## Covers case when vector output is needed
-    if(pIncludeMID){
-        pOutColnames[["MATRIX_ID"]]="'%insertIDhere%'"
+    # ## Covers case when vector output is needed
+    # if(pIncludeMID){
+    #     pOutColnames[["MATRIX_ID"]]="'%insertIDhere%'"
+    # }
+    vMap <- getMatrixUDTMapping(pFuncName)
+    pOutColnames <- names(vMap$argsPlatform)
+    pOutColnames[1] <- "'%insertIDhere%'"
+    # names(pOutColnames) <- getDimColumnsSlot(pObject)
+    names(pOutColnames) <- vMap$argsPlatform
+    pOutColnames <- as.list(pOutColnames)
+    pFuncName <- vMap$funcNamePlatform
+
+    ## Have to cast valuecolumn to double in hadoop
+    ## as udt's does not support float!!
+    if(is.Hadoop()){
+        vfunc <- function(pObject)
+            return(paste0(" CAST(",getValueSQLExpression(pObject)," AS DOUBLE) "))
+        pObject <- setValueSQLExpression(object=pObject,func=vfunc)
     }
+    pSelect <- constructSelect(pObject,joinNames=FALSE)
 
     ## Ensure proper ordering for UDT especially
-    object <- orderVariables(object,
-                  c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn")
-              )
+    if(missing(pViewColnames) || length(pViewColnames)==0){
+        pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
+        pViewColnames <- getVariables(pObject)
+    }
 
-    return(constructUDTSQL( pViewColnames=c(MATRIX_ID="MATRIX_ID",
-                                            Row_ID="rowIdColumn",
-                                            Col_ID="colIdColumn",
-                                            Cell_Val="valueColumn"
-                                            ),
+    sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
+                            pViewColnames=pViewColnames,
                             pFuncName=pFuncName,
                             pOutColnames=pOutColnames,
                             pWhereConditions=pWhereConditions,
-                            pSelect=constructSelect(pObject)
-                        )
-        )
+                            pSelect=pSelect,
+                            ...
+                            )
+    if(!is.null(list(...)[["pReturnQuery"]]) && 
+        list(...)[["pReturnQuery"]])
+        return(sqlstr)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                        connectionName = getFLConnectionName(),
+                        variables=pOutColnames,
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+    flm <- newFLMatrix(
+             select= tblfunqueryobj,
+             dims=pdims,
+             Dimnames=pdimnames,
+             dimColumns=names(pOutColnames))
+    flm
+
 }
 
-constructUDTSQL <- function(pViewColnames,
+## @phani: I think we need separate connection classes for
+## each platform.eg- JDBCAster
+constructUDTSQL <- function(pConnection=getFLConnection(),
+                            pViewColnames,
                             pFuncName,
                             pOutColnames,
                             pWhereConditions="",
                             pSelect,
                             pPartitionBy=names(pViewColnames)[1],
                             pLocalOrderBy=names(pViewColnames)[1],
+                            pNest=FALSE,
                             ...){
+    if(pNest){
+        pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
+        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                " FROM ( ",pSelect," ) a ")
+    }
+    else vNestedSelect <- pSelect
     if(is.TD()){
         return(paste0("WITH z( ",paste0(names(pViewColnames),
-                                        collapse=","),
-                            " )",
-                       " AS ( SELECT ",paste0(pViewColnames,
-                                            collapse=","),
-                            " FROM ( ",pSelect," ) a ",
-                        " )",
-                       "SELECT ",constructVariables(pOutColnames),
-                       "FROM TABLE (",
+                                        collapse=",")," )",
+                       " AS ( ",vNestedSelect," )",
+                       " SELECT ",constructVariables(pOutColnames),
+                       " FROM TABLE (",
                             pFuncName,"(",paste0("z.",names(pViewColnames),
                                         collapse=","),
                                     ")",
@@ -84,16 +119,12 @@ constructUDTSQL <- function(pViewColnames,
     else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
-                            " ( ON ( SELECT ",constructVariables(pViewColnames),
-                                    " FROM ( ",pSelect," ) a ",
-                                " ) a ",
-                            " PARTITION BY ",paste0(pPartitionBy,
-                                            collapse=","),
-                                paste0("arg",1:length(pViewColnames),
-                                    "(",names(pViewColnames),")",
-                                    collapse=","
-                                    )
-                            ,") a ",
+                        " ( ON ( ",vNestedSelect," ) a ",
+                        " PARTITION BY ",paste0(pPartitionBy,
+                                            collapse=",")," ",
+                        paste0("arg",1:length(pViewColnames),
+                            "(",names(pViewColnames),")",
+                            collapse=","),") a ",
                         constructWhere(pWhereConditions)
                     )
                 )
@@ -102,15 +133,12 @@ constructUDTSQL <- function(pViewColnames,
     else if(is.TDAster()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
-                            " ( ON ( SELECT ",constructVariables(pViewColnames),
-                                    " FROM ( ",pSelect," ) a ",
-                                " ) a ",
+                            " ( ON ( ",vNestedSelect," ) ",
                             " PARTITION BY ",paste0(pPartitionBy,
-                                            collapse=","),
-                            " TARGET (",paste0("'",setdiff(names(pViewColnames,
-                                                        pPartitionBy)),"'",
-                                                collapse=","
-                                            )
+                                                    collapse=","),
+                            " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
+                                                        pPartitionBy))),
+                                                collapse=",")
                             ,")) a ",
                         constructWhere(pWhereConditions)
                     )
@@ -127,92 +155,87 @@ constructStoredProcSQL <- function (pConnection,
     UseMethod("constructStoredProcSQL")
 }
 
-
-
 constructStoredProcSQL.FLConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
                                                 ...){
+    constructStoredProcSQL(getRConnection(pConnection),
+                           pFuncName,pOutputParameter,...)
+}
+constructStoredProcSQL.JDBCConnection <- function(pConnection,
+                                                pFuncName,
+                                                pOutputParameter,
+                                                ...){
+    args <- list(...)
+    pars <- rep("?",length(args))
+    names(pars) <- names(args)
+
+    pout <- rep("?",length(pOutputParameter))
+    names(pout) <- names(pOutputParameter)
+    result <- do.call("constructStoredProcSQL.default",
+                      append(
+                          list(pConnection=pConnection,
+                               pFuncName=pFuncName,
+                               pOutputParameter=pout),
+                          pars))
+    gsub("'\\?'","?",result)
+}
+constructStoredProcSQL.default <- function(pConnection,
+                                             pFuncName,
+                                             pOutputParameter,
+                                             ...){
+    ##browser()
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
     else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
     ## Setting up input parameter value
-    pars <- character()
-    ## Construct input params 
-    ## NULL in TD == '' in others
-    ## gk: refactor conditionals to class methods
-    if(is.ODBC(pConnection) || is.character(pConnection)){
-        pars <- sapply(args,
-                    function(a){
-                        if(is.character(a)){
-                            if(a=="NULL"){
-                                if(is.TD())
-                                    return("NULL")
-                                else return("''")
-                            }
-                            else
-                                return(fquote(a))
-                        } 
-                        else return(a)
-                    })
-        # ai <- 1L
-        # for(a in unlist(args)){
-        #     if(is.character(a)){
-        #         if(a=="NULL"){
-        #             if(is.TD())
-        #             pars[ai] <- "NULL"
-        #             else pars[ai] <- "''"
-        #         }
-        #         else
-        #             pars[ai] <- fquote(a)
-        #     } else
-        #         pars[ai] <- a
-        #     ai <- ai+1L
-        # }
-    } else {
-        pars <- rep("?",length(args))
-        if(is.TD())
-            names(pOutputParameter)<-"?"
-    }
-
+    pars <- args
+    ## Construct input params
     names(pars) <- names(args)
+    output <- pOutputParameter
+    pars <- c(pars,getStoredProcMapping("extraPars"))
 
-    vCall <- c(TD="CALL ",
-                TDAster="SELECT * FROM ",
-                Hadoop="SELECT ")
-    vCall <- vCall[[getFLPlatform()]]
-    if(is.TDAster()){
-        pars <- c(pars,
-                DSN=fquote(getOption("DSN")))
-        return(paste0(vCall," ",pFuncName,
-                "( ON (SELECT 1 ) PARTITION BY 1 ",
-                    paste0(names(pars),"(",
-                            pars,")",
-                            collapse=" \n "),
-                    ")"
-                )
-        )
-    }
-    else
-    return(paste0(vCall," ",pFuncName,
-                    "(",
-                    paste0(pars,
-                            collapse=", \n "),
-                    ifelse(is.TD(),
-                        paste0(",",
-                            paste0(names(pOutputParameter), 
-                                collapse=", \n ")),
-                        ""),
-                    ")"
-                )
-        )
+    valMaps <- getStoredProcMapping("valueMapping")
+    if(is.null(valMaps)) valMaps <- list()
+    pars <- sapply(pars,
+                   function(a){
+        if(is.integer(a))
+            return(a)
+        else if(is.numeric(a))
+            return(sprintf("%f",a))
+        else if(is.character(a)){
+            b <- valMaps[[a]]
+            if(!is.null(b))
+                a <- b
+            if(a!="NULL")
+                return(fquote(a))
+        }
+        else return(a)
+    })
+
+    if(getStoredProcMapping("withOutputPars"))
+        pars <- c(pars,output)
+
+    argNames <- getStoredProcMapping("withArgNames")
+    if(argNames=="()")
+        pars <- paste0(names(pars),"(",pars,")")
+    if(argNames=="=")
+        pars <- paste0(names(pars),argNames,pars)
+    argSep <- getStoredProcMapping("argSeparator")
+    if(is.null(argSep))
+        argSep <- ", \n "
+    return(paste0(getStoredProcMapping("prefix")," ",
+                  pFuncName,
+                  "(",
+                  getStoredProcMapping("preArgs"),
+                  paste0(pars, collapse=argSep),
+                  ")\n"
+                  ))
 }
 
-constructStoredProcSQL.character <- constructStoredProcSQL.FLConnection
-constructStoredProcSQL.RODBC <- constructStoredProcSQL.FLConnection
-constructStoredProcSQL.JDBCConnection <- constructStoredProcSQL.FLConnection
+
 ############################### Aggregates ############################
 ## should already work
 
@@ -349,7 +372,7 @@ constructUnionSQL <- function(pFrom,
 ## Set Database
 setCurrentDatabase <- function(pDBName){
     if(is.Hadoop())
-        vsqlstr <- paste0("USE ",pDBName,";")
+        vsqlstr <- paste0("USE ",pDBName)
     else if(is.TD())
         vsqlstr <- c(paste0("DATABASE ",pDBName,";"),
                     "SET ROLE ALL;")
@@ -509,7 +532,7 @@ createTable <- function(pTableName,
                                     paste0(pTableOptions,collapse=" ")))
         }
     }
-    vsqlstr <- paste0(vsqlstr,";")
+    #vsqlstr <- paste0(vsqlstr,";")
     if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
             if(checkRemoteTableExistence(tableName=pTableName))
@@ -551,7 +574,7 @@ createView <- function(pViewName,
         pStore <- list(...)$pStore
     else pStore <- TRUE
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
-                        " AS ",pSelect,";")
+                        " AS ",pSelect)
     res <- sqlSendUpdate(getFLConnection(),vsqlstr)
     if(pStore)
     updateMetaTable(pTableName=pViewName,
@@ -566,22 +589,32 @@ createView <- function(pViewName,
 ##' @export
 dropView <- function(pViewName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                paste0("DROP VIEW ",pViewName,";"),warn=warn)
+                paste0("DROP VIEW ",pViewName),warn=warn)
 }
 
 ## DROP TABLE
 ##' @export
 dropTable <- function(pTableName,warn=FALSE){
     sqlSendUpdate(getFLConnection(),
-                  paste0("DROP TABLE ",pTableName,";"),warn=warn)
+                  paste0("DROP TABLE ",pTableName),warn=warn)
 }
 
 ## Insert Into Table
 ## TODO: add pConnection as input
+## @phani: I think we need separate connection classes for
+## each platform.eg- JDBCAster
+# setGeneric("insertIntotbl",
+#     function(pTableName,
+#             pColNames=NULL,
+#             pValues=NULL,
+#             pSelect=NULL,
+#             pConnection=getFLConnection()))
+
 insertIntotbl <- function(pTableName,
                           pColNames=NULL,
                           pValues=NULL,
-                          pSelect=NULL){
+                          pSelect=NULL,
+                          pConnection=getFLConnection()){
 
     # if(!grepl(".",pTableName,fixed=TRUE))
     # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
@@ -590,7 +623,7 @@ insertIntotbl <- function(pTableName,
     vsqlstr <- paste0("INSERT INTO ",pTableName)
 
     if(!is.null(pValues)){
-        if(!is.null(pColNames))
+        if(!is.null(pColNames) && !is.Hadoop())
             vsqlstr <- paste0(vsqlstr,"(",
                         paste0(pColNames,collapse=","),
                         ") ")
@@ -611,11 +644,9 @@ insertIntotbl <- function(pTableName,
                                                 if((is.character(y) && !grepl("'",y))
                                                     || is.null(y)){
                                                     if(y=="NULL" || is.null(y)){
-                                                        if(is.TD())
-                                                            return("NULL")
-                                                        else return("''")
+                                                        return("NULL")
                                                     }
-                                                    return(fquote(y))
+                                                    else return(fquote(y))
                                                 }
                                                 else return(y)}),
                                         collapse = ","),")")}),
@@ -623,7 +654,7 @@ insertIntotbl <- function(pTableName,
             # vsqlstr <- paste0(apply(pValues,1,
             #                 function(x)
             #                     paste0(vsqlstr,"(",paste0(fquote(x),collapse=","),")")),collapse = ";")
-        else if(is.TDAster()){
+        else if(!is.TD()){
             vappend <- paste0(apply(pValues,1,
                                 function(x){
                                   paste0("(",
@@ -646,7 +677,7 @@ insertIntotbl <- function(pTableName,
         }
     }
     else if(!is.null(pSelect)){
-        vsqlstr <- paste0(vsqlstr,"  ",pSelect,";")
+        vsqlstr <- paste0(vsqlstr,"  ",pSelect)
     }
     ##print(vsqlstr)
     sqlSendUpdate(getFLConnection(),vsqlstr)
@@ -662,7 +693,7 @@ updateMetaTable <- function(pTableName,
 
     if("pNote" %in% names(list(...)))
         pNote <- list(...)$pNote
-    else pNote <- "NA"
+    else pNote <- "NotSpecified"
 
     if(is.null(pElementID))
         pElementID <- -1
@@ -671,7 +702,7 @@ updateMetaTable <- function(pTableName,
                   pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
-                            "ObjType","Comments"),
+                            "ObjType","UserComments"),
                   pValues=list(as.character(as.POSIXlt(Sys.time(),tz="GMT")),
                             as.character(Sys.Date()),
                             ifelse(is.null(getOption("FLUsername")),

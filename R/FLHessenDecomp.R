@@ -32,14 +32,20 @@ FLHessen.FLMatrix<-function(object,...)
     ## flag1Check(connection)
 
 
-    sqlstr <- paste0(
-                     viewSelectMatrix(object, "a","z"),
-                     outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
-                    	outColNames=list("OutputMatrixID","OutputRowNum",
-                    		"OutputColNum","OutputPVal","OutputHVal"),
-                    	whereClause=" ")
-                   )
-
+    # sqlstr <- paste0(
+    #                  viewSelectMatrix(object, "a","z"),
+    #                  outputSelectMatrix("FLHessenbergDecompUdt",viewName="z",localName="a",
+    #                 	outColNames=list("OutputMatrixID","OutputRowNum",
+    #                 		"OutputColNum","OutputPVal","OutputHVal"),
+    #                 	whereClause=" ")
+    #                )
+    
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLHessenbergDecompUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object),
+                                 pReturnQuery=TRUE
+                                 )
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 	
     sqlstr <- ensureQuerySize(pResult=sqlstr,

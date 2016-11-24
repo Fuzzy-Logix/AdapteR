@@ -106,7 +106,8 @@ friedman.test.FLVector <- function(y,groups,blocks,...){
                         cell_val_colname="Num_Val")
     result <- friedman.test(Num_Val~ObsID|VarID,
                               data=vtable,
-                              data.name=DNAME)
+                              data.name=DNAME,
+                              ...)
     dropView(vtemp)
     return(result)
 }
@@ -127,7 +128,8 @@ friedman.test.FLMatrix <- function(y,...){
                         cell_val_colname="valueColumn")
     result <- friedman.test(valueColumn~colIdColumn|rowIdColumn,
                               data=vtable,
-                              data.name=DNAME)
+                              data.name=DNAME,
+                              ...)
     dropView(vtemp)
     return(result)
 }
@@ -136,10 +138,15 @@ friedman.test.FLMatrix <- function(y,...){
 #' @export
 #' @method friedman.test formula
 friedman.test.formula <- function(formula, data,
+                                  subset=TRUE,
+                                  na.action=getOption("na.action"),
                                   ...){
     if(!is.FL(data)){
         return(stats:::friedman.test.formula(formula=formula,
-                                             data=data,...))
+                                             data=data,
+                                             subset=subset,
+                                             na.action=na.action,
+                                             ...))
     } else
         UseMethod("friedman.test", data)
 }
@@ -151,10 +158,10 @@ friedman.test.default <- stats:::friedman.test.default
 #' @export
 #' @method friedman.test FLTable
 friedman.test.FLTable <- function(formula, data,
-                                            subset=TRUE, 
-                                            na.action=getOption("na.action"),
-                                            y=NULL,
-                                            ...){
+                                subset=TRUE, 
+                                na.action=getOption("na.action"),
+                                y=NULL,
+                                ...){
     data <- setAlias(data,"")
     connection <- getFLConnection()
     if(data@isDeep){
@@ -175,6 +182,20 @@ friedman.test.FLTable <- function(formula, data,
         vdata.name <- paste0(vValueColname," and ",vGroupColname,
                              " and ",vBlockColname)
     vobsIDCol <- getVariables(data)[["obs_id_colname"]]
+
+    vWhereCond <- NULL
+    if(is.numeric(subset)){
+        vWhereCond <- paste0(vobsIDCol," IN (",
+                            paste0(subset,collapse=","),") ")
+    }
+    if(is.FLVector(subset)){
+        vWhereCond <- paste0(vobsIDCol," IN( SELECT a.vectorValueColumn ",
+                            "FROM (",gsub("\n"," ",
+                                        gsub("'%insertIDhere%'",1,
+                                            constructSelect(subset))),") a ) ")
+    }
+    vWhereCond <- c(vWhereCond,list(...)[["whereconditions"]])
+
     
                                         # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
     vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
@@ -192,7 +213,7 @@ friedman.test.FLTable <- function(formula, data,
                          ValueColname = vValueColname,
                          ObsIDColName= vBlockColname,
                          SampleIDColName = vGroupColname,
-                         WhereClause = list(...)[["whereconditions"]],
+                         WhereClause = constructWhere(vWhereCond),
                          GroupBy = vgrp,
                          TableOutput = 1,
                          outputParameter = c(OutTable = 'a')
@@ -206,7 +227,7 @@ friedman.test.FLTable <- function(formula, data,
                     paste0("SELECT COUNT(DISTINCT a.",
                            vGroupColname,")-1 AS df \n ",
                            " FROM ",getTableNameSlot(data)," a \n ",
-                           constructWhere(list(...)[["whereconditions"]])," \n ",
+                           constructWhere(vWhereCond)," \n ",
                            ifelse(length(setdiff(vgrp,""))>0,
                                   paste0("GROUP BY ",vgrp, " \n "),""),
                            ifelse(length(setdiff(vgrp,""))>0,

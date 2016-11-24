@@ -157,10 +157,16 @@ FLTableMD <- function(table,
                           cell_val_colname = cell_val_colname),
                       whereconditions=whereconditions,
                       order = "")
-        new("FLTableMD",
-            select = select,
-            Dimnames = list(rows,cols,vgrp),
-            isDeep = TRUE)
+        T <- newFLTableMD( 
+                 select = select,
+                 Dimnames = list(rows,cols,vgrp),
+                 dims = as.integer(c(length(rows),length(cols),length(vgrp))),
+                 isDeep = TRUE
+                )
+        # new("FLTableMD",
+        #     select = select,
+        #     Dimnames = list(rows,cols,vgrp),
+        #     isDeep = TRUE)
     }
     else
     {

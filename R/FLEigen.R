@@ -53,20 +53,28 @@ FLEigenValues<-function(object,...)
 FLEigenValues.FLMatrix<-function(object,...)
 {
 	
-	connection<-getFLConnection(object)
-    ## flag3Check(connection)
+	# connection<-getFLConnection(object)
+ #    ## flag3Check(connection)
 
-	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLEigenValueUdt",viewName="z",
-                   	                  localName="a",
-                                      includeMID=FALSE,
-                                      outColNames=list(vectorIdColumn="'%insertIDhere%'",
-                                                      vectorIndexColumn="OutputRowNum",
-                                                      vectorValueColumn="OutputVal"),
-                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;",
-                   	vconnection=connection)
-                   )
+	# sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
+ #                   outputSelectMatrix("FLEigenValueUdt",viewName="z",
+ #                   	                  localName="a",
+ #                                      includeMID=FALSE,
+ #                                      outColNames=list(vectorIdColumn="'%insertIDhere%'",
+ #                                                      vectorIndexColumn="OutputRowNum",
+ #                                                      vectorValueColumn="OutputVal"),
+ #                   	whereClause="WHERE a.OutputRowNum = a.OutputColNum;",
+ #                   	vconnection=connection)
+ #                   )
 	
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLEigenValueUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object),
+                                 pWhereConditions=list(...)[["pWhereConditions"]],
+                                 pReturnQuery=TRUE
+                                 )
+
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = attr(connection,"name"),
                         variables = list(
@@ -89,6 +97,27 @@ FLEigenValues.FLMatrix<-function(object,...)
 }
 
 #' @export
+FLEigenValues.FLMatrix.TD <- function(object,...)
+{
+    pWhereConditions <- " OutputRowNum = OutputColNum "
+    return(FLEigenValues.FLMatrix(object=object,
+                                 pWhereConditions=pWhereConditions,
+                                 ...))
+}
+
+#' @export
+FLEigenValues.FLMatrix.Hadoop <- function(object,...)
+{
+    pWhereConditions <- " row_id = col_id "
+    return(FLEigenValues.FLMatrix(object=object,
+                                 pWhereConditions=pWhereConditions,
+                                 ...))
+}
+
+#' @export
+FLEigenValues.FLMatrix.TDAster <- FLEigenValues.FLMatrix.Hadoop
+
+#' @export
 FLEigenVectors<-function(object,...)
 {
 	UseMethod("FLEigenVectors", object)
@@ -97,28 +126,34 @@ FLEigenVectors<-function(object,...)
 #' @export
 FLEigenVectors.FLMatrix<-function(object,...)
 {
-	connection<-getFLConnection(object)
+	# connection<-getFLConnection(object)
 	## flag1Check(connection)
 
-	sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
-                    outputSelectMatrix("FLEigenVectorUdt",viewName="z",localName="a",includeMID=TRUE,
-                    	vconnection=connection)
-                   )
+	# sqlstr <-paste0(viewSelectMatrix(object,"a",withName="z"),
+ #                    outputSelectMatrix("FLEigenVectorUdt",viewName="z",localName="a",includeMID=TRUE,
+ #                    	vconnection=connection)
+ #                   )
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = attr(connection,"name"),
-                        variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+    flm <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLEigenVectorUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object)
+                                 )
 
-  	flm <- newFLMatrix(
-            select= tblfunqueryobj,
-            dims=dim(object),
-            Dimnames=dimnames(object))
+	# tblfunqueryobj <- new("FLTableFunctionQuery",
+ #                        connectionName = attr(connection,"name"),
+ #                        variables=list(
+ #                            rowIdColumn="OutputRowNum",
+ #                            colIdColumn="OutputColNum",
+ #                            valueColumn="OutputVal"),
+ #                        whereconditions="",
+ #                        order = "",
+ #                        SQLquery=sqlstr)
+
+ #  	flm <- newFLMatrix(
+ #            select= tblfunqueryobj,
+ #            dims=dim(object),
+ #            Dimnames=dimnames(object))
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object),

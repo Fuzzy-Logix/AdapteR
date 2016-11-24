@@ -26,30 +26,35 @@ chol <- function (object, ...){
 #' @export
 chol.FLMatrix<-function(object,...)
 {
-    connection<-getFLConnection(object)
-    ##flag1Check(connection)
+    # connection<-getFLConnection(object)
+    # ##flag1Check(connection)
 
-    sqlstr<-paste0(
-        viewSelectMatrix(object,"a",withName="z"),
-        outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",
-                           localName="a",includeMID=TRUE,vconnection=connection)
-    )
+    # sqlstr<-paste0(
+    #     viewSelectMatrix(object,"a",withName="z"),
+    #     outputSelectMatrix("FLCholeskyDecompUdt",viewName="z",
+    #                        localName="a",includeMID=TRUE,vconnection=connection)
+    # )
     
-    tblfunqueryobj <- new("FLTableFunctionQuery",
-                          connectionName = attr(connection,"name"),
-                          variables=list(
-                              rowIdColumn="OutputColNum",
-                              colIdColumn="OutputRowNum",
-                              valueColumn="OutputVal"),
-                          whereconditions="",
-                          order = "",
-                          SQLquery=sqlstr)
+    # tblfunqueryobj <- new("FLTableFunctionQuery",
+    #                       connectionName = attr(connection,"name"),
+    #                       variables=list(
+    #                           rowIdColumn="OutputColNum",
+    #                           colIdColumn="OutputRowNum",
+    #                           valueColumn="OutputVal"),
+    #                       whereconditions="",
+    #                       order = "",
+    #                       SQLquery=sqlstr)
 
-    flm <- newFLMatrix(
-               select= tblfunqueryobj,
-               dims=dim(object),
-               Dimnames=dimnames(object))
-
+    # flm <- newFLMatrix(
+    #            select= tblfunqueryobj,
+    #            dims=dim(object),
+    #            Dimnames=dimnames(object))
+    
+    flm <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLCholeskyDecompUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object)
+                                 )
     ## gk: todo: a JIRA ticket should investigate, because A %*% t(A) is definition of A=chol(object), not t(A) %*% A
     return(t(flm))
 }
