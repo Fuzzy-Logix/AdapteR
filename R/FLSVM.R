@@ -19,8 +19,17 @@ setClass(
 
 #' @export
 #' library(e1071)
-#' deeptbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
-
+#' Linear Kernel
+#' tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
+#' flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
+#' predict(flmod)
+#'
+#' polynomial Kernel
+#'tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
+#'flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+#'
+#'
+#' 
 svm <- function (formula,data=list(),...) {
     UseMethod("svm", data)
 }
@@ -29,56 +38,57 @@ svm <- function (formula,data=list(),...) {
 svm.default <- e1071::svm
 
 #' @export
-svm.FLpreparedData <- function(formula, data,kernel = "linear",cost = 1, ...)
+svm.FLpreparedData <- function(formula, data,kernel = "linear",cost = 1, degree = 3, sigma = .1, fetchID = TRUE,...)
 {
-    print("hi")
     vcallObject <- match.call()
     data <- setAlias(data,"")
     return(svmGeneric(formula=formula,
                       data=data,
                       callObject=vcallObject,
                       familytype="",
-                      kernel = "linear",
+                      kernel = kernel,
                       cost = cost,
+                      degree = degree,
+                      sigma = sigma,
                       ...))
-
 }
 
 #' @export
-##svm.FLTable <- svm.FLpreparedData
-svv <- function(formula, data,kernel = "linear",cost = 1, ...)
-{
-    print("hi")
-    vcallObject <- match.call()
-    data <- setAlias(data,"")
-    return(svmGeneric(formula=formula,
-                      data=data,
-                      callObject=vcallObject,
-                      familytype="",
-                      kernel = "linear",
-                      cost = cost,
-                      ...))
-
-}
+svm.FLTable <- svm.FLpreparedData
+#'svv <- function(formula, data,kernel = "linear",cost = 1, ...)
+#'{
+#'    print("hi")
+#'    vcallObject <- match.call()
+#'    data <- setAlias(data,"")
+#'    return(svmGeneric(formula=formula,
+#'                      data=data,
+#'                      callObject=vcallObject,
+#'                      familytype="",
+#'                      kernel = "linear",
+#'                      cost = cost,
+#'                      ...))
+#'
+#'}
 
 #' @export
+
 svm.FLTableMD <- svm.FLpreparedData
 
 
 
 
-
-
-## move to file lmGeneric.R
+## Generic function for SVM.
 svmGeneric <- function(formula,data,
                        callObject=NULL,
                        familytype = "",
                        kernel = "linear",
                        cost = 1,
+                       degree = 3,
+                       sigma = .1,
                        ...)
 
 {
-    browser()
+    
     prepData <- prepareData.lmGeneric(formula,data,
                                       callObject=callObject,
                                       familytype=familytype,
@@ -89,15 +99,15 @@ svmGeneric <- function(formula,data,
     for(i in names(prepData))
 	assign(i,prepData[[i]])
     deeptable <- deepx@select@table_name
-    sqlQuery(connection, "SELECT * FROM ",deeptable," ")
     functionName <- "FLSVMLinearUDT"
     pArg <- c(cost)
     if(kernel == "polynomial") {
         functionName <- "FLSVMPolynomialUDT"
-        pArg <- c(pArg, Degree)}
+        pArg <- c(pArg, degree)}
     else if(kernel == "radial basis" ){
         functionName = "FLSVMGaussianUDT"
-        pArg <- c(pArgs, sig)
+        pArg <- c(pArg, sigma)
+        kernel <- "Gaussian"
     }
     tblname <- gen_unique_table_name("svm")
     t <- createTable(tblname, pSelect = constructUDTSQL(pViewColname = c(GroupID = 1,
@@ -108,12 +118,41 @@ svmGeneric <- function(formula,data,
                                                         pOutColnames = c("a.*"),
                                                         pSelect = deeptable,
                                                         pArgs = pArg,
-                                                        pLocalOrderBy=c("ObsID", "VarID", "Num_Val"), pNest = TRUE))
+                                                        pLocalOrderBy=c("GroupID", "ObsID", "VarID"), pNest = TRUE))
     
-    df <- sqlQuery(connection, "SELECT * FROM ",tblname," ORDER BY 1, 2, 3 ")
-    print(df)   
+    return(new("FLSVM",
+               formula=formula,
+               table=data,
+               results=list(call=callObject,
+                            kernel = kernel,
+                            outtbl=tblname),
+               deeptable=deepx,
+               mapTable=mapTable,
+               scoreTable="",
+               offset=as.character(offset),
+               RegrDataPrepSpecs=RegrDataPrepSpecs))   
 }
 
+
+predict.FLSVM <- function(object, newData = object@table){
+    var <- getVariables(flmod@deeptable@select)
+    tblname <- gen_unique_table_name("svmoutput")
+    scrmethod <- toupper(substr(object@results$kernel, 1,1))
+    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
+                                    ",fquote(object@deeptable@select@table_name),",
+                                    NULL,
+                                    ",fquote(var[[1]])," ,
+                                    ",fquote(var[[2]])," ,
+                                    ",fquote(var[[3]])," ,
+                                    ",fquote(scrmethod),",  
+                                    ",fquote(tblname),",
+                                     OutAnalysisID);")
+    print(qer)
+    
+    print(sqlQuery(connection, qer))
+    str <- paste0("SELECT * FROM ",tblname)
+    return(sqlQuery(connection, str) )
+}
 
 
 

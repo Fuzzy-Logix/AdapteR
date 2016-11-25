@@ -91,7 +91,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     if(pNest){
         pViewColnames <- changeAlias(pViewColnames,"","")
         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM ( ",pSelect," ) a ")
+                                " FROM (SELECT * FROM ",pSelect," ) a ")
     }
     else vNestedSelect <- pSelect
     if(is.TD()){
