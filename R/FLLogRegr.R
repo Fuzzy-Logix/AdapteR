@@ -124,7 +124,7 @@ glm.FLTable <- function(formula,
 		family <- "logistic"
 		else stop("only poisson,binomial,multinomial and logisticwt families are currently supported in glm\n")
 	}
-
+	if(list(...)$method=="sf") family<-"FLLogRegrSF"
 	return(lmGeneric(formula=formula,
 					data=data,
 					callObject=vcallObject,

@@ -202,10 +202,12 @@ lm.FLTable <- function(formula,data,...)
 {
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
+	if(list(...)$method=="sf") familytype<-"FLLinRegrSF"
+	else familytype<-"linear"
 	return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
-                     familytype="linear",
+                     familytype=familytype,
                      ...))
 }
 
@@ -486,7 +488,7 @@ lmGeneric <- function(formula,data,
                       direction="",
                       trace=1,
                       ...)
-{
+{	browser()
     if(inherits(data,"FLTable"))
         prepData <- prepareData.lmGeneric(formula,data,
                                           callObject=callObject,
@@ -600,8 +602,17 @@ lmGeneric <- function(formula,data,
                                                   scoretablename="FLLinRegrScore",
                                                   rcoeff = "fzzlOPLSRegrFactorFit"
                                                   )
+        else if(familytype=="FLLinRegrSF") vfcalls<-c(functionName="FLLinRegrSF",
+        											  infotableName="fzzlLinRegrInfo",
+                                                  	  note="SingleFactorLinRegr",
+                                                  	  coefftablename="fzzlLinRegrCoeffs",
+                                                  	  statstablename="fzzlLinRegrStats")
 
-
+        else if(familytype=="FLLogRegrSF") vfcalls<-c(functionName="FLLogRegrSF",
+        											  infotableName="fzzlLogRegrInfo",
+                                                  	  note="SingleFactorLogRegr",
+                                                  	  coefftablename="fzzlLogRegrCoeffs",
+                                                  	  statstablename="fzzlLogRegrStats")
 
 	functionName <- vfcalls["functionName"]
 	infotableName <- vfcalls["infotableName"]
@@ -625,10 +636,11 @@ lmGeneric <- function(formula,data,
 						VarIDCol=getVariables(deepx)[["var_id_colname"]],
 						ValueCol=getVariables(deepx)[["cell_val_colname"]]
 						)
-	if(familytype %in% "multinomial")
+	if(familytype %in% c("multinomial","FLLogRegrSF"))
 	vinputCols <- c(vinputCols,
 					pRefLevel=pThreshold)
-	if(!familytype %in% c("linear", "robust", "pls", "opls") && direction!="forward")
+
+	if(!familytype %in% c("linear", "robust", "pls", "opls","FLLinRegrSF") && direction!="forward")
 	vinputCols <- c(vinputCols,
 					MAX_ITER=maxiter)
 	if(base::grepl("logistic",familytype) 
@@ -842,7 +854,7 @@ lmGeneric <- function(formula,data,
         vmaxModelID <- d[["MODELID"]]
         if(trace>0) print(d)
     }
-    
+    if(familytype %in% c("FLLinRegrSF"))
 
 	vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
 					"FLLogRegr",functionName)
