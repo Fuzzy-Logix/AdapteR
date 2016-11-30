@@ -52,20 +52,23 @@ NULL
 #' @method FLMapping FLKMedoids
 #' @param object gives the mapping data.frame which is used in execution.
 #' @export
+
 setClass(
-	"FLKMedoids",
+	"FLClustering",
 	slots=list(
 		centers="numeric",
-		AnalysisID="character",
-		wideToDeepAnalysisId="character",
-		table="FLTable",
-		diss="logical",
-		results ="list",
-		deeptable="FLTable",
-		temptables="list",
-		mapTable="character",
-		distTable="character" ,
 		maxit="numeric"
+	)
+)
+
+setClass(
+	"FLKMedoids",
+	contains=c("FLDataMining",
+				"FLClustering"),
+	slots=list(
+		diss="logical",
+		temptables="list",
+		distTable="character"
 	)
 )
 ## move to file pam.R

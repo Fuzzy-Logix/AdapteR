@@ -36,12 +36,11 @@ NULL
 #' @export
 setClass(
 	"FLHKMeans",
-	contains="FLDataMining",
+	contains=c("FLDataMining",
+			   "FLClustering"),
 	slots=list(
-		centers="numeric",
 		nstart="numeric",
-		levels="numeric" ,
-		maxit="numeric"
+		levels="numeric"
 	)
 )
 
