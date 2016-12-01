@@ -20,18 +20,18 @@ constructMatrixUDTSQL <- function(pObject,
                                   pWhereConditions="",
                                   pdims=getDimsSlot(pObject),
                                   pdimnames=dimnames(pObject),
-                                  #pIncludeMID=TRUE,
+                                  pViewColnames=getVariables(pObject),
                                   ...){
 
     # ## Covers case when vector output is needed
     # if(pIncludeMID){
     #     pOutColnames[["MATRIX_ID"]]="'%insertIDhere%'"
     # }
-
     vMap <- getMatrixUDTMapping(pFuncName)
     pOutColnames <- names(vMap$argsPlatform)
     pOutColnames[1] <- "'%insertIDhere%'"
-    names(pOutColnames) <- getDimColumnsSlot(pObject)
+    # names(pOutColnames) <- getDimColumnsSlot(pObject)
+    names(pOutColnames) <- vMap$argsPlatform
     pOutColnames <- as.list(pOutColnames)
     pFuncName <- vMap$funcNamePlatform
 
@@ -45,8 +45,10 @@ constructMatrixUDTSQL <- function(pObject,
     pSelect <- constructSelect(pObject,joinNames=FALSE)
 
     ## Ensure proper ordering for UDT especially
-    pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
-    pViewColnames <- getVariables(pObject)
+    if(missing(pViewColnames) || length(pViewColnames)==0){
+        pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
+        pViewColnames <- getVariables(pObject)
+    }
 
     sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
                             pViewColnames=pViewColnames,
@@ -56,6 +58,9 @@ constructMatrixUDTSQL <- function(pObject,
                             pSelect=pSelect,
                             ...
                             )
+    if(!is.null(list(...)[["pReturnQuery"]]) && 
+        list(...)[["pReturnQuery"]])
+        return(sqlstr)
     tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = getFLConnectionName(),
                         variables=pOutColnames,
@@ -66,7 +71,8 @@ constructMatrixUDTSQL <- function(pObject,
     flm <- newFLMatrix(
              select= tblfunqueryobj,
              dims=pdims,
-             Dimnames=pdimnames)
+             Dimnames=pdimnames,
+             dimColumns=names(pOutColnames))
     flm
 
 }
@@ -83,9 +89,11 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             pLocalOrderBy=names(pViewColnames)[1],
                             pNest=FALSE,
                             ...){
-    if(pNest)
+    if(pNest){
+        pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
                                 " FROM ( ",pSelect," ) a ")
+    }
     else vNestedSelect <- pSelect
     if(is.TD()){
         return(paste0("WITH z( ",paste0(names(pViewColnames),
@@ -176,6 +184,7 @@ constructStoredProcSQL.default <- function(pConnection,
                                              pFuncName,
                                              pOutputParameter,
                                              ...){
+    ##browser()
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -192,7 +201,11 @@ constructStoredProcSQL.default <- function(pConnection,
     if(is.null(valMaps)) valMaps <- list()
     pars <- sapply(pars,
                    function(a){
-        if(is.character(a)){
+        if(is.integer(a))
+            return(a)
+        else if(is.numeric(a))
+            return(sprintf("%f",a))
+        else if(is.character(a)){
             b <- valMaps[[a]]
             if(!is.null(b))
                 a <- b

@@ -32,14 +32,21 @@ FLJordan.FLMatrix<-function(object,...)
 	## flag3Check(connection)
 	
 
-        sqlstr <- paste0(
-                         viewSelectMatrix(object, "a","z"),
-                         outputSelectMatrix("FLJordanDecompUdt",viewName="z",localName="a",
-                                            outColNames=list("OutputMatrixID","OutputRowNum",
-                                                             "OutputColNum","OutPVal","OutJVal","OutPInvVal"),
-                                            whereClause="")
-                   )
-        sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+        # sqlstr <- paste0(
+        #                  viewSelectMatrix(object, "a","z"),
+        #                  outputSelectMatrix("FLJordanDecompUdt",viewName="z",localName="a",
+        #                                     outColNames=list("OutputMatrixID","OutputRowNum",
+        #                                                      "OutputColNum","OutPVal","OutJVal","OutPInvVal"),
+        #                                     whereClause="")
+        #            )
+    
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLJordanDecompUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object),
+                                 pReturnQuery=TRUE
+                                 )
+    sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
 	            pInput=list(object),

@@ -23,18 +23,26 @@ FLSV <- function (object, ...){
 FLSV.FLMatrix<-function(object,...)
 {
 	#checkSquare(object)
-	connection<-getFLConnection(object)
+	# connection<-getFLConnection(object)
     ## flag3Check(connection)
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLSVUdt",includeMID=FALSE,
-                   	outColNames=list(vectorIdColumn="'%insertIDhere%'",
-                                     vectorIndexColumn="OutputID",
-                                     vectorValueColumn="OutputSV"),
-                    viewName="z",localName="a",vconnection=connection)
-                   )
+	# sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+ #                   outputSelectMatrix("FLSVUdt",includeMID=FALSE,
+ #                   	outColNames=list(vectorIdColumn="'%insertIDhere%'",
+ #                                     vectorIndexColumn="OutputID",
+ #                                     vectorValueColumn="OutputSV"),
+ #                    viewName="z",localName="a",vconnection=connection)
+ #                   )
+    
+     sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLSVUdt",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pWhereConditions=list(...)[["pWhereConditions"]],
+                                    pReturnQuery=TRUE
+                                    )
 
-	 tblfunqueryobj <- new("FLTableFunctionQuery",
+	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = attr(connection,"name"),
                         variables = list(
                       obs_id_colname = "vectorIndexColumn",

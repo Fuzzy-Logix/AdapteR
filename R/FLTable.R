@@ -100,9 +100,16 @@ FLTable <- function(table,
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
-        if(!changeAlias(obs_id_colname,"","") %in% cols && !is.TDAster())
-          stop(paste0(changeAlias(obs_id_colname,"",""),
+        cols <- changeAlias(cols,"","")
+        ## @phani: is.TD() used here as in other platforms output 
+        ## schema is always in lower case
+        if(is.TD())
+            vobsid <- changeAlias(obs_id_colname,"","")
+        else vobsid <- tolower(changeAlias(obs_id_colname,"",""))
+        if(!vobsid %in% cols)
+          stop(paste0(vobsid,
                       " not a column in table.Please check case Sensitivity \n "))
+        
         if(!is.null(list(...)[["ObsID"]])){
           rows <- list(...)[["ObsID"]]
           nrow <- length(rows)
@@ -155,11 +162,34 @@ FLTable <- function(table,
 ##'
 ##' @param object 
 #' @export
-names.FLTable <- function(object) object@Dimnames[[2]]
+colnames <- function(object,...)
+    UseMethod("colnames")
 #' @export
-colnames.FLTable <- function(object) object@Dimnames[[2]]
+colnames.default <- function(object,...)
+    base::colnames(x=object,...)
 #' @export
-rownames.FLTable <- function(object) object@Dimnames[[1]]
+colnames.FLTable <- function(object,...){
+    vcolnames <- object@Dimnames[[2]]
+    if(is.null(vcolnames) && !is.null(dim(object)[2]))
+        vcolnames <- 1:dim(object)[2]
+    return(vcolnames)
+}
+#' @export
+names.FLTable <- colnames.FLTable
+
+#' @export
+rownames <- function(object,...)
+    UseMethod("rownames")
+#' @export
+rownames.default <- function(object,...)
+    base::rownames(x=object,...)
+#' @export
+rownames.FLTable <- function(object){
+    vrownames <- object@Dimnames[[1]]
+    if(is.null(vrownames) && !is.null(dim(object)[1]))
+        vrownames <- 1:dim(object)[1]
+    return(vrownames)
+}
 
 #' @export
 setMethod("show","FLTable",function(object) print(as.data.frame(object)))
@@ -303,113 +333,182 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
-setGeneric("wideToDeep", 
-    function(object,
-              excludeCols="",
-              classSpec=list(),
-              whereconditions="",
-              outDeepTableName="",
-              outObsIDCol="",
-              outVarIDCol="",
-              outValueCol="") {
-    standardGeneric("wideToDeep")
-})
+wideToDeep <- function(object,...)
+    UseMethod("wideToDeep")
 
-## move to file FLWidetoDeep.R
-setMethod("wideToDeep",
-          signature(object = "FLTable"),
-          function(object,
-                  excludeCols="",
-                  classSpec=list(),
-                  whereconditions="",
-                  outDeepTableName="",
-                  outObsIDCol="",
-                  outVarIDCol="",
-                  outValueCol="")
-          {
-            if(object@isDeep) return(list(table=object))
-            connection <- getFLConnection(object)
-            object <- setAlias(object,"")
-            if(outDeepTableName == "")
-            deeptablename <- gen_deep_table_name(object@select@table_name)
-            #deeptablename <- genRandVarName()
-            else deeptablename <- outDeepTableName
-            if(class(object@select)=="FLTableFunctionQuery")
-            {
-              ## Views are not working  in FLDeepToWide and FLWideToDeep
-              # sqlstr <- paste0("CREATE VIEW ",outDeepTableDatabase,".",widetable," AS ",constructSelect(object))
-              # sqlSendUpdate(connection,sqlstr)
-              widetable <- createView(pViewName=gen_view_name(object@select@table_name),
-                        pSelect=constructSelect(object))
-              select <- new("FLSelectFrom",
-                        connectionName = attr(connection,"name"), 
-                        table_name = widetable, 
-                        variables = list(
-                                obs_id_colname = obs_id_colname),
-                        whereconditions="",
-                        order = "")
-
-              object <- newFLTable(
-                            select = select,
-                            Dimnames = object@Dimnames,
-                            dims = dim(object),
-                            isDeep = FALSE)
-              #object <- store(object)
-            }
-
-            if(length(classSpec)==0) 
-            classSpec <- "NULL"
-            else
-            classSpec <- list_to_class_spec(classSpec)
-            whereconditions <- c(whereconditions,object@select@whereconditions)
-            whereClause <- constructWhere(whereconditions)
-            if(whereClause=="") whereClause <- "NULL"
-            if(excludeCols=="" || length(excludeCols)==0) 
-            excludeCols <- "NULL"
-            if(outObsIDCol=="") outObsIDCol <- "obs_id_colname"
-            if(outVarIDCol=="") outVarIDCol <- "var_id_colname"
-            if(outValueCol=="") outValueCol <- "cell_val_colname"
-
-            retobj <- sqlStoredProc(
-                              connection,
-                              "FLWideToDeep",
-                              outputParameter=c(AnalysisID="AnalysisID"),
-                              InWideTable=object@select@table_name,
-                              ObsIDCol=getVariables(object)[["obs_id_colname"]],
-                              OutDeepTable=deeptablename,
-                              OutObsIDCol=outObsIDCol,
-                              OutVarIDCol=outVarIDCol,
-                              OutValueCol=outValueCol,
-                              ExcludeCols=excludeCols,
-                              ClassSpec=classSpec,
-                              WhereClause=whereClause)
-            # sqlstr<-paste0("CALL FLWideToDeep('",object@select@database,".",object@select@table_name,"','",
-            #                                   getVariables(object)[["obs_id_colname"]],"','",
-            #                                   outDeepTableDatabase,".",deeptablename,
-            #                                   "','",outObsIDCol,"',
-            #                                   '",outVarIDCol,"',
-            #                                   '",outValueCol,"',",
-            #                                   excludeCols,",",
-            #                                   classSpec,",",
-            #                                   whereClause,
-            #                                   ",AnalysisID);")
-            # t <- sqlQuery(connection,sqlstr,
-            #     AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
-                
-            dataprepID <- as.vector(retobj[1,1])
-
-            updateMetaTable(pTableName=deeptablename,pType="deepTable")
-
-            table <- FLTable(deeptablename,
-                           outObsIDCol,
-                           outVarIDCol,
-                           outValueCol
+#' @export
+wideToDeep.default <- function(object,
+                                fetchIDs=TRUE,
+                                ...){
+    object <- setAlias(object,"")
+    inputParams <- list(...)
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          ExcludeCols="",
+                          ClassSpec=list(),
+                          WhereClause=""
                           )
-            return(list(table=table,
-                        AnalysisID=dataprepID))
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol="NULL",
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=1,
+                                funcName="FLWideToDeep",
+                                useBoolean=FALSE))
+}
 
-          }
-        )
+#' @export
+wideToDeep.FLTable.Hadoop <- function(object,
+                                    fetchIDs=TRUE,
+                                    ...){
+    object <- setAlias(object,"")
+    inputParams <- list(...)
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          MakeDataSparse=TRUE,
+                          ExcludeCols="",
+                          ClassSpec=list(),
+                          WhereClause=""
+                          )
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol="NULL",
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=1,
+                                funcName="FLWideToDeep",
+                                useBoolean=TRUE))
+}
+
+#     if(object@isDeep) return(list(table=object))
+#     connection <- getFLConnection(object)
+#     object <- createViewDataPrep(object)
+#     inputParams <- checkInputParamsRegrDataPrep(object=object,
+#                                                 DepCol="NULL",
+#                                                 inputParams=inputParams
+#                                                 useBoolean=useBoolean)
+#     deeptablename <- inputParams[["OutDeepTable"]]
+#     retobj <- sqlStoredProc(connection,
+#                             query=funcName,
+#                             outputParameter=c(AnalysisID="AnalysisID"),
+#                             pInputParams=inputParams
+#                             )
+        
+#     dataprepID <- as.vector(retobj[1,1])
+    
+#     updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
+
+#     if(MDFlag)
+#         table <- FLTableMD(deeptablename,
+#                            inputParams[["OutGroupIDCol"]],
+#                            inputParams[["OutObsIDCol"]],
+#                            inputParams[["OutVarIDCol"]],
+#                            inputParams[["OutValueCol"]],
+#                            group_id=object@Dimnames[[3]],
+#                            fetchIDs=fetchIDs
+#                            )
+#     else
+#         table <- FLTable(deeptablename,
+#                          inputParams[["OutObsIDCol"]],
+#                          inputParams[["OutVarIDCol"]],
+#                          inputParams[["OutValueCol"]],
+#                                 # ObsID=rownames(object),
+#                          fetchIDs=fetchIDs
+#                          )
+#     return(list(table=table,
+#                 AnalysisID=dataprepID))
+    
+# }
+# setGeneric("wideToDeep", 
+#     function(object,
+#               excludeCols="",
+#               classSpec=list(),
+#               whereconditions="",
+#               outDeepTableName="",
+#               outObsIDCol="",
+#               outVarIDCol="",
+#               outValueCol="") {
+#     standardGeneric("wideToDeep")
+# })
+
+# ## move to file FLWidetoDeep.R
+# setMethod("wideToDeep",
+#           signature(object = "FLTable"),
+#           function(object,
+#                   excludeCols="",
+#                   classSpec=list(),
+#                   whereconditions="",
+#                   outDeepTableName="",
+#                   outObsIDCol="",
+#                   outVarIDCol="",
+#                   outValueCol="")
+#           {
+            
+
+#             if(length(classSpec)==0) 
+#             classSpec <- "NULL"
+#             else
+#             classSpec <- list_to_class_spec(classSpec)
+#             whereconditions <- c(whereconditions,object@select@whereconditions)
+#             whereClause <- constructWhere(whereconditions)
+#             if(whereClause=="") whereClause <- "NULL"
+#             if(excludeCols=="" || length(excludeCols)==0) 
+#             excludeCols <- "NULL"
+#             if(outObsIDCol=="") outObsIDCol <- "obs_id_colname"
+#             if(outVarIDCol=="") outVarIDCol <- "var_id_colname"
+#             if(outValueCol=="") outValueCol <- "cell_val_colname"
+
+#             retobj <- sqlStoredProc(
+#                               connection,
+#                               "FLWideToDeep",
+#                               outputParameter=c(AnalysisID="AnalysisID"),
+#                               InWideTable=object@select@table_name,
+#                               ObsIDCol=getVariables(object)[["obs_id_colname"]],
+#                               OutDeepTable=deeptablename,
+#                               OutObsIDCol=outObsIDCol,
+#                               OutVarIDCol=outVarIDCol,
+#                               OutValueCol=outValueCol,
+#                               ExcludeCols=excludeCols,
+#                               ClassSpec=classSpec,
+#                               WhereClause=whereClause)
+#             # sqlstr<-paste0("CALL FLWideToDeep('",object@select@database,".",object@select@table_name,"','",
+#             #                                   getVariables(object)[["obs_id_colname"]],"','",
+#             #                                   outDeepTableDatabase,".",deeptablename,
+#             #                                   "','",outObsIDCol,"',
+#             #                                   '",outVarIDCol,"',
+#             #                                   '",outValueCol,"',",
+#             #                                   excludeCols,",",
+#             #                                   classSpec,",",
+#             #                                   whereClause,
+#             #                                   ",AnalysisID);")
+#             # t <- sqlQuery(connection,sqlstr,
+#             #     AnalysisIDQuery="SELECT top 1 ANALYSISID from fzzlRegrDataPrepInfo order by RUNENDTIME DESC")
+                
+#             dataprepID <- as.vector(retobj[1,1])
+
+#             updateMetaTable(pTableName=deeptablename,pType="deepTable")
+
+#             table <- FLTable(deeptablename,
+#                            outObsIDCol,
+#                            outVarIDCol,
+#                            outValueCol
+#                           )
+#             return(list(table=table,
+#                         AnalysisID=dataprepID))
+
+#           }
+#         )
 
 # ## move to file FLWidetoDeep.R
 # setMethod("wideToDeep",
@@ -613,7 +712,7 @@ setMethod("deepToWide",
 #' deep tables and also prepares the data for regression analysis.
 #'
 #' @param object FLTable object
-#' @param depcol Name of the column in the wide table which represents the dependent variable
+#' @param DepCol Name of the column in the wide table which represents the dependent variable
 #' @param catToDummy Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.
 #' @param performNorm Perform standardization of data. Standardization is done if the value of this parameter is 1.
 #' @param performVarReduc Perform variable reduction.Elimination means that the corresponding column is not transformed from the
@@ -627,7 +726,7 @@ setMethod("deepToWide",
 #' @param maxCorrel Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
 #' absolute value of the correlation exceeds this threshold, one of the columns is not transformed. Again, this parameter is 
 #' only consequential if the parameter PerformVarReduc = 1.
-#' @param trainOrTest if  0 => Create training data set; if 1 => Create test data set using the transformation
+#' @param TrainOrTest if  0 => Create training data set; if 1 => Create test data set using the transformation
 #' that has already been done for a prior training data set.
 #' @param inAnalysisID provided in case we want to re-run the transformation of a training data set or run the
 #' transformation of a testing data set else this value is NULL.
@@ -642,12 +741,12 @@ setMethod("deepToWide",
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
 #' widetable  <- FLTable("tblAbaloneWide", "ObsID")
-#' resultList <- wideToDeep(widetable)
+#' resultList <- FLRegrDataPrep(widetable,"Diameter")
 #' deeptable <- resultList$table
 #' analysisID <- resultList$AnalysisID
 #' @export
 setGeneric("FLRegrDataPrep", function(object,
-                                  depCol,
+                                  depCol="NULL",
                                   # outDeepTableName,
                                   # outObsIDCol,
                                   # outVarIDCol,
@@ -658,7 +757,7 @@ setGeneric("FLRegrDataPrep", function(object,
                                   # makeDataSparse,
                                   # minStdDev,
                                   # maxCorrel,
-                                  # trainOrTest,
+                                  # TrainOrTest,
                                   # excludeCols,
                                   # classSpec,
                                   # whereconditions,
@@ -670,198 +769,566 @@ setGeneric("FLRegrDataPrep", function(object,
 
 ## move to file FLRegrDataPrep.R
 setMethod("FLRegrDataPrep",
-          signature(object = "ANY",
-                    depCol="character"
+          signature(object = "ANY"
                     ),
           function(object,
-                  depCol,
-                  outDeepTableName=gen_deep_table_name(object@select@table_name),
-                  outObsIDCol="obs_id_colname",
-                  outVarIDCol="var_id_colname",
-                  outValueCol="cell_val_colname",
-                  catToDummy=0,
-                  performNorm=0,
-                  performVarReduc=0,
-                  makeDataSparse=1,
-                  minStdDev=0,
-                  maxCorrel=0,
-                  trainOrTest=0,
-                  excludeCols="",
-                  classSpec=list(),
-                  whereconditions="",
-                  inAnalysisID="",
-                  outGroupIDCol="group_id_colname",
-                  fetchIDs=TRUE
-                                        # ,...
+                  depCol="NULL",
+                  fetchIDs=TRUE,
+                  ...
                   )
-          {
-            if(object@isDeep) return(list(table=object))
-            connection <- getFLConnection(object)
-            object <- setAlias(object,"")
-            if(outDeepTableName == "")
-            deeptablename <- gen_deep_table_name(object@select@table_name)
-            #deeptablename <- genRandVarName()
-            else deeptablename <- outDeepTableName
-            if(class(object@select)=="FLTableFunctionQuery")
             {
-              ## Views are not working  in FLDeepToWide and FLWideToDeep
-              widetable <- createView(pViewName=gen_view_name(object@select@table_name),
-                                      pSelect=constructSelect(object))
-              select <- new("FLSelectFrom",
-                        connectionName = attr(connection,"name"), 
-                        table_name = widetable, 
-                        variables = list(
-                                obs_id_colname = obs_id_colname),
-                        whereconditions="",
-                        order = "")
+                object <- setAlias(object,"")
+                vinputParams <- list(...)
+                if(!"TrainOrTest" %in% names(vinputParams))
+                    vinputParams[["TrainOrTest"]] <- 0
 
-              object <- new(class(object),
-                            select = select,
-                            Dimnames = object@Dimnames,
-                            isDeep = FALSE)
-              #object <- store(object)
-            }
+                if(vinputParams[["TrainOrTest"]]==0)
+                    return(FLTrainDataPrep(object=object,
+                                           DepCol=depCol,
+                                           inputParams=vinputParams,
+                                           fetchIDs=fetchIDs))
+                else return(FLTestDataPrep(object=object,
+                                           DepCol=depCol,
+                                           inputParams=vinputParams,
+                                           fetchIDs=fetchIDs))
+            })
 
-            checkParamsLM <- function(pObject,pExpected)
-            {
-              vresult <- sapply(1:length(pObject),function(x){
-                vIn <- pObject[x]
-                if(is.numeric(pExpected[[x]]))
-                {
-                  
-                  if(any(is.na(as.numeric(vIn))))
-                  stop("argument mis-match.Only numeric allowed")
-                  vIn <- as.numeric(vIn)
-                }
-                if(vIn %in% pExpected[[x]])
-                return(vIn)
-                else
-                return(pExpected[[x]][1])
+FLTrainDataPrep <- function(object,
+                            DepCol,
+                            inputParams,
+                            fetchIDs=TRUE){
+    UseMethod("FLTrainDataPrep")
+}
+
+setDefaultInputParams <- function(requiredParams,
+                                  inputParams){
+    vtemp <- sapply(names(requiredParams),
+                    function(x){
+                        if(!x %in% names(inputParams))
+                            inputParams[[x]] <- requiredParams[[x]]
+                    })
+    return(append(inputParams,vtemp))
+}
+
+FLTrainDataPrep.default <- function(object,
+                                    DepCol,
+                                    inputParams,
+                                    fetchIDs=TRUE){
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          DepCol=DepCol,
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          CatToDummy=0,
+                          PerformNorm=0,
+                          PerformVarReduc=0,
+                          MakeDataSparse=1,
+                          MinStdDev=0.0,
+                          MaxCorrel=0.0,
+                          ExcludeCols="",
+                          ClassSpec=list(),
+                          WhereClause="",
+                          InAnalysisID=""
+                          )
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol=DepCol,
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=0,
+                                funcName="FLRegrDataPrep",
+                                MDFlag=FALSE))
+}
+
+FLTrainDataPrep.FLTable.Hadoop <- function(object,
+                                           DepCol,
+                                           inputParams,
+                                           fetchIDs=TRUE){
+    inputParams[["TrainOrTest"]] <- NULL
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          DepCol=DepCol,
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          CatToDummy=FALSE,
+                          PerformNorm=FALSE,
+                          PerformVarReduc=FALSE,
+                          MakeDataSparse=TRUE,
+                          MinStdDev=0.0,
+                          MaxCorrel=0.0,
+                          ExcludeCols="",
+                          ClassSpec=list(),
+                          WhereClause="",
+                          InAnalysisID=""
+                          )
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol=DepCol,
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=0,
+                                funcName="FLTrainDataPrep",
+                                MDFlag=FALSE,
+                                useBoolean=TRUE))
+}
+
+
+FLTrainDataPrep.FLTableMD.TD <- function(object,
+                                    DepCol,
+                                    inputParams,
+                                    fetchIDs=TRUE){
+    if(!"OutGroupIDCol" %in% names(inputParams))
+        inputParams[["OutGroupIDCol"]] <- "group_id_colname"
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          GroupID=getVariables(object)[["group_id_colname"]],
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          DepCol=DepCol,
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutGroupIDCol="group_id_colname",
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          CatToDummy=0,
+                          PerformNorm=0,
+                          PerformVarReduc=0,
+                          MakeDataSparse=1,
+                          MinStdDev=0.0,
+                          MaxCorrel=0.0,
+                          ExcludeCols="",
+                          ClassSpec=list(),
+                          WhereClause="",
+                          InAnalysisID=""
+                          )
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol=DepCol,
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=0,
+                                funcName="FLRegrDataPrepMD",
+                                MDFlag=TRUE))
+}
+
+FLTrainDataPrep.FLTableMD.Hadoop <- function(object,
+                                           DepCol,
+                                           inputParams,
+                                           fetchIDs=TRUE){
+    stop("currently not supported \n ")
+    # inputParams[["TrainOrTest"]] <- NULL
+    # return(FLGenericRegrDataPrep(object=object,
+    #                             DepCol=DepCol,
+    #                             inputParams=inputParams,
+    #                             fetchIDs=fetchIDs,
+    #                             TrainOrTest=0,
+    #                             funcName="FLTrainDataPrepMD",
+    #                             MDFlag=TRUE))
+}
+
+FLTrainDataPrep.FLTableMD.TDAster <- FLTrainDataPrep.FLTableMD.Hadoop
+
+## Test Data Preparation in-Database
+FLTestDataPrep <- function(object,
+                           DepCol="NULL",
+                           inputParams,
+                           fetchIDs=TRUE){
+    UseMethod("FLTestDataPrep")
+}
+
+FLTestDataPrep.default <- FLTrainDataPrep.default
+
+FLTestDataPrep.FLTable.Hadoop <- function(object,
+                                           DepCol="NULL",
+                                           inputParams,
+                                           fetchIDs=TRUE){
+    inputParams[["TrainOrTest"]] <- NULL
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          WhereClause="",
+                          MakeDataSparse=TRUE,
+                          InAnalysisID=""
+                          )
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol=DepCol,
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=1,
+                                funcName="FLTestDataPrep",
+                                MDFlag=FALSE,
+                                useBoolean=TRUE))
+}
+
+checkInputParamsRegrDataPrep <- function(object,
+                                        DepCol,
+                                        inputParams,
+                                        TrainOrTest=0,
+                                        useBoolean=FALSE){
+
+    ##Set defaults to all variables commonly used in
+    ##DataPrep
+    ##browser()
+    vdefaults <- list(OutDeepTable=gen_deep_table_name("AR"),
+                      OutObsIDCol="obs_id_colname",
+                      OutVarIDCol="var_id_colname",
+                      OutValueCol="cell_val_colname",
+                      CatToDummy=0,
+                      PerformNorm=0,
+                      PerformVarReduc=0,
+                      MakeDataSparse=1,
+                      MinStdDev=0.0,
+                      MaxCorrel=0.0,
+                      ExcludeCols="",
+                      ClassSpec=list(),
+                      WhereClause="",
+                      InAnalysisID="",
+                      OutGroupIDCol="group_id_colname")
+
+    vinputParams <- inputParams
+    vtemp <- sapply(names(vdefaults),
+                    function(x){
+                        if(!x %in% names(vinputParams))
+                            assign(x,vdefaults[[x]],envir=parent.env(environment()))
+                    })
+    vtemp <- sapply(names(vinputParams),
+                function(x){
+                    assign(x,vinputParams[[x]],
+                            envir=parent.env(environment()))
                 })
-            }
 
-            vresult <-
-            checkParamsLM(c(catToDummy,performNorm,performVarReduc,
-              makeDataSparse,trainOrTest),
-                            list(c(0,1),c(0,1),c(0,1),c(0,1,2),c(0,1)))
+    if(OutDeepTable == "")
+        OutDeepTable <- gen_deep_table_name("AR")
 
-            vIn <- c("catToDummy","performNorm","performVarReduc",
-                      "makeDataSparse","trainOrTest")
+    checkParamsLM <- function(pObject,pExpected)
+    {
+      vresult <- sapply(1:length(pObject),function(x){
+        vIn <- pObject[x]
+        if(is.numeric(pExpected[[x]]))
+        {
+          if(any(is.na(as.numeric(vIn))))
+          stop("argument mis-match.Only numeric allowed")
+          vIn <- as.numeric(vIn)
+        }
+        if(vIn %in% pExpected[[x]])
+        return(vIn)
+        else
+        return(pExpected[[x]][1])
+        })
+    }
 
-            vtemp <- sapply(1:5,function(x){
-              assign(vIn[x],vresult[x],envir=parent.env(environment()))
-              })
+    vresult <-
+    checkParamsLM(c(CatToDummy,PerformNorm,PerformVarReduc,
+      MakeDataSparse,TrainOrTest),
+                    list(c(0,1),c(0,1),c(0,1),c(0,1,2),c(0,1)))
 
-            if(!is.numeric(minStdDev) || !minStdDev>=0)
-            minStdDev <- 0
-            if(!is.numeric(maxCorrel) || maxCorrel<=0 || maxCorrel>1)
-            maxCorrel <- 0
+    vIn <- c("CatToDummy","PerformNorm","PerformVarReduc",
+              "MakeDataSparse","TrainOrTest")
 
-            if(trainOrTest==1) depCol <- "NULL"
-            else if(!(depCol %in% colnames(object)))
-            stop(depCol," not in colnames of input table for FLRegrDataPrep")
+    vtemp <- sapply(1:5,function(x){
+      assign(vIn[x],vresult[x],envir=parent.env(environment()))
+      })
 
-            if(trainOrTest==1 && inAnalysisID %in% c("NULL",""))
-            stop("inAnalysisID should be valid when trainOrTest=1")
-            else if(inAnalysisID=="" || is.null(inAnalysisID)) inAnalysisID <- "NULL"
-            else inAnalysisID <- inAnalysisID
+    if(!is.numeric(MinStdDev) || !MinStdDev>=0)
+    MinStdDev <- 0.0
+    if(!is.numeric(MaxCorrel) || MaxCorrel<=0 || MaxCorrel>1)
+    MaxCorrel <- 0.0
 
-            if(length(classSpec)==0 || classSpec=="") classSpec <- "NULL"
-            else{
-              classSpec <- paste0(list_to_class_spec(classSpec))
-              catToDummy <- 1
-            }
-            whereconditions <- c(whereconditions,object@select@whereconditions)
-            whereClause <- constructWhere(whereconditions)
-            if(whereClause=="") whereClause <- "NULL"
-            else
-            whereClause <- paste0(whereClause)
-            if(excludeCols=="" || length(excludeCols)==0) excludeCols <- "NULL"
-            else
-            excludeCols <- paste0(excludeCols)
+    if(TrainOrTest==1) DepCol <- "NULL"
+    else if(!(DepCol %in% colnames(object)))
+    stop(DepCol," not in colnames of input table for FLRegrDataPrep")
 
-            if(outObsIDCol=="") outObsIDCol <- "obs_id_colname"
-            if(outVarIDCol=="") outVarIDCol <- "var_id_colname"
-            if(outValueCol=="") outValueCol <- "cell_val_colname"
-            if(outGroupIDCol=="") outGroupIDCol <- "group_id_colname"
+    # if(TrainOrTest==1 && InAnalysisID %in% c("NULL",""))
+    # stop("inAnalysisID should be valid when TrainOrTest=1")
+    if(InAnalysisID=="" || is.null(InAnalysisID)) InAnalysisID <- "NULL"
+    else InAnalysisID <- InAnalysisID
 
-            if(is.FLTable(object)){
-              vinputParams <- list(InWideTable=object@select@table_name,
-                                ObsIDCol=getVariables(object)[["obs_id_colname"]],
-                                DepCol=depCol,
-                                OutDeepTable= deeptablename,
-                                OutObsIDCol=outObsIDCol,
-                                OutVarIDCol=outVarIDCol,
-                                OutValueCol=outValueCol,
-                                CatToDummy=catToDummy,
-                                PerformNorm=performNorm,
-                                PerformVarReduc=performVarReduc,
-                                MakeDataSparse=makeDataSparse,
-                                MinStdDev=minStdDev,
-                                MaxCorrel=maxCorrel,
-                                TrainOrTest=trainOrTest,
-                                ExcludeCols=excludeCols,
-                                ClassSpec=classSpec,
-                                WhereClause=whereClause,
-                                InAnalysisID=inAnalysisID)
-              vfunName <- "FLRegrDataPrep"
-            }
-            if(is.FLTableMD(object)){
-              vinputParams <- list(InWideTable=object@select@table_name,
-                                    GroupID=getVariables(object)[["group_id_colname"]],
-                                    ObsIDCol=getVariables(object)[["obs_id_colname"]],
-                                    DepCol=depCol,
-                                    OutDeepTable=deeptablename,
-                                    OutGroupIDCol=outGroupIDCol,
-                                    OutObsIDCol=outObsIDCol,
-                                    OutVarIDCol=outVarIDCol,
-                                    OutValueCol=outValueCol,
-                                    CatToDummy=catToDummy,
-                                    PerformNorm=performNorm,
-                                    PerformVarReduc=performVarReduc,
-                                    MakeDataSparse=makeDataSparse,
-                                    MinStdDev=minStdDev,
-                                    MaxCorrel=maxCorrel,
-                                    TrainOrtest=trainOrTest,
-                                    ExcludeCols=excludeCols,
-                                    ClassSpec=classSpec,
-                                    WhereClause=whereClause,
-                                    InAnalysisID=inAnalysisID)
-              vfunName <- "FLRegrDataPrepMD"
-            }
+    if(length(ClassSpec)==0 || ClassSpec=="") ClassSpec <- "NULL"
+    else{
+      ClassSpec <- paste0(list_to_class_spec(ClassSpec))
+      CatToDummy <- 1
+    }
+    WhereClause <- c(WhereClause,object@select@whereconditions)
+    WhereClause <- constructWhere(WhereClause,
+                                includeWhere=getStoredProcMapping("includeWhere"))
+    if(WhereClause=="") WhereClause <- "NULL"
+    else
+    WhereClause <- paste0(WhereClause)
+    if(ExcludeCols=="" || length(ExcludeCols)==0) ExcludeCols <- "NULL"
+    else
+    ExcludeCols <- paste0(ExcludeCols)
 
-            retobj <- sqlStoredProc(connection,
-                                    query=vfunName,
-                                    outputParameter=c(AnalysisID="AnalysisID"),
-                                    pInputParams=vinputParams
-                                    )
+    if(useBoolean){
+        sapply(c("CatToDummy","PerformNorm",
+                "PerformVarReduc","MakeDataSparse"),
+            function(x){
+                assign(x,as.logical(get(x)),envir=parent.env(environment()))
+      })
+    }
+    if(OutObsIDCol=="") OutObsIDCol <- "obs_id_colname"
+    if(OutVarIDCol=="") OutVarIDCol <- "var_id_colname"
+    if(OutValueCol=="") OutValueCol <- "cell_val_colname"
+    if(OutGroupIDCol=="") OutGroupIDCol <- "group_id_colname"
+    vinputParams <- lapply(1:length(inputParams),
+                        function(x){
+                            get(names(inputParams)[x])
+                        })
+    names(vinputParams) <- names(inputParams)
+    vinputParams
+}
+
+createViewDataPrep <- function(object){
+    object <- setAlias(object,"")
+    if(class(object@select)=="FLTableFunctionQuery")
+    {
+      ## Views are not working  in FLDeepToWide and FLWideToDeep
+      widetable <- createView(pViewName=gen_view_name(getTableNameSlot(object)),
+                              pSelect=constructSelect(object))
+      select <- new("FLSelectFrom",
+                connectionName = attr(connection,"name"), 
+                table_name = widetable, 
+                variables = list(
+                        obs_id_colname = getVariables(object)[["obs_id_colname"]]),
+                whereconditions="",
+                order = "")
+
+      object <- new(class(object),
+                    select = select,
+                    Dimnames = object@Dimnames,
+                    isDeep = FALSE)
+      #object <- store(object)
+    }
+    return(object)
+}
+FLGenericRegrDataPrep <- function(object,
+                                  DepCol,
+                                  inputParams,
+                                  fetchIDs=TRUE,
+                                  TrainOrTest=0,
+                                  funcName="FLRegrDataPrep",
+                                  MDFlag=FALSE,
+                                  useBoolean=FALSE
+                                  )
+{
+    if(object@isDeep) return(list(table=object))
+    connection <- getFLConnection(object)
+    
+    object <- createViewDataPrep(object)
+    inputParams <- checkInputParamsRegrDataPrep(object=object,
+                                                DepCol=DepCol,
+                                                inputParams=inputParams,
+                                                TrainOrTest=TrainOrTest,
+                                                useBoolean=useBoolean)
+    deeptablename <- inputParams[["OutDeepTable"]]
+    retobj <- sqlStoredProc(connection,
+                            query=funcName,
+                            outputParameter=c(AnalysisID="AnalysisID"),
+                            pInputParams=inputParams
+                            )
+        
+    dataprepID <- as.vector(retobj[1,1])
+    
+    updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
+
+    if(MDFlag)
+        table <- FLTableMD(deeptablename,
+                           inputParams[["OutGroupIDCol"]],
+                           inputParams[["OutObsIDCol"]],
+                           inputParams[["OutVarIDCol"]],
+                           inputParams[["OutValueCol"]],
+                           group_id=object@Dimnames[[3]],
+                           fetchIDs=fetchIDs
+                           )
+    else
+        table <- FLTable(deeptablename,
+                         inputParams[["OutObsIDCol"]],
+                         inputParams[["OutVarIDCol"]],
+                         inputParams[["OutValueCol"]],
+                                # ObsID=rownames(object),
+                         fetchIDs=fetchIDs
+                         )
+    return(list(table=table,
+                AnalysisID=dataprepID))
+}
+
+#             if(object@isDeep) return(list(table=object))
+#             connection <- getFLConnection(object)
+#             object <- setAlias(object,"")
+#             if(OutObsIDColName == "")
+#             deeptablename <- gen_deep_table_name(object@select@table_name)
+#             #deeptablename <- genRandVarName()
+#             else deeptablename <- OutObsIDColName
+#             if(class(object@select)=="FLTableFunctionQuery")
+#             {
+#               ## Views are not working  in FLDeepToWide and FLWideToDeep
+#               widetable <- createView(pViewName=gen_view_name(object@select@table_name),
+#                                       pSelect=constructSelect(object))
+#               select <- new("FLSelectFrom",
+#                         connectionName = attr(connection,"name"), 
+#                         table_name = widetable, 
+#                         variables = list(
+#                                 obs_id_colname = obs_id_colname),
+#                         whereconditions="",
+#                         order = "")
+
+#               object <- new(class(object),
+#                             select = select,
+#                             Dimnames = object@Dimnames,
+#                             isDeep = FALSE)
+#               #object <- store(object)
+#             }
+
+#             checkParamsLM <- function(pObject,pExpected)
+#             {
+#               vresult <- sapply(1:length(pObject),function(x){
+#                 vIn <- pObject[x]
+#                 if(is.numeric(pExpected[[x]]))
+#                 {
+                  
+#                   if(any(is.na(as.numeric(vIn))))
+#                   stop("argument mis-match.Only numeric allowed")
+#                   vIn <- as.numeric(vIn)
+#                 }
+#                 if(vIn %in% pExpected[[x]])
+#                 return(vIn)
+#                 else
+#                 return(pExpected[[x]][1])
+#                 })
+#             }
+
+#             vresult <-
+#             checkParamsLM(c(CatToDummy,performNorm,performVarReduc,
+#               makeDataSparse,TrainOrTest),
+#                             list(c(0,1),c(0,1),c(0,1),c(0,1,2),c(0,1)))
+
+#             vIn <- c("CatToDummy","performNorm","performVarReduc",
+#                       "makeDataSparse","TrainOrTest")
+
+#             vtemp <- sapply(1:5,function(x){
+#               assign(vIn[x],vresult[x],envir=parent.env(environment()))
+#               })
+
+#             if(!is.numeric(minStdDev) || !minStdDev>=0)
+#             minStdDev <- 0
+#             if(!is.numeric(maxCorrel) || maxCorrel<=0 || maxCorrel>1)
+#             maxCorrel <- 0
+
+#             if(TrainOrTest==1) DepCol <- "NULL"
+#             else if(!(DepCol %in% colnames(object)))
+#             stop(DepCol," not in colnames of input table for FLRegrDataPrep")
+
+#             if(TrainOrTest==1 && inAnalysisID %in% c("NULL",""))
+#             stop("inAnalysisID should be valid when TrainOrTest=1")
+#             else if(inAnalysisID=="" || is.null(inAnalysisID)) inAnalysisID <- "NULL"
+#             else inAnalysisID <- inAnalysisID
+
+#             if(length(classSpec)==0 || classSpec=="") classSpec <- "NULL"
+#             else{
+#               classSpec <- paste0(list_to_class_spec(classSpec))
+#               CatToDummy <- 1
+#             }
+#             whereconditions <- c(whereconditions,object@select@whereconditions)
+#             whereClause <- constructWhere(whereconditions)
+#             if(whereClause=="") whereClause <- "NULL"
+#             else
+#             whereClause <- paste0(whereClause)
+#             if(excludeCols=="" || length(excludeCols)==0) excludeCols <- "NULL"
+#             else
+#             excludeCols <- paste0(excludeCols)
+
+#             if(OutObsIDCol=="") OutObsIDCol <- "obs_id_colname"
+#             if(OutVarIDCol=="") OutVarIDCol <- "var_id_colname"
+#             if(OutValueCol=="") OutValueCol <- "cell_val_colname"
+#             if(outGroupIDCol=="") outGroupIDCol <- "group_id_colname"
+
+#             if(is.FLTable(object)){
+#               vinputParams <- list(InWideTable=object@select@table_name,
+#                                 ObsIDCol=getVariables(object)[["obs_id_colname"]],
+#                                 DepCol=DepCol,
+#                                 OutObsIDCol= deeptablename,
+#                                 OutObsIDCol=OutObsIDCol,
+#                                 OutVarIDCol=OutVarIDCol,
+#                                 OutValueCol=OutValueCol,
+#                                 CatToDummy=CatToDummy,
+#                                 PerformNorm=performNorm,
+#                                 PerformVarReduc=performVarReduc,
+#                                 MakeDataSparse=makeDataSparse,
+#                                 MinStdDev=minStdDev,
+#                                 MaxCorrel=maxCorrel,
+#                                 TrainOrTest=TrainOrTest,
+#                                 ExcludeCols=excludeCols,
+#                                 ClassSpec=classSpec,
+#                                 WhereClause=whereClause,
+#                                 InAnalysisID=inAnalysisID)
+#               vfunName <- "FLRegrDataPrep"
+#             }
+#             if(is.FLTableMD(object)){
+#               vinputParams <- list(InWideTable=object@select@table_name,
+#                                     GroupID=getVariables(object)[["group_id_colname"]],
+#                                     ObsIDCol=getVariables(object)[["obs_id_colname"]],
+#                                     DepCol=DepCol,
+#                                     OutObsIDCol=deeptablename,
+#                                     OutGroupIDCol=outGroupIDCol,
+#                                     OutObsIDCol=OutObsIDCol,
+#                                     OutVarIDCol=OutVarIDCol,
+#                                     OutValueCol=OutValueCol,
+#                                     CatToDummy=CatToDummy,
+#                                     PerformNorm=performNorm,
+#                                     PerformVarReduc=performVarReduc,
+#                                     MakeDataSparse=makeDataSparse,
+#                                     MinStdDev=minStdDev,
+#                                     MaxCorrel=maxCorrel,
+#                                     TrainOrTest=TrainOrTest,
+#                                     ExcludeCols=excludeCols,
+#                                     ClassSpec=classSpec,
+#                                     WhereClause=whereClause,
+#                                     InAnalysisID=inAnalysisID)
+#               vfunName <- "FLRegrDataPrepMD"
+#             }
+
+#             retobj <- sqlStoredProc(connection,
+#                                     query=vfunName,
+#                                     outputParameter=c(AnalysisID="AnalysisID"),
+#                                     pInputParams=vinputParams
+#                                     )
                 
-            dataprepID <- as.vector(retobj[1,1])
+#             dataprepID <- as.vector(retobj[1,1])
 
-            updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
+#             updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
 
-            if(is.FLTableMD(object))
-                table <- FLTableMD(deeptablename,
-                                   outGroupIDCol,
-                                   outObsIDCol,
-                                   outVarIDCol,
-                                   outValueCol,
-                                   group_id=object@Dimnames[[3]],
-                                   fetchIDs=fetchIDs
-                                   )
-            else if(is.FLTable(object))
-                table <- FLTable(deeptablename,
-                                 outObsIDCol,
-                                 outVarIDCol,
-                                 outValueCol,
-                                        # ObsID=rownames(object),
-                                 fetchIDs=fetchIDs
-                                 )
-#            print(dataprepID)
-            return(list(table=table,
-                        AnalysisID=dataprepID))
-          }
-          )
+#             if(is.FLTableMD(object))
+#                 table <- FLTableMD(deeptablename,
+#                                    outGroupIDCol,
+#                                    OutObsIDCol,
+#                                    OutVarIDCol,
+#                                    OutValueCol,
+#                                    group_id=object@Dimnames[[3]],
+#                                    fetchIDs=fetchIDs
+#                                    )
+#             else if(is.FLTable(object))
+#                 table <- FLTable(deeptablename,
+#                                  OutObsIDCol,
+#                                  OutVarIDCol,
+#                                  OutValueCol,
+#                                         # ObsID=rownames(object),
+#                                  fetchIDs=fetchIDs
+#                                  )
+# #            print(dataprepID)
+#             return(list(table=table,
+#                         AnalysisID=dataprepID))
+#           }
+#           )
 
 #' @export
 SampleData <- function(pTableName,

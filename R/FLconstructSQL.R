@@ -679,15 +679,19 @@ constructGroupBy <- function(GroupByVars,...) {
     else return("")
 }
 
-constructWhere <- function(conditions) {
+constructWhere <- function(conditions,
+                            includeWhere=TRUE) {
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)==0)
       return("")
     if(!is.character(conditions))
         stop("Provide constraints as character vector")
+    if(!is.null(includeWhere) && includeWhere)
+        vWhere <- " WHERE "
+    else vWhere <- " "
     if(length(conditions)>0)
-        paste0(" WHERE",paste0("   (",conditions,")",
-                                collapse=" AND "))
+        paste0(vWhere,paste0("   (",conditions,")",
+                                collapse=" AND ")," ")
     else
         ""
 }

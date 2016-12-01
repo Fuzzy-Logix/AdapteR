@@ -35,22 +35,29 @@ qr.FLMatrix<-function(object,...)
 	connection<-getFLConnection(object)
 	## flag1Check(connection)
 	## flag3Check(connection)
-  MID1 <- getMaxMatrixId(connection)
+    MID1 <- getMaxMatrixId(connection)
 
 
-    sqlstr <- paste0(
-                     viewSelectMatrix(object, "a","z"),
-                     outputSelectMatrix("FLQRDecompUdt",viewName="z",localName="a",
-                    	outColNames=list("OutputMatrixID","OutputRowNum",
-                    		"OutputColNum","OutputValQ","OutputValR"),
-                    	whereClause="")
-                   )
+    # sqlstr <- paste0(
+    #                  viewSelectMatrix(object, "a","z"),
+    #                  outputSelectMatrix("FLQRDecompUdt",viewName="z",localName="a",
+    #                 	outColNames=list("OutputMatrixID","OutputRowNum",
+    #                 		"OutputColNum","OutputValQ","OutputValR"),
+    #                 	whereClause="")
+    #                )
+    
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLQRDecompUdt",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pReturnQuery=TRUE
+                                    )
 
     sqlstr <- gsub("'%insertIDhere%'",MID1,sqlstr)
 
     sqlstr <- ensureQuerySize(pResult=sqlstr,
-	            pInput=list(object),
-	            pOperator="qr")
+	                           pInput=list(object),
+	                           pOperator="qr")
 
 	tempResultTable <- createTable(pTableName=gen_unique_table_name("tblQRDecompResult"),
                                    pSelect=sqlstr)
@@ -71,6 +78,8 @@ qr.FLMatrix<-function(object,...)
 					  " FROM ",tempResultTable,
 					 " WHERE OutputRowNum <= OutputColNum ")
 
+    ##@phani:- insert INTO tablename <select with union clause> not working on hive
+
     tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = attr(connection,"name"),
                         variables=list(
@@ -86,7 +95,8 @@ qr.FLMatrix<-function(object,...)
             dims=dim(object),
             Dimnames=dimnames(object))
 
-  	QRMatrix <- store(object=flm)
+  	# QRMatrix <- store(object=flm)
+    QRMatrix <- flm
 
     #calculating qraux
 	table <- FLTable(tempResultTable,
