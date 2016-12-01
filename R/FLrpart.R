@@ -1,15 +1,11 @@
-# setClass(
-# 	"FLrpart",
-# 	slots=list(frame="list",
-# 			   method="character",
-# 			   control="list",
-# 			   where="integer",
-# 			   call="call",
-# 			   AnalysisID="character",
-# 			   deeptable="FLTable",
-# 			   prepspecs="list"))
+#' @export
 
-FLrpart<-function(data,
+rpart <- function (formula,data=list(),...) {
+	UseMethod("rpart", data)
+}
+rpart.default<-rpart::rpart
+
+rpart.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
