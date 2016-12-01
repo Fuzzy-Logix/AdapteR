@@ -56,12 +56,6 @@ setClass(
 	slots=list(offset="character",
 				vfcalls="character"))
 
-setClass(
-	"FLLinRegrSF",
-	contains="FLRegr",
-	slots=list(offset="character",
-				vfcalls="character"))
-
 #' Robust Regression.
 #' 
 #' performs robust regression
@@ -208,8 +202,7 @@ lm.FLTable <- function(formula,data,...)
 {
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
-	if(!is.null(list(...)$method)) familytype<-"FLLinRegrSF"
-	else familytype<-"linear"
+	familytype<-"linear"
 	return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
@@ -2250,48 +2243,3 @@ setDefaultsRegrDataPrepSpecs <- function(x,values){
     x
 }
 
-summary.FLLinRegrSF<-function(object,modelid=1){
-	AnalysisID<-object@AnalysisID
-	statstablename<-object@vfcalls["statstablename"]
-	query<-paste0("Select * from ",statstablename, " Where AnalysisID = ",
-					fquote(AnalysisID)," And modelid =",modelid)
-	x<-sqlQuery(getFLConnection(),query)
-	coeff<-sqlQuery(getFLConnection(),paste0("Select * from ",object@vfcalls["coefftablename"],
-											 " Where AnalysisID=",fquote(AnalysisID)," And modelid=coeffid"))
-	coeffframe <- data.frame(coeff=coeff$COEFFVALUE,
-                             stderr=coeff$STDERR,
-                             t_stat=coeff$TSTAT,
-                             p_value=coeff$PVALUE)
-	reqList <- list(call = as.call(object@formula),
-					#residuals  = vresiduals,
-	                coefficients = as.matrix(coeffframe),
-	                sigma = x$STDERR,
-	                df = as.vector(c((x$DFREGRESSION + 1),x$DFRESIDUAL, (x$DFREGRESSION + 1))),
-	                r.squared = x$RSQUARED,
-	                adj.r.squared = x$ADJRSQUARED,
-	                fstatistic = c(x$FSTAT, x$DFREGRESSION, x$DFRESIDUAL ),
-	                aliased = FALSE
-	                        )
-    class(reqList) <- "summary.lm"
-    reqList
-}
-
-`$.FLLinRegrSF`<-function(object,property){
-	if(property=="coefficients")
-	return(coefficients(object))
-}
-
-coefficients.FLLinRegrSF<-function(object){
-	AnalysisID<-object@AnalysisID
-	coefftablename<-object@vfcalls["coefftablename"]
-	query1<-paste0("Select a.modelid, a.coeffvalue From ",coefftablename,
-					" a Where AnalysisID= ",fquote(AnalysisID)," And a.modelid=a.coeffid ORDER BY 1")
-	query2<-paste0("Select a.modelid, a.coeffvalue From ",coefftablename,
-					" a Where AnalysisID= ",fquote(AnalysisID)," And a.modelid!=a.coeffid ORDER BY 1")
-	a<-sqlQuery(getFLConnection(),query1)
-	b<-sqlQuery(getFLConnection(),query2)
-	ret<-data.frame(ModelID=a$MODELID,
-					Intercept=b$COEFFVALUE,
-					Coeff=a$COEFFVALUE)
-	return(data.matrix(ret))
-}

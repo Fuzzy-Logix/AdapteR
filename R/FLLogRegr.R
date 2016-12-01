@@ -22,12 +22,6 @@ setClass(
 	slots=list(offset="character",
 				vfcalls="character"))
 
-setClass(
-	"FLLogRegrSF",
-	contains="FLRegr",
-	slots=list(offset="character",
-				vfcalls="character"))
-
 #' Logistic and Poisson Regression.
 #'
 #' \code{glm} performs logistic and poisson regression on FLTable objects.
@@ -130,7 +124,6 @@ glm.FLTable <- function(formula,
 		family <- "logistic"
 		else stop("only poisson,binomial,multinomial and logisticwt families are currently supported in glm\n")
 	}
-	if(!is.null(list(...)$method)) family<-"logisticSF"
 	return(lmGeneric(formula=formula,
 					data=data,
 					callObject=vcallObject,
@@ -296,42 +289,3 @@ lm.influence.FLLogRegr <- function(model,do.coef=TRUE,...){
 	return(vresult)
 }
 
-summary.FLLogRegrSF <- function(object,modelid=1){ #browser()
-    AnalysisID<-object@AnalysisID
-    statstablename<-object@vfcalls["statstablename"]
-    query<-paste0("Select * from ",statstablename," Where AnalysisID=",fquote(AnalysisID),
-    			  " And VarID =",modelid)
-    stat<-sqlQuery(getFLConnection(),query)
-    coeffVector<-sqlQuery(getFLConnection(),paste0("Select * from ",object@vfcalls["coefftablename"],
-    										" Where AnalysisID =",fquote(AnalysisID)," Order By 1"))
-    coeffframe <- data.frame(coeff=coeffVector$ESTALPHA,
-							stderr=coeffVector$STDERRALPHA,
-							chisq=coeffVector$CHISQALPHA,
-							p_value=coeffVector$PVALALPHA)
-    reqList <- list(call = as.call(object@formula),
-                    coefficients = as.matrix(coeffframe),
-                    df = as.vector(c((stat$NUMOFOBS + 1),(stat$NUMOFOBS-1-nrow(coeffVector)), (stat$NUMOFOBS + 1))),
-                    aliased = FALSE,
-                    dispersion = 1,
-                    df.residual = (stat$NUMOFOBS-1-nrow(coeffVector)),
-                    iter = stat$ITERATIONS,
-                    df.null = (stat$NUMOFOBS - 1),
-                    null.deviance = NA
-                )
-    class(reqList) <- "summary.glm"
-    reqList
-}
-
-coefficients.FLLogRegrSF<-function(object){
-	AnalysisID<-object@AnalysisID
-	coefftablename<-object@vfcalls["coefftablename"]
-	query<-paste0("Select VarID, EstAlpha as Coeff From ",coefftablename,
-				  " Where AnalysisID=",fquote(AnalysisID)," Order By 1")
-	coeffVector<-sqlQuery(getFLConnection(),query)
-	return(coeffVector)
-}
-
-`$.FLLogRegrSF`<-function(object,property){
-	if(property=="coefficients")
-	return(coefficients(object))
-}
