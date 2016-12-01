@@ -11,7 +11,7 @@ rpart.FLTable<-function(data,
 							maxdepth=5,
                             cp=0.95),
 				  method="class",
-				  ...){#browser()
+				  ...){browser()
 	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
