@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include FLKMedoids.R
 NULL
 
 ## move to file FLFKMeans.R
@@ -46,13 +47,12 @@ NULL
 #' @param object plots results of agglomerative clustering.
 setClass(
 	"FLFKMeans",
-	contains="FLDataMining",
+	contains=c("FLDataMining",
+			   "FLClustering"),
 	slots=list(
-		centers="numeric",
 		diss="logical",
 		temptables="list",
-		memb.exp="numeric",
-		maxit="numeric"
+		memb.exp="numeric"
 	)
 )
 
