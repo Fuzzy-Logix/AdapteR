@@ -65,8 +65,9 @@ setMethod("getRConnection",
 ##' @param driverClass 
 ##' @param temporary TRUE if result tables are to be created as volatile tables
 ##' @param verbose print debugging messages
-##' @param ... include platform here. Use TD for Teradata.
-##' platform is mandatory for odbc connection
+##' @param ... include 'platform' here. Use TD for Teradata.
+##' platform is mandatory for odbc connection. 
+##' 'TestDatabase' on which tests are to be run.
 ##' @return either an ODBC connection or an JDBC connection
 ##' @examples
 ##' connection <- flConnect("jdbc:teradata://xx.xxx.x.xxx",
@@ -200,6 +201,14 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         if(!(platform %in% unique (platformMap))) ## use map
             platform <- platformMap[[platform]]
     }
+
+    ## store database where tests need to be run
+    TestDatabase <- list(...)$TestDatabase
+    if(is.null(TestDatabase)){
+        vmap <- c(TD="FL_DEMO",TDAster="fuzzylogix",Hadoop="mazdoo")
+        TestDatabase <- vmap[platform]
+    }
+    options("TestDatabase"=TestDatabase)
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)

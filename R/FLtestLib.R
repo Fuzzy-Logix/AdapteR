@@ -210,6 +210,7 @@ expect_flequal <- function(a,b,...){
 #' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
+    
   if(n>1000000)
   stop("maximum n allowed is 1000000 \n ")
   else if(!isRowVec){
@@ -218,9 +219,10 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       select <- new("FLSelectFrom",
                     connectionName = getFLConnectionName(), 
                     ##database = getOption("ResultDatabaseFL"), 
-                    table_name = "fzzlserial",
+                    table_name = paste0(getOption("TestDatabase"),".fzzlserial"),
                     variables = list(obs_id_colname="SERIALVAL"),
-                    whereconditions=paste0(getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    whereconditions=paste0(getRemoteTableName(tableName = paste0(getOption("TestDatabase"),".fzzlserial"),
+                                                              temporaryTable=FALSE),".SERIALVAL < ",n+1),
                     order = "")
       flv <- newFLVector(
                 select=select,
@@ -305,18 +307,23 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   stop("maximum rows,cols allowed is 1000 \n ")
 
   ## here manually set option as true if tables exist.
+  vFromTable <- paste0(getOption("TestDatabase"),".fzzlserial")
+  valExpression <- " FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 "
+  if(is.Hadoop())
+  valExpression <- paste0(" CASE WHEN ",getMODSQL(pColumn1="(a.serialval+b.serialval)",pColumn2=2),
+                              " = 0 THEN (a.randval+b.randval)*100 ",
+                              " ELSE (a.randval-b.randval)*100 END ")
   if(type=="int")
   {
       vtableName <- "ARTestIntMatrixTable"
-      valExpression <- " CAST(FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 AS INT)"
+      valExpression <- paste0(" CAST( ",valExpression," AS INT)")
   }
   else if(type=="character"){
       vtableName <- "ARTestCharMatrixTable"
-      valExpression <- " CAST(FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 AS VARCHAR(20))"
+      valExpression <- paste0(" CAST( ",valExpression," AS VARCHAR)")
   }
   else if(type=="float"){
       vtableName <- "ARTestMatrixTable"
-      valExpression <- " FLSimUniform(a.serialval*100+b.serialval,0,1)"
   }
   else stop("type should be int,float,character")
   if(!checkRemoteTableExistence(tableName=vtableName))
@@ -324,7 +331,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                            pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
                                           " b.serialval AS colIdColumn, \n ",
                                           valExpression, " AS valueColumn \n ",
-                                          " FROM fzzlserial a,fzzlserial b \n ",
+                                          " FROM ",vFromTable," a,",
+                                                   vFromTable," b \n ",
                                           " WHERE a.serialval < 1001 \n ",
                                           " AND b.serialval < 1001 "),
                            pTemporary=FALSE,
@@ -354,7 +362,9 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
 #' @export
 initF.FLTable <- function(rows,cols,...)
 {
-  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE)),
+  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = paste0(getOption("TestDatabase"),
+                                                                    ".fzzlserial"),
+                                                temporaryTable=FALSE)),
                        "SERIALVAL",
                        whereconditions=paste0("SERIALVAL < ",rows+1))
   return(WideTable[1:rows,base::sample(c("RANDVAL","SERIALVAL"),cols,replace=TRUE)])

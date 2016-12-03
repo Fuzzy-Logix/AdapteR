@@ -39,3 +39,4 @@ FLSVUdt.Hadoop(OutputMatrixID,OutputID,OutputSV) <- FLPTFMatrixSV(matrix_id=vect
 FLSVUdt.TD(OutputMatrixID,OutputID,OutputSV) <- FLEigenValueUdt(OutputMatrixID=vectorIDColumn,OutputID=vectorIndexColumn,OutputSV=vectorValueColumn)
 FLSVDUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLPTFMatrixSVD(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_matrix=OutUVal,s_matrix=OutSVal,v_matrix=OutVVal)
 FLSVDUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutSVal=OutSVal,OutVVal=OutVVal)
+FLMatrixTrace.Hadoop(MatrixID,MatrixTrace) <- FLPTFMatrixTrace(matrix_id=matrix_id,trace_value=trace_value)
