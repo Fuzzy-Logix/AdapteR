@@ -53,7 +53,7 @@ vtemp <- readline("As observed above, prinitng mimics default R behaviour.")
 ##...Plotting result objects
 ## .....FL result plotting:
 cat("Plot and see the clusters formed. \n ")
-plot(FLKmeansObj)
+plot(FLKmeansObj,useData=RmatrixObj)
 
 vtemp <- readline("Above: Plotting enabled for kmeans on FL objects")
 

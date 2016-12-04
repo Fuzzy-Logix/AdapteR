@@ -1751,30 +1751,44 @@ setMethod("show","FLLinRegr",print.FLLinRegr)
 
 ## move to file lm.R
 #' @export
-plot.FLLinRegr <- function(object,...)
+plot.FLLinRegr <- function(object,method="R",...)
 {
-	vqr <- object$qr
-	vqr <- list(qr=as.matrix(vqr$qr),
-				rank=as.integer(as.vector(vqr$rank)),
-				qraux=as.numeric(as.vector(vqr$qraux)),
-				pivot=as.integer(as.vector(vqr$pivot)))
+    parentObject <- unlist(strsplit(unlist(strsplit(
+                        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    if(method=="R"){
+        vqr <- object$qr
+        vqr <- list(qr=as.matrix(vqr$qr),
+                    rank=as.integer(as.vector(vqr$rank)),
+                    qraux=as.numeric(as.vector(vqr$qraux)),
+                    pivot=as.integer(as.vector(vqr$pivot)))
 
-	class(vqr)<-"qr"
-	reqList <- list(residuals=as.vector(object$residuals),
-					coefficients=object$coefficients,
-					df.residual=object$df.residual,
-					qr=vqr,
-					rank=vqr$rank,
-					call=object$call,
-					xlevels=object$xlevels,
-					model=object$model,
-					terms=object$terms)
-	class(reqList) <- "lm"
-
-	parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	assign(parentObject,object,envir=parent.frame())
-	plot(reqList,...)
+        class(vqr)<-"qr"
+        reqList <- list(residuals=as.vector(object$residuals),
+                        coefficients=object$coefficients,
+                        df.residual=object$df.residual,
+                        qr=vqr,
+                        rank=vqr$rank,
+                        call=object$call,
+                        xlevels=object$xlevels,
+                        model=object$model,
+                        terms=object$terms)
+        class(reqList) <- "lm"
+        assign(parentObject,object,envir=parent.frame())
+        plot(reqList,...)
+    }
+    else{
+        vfit <- as.vector(object$fitted.values)
+        vresid <- as.vector(object$residuals)
+        vactual <- sqlQuery(getFLConnection(),
+                        paste0("SELECT ",getVariables(object@deeptable)[["cell_val_colname"]],
+                                " FROM (",constructSelect(object@deeptable),") a ",
+                                " WHERE a.",getVariables(object@deeptable)[["var_id_colname"]]," = -1 ",
+                                " ORDER BY ",getVariables(object@deeptable)[["obs_id_colname"]]
+                                ))[[1]]
+        assign(parentObject,object,envir=parent.frame())
+        plot(vfit,vresid,xlab="fitted.values",ylab="residuals",main="residual plot")
+        plot(vactual,vfit,xlab="actual values",ylab="fitted.values",main="Actual vs Fitted")
+    }
 }
 
 ## move to file lm.R

@@ -96,5 +96,7 @@ vtemp <- readline("Above: Examining the residuals \n ")
 head(vresFL$fitted.values,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
+## plot(vresFL,method="FL")
+
 ####### END #######
 #### Thank You ####
