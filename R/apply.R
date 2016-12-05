@@ -208,8 +208,9 @@ as.FLAbstractTable <- function(object){
 #  WHERE   (mtrx.MATRIX_ID=1)
 #  group by mtrx.rowidcolumn
 
-# setGeneric("apply", function(X,MARGIN,FUN,...)
-#     standardGeneric("apply"))
+#' @export
+setGeneric("apply", function(X,MARGIN,FUN,...)
+    standardGeneric("apply"))
 
 setMethod("apply",
 	signature(X="FLMatrix",
