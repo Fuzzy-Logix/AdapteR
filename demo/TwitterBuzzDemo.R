@@ -12,6 +12,12 @@
 ## The demo highlights how to perform
 ## Linear Regression on tblTwitterBuzz dataset
 ## to predict the buzz magnitude
+
+### Pre-setup
+oldWarn <- getOption("warn")
+options(warn=-1)
+
+
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
@@ -21,7 +27,7 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-FLwideTable <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE)
+FLwideTable <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE,whereconditions="OBSID < 4001")
 vtemp <- readline("Above: wide FLTable object created. \n ")
 
 str(FLwideTable)
@@ -96,7 +102,10 @@ vtemp <- readline("Above: Examining the residuals \n ")
 head(vresFL$fitted.values,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
-## plot(vresFL,method="FL")
+### Examine the plots
+plot(vresFL,method="FL")
 
 ####### END #######
 #### Thank You ####
+## clean up
+options(warn=oldWarn)
