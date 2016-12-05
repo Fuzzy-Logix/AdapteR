@@ -62,6 +62,7 @@ as.FLAbstractCol.FLTable <- function(object,indexCol=FALSE){
 				columnName=vcolnames))
 }
 
+#' @export
 setGeneric("genAggregateFunCall", function(object,func,...) {
     standardGeneric("genAggregateFunCall")
 })
@@ -187,6 +188,8 @@ mean.FLMatrix <- function(x,...){
 
 
 require(plyr)
+
+#' @export
 setGeneric("ddply", function(.data,.variables,.fun=NULL,...)
     standardGeneric("ddply"))
 
@@ -221,12 +224,14 @@ setMethod("ddply",
 	signature(.data="ANY"),
 	plyr::ddply)
 
+#' @export
 as.FLAbstractTable <- function(object){
 	object <- setAlias(object,"")
 	class(object) <- "FLAbstractTable"
 	return(object)
 }
 
+#' @export
 `$.FLAbstractTable` <- function(object,property){
   vcolnames <- colnames(object)
   property <- property[1]
@@ -252,8 +257,9 @@ as.FLAbstractTable <- function(object){
 #  WHERE   (mtrx.MATRIX_ID=1)
 #  group by mtrx.rowidcolumn
 
-# setGeneric("apply", function(X,MARGIN,FUN,...)
-#     standardGeneric("apply"))
+#' @export
+setGeneric("apply", function(X,MARGIN,FUN,...)
+    standardGeneric("apply"))
 
 setMethod("apply",
 	signature(X="FLMatrix",

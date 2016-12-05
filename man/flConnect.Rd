@@ -7,7 +7,7 @@ the FL session tables.}
 \usage{
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
   jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL,
-  driverClass = NULL, temporary = FALSE, verbose = FALSE,
+  driverClass = NULL, temporary = TRUE, verbose = FALSE,
   tablePrefix = NULL, ...)
 }
 \arguments{
@@ -34,8 +34,9 @@ Issues can occur unless you provide the fully qualified path.}
 
 \item{verbose}{print debugging messages}
 
-\item{...}{include platform here. Use TD for Teradata.
-platform is mandatory for odbc connection}
+\item{...}{include 'platform' here. Use TD for Teradata.
+platform is mandatory for odbc connection. 
+'TestDatabase' on which tests are to be run.}
 
 \item{#"TMODE}{}
 

@@ -61,6 +61,7 @@ setClass("FLTableFunctionQuery",
              SQLquery = "character"
          ))
 
+##' @export
 setClass("FLAbstractTable",
     slots = list(
         select = "FLTableQuery",
@@ -90,9 +91,11 @@ setClass("FLMatrix",
              type="double")
          )
 
-
+##' @export
 setClass("FLMatrix.Hadoop", contains = "FLMatrix")
+##' @export
 setClass("FLMatrix.TD", contains = "FLMatrix")
+##' @export
 setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
 newFLMatrix <- function(...) {
@@ -122,8 +125,11 @@ setClass("FLVector",
          prototype = prototype(type="double")
          )
 
+##' @export
 setClass("FLVector.Hadoop", contains = "FLVector")
+##' @export
 setClass("FLVector.TD", contains = "FLVector")
+##' @export
 setClass("FLVector.TDAster", contains = "FLVector")
 
 newFLVector <- function(...) {
