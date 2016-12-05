@@ -136,6 +136,7 @@ Collate:
     'experiment_benchmarking.R'
     'friedman.test.R'
     'kruskal.test.R'
+    'mahalanobis.R'
     'mcnemar.test.R'
     'rowcolOps.R'
     'survdiff.R'
