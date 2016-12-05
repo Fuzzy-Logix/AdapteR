@@ -12,17 +12,14 @@ FLenv$datalm=as.FLTable(Renv$datalm,temporary=FALSE)
 FLenv$dataglm=as.FLTable(Renv$dataglm,temporary=FALSE)
 
 test_that("test for object structures and coefficients existence",{
-  FLenv$linobj<-stepSF(data = FLenv$datalm,formula=c~a+b,method = "lin")
-  FLenv$logobj<-stepSF(data = FLenv$dataglm,formula = c~a+b,method = "log")
+  FLenv$linobj<-step(object =  FLenv$datalm,scope = c~a+b,familytype = "linear",direction="sf")
+  FLenv$logobj<-step(object =  FLenv$dataglm,scope = c~a+b,familytype="logistic",direction="sf")
   Renv$linobj<-lm(Renv$datalm,formula = c~a+b)
   Renv$logobj<-glm(Renv$dataglm,formula = c~a+b,family = "poisson")
   
-  result=eval_expect_equal({
-    x<-str(linobj)
-    y<-str(logobj)
-  },Renv,FLenv,
-  )
-  result2=eval_expect_equal({
+  result=expect_equal(rownames(coefficients(FLenv$linobj)) %in% colnames(Renv$datalm),rep(TRUE,nrow(FLenv$linobj$coefficients)))
+  result2=expect_equal(rownames(coefficients(FLenv$logobj)) %in% colnames(Renv$dataglm),rep(TRUE,nrow(FLenv$logobj$coefficients)))
+  result3=eval_expect_equal({
     x<-!is.null(coefficients(linobj))
     y<-!is.null(coefficients(logobj))
   },Renv,FLenv,

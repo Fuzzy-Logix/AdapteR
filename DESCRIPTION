@@ -138,7 +138,6 @@ Collate:
     'kruskal.test.R'
     'mcnemar.test.R'
     'rowcolOps.R'
-    'stepSF.R'
     'survdiff.R'
     'survfit.R'
     't.test.R'
