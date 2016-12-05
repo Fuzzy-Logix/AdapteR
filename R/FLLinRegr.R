@@ -1751,7 +1751,7 @@ setMethod("show","FLLinRegr",print.FLLinRegr)
 
 ## move to file lm.R
 #' @export
-plot.FLLinRegr <- function(object,method="R",...)
+plot.FLLinRegr <- function(object,method="R",limit=4000,...)
 {
     parentObject <- unlist(strsplit(unlist(strsplit(
                         as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
@@ -1777,16 +1777,28 @@ plot.FLLinRegr <- function(object,method="R",...)
         plot(reqList,...)
     }
     else{
-        vfit <- as.vector(object$fitted.values)
-        vresid <- as.vector(object$residuals)
-        vactual <- sqlQuery(getFLConnection(),
-                        paste0("SELECT ",getVariables(object@deeptable)[["cell_val_colname"]],
-                                " FROM (",constructSelect(object@deeptable),") a ",
-                                " WHERE a.",getVariables(object@deeptable)[["var_id_colname"]]," = -1 ",
-                                " ORDER BY ",getVariables(object@deeptable)[["obs_id_colname"]]
-                                ))[[1]]
+        vObsIdColname <- getVariables(object@deeptable)[["obs_id_colname"]]
+        vVarIdColname <- getVariables(object@deeptable)[["var_id_colname"]]
+        vCellValColname <- getVariables(object@deeptable)[["cell_val_colname"]]
+        p <- min(limit,length(object$fitted.values))/length(object$fitted.values)
+
+        sqlstr <- paste0("SELECT \n ",
+                                " b.",vCellValColname," AS y, \n ",
+                                " a.y AS yhat, \n ",
+                                " (b.",vCellValColname," - a.y) AS residual \n ",
+                        " FROM ",object@scoreTable," a, \n ",
+                                getTableNameSlot(object@deeptable)," b \n ",
+                        " WHERE b.",vObsIdColname,"=a.",vObsIdColname,
+                                " AND b.",vVarIdColname,"=-1 ", 
+                                " AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p)
+
+        vdf <- sqlQuery(getFLConnection(),sqlstr)
+        vfit <- vdf[["yhat"]]
+        vresid <- vdf[["residual"]]
+        vactual <- vdf[["y"]]
         assign(parentObject,object,envir=parent.frame())
         plot(vfit,vresid,xlab="fitted.values",ylab="residuals",main="residual plot")
+        readline("Hit <Return> to see next plot:")
         plot(vactual,vfit,xlab="actual values",ylab="fitted.values",main="Actual vs Fitted")
     }
 }
