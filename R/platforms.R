@@ -174,7 +174,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                  call. = FALSE)
         }
         tryCatch({
-            connection <- RODBC::odbcConnect(odbcSource)
+            connection <- RODBCDBI::dbConnect(RODBCDBI::ODBC(), dsn = odbcSource)
         },error=function(e)e)
     }
     if(is.null(connection))
