@@ -124,7 +124,6 @@ glm.FLTable <- function(formula,
 		family <- "logistic"
 		else stop("only poisson,binomial,multinomial and logisticwt families are currently supported in glm\n")
 	}
-
 	return(lmGeneric(formula=formula,
 					data=data,
 					callObject=vcallObject,
@@ -289,3 +288,4 @@ lm.influence.FLLogRegr <- function(model,do.coef=TRUE,...){
 	assign(parentObject,model,envir=parent.frame())
 	return(vresult)
 }
+
