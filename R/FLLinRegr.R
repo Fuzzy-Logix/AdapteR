@@ -1101,7 +1101,8 @@ prepareData.lmGeneric <- function(formula,data,
     vRegrDataPrepSpecs <- list()
 	if(!data@isDeep)
 	{
-        ## gk: can't we use prepareData.lmGeneric here?
+            ## gk: can't we use prepareData.lmGeneric here?
+            browser()
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								OutDeepTableName=outDeepTableName,
 								OutObsIDCol="",
@@ -1359,7 +1360,7 @@ prepareData <- prepareData.lmGeneric
         t <- sqlQuery(connection, str)
         val <- t[t$Notation == "Mad_S",3]
         object@results <- c(object@results, list(s = val))      
-                                        #ssign(parentObject,object,envir=parent.frame())
+        assign(parentObject,object,envir=parent.frame())
         return(val)
         }
         else if(property=="call")
