@@ -436,7 +436,7 @@ calcResiduals <- function(object,
   return(vresidVector)
 }
 
-getArtihmeticType <- function(pObj1,pObj2,pOperator){
+getArithmeticType <- function(pObj1,pObj2,pOperator){
   if(missing(pObj2))
     pObj2 <- 1
   vcompvector <- c("==",">","<",">=","<=","!=")
@@ -510,10 +510,13 @@ setNamesSlot <- function(x,value){
 ## May use FLMod in future.
 ## https://app.asana.com/0/98264711960805/148450351472400
 ## FLMod related issues
+## @phani:- connection based platform dispatch
 getMODSQL <- function(pConnection=getFLConnection(),
                     pColumn1,pColumn2){
     if(is.TD(pConnection))
         return(paste0(" ",pColumn1," MOD ",pColumn2," "))
     else if(is.TDAster(pConnection))
         return(paste0(" MOD(",pColumn1,",",pColumn2,") "))
+    else if(is.Hadoop(pConnection))
+        return(paste0(" ",pColumn1,"%",pColumn2," "))
 }

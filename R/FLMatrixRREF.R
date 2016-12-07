@@ -22,28 +22,34 @@ FLMatrixRREF <- function (object, ...){
 FLMatrixRREF.FLMatrix<-function(object,...)
 {
 
-	connection<-getFLConnection(object)
-    ## flag1Check(connection)
+	# connection<-getFLConnection(object)
+ #    ## flag1Check(connection)
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-                   outputSelectMatrix("FLMatrixRREFUdt",viewName="z",
-                   	localName="a",includeMID=TRUE,vconnection=connection)
-                   )
+	# sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+ #                   outputSelectMatrix("FLMatrixRREFUdt",viewName="z",
+ #                   	localName="a",includeMID=TRUE,vconnection=connection)
+ #                   )
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = attr(connection,"name"),
-                        variables=list(
-                            rowIdColumn="OutputRowNum",
-                            colIdColumn="OutputColNum",
-                            valueColumn="OutputVal"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+	# tblfunqueryobj <- new("FLTableFunctionQuery",
+ #                        connectionName = attr(connection,"name"),
+ #                        variables=list(
+ #                            rowIdColumn="OutputRowNum",
+ #                            colIdColumn="OutputColNum",
+ #                            valueColumn="OutputVal"),
+ #                        whereconditions="",
+ #                        order = "",
+ #                        SQLquery=sqlstr)
 
-  	flm <- newFLMatrix(
-            select= tblfunqueryobj,
-            dims=dim(object),
-            Dimnames=dimnames(object))
+ #  	flm <- newFLMatrix(
+ #            select= tblfunqueryobj,
+ #            dims=dim(object),
+ #            Dimnames=dimnames(object))
+    
+    flm <- constructMatrixUDTSQL(pObject=object,
+                                 pFuncName="FLMatrixRREFUdt",
+                                 pdims=getDimsSlot(object),
+                                 pdimnames=dimnames(object)
+                                 )
 
   	return(ensureQuerySize(pResult=flm,
             pInput=list(object),

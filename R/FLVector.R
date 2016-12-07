@@ -70,9 +70,11 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
 #' @export
 `names<-.FLVector` <- function(x,value)
 {
-    if(length(value)!=length(x))
-    stop("names should be of same length as FLVector")
-    else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
+    if(!is.null(value)){
+        if(length(value)!=length(x))
+            stop("names should be of same length as FLVector \n ")
+        else if(is.na(value)) stop("NA names not allowed \n ")
+    }
     
     if(ncol(x)==1)
     ifelse(is.FLVector(value),

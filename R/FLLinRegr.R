@@ -487,7 +487,6 @@ lmGeneric <- function(formula,data,
                       trace=1,
                       ...)
 {
-    ##browser()
     if(inherits(data,"FLTable"))
         prepData <- prepareData.lmGeneric(formula,data,
                                           callObject=callObject,
@@ -532,28 +531,28 @@ lmGeneric <- function(formula,data,
              nID = "COEFFID"
              )
 
-
+    ## todo: create a list for this lookup 
 	if(familytype=="linear") vfcalls <- c(functionName=ifelse(is.FLTableMD(data),
-															"FLLinRegrMultiDataset",
+															"FLLinRegrMultiDataSet",
 															"FLLinRegr"),
 										infotableName="fzzlLinRegrInfo",
-										note="linregr",
+										Note="linregr",
 										coefftablename="fzzlLinRegrCoeffs",
 										statstablename="fzzlLinRegrStats",
 										valcolnamescoretable="Y",
 										scoretablename="FLLinRegrScore")
 	else if(familytype=="logistic") vfcalls <- c(functionName=ifelse(is.FLTableMD(data),
-																	"FLLogRegrMultiDataset",
+																	"FLLogRegrMultiDataSet",
 																	"FLLogRegr"),
 										infotableName="fzzlLogRegrInfo",
-										note="logregr",
+										Note="logregr",
 										coefftablename="fzzlLogRegrCoeffs",
 										statstablename="fzzlLogRegrStats",
 										valcolnamescoretable="Y",
 										scoretablename="FLLogRegrScore")
 	else if(familytype=="poisson") vfcalls <- c(functionName="FLPoissonRegr",
 										infotableName="fzzlPoissonRegrInfo",
-										note="poissonregr",
+										Note="poissonregr",
 										coefftablename="fzzlPoissonRegrCoeffs",
 										statstablename="fzzlPoissonRegrStats",
 										valcolnamescoretable="Mu",
@@ -561,7 +560,7 @@ lmGeneric <- function(formula,data,
 	else if(familytype=="logisticwt"){
 		vfcalls <- c(functionName="FLLogRegrWt",
 										infotableName="fzzlLogRegrInfo",
-										note="logregrwt",
+										Note="logregrwt",
 										coefftablename="fzzlLogRegrCoeffs",
 										statstablename="fzzlLogRegrStats",
 										valcolnamescoretable="Y",
@@ -572,7 +571,7 @@ lmGeneric <- function(formula,data,
 	}
 	else if(familytype=="multinomial") vfcalls <- c(functionName="FLLogRegrMN",
 										infotableName="fzzlLogRegrMNInfo",
-										note="logregrMN",
+										Note="logregrMN",
 										coefftablename="fzzlLogRegrMNCoeffs",
 										statstablename="fzzlLogRegrMNStats",
 										valcolnamescoretable="Y",
@@ -580,7 +579,7 @@ lmGeneric <- function(formula,data,
     
         else if(familytype == "robust") vfcalls <- c(functionName="FLRobustRegr",
                                                      infotableName="fzzlRobustRegrInfo",
-                                                     note="robustregr",
+                                                     Note="robustregr",
                                                      coefftablename="fzzlRobustRegrCoeffs",
                                                      statstablename="fzzlRobustRegrStats",
                                                      cortablename = "fzzlRobustRegrVarCov",
@@ -595,7 +594,7 @@ lmGeneric <- function(formula,data,
                                                   )
         else if(familytype == "opls") vfcalls <- c(functionName="FLOPLSRegr",
                                                   infotableName="fzzlPLSRegrnfo",
-                                                  note="oplsregr",
+                                                  Note="oplsregr",
                                                   coefftablename="fzzlPLSRegrCentCoeffs",
                                                   statstablename="fzzlOPLSRegrConvVec",
                                                   scoretablename="FLLinRegrScore",
@@ -611,20 +610,20 @@ lmGeneric <- function(formula,data,
 	statstablename <- vfcalls["statstablename"]
 
 	vinputCols <- list()
-	if(functionName %in% c("FLLinRegrMultiDataset",
-							"FLLogRegrMultiDataset"))
+	if(functionName %in% c("FLLinRegrMultiDataSet",
+							"FLLogRegrMultiDataSet"))
 		vinputCols <- c(vinputCols,
-						INPUT_TABLE=deeptable,
+						TableName=deeptable,
 						GroupIDCol=getVariables(deepx)[["group_id_colname"]],
-						OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
-						VARID_COL=getVariables(deepx)[["var_id_colname"]],
-						VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
+						ObsIDCol=getVariables(deepx)[["obs_id_colname"]],
+						VarIDCol=getVariables(deepx)[["var_id_colname"]],
+						ValueCol=getVariables(deepx)[["cell_val_colname"]]
 						)
 	else vinputCols <- c(vinputCols,
-						INPUT_TABLE=deeptable,
-						OBSID_COL=getVariables(deepx)[["obs_id_colname"]],
-						VARID_COL=getVariables(deepx)[["var_id_colname"]],
-						VALUE_COL=getVariables(deepx)[["cell_val_colname"]]
+						TableName=deeptable,
+						ObsIDCol=getVariables(deepx)[["obs_id_colname"]],
+						VarIDCol=getVariables(deepx)[["var_id_colname"]],
+						ValueCol=getVariables(deepx)[["cell_val_colname"]]
 						)
 	if(familytype %in% "multinomial")
 	vinputCols <- c(vinputCols,
@@ -738,7 +737,7 @@ lmGeneric <- function(formula,data,
     }
 
     vinputCols <- c(vinputCols,
-                    NOTE=vnote)
+                    Note=vnote)
 
     retobj <- sqlStoredProc(getFLConnection(),
                             vfuncName,
@@ -845,26 +844,25 @@ lmGeneric <- function(formula,data,
     }
     
 
-    vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
-                        "FLLogRegr",functionName)
-    vfuncName <- base::gsub("MultiDataset","",vfuncName)
+	vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
+					"FLLogRegr",functionName)
+	vfuncName <- base::gsub("MultiDataSet","",vfuncName)
     vfuncName <- ifelse(familytype %in% c("pls", "opls"), "FLPLSRegr", functionName)
 
     return(new(vfuncName,
-				formula=formula,
-				AnalysisID=AnalysisID,
-				wideToDeepAnalysisId=wideToDeepAnalysisId,
-				table=data,
-				results=list(call=callObject,
-                                             modelID=vmaxModelID,
-                                             mod = mod
-                                             ),
-				deeptable=deepx,
-				mapTable=mapTable,
-				scoreTable="",
-				vfcalls=vfcalls,
-				offset=as.character(offset),
-                RegrDataPrepSpecs=RegrDataPrepSpecs))
+      				formula=formula,
+      				AnalysisID=AnalysisID,
+      				wideToDeepAnalysisId=wideToDeepAnalysisId,
+      				table=data,
+      				results=list(call=callObject,
+                          modelID=vmaxModelID,
+                          mod = mod),
+      				deeptable=deepx,
+      				mapTable=mapTable,
+      				scoreTable="",
+      				vfcalls=vfcalls,
+      				offset=as.character(offset),
+                      RegrDataPrepSpecs=RegrDataPrepSpecs))
 }
 
 ## move to file lmGeneric.R
@@ -967,7 +965,7 @@ prepareData.lmGeneric <- function(formula,data,
     
     if(is.FLTableMD(data)){
     	if(!familytype %in% c("logistic","linear"))
-    		stop("only lm and glm with binomial family supported for MultiDataset\n")
+    		stop("only lm and glm with binomial family supported for MultiDataSet\n")
     	direction <- ""
     }
     if(direction=="UFbackward")
@@ -1076,25 +1074,22 @@ prepareData.lmGeneric <- function(formula,data,
             ## gk: can't we use prepareData.lmGeneric here?
             browser()
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
-								outDeepTableName=outDeepTableName,
-								outObsIDCol="",
-								outVarIDCol="",
-								outValueCol="",
-								catToDummy=catToDummy,
-								performNorm=performNorm,
-								performVarReduc=performVarReduc,
-								makeDataSparse=makeDataSparse,
-								minStdDev=minStdDev,
-								maxCorrel=maxCorrel,
-								trainOrTest=0,
-								excludeCols=vexcludeCols,
-								classSpec=classSpec,
-								whereconditions=whereconditions,
-								inAnalysisID="",
-                                        fetchIDs=fetchIDs)
-            print("line 1093")
-
-            print(deepx)
+								OutDeepTableName=outDeepTableName,
+								OutObsIDCol="",
+								OutVarIDCol="",
+								OutValueCol="",
+								CatToDummy=catToDummy,
+								PerformNorm=performNorm,
+								PerformVarReduc=performVarReduc,
+								MakeDataSparse=makeDataSparse,
+								MinStdDev=minStdDev,
+								MaxCorrel=maxCorrel,
+								TrainOrTest=0,
+								ExcludeCols=vexcludeCols,
+								ClassSpec=classSpec,
+								WhereClause=whereconditions,
+								InAnalysisID="",
+                                fetchIDs=fetchIDs)
 
         vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
                                 outObsIDCol="",
@@ -1552,7 +1547,7 @@ coefficients.lmGeneric <-function(object,
 	return(object@results[["coefficients"]])
     else
     {
-        ##Since Currently only 1000 Columns are supported
+        ## Since Currently only 1000 Columns are supported
         ## by FLLinRegr, fetch them.
                                         #browser()
                                         # vmapping <- NULL
@@ -1866,21 +1861,21 @@ predict.lmGeneric <- function(object,
         vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object@RegrDataPrepSpecs,
                                                             values=list(...))
 		deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
-								outDeepTableName=vRegrDataPrepSpecs$outDeepTableName,
-								outObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
-								outVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
-								outValueCol=vRegrDataPrepSpecs$outValueCol,
-								catToDummy=vRegrDataPrepSpecs$catToDummy,
-								performNorm=vRegrDataPrepSpecs$performNorm,
-								performVarReduc=vRegrDataPrepSpecs$performVarReduc,
-								makeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
-								minStdDev=vRegrDataPrepSpecs$minStdDev,
-								maxCorrel=vRegrDataPrepSpecs$maxCorrel,
-								trainOrTest=1,
-								excludeCols=vRegrDataPrepSpecs$excludeCols,
-								classSpec=vRegrDataPrepSpecs$classSpec,
-								whereconditions=vRegrDataPrepSpecs$whereconditions,
-								inAnalysisID=object@wideToDeepAnalysisId)
+								OutDeepTable=vRegrDataPrepSpecs$outDeepTableName,
+								OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+								OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+								OutValueCol=vRegrDataPrepSpecs$outValueCol,
+								CatToDummy=vRegrDataPrepSpecs$catToDummy,
+								PerformNorm=vRegrDataPrepSpecs$performNorm,
+								PerformVarReduc=vRegrDataPrepSpecs$performVarReduc,
+								MakeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+								MinStdDev=vRegrDataPrepSpecs$minStdDev,
+								MaxCorrel=vRegrDataPrepSpecs$maxCorrel,
+								TrainOrTest=1,
+								ExcludeCols=vRegrDataPrepSpecs$excludeCols,
+								ClassSpec=vRegrDataPrepSpecs$classSpec,
+								WhereClause=vRegrDataPrepSpecs$whereconditions,
+								InAnalysisID=object@wideToDeepAnalysisId)
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")
 
@@ -1918,10 +1913,10 @@ predict.lmGeneric <- function(object,
 
 	vinputCols <- list()
 	vinputCols <- c(vinputCols,
-					INPUT_TABLE=newdata@select@table_name,
-					OBSID_COL=vobsid,
-					VARID_COL=vvarid,
-					VALUE_COL=vvalue
+					TableName=newdata@select@table_name,
+					ObsIDCol=vobsid,
+					VarIDCol=vvarid,
+					ValueCol=vvalue
 					)
 	if(!object@vfcalls["functionName"]=="FLPoissonRegr")
 	vinputCols <- c(vinputCols,
@@ -1932,7 +1927,7 @@ predict.lmGeneric <- function(object,
 
 	if(!is.Hadoop())
 	vinputCols <- c(vinputCols,
-					NOTE=genNote(paste0("Scoring ",vfcalls["note"])))
+					Note=genNote(paste0("Scoring ",vfcalls["note"])))
 
 	AnalysisID <- sqlStoredProc(getFLConnection(),
 								vfcalls["scoretablename"],

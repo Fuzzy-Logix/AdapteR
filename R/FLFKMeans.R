@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include FLKMedoids.R
 NULL
 
 ## move to file FLFKMeans.R
@@ -46,18 +47,12 @@ NULL
 #' @param object plots results of agglomerative clustering.
 setClass(
 	"FLFKMeans",
+	contains=c("FLDataMining",
+			   "FLClustering"),
 	slots=list(
-		centers="numeric",
-		AnalysisID="character",
-		wideToDeepAnalysisId="character",
-		table="FLTable",
 		diss="logical",
-		results ="list",
-		deeptable="FLTable",
 		temptables="list",
-		mapTable="character",
-		memb.exp="numeric",
-		maxit="numeric"
+		memb.exp="numeric"
 	)
 )
 
@@ -626,41 +621,39 @@ silinfo.FLFKMeans <- function(object){
 
 
 				
-		sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS ObsID, CAST(a.ClusIDX as INT) AS ClusID, CAST(B2_i.Neighbour AS INT) AS Neighbour,
-
-													CASE WHEN FLMean(a.Dist) >  B2_i.val 
-													THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist)
-													ELSE  (B2_i.val - FLMean(a.Dist) )/B2_i.val
-													END AS siliwidth
-
-													FROM ",b," AS a,
-													(SELECT Bi.ObsID AS ObsIDX , FLMin(Bi.Val) AS q
-													FROM
-
-													(SELECT b.ObsIDX AS ObsID, FLMean(b.Dist) AS val
-													FROM ",b," AS b
-													WHERE b.ClusIDX <> b.ClusIDY
-													GROUP BY b.ObsIDX, b.ClusIDY
-													) AS Bi
-													GROUP BY Bi.ObsID)
-													AS  B1_i, 
-
-													(SELECT b.ObsIDX AS ObsID, b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val
-													FROM ",b," AS b
-													WHERE b.ClusIDX <> b.ClusIDY
-													GROUP BY b.ObsIDX, b.ClusIDY
-													) AS B2_i 
-
-													WHERE B1_i.q= B2_i.val AND B1_i.ObsIDX = B2_i.ObsID AND a.ClusIDX = a.ClusIDY AND a.ObsIDX = B2_i.ObsID
-													GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val 
-													ORDER BY 1,2"))
-																						}	
-    sili_matrix <- as.matrix(sili_table[,c("ClusID","Neighbour","siliwidth")])
+		sili_table <- sqlQuery(connection, paste0("SELECT a.ObsIDX AS obsid, \n ",
+                                                    " CAST(a.ClusIDX as INT) AS clusid, \n ",
+                                                    " CAST(B2_i.Neighbour AS INT) AS neighbour, \n ",
+													" CASE WHEN FLMean(a.Dist) >  B2_i.val \n ",
+													" THEN (B2_i.val - FLMean(a.Dist) )/ FLMean(a.Dist) ",
+													" ELSE  (B2_i.val - FLMean(a.Dist) )/B2_i.val ",
+													" END AS siliwidth \n ",
+													" FROM ",b," AS a \n ,",
+													" (SELECT Bi.ObsID AS ObsIDX , FLMin(Bi.Val) AS q \n ",
+													" FROM \n ",
+													" (SELECT b.ObsIDX AS ObsID, FLMean(b.Dist) AS val \n ",
+													" FROM ",b," AS b \n ",
+													" WHERE b.ClusIDX <> b.ClusIDY \n ",
+													" GROUP BY b.ObsIDX, b.ClusIDY ",
+													" ) AS Bi \n ",
+													" GROUP BY Bi.ObsID) ",
+													" AS  B1_i, \n ",
+													" (SELECT b.ObsIDX AS ObsID, b.ClusIDY AS Neighbour, FLMean(b.Dist) AS val \n ",
+													" FROM ",b," AS b \n ",
+													" WHERE b.ClusIDX <> b.ClusIDY \n ",
+													" GROUP BY b.ObsIDX, b.ClusIDY \n ",
+													" ) AS B2_i \n ",
+													" WHERE B1_i.q= B2_i.val AND B1_i.ObsIDX = B2_i.ObsID \n ",
+                                                    " AND a.ClusIDX = a.ClusIDY AND a.ObsIDX = B2_i.ObsID \n ",
+													" GROUP BY a.obsIDX, a.ClusIDX, B2_i.Neighbour, B2_i.val \n ",
+													" ORDER BY 1,2"))
+	}	
+    sili_matrix <- as.matrix(sili_table[,c("clusid","neighbour","siliwidth")])
     colnames(sili_matrix) <- c("cluster","neighbor","sil_width")
-    rownames(sili_matrix) <- sili_table$ObsID
+    rownames(sili_matrix) <- sili_table$obsid
     
     clus.avg.width <- as.numeric(lapply(1:object@centers, function(i){
-        mean(sili_table$siliwidth[sili_table$ClusID == i])
+        mean(sili_table$siliwidth[sili_table$clusid == i])
     }))
     silinfolist <- list(widths = sili_matrix, clus.avg.widths = clus.avg.width)
     return(silinfolist)																	
