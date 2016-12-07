@@ -535,10 +535,11 @@ createTable <- function(pTableName,
     #vsqlstr <- paste0(vsqlstr,";")
     if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
-            if(checkRemoteTableExistence(tableName=pTableName))
+            if(checkRemoteTableExistence(tableName=pTableName)){
                 if(getOption("debugSQL"))
                    warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
+            }
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
     }
@@ -551,6 +552,8 @@ createTable <- function(pTableName,
     }
 
     vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    if(!all(vres))
+        stop("table could not be created \n ")
     updateMetaTable(pTableName=pTableName,
                     pType="wideTable",
                     ...)
@@ -576,11 +579,21 @@ createView <- function(pViewName,
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
                         " AS ",pSelect)
     res <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    ##gk @ phani: what was this for?  I moved it into creatView
+    ##phani: detect if create view query worked
+    ## Hadoop hive throws error while creating view from temp table.
+    if(!all(res)){
+        if(getOption("viewToTable")){
+            tryCatch({res <- createTable(pViewName,pSelect=pSelect,pTemporary=FALSE)
+                    return(res)},
+                    error=function(e)stop("view could not be created \n "))
+        }
+        else stop("View could not be created \n ")
+    }
     if(pStore)
     updateMetaTable(pTableName=pViewName,
                     pType="view",
                     ...)
-    if(!all(res)) stop("View could not be created") ##gk @ phani: what was this for?  I moved it into creatView
 
     return(pViewName) ## previously res was returned
 }
