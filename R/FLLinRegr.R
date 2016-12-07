@@ -1074,27 +1074,6 @@ prepareData.lmGeneric <- function(formula,data,
             ## gk: can't we use prepareData.lmGeneric here?
             browser()
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
-<<<<<<< HEAD
-								outDeepTableName=outDeepTableName,
-								outObsIDCol="",
-								outVarIDCol="",
-								outValueCol="",
-								catToDummy=catToDummy,
-								performNorm=performNorm,
-								performVarReduc=performVarReduc,
-								makeDataSparse=makeDataSparse,
-								minStdDev=minStdDev,
-								maxCorrel=maxCorrel,
-								trainOrTest=0,
-								excludeCols=vexcludeCols,
-								classSpec=classSpec,
-								whereconditions=whereconditions,
-								inAnalysisID="",
-                                        fetchIDs=fetchIDs)
-            print("line 1093")
-
-            print(deepx)
-=======
 								OutDeepTableName=outDeepTableName,
 								OutObsIDCol="",
 								OutVarIDCol="",
@@ -1111,7 +1090,6 @@ prepareData.lmGeneric <- function(formula,data,
 								WhereClause=whereconditions,
 								InAnalysisID="",
                                 fetchIDs=fetchIDs)
->>>>>>> cc0f5005e0a6ba33d99f1b02409f5003ba6a1157
 
         vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
                                 outObsIDCol="",

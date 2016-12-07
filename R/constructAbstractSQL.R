@@ -20,11 +20,7 @@ constructMatrixUDTSQL <- function(pObject,
                                   pWhereConditions="",
                                   pdims=getDimsSlot(pObject),
                                   pdimnames=dimnames(pObject),
-<<<<<<< HEAD
-                                  #pIncludeMID=TRUE,
-=======
                                   pViewColnames=getVariables(pObject),
->>>>>>> cc0f5005e0a6ba33d99f1b02409f5003ba6a1157
                                   ...){
 
     # ## Covers case when vector output is needed
@@ -47,7 +43,6 @@ constructMatrixUDTSQL <- function(pObject,
         pObject <- setValueSQLExpression(object=pObject,func=vfunc)
     }
     pSelect <- constructSelect(pObject,joinNames=FALSE)
-<<<<<<< HEAD
 
     ## Ensure proper ordering for UDT especially
     pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
