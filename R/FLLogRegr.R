@@ -263,9 +263,9 @@ print.FLLogRegr<-function(object){
 setMethod("show","FLLogRegr",print.FLLinRegr)
 
 #' @export
-plot.FLLogRegr <- function(object,...)
+plot.FLLogRegr <- function(object,method="R",...)
 {
-	plot.FLLinRegr(object)
+	plot.FLLinRegr(object,method=method,...)
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	assign(parentObject,object,envir=parent.frame())

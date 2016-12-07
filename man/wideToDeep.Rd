@@ -4,9 +4,7 @@
 \alias{wideToDeep}
 \title{Convert Wide Table to Deep Table in database.}
 \usage{
-wideToDeep(object, excludeCols = "", classSpec = list(),
-  whereconditions = "", outDeepTableName = "", outObsIDCol = "",
-  outVarIDCol = "", outValueCol = "")
+wideToDeep(object, ...)
 }
 \arguments{
 \item{object}{FLTable object}

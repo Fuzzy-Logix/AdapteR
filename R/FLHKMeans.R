@@ -646,16 +646,22 @@ setMethod("show","FLHKMeans",
 
 ## move to file FLHKMeans.R
 #' @export
-plot.FLHKMeans <- function(object)
+plot.FLHKMeans <- function(object,...)
 {
 	deeptablename <- object@deeptable@select@table_name
 	obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 	var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 	cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
 	widetable <- gen_wide_table_name("new")
-	x <- object@deeptable
-	x <- as.data.frame(x)
-	x$obs_id_colname <- NULL
+
+    ## If data is already available in R session, use it
+    if("useData" %in% names(list(...)))
+        x <- as.data.frame(list(...)$"useData")
+    else{
+        x <- object@deeptable
+        x <- as.data.frame(x)
+        x$obs_id_colname <- NULL
+    }
 	plot(x,col=as.vector(object$cluster),main="kmeans using DB-Lytix")
 	points(as.matrix(object$centers),col=1:object@centers,pch=8,cex=2)
 }
