@@ -26,15 +26,23 @@ rankMatrix.FLMatrix<-function(object,...)
 {
 	connection<-getFLConnection(object)
 
-	sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
-				   outputSelectMatrix("FLMatrixRankUdt",
-				   					outColNames=list("OutputMtxRank"),viewName="z",localName="a")
-					)
+	# sqlstr<-paste0(viewSelectMatrix(object,"a",withName="z"),
+	# 			   outputSelectMatrix("FLMatrixRankUdt",
+	# 			   					outColNames=list("OutputMtxRank"),viewName="z",localName="a")
+	# 				)
+    
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLMatrixRankUdt",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pReturnQuery=TRUE
+                                    )
+
 	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 
 	sqlstr <- (ensureQuerySize(pResult=sqlstr,
-            pInput=list(object),
-            pOperator="rankMatrix"))
+                                pInput=list(object),
+                                pOperator="rankMatrix"))
 
-	return(sqlQuery(connection,sqlstr)$"OutputMtxRank"[1])
+	return(sqlQuery(connection,sqlstr)$"outputmtxrank"[1])
 }

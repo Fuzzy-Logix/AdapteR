@@ -327,7 +327,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                           " FROM fzzlserial a,fzzlserial b \n ",
                                           " WHERE a.serialval < 1001 \n ",
                                           " AND b.serialval < 1001 "),
-                           pTemporary=FALSE
+                           pTemporary=FALSE,
+                           pDrop=TRUE
                            )
   else
       vtemp <- vtableName

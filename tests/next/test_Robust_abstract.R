@@ -1,3 +1,4 @@
+
 t <- rlm(stackloss~., data = dt, psi = "huber")
 
 dtR <- as.R(dt)
@@ -22,97 +23,70 @@ names(rtbl) <- letters[1:16]
 flmod<- pls(A~., data =deeptbl, nfactor = 15 )
 rmod <- mvr(a~., data = rtbl)
 
-                                        #Robust Regression
-
-                                        #Deep Table
+## Robust Regression
+## Deep Table
 library(MASS)
 #options(debugSQL =FALSE)
+
+Renv <- new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
+
 deeptbl  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
-q <- rlm(a~., data = deeptbl)
-predict(q)
-summary(q)
-q$fitted.values
+FLenv$DAT <- deeptbl
 
+## varmapping(deeptbl) <- c("a","i","var")
+## varmapping(deeptbl) <- X(table="fzzlRegrDataPrepMap",id="Final_VarID", value="COLUMN_NAME")
+RD <- as.data.frame(deeptbl, drop.intercept=TRUE)
+names(RD) <- c("a","i","var") ## should be done by varmapping
+RD$i <- NULL  ## should be dropped during as.data.frame
+Renv$DAT <- RD
 
-                                        #Wide Table:
-widetbl <- FLTable("tblautompg", "ObsID")
-t <- rlm(Weight~ Acceleration , data = widetbl)
-summary(t)
-coefficients(t)
-residuals(t)
+eval_expect_equal({
+    fit <- rlm(a~., data = DAT)
+},Renv,FLenv,
+noexpectation = "fit")
 
-                                        #for R:
-rtbl <- as.R(deeptbl)
-names(rtbl) <- letters[1:3]
-rmod <- rlm(a~., data =rtbl)
+eval_expect_equal({
+    fitS <- summary(fit)
+    print(fitS)
+},Renv,FLenv)
 
+eval_expect_equal({
+    fitP <- predict(fit) ## todo: use FLSUMPROD
+    fitPbyname <- fit$fitted.values
+},Renv,FLenv,
+expectation=c("fitP","fitPbyname"),
+check.attributes=F)
 
+## Wide Table:
+FLenv <- new.env(parent = globalenv())
+FLenv$widetbl <- FLTable("tblautompg", "ObsID")
+Renv <- as.R(FLenv) ## todo: add temporary=FALSE
 
+eval_expect_equal({
+    fit <- rlm(Weight ~ Acceleration , data = widetbl)
+},Renv,FLenv,
+noexpectation=c("fit"),
+check.attributes=F)
 
+Renv$widetbl
 
-## PLS $ operator part.
+eval_expect_equal({
+    fitS <- summary(fit)
+    print(fitS)
+},Renv,FLenv)
 
+eval_expect_equal({
+    fitP <- predict(fit) ## todo: use FLSUMPROD
+    fitPbyname <- fit$fitted.values
+},Renv,FLenv,
+expectation=c("fitP","fitPbyname"),
+check.attributes=F)
 
+eval_expect_equal({
+    fitC <- coefficients(t)
+    fitR <- residuals(t)
+},Renv,FLenv,
+expectation=c("fitR","fitR"),
+check.attributes=F)
 
-## move to file lm.R
-#' @export
-`$.FLLinRegr`<-function(object,property){
-                                        #parentObject <- deparse(substitute(object))
-    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
-
-    if(property=="coefficients"){
-        coefficientsvector <- coefficients(object)
-        assign(parentObject,object,envir=parent.frame())
-        return(coefficientsvector)
-    }
-
-
-    if(property == "Yloadings")
-    {
-        
-        str <- paste0("SELECT *
-FROM ",object@vfcalls["statstablename"]," a
-WHERE a.AnalysisID = '",object@AnalysisID,"'
-AND a.VectorName = 'XBetaT'
-ORDER BY FactorNumber, VectorName")
-        loadings <- sqlQuery(connection, str)
-        return(loadings)
-        
-    }
-#    if(property == "Ymeans")
- #   {
-  #   Y_mean <- mean(#tablenameall.vars(object@formula)[1])
-   # }
-    if(property == "Xmeans")
-    {}
-##    if(property == "fitted.values")
-  ##  {}
- ##   if(property == "residuals")
- ##   {}
- ##   if(property == "loadings")
-##    {}
- ##   if(property == "call")
-##    {}
-    if(property == "Yscores")
-
-    {
-                str <- paste0("SELECT *
-FROM ",object@vfcalls["statstablename"]," a
-WHERE a.AnalysisID = '",object@AnalysisID,"'
-AND a.VectorName = 'ScoreY'
-ORDER BY FactorNumber, VectorName")
-        y_scores<- sqlQuery(connection, str)
-        return(y_scores)
-
-
-    }
-    
-    if(property == "method")
-    {}
-    if(property == "Yloadings")
-    {}
-
-
-    
-
-    }
