@@ -114,9 +114,6 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
     ## if(names(getVariables(pObject))==pViewColnames)
     ## Then do not nest
-
-=======
-
     ## Ensure proper ordering for UDT especially
     if(missing(pViewColnames) || length(pViewColnames)==0){
         pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
@@ -188,9 +185,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
     ## if(names(getVariables(pObject))==pViewColnames)
     ## Then do not nest
-
->>>>>>> cc0f5005e0a6ba33d99f1b02409f5003ba6a1157
-    else if(is.Hadoop()){
+   else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                         " ( ON ( ",vNestedSelect," ) a ",
