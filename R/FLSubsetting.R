@@ -85,6 +85,8 @@ NULL
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
 	  connection<-getFLConnection(object)
+
+    object <- populateDimnames(object)
     if(is.FLVector(rows)) rows <- as.vector(rows)
     if(is.FLVector(cols)) cols <- as.vector(cols)
     if(is.numeric(rows))
