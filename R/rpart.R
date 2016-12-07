@@ -11,7 +11,7 @@ rpart.FLTable<-function(data,
 							maxdepth=5,
                             cp=0.95),
 				  method="class",
-				  ...){browser()
+				  ...){ #browser()
 	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
@@ -59,17 +59,28 @@ rpart.FLTable<-function(data,
 				  		NOTE=vnote)
 		return(vinputcols)
 	}
-	else{
+	else if(!is.null(list(...)[["ntree"]])){
 		vinputcols<-list(INPUT_TABLE=deeptablename,
-				  OBSID=vobsid,
-				  VARID=vvarid,
-				  VALUE=vvalue,
-				  MINOBS=control["minsplit"],
-				  MAXLEVEL=control["maxdepth"],
-				  PURITY=control["cp"],
-				  NOTE=vnote)
-	vfuncName<-"FLDecisionTreeMN"
+				  		 OBSID=vobsid,
+				  		 VARID=vvarid,
+				  		 VALUE=vvalue,
+				 		 NTREES=list(...)[["ntree"]],
+				 		 NoOfVARS=list(...)[["mtry"]],
+				 		 MINOBS=control["minsplit"],
+				  		 MAXLEVEL=control["maxdepth"],
+				 		 PURITY=control["cp"],
+				 		 NOTE=vnote)
+	return(vinputcols)
 	}
+	else vinputcols<-list(INPUT_TABLE=deeptablename,
+				  		  OBSID=vobsid,
+				  		  VARID=vvarid,
+				  		  VALUE=vvalue,
+				  		  MINOBS=control["minsplit"],
+				  		  MAXLEVEL=control["maxdepth"],
+						  PURITY=control["cp"],
+				  		  NOTE=vnote)
+	vfuncName<-"FLDecisionTreeMN"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
