@@ -4,12 +4,11 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-
 #' @export
 #' library(mda)
 #'deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
 #' flmod <- fda(a~., data = deeptbl)
-## Flexible LDA.
+## Flexible DA.
 
 fda <- function (formula,data=list(),...) {
     UseMethod("fda", data)
@@ -37,7 +36,6 @@ fda.FLTable <- fda.FLpreparedData
 
 #' @export
 fda.FLTableMD <- fda.FLpreparedData
-
 
 
 ## LDA function.
@@ -207,7 +205,7 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
         {
             str <- paste0("SELECT * FROM fzzlFDAConfusionMtx WHERE AnalysisID = '",object@AnalysisID,"'ORDER BY PredictedClass, ActualClass ")
             dtf <- sqlQuery(connection, str)
-            var <- as.integer(max(flmod$lev))
+            var <- as.integer(max(object$lev))
             df <- as.data.frame(lapply(1:var, function(x){
                 dtf$Num_Val[dtf$ActualClass == x]
             }), ncol = var)
