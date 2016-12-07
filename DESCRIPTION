@@ -111,6 +111,7 @@ Collate:
     'FLRbind.R'
     'FLSV.R'
     'FLSVDecomp.R'
+    'FLSVM.R'
     'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
