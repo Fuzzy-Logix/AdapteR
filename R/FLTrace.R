@@ -52,3 +52,31 @@ tr.FLMatrix<-function(object,...){
             pOperator="tr")
 	return(sqlQuery(connection,sqlstr)[1,1])
 }
+
+#' @export
+tr.FLMatrix.Hadoop <- function(object,...){
+    connection<-getFLConnection(object)
+    
+    ## flag3Check(connection)
+
+    # sqlstr<-paste0( " SELECT 
+    #                   FLMatrixTrace(",getVariables(object)$rowId,
+    #                                ",",getVariables(object)$colId,
+    #                                ",",getVariables(object)$value,")",
+    #                 " FROM ",tableAndAlias(object),
+    #                 constructWhere(c(constraintsSQL(object),
+    #                     paste0(getVariables(object)$rowId," <= ",min(nrow(object),ncol(object))),
+    #                     paste0(getVariables(object)$colId, " <= ", min(nrow(object),ncol(object))))))
+    
+    sqlstr <- constructMatrixUDTSQL(pObject=object,
+                                    pFuncName="FLMatrixTrace",
+                                    pdims=getDimsSlot(object),
+                                    pdimnames=dimnames(object),
+                                    pReturnQuery=TRUE
+                                    )
+    sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
+    sqlstr <- ensureQuerySize(pResult=sqlstr,
+                              pInput=list(object),
+                              pOperator="tr")
+    return(sqlQuery(connection,sqlstr)[["trace_value"]])
+}
