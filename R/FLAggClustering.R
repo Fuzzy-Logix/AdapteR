@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include FLLinRegr.R
 NULL
 
 ## move to file FLAggClustering.R
@@ -34,14 +35,9 @@ NULL
 #' @export
 setClass(
 	"FLAggClust",
+	contains="FLDataMining",
 	slots=list(
-		AnalysisID="character",
-		wideToDeepAnalysisId="character",
-		table="FLTable",
-		results ="list",
-		deeptable="FLTable",
 		temptables="list",
-		mapTable="character",
 		diss="logical"
 	)
 )

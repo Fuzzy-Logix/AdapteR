@@ -155,15 +155,16 @@ genDeepFormula <- function(pColnames,
 }
 
 getXMatrix <- function(object,
-             pDropCols=c(),
-             pColnames=NULL,
-             ...){
-  #browser()
-  parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
-              "(",fixed=T))[2],",",fixed=T))[1]
-  coeffVector <- object$coefficients
-  vdroppedCols <- object@results[["droppedCols"]]
-  modelframe <- object@deeptable
+                       pDropCols=c(),
+                       pColnames=NULL,
+                       ...){
+                                        #browser()
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+                                                    "(",fixed=T))[2],",",fixed=T))[1]
+    coeffVector <- object$coefficients
+    vdroppedCols <- object@results[["droppedCols"]]
+    modelframe <- object@deeptable
+    vID <- object@results$mod[["nID"]]
 
   pDropCols <- unique(c(pDropCols,vdroppedCols))
   if(length(pDropCols)>0)
@@ -188,7 +189,7 @@ getXMatrix <- function(object,
     # else varidoffset <- 0
 
     varidoffset <- 0
-    if(min(object@results[["CoeffID"]])==0)
+    if(min(object@results[[vID]])==0)
         varidoffset <- 1
 
   #   vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
@@ -216,33 +217,33 @@ getXMatrix <- function(object,
         vrowidcolumn <- "a.obs_id_colname"
     else vrowidcolumn <- "DENSE_RANK()OVER(ORDER BY a.obs_id_colname)"
 
-    if(is.null(object@results[["CoeffID"]])
-        ||!isContinuous(object@results[["CoeffID"]]))
+    if(is.null(object@results[[vID]])
+        ||!isContinuous(object@results[[vID]]))
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
                             vrowidcolumn," AS rowIdColumn, \n ",
                             "b.CoeffIDNew AS colIdColumn, \n ",
                             "a.cell_val_colname AS valueColumn \n ",
                       " FROM (",constructSelect(modelframe),") a, \n ",
-                            "(SELECT CoeffID,ROW_NUMBER()over(order by CoeffID) AS CoeffIDNew \n ",
+                            "(SELECT ",vID,",ROW_NUMBER()over(order by ",vID,") AS CoeffIDNew \n ",
                             " FROM ",object@vfcalls["coefftablename"]," a \n ",
                             " WHERE a.AnalysisID = ",fquote(object@AnalysisID),
-                                    ifelse(length(object@results[["modelID"]])>0,
+                                    ifelse(length(object@results[["modelID"]])>0 && object@vfcalls["functionName"]!= "FLRobustRegr",
                                         paste0("\n AND a.ModelID = ",object@results[["modelID"]]),""),
                             ") b \n ",
-                      " WHERE b.CoeffID=a.var_id_colname "
+                      " WHERE b.",vID,"=a.var_id_colname "
                     )
     else
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
                             vrowidcolumn," AS rowIdColumn, \n ",
-                            "b.CoeffID ",
+                            "b.",vID," ",
                             ifelse(varidoffset==0,"",paste0("+",varidoffset))," AS colIdColumn, \n ",
                             "a.cell_val_colname AS valueColumn \n ",
                       " FROM (",constructSelect(modelframe),") a, \n ",
                             object@vfcalls["coefftablename"]," b \n ",
                       " WHERE b.AnalysisID = ",fquote(object@AnalysisID),
-                            ifelse(length(object@results[["modelID"]])>0,
+                            ifelse(length(object@results[["modelID"]])>0 && object@vfcalls["functionName"]!= "FLRobustRegr",
                                 paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
-                            " AND b.CoeffID=a.var_id_colname "
+                            " AND b.",vID,"=a.var_id_colname "
                     )
 
     # vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
@@ -268,7 +269,7 @@ getXMatrix <- function(object,
           SQLquery=vsqlstr)
 
   vallVars <- all.vars(object@formula)
-
+  
   ## For LogRegrMN CoeffVector is Matrix
   if(!is.null(object@results[["XMatrixColnames"]]))
     vcolnames <- object@results[["XMatrixColnames"]]
@@ -341,7 +342,7 @@ calcResiduals <- function(object,
   if(vtype=="partial")
     stop("partial type is not supported currently \n ")
   if(object@vfcalls["functionName"]=="FLLinRegr"
-    || vtype=="response"|| object@vfcalls["functionName"] =="FLRobustRegr"){
+    || vtype=="response"|| object@vfcalls["functionName"] =="FLRobustRegr"||object@vfcalls["functionName"] =="FLPLSRegr"){
     sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                                 "a.vectorIndexColumn AS vectorIndexColumn, \n ",
                                 "(a.vectorValueColumn-b.vectorValueColumn)",

@@ -224,7 +224,10 @@ S3method(as.matrix,integer)
 S3method(as.matrix,numeric)
 S3method(as.matrix,sparseMatrix)
 S3method(as.sparseMatrix,FLMatrix)
+<<<<<<< HEAD
 S3method(as.sparseMatrix,FLMatrix.Hadoop)
+=======
+>>>>>>> cc0f5005e0a6ba33d99f1b02409f5003ba6a1157
 S3method(as.sparseMatrix,FLMatrix.TDAster)
 S3method(chol,FLMatrix)
 S3method(coefficients,FLCoxPH)
@@ -833,9 +836,12 @@ exportClasses(FLLinRegr)
 exportClasses(FLLogRegr)
 exportClasses(FLLogRegrMN)
 exportClasses(FLMatrix)
+<<<<<<< HEAD
 exportClasses(FLMatrix.Hadoop)
 exportClasses(FLMatrix.TD)
 exportClasses(FLMatrix.TDAster)
+=======
+>>>>>>> cc0f5005e0a6ba33d99f1b02409f5003ba6a1157
 exportClasses(FLPLSRegr)
 exportClasses(FLRegr)
 exportClasses(FLSelectFrom)
