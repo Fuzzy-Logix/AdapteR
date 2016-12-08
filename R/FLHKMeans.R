@@ -308,14 +308,14 @@ constructSelectFLHKmeansCenters <- function(AnalysisID, where="")
            " ORDER BY ObsID")
 
 setGeneric("constructSelectResult", function(object, result, deeptable, ...){
-    standardGeneric("constructSelectResult"))
+    standardGeneric("constructSelectResult")
 })
 setMethod("constructSelectResult", signature(object="FLHKMeans",result="character",deeptable="missing"),
           function(object, result, ...){
     constructSelectResult(object,result,deeptable=object@deeptable,...)
 })
 setMethod("constructSelectResult", signature(object="FLHKMeans",result="character",deeptable="FLTable.Hadoop"),
-          function(deeptable,object,result=c("centers","withinss"),...){
+          function(object,result=c("centers","withinss"),deeptable,...){
     result <- match.arg(result)
     AnalysisID <- object@AnalysisID
     deeptablename <- deepx@select@table_name
@@ -343,8 +343,9 @@ setMethod("constructSelectResult", signature(object="FLHKMeans",result="characte
         return(constructSelectFLHKmeansCenters(AnalysisID))
     }
 })
+
 setMethod("constructSelectResult", signature(object="FLHKMeans",result="character",deeptable="FLTable.TD"),
-          function(deeptable,object,result=c("centers","withinss"),...){
+          function(object,result=c("centers","withinss"),deeptable,...){
     result <- match.arg(result)
     AnalysisID <- object@AnalysisID
     deeptablename <- deepx@select@table_name

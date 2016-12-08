@@ -69,6 +69,7 @@ setClass("FLTableFunctionQuery",
              SQLquery = "character"
          ))
 
+##' @export
 setClass("FLAbstractTable",
     slots = list(
         select = "FLTableQuery",
@@ -95,9 +96,11 @@ setClass("FLMatrix",
                     type="double")
          )
 
-
+##' @export
 setClass("FLMatrix.Hadoop", contains = "FLMatrix")
+##' @export
 setClass("FLMatrix.TD", contains = "FLMatrix")
+##' @export
 setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
 newFLMatrix <- function(...) {
@@ -124,8 +127,11 @@ setClass("FLVector",
          prototype = prototype(type="double")
          )
 
+##' @export
 setClass("FLVector.Hadoop", contains = "FLVector")
+##' @export
 setClass("FLVector.TD", contains = "FLVector")
+##' @export
 setClass("FLVector.TDAster", contains = "FLVector")
 
 newFLVector <- function(...) {
@@ -300,7 +306,14 @@ setMethod("setIndexSQLName",
             object@dimColumns[[margin]] <- value
             object
             })
-
+# setMethod("setIndexSQLName",
+#           signature(object = "FLTable"),
+#           function(object,margin=1,value){
+#             t <- names(object@select@variables)
+#             t[margin] <- value
+#             names(object@select@variables) <- t
+#             object
+#             })
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
@@ -310,15 +323,16 @@ setMethod("setIndexSQLName",
 #' @param object retrieves the column names of FLTable object
 #' @export
 setClass("FLTable",
+         contains="FLIndexedValues",
          slots = list(
              select = "FLTableQuery",
              Dimnames = "list",
-             dims = "numeric",
              isDeep = "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
          ),
-         prototype = prototype(type="double")
+         prototype = prototype(type="double",
+                                dimColumns=c("obs_id_colname"))
         )
 
 

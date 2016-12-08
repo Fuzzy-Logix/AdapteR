@@ -208,6 +208,9 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         vmap <- c(TD="FL_DEMO",TDAster="fuzzylogix",Hadoop="mazdoo")
         TestDatabase <- vmap[platform]
     }
+    if(platform=="Hadoop")
+        options(viewToTable=TRUE)
+    else options(viewToTable=FALSE)
     options("TestDatabase"=TestDatabase)
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
@@ -449,6 +452,7 @@ genCreateResulttbl <- function(tablename,
     ##browser()
     if(!pDrop & checkRemoteTableExistence(tableName=tablename))
         return()
+    
     if(vclass=="matrix"){
         createTable(pTableName=tablename,
                     pColNames=c("MATRIX_ID","rowIdColumn",
