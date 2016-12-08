@@ -449,6 +449,18 @@ createTable <- function(pTableName,
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
     vtempKeyword <- vtempKeyword[getFLPlatform()]
 
+    vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
+                        "VARCHAR(100)"="VARCHAR(100)",
+                        FLOAT="FLOAT"),
+                    TDAster=c(INT="INT",BYTEINT="BYTEA",
+                        "VARCHAR(100)"="VARCHAR(100)",
+                        FLOAT="FLOAT"),
+                    Hadoop=c(INT="INT",BYTEINT="TINYINT",
+                        "VARCHAR(100)"="VARCHAR(100)",
+                        FLOAT="FLOAT"))
+    if(!is.null(pColTypes))
+        pColTypes <- vtypeMap[[getFLPlatform()]][pColTypes]
+
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
                     paste0(pColNames," ",pColTypes,collapse=","),

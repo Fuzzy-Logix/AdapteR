@@ -21,6 +21,13 @@ FLFKMeans.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,C
 FLHKMeans.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Levels,Clusters,Iterations,Hypothesis,Note) <- FLHKMeans(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,LEVELS=Levels,WHERE_CLAUSE=WhereClause,CLUSTERS=Clusters,MAX_ITER=Iterations,HYPOTHESIS=Hypothesis,NOTE=Note)
 FLHKMeans.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Levels,Clusters,Iterations,Hypothesis,Note) <- FLKMeans(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,ClusterNumber=Clusters,MaxIteration=Iterations,Notes=Note)
 
-FLLinRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Notes=Note)
+FLLinRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValueCol,Notes=Note)
 FLLinRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note)
+FLLinRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=Note)
+
 FLLinRegrMultiDataSet.TD(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrMultiDataSet(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note)
+FLLinRegrMultiDataSet.Hadoop(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrMultiDataSet(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Notes=Note)
+
+FLLinRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLLinRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(ANALYSISID=RegrAnalysisID,INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,OUTPUT_TABLE=ScoreTable,WHERE_CLAUSE=WhereClause,NOTE=Note)
+FLLinRegrScore.Hadoop(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable)

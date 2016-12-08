@@ -452,6 +452,7 @@ genCreateResulttbl <- function(tablename,
     ##browser()
     if(!pDrop & checkRemoteTableExistence(tableName=tablename))
         return()
+    
     if(vclass=="matrix"){
         createTable(pTableName=tablename,
                     pColNames=c("MATRIX_ID","rowIdColumn",
