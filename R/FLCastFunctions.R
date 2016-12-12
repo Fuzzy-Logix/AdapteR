@@ -928,18 +928,18 @@ as.FLTable.data.frame <- function(object,
     object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),
                                     2,as.character)
     object[,as.logical(vcolnames=="logical")] <- apply(as.data.frame(object[,as.logical(vcolnames=="logical")]),
-                                    2,as.character)
+                                                        2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
     names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=FALSE)
-    vcolnamesCopy <- vcolnames
-    vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
-    vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "
-    vcolnamesCopy[vcolnamesCopy=="integer"] <- " INT "
-    vcolnamesCopy[vcolnamesCopy=="logical"] <- " VARCHAR(255) "
-    if(!all(vcolnamesCopy %in% c(" VARCHAR(255) "," INT "," FLOAT "))==TRUE)
-    stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
-
+    # vcolnamesCopy <- vcolnames
+    # vcolnamesCopy[vcolnamesCopy=="character"] <- "VARCHAR(255)"
+    # vcolnamesCopy[vcolnamesCopy=="numeric"] <- "FLOAT"
+    # vcolnamesCopy[vcolnamesCopy=="integer"] <- "INT"
+    # vcolnamesCopy[vcolnamesCopy=="logical"] <- "VARCHAR(255)"
+    # if(!all(vcolnamesCopy %in% c("VARCHAR(255)","INT","FLOAT"))==TRUE)
+    # stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
+    vcolnamesCopy <- getRToFLDataTypeMap(vcolnames)
     
     if(!checkRemoteTableExistence(tableName=tableName))
         tryCatch({

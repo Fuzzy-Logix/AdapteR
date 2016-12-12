@@ -56,6 +56,11 @@ setClass(
 	slots=list(offset="character",
 				vfcalls="character"))
 
+#' @export
+setClass(
+    "FLLinRegrMD",
+    contains="FLLinRegr")
+
 #' Robust Regression.
 #' 
 #' performs robust regression
@@ -614,27 +619,27 @@ lmGeneric <- function(formula,data,
 							"FLLogRegrMultiDataSet"))
 		vinputCols <- c(vinputCols,
 						TableName=deeptable,
-						GroupIDCol=getVariables(deepx)[["group_id_colname"]],
-						ObsIDCol=getVariables(deepx)[["obs_id_colname"]],
-						VarIDCol=getVariables(deepx)[["var_id_colname"]],
-						ValueCol=getVariables(deepx)[["cell_val_colname"]]
+						GroupIDCol=getGroupIdSQLExpression(deepx),
+						ObsIDCol=getObsIdSQLExpression(deepx),
+						VarIDCol=getVarIdSQLExpression(deepx),
+						ValueCol=getValueSQLExpression(deepx)
 						)
 	else vinputCols <- c(vinputCols,
 						TableName=deeptable,
-						ObsIDCol=getVariables(deepx)[["obs_id_colname"]],
-						VarIDCol=getVariables(deepx)[["var_id_colname"]],
-						ValueCol=getVariables(deepx)[["cell_val_colname"]]
+						ObsIDCol=getObsIdSQLExpression(deepx),
+                        VarIDCol=getVarIdSQLExpression(deepx),
+                        ValueCol=getValueSQLExpression(deepx)
 						)
 	if(familytype %in% "multinomial")
 	vinputCols <- c(vinputCols,
 					pRefLevel=pThreshold)
 	if(!familytype %in% c("linear", "robust", "pls", "opls") && direction!="forward")
 	vinputCols <- c(vinputCols,
-					MAX_ITER=maxiter)
+					MaxIterations=maxiter)
 	if(base::grepl("logistic",familytype) 
 		&& direction!="forward")
 	vinputCols <- c(vinputCols,
-					THRESHOLD=pThreshold)
+					pThreshold=pThreshold)
 	if(direction==""){
 		vfuncName=functionName
 		if(familytype %in% "logisticwt")
@@ -662,10 +667,10 @@ lmGeneric <- function(formula,data,
 		vfuncName <- paste0(functionName,"SW")
 		if(!familytype %in% "linear")
 		vinputCols <- c(vinputCols,
-						THRESHOLD=pThreshold)
+						pThreshold=pThreshold)
 		if(familytype %in% "logistic")
 		vinputCols <- c(vinputCols,
-					MAX_ITER=maxiter)
+					MaxIterations=maxiter)
 		vinputCols <- c(vinputCols,
 						TOPN=topN,
 						HIGHESTPALLOW1=highestpAllow1)
@@ -693,7 +698,7 @@ lmGeneric <- function(formula,data,
         vinputCols <- c(vinputCols,
                         WeightFn = weightfn,
                         TuneConstant= tunconst,
-                        MAX_ITER =maxiter
+                        MaxIterations =maxiter
                         )
         functionName <- "FLLinRegr"
         mod <- c(FLCoeffCorrelWithRes="",
@@ -846,8 +851,8 @@ lmGeneric <- function(formula,data,
 
 	vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
 					"FLLogRegr",functionName)
-	vfuncName <- base::gsub("MultiDataSet","",vfuncName)
-    vfuncName <- ifelse(familytype %in% c("pls", "opls"), "FLPLSRegr", functionName)
+	vfuncName <- base::gsub("MultiDataSet","MD",vfuncName)
+    vfuncName <- ifelse(familytype %in% c("pls", "opls"), "FLPLSRegr", vfuncName)
 
     return(new(vfuncName,
       				formula=formula,
@@ -893,7 +898,6 @@ prepareData.lmGeneric <- function(formula,data,
                                 fetchIDs=FALSE,
                                 outDeepTableName="",
                                 ...){
-	#browser()
     data <- setAlias(data,"")
 	if(data@isDeep){
 		vallVars <- colnames(data)
@@ -915,7 +919,7 @@ prepareData.lmGeneric <- function(formula,data,
                 vexcludeCols <- list(...)$excludeCols
             formula <- genDeepFormula(pColnames=setdiff(colnames(data),
                                                 c(vexcludeCols,
-                                                getVariables(data)[["obs_id_colname"]])),
+                                                getObsIdSQLExpression(data))),
                                     pDepColumn=all.vars(formula)[1])
         }
 		vallVars <- base::all.vars(formula)
@@ -997,8 +1001,8 @@ prepareData.lmGeneric <- function(formula,data,
     if(!data@isDeep){
     	unused_cols <- setdiff(vcolnames,c(all.vars(formula),specID[["exclude"]]))
         unused_cols <- setdiff(unused_cols,
-                               c(getVariables(data)[["obs_id_colname"]],
-                                 getVariables(data)[["group_id_colname"]]))
+                               c(getGroupIdSQLExpression(data),
+                                getObsIdSQLExpression(data)))
         ## Detect factors and assign classSpec
         vfirstRow <- sqlQuery(getFLConnection(),
                               limitRowsSQL(paste0("SELECT * FROM (",
@@ -1007,9 +1011,10 @@ prepareData.lmGeneric <- function(formula,data,
 		## apply(t,2,function(x){class(x[[1]])}) gives all character
 		for(i in setdiff(colnames(vfirstRow),
 						c(unused_cols,names(classSpec),
-							getVariables(data)[["obs_id_colname"]],
+							getGroupIdSQLExpression(data),
+                            getObsIdSQLExpression(data),
 							"obs_id_colname",
-							getVariables(data)[["group_id_colname"]],
+							getGroupIdSQLExpression(data),
 							"group_id_colname",
                             list(...)[["doNotTransform"]]))){
 			if(length(i)==0) break;
@@ -1074,9 +1079,9 @@ prepareData.lmGeneric <- function(formula,data,
         ## gk: can't we use prepareData.lmGeneric here?
 		deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								OutDeepTableName=outDeepTableName,
-								OutObsIDCol="",
-								OutVarIDCol="",
-								OutValueCol="",
+								OutObsIDCol="obsid",
+								OutVarIDCol="varid",
+								OutValueCol="numval",
 								CatToDummy=catToDummy,
 								PerformNorm=performNorm,
 								PerformVarReduc=performVarReduc,
@@ -1091,9 +1096,9 @@ prepareData.lmGeneric <- function(formula,data,
                                 fetchIDs=fetchIDs)
 
         vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
-                                outObsIDCol="",
-                                outVarIDCol="",
-                                outValueCol="",
+                                outObsIDCol="obsid",
+                                outVarIDCol="varid",
+                                outValueCol="numval",
                                 catToDummy=catToDummy,
                                 performNorm=performNorm,
                                 performVarReduc=performVarReduc,
@@ -1108,12 +1113,13 @@ prepareData.lmGeneric <- function(formula,data,
 		deepx <- deepx[["table"]]
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(tableName="fzzlRegrDataPrepMap", temporaryTable=FALSE)
+		mapTable <- getRemoteTableName(tableName=getSystemTableMapping("fzzlRegrDataPrepMap"), 
+                                        temporaryTable=FALSE)
 		if(familytype=="poisson")
 		{
 			vtablename <- deepx@select@table_name
 			vtablename1 <- data@select@table_name
-			vobsid <- getVariables(data)[["obs_id_colname"]]
+			vobsid <- getObsIdSQLExpression(data)
 			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname,","\n               ",
 							" -2 AS var_id_colname,","\n               ",
 							ifelse(offset!="",offset,0)," AS cell_val_colname","\n        ",
@@ -1126,15 +1132,15 @@ prepareData.lmGeneric <- function(formula,data,
 		##Get Mapping Information for specID
 		if(!is.FLTableMD(data)){
 			vmapping <- sqlQuery(getFLConnection(),
-							paste0("SELECT a.Column_name AS colName,\n",
-									" a.Final_VarID AS varID\n",
-								   " FROM fzzlRegrDataPrepMap AS a\n",
+							paste0("SELECT a.Column_name AS colname,\n",
+									" a.Final_VarID AS varid\n",
+								   " FROM ",mapTable," AS a\n",
 								   " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisId),
 								   " AND a.Final_VarID IS NOT NULL \n",
 									" ORDER BY a.Final_VarID\n"))
 
-			vtemp <- vmapping[["varID"]]
-			names(vtemp) <- vmapping[["colName"]]
+			vtemp <- vmapping[["varid"]]
+			names(vtemp) <- vmapping[["colname"]]
 			vmapping <- vtemp
 			vallVars <- setdiff(vallVars,specID[["exclude"]])
 		}
@@ -1158,10 +1164,10 @@ prepareData.lmGeneric <- function(formula,data,
 
 
 		deepx <- FLTable(deeptablename1,
-                   "obs_id_colname",
-                   "var_id_colname",
-                   "cell_val_colname"
-                  )
+                        getObsIdSQLExpression(data),
+                        getVarIdSQLExpression(data),
+                        getValueSQLExpression(data)
+                        )
 		deepx <- setAlias(setAlias,"")
 		whereconditions <- ""
 		vmapping <- colnames(deepx)
@@ -1174,16 +1180,31 @@ prepareData.lmGeneric <- function(formula,data,
 		if(length(data@select@whereconditions)>0 &&
 			data@select@whereconditions!=""){
 
+            ## Hadoop does not support _ in column names
+            ## for FLLinRegrMultiDataSet
+            if(is.FLTableMD(deepx)){
+                data <- setIndexSQLName(data,1,"groupid")
+                data <- setIndexSQLName(data,2,"obsid")
+                data <- setIndexSQLName(data,3,"varid")
+                data <- setIndexSQLName(data,4,"numval")
+            }
 			#sqlstr <- paste0("CREATE VIEW ",getOption("ResultDatabaseFL"),".",
 			#				deeptablename," AS ",constructSelect(data))
 			#t <- sqlSendUpdate(connection,sqlstr)
 			deeptablename<-createView(pViewName=gen_view_name("New"),
                                       pSelect=constructSelect(data))			
 
-			deepx <- FLTable(deeptablename,
-	                   "obs_id_colname",
-	                   "var_id_colname",
-	                   "cell_val_colname")
+            if(is.FLTableMD(deepx))
+                deepx <- FLTableMD(deeptablename,
+                                getGroupIdSQLName(data),
+                                getObsIdSQLName(data),
+                                getVarIdSQLName(data),
+                                getValueSQLName(data))
+            else 
+    			deepx <- FLTable(deeptablename,
+        	                   getObsIdSQLName(data),
+                                getVarIdSQLName(data),
+                                getValueSQLName(data))
 			deepx <- setAlias(deepx,"")
 		}
 		whereconditions <- ""
@@ -1272,7 +1293,8 @@ prepareData <- prepareData.lmGeneric
 #' @export
 `$.FLLinRegr`<-function(object,property){
                                         #parentObject <- deparse(substitute(object))
-    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+                            "(",fixed=T))[2],",",fixed=T))[1]
     if(property=="coefficients"){
         coefficientsvector <- coefficients(object)
         assign(parentObject,object,envir=parent.frame())
@@ -1325,18 +1347,18 @@ prepareData <- prepareData.lmGeneric
         {
             return(object@results[["s"]])
         }
-        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"]," a WHERE a.AnalysisID = '",object@AnalysisID,"'")
+        str <- paste0("SELECT * FROM ",object@vfcalls["statstablename"],
+                        " a WHERE a.AnalysisID = '",object@AnalysisID,"'")
         t <- sqlQuery(connection, str)
         val <- t[t$Notation == "Mad_S",3]
         object@results <- c(object@results, list(s = val))      
                                         #ssign(parentObject,object,envir=parent.frame())
         return(val)
         }
-        else if(property=="call")
-        {
-            return(object@results[["call"]])
-        }
-    
+    else if(property=="call")
+    {
+        return(object@results[["call"]])
+    }
     else if(property=="FLLinRegrStats")
     {
         if(!is.null(object@results[["FLLinRegrStats"]]))
@@ -1403,9 +1425,9 @@ prepareData <- prepareData.lmGeneric
         else
         {
             vtablename <- object@deeptable@select@table_name
-            obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
-            var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
-            cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
+            obs_id_colname <- getObsIdSQLExpression(object@deeptable)
+            var_id_colname <- getVarIdSQLExpression(object@deeptable)
+            cell_val_colname <- getValueSQLExpression(object@deeptable)
 
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
                              obs_id_colname," AS vectorIndexColumn,\n",
@@ -1522,7 +1544,8 @@ coefficients.default <- stats::coefficients
 #' @export
 coefficients.FLLinRegr<-function(object){
     parentObject <- unlist(strsplit(unlist(strsplit(
-        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+                            as.character(sys.call()),
+                            "(",fixed=T))[2],")",fixed=T))[1]
     if(is.FLTableMD(object@table))
         coeffVector <- coefficients.FLLinRegrMD(object)
     else 
@@ -1558,27 +1581,31 @@ coefficients.lmGeneric <-function(object,
             coeffVector <- sqlQuery(getFLConnection(),
                                     paste0("SELECT * FROM ",vfcalls["coefftablename"],
                                            " where AnalysisID=",fquote(object@AnalysisID),
-                                           ifelse(length(object@results[["modelID"]])>0 && object@vfcalls[["functionName"]] != "FLRobustRegr" && object@vfcalls["functionName"] != "FLPLSRegr",
+                                           ifelse(length(object@results[["modelID"]])>0 && 
+                                                object@vfcalls[["functionName"]] != "FLRobustRegr" && 
+                                                object@vfcalls["functionName"] != "FLPLSRegr",
                                                   paste0(" AND ModelID=",object@results[["modelID"]]),""),
                                            " ORDER BY ",vID))
         else{
                                         #browser()
             vcoeffframe <- sqlQuery(getFLConnection(),
                                     paste0("SELECT a.*,b.* \n",
-                                           " FROM fzzlRegrDataPrepMap AS a, \n ",
+                                           " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap")," AS a, \n ",
                                            vfcalls["coefftablename"]," AS b \n",
                                            " WHERE a.Final_VarID = b.",vID," \n",
                                            " AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
                                            "\n AND b.AnalysisID = ",fquote(object@AnalysisID),
-                                           ifelse(length(object@results[["modelID"]])>0 && object@vfcalls[["functionName"]] != "FLRobustRegr" && object@vfcalls[["functionName"]] != "FLPLSRegr",
+                                           ifelse(length(object@results[["modelID"]])>0 && 
+                                            object@vfcalls[["functionName"]] != "FLRobustRegr" && 
+                                            object@vfcalls[["functionName"]] != "FLPLSRegr",
                                                   paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
                                            "\n ORDER BY b.",vID))
             
             colnames(vcoeffframe) <- toupper(colnames(vcoeffframe))
-            vcolumnnames <- unique(as.character(vcoeffframe[["COLUMN_NAME"]]))
-            vcolumnnames <- vcolumnnames[2:length(vcolumnnames)]
-            vmodelnames <- c(all.vars(object@formula)[1],
-                             vcolumnnames)
+            # vcolumnnames <- unique(as.character(vcoeffframe[["COLUMN_NAME"]]))
+            # vcolumnnames <- vcolumnnames[2:length(vcolumnnames)]
+            # vmodelnames <- c(all.vars(object@formula)[1],
+            #                  vcolumnnames)
             coeffVector <- vcoeffframe
             vcolumnnames <- vcoeffframe[["COLUMN_NAME"]]
             vcolumnnames <- vcolumnnames[2:length(vcolumnnames)]
@@ -1586,16 +1613,28 @@ coefficients.lmGeneric <-function(object,
             want <- want[2:length(want)]
             q <- unlist(sapply(want,
                                function(x){
-                                   which(vcolumnnames %in% x)}
+                                   which(toupper(vcolumnnames) %in% toupper(x))}
                                ))+1
             coeffVector <- coeffVector[c(1,q), ]
-            vcoeffnames <- as.vector(apply(coeffVector,1,
-                                           function(x){
-                                               if(tolower(x["VAR_TYPE"])=="category")
-                                                   return(paste0(x["COLUMN_NAME"],x["CATVALUE"]))
-                                               else return(x["COLUMN_NAME"])}))
             vmodelnames <- c(all.vars(object@formula)[1],
                              unique(as.character(coeffVector[["COLUMN_NAME"]])[-1]))
+            vVarnames <- colnames(object@table)
+            vmapNames <- function(t)
+            {
+                vindex <- match(tolower(t),tolower(vVarnames))
+                if(is.na(vindex))
+                    vnames <- t
+                else vnames <- vVarnames[vindex]
+                vnames
+            }
+
+            vcoeffnames <- as.vector(apply(coeffVector,1,
+                                           function(x){
+                                               if(tolower(x["VAR_TYPE"])%in%c("category","varchar"))
+                                                   return(paste0(vmapNames(x["COLUMN_NAME"]),x["CATVALUE"]))
+                                               else return(vmapNames(x["COLUMN_NAME"]))}))
+
+            # vcoeffnames <- sapply(vcoeffnames,vmapNames)
         }
 
         colnames(coeffVector) <- toupper(colnames(coeffVector))
@@ -1619,7 +1658,6 @@ coefficients.lmGeneric <-function(object,
         FLCoeffStats  <- lapply(FLCoeffStats,
                                 function(x){
                                     t<-coeffVector[[x]]
-                                    print(t)
                                     names(t)<-names(coeffVector1)
                                     t
                                 })
@@ -1678,8 +1716,9 @@ model.FLLinRegr <- function(object,...)
 			vdroppedCols <- object@results[["droppedCols"]]
 			modelframe <- object@deeptable
 			modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
-												paste0("var_id_colname NOT IN ",
-														"(",paste0(c(0,-2,vdroppedCols),collapse=","),
+												paste0(getVarIdSQLExpression(object@deeptable),
+                                                        " NOT IN ","(",paste0(c(0,-2,vdroppedCols),
+                                                            collapse=","),
 														")"))
 
 			if(is.matrix(coeffVector))
@@ -1747,6 +1786,7 @@ summary.FLLinRegr <- function(object,
     else
     {
         stat <- object$FLLinRegrStats
+        colnames(stat) <- toupper(colnames(stat))
         coeffframe <- data.frame(object$coefficients,
                                  object$FLCoeffStdErr,
                                  object$FLCoeffTStat,
@@ -1893,7 +1933,7 @@ predict.lmGeneric <- function(object,
 			vtablename <- table@select@table_name
 			vtablename1 <- newdata@select@table_name
 
-			vobsid <- getVariables(object@table)[["obs_id_colname"]]
+			vobsid <- getObsIdSQLExpression(object@table)
 			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
 											vVaridCols," AS var_id_colname, \n ",
 											vcellValCols," AS cell_val_colname \n  ",
@@ -1904,25 +1944,23 @@ predict.lmGeneric <- function(object,
 		}
 	}
 	vtable <- newdata@select@table_name
-	vobsid <- getVariables(newdata)[["obs_id_colname"]]
-	vvarid <- getVariables(newdata)[["var_id_colname"]]
-	vvalue <- getVariables(newdata)[["cell_val_colname"]]
-        is.null(vobsid)
-        head(vobsid)
+	vobsid <- getObsIdSQLExpression(newdata)
+	vvarid <- getVarIdSQLExpression(newdata)
+	vvalue <- getValueSQLExpression(newdata)
 
 	vinputCols <- list()
 	vinputCols <- c(vinputCols,
 					TableName=newdata@select@table_name,
 					ObsIDCol=vobsid,
 					VarIDCol=vvarid,
-					ValueCol=vvalue
+					ValCol=vvalue
 					)
 	if(!object@vfcalls["functionName"]=="FLPoissonRegr")
 	vinputCols <- c(vinputCols,
-					WHERE_CLAUSE="NULL")
+					WhereClause="NULL")
 	vinputCols <- c(vinputCols,
-					ANALYSISID=object@AnalysisID,
-					OUTPUT_TABLE=scoreTable)
+					RegrAnalysisID=object@AnalysisID,
+					ScoreTable=scoreTable)
 
 	if(!is.Hadoop())
 	vinputCols <- c(vinputCols,
@@ -1934,10 +1972,11 @@ predict.lmGeneric <- function(object,
 								pInputParams=vinputCols)
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
-	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-						vobsid," AS vectorIndexColumn,",
-						vfcalls["valcolnamescoretable"]," AS vectorValueColumn",
-					" FROM ",scoreTable)
+    sqlstr <- getFittedValuesLogRegrSQL(object,newdata,scoreTable)
+	# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+	# 					vobsid," AS vectorIndexColumn,",
+	# 					vfcalls["valcolnamescoretable"]," AS vectorValueColumn",
+	# 				" FROM ",scoreTable)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = getFLConnectionName(),
@@ -2081,6 +2120,7 @@ coefficients.FLLinRegrMD <- function(object){
 										" where AnalysisID=",fquote(object@AnalysisID),
 										" AND ModelID IN(",paste0(object@deeptable@Dimnames[[3]],collapse=","),
 										") ORDER BY ModelID,CoeffID"))
+            colnames(coeffVector) <- toupper(colnames(coeffVector))
 			vcoeffnames <- as.vector(apply(coeffVector,1,
 										function(x){
 											if(as.numeric(x[["COEFFID"]])=="0")
@@ -2199,6 +2239,9 @@ print.summary.FLLinRegrMD <- function(object){
 }
 
 #' @export
+print.FLLinRegrMD <- summary.FLLinRegrMD
+
+#' @export
 `[[.FLLinRegr`<-function(object,property){
     #parentObject <- deparse(substitute(object))
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
@@ -2231,4 +2274,23 @@ setDefaultsRegrDataPrepSpecs <- function(x,values){
     }
     x[["depCol"]] <- ""
     x
+}
+
+getFittedValuesLogRegrSQL <- function(object,newdata,scoreTable){
+    UseMethod("getFittedValuesLogRegrSQL",newdata)
+}
+
+getFittedValuesLogRegrSQL.FLTable.Hadoop <- function(object,newdata,scoreTable){
+    vobsid <- "ObsID"
+    vfcalls <- object@vfcalls
+    getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
+                                    valueColumn=vfcalls["valcolnamescoretable"],
+                                    FromTable=scoreTable)
+}
+getFittedValuesLogRegrSQL.default <- function(object,newdata,scoreTable){
+    vobsid <- getObsIdSQLExpression(newdata)
+    vfcalls <- object@vfcalls
+    getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
+                                    valueColumn=vfcalls["valcolnamescoretable"],
+                                    FromTable=scoreTable)
 }

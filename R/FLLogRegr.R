@@ -22,6 +22,11 @@ setClass(
 	slots=list(offset="character",
 				vfcalls="character"))
 
+#' @export
+setClass(
+    "FLLogRegrMD",
+    contains="FLLogRegr")
+
 #' Logistic and Poisson Regression.
 #'
 #' \code{glm} performs logistic and poisson regression on FLTable objects.

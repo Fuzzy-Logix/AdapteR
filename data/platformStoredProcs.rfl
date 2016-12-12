@@ -31,3 +31,26 @@ FLLinRegrMultiDataSet.Hadoop(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,Not
 FLLinRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
 FLLinRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(ANALYSISID=RegrAnalysisID,INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,OUTPUT_TABLE=ScoreTable,WHERE_CLAUSE=WhereClause,NOTE=Note)
 FLLinRegrScore.Hadoop(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable)
+
+FLLogRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Notes=Note)
+FLLogRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Note=Note)
+FLLogRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLogRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,THRESHOLD=pThreshold,NOTE=Note)
+
+FLLogRegrMultiDataSet.TD(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegrMultiDataSet(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Note=Note)
+
+FLLogRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLogRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLLogRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLogRegrScore(ANALYSISID=RegrAnalysisID,INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,WHERE_CLAUSE=WhereClause,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+FLLogRegrScore.Hadoop(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLogRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable)
+
+FLPoissonRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,Note) <- FLPoissonRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,Note=Note)
+FLPoissonRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,Note) <- FLLogRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,Note=Note)
+FLPoissonRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLogRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLPoissonRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValueCol,RegrAnalysisID,ScoreTable,Note) <- FLPoissonRegrScore(TableName=TableName,ObsIDColName=ObsIDCol,VarIDColName=VarIDCol,ValueColName=ValueCol,AnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLPoissonRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,RegrAnalysisID,ScoreTable,Note) <- FLPoissonRegrScore(INPUT_TABLE=Table,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,ANALYSISID=RegrAnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLVarCluster.TD(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput) <- FLVarCluster(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,Contrib=Contrib,TableOutput=TableOutput)
+FLVarCluster.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput) <- FLVarCluster(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,Contrib=Contrib,TableOutput=TableOutput)
+
+FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
+FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)

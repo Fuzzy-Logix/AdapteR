@@ -182,9 +182,6 @@ setGeneric("getValueSQLName", function(object) {
     standardGeneric("getValueSQLName")
 })
 setMethod("getValueSQLName",
-          signature(object = "FLMatrix"),
-          function(object) object@dimColumns[[4]])
-setMethod("getValueSQLName",
           signature(object = "FLVector"),
           function(object) "vectorValueColumn") ## gk @ phani -- is that currently really constant??
 setMethod("getValueSQLName",
@@ -193,6 +190,9 @@ setMethod("getValueSQLName",
 setMethod("getValueSQLName",
           signature(object = "FLAbstractColumn"),
           function(object) object@columnName)
+setMethod("getValueSQLName",
+          signature(object = "FLMatrix"),
+          function(object) object@dimColumns[[4]])
 
 #' @export
 setGeneric("setValueSQLName", function(object,value) {
@@ -368,8 +368,10 @@ setClass("FLTableMD",
              isDeep = "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
-         )
-         )
+         ),
+         prototype = prototype(type="double",
+                                dimColumns=c("group_id_colname","obs_id_colname"))
+        )
 
 setClass("FLTableMD.Hadoop", contains = "FLTableMD")
 setClass("FLTableMD.TD", contains = "FLTableMD")

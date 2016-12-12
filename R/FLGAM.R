@@ -534,15 +534,14 @@ fitted.values.FLGAM <- function(object)
 	return(object@results[["fitted.values"]])
     else
     {
-        if(object@scoreTable==""){
-                                        # object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+        if(object@scoreTable=="")
+            # object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
             object@scoreTable <- gen_score_table_name(object@table@select@table_name)
-            if(length(object@deeptable@select@variables)>0)
-                vtbl <- object@deeptable
-            else vtbl <- object@table
-            
-            fitted.valuesVector <- predict(object,vtbl,scoreTable=object@scoreTable)
-        }
+        if(length(object@deeptable@select@variables)>0)
+            vtbl <- object@deeptable
+        else vtbl <- object@table
+        
+        fitted.valuesVector <- predict(object,vtbl,scoreTable=object@scoreTable)
         object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
         parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
         assign(parentObject,object,envir=parent.frame())
