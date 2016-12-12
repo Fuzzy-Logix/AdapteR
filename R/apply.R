@@ -188,7 +188,6 @@ mean.FLMatrix <- function(x,...){
 
 
 require(plyr)
-
 #' @export
 setGeneric("ddply", function(.data,.variables,.fun=NULL,...)
     standardGeneric("ddply"))

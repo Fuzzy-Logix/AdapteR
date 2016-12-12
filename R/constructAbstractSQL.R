@@ -45,6 +45,76 @@ constructMatrixUDTSQL <- function(pObject,
     pSelect <- constructSelect(pObject,joinNames=FALSE)
 
     ## Ensure proper ordering for UDT especially
+    pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
+    pViewColnames <- getVariables(pObject)
+
+    sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
+                            pViewColnames=pViewColnames,
+                            pFuncName=pFuncName,
+                            pOutColnames=pOutColnames,
+                            pWhereConditions=pWhereConditions,
+                            pSelect=pSelect,
+                            ...
+                            )
+    if(!is.null(list(...)[["pReturnQuery"]]) && 
+        list(...)[["pReturnQuery"]])
+        return(sqlstr)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                        connectionName = getFLConnectionName(),
+                        variables=pOutColnames,
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+    flm <- newFLMatrix(
+             select= tblfunqueryobj,
+             dims=pdims,
+             Dimnames=pdimnames,
+             dimColumns=names(pOutColnames))
+    flm
+
+}
+
+## @phani: I think we need separate connection classes for
+## each platform.eg- JDBCAster
+constructUDTSQL <- function(pConnection=getFLConnection(),
+                            pViewColnames,
+                            pFuncName,
+                            pOutColnames,
+                            pWhereConditions="",
+                            pSelect,
+                            pArgs = "",
+                            pPartitionBy=names(pViewColnames)[1],
+                            pLocalOrderBy=names(pViewColnames)[1],
+                            pNest=FALSE,
+                            ...){
+    if(pNest){
+        pViewColnames <- changeAlias(pViewColnames,"","")
+        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                " FROM (SELECT * FROM ",pSelect," ) a ")
+    }
+    else vNestedSelect <- pSelect
+    if(is.TD()){
+        return(paste0("WITH z( ",paste0(names(pViewColnames),
+                                        collapse=",")," )",
+                       " AS ( ",vNestedSelect," )",
+                       " SELECT ",constructVariables(pOutColnames),
+                       " FROM TABLE (",
+                            pFuncName,"(",paste0("z.",names(pViewColnames),
+                                        collapse=","),",",paste0(pArgs, collapse = ","),
+                                    ")",
+                            " HASH BY ",paste0("z.",pPartitionBy,
+                                            collapse=","),
+                            " LOCAL ORDER BY ",paste0("z.",pLocalOrderBy,
+                                            collapse=","),
+                            ") AS a ",
+                        constructWhere(pWhereConditions)
+                    )
+                )
+    }
+    ## if(names(getVariables(pObject))==pViewColnames)
+    ## Then do not nest
+    ## Ensure proper ordering for UDT especially
     if(missing(pViewColnames) || length(pViewColnames)==0){
         pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
         pViewColnames <- getVariables(pObject)
@@ -115,8 +185,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
     ## if(names(getVariables(pObject))==pViewColnames)
     ## Then do not nest
-
-    else if(is.Hadoop()){
+   else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                         " ( ON ( ",vNestedSelect," ) a ",

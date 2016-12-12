@@ -5,8 +5,8 @@
 ## in-dabase with DB Lytix function (right of " <- ") are created programmatically.
 ## 
 ##
-stats::rbinom              <- FLSimBinomial(n,prob,size)
 stats::rbeta               <- FLSimBeta(n,0,0,shap1,shape2)
+stats::rbinom              <- FLSimBinomial(n,prob,size)
 AdapteR::rbradford         <- FLSimBradford(n,lowbd,uppbd,shape)
 actuar::rburr              <- FLSimBurr(n,lowbd=0,scale,shape1,shape2)
 stats::rcauchy             <- FLSimCauchy(n,location, scale)
@@ -47,8 +47,8 @@ stats::runif               <- FLSimUniform(n,min,max)
 stats::rweibull            <- FLSimWeibull(n,location=0,scale,shape)
 
 
-stats::pbinom              <- FLCDFBinomial(q,prob,size)
 stats::pbeta               <- FLCDFBeta(q,0,0,shap1,shape2)
+stats::pbinom              <- FLCDFBinomial(q,prob,size)
 AdapteR::pbradford         <- FLCDFBradford(q,lowbd,uppbd,shape)
 actuar::pburr              <- FLCDFBurr(q,lowbd=0,scale,shape1,shape2)
 stats::pcauchy             <- FLCDFCauchy(q,location, scale)
@@ -90,8 +90,8 @@ stats::pweibull            <- FLCDFWeibull(q,location=0,scale,shape)
 
 
 
-stats::dbinom              <- FLPDFBinomial(q,prob,size)
 stats::dbeta               <- FLPDFBeta(q,0,0,shap1,shape2)
+stats::dbinom              <- FLPDFBinomial(q,prob,size)
 AdapteR::dbradford         <- FLPDFBradford(q,lowbd,uppbd,shape)
 actuar::dburr              <- FLPDFBurr(q,lowbd=0,scale,shape1,shape2)
 stats::dcauchy             <- FLPDFCauchy(q,location, scale)
@@ -133,8 +133,8 @@ stats::dweibull            <- FLPDFWeibull(q,location=0,scale,shape)
 
 
 
-stats::qbinom              <- FLInvCDFBinomial(q,prob,size)
 stats::qbeta               <- FLInvCDFBeta(q,0,0,shap1,shape2)
+stats::qbinom              <- FLInvCDFBinomial(q,prob,size)
 AdapteR::qbradford         <- FLInvCDFBradford(q,lowbd,uppbd,shape)
 actuar::qburr              <- FLInvCDFBurr(q,lowbd=0,scale,shape1,shape2)
 stats::qcauchy             <- FLInvCDFCauchy(q,location, scale)

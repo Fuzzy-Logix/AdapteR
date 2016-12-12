@@ -51,11 +51,22 @@ HASH BY z.DataSetID
 LOCAL ORDER BY z.DataSetID)
 AS a;")
         ret <- as.data.frame(sqlQuery(connection, str))
-        
+        V.x <- var(x)
+        V.y <- var(y)
+        DF.x<-length(x)-1
+        DF.y<-length(y)-1
+        ESTIMATE <- V.x / V.y
+        STATISTIC <- ESTIMATE / ratio
+        PVAL <- pf(STATISTIC, DF.x, DF.y)
+        PVAL <- 2 * min(PVAL, 1 - PVAL)
+        BETA <- (1 - conf.level) / 2
+        CINT <- c(ESTIMATE / qf(1 - BETA, DF.x, DF.y),
+                  ESTIMATE / qf(BETA, DF.x, DF.y))
+        attr(CINT, "conf.level") <- conf.level
         res <- list(statistics = c(F = ret$FStat),
                     parameter = c("num df" = ret$DF1,"denom df" = ret$DF2),
                     p.value = ret$P_Value,
-                    conf.int = NULL,
+                    conf.int = CINT,
                     estimate = c("ratio of variances"=ret$FStat),
                     null.value = c("ratio of variances"=1),
                     alternative = alternative,
