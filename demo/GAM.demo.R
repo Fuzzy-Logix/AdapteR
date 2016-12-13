@@ -31,10 +31,8 @@ head(FLTableObject)
 
 readline("Above: use head to examine the data ")
 
-# myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)
 myformula <- yVal~s(x0Val,by="groupID",m=3,k=10)+te(x1Val,x2Val,m=3,k=5)
 
-# gamobject <- gam(myformula,data=FLTableObject,offset="x2Val")
 gamobject <- gam(myformula,data=FLTableObject)
 
 readline("Above: Fit a GAM model based on formula object: smooth and Tensor interactions supported: ")

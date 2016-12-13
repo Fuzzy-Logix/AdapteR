@@ -16,7 +16,8 @@
 ## Intial set-up
 oldWarn = getOption("warn")
 options(warn=-1)
-
+require(plyr)
+library(plyr)
 
 ## Set-up the ODBC connection to demo database.
 demo("connecting",package="AdapteR")
