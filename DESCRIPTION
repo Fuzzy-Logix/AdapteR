@@ -84,6 +84,7 @@ Collate:
     'FLGinv.R'
     'FLHClust.R'
     'FLHKMeans.R'
+    'FLHKMeansSQL.R'
     'FLHeadTail.R'
     'FLHessenDecomp.R'
     'FLHypothesisTesting.R'
