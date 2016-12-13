@@ -1,4 +1,5 @@
-# DB-Lytix Example.
+                                        # DB-Lytix Example.
+library(mda)
 Renv <- new.env(parent = globalenv())
 FLenv <- as.FL(Renv)
 deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
