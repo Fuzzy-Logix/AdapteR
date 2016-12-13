@@ -37,7 +37,7 @@ rpart.FLTable<-function(data,
 		}
 			depCol<-all.vars(formula)[1]
 			vprepspecs<-list(depCol,vexclude)
-			deep<-FLRegrDataPrep(data,depCol=depCol,excludeCols=vexclude)
+			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
 			deepx<-deep[["table"]]
 			deepx<- setAlias(deepx,"")
 			deeptablename<-deepx@select@table_name
@@ -70,7 +70,9 @@ rpart.FLTable<-function(data,
 				  		 MAXLEVEL=control["maxdepth"],
 				 		 PURITY=control["cp"],
 				 		 NOTE=vnote)
-	return(vinputcols)
+	return(list(vinputcols=vinputcols,
+				data=deepx,
+				vprepspecs=vprepspecs))
 	}
 	else vinputcols<-list(INPUT_TABLE=deeptablename,
 				  		  OBSID=vobsid,
@@ -110,7 +112,8 @@ rpart.FLTable<-function(data,
 				  call=call,
 				  deeptable=deepx,
 				  AnalysisID=AnalysisID,
-				  prepspecs=vprepspecs)
+				  prepspecs=vprepspecs,
+				  data=deepx)
 	class(retobj)<-"FLrpart"
 	return(retobj)
 }

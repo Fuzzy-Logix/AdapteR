@@ -21,7 +21,7 @@ randomForest.FLTable<-function(data,
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
-						  pInputParameters=x)
+						  pInputParameters=x$vinputcols)
 	AnalysisID<-as.character(retobj[1,1])
 	query<-paste0("SELECT * FROM fzzlRFPredByTree 
 				   WHERE AnalysisID = ",fquote(AnalysisID), 
@@ -79,7 +79,46 @@ randomForest.FLTable<-function(data,
 				 classes=unique(conmatrixtbl$ObservedClass),
 				 ntree=ntree,
 				 mtry=mtry,
-				 forest=trees
-				 )
+				 forest=trees,
+				 data=x$data,
+				 AnalysisID=AnalysisID,
+				 RegrDataPrepSpecs=x$vprepspecs)
+	class(retobj)<-"FLRandomForest"
 	return(retobj)
+}
+
+predict.FLRandomForest<-function(object,newdata=object$data,
+								 scoreTable="",...){ browser()
+	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
+	newdata <- setAlias(newdata,"")
+	vinputTable <- newdata@select@table_name
+	if(scoreTable=="")
+	scoreTable <- gen_score_table_name("RandomForestScore")
+	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$RegrDataPrepSpecs,
+                                                            values=list(...))
+	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
+	newdatatable <- deepx[["table"]]
+	newdatatable <- setAlias(newdatatable,"")
+	tablename<- newdatatable@select@table_name
+	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
+	vvarid <- getVariables(newdatatable)[["var_id_colname"]]
+	vvalue <- getVariables(newdatatable)[["cell_val_colname"]]
+
+	vinputcols<-list()
+	vinputcols <- c(vinputcols,
+					TableName=tablename,
+					ObsIDCol=vobsid,
+					VarIDCol=vvarid,
+					ValueCol=vvalue,
+					InAnalysisID=object$AnalysisID,
+					ScoreTable=scoreTable,
+					Note=genNote("RandomForestPrediction"))
+	vfuncName<-"FLRandomForestScore"
+	AnalysisID <- sqlStoredProc(getFLConnection(),
+								vfuncName,
+								outputParameter=c(AnalysisID="a"),
+								pInputParams=vinputcols)
+	query<-paste0("Select * from ",scoreTable," Order By 1")
+	retobj<-sqlQuery(getFLConnection(),query)
 }
