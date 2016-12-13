@@ -431,7 +431,7 @@ predict.FLLDA <- function(object){
         str <- paste0("SELECT ClassID FROM fzzlMDAClassify WHERE AnalysisID = '",object@AnalysisID,"' AND HypothesisID = 1 ORDER BY ClassID")
         dtf <- sqlQuery(connection , str)
         dtf <- as.integer(dtf$ClassID)
-        names(dtf) <- flmod@deeptable@Dimnames[[1]]
+        names(dtf) <- object@deeptable@Dimnames[[1]]
         return(dtf)      
     }
 }
