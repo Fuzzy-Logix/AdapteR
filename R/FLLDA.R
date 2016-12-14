@@ -23,10 +23,9 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-#' @export
-#' library(mda)
 #' Flexible Discriminant Analysis
-#' \code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+#' 
+#'\code{fda} performs Flexible Discriminant Analysis on FLTable objects.
 #'
 #' The DB Lytix function called is FLFlexDiscriminant. Performs Flexible Discriminant Analysis and stores the results in predefined tables.
 
@@ -47,7 +46,8 @@ setClass(
 #' non-parametric regression step in the Flexible Discriminant Analysis procedure.
 #' couldnt be implemented: plot, values, precent.explained
 #' (lack of data of discriminant space).
- 
+#' @export
+#' library(mda)
 fda <- function (formula,data=list(),...) {
     UseMethod("fda", data)
 }
