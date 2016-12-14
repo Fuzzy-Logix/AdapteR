@@ -139,6 +139,7 @@ Collate:
     'kruskal.test.R'
     'mahalanobis.R'
     'mcnemar.test.R'
+    'randomForest.R'
     'rowcolOps.R'
     'rpart.R'
     'survdiff.R'
