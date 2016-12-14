@@ -9,6 +9,7 @@ RD <- as.data.frame(deeptbl, drop.intercept=TRUE)
 names(RD) <-  letters[1:length(RD[1,])] 
 Renv$DAT <- RD
 
+
 FLenv$fit <- mda(a~. , data = FLenv$DAT)
 Renv$fit <- mda(a~., data = Renv$DAT)
 
