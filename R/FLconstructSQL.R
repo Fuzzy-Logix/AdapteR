@@ -7,23 +7,6 @@ setClass("FLSkalarAggregate",
              func="character",
              arguments="list"
          ))
-
-
-#' Models sparse data objects.
-#' 
-#' Sparse Indexed values objects are table queries with a value column and
-#' one (vectors), two (matrices) or several (arrays) index columns.
-#'
-#' The name of the values column
-setClass("FLIndexedValues", slots=list(
-                                dims = "numeric",
-                                dimColumns = "character" ## gk: todo: this needs some refactoring for FLVector
-                       ))
-
-setClass("FLAbstractColumn",
-	slots=list(
-            columnName = "character"))
-
 #' A table query models a select or a table result of a sql statement.
 #' 
 #' 
@@ -40,6 +23,31 @@ setClass("FLTableQuery",
              order = "character",
              group = "character"
          ))
+
+
+
+
+
+#' Models sparse data objects.
+#' 
+#' Sparse Indexed values objects are table queries with a value column and
+#' one (vectors), two (matrices) or several (arrays) index columns.
+#'
+#' The name of the values column
+setClass("FLIndexedValues", slots=list(
+                                select = "FLTableQuery",
+                                Dimnames = "list",
+                                dims = "ANY",
+                                dimColumns = "character",
+                                type = "character"## gk: todo: this needs some refactoring for FLVector
+                            ))
+
+setClass("FLAbstractColumn",
+	slots=list(
+            columnName = "character"))
+
+
+
 
 ##' A selectFrom models a select from a table.
 ##'
@@ -61,6 +69,7 @@ setClass("FLTableFunctionQuery",
              SQLquery = "character"
          ))
 
+##' @export
 setClass("FLAbstractTable",
     slots = list(
         select = "FLTableQuery",
@@ -80,19 +89,18 @@ setClass("FLAbstractTable",
 setClass("FLMatrix",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             mapSelect  = "FLSelectFrom",
+             mapSelect  = "FLSelectFrom"
              ##dimColumns = "character",
-             type       = "character",
-             Dimnames = "ANY"
-         ), prototype = prototype(
-             dimColumns=c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn"),
-             type="double")
+             ), prototype = prototype(
+                    dimColumns=c("MATRIX_ID","rowIdColumn","colIdColumn","valueColumn"),
+                    type="double")
          )
 
-
+##' @export
 setClass("FLMatrix.Hadoop", contains = "FLMatrix")
+##' @export
 setClass("FLMatrix.TD", contains = "FLMatrix")
+##' @export
 setClass("FLMatrix.TDAster", contains = "FLMatrix")
 
 newFLMatrix <- function(...) {
@@ -113,17 +121,17 @@ newFLMatrix <- function(...) {
 setClass("FLVector",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             Dimnames = "list",
              isDeep= "logical",
-             mapSelect = "FLSelectFrom",
-             type       = "character"
+             mapSelect = "FLSelectFrom"             
          ),
          prototype = prototype(type="double")
          )
 
+##' @export
 setClass("FLVector.Hadoop", contains = "FLVector")
+##' @export
 setClass("FLVector.TD", contains = "FLVector")
+##' @export
 setClass("FLVector.TDAster", contains = "FLVector")
 
 newFLVector <- function(...) {
@@ -142,11 +150,8 @@ newFLVector <- function(...) {
 setClass("FLSimpleVector",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             ##dimColumns = "character",
-             names = "ANY",
-             type       = "character"
-         ),prototype = prototype(type="double")
+             names = "ANY"          
+             ),prototype = prototype(type="double")
          )
 
 
@@ -161,13 +166,9 @@ setClass("FLSimpleVector",
 setClass("FLSimpleWideTable",
          contains="FLIndexedValues",
          slots = list(
-             select = "FLTableQuery",
-             ##dimColumns = "character",
-             Dimnames = "list",
-             dims = "integer",
-             ##mapSelect = "FLSelectFrom",
-             type       = "character"
-         ))
+             dims = "integer"
+             ##mapSelect = "FLSelectFrom",          
+             ))
 
 
 
@@ -305,7 +306,14 @@ setMethod("setIndexSQLName",
             object@dimColumns[[margin]] <- value
             object
             })
-
+# setMethod("setIndexSQLName",
+#           signature(object = "FLTable"),
+#           function(object,margin=1,value){
+#             t <- names(object@select@variables)
+#             t[margin] <- value
+#             names(object@select@variables) <- t
+#             object
+#             })
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
@@ -315,15 +323,16 @@ setMethod("setIndexSQLName",
 #' @param object retrieves the column names of FLTable object
 #' @export
 setClass("FLTable",
+         contains="FLIndexedValues",
          slots = list(
              select = "FLTableQuery",
              Dimnames = "list",
-             dims = "numeric",
              isDeep = "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
          ),
-         prototype = prototype(type="double")
+         prototype = prototype(type="double",
+                                dimColumns=c("obs_id_colname"))
         )
 
 

@@ -24,7 +24,7 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     how AdapteR can be used to build interactive analytics at scale with just a few
     lines of R code!
 Depends:
-    R (>= 3.2.0),
+    R (>= 3.1.0),
     methods,
     Matrix (>= 1.1-5)
 Imports:
@@ -93,6 +93,7 @@ Collate:
     'FLKMeans.R'
     'FLKSTest.R'
     'FLKuiperTest.R'
+    'FLLDA.R'
     'FLLUDecomp.R'
     'FLLength.R'
     'FLLogRegr.R'
@@ -111,6 +112,7 @@ Collate:
     'FLRbind.R'
     'FLSV.R'
     'FLSVDecomp.R'
+    'FLSVM.R'
     'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
@@ -135,6 +137,7 @@ Collate:
     'experiment_benchmarking.R'
     'friedman.test.R'
     'kruskal.test.R'
+    'mahalanobis.R'
     'mcnemar.test.R'
     'randomForest.R'
     'rowcolOps.R'

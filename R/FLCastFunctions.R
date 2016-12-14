@@ -74,22 +74,25 @@ as.data.frame.FLTable <- function(x, ...){
     tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
     vnames <- names(D)
-    vnames <- vnames[-grepl("obs_id_colname",vnames,ignore.case=TRUE)]
+    vobsidcol <- getIndexSQLName(x,margin=1)
+    vnames <- vnames[-grepl(vobsidcol,vnames,ignore.case=TRUE)]
     names(D) <- toupper(names(D))
-    D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
+    D <- plyr::arrange(D,D[[toupper(vobsidcol)]])
     ##browser()
     if(x@isDeep) {
-        D <- reshape2::dcast(D, paste0(toupper("obs_id_colname"),
+        vvaridcol <- getIndexSQLName(x,margin=2)
+        vvaluecol <- getIndexSQLName(x,margin=3)
+        D <- reshape2::dcast(D, paste0(toupper(vobsidcol),
                              " ~ ",
-                             toupper("var_id_colname")),
-                   value.var = toupper("cell_val_colname"))
+                             toupper(vvaridcol)),
+                   value.var = toupper(vvaluecol))
     } 
-    i <- charmatch(rownames(x),D[[toupper("obs_id_colname")]],nomatch=0)
+    i <- charmatch(rownames(x),D[[toupper(vobsidcol)]],nomatch=0)
                                         # print(i)
     D <- D[i,]
-    if(any(D[[toupper("obs_id_colname")]]!=1:nrow(D)))
-        rownames(D) <- D[[toupper("obs_id_colname")]]
-    D[[toupper("obs_id_colname")]] <- NULL
+    if(any(D[[toupper(vobsidcol)]]!=1:nrow(D)))
+        rownames(D) <- D[[toupper(vobsidcol)]]
+    D[[toupper(vobsidcol)]] <- NULL
     ## For sparse deep table
     D[is.na(D)] <- 0
     if(!x@isDeep)
@@ -1073,9 +1076,9 @@ setGeneric("populateDimnames",
 setMethod("populateDimnames",
     signature(x="ANY"),
     function(x,...){
-        if(is.null(rownames(x)))
-            x@Dimnames[[1]] <- 1:x@dims[1]
+        if(!length(rownames(x))>0)
+            x@Dimnames[[1]] <- 1:(x@dims[1])
         if(x@isDeep)
-            x@Dimnames[[2]] <- 1:x@dims[2]
+            x@Dimnames[[2]] <- 1:(x@dims[2])
         return(x)
 })

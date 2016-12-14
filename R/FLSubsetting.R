@@ -85,6 +85,8 @@ NULL
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)
 	  connection<-getFLConnection(object)
+
+    object <- populateDimnames(object)
     if(is.FLVector(rows)) rows <- as.vector(rows)
     if(is.FLVector(cols)) cols <- as.vector(cols)
     if(is.numeric(rows))
@@ -554,16 +556,17 @@ isAliasSet <- function(object){
 }
 
 
-#' @examples
-#' flSimple <- FLSerial(1,5)
-#' subset <- as.FL(3:2)
-#' flv <- flSimple[subset]
-#' flv1 <- as.FL(1)
-#' flv[flv1]
-#' names(flSimple) <- letters[1:5]
-#' subset <- as.FL(letters[3:2])
-#' flv <- flSimple[subset]
-#' flv[flv1]
+
+# flSimple <- FLSerial(1,5)
+# subset <- as.FL(3:2)
+# flv <- flSimple[subset]
+# flv1 <- as.FL(1)
+# flv[flv1]
+# names(flSimple) <- letters[1:5]
+# subset <- as.FL(letters[3:2])
+# flv <- flSimple[subset]
+# flv[flv1]
+
 #' @export
 `[.FLSimpleVector` <- function(object,pSet=1:length(object))
 {
@@ -675,10 +678,7 @@ names.FLSimpleVector <- function(x)
 {
     getNamesSlot(x)
 }
-#' @examples
-#' flv <- as.FL(1:5)
-#' flsimpleVec <- as.FLSimpleVector(flv)
-#' print(flsimpleVec)
+
 #' @export
 setGeneric("as.FLSimpleVector", function(pObject,...) {
     standardGeneric("as.FLSimpleVector")

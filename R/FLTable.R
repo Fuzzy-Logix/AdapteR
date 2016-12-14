@@ -93,7 +93,8 @@ FLTable <- function(table,
             Dimnames = list(rows,cols),
             dims = as.integer(c(nrow,ncol)),
             isDeep = TRUE,
-            type=type)
+            type=type,
+            dimColumns=c("obs_id_colname","var_id_colname","cell_val_colname"))
 	}
 	else
 	{
@@ -154,7 +155,8 @@ FLTable <- function(table,
                  Dimnames = mydimnames,
                  dims = as.integer(c(nrow,ncol)),
                  isDeep = FALSE,
-                 type=type)
+                 type=type,
+                 dimColumns=c("obs_id_colname"))
 	}
 }
 

@@ -27,7 +27,7 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-FLwideTable <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE,whereconditions=" OBSID<4001 ")
+FLwideTable <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE)
 vtemp <- readline("Above: wide FLTable object created. \n ")
 
 str(FLwideTable)

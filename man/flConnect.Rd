@@ -34,8 +34,9 @@ Issues can occur unless you provide the fully qualified path.}
 
 \item{verbose}{print debugging messages}
 
-\item{...}{include platform here. Use TD for Teradata.
-platform is mandatory for odbc connection}
+\item{...}{include 'platform' here. Use TD for Teradata.
+platform is mandatory for odbc connection. 
+'TestDatabase' on which tests are to be run.}
 
 \item{#"TMODE}{}
 

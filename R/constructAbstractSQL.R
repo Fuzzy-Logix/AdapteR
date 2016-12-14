@@ -45,6 +45,76 @@ constructMatrixUDTSQL <- function(pObject,
     pSelect <- constructSelect(pObject,joinNames=FALSE)
 
     ## Ensure proper ordering for UDT especially
+    pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
+    pViewColnames <- getVariables(pObject)
+
+    sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
+                            pViewColnames=pViewColnames,
+                            pFuncName=pFuncName,
+                            pOutColnames=pOutColnames,
+                            pWhereConditions=pWhereConditions,
+                            pSelect=pSelect,
+                            ...
+                            )
+    if(!is.null(list(...)[["pReturnQuery"]]) && 
+        list(...)[["pReturnQuery"]])
+        return(sqlstr)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                        connectionName = getFLConnectionName(),
+                        variables=pOutColnames,
+                        whereconditions="",
+                        order = "",
+                        SQLquery=sqlstr)
+
+    flm <- newFLMatrix(
+             select= tblfunqueryobj,
+             dims=pdims,
+             Dimnames=pdimnames,
+             dimColumns=names(pOutColnames))
+    flm
+
+}
+
+## @phani: I think we need separate connection classes for
+## each platform.eg- JDBCAster
+constructUDTSQL <- function(pConnection=getFLConnection(),
+                            pViewColnames,
+                            pFuncName,
+                            pOutColnames,
+                            pWhereConditions="",
+                            pSelect,
+                            pArgs = "",
+                            pPartitionBy=names(pViewColnames)[1],
+                            pLocalOrderBy=names(pViewColnames)[1],
+                            pNest=FALSE,
+                            ...){
+    if(pNest){
+        pViewColnames <- changeAlias(pViewColnames,"","")
+        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                " FROM (SELECT * FROM ",pSelect," ) a ")
+    }
+    else vNestedSelect <- pSelect
+    if(is.TD()){
+        return(paste0("WITH z( ",paste0(names(pViewColnames),
+                                        collapse=",")," )",
+                       " AS ( ",vNestedSelect," )",
+                       " SELECT ",constructVariables(pOutColnames),
+                       " FROM TABLE (",
+                            pFuncName,"(",paste0("z.",names(pViewColnames),
+                                        collapse=","),",",paste0(pArgs, collapse = ","),
+                                    ")",
+                            " HASH BY ",paste0("z.",pPartitionBy,
+                                            collapse=","),
+                            " LOCAL ORDER BY ",paste0("z.",pLocalOrderBy,
+                                            collapse=","),
+                            ") AS a ",
+                        constructWhere(pWhereConditions)
+                    )
+                )
+    }
+    ## if(names(getVariables(pObject))==pViewColnames)
+    ## Then do not nest
+    ## Ensure proper ordering for UDT especially
     if(missing(pViewColnames) || length(pViewColnames)==0){
         pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
         pViewColnames <- getVariables(pObject)
@@ -115,8 +185,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
     ## if(names(getVariables(pObject))==pViewColnames)
     ## Then do not nest
-
-    else if(is.Hadoop()){
+   else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                         " ( ON ( ",vNestedSelect," ) a ",
@@ -449,6 +518,18 @@ createTable <- function(pTableName,
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
     vtempKeyword <- vtempKeyword[getFLPlatform()]
 
+    vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
+                        "VARCHAR(100)"="VARCHAR(100)",
+                        FLOAT="FLOAT"),
+                    TDAster=c(INT="INT",BYTEINT="BYTEA",
+                        "VARCHAR(100)"="VARCHAR(100)",
+                        FLOAT="FLOAT"),
+                    Hadoop=c(INT="INT",BYTEINT="TINYINT",
+                        "VARCHAR(100)"="VARCHAR(100)",
+                        FLOAT="FLOAT"))
+    if(!is.null(pColTypes))
+        pColTypes <- vtypeMap[[getFLPlatform()]][pColTypes]
+
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
                     paste0(pColNames," ",pColTypes,collapse=","),
@@ -535,10 +616,11 @@ createTable <- function(pTableName,
     #vsqlstr <- paste0(vsqlstr,";")
     if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
-            if(checkRemoteTableExistence(tableName=pTableName))
+            if(checkRemoteTableExistence(tableName=pTableName)){
                 if(getOption("debugSQL"))
                    warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
+            }
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
     }
@@ -551,6 +633,8 @@ createTable <- function(pTableName,
     }
 
     vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    if(!all(vres))
+        stop("table could not be created \n ")
     updateMetaTable(pTableName=pTableName,
                     pType="wideTable",
                     ...)
@@ -576,11 +660,21 @@ createView <- function(pViewName,
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
                         " AS ",pSelect)
     res <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    ##gk @ phani: what was this for?  I moved it into creatView
+    ##phani: detect if create view query worked
+    ## Hadoop hive throws error while creating view from temp table.
+    if(!all(res)){
+        if(getOption("viewToTable")){
+            tryCatch({res <- createTable(pViewName,pSelect=pSelect,pTemporary=FALSE)
+                    return(res)},
+                    error=function(e)stop("view could not be created \n "))
+        }
+        else stop("View could not be created \n ")
+    }
     if(pStore)
     updateMetaTable(pTableName=pViewName,
                     pType="view",
                     ...)
-    if(!all(res)) stop("View could not be created") ##gk @ phani: what was this for?  I moved it into creatView
 
     return(pViewName) ## previously res was returned
 }
