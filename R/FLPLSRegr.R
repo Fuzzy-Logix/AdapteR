@@ -22,11 +22,7 @@ NULL
 #' component regression (PCR), with a formula interface.
 #' Cross-validation can be used.  Prediction, model extraction, plot,
 #' print and summary methods exist.
- 
-
-##library(pls)
 #' @export
-#' library(pls)
 mvr <- function (formula,data=list(),...) {
 	UseMethod("mvr", data)
 }

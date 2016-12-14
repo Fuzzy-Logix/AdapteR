@@ -144,7 +144,7 @@ friedman.test.formula <- function(formula, data,
     if(!is.FL(data)){
         return(stats:::friedman.test.formula(formula=formula,
                                              data=data,
-                                             subset=subset,
+                                             ## subset=quote(subset), 
                                              na.action=na.action,
                                              ...))
     } else
