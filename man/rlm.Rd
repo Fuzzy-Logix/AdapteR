@@ -4,7 +4,7 @@
 \alias{rlm}
 \title{Robust Regression.}
 \usage{
-rlm(formula, data = list(), ...)
+rlm(formula, data = list(), psi, ...)
 }
 \description{
 performs robust regression
@@ -12,17 +12,17 @@ Example for deeptbl:
 library(MASS)
 options(debugSQL =TRUE)
 table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
-q <- rlm(a~., data = table)
-predict(q)
-residuals(q)
-q$fitted.values
-summary(q)
+flmod <- rlm(a~., data = table)
+predict(flmod)
+residuals(flmod)
+flmod$fitted.values
+summary(flmod)
 still to work on plot(q)
 Example for widetable:
 widetbl <- FLTable("tblautompg", "ObsID")
-t <- rlm(Weight~ Acceleration , data = widetbl)
-summary(t)
-coefficients(t)
-residuals(t)
+flmod <- rlm(Weight~ Acceleration , data = widetbl)
+summary(flmod)
+coefficients(flmod)
+residuals(flmod)
 }
 

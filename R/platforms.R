@@ -268,10 +268,10 @@ FLStartSession <- function(connection,
                                 "TableName","ElementID",
                                 "ObjType",
                                 "UserComments"),
-                    pColTypes=c("VARCHAR(100)","VARCHAR(100)",
-                                "VARCHAR(100)","VARCHAR(100)",
-                                "VARCHAR(100)","INT","VARCHAR(100)",
-                                "VARCHAR(100)"),
+                    pColTypes=c("VARCHAR(255)","VARCHAR(255)",
+                                "VARCHAR(255)","VARCHAR(255)",
+                                "VARCHAR(255)","INT","VARCHAR(255)",
+                                "VARCHAR(255)"),
                     pTableOptions=tableoptions,
                     pPrimaryKey="UserName",
                     pTemporary=FALSE,
@@ -281,8 +281,8 @@ FLStartSession <- function(connection,
         createTable(pTableName="tblNameMapping",
                     pColNames=c("TABLENAME","MATRIX_ID",
                                 "DIM_ID","NAME","NUM_ID"),
-                    pColTypes=c("VARCHAR(100)","INT",
-                                "INT","VARCHAR(100)",
+                    pColTypes=c("VARCHAR(255)","INT",
+                                "INT","VARCHAR(255)",
                                 "INT"),
                     pTableOptions=tableoptions,
                     pPrimaryKey=c("TABLENAME","MATRIX_ID",
@@ -324,7 +324,7 @@ FLStartSession <- function(connection,
             else if(grepl("int",tolower(vtable)))
                 vtype <- "INT"
             else if(grepl("char",tolower(vtable)))
-                vtype <- "VARCHAR(100)"
+                vtype <- "VARCHAR(255)"
             else vtype <- "FLOAT"
             if(!is.null(vclass))
                 genCreateResulttbl(tablename=vtable,
@@ -442,6 +442,12 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
 getMatrixUDTMapping <- function(query) 
     getOption("MatrixUDTMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
+## return the name of systemTable based on platform
+getSystemTableMapping <- function(query,connection=getFLConnection()){
+    vlist <- getOption("storedProcMappingsFL")[[paste0("FLSystemTables.",getFLPlatform(connection=connection))]]
+    argsMap <- vlist$argsPlatform
+    return(names(argsMap)[argsMap==query])
+}
 
 genCreateResulttbl <- function(tablename,
                                temporaryTable=TRUE,
