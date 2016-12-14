@@ -11,15 +11,17 @@ Renv$DAT <- RD
 
 FLenv$fit <- mda(a~. , data = FLenv$DAT)
 Renv$fit <- mda(a~., data = Renv$DAT)
-## 
+
+## Weights, count, prior.
 test_that("weights,prior, counts:", {eval_expect_equal({
     pri <- fit$prior
     count <- fit$count
+    wt <- fit$weights
        
 },Renv,FLenv,
 verbose = TRUE,
 check.attributes = FALSE,
-expectations = c( "pri","count" ))
+expectations = c( "wt", "pri","count" ))
 })
   
 ## predict:

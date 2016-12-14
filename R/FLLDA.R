@@ -45,6 +45,7 @@ setClass(
 #' involves the use of multivariate adaptive regression splines for obtaining a basis
 #' transformation of the independent variables and performing the multivariate
 #' non-parametric regression step in the Flexible Discriminant Analysis procedure.
+#'
 #' couldnt be implemented: plot, values, precent.explained
 #' (lack of data of discriminant space).
  
@@ -139,12 +140,13 @@ lda.FLTableMD <- lda.FLpreparedData
 #' @param hypothesis Number of hypotheses to run simultaneously
 #' @return \code{mda} returns an object of class \code{FLLDA}
 #' @examples
-#' #'deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
+#' deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
 #' flmod <- mda(a~., data = deeptbl)
 #' predict(flmod); flmod$N
 #' cof <-coefficients(flmod)
 #' FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
-#' class into a number of artificial subclasses. It calibrates the mixture of Gaussians and the mixing probability by maximizing the log-likelihood with expectation maximization.
+#' class into a number of artificial subclasses. It calibrates the mixture of Gaussians
+#' and the mixing probability by maximizing the log-likelihood with expectation maximization.
 
 
 #' couldnt implement dollar operator: means, precent.explained, values, plot((lack of data of discriminant space).
@@ -346,18 +348,19 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
     }
     else if(property == "weights")
     {
+        
         if(object@results$familytype == "Mixed"){
-            str <- paste0("SELECT * FROM fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' AND HypothesisID = 1 ORDER BY 3,2,4")
-            dtf <- sqlQuery(connection, str)
-            dtf <- dtf[, 2:6]
-            var <- as.integer(max(object$lev))
-            vsub <- object@results$extra
             dl <- list()
-            for(i in seq(from = 0 , to  = var))
-                dl[i] <- sapply(1:vsub, function(x){
-                    dtf$Weight[dtf$SubclassID == x][dtf$ClassID == i]})
-            colnames(df) <- paste0("s", 1:vsub)
+            str <- paste0("SELECT ClassID, COUNT(DISTINCT(ObsID)) FROM fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' GROUP BY ClassID")
+            vcount <- sqlQuery(connection, str)
+            vcol <- object@deeptable@dims[2]-1
+            vrow <- vcount[,2]
+            vclass <- 0
+            dl <- lapply(object$lev, function(x){wtfun(object, nrow = vrow[vcount[,1] == x] ,ncol = vcol, nclass = x)})
+            names(dl) <- object$lev
+
             return(dl)
+
         }
     }
 
@@ -453,4 +456,25 @@ plot.FLLDA <- function(object){
     plot(val)
 }
 
+
+
+
+wtfun <- function(object, nrow, ncol, nclass){
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = getFLConnectionName(),
+                          variables=list(MATRIX_ID="MATRIX_ID",
+                                         rowIdColumn="rowIdColumn",
+                                         colIdColumn="colIdColumn",
+                                         valueColumn="valueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=paste0("SELECT hypothesisid as matrix_id,row_number()over(partition by Subclassid order by obsid ) as rowIdColumn,Subclassid as colIdColumn,weight as valueColumn from fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' AND ClassID = ",nclass," AND HypothesisID = 1"))
+
+    flm <- newFLMatrix(
+        select= tblfunqueryobj,
+        dims=c(nrow, ncol),
+        Dimnames=list(1:nrow, 1:ncol))
+    return(flm)
+
+}
 
