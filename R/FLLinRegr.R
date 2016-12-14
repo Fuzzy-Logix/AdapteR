@@ -1072,8 +1072,7 @@ prepareData.lmGeneric <- function(formula,data,
 	if(!data@isDeep)
 	{
             ## gk: can't we use prepareData.lmGeneric here?
-            browser()
-		deepx <- FLRegrDataPrep(data,depCol=vdependent,
+            	deepx <- FLRegrDataPrep(data,depCol=vdependent,
 								OutDeepTableName=outDeepTableName,
 								OutObsIDCol="",
 								OutVarIDCol="",

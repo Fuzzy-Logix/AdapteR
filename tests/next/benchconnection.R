@@ -2,15 +2,16 @@
 ##No. Rows: 50- 4000, ncol = 11
 
 
-rodbi <- flConnect(odbcSource = "Gandalf", database = "FL_DEMO", platform = "TD")
+rodbi <- flConnect(odbcSource = "Gandalf", database = "FL_DEMO", platform = "TD",pkg = "dbi")
 
 rjdb <- flConnect("jdbc:teradata://10.200.4.116",
                       "FL_DEMO",
                       "mbondre","fzzlpass",
                       c("F:/terajdbc4.jar",
                          "F:/tdgssconfig.jar"),
-                      debug=FALSE)
+                  debug=FALSE)
 
+rodbc <- flConnect(odbcSource = "Gandalf",database = "FL_DEMO",platform = "TD", pkg = "dbc")
 
 
 Benv <- new.env(parent = globalenv())
