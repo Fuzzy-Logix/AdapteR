@@ -233,7 +233,7 @@ hkmeans.FLTable<-function(x,
 		# sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID \n ",
 		# 				" WHERE AnalysisID='",AnalysisID,"' \n ",
 		# 				" AND HypothesisID = ",nstart)
-        sqlstr <- constructSelectResult(object,result="levels")
+        sqlstr <- constructSelectFLHKmeansLevels(AnalysisID)
 
 		centers <- sqlQuery(connection,sqlstr)[1,1]
 	}
