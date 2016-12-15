@@ -1,4 +1,3 @@
-library(rpart)
 Renv=new.env(parent= globalenv())
 FLenv= as.FL(Renv)
 Renv$kyphosis<-kyphosis
@@ -9,7 +8,6 @@ FLenv$deeptable<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 Renv$deeptable<-as.data.frame(FLenv$deeptable)
 
 test_that("FLrpart: test for deep tables",{
-
 	robj<-rpart(Renv$deeptable,formula= Renv$deeptable$`-1`~.,method="class")
 	flobj<-rpart(FLenv$deeptable,formula= -1~.)
 	FLexpect_equal(robj$frame$var,flobj$frame$var)
