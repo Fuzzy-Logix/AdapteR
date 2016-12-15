@@ -20,6 +20,7 @@ test_that("Log and Exp: tolerance=1e-6",{
     )
 })
 
+## power not yet supported in Hadoop
 test_that("power, vector arithmetic",{
     result = eval_expect_equal({
         constVec <- 2.1*nvector
@@ -29,7 +30,7 @@ test_that("power, vector arithmetic",{
     expectation = c("constVec","y"))
 })
 
-
+## power not yet supported in Hadoop
 test_that("power, vector arithmetic, integer types",{
     result = eval_expect_equal({
         constVec <- 2*nvector

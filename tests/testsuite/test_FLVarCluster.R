@@ -1,5 +1,5 @@
 test_that("FLVarCluster works ",{
-    deeptable  <- FLTable("tblLogRegr", 
+    deeptable  <- FLTable(getTestTableName("tblLogRegr"), 
                     "ObsID",
                     "VarID",
                     "Num_Val",

@@ -175,6 +175,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                  call. = FALSE)
         }
         tryCatch({
+            library(RODBC)
             connection <- RODBC::odbcConnect(odbcSource)
         },error=function(e)e)
     }
@@ -509,3 +510,6 @@ FLClose <- function(connection)
     #options("FLTempViews"=c())
     options("FLSessionID"=c())
 }
+
+## Generate Mappings when package is loaded
+FLcreatePlatformsMapping()

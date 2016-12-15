@@ -270,7 +270,7 @@ prepareData.coxph <- function(formula,data,
                                            " FROM ",vtablename1))
 		deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
+		mapTable <- getRemoteTableName(tableName = getSystemTableMapping("fzzlRegrDataPrepMap"))
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{

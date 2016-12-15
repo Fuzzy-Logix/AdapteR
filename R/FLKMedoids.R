@@ -206,9 +206,10 @@ pam.FLTable <- function(x,
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 
-		sqlstr <- paste0(" SELECT a.*  
-			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' ")
+		sqlstr <- paste0(" SELECT a.*  \n ",
+			    	     " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
+                                           "  a \n ",
+			    	     " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisId))
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                 pSelect=sqlstr)

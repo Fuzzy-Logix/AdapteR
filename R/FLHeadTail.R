@@ -67,9 +67,10 @@ head.FLVector <- function(x,n=6,...){
         names(vres) <- sort(names(x))[1:n]
         return(vres)
     }
+    browser()
     stopifnot(length(n) == 1L)
     n <- if (n < 0L) max(length(x) + n, 0L) else min(n, length(x))
-    if(n <= 0) stop("n value in head function is out of bounds")
+    if(n <= 0L) stop("n value in head function is out of bounds")
     return(x[1:n])
 }
 
@@ -81,6 +82,6 @@ tail.FLVector <- function(x,n=6,...){
     stopifnot(length(n) == 1L)
     nrx <- length(x)
     n <- if (n < 0L) max(nrx + n, 0L) else min(n, nrx)
-    if(n <= 0) stop("n value in head function is out of bounds")
+    if(n <= 0L) stop("n value in head function is out of bounds")
     return(x[(nrx-n+1):nrx])
 }

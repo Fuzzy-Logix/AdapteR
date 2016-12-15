@@ -164,10 +164,17 @@ setMethod("expm1",signature(x="FLVector"),
 setMethod("log10",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="log",
                             x=x))
+setMethod("log10",signature(x="FLMatrix.Hadoop"),
+    function(x) FLExpLog(functionName="log10",
+                            x=x))
 
 ## move to file FLExpLog.R
 setMethod("log10",signature(x="FLVector"),
     function(x) FLExpLog(functionName="log",
+                            x=x))
+
+setMethod("log10",signature(x="FLVector.Hadoop"),
+    function(x) FLExpLog(functionName="log10",
                             x=x))
 
 ## move to file FLExpLog.R
@@ -175,12 +182,20 @@ setMethod("log1p",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             p1=1, lnb=base::logb(exp(1),10)))
+setMethod("log1p",signature(x="FLMatrix.Hadoop"),
+    function(x) FLExpLog(functionName="ln",
+                            x=x,
+                            p1=1, lnb=1))
 
 ## move to file FLExpLog.R
 setMethod("log1p",signature(x="FLVector"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             p1=1, lnb=base::logb(exp(1),10)))
+setMethod("log1p",signature(x="FLVector.Hadoop"),
+    function(x) FLExpLog(functionName="ln",
+                            x=x,
+                            p1=1, lnb=1))
 
 
 ## move to file FLExpLog.R
@@ -188,24 +203,40 @@ setMethod("log",signature(x="FLMatrix"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
+setMethod("log",signature(x="FLMatrix.Hadoop"),
+    function(x,base=base::exp(1)) FLExpLog(functionName="ln",
+                            x=x,
+                            lnb=base::logb(base[1],exp(1))))
 
 ## move to file FLExpLog.R
 setMethod("log",signature(x="FLVector"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
+setMethod("log",signature(x="FLVector.Hadoop"),
+    function(x,base=base::exp(1)) FLExpLog(functionName="ln",
+                            x=x,
+                            lnb=base::logb(base[1],exp(1))))
 
 ## move to file FLExpLog.R
 setMethod("logb",signature(x="FLMatrix"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
+setMethod("logb",signature(x="FLMatrix"),
+    function(x,base=base::exp(1)) FLExpLog(functionName="ln",
+                            x=x,
+                            lnb=base::logb(base[1],exp(1))))
 
 ## move to file FLExpLog.R
 setMethod("logb",signature(x="FLVector"),
     function(x,base=base::exp(1)) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(base[1],10)))
+setMethod("logb",signature(x="FLVector.Hadoop"),
+    function(x,base=base::exp(1)) FLExpLog(functionName="ln",
+                            x=x,
+                            lnb=base::logb(base[1],exp(1))))
 
 
 ## move to file FLExpLog.R
@@ -213,12 +244,20 @@ setMethod("log2",signature(x="FLMatrix"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(2,10)))
+setMethod("log2",signature(x="FLMatrix.Hadoop"),
+    function(x) FLExpLog(functionName="ln",
+                            x=x,
+                            lnb=base::logb(2,exp(1))))
 
 ## move to file FLExpLog.R
 setMethod("log2",signature(x="FLVector"),
     function(x) FLExpLog(functionName="log",
                             x=x,
                             lnb=base::logb(2,10)))
+setMethod("log2",signature(x="FLVector.Hadoop"),
+    function(x) FLExpLog(functionName="ln",
+                            x=x,
+                            lnb=base::logb(2,exp(1))))
 
 ## move to file FLExpLog.R
 setMethod("sqrt", signature(x="FLVector"), 
