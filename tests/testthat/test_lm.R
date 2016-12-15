@@ -77,6 +77,9 @@ if(FALSE){
 
 
 ## MD Testing
+## Tables not available in Hadoop
+## FLRegrDataPrepMD is not available in Hadoop and Aster
+
 flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
                         group_id_colname="GroupID",
                         obs_id_colname="ObsID",group_id = c(2,4))

@@ -194,7 +194,7 @@ NULL
                                            paste0("nameflt.DIM_ID=1"),
                                            paste0("nameflt.NAME = CAST(",
                                                   getVariables(object)[[vobsidcolumn]],
-                                                  " AS VARCHAR(100))")),
+                                                  " AS VARCHAR(255))")),
                          order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
 
@@ -328,7 +328,7 @@ NULL
                              whereconditions=c(constraintsSQL(pSet),
                                                paste0(nameValueColumn," = CAST(",
                                                       getVariables(object)[[vobsidcolumn]],
-                                                      " AS VARCHAR(100))")),
+                                                      " AS VARCHAR(255))")),
                              order = "")
             object@select@variables[[vobsidcolumn]]<- nameIndexColumn
             newrownames <- rownames(pSet)
@@ -368,7 +368,7 @@ NULL
                                              paste0("nameflt.DIM_ID=1"),
                                              paste0("nameflt.NAME = CAST(",
                                                     getVariables(object)[[vobsidcolumn]],
-                                                    " AS VARCHAR(100))")),
+                                                    " AS VARCHAR(255))")),
                            order = "")
           object@Dimnames[[1]] <- 1
           object@mapSelect <- mapselect
@@ -467,7 +467,7 @@ NULL
                                            paste0("nameflt.DIM_ID=1"),
                                            paste0("nameflt.NAME = CAST(",
                                                   getVariables(object)[[vobsidcolumn]],
-                                                  " AS VARCHAR(100))")),
+                                                  " AS VARCHAR(255))")),
                          order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
       }

@@ -501,7 +501,8 @@ createTable <- function(pTableName,
                         ...){
     if(getTablename(pTableName)!=pTableName){
         if(getDatabase(pTableName)!=pDatabase)
-            stop(paste0("pTableName specified conflicting database: ", pTableName," =/= ",pDatabase,""))
+            stop(paste0("pTableName specified conflicting database: ", 
+                        pTableName," =/= ",pDatabase,""))
         pTableName <- getTablename(pTableName)
     }
     pTableName <- getRemoteTableName(databaseName = pDatabase,
@@ -518,18 +519,19 @@ createTable <- function(pTableName,
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
     vtempKeyword <- vtempKeyword[getFLPlatform()]
 
-    vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
-                        "VARCHAR(100)"="VARCHAR(100)",
-                        FLOAT="FLOAT"),
-                    TDAster=c(INT="INT",BYTEINT="BYTEA",
-                        "VARCHAR(100)"="VARCHAR(100)",
-                        FLOAT="FLOAT"),
-                    Hadoop=c(INT="INT",BYTEINT="TINYINT",
-                        "VARCHAR(100)"="VARCHAR(100)",
-                        FLOAT="FLOAT"))
-    if(!is.null(pColTypes))
-        pColTypes <- vtypeMap[[getFLPlatform()]][pColTypes]
+    # vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
+    #                     "VARCHAR(100)"="VARCHAR(100)",
+    #                     FLOAT="FLOAT"),
+    #                 TDAster=c(INT="INT",BYTEINT="BYTEA",
+    #                     "VARCHAR(100)"="VARCHAR(100)",
+    #                     FLOAT="FLOAT"),
+    #                 Hadoop=c(INT="INT",BYTEINT="TINYINT",
+    #                     "VARCHAR(100)"="VARCHAR(100)",
+    #                     FLOAT="FLOAT"))
+    # if(!is.null(pColTypes))
+    #     pColTypes <- vtypeMap[[getFLPlatform()]][pColTypes]
 
+    pColTypes <- getFLPlatformDataTypeMap(pColTypes)
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
                     paste0(pColNames," ",pColTypes,collapse=","),
