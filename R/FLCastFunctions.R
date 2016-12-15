@@ -941,7 +941,7 @@ as.FLTable.data.frame <- function(object,
     # stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
     vcolnamesCopy <- getRToFLDataTypeMap(vcolnames)
     
-    if(!checkRemoteTableExistence(tableName=tableName))
+    if(!checkRemoteTableExistence(tableName=tableName) | drop)
         tryCatch({
             t <- createTable(pTableName=tableName,
                              pColNames=names(vcolnamesCopy),
@@ -984,16 +984,19 @@ as.FLTable.data.frame <- function(object,
                 tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
     ps = .jcall(vconnection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
     myinsert <- function(namedvector,x){
-                  vsetvector <- c()
-                  vsetvector[" VARCHAR(255) "] <- "setString"
-                  vsetvector[" FLOAT "] <- "setFloat"
-                  vsetvector[" INT "] <- "setInt"
+                  vsetvector <- c("VARCHAR(255)"="setString",
+                                  "FLOAT"="setFloat",
+                                  "INT"="setInt")
                   for(i in 1:length(namedvector))
                   {
-                    .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
-                      if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
-                      else if(namedvector[i]==" FLOAT ") .jfloat(x[i])
-                      else as.integer(x[i]))
+                      if(namedvector[i]=="VARCHAR(255)")
+                          val <- as.character(x[i])
+                      else if(namedvector[i]=="FLOAT")
+                          val <- .jfloat(x[i])
+                      else
+                          val <- as.integer(x[i])
+                      .jcall(ps,"V",vsetvector[namedvector[i]],
+                             as.integer(i),val)
                   }
                   .jcall(ps,"V","addBatch")
                 }

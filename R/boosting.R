@@ -1,4 +1,6 @@
 ## boost decision trees
+#' @export
+
 boosting<-function(formula,data,...){
 	UseMethod("boosting",data)
 }
@@ -12,7 +14,7 @@ boosting.FLTable<-function(data,
 							 cp=0.95),
 				   mfinal=10){ #browser()
 	call<-match.call()
-	x<-FLrpart(data,formula,control,mfinal=mfinal)
+	x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
 	vfuncName<-"FLBoostDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,

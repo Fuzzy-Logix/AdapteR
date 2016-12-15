@@ -17,19 +17,21 @@ setClass(
 
 
 
-#' @export
+#' Support Vector machine with Linear Kernel
+#'
+#'
 #' library(e1071)
-#' Linear Kernel
 #' tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
 #' flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
 #' predict(flmod)
 #'
 #' polynomial Kernel
-#'tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
-#'flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+#' tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
+#' flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
 #'
 #'
 #' 
+#' @export
 svm <- function (formula,data=list(),...) {
     UseMethod("svm", data)
 }

@@ -5,6 +5,8 @@ Version: 2.3
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
+    person("Sanchit", "Chiplunkar", email = "Sanchit.Chiplunkar@fuzzylogix.com", role = c("ctb")),
+    person("Amal", "Shrivastava", email = "Amal.Shrivastava@fuzzylogix.com", role = c("ctb")),
     person("Rushil", "Nagda", email = "rushil9292@gmail.com", role = c("ctb")),
     person("Suryavamshig", "Iitr", email = "suryavamshig.iitr@gmail.com", role = c("ctb")),
     person("Mitul", "Mundra", email = "Mitul.Mundra@fuzzylogix.com", role = c("ctb")),
@@ -140,6 +142,7 @@ Collate:
     'kruskal.test.R'
     'mahalanobis.R'
     'mcnemar.test.R'
+    'randomForest.R'
     'rowcolOps.R'
     'rpart.R'
     'survdiff.R'
