@@ -33,8 +33,7 @@ FLWideToDeep does not require dependent variable or intercept, thus it creates d
 }
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
-resultList <- wideToDeep(widetable)
-deeptable <- resultList$table
-analysisID <- resultList$AnalysisID
+deeptable <- wideToDeep(widetable)
+analysisID <- deeptable@wideToDeepAnalysisID
 }
 

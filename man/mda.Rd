@@ -28,12 +28,13 @@ random subclass of its class; 0 otherwise.}
 library(mda)
 }
 \examples{
-#'deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
+deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
 flmod <- mda(a~., data = deeptbl)
 predict(flmod); flmod$N
 cof <-coefficients(flmod)
 FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
-class into a number of artificial subclasses. It calibrates the mixture of Gaussians and the mixing probability by maximizing the log-likelihood with expectation maximization.
+class into a number of artificial subclasses. It calibrates the mixture of Gaussians
+and the mixing probability by maximizing the log-likelihood with expectation maximization.
 couldnt implement dollar operator: means, precent.explained, values, plot((lack of data of discriminant space).
 }
 \seealso{
