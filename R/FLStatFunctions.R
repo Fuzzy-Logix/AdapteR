@@ -28,7 +28,7 @@ FLStatsDist <- function(x,method="euclidean",
                         "FROM (",constructSelect(x),") a,(",
                                 constructSelect(x),") b \n",
                         constructWhere(vwhereConditions),"\n",
-                        " GROUP BY 1,2,3")
+                        " GROUP BY a.",vobsidCol,",b.",vobsidCol)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = getFLConnectionName(),

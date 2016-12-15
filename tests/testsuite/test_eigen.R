@@ -13,10 +13,12 @@ test_that("eigen values",{
     expectation="e1")
 })
 
+## Wrong result in Hadoop
 test_that("eigen, option only.values",{
     result = eval_expect_equal({
         e2 <- eigen(mat2, only.values = TRUE)
     },Renv,FLenv,
+    expectation="e2",
     tolerance=1e-6)
 })
 

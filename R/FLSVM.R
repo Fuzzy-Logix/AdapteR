@@ -118,9 +118,10 @@ svmGeneric <- function(formula,data,
                                                                          Num_Val= "cell_val_colname"),
                                                         pFuncName = functionName,
                                                         pOutColnames = c("a.*"),
-                                                        pSelect = deeptable,
+                                                        pSelect = paste0("SELECT * FROM ",deeptable," "),
                                                         pArgs = pArg,
-                                                        pLocalOrderBy=c("GroupID", "ObsID", "VarID"), pNest = TRUE))
+                                                        pLocalOrderBy=c("GroupID", "ObsID", "VarID"), 
+                                                        pNest = TRUE))
     
     return(new("FLSVM",
                formula=formula,

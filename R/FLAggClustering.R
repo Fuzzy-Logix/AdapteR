@@ -190,7 +190,7 @@ agnes.FLTable <- function(x,
 			    	    " SELECT a.Final_VarID AS VarID, \n ",
 			    	     	"    a.COLUMN_NAME AS ColumnName, \n ",
 			    	     	"    a.FROM_TABLE AS MapName \n ",
-			    	    " FROM fzzlRegrDataPrepMap a \n ",
+			    	    " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),"  a \n ",
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
         mapTable <- createTable(pTableName=gen_wide_table_name("map"),

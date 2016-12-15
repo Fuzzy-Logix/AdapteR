@@ -127,19 +127,36 @@ setMethod("constructSelectResult",
     if(result=="withinss"){
         ## flag3Check(connection)
         return(paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
-                      " DENSE_RANK()OVER(ORDER BY a.ClusterID) AS vectorIndexColumn, \n ",
-                      " CAST(sum(power((b.",cell_val_colname,
-                      " - c.Centroid ),2)) AS NUMBER) AS vectorValueColumn \n ",
-                      " FROM fzzlKMeansClusterID a, \n ",deeptablename," b , \n fzzlKMeansCentroid c \n ",
-                      " WHERE c.AnalysisID = ",fquote(AnalysisID)," \n ",
-                      " AND a.AnalysisID = ",fquote(AnalysisID)," \n ",
-                      " AND b.",var_id_colname,"=c.DimID \n ",
-                      " AND a.ClusterID = c.ClusterID \n ",
-                      " AND a.ObsID = b.",obs_id_colname," \n ",
-                      ifelse(length(whereconditions)>0, 
-                            paste0(" AND ",whereconditions,collapse=" \n "),
-                            ""), 
-                      " GROUP BY a.ClusterID "))
+                                " DENSE_RANK()OVER(ORDER BY a.ClusterID) AS vectorIndexColumn, \n ",
+                                " CAST(sum(power((b.",cell_val_colname,
+                                    " - c.Centroid ),2)) AS NUMBER) AS vectorValueColumn \n ",
+                        " FROM fzzlKMeansClusterID a, \n ",deeptablename," b, \n fzzlKMeansDendrogram c \n ",
+                        " WHERE c.AnalysisID = ",fquote(AnalysisID)," \n ",
+                        " AND a.AnalysisID = ",fquote(AnalysisID)," \n ",
+                        " AND b.",var_id_colname,"=c.VarID \n ",
+                        " AND a.ClusterID = c.ClusterID \n ",
+                        " AND a.ObsID = b.",obs_id_colname," \n ",
+                        " AND a.HypothesisID = ",object@nstart," \n ",
+                        " AND c.HypothesisID = ",object@nstart," \n ",
+                        ifelse(length(whereconditions)>0, 
+                                paste0(" AND ",whereconditions,collapse=" \n "),
+                                ""), 
+                        " GROUP BY a.ClusterID "))
+
+        # return(paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+        #               " DENSE_RANK()OVER(ORDER BY a.ClusterID) AS vectorIndexColumn, \n ",
+        #               " CAST(sum(power((b.",cell_val_colname,
+        #               " - c.Centroid ),2)) AS NUMBER) AS vectorValueColumn \n ",
+        #               " FROM fzzlKMeansClusterID a, \n ",deeptablename," b , \n fzzlKMeansDendrogram c \n ",
+        #               " WHERE c.AnalysisID = ",fquote(AnalysisID)," \n ",
+        #               " AND a.AnalysisID = ",fquote(AnalysisID)," \n ",
+        #               " AND b.",var_id_colname,"=c.DimID \n ",
+        #               " AND a.ClusterID = c.ClusterID \n ",
+        #               " AND a.ObsID = b.",obs_id_colname," \n ",
+        #               ifelse(length(whereconditions)>0, 
+        #                     paste0(" AND ",whereconditions,collapse=" \n "),
+        #                     ""), 
+        #               " GROUP BY a.ClusterID "))
     } else if(result=="clusters"){
         return(constructSelectFLHKmeansClusters(AnalysisID,
                                                 paste0(" AND HypothesisID = ",
@@ -172,7 +189,7 @@ setMethod("constructSelectResult",
     else if(result=="size")
         return(constructSelectFLHKmeansSize(AnalysisID,
                                             paste0(" AND HypothesisID = ",
-                                                    object@nstart," \n ",)))
+                                                    object@nstart," \n ")))
     else if(result=="fitted"){
         return(paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
                         " b.ObsID AS rowIdColumn, \n ",

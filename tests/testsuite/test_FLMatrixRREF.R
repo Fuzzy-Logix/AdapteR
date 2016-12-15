@@ -27,7 +27,7 @@ test_that("testing RREF conditions ",{
 
 
 test_that( "testing the example written in FLMatrixRREF",{
-    flmatrix <- FLMatrix("tblMatrixMulti",
+    flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"),
                           5,
                           "MATRIX_ID",
                           "ROW_ID",

@@ -1,11 +1,18 @@
 
-table2<-FLTable(table= "tblAutoMpg",
+table2<-FLTable(table= getTestTableName("tblAutoMpg"),
                 obs_id_colname = "ObsID")
 
-table3<-FLTable(table= "tblUSArrests",
-                obs_id_colname = "OBSID",
-                var_id_colname = "VarID",
-                cell_val_colname ="Num_Val")
+if(!is.Hadoop())
+    table3<-FLTable(table= getTestTableName("tblUSArrests"),
+                    obs_id_colname = "OBSID",
+                    var_id_colname = "VarID",
+                    cell_val_colname ="Num_Val")
+else 
+    table3<-FLTable(table= getTestTableName("tblUSArrests"),
+                    obs_id_colname = "OBSID",
+                    var_id_colname = "DimID",
+                    cell_val_colname ="Value")
+
 dropFLTestTable()
 
 test_that("check if wide to deep works",{

@@ -446,9 +446,9 @@ setMethod("deepToWide",
                 sqlSendUpdate(connection,sqlstr1)
                 sqlstr1<-paste0(" SELECT a.Final_VarID, \n  
                                         a.COLUMN_NAME, \n 
-                                        a.FROM_TABLE
-                                 FROM fzzlRegrDataPrepMap a 
-                                 WHERE a.AnalysisID = '",Analysisid,"';")
+                                        a.FROM_TABLE \n 
+                                 FROM ",getSystemTableMapping("fzzlRegrDataPrepMap")," a \n ",
+                                 " WHERE a.AnalysisID = ",fquote(Analysisid))
                 insertIntotbl(pTableName=usedwidetablename,
                             pSelect=sqlstr1)
                 mapTable<-usedwidetablename

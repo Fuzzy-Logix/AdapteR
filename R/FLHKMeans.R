@@ -138,7 +138,8 @@ hkmeans.FLTable<-function(x,
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID, \n ",
 			    	     	" a.COLUMN_NAME AS ColumnName, \n ",
 			    	     	"  a.FROM_TABLE AS MapName \n ",
-			    	    " FROM fzzlRegrDataPrepMap a \n ",
+			    	    " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
+                                           "  a \n ",
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
 		
@@ -232,7 +233,7 @@ hkmeans.FLTable<-function(x,
 		# sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID \n ",
 		# 				" WHERE AnalysisID='",AnalysisID,"' \n ",
 		# 				" AND HypothesisID = ",nstart)
-        sqlstr <- constructSelectResult(object,result="levels")
+        sqlstr <- constructSelectFLHKmeansLevels(AnalysisID)
 
 		centers <- sqlQuery(connection,sqlstr)[1,1]
 	}
