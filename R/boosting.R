@@ -1,4 +1,6 @@
 ## boost decision trees
+#' @export
+
 boosting<-function(formula,data,...){
 	UseMethod("boosting",data)
 }

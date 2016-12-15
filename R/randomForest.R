@@ -121,4 +121,18 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								pInputParams=vinputcols)
 	query<-paste0("Select * from ",scoreTable," Order By 1")
 	retobj<-sqlQuery(getFLConnection(),query)
+	return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
+}
+
+print.FLRandomForest<-function(object,...){
+	cat("Call:\n")
+	dput(object$call)
+	cat("               Type of random forest: ",object$type)
+	cat("\n                     Number of trees: ",object$ntree)
+	cat("\nNo. of variables tried at each split: ",object$mtry)
+	query<-paste0("Select * from fzzlRandomForestStat Where AnalysisID = ",fquote(object$AnalysisID))
+	x<-sqlQuery(getFLConnection(),query)
+	cat("\n\n        OOB estimate of error rate: ",x[1,5]*100," %")
+	cat("\nConfusion matrix: \n")
+	print(object$confusion)
 }

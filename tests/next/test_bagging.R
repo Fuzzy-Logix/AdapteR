@@ -1,12 +1,16 @@
-library(adabag)
+Renv=new.env(globalenv())
+FLenv=as.FL(Renv)
 
-fltbl<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
-rtbl<-as.data.frame(fltbl)
-colnames(rtbl)<-paste0("col",1:ncol(rtbl))
-rtbl[[1]]<-as.factor(rtbl[[1]])
-robj<-bagging(rtbl,formula= col1~.,mfinal=10)
-flobj<-bagging(fltbl,formula= -1~.)
+FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+Renv$table<-as.data.frame(FLenv$table)
+Renv$table$`-1`<-as.factor(Renv$table$`-1`)
+colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
+mfinal<-5
 
 test_that("test for bagging on deeptables",{
-	FLexpect_equal(robj,flobj)
+	flobj<-bagging(FLenv$table, formula = -1~.,mfinal=mfinal)
+	robj <- bagging(Col1~., data = Renv$table,mfinal=mfinal)
+	result1= expect_equal(mfinal,length(flobj$trees))
+	result2= expect_equal(as.integer(unique(Renv$table$Col1)),unique(flobj$class))
+	result3= expect_equal(as.numeric(rownames(FLenv$table)),as.numeric(rownames(flobj$votes)))
 })
