@@ -213,7 +213,7 @@ FLamendDimnames <- function(flm,map_table) {
         mapSelect <- flm@select
         mapSelect@variables <- list()
         mapSelect@table_name <- map_table
-        names(mapSelect@table_name) <- names(flm@select@table_name) ## todo: generalize
+        names(mapSelect@table_name) <- names(getTableNameSlot(flm)) ## todo: generalize
         mapSelect@order <- c("DIM_ID","NUM_ID")
         mapSQL <- constructSelect(mapSelect)
         if(!is.null(mapSQL)){

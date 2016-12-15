@@ -46,7 +46,7 @@ setMethod("constructSelectResult",
                     deeptable,...){
     result <- match.arg(result)
     AnalysisID <- object@AnalysisID
-    deeptablename <- deeptable@select@table_name
+    deeptablename <- getTableNameSlot(deeptable)
     obs_id_colname <- getIndexSQLExpression(deeptable,1)
     var_id_colname <- getIndexSQLExpression(deeptable,2)
     cell_val_colname <- getIndexSQLExpression(deeptable,3)
@@ -119,7 +119,7 @@ setMethod("constructSelectResult",
                     deeptable,...){
     result <- match.arg(result)
     AnalysisID <- object@AnalysisID
-    deeptablename <- deeptable@select@table_name
+    deeptablename <- getTableNameSlot(deeptable)
     obs_id_colname <- getIndexSQLExpression(deeptable,1)
     var_id_colname <- getIndexSQLExpression(deeptable,2)
     cell_val_colname <- getIndexSQLExpression(deeptable,3)

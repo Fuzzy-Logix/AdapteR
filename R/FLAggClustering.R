@@ -243,7 +243,7 @@ agnes.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
 
@@ -389,7 +389,7 @@ height.FLAggClust <- function(object)
 	{
 		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -489,7 +489,7 @@ ac.FLAggClust <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -591,7 +591,7 @@ merge.FLAggClust <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]

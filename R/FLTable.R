@@ -242,7 +242,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @export
 `$<-.FLTable` <- function(x,name,value){
   vcolnames <- x@Dimnames[[2]]
-  vtablename <- x@select@table_name
+  vtablename <- getTableNameSlot(x)
   name <- gsub("\\.","",name,fixed=TRUE)
   xcopy <- x
   x <- setAlias(x,"")
@@ -626,7 +626,7 @@ setMethod("deepToWide",
               #deeptable <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
               # sqlstr <- paste0("CREATE VIEW ",outWideTableDatabase,".",deeptable," AS ",constructSelect(object))
               # sqlSendUpdate(connection,sqlstr)
-              deeptable <- createView(pViewName=gen_view_name(object@select@table_name),
+              deeptable <- createView(pViewName=gen_view_name(getTableNameSlot(object)),
                         pSelect=constructSelect(object))
               select <- new("FLSelectFrom",
                         connectionName = attr(connection,"name"), 
@@ -647,14 +647,14 @@ setMethod("deepToWide",
             # object <- store(object)
 
             if(outWideTableName=="")
-            outWideTableName <- gen_wide_table_name(object@select@table_name)
+            outWideTableName <- gen_wide_table_name(getTableNameSlot(object))
             #outWideTableName <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
 
             message <- sqlStoredProc(
                               connection,
                               "FLDeepToWide",
                               outputParameter=c(Message="Message"),
-                              DeepTable=object@select@table_name,
+                              DeepTable=getTableNameSlot(object),
                               ObsIDCol="obs_id_colname",
                               VarIDCol="var_id_colname",
                               ValueCol="cell_val_colname",
@@ -662,7 +662,7 @@ setMethod("deepToWide",
                               MapName=mapName,
                               WideTable=outWideTableName)
 
-            # sqlstr<-paste0("CALL FLDeepToWide('",object@select@database,".",object@select@table_name,"',
+            # sqlstr<-paste0("CALL FLDeepToWide('",object@select@database,".",getTableNameSlot(object),"',
             #                                   'obs_id_colname',
             #                                   'var_id_colname',
             #                                   'cell_val_colname',",
@@ -1168,13 +1168,13 @@ FLGenericRegrDataPrep <- function(object,
 #             connection <- getFLConnection(object)
 #             object <- setAlias(object,"")
 #             if(OutObsIDColName == "")
-#             deeptablename <- gen_deep_table_name(object@select@table_name)
+#             deeptablename <- gen_deep_table_name(getTableNameSlot(object))
 #             #deeptablename <- genRandVarName()
 #             else deeptablename <- OutObsIDColName
 #             if(class(object@select)=="FLTableFunctionQuery")
 #             {
 #               ## Views are not working  in FLDeepToWide and FLWideToDeep
-#               widetable <- createView(pViewName=gen_view_name(object@select@table_name),
+#               widetable <- createView(pViewName=gen_view_name(getTableNameSlot(object)),
 #                                       pSelect=constructSelect(object))
 #               select <- new("FLSelectFrom",
 #                         connectionName = attr(connection,"name"), 
@@ -1255,7 +1255,7 @@ FLGenericRegrDataPrep <- function(object,
 #             if(outGroupIDCol=="") outGroupIDCol <- "group_id_colname"
 
 #             if(is.FLTable(object)){
-#               vinputParams <- list(InWideTable=object@select@table_name,
+#               vinputParams <- list(InWideTable=getTableNameSlot(object),
 #                                 ObsIDCol=getVariables(object)[["obs_id_colname"]],
 #                                 DepCol=DepCol,
 #                                 OutObsIDCol= deeptablename,
@@ -1276,7 +1276,7 @@ FLGenericRegrDataPrep <- function(object,
 #               vfunName <- "FLRegrDataPrep"
 #             }
 #             if(is.FLTableMD(object)){
-#               vinputParams <- list(InWideTable=object@select@table_name,
+#               vinputParams <- list(InWideTable=getTableNameSlot(object),
 #                                     GroupID=getVariables(object)[["group_id_colname"]],
 #                                     ObsIDCol=getVariables(object)[["obs_id_colname"]],
 #                                     DepCol=DepCol,

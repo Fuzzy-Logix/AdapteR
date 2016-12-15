@@ -39,7 +39,7 @@ setMethod("chisq.test",signature(x="FLMatrix"),
 			return(vres)}
 		else{
 			pFuncName<-"FLPearsonChiSq"
-			pTableName<-x@select@table_name
+			pTableName<-getTableNameSlot(x)
 			## asana ticket-https://app.asana.com/0/150173007236461/182190129148838
 			vres<-	  sqlStoredProc(connection,
 								    pFuncName,

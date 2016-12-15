@@ -267,7 +267,7 @@ pam.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
@@ -457,7 +457,7 @@ medoids.FLKMedoids<-function(object)
 			connection <- getFLConnection(object@table)
 			## flag1Check(connection)
 			AnalysisID <- object@AnalysisID
-			deeptablename <- object@deeptable@select@table_name
+			deeptablename <- getTableNameSlot(object@deeptable)
 			obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 			var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 			cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -586,7 +586,7 @@ isolation.FLKMedoids <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -726,7 +726,7 @@ clusinfo.FLKMedoids <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -867,7 +867,7 @@ silinfo.FLKMedoids <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -1096,7 +1096,7 @@ diss.FLKMedoids<-function(object)
 		connection <- getFLConnection(object@table)
 		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -1179,7 +1179,7 @@ data.FLKMedoids<-function(object)
 	else if(object@diss==TRUE) dataframe <- c()
 	else
 	{
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)

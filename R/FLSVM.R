@@ -100,7 +100,7 @@ svmGeneric <- function(formula,data,
     
     for(i in names(prepData))
 	assign(i,prepData[[i]])
-    deeptable <- deepx@select@table_name
+    deeptable <- getTableNameSlot(deepx)
     functionName <- "FLSVMLinearUDT"
     pArg <- c(cost)
     if(kernel == "polynomial") {
@@ -141,7 +141,7 @@ predict.FLSVM <- function(object, newData = object@table){
     tblname <- gen_unique_table_name("svmoutput")
     scrmethod <- toupper(substr(object@results$kernel, 1,1))
     qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
-                                    ",fquote(object@deeptable@select@table_name),",
+                                    ",fquote(getTableNameSlot(object@deeptable)),",
                                     NULL,
                                     ",fquote(var[[1]])," ,
                                     ",fquote(var[[2]])," ,

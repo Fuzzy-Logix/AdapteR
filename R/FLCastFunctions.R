@@ -674,7 +674,7 @@ as.FLMatrix.FLTable <- function(object,
                       return(NULL)
                       else return(x)
                   })
-  return(FLMatrix(table_name=object@select@table_name,
+  return(FLMatrix(table_name=getTableNameSlot(object),
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
@@ -875,7 +875,7 @@ setMethod("as.FLTable",signature(object="FLMatrix"),
 
 as.FLTable.FLMatrix <- function(object=object,...){
     object <- setAlias(object,"")
-    return(FLTable(table=object@select@table_name,
+    return(FLTable(table=getTableNameSlot(object),
                    obs_id_colname=getVariables(object)[["rowIdColumn"]],
                    var_id_colnames=getVariables(object)[["colIdColumn"]],
                    cell_val_colname=getVariables(object)[["valueColumn"]],

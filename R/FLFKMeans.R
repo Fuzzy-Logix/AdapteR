@@ -250,7 +250,7 @@ fanny.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
@@ -505,7 +505,7 @@ objective.FLFKMeans <- function(object){
 		a <- genRandVarName()
 		connection <- getFLConnection(object@table)
             ## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -590,7 +590,7 @@ silinfo.FLFKMeans <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
