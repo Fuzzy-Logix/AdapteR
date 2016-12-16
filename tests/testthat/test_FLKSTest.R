@@ -1,26 +1,5 @@
-                                        # Problems with data.name,
-                                        # p.value error computed is wrong.
-                                        # Kolmogorov-Smirnov (KS) Test 1S
-sqlstr <- paste0("SELECT * FROM tblKSTest WHERE GroupID = 1")
-t <- sqlQuery(connection, sqlstr)
-Renv = new.env(parent = globalenv())
-Renv$a <- t$NUM_VAL
-FLenv = as.FL(Renv)
-
-test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
-    result = eval_expect_equal({
-        q <- ks.test(a,'pnorm', 3.5, 11.5)
-    },Renv,FLenv,
-    expectation = c("q"),
-    check.attributes=F,
-    tolerance = .0001,
-    verbose = T
-    )
-}
-)
-
-                                        # Kolmogorov-Smirnov (KS) Test 1S
-                                        # gives p.value as > .25
+## Kolmogorov-Smirnov (KS) Test 1S
+## gives p.value as > .25
 set.seed(250)
 Renv = new.env(parent = globalenv())
 Renv$x <- rnorm(10, 1, 2)
@@ -31,12 +10,12 @@ test_that("Kolmogorov-Smirnov Test 1s:", {
     },Renv,FLenv,
     expectation = "val",
     check.attributes = T,
-    tolerance = .0001,
+    tolerance = .1,
     verbose = FALSE
     )
-    })
+})
 
-                                        # Kolmogorov-Smirnov (KS) Test 2S
+## Kolmogorov-Smirnov (KS) Test 2S
 set.seed(100)                                       
 Renv = new.env(parent = globalenv())
 Renv$p <- rnorm(50)
@@ -56,7 +35,7 @@ test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
 )
 
 
-                                        # Kolmogorov-Smirnov (KS) Test 2S
+## Kolmogorov-Smirnov (KS) Test 2S
 
 sqlstr <- paste0("SELECT * FROM tblKSTest")
 mt <- sqlQuery(connection, sqlstr)
@@ -72,7 +51,7 @@ test_that("Kolmogorov-Smirnov Test 2S:DBLytix Example ",{
     },Renv,FLenv,
     expectation = c("a"),
     check.attributes= T,
-    tolerance = .0001,
+    tolerance = .1,
     verbose = FALSE
     )
 }

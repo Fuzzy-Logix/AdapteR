@@ -77,7 +77,7 @@ setMethod("ks.test",signature(x="FLVector"),
               else
                   pval <- res_1$P_Value
 
-              result <- list(statistics = c(D = res_1$D),
+              result <- list(statistic = c(D = res_1$D),
                              p.value = pval,
                              alternative = "two-sided",
                              method = "One-sample Kolmogorov-Smirnov test",
@@ -132,7 +132,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                   pval <- res_1$P_Value
 
               
-              result <- list(statistics = c(D = res_1$D),
+              result <- list(statistic = c(D = res_1$D),
                              p.value = pval,
                              alternative = "two-sided",
                              method = "Two-sample Kolmogorov-Smirnov test",

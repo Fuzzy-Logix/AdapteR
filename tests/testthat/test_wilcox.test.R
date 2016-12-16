@@ -12,8 +12,8 @@ test_that("wilcox.test: paired Wilcox Signed Rank Test: statistic and p-value ",
   result = eval_expect_equal({
       wilcox.fit <- wilcox.test(a, b, paired = TRUE,correct=FALSE)
   },Renv,FLenv,
-  verbose=T,
-  tolerance = .000001
+  verbose=FALSE,
+  tolerance = .1
   )
 }) 
 
@@ -54,7 +54,8 @@ test_that("wilcox.test: unpaired Wilcoxon Signed-Rank Test: correct p.value and 
   result = eval_expect_equal({
       z <- wilcox.test(t, q, paired = FALSE)
   },Renv,FLenv,
-  tolerance = .000001
+  tolerance = .06,
+  verbose = FALSE
   )
 }) 
 
@@ -74,7 +75,7 @@ test_that("wilcox.test: unpaired Mann-Whitney Wilcoxon Test: correct p.value and
   },Renv,FLenv,
   #check.attributes=F,
   tolerance = .000001,
-  verbose = F
+  verbose = FALSE
   )
   }) 
 
@@ -109,7 +110,7 @@ test_that("wilcox.test: unpaired Mann-Whitney Wilcoxon Test ",{
       q <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
   },Renv,FLenv,
   ##check.attributes=F,
-  tolerance = .000001,
-  verbose = F
+  tolerance = .07,
+  verbose = FALSE
   )
   }) 
