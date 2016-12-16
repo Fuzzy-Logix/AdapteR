@@ -40,3 +40,23 @@ FLSVUdt.TD(OutputMatrixID,OutputID,OutputSV) <- FLSVUdt(OutputMatrixID=vectorIDC
 FLSVDUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLPTFMatrixSVD(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_matrix=OutUVal,s_matrix=OutSVal,v_matrix=OutVVal)
 FLSVDUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutSVal=OutSVal,OutVVal=OutVVal)
 FLMatrixTrace.Hadoop(MatrixID,MatrixTrace) <- FLPTFMatrixTrace(matrix_id=matrix_id,trace_value=trace_value)
+
+FLModeUdt.TD(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMode)
+FLModeUdt.Hadoop(oGroupID,oMode) <- FLPTFMode(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLMedianUdt.TD(oGroupID,oMedian) <- FLMedianUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedian)
+FLMedianUdt.Hadoop(oGroupID,oMedian) <- FLPTFMedian(vectorIdColumn=GroupID,vectorValueColumn=MedianValue)
+
+FLPercUdt.TD(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=oGroupID,vectorValueColumn=oPercVal)
+FLPercUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPerc(vectorIdColumn=GroupID,vectorValueColumn=PercValue)
+
+FLPercentUdt.TD(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=oObsID,vectorValueColumn=oPercentVal)
+FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=GroupID,vectorValueColumn=PercValue)
+
+FLMeanAbsDevUdt.TD(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMeanAbsDev)
+FLMeanAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMeanAbsDev(vectorIdColumn=GroupID,vectorValueColumn=Value)
+
+FLMedianAbsDevUdt.TD(oGroupID,oMedianAbsDev) <- FLMedianAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedianAbsDev)
+FLMedianAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMedianAbsDev(vectorIdColumn=GroupID,vectorValueColumn=Value)
+
+FLFracRankUdt.TD(oGroupID,oValue,oFracRank) <- FLFracRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oFracRank)
+FLFracRankUdt.Hadoop(oGroupID,oValue,oFracRank) <- FLPTFFracRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=FracRank)

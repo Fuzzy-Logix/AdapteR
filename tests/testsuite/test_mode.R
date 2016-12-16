@@ -21,6 +21,8 @@ test_that("Check for mode with FL and R matrix object",{
   ##print(result)
 })
 
+## TD Error:- WIdeToDeep is generating deep table but not
+## populating it!
 test_that("Check for mode with FL and R dataframe object",{
   result = eval_expect_equal({
     test3 = mode(dataframe1)

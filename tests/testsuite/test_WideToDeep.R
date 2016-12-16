@@ -27,6 +27,7 @@ test_that("check if wide to deep works",{
 })
 
 dropFLTestTable()
+## DeepToWide not implemented in Hadoop
 test_that("check if deep to wide works",{
     deepToWide(object = table3,
                  whereconditions="",
