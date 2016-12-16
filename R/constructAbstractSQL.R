@@ -362,14 +362,14 @@ constructScalarSQL <- function(pObject,
         pObject <- store(pObject)
 
     if(is.wideFLTable(pObject))
-        pObject <- wideToDeep(pObject)[["table"]]
+        pObject <- wideToDeep(pObject)
 
     if(is.FLSelectFrom(pObject@select)){
 
         if(is.FLMatrix(pObject) || 
             ((is.FLVector(pObject) || 
                 is.FLTable(pObject)) && 
-                pObject@isDeep)){
+                isDeep(pObject))){
             vVariables <- getVariables(pObject)
             vValueCol <- getValueColumn(pObject)
 

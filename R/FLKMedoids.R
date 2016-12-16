@@ -6,7 +6,7 @@ NULL
 #'
 #' @slot centers A numeric vector containing the number of clusters, say k
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' @slot wideToDeepAnalysisID A character string denoting the intermediate identifier
 #' during widetable to deeptable conversion.
 #' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{pam}
 #' @slot table FLTable object given as input on which analysis is performed
@@ -193,23 +193,23 @@ pam.FLTable <- function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	vcall <- match.call()
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
+		deepx <- deepx
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 
 		sqlstr <- paste0(" SELECT a.*  \n ",
 			    	     " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
                                            "  a \n ",
-			    	     " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisId))
+			    	     " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisID))
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                 pSelect=sqlstr)
@@ -308,7 +308,7 @@ pam.FLTable <- function(x,
 	FLKMedoidsobject <- new("FLKMedoids",
 						centers=k,
 						AnalysisID=AnalysisID,
-						wideToDeepAnalysisId=wideToDeepAnalysisId,
+						wideToDeepAnalysisID=wideToDeepAnalysisID,
 						table=x,
 						results=list(call=vcall),
 						deeptable=deepx,

@@ -54,7 +54,7 @@ FLsurvfit <- function(formula, data, weights,
     
         data <- setAlias(data,"")
         connection <- getFLConnection()
-        if(data@isDeep)
+        if(isDeep(data))
             stop("input table must be wide \n ")
         vtemp <- prepareSurvivalFormula(data=data,
                                         formula=formula)

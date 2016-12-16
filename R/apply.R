@@ -122,8 +122,8 @@ FLoldGenAggregateFunCall <- function(object,func,
                                     indexCol=FALSE,
                                     ...){
     ##If FLMatrix or FLTable and indexCol may be needed for function
-    if(is.FLTable(object) && !object@isDeep)
-    object <- wideToDeep(object)[["table"]]
+    if(is.FLTable(object) && !isDeep(object))
+    object <- wideToDeep(object)
     if(indexCol && 
        (is.FLMatrix(object)||
         is.FLTable(object))){

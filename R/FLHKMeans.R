@@ -7,7 +7,7 @@ NULL
 #' @slot centers A numeric vector containing the number of clusters, say k which
 #' should be greater than zero(centers > 0)
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' @slot wideToDeepAnalysisID A character string denoting the intermediate identifier
 #' during widetable to deeptable conversion.
 #' @slot table FLTable object given as input on which analysis is performed
 #' @slot results A list of all fetched components
@@ -123,16 +123,16 @@ hkmeans.FLTable<-function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
+		deepx <- deepx
 		whereconditions <- ""
         deepx <- setAlias(deepx,"")
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID, \n ",
@@ -140,7 +140,7 @@ hkmeans.FLTable<-function(x,
 			    	     	"  a.FROM_TABLE AS MapName \n ",
 			    	    " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
                                            "  a \n ",
-			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
+			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisID,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
@@ -242,7 +242,7 @@ hkmeans.FLTable<-function(x,
 	new("FLHKMeans",
 		centers=centers,
 		AnalysisID=AnalysisID,
-		wideToDeepAnalysisId=wideToDeepAnalysisId,
+		wideToDeepAnalysisID=wideToDeepAnalysisID,
 		table=x,
 		results=list(),
 		deeptable=deepx,

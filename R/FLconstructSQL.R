@@ -313,6 +313,7 @@ setMethod("setIndexSQLName",
 #             names(object@select@variables) <- t
 #             object
 #             })
+
 #' An S4 class to represent FLTable, an in-database data.frame.
 #'
 #' @slot select FLTableQuery the select statement for the table.
@@ -326,7 +327,6 @@ setClass("FLTable",
          slots = list(
              select = "FLTableQuery",
              Dimnames = "list",
-             isDeep = "logical",
              mapSelect = "FLSelectFrom",
              type       = "character"
          ),
@@ -339,9 +339,35 @@ setClass("FLTable.Hadoop", contains = "FLTable")
 setClass("FLTable.TD", contains = "FLTable")
 setClass("FLTable.TDAster", contains = "FLTable")
 
-newFLTable <- function(...) {
-    new(paste0("FLTable.",getFLPlatform()),
-        ...)
+
+#' An S4 class to represent FLTable, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @method names FLTableDeep
+#' @param object retrieves the column names of FLTable object
+#' @export
+setClass("FLTableDeep",
+         contains="FLTable",
+         slots = list(
+             wideTable = "ANY",
+             wideToDeepAnalysisID = "character"
+         ),
+         prototype = prototype(type="double",
+                                dimColumns=c("obs_id_colname"))
+        )
+
+
+setClass("FLTableDeep.Hadoop", contains = "FLTableDeep")
+setClass("FLTableDeep.TD", contains = "FLTableDeep")
+setClass("FLTableDeep.TDAster", contains = "FLTableDeep")
+
+newFLTable <- function(isDeep,...) {
+    if(isDeep)
+        return(new(paste0("FLTableDeep.",getFLPlatform()), ...))
+    else
+        return(new(paste0("FLTable.",getFLPlatform()), ...))
 }
 
 
@@ -356,12 +382,6 @@ newFLTable <- function(...) {
 setClass("FLTableMD",
          contains="FLTable",
          slots = list(
-             select = "FLTableQuery",
-             Dimnames = "list",
-             dims = "numeric",
-             isDeep = "logical",
-             mapSelect = "FLSelectFrom",
-             type       = "character"
          ),
          prototype = prototype(type="double",
                                 dimColumns=c("group_id_colname","obs_id_colname"))
@@ -371,11 +391,32 @@ setClass("FLTableMD.Hadoop", contains = "FLTableMD")
 setClass("FLTableMD.TD", contains = "FLTableMD")
 setClass("FLTableMD.TDAster", contains = "FLTableMD")
 
-newFLTableMD <- function(...) {
-    new(paste0("FLTableMD.",getFLPlatform()),
-        ...)
-}
+#' An S4 class to represent FLTableMDDeep, an in-database data.frame.
+#'
+#' @slot select FLTableQuery the select statement for the table.
+#' @slot dimnames the observation id and column names
+#' @slot isDeep logical (currently ignored)
+#' @slot mapSelect \code{FLSelectFrom} object which contains the 
+#' mapping information if any
+#' @export
+setClass("FLTableMDDeep",
+         contains="FLTableMD",
+         slots = list(
+         ),
+         prototype = prototype(type="double",
+                                dimColumns=c("group_id_colname","obs_id_colname"))
+        )
 
+setClass("FLTableMDDeep.Hadoop", contains = "FLTableMDDeep")
+setClass("FLTableMDDeep.TD", contains = "FLTableMDDeep")
+setClass("FLTableMDDeep.TDAster", contains = "FLTableMDDeep")
+
+newFLTableMD <- function(isDeep,...) {
+    if(isDeep)
+        return(new(paste0("FLTableMDDeep.",getFLPlatform()), ...))
+    else
+        return(new(paste0("FLTableMD.",getFLPlatform()), ...))
+}
 
 #' computes the length of FLVector object.
 #' @param obj is a FLVector object.
@@ -478,7 +519,7 @@ setMethod("constructSelect", signature(object = "FLTable"),
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
             #browser()
-              if(!object@isDeep) 
+              if(!isDeep(object)) 
               {
                 variables <- getVariables(object)
                 # if(is.null(names(variables)))
@@ -554,7 +595,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
             #   mapTable <- paste0(",(",constructSelect(object@mapSelect),") AS b ")
             # }
             variables <- getVariables(object)
-            if(!object@isDeep) {
+            if(!isDeep(object)) {
               newColnames <- renameDuplicates(colnames(object))
               # if(is.null(names(variables)))
               #     names(variables) <- variables
@@ -832,3 +873,5 @@ setMethod("getTableNameSlot",
 setMethod("getTableNameSlot",
           signature(object = "FLTable"),
           function(object) getTableNameSlot(object@select))
+
+isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep")

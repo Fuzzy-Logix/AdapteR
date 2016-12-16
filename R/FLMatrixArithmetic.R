@@ -216,8 +216,8 @@ FLMatrixArithmetic.FLMatrix <- function(pObj1,pObj2,pOperator)
     }
 	else if(is.FLTable(pObj2))
 	{
-		if(!pObj2@isDeep)
-            pObj2 <- wideToDeep(pObj2)[["table"]]
+		if(!isDeep(pObj2))
+            pObj2 <- wideToDeep(pObj2)
 		pObj2 <- as.FLMatrix(pObj2)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
@@ -289,8 +289,8 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                 pObj2 <- store(pObj2)
 
 
-            if(ncol(pObj1)>1 && !pObj1@isDeep 
-               && ncol(pObj2)>1 && !pObj2@isDeep)
+            if(ncol(pObj1)>1 && !isDeep(pObj1) 
+               && ncol(pObj2)>1 && !isDeep(pObj2))
             {
                 vmaxlen <- max(length(pObj1),length(pObj2))
                 newColnames1 <- renameDuplicates(colnames(pObj1))
@@ -353,30 +353,30 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                                  "vectorValueColumn")
             }
             else{
-                if(ncol(pObj1)>1 && !pObj1@isDeep)
+                if(ncol(pObj1)>1 && !isDeep(pObj1))
                     pObj1 <- store(pObj1)
-                if(ncol(pObj2)>1 && !pObj2@isDeep)
+                if(ncol(pObj2)>1 && !isDeep(pObj2))
                     pObj2 <- store(pObj2)
 
                 ifelse(length(pObj1)>length(pObj2),{
                     vmaxlen <- length(pObj1);
                     vminlen <- length(pObj2);
                     vmaxref <- "a";
-                    ifelse(pObj1@isDeep && length(colnames(pObj1))>1,
+                    ifelse(isDeep(pObj1) && length(colnames(pObj1))>1,
                            vmaxrownames <- colnames(pObj1),
                            vmaxrownames <- rownames(pObj1))
                 },{
 	                vmaxlen <- length(pObj2);
 	                vmaxref <- "b";
 	                vminlen <- length(pObj1);
-	                ifelse(pObj2@isDeep && length(colnames(pObj2))>1,
+	                ifelse(isDeep(pObj2) && length(colnames(pObj2))>1,
                            vmaxrownames <- colnames(pObj2),
                            vmaxrownames <- rownames(pObj2))
                 })
 
-                if((pObj1@isDeep && pObj2@isDeep) 
-                   ||(pObj1@isDeep && ncol(pObj2)==1)
-                   ||(pObj2@isDeep && ncol(pObj1)==1)
+                if((isDeep(pObj1) && isDeep(pObj2)) 
+                   ||(isDeep(pObj1) && ncol(pObj2)==1)
+                   ||(isDeep(pObj2) && ncol(pObj1)==1)
                    ||(ncol(pObj1)==1 && ncol(pObj2)==1)){
 
                     if(pOperator %in% c("%/%"))
@@ -488,7 +488,6 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                     dimnames <- list(vmaxrownames,"vectorValueColumn")
                 }
             }
-
 			tblfunqueryobj <- new("FLTableFunctionQuery",
                                   connectionName = attr(connection,"name"),
                                   variables = list(
@@ -497,7 +496,6 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
                                   whereconditions="",
                                   order = "",
                                   SQLquery=sqlstr)
-
 			flv <- newFLVector(
                        select = tblfunqueryobj,
                        Dimnames = dimnames,
@@ -511,8 +509,8 @@ FLMatrixArithmetic.FLVector <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.FLTable(pObj2))
 	{
-		if(!pObj2@isDeep)
-            pObj2 <- wideToDeep(pObj2)[["table"]]
+		if(!isDeep(pObj2))
+            pObj2 <- wideToDeep(pObj2)
 		pObj2 <- as.FLMatrix(pObj2)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
@@ -583,8 +581,8 @@ FLMatrixArithmetic.numeric <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.FLTable(pObj2))
 	{
-		if(!pObj2@isDeep)
-            pObj2 <- wideToDeep(pObj2)[["table"]]
+		if(!isDeep(pObj2))
+            pObj2 <- wideToDeep(pObj2)
 		pObj2 <- as.FLMatrix(pObj2)
 		pObj1 <- as.FLMatrix(matrix(pObj1,nrow(pObj2),ncol(pObj2)))
 		return(do.call(pOperator,list(pObj1,pObj2)))
@@ -609,8 +607,8 @@ FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 	}
 	else if(is.FLTable(pObj2))
 	{
-		if(!pObj2@isDeep)
-            pObj2 <- wideToDeep(pObj2)[["table"]]
+		if(!isDeep(pObj2))
+            pObj2 <- wideToDeep(pObj2)
 		pObj2 <- as.FLMatrix(pObj2)
 		return(do.call(pOperator,list(pObj1,pObj2)))
 	}
@@ -621,8 +619,8 @@ FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 #' @export
 FLMatrixArithmetic.FLTable <- function(pObj1,pObj2)
 {
-	if(!pObj1@isDeep)
-        pObj1 <- wideToDeep(pObj1)[["table"]]
+	if(!isDeep(pObj1))
+        pObj1 <- wideToDeep(pObj1)
 	pObj1 <- as.FLMatrix(pObj1)
 	return(do.call(pOperator,list(pObj1,pObj2)))
 }
