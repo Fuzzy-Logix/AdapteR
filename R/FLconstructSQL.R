@@ -382,6 +382,8 @@ newFLTable <- function(isDeep,...) {
 setClass("FLTableMD",
          contains="FLTable",
          slots = list(
+             wideTable = "ANY",
+             wideToDeepAnalysisID = "character"
          ),
          prototype = prototype(type="double",
                                 dimColumns=c("group_id_colname","obs_id_colname"))
