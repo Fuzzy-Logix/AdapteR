@@ -564,6 +564,7 @@ expect_equal_RVector_FLVector <- function(a){
     test_Vector_Subsetting(a,b,"as.FLVector",index=FALSE)
 }
 
+#' @export
 expect_equal_FLSimpleVector_RVector <- function(a){
     # browser()
     debugOld <- getOption("debugSQL")

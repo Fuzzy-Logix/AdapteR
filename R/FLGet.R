@@ -606,6 +606,7 @@ getFLVectorTableFunctionQuerySQL <- function(idColumn="'%insertIDhere%'",
                     " FROM ",FromTable))
 }
 
+#' @export
 getTestTableName <- function(tableName){
     getRemoteTableName(databaseName=getOption("TestDatabase")[getFLPlatform()],
                         tableName=tableName,
