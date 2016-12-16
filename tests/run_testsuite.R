@@ -76,6 +76,7 @@ if(opt$AdapteR=="require"){
     # setwd(packagedir)
     # system2("git", c("pull", "fuzzylogix", "master"),stdout = TRUE)
     # setwd(basedir)
+    devtools::document(packagedir)
     devtools::load_all(packagedir,export_all = FALSE)
 }
 

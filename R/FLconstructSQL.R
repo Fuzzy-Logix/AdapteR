@@ -520,60 +520,23 @@ setMethod("constructSelect", signature(object = "FLTable"),
           function(object,...) {
             if(class(object@select)=="FLTableFunctionQuery") 
             return(constructSelect(object@select))
-            #browser()
               if(!isDeep(object)) 
               {
                 variables <- getVariables(object)
-                # if(is.null(names(variables)))
-                #     names(variables) <- variables
-                # else
-                #     names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
                 ifelse(is.null(variables$obs_id_colname),
                   vobsIDCol <- variables["vectorIndexColumn"],
                    vobsIDCol <- variables["obs_id_colname"])
                 
                 colnames <- appendTableName(colnames(object),
                               names(getTableNameSlot(object))[1])
-                #colnames <- colnames[colnames!=vobsIDCol]
                 newColnames <- renameDuplicates(colnames(object))
                 variables <- as.list(c(vobsIDCol[[1]],colnames))
                 names(variables) <- c("obs_id_colname",
                                       newColnames)
-
-                # return(paste0(
-                #             "SELECT\n",
-                #             paste0("     ",
-                #                    variables," AS ",
-                #                    names(variables),
-                #                    collapse = ",\n"),
-                #             "\n FROM ",tableAndAlias(object),
-                #             constructWhere(c(constraintsSQL(object))),
-                #             "\n"))
               }
               else 
               {
                 variables <- getVariables(object)
-                # if(is.null(names(variables)))
-                #   names(variables) <- variables
-                # else
-                #     names(variables)[is.na(names(variables))] <- variables[is.na(names(variables))]
-
-                # variables <- as.list(c(variables[["obs_id_colname"]],
-                #   variables[["var_id_colname"]],
-                #   variables[["cell_val_colname"]]))
-                # names(variables) <- c("obs_id_colname",
-                #                       "var_id_colname",
-                #                       "cell_val_colname")
-                # return(paste0(
-                #           "SELECT\n",
-                #           paste0("     ",
-                #                  variables," AS ",
-                #                  names(variables),
-                #                  collapse = ",\n"),
-                #           "\n FROM ",tableAndAlias(object),
-                #           constructWhere(c(constraintsSQL(object))),
-                #           "\n"))
               }
               object@select@variables <- variables
               return(constructSelect(object@select))
