@@ -438,27 +438,41 @@ getDescStatsUDT <- function(object,
                             outCol,
                             viewCols,
                             outFLVector=FALSE){
-    
     if(is.FLTable(object) && !object@isDeep)
         object <- wideToDeep(object)[["table"]]
-    sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
-                    " SELECT ",paste0(viewCols,collapse=",")," \n ",
-                    " FROM(",constructSelect(object,order=FALSE),") a) \n ",
-                    " SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
-                        paste0("a.",outCol," AS ",names(outCol),collapse=",")," \n ",
-                    " FROM \n ",
-                    " TABLE (",functionName,"(",paste0("z.",names(viewCols),collapse=","),") \n ",
-                    " HASH BY ",paste0("z.",names(viewCols)[1])," \n ",
-                    " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a \n ")
+    # sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
+    #                 " SELECT ",paste0(viewCols,collapse=",")," \n ",
+    #                 " FROM(",constructSelect(object,order=FALSE),") a) \n ",
+    #                 " SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+    #                     paste0("a.",outCol," AS ",names(outCol),collapse=",")," \n ",
+    #                 " FROM \n ",
+    #                 " TABLE (",functionName,"(",paste0("z.",names(viewCols),collapse=","),") \n ",
+    #                 " HASH BY ",paste0("z.",names(viewCols)[1])," \n ",
+    #                 " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a \n ")
+    vMap <- getMatrixUDTMapping(functionName)
+    pOutColnames <- vMap$argsPlatform
+    pOutColnames["vectorIdColumn"] <- "'%insertIDhere%'"
+    pOutColnames <- as.list(pOutColnames)
+    pFuncName <- vMap$funcNamePlatform
+    
+    sqlstr <- constructUDTSQL(pViewColnames=as.list(viewCols),
+                              pFuncName=pFuncName,
+                              pSelect=constructSelect(object,order=FALSE),
+                              pOutColnames=pOutColnames,
+                              pNest=TRUE
+                              )
 
-    if(!outFLVector)
-    return(sqlQuery(getFLConnection(),sqlstr)[["vectorValueColumn"]])
+    if(!outFLVector){
+        vresult <- sqlQuery(getFLConnection(),sqlstr)
+        colnames(vresult) <- tolower(colnames(vresult))
+        return(vresult[["vectorvaluecolumn"]])
+    }
     else{
         tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = getFLConnectionName(),
+                        connectionName = attr(connection,"name"),
                         variables = list(
-                      obs_id_colname = "vectorIndexColumn",
-                      cell_val_colname = "vectorValueColumn"),
+                        obs_id_colname = "vectorIndexColumn",
+                        cell_val_colname = "vectorValueColumn"),
                         whereconditions="",
                         order = "",
                         SQLquery=sqlstr)
@@ -481,15 +495,41 @@ setGeneric("mode",function(x,na.rm=TRUE)
 setMethod("mode",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
-                                functionName="FLModeUDT",
+                                functionName="FLModeUdt",
                                 outCol=c(vectorValueColumn="oMode"),
                                 viewCols=c(pGroupID=1,
-                                        pValue=getValueSQLName(x))))})
+                                        pValue=getValueSQLName(x))))
+    })
+
+setMethod("mode",signature(x="FLVector.Hadoop"),
+    function(x,na.rm=FALSE){
+        return(getDescStatsUDT(object=x,
+                                functionName="FLModeUdt",
+                                outCol=c(vectorValueColumn="oMode"),
+                                viewCols=c(pGroupID=1,
+                                        pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"))))
+    })
+setMethod("mode",signature(x="FLMatrix.Hadoop"),
+    function(x,na.rm=FALSE){
+        return(getDescStatsUDT(object=x,
+                                functionName="FLModeUdt",
+                                outCol=c(vectorValueColumn="oMode"),
+                                viewCols=c(pGroupID=1,
+                                        pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"))))
+    })
+
+setMethod("mode",signature(x="FLTable.Hadoop"),
+    function(x,na.rm=FALSE){
+        return(getDescStatsUDT(object=x,
+                                functionName="FLModeUdt",
+                                outCol=c(vectorValueColumn="oMode"),
+                                viewCols=c(pGroupID=1,
+                                    pValue="CAST(cell_val_colname AS DOUBLE)")))})
 
 setMethod("mode",signature(x="FLTable"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
-                                functionName="FLModeUDT",
+                                functionName="FLModeUdt",
                                 outCol=c(vectorValueColumn="oMode"),
                                 viewCols=c(pGroupID=1,
                                     pValue="cell_val_colname")))})
@@ -515,13 +555,38 @@ setMethod("median",signature(x="FLIndexedValues"),
                                 viewCols=c(pGroupID=1,
                                     pValue=getValueSQLName(x))))})
 
+setMethod("median",signature(x="FLVector.Hadoop"),
+    function(x,na.rm=FALSE){
+        return(getDescStatsUDT(object=x,
+                                functionName="FLMedianUdt",
+                                outCol=c(vectorValueColumn="oMedian"),
+                                viewCols=c(pGroupID=1,
+                                        pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"))))
+    })
+setMethod("median",signature(x="FLMatrix.Hadoop"),
+    function(x,na.rm=FALSE){
+        return(getDescStatsUDT(object=x,
+                                functionName="FLMedianUdt",
+                                outCol=c(vectorValueColumn="oMedian"),
+                                viewCols=c(pGroupID=1,
+                                        pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"))))
+    })
+
+setMethod("median",signature(x="FLTable.Hadoop"),
+    function(x,na.rm=FALSE){
+        return(getDescStatsUDT(object=x,
+                                functionName="FLMedianUdt",
+                                outCol=c(vectorValueColumn="oMedian"),
+                                viewCols=c(pGroupID=1,
+                                            pValue="CAST(cell_val_colname AS DOUBLE)")))})
+
 setMethod("median",signature(x="FLTable"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
                                 functionName="FLMedianUDT",
                                 outCol=c(vectorValueColumn="oMedian"),
                                 viewCols=c(pGroupID=1,
-                                    pValue="cell_val_colname")))})
+                                            pValue="cell_val_colname")))})
 
 ########################### quantile ###########################################
 #' @export
@@ -538,18 +603,38 @@ setMethod("quantile",signature(x="FLVector"),
         vtemp <- sapply(probs,function(y){
                     if(is.na(y)) return(NA)
                     getDescStatsUDT(object=x,
-                        functionName="FLPercUDT",
-                        outCol=c(vectorValueColumn="oPercVal"),
-                        viewCols=c(pGroupID=1,
-                            pValue="vectorValueColumn",
-                            pPerc=y))
+                                    functionName="FLPercUdt",
+                                    outCol=c(vectorValueColumn="oPercVal"),
+                                    viewCols=c(pGroupID=1,
+                                                pValue=getValueSQLName(x),
+                                                pPerc=y)
+                                    )
                     })
         names(vtemp) <- sapply(probs,function(y)
                         ifelse(is.na(y),"",
                             paste0(y*100,"%")))
         return(vtemp)
         })
-
+setMethod("quantile",signature(x="FLVector.Hadoop"),
+    function(x,probs=c(0,0.25,0.5,0.75,1),
+                na.rm=FALSE,names=TRUE,
+                type=7,...){
+        probs <- as.vector(probs)
+        vtemp <- sapply(probs,function(y){
+                    if(is.na(y)) return(NA)
+                    getDescStatsUDT(object=x,
+                                    functionName="FLPercUdt",
+                                    outCol=c(vectorValueColumn="oPercVal"),
+                                    viewCols=c(pGroupID=1,
+                                                pValue=paste0("CAST( ",getValueSQLName(x)," AS DOUBLE)"),
+                                                pPerc=paste0("CAST(",y," AS DOUBLE)"))
+                                    )
+                    })
+        names(vtemp) <- sapply(probs,function(y)
+                        ifelse(is.na(y),"",
+                            paste0(y*100,"%")))
+        return(vtemp)
+        })
 setMethod("quantile",signature(x="FLMatrix"),
     function(x,probs=c(0,0.25,0.5,0.75,1),
                 na.rm=FALSE,names=TRUE,
@@ -558,14 +643,37 @@ setMethod("quantile",signature(x="FLMatrix"),
         vtemp <- sapply(probs[!is.na(probs)],function(y){
                     if(is.na(y)) return(NA)
                     getDescStatsUDT(object=x,
-                        functionName="FLPercUDT",
-                        outCol=c(vectorValueColumn="oPercVal"),
-                        viewCols=c(pGroupID=1,
-                            pValue="valueColumn",
-                            pPerc=y))})
+                                    functionName="FLPercUdt",
+                                    outCol=c(vectorValueColumn="oPercVal"),
+                                    viewCols=c(pGroupID=1,
+                                                pValue=getValueSQLName(x),
+                                                pPerc=y)
+                                    )
+                    })
         names(vtemp) <- sapply(probs,function(y)
-                        ifelse(is.na(y),"",
-                            paste0(y*100,"%")))
+                                        ifelse(is.na(y),"",
+                                                paste0(y*100,"%")))
+        return(vtemp)
+        })
+
+setMethod("quantile",signature(x="FLMatrix.Hadoop"),
+    function(x,probs=c(0,0.25,0.5,0.75,1),
+                na.rm=FALSE,names=TRUE,
+                type=7,...){
+        probs <- as.vector(probs)
+        vtemp <- sapply(probs[!is.na(probs)],function(y){
+                    if(is.na(y)) return(NA)
+                    getDescStatsUDT(object=x,
+                                    functionName="FLPercUdt",
+                                    outCol=c(vectorValueColumn="oPercVal"),
+                                    viewCols=c(pGroupID=1,
+                                                pValue=paste0("CAST( ",getValueSQLName(x)," AS DOUBLE)"),
+                                                pPerc=paste0("CAST(",y," AS DOUBLE)"))
+                                    )
+                    })
+        names(vtemp) <- sapply(probs,function(y)
+                                        ifelse(is.na(y),"",
+                                                paste0(y*100,"%")))
         return(vtemp)
         })
 
@@ -577,11 +685,33 @@ setMethod("quantile",signature(x="FLTable"),
         vtemp <- sapply(probs[!is.na(probs)],function(y){
                     if(is.na(y)) return(NA)
                     getDescStatsUDT(object=x,
-                        functionName="FLPercUDT",
-                        outCol=c(vectorValueColumn="oPercVal"),
-                        viewCols=c(pGroupID=1,
-                            pValue="cell_val_colname",
-                            pPerc=y))})
+                                    functionName="FLPercUdt",
+                                    outCol=c(vectorValueColumn="oPercVal"),
+                                    viewCols=c(pGroupID=1,
+                                                pValue="cell_val_colname",
+                                                pPerc=y)
+                                    )
+                    })
+        names(vtemp) <- sapply(probs,function(y)
+                        ifelse(is.na(y),"",
+                            paste0(y*100,"%")))
+        return(vtemp)
+        })
+setMethod("quantile",signature(x="FLTable.Hadoop"),
+    function(x,probs=c(0,0.25,0.5,0.75,1),
+                na.rm=FALSE,names=TRUE,
+                type=7,...){
+        probs <- as.vector(probs)
+        vtemp <- sapply(probs[!is.na(probs)],function(y){
+                    if(is.na(y)) return(NA)
+                    getDescStatsUDT(object=x,
+                                    functionName="FLPercUdt",
+                                    outCol=c(vectorValueColumn="oPercVal"),
+                                    viewCols=c(pGroupID=1,
+                                                pValue="CAST(cell_val_colname AS DOUBLE)",
+                                                pPerc=paste0("CAST(",y," AS DOUBLE)"))
+                                    )
+                    })
         names(vtemp) <- sapply(probs,function(y)
                         ifelse(is.na(y),"",
                             paste0(y*100,"%")))
@@ -594,7 +724,8 @@ setMethod("quantile",signature(x="ANY"),
                 type=7,...){
         return(stats::quantile(x=x,probs=probs,
                 na.rm=na.rm,names=names,
-                type=type,...))})
+                type=type,...))
+        })
 
 
 ################################ percent #####################################
@@ -605,19 +736,20 @@ setGeneric("percent",function(x,...)
 setMethod("percent",signature(x="FLVector"),
     function(x,...){
            return(getDescStatsUDT(object=x,
-                    functionName="FLPercentUDT",
-                    outCol=c(vectorIndexColumn="oObsID",
-                            vectorValueColumn="oPercentVal"),
-                    viewCols=c(pGroupID=1,
-                        pObsID="vectorIndexColumn",
-                        pVal="vectorValueColumn"),
-                    outFLVector=TRUE))
+                                functionName="FLPercentUdt",
+                                outCol=c(vectorIndexColumn="oObsID",
+                                        vectorValueColumn="oPercentVal"),
+                                viewCols=c(pGroupID=1,
+                                            pObsID="vectorIndexColumn",
+                                            pVal="vectorValueColumn"),
+                                outFLVector=TRUE)
+                )
         })
 
 setMethod("percent",signature(x="FLMatrix"),
     function(x,...){
            return(getDescStatsUDT(object=x,
-                    functionName="FLPercentUDT",
+                    functionName="FLPercentUdt",
                     outCol=c(vectorIndexColumn="oObsID",
                             vectorValueColumn="oPercentVal"),
                     viewCols=c(pGroupID=1,
@@ -629,7 +761,7 @@ setMethod("percent",signature(x="FLMatrix"),
 setMethod("percent",signature(x="FLTable"),
     function(x,...){
            return(getDescStatsUDT(object=x,
-                    functionName="FLPercentUDT",
+                    functionName="FLPercentUdt",
                     outCol=c(vectorIndexColumn="oObsID",
                             vectorValueColumn="oPercentVal"),
                     viewCols=c(pGroupID=1,
@@ -659,11 +791,11 @@ selectDeviationMethod <- function(method){
     stop("method should be in ",vmethod," \n ")
 
     if(base::grepl("mean",method)){
-        vfunction <- "FLMeanAbsDevUDT"
+        vfunction <- "FLMeanAbsDevUdt"
         voutcol <- "oMeanAbsDev"
     }
     else {
-        vfunction <- "FLMedianAbsDevUDT"
+        vfunction <- "FLMedianAbsDevUdt"
         voutcol <- "oMedianAbsDev"
     }
     return(c(vfunction=vfunction,
@@ -691,9 +823,33 @@ setMethod("deviation",signature(x="FLVector"),
                                 functionName=vfunction,
                                 outCol=c(vectorValueColumn=voutcol),
                                 viewCols=c(pGroupID=1,
-                                    pValue="vectorValueColumn"))*vlength)
+                                    pValue=getValueSQLName(x)))*vlength)
         })
+setMethod("deviation",signature(x="FLVector.Hadoop"),
+    function(x,
+            method="mean-abs",
+            average=TRUE){
 
+        vtemp <- selectDeviationMethod(method=method)
+        vfunction <- vtemp["vfunction"]
+        voutcol <- vtemp["voutcol"]
+        names(vfunction) <- NULL
+        names(voutcol) <- NULL
+
+        if(method=="mean-square")
+        return(ifelse(average,
+                FLDevSq(x=x)/length(x),
+                FLDevSq(x=x)))
+
+        vlength <- ifelse(average,1,length(x))
+        return(getDescStatsUDT(object=x,
+                                functionName=vfunction,
+                                outCol=c(vectorValueColumn=voutcol),
+                                viewCols=c(pGroupID=1,
+                                        pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"))
+                                )*vlength
+                )
+        })
 setMethod("deviation",signature(x="FLMatrix"),
     function(x,
             method="mean-abs",
@@ -714,7 +870,32 @@ setMethod("deviation",signature(x="FLMatrix"),
                                 functionName=vfunction,
                                 outCol=c(vectorValueColumn=voutcol),
                                 viewCols=c(pGroupID=1,
-                                    pValue="valueColumn"))*vlength)
+                                    pValue=getValueSQLName(x))
+                    )*vlength)
+        })
+setMethod("deviation",signature(x="FLMatrix.Hadoop"),
+    function(x,
+            method="mean-abs",
+            average=TRUE){
+        vtemp <- selectDeviationMethod(method=method)
+        vfunction <- vtemp["vfunction"]
+        voutcol <- vtemp["voutcol"]
+        names(vfunction) <- NULL
+        names(voutcol) <- NULL
+
+        if(method=="mean-square")
+        return(ifelse(average,
+                FLDevSq(x=x)/length(x),
+                FLDevSq(x=x)))
+
+        vlength <- ifelse(average,1,length(x))
+        return(getDescStatsUDT(object=x,
+                                functionName=vfunction,
+                                outCol=c(vectorValueColumn=voutcol),
+                                viewCols=c(pGroupID=1,
+                                    pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"))
+                                )
+                    *vlength)
         })
 
 setMethod("deviation",signature(x="FLTable"),
@@ -738,6 +919,28 @@ setMethod("deviation",signature(x="FLTable"),
                                 outCol=c(vectorValueColumn=voutcol),
                                 viewCols=c(pGroupID=1,
                                     pValue="cell_val_colname"))*vlength)
+        })
+setMethod("deviation",signature(x="FLTable.Hadoop"),
+    function(x,
+            method="mean-abs",
+            average=TRUE){
+        vtemp <- selectDeviationMethod(method=method)
+        vfunction <- vtemp["vfunction"]
+        voutcol <- vtemp["voutcol"]
+        names(vfunction) <- NULL
+        names(voutcol) <- NULL
+
+        if(method=="mean-square")
+        return(ifelse(average,
+                FLDevSq(x=x)/(nrow(x)*ncol(x)),
+                FLDevSq(x=x)))
+
+        vlength <- ifelse(average,1,(nrow(x)*ncol(x)))
+        return(getDescStatsUDT(object=x,
+                                functionName=vfunction,
+                                outCol=c(vectorValueColumn=voutcol),
+                                viewCols=c(pGroupID=1,
+                                    pValue="CAST(cell_val_colname AS DOUBLE)"))*vlength)
         })
 
 setMethod("deviation",signature(x="ANY"),
@@ -806,12 +1009,29 @@ getDescStatsUDTjoin <- function(object,
                     " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a,z \n ",
                     " WHERE z.",names(viewCols)[2]," = a.oValue")
 
+    # vMap <- getMatrixUDTMapping(functionName)
+    # pOutColnames <- vMap$argsPlatform
+    # pOutColnames["vectorIdColumn"] <- "'%insertIDhere%'"
+    # outputValueColumn <- pOutColnames["outputValueColumn"]
+    # pOutColnames <- pOutColnames[setdiff(names(pOutColnames),"outputValueColumn")]
+    # pOutColnames <- as.list(pOutColnames)
+    # pFuncName <- vMap$funcNamePlatform
+    
+    # sqlstr <- constructUDTSQL(pViewColnames=as.list(viewCols),
+    #                           pFuncName=pFuncName,
+    #                           pSelect=constructSelect(object,order=FALSE),
+    #                           pOutColnames=pOutColnames,
+    #                           pNest=TRUE,
+    #                           UDTInputSubset=1:3,
+    #                           pWhereConditions=paste0("z.",names(viewCols)[2],
+    #                                                 "= a.",outputValueColumn)
+    #                           )
     
     tblfunqueryobj <- new("FLTableFunctionQuery",
                     connectionName = getFLConnectionName(),
                     variables = list(
-                  obs_id_colname = "vectorIndexColumn",
-                  cell_val_colname = "vectorValueColumn"),
+                    obs_id_colname = "vectorIndexColumn",
+                    cell_val_colname = "vectorValueColumn"),
                     whereconditions="",
                     order = "",
                     SQLquery=sqlstr)
@@ -840,9 +1060,9 @@ setGeneric("rank",function(x,na.last=TRUE,
 selectRankMethod <- function(rankOrder,type){
     if(!rankOrder %in% c("A","D"))
         stop("rankOrder must be A or D \n ")
-        vtemp <- c(FLRankUDT="duplicate",
-                    FLFracRankUDT="average",
-                    FLPercRankUDT="perc")
+        vtemp <- c(FLRankUdt="duplicate",
+                    FLFracRankUdt="average",
+                    FLPercRankUdt="perc")
         vfunction <- names(vtemp)[vtemp==type]
         if(length(vfunction)==0)
         stop("type should be c(average,duplicate,perc) for FL objects \n ")
@@ -869,15 +1089,38 @@ setMethod("rank",signature(x="FLVector"),
         names(voutcol) <- NULL
 
         return(getDescStatsUDTjoin(object=x,
-                functionName=vfunction,
-                outCol=c(
-                        vectorValueColumn=voutcol),
-                viewCols=c(pGroupID=1,
-                    pValue="vectorValueColumn",
-                    pRankOrder=fquote(rankOrder),
-                    pObsID="vectorIndexColumn")
-                ))
+                                functionName=vfunction,
+                                outCol=c(vectorValueColumn=voutcol),
+                                viewCols=c(pGroupID=1,
+                                        pValue="vectorValueColumn",
+                                        pRankOrder=fquote(rankOrder),
+                                        pObsID="vectorIndexColumn")
+                                )
+            )
         })
+
+# setMethod("rank",signature(x="FLVector.Hadoop"),
+#     function(x,na.last=TRUE,
+#             ties.method="average",
+#             rankOrder="A",
+#             ...){
+#         vtemp <- selectRankMethod(rankOrder=rankOrder,
+#                         type=ties.method)
+#         vfunction <- vtemp["vfunction"]
+#         voutcol <- vtemp["voutcol"]
+#         names(vfunction) <- NULL
+#         names(voutcol) <- NULL
+
+#         return(getDescStatsUDTjoin(object=x,
+#                                 functionName=vfunction,
+#                                 outCol=c(vectorValueColumn=voutcol),
+#                                 viewCols=c(pGroupID=1,
+#                                         pValue="CAST(vectorValueColumn AS DOUBLE)",
+#                                         pRankOrder=fquote(rankOrder),
+#                                         pObsID="vectorIndexColumn")
+#                                 )
+#             )
+#         })
 
 setMethod("rank",signature(x="ANY"),
     function(x,na.last=TRUE,
