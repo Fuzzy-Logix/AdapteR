@@ -257,17 +257,20 @@ setMethod("kurtosis",signature(x="ANY"),
 ## gk: refactor sum and prod to a expression object
 ######################### prod ############################################
 mixedAggregate <- function(...,Rfun,FLfun,na.rm=FALSE){
+    nums <- do.call(c,lapply(list(...), function(x){
+        if(is.numeric(x)) return(x)}))
     vtemp <- lapply(list(...), function(x){
         if(inherits(x,"FLIndexedValues")){
             return(genAggregateFunCall(object=x,
                                        func=FLaggregate,FLfun=FLfun))
         }
-        else {
-            fn <- strsplit(Rfun, "::")[[1]]
-            myfun <- if (length(fn)==1) fn[[1]] else get(fn[[2]], asNamespace(fn[[1]]))
-            return(do.call(myfun,list(x,na.rm=na.rm)))
-        }
     })
+    vtemp <- vtemp[!sapply(vtemp,is.null)]
+    if(length(nums)>0){
+        fn <- strsplit(Rfun, "::")[[1]]
+        myfun <- if (length(fn)==1) fn[[1]] else get(fn[[2]], asNamespace(fn[[1]]))
+        vtemp[[length(vtemp)+1]] <- do.call(myfun,list(nums,na.rm=na.rm))
+    }
     if(length(vtemp)==1)
         return(vtemp[[1]])
     else
