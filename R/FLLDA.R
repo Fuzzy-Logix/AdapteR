@@ -207,7 +207,7 @@ ldaGeneric <- function(formula,data,
     vclass <- "FLLDA"
     for(i in names(prepData))
    	assign(i,prepData[[i]])
-    deeptable <- deepx@select@table_name
+    deeptable <- getTableNameSlot(deepx)
     functionName <- "FLLDA"
     var <- getVariables(deepx)
     vinputcols <- list()
@@ -289,7 +289,7 @@ ldaGeneric <- function(formula,data,
     else if (property == "call"){
         return(object@results$call)}
     else if (property == "counts"){
-        vcount <- sqlQuery(connection, paste0("SELECT ",var[[3]]," AS id, count(*) AS val FROM ",object@deeptable@select@table_name," WHERE ",var[[2]]," = -1 GROUP BY ",var[[3]]," ORDER BY ",var[[3]]," "))
+        vcount <- sqlQuery(connection, paste0("SELECT ",var[[3]]," AS id, count(*) AS val FROM ",getTableNameSlot(object@deeptable)," WHERE ",var[[2]]," = -1 GROUP BY ",var[[3]]," ORDER BY ",var[[3]]," "))
         vect <- vcount$val
         names(vect) <- vcount$id
         return(vect)       
@@ -298,7 +298,7 @@ ldaGeneric <- function(formula,data,
     {
         if(object@results$familytype %in% c("lda", "Mixed"))
         {
-            str <- paste0("SELECT FLMean(d.",var[[3]],") as means, d.",var[[2]]," AS VarID, c.val  FROM ",object@deeptable@select@table_name," d, (SELECT ",var[[1]]," AS ObsID, ",var[[3]]," AS val FROM tbllda b WHERE b.",var[[2]]," = -1) AS
+            str <- paste0("SELECT FLMean(d.",var[[3]],") as means, d.",var[[2]]," AS VarID, c.val  FROM ",getTableNameSlot(object@deeptable)," d, (SELECT ",var[[1]]," AS ObsID, ",var[[3]]," AS val FROM tbllda b WHERE b.",var[[2]]," = -1) AS
 c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",var[[2]]," ORDER BY d.",var[[2]],", c.val ")
             df <- sqlQuery(connection, str)
             var <- unique(df$val)
@@ -321,7 +321,7 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
     }
     
     else if (property == "lev"){
-        level <- sqlQuery(connection, paste0("SELECT DISTINCT ",var[[3]]," AS val FROM ",object@deeptable@select@table_name," WHERE ",var[[2]]," = -1 ORDER BY ",var[[3]]," "))
+        level <- sqlQuery(connection, paste0("SELECT DISTINCT ",var[[3]]," AS val FROM ",getTableNameSlot(object@deeptable)," WHERE ",var[[2]]," = -1 ORDER BY ",var[[3]]," "))
         return(as.character(level$val))
     }
     else if (property == "xlevels")
@@ -406,7 +406,7 @@ predict.FLLDA <- function(object){
         tblname <- gen_unique_table_name("flexscore")
         
         ret <- sqlStoredProc(connection,"FLFlexDiscriminantScore",
-                             TableName = object@deeptable@select@table_name,
+                             TableName = getTableNameSlot(object@deeptable),
                              ObsIDCol = var[[1]],
                              VarIDCol = var[[2]],
                              ValueCol = var[[3]],

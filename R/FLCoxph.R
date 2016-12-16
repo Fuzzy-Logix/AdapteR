@@ -119,7 +119,7 @@ coxph.FLTable <- function(formula,data, ...)
     wideToDeepAnalysisId <- deep$wideToDeepAnalysisId
     deepx <- deep[["deeptable"]]
     
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 
 	retobj <- sqlStoredProc(getFLConnection(),
 							"FLCoxPH",
@@ -254,8 +254,8 @@ prepareData.coxph <- function(formula,data,
 		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
 		deepx <- deepx[["table"]]
 
-		vtablename <- deepx@select@table_name
-		vtablename1 <- data@select@table_name
+		vtablename <- getTableNameSlot(deepx)
+		vtablename1 <- getTableNameSlot(data)
 		vobsid <- getVariables(data)[["obs_id_colname"]]
 		# sqlstr <- paste0("INSERT INTO ",vtablename,"\n        ",
 		# 				" SELECT ",vobsid," AS obs_id_colname,","\n               ",
@@ -270,7 +270,7 @@ prepareData.coxph <- function(formula,data,
                                            " FROM ",vtablename1))
 		deepx@Dimnames[[2]] <- c("-2",deepx@Dimnames[[2]])
 		whereconditions <- ""
-		mapTable <- getRemoteTableName(tableName = "fzzlRegrDataPrepMap")
+		mapTable <- getRemoteTableName(tableName = getSystemTableMapping("fzzlRegrDataPrepMap"))
 	}
 	else if(class(data@select)=="FLTableFunctionQuery")
 	{
@@ -339,12 +339,12 @@ predict.FLCoxPH <-function(object,
 		stop("scoring allowed on FLTable only")
 	#browser()
 	newdata <- setAlias(newdata,"")
-	vinputTable <- newdata@select@table_name
+	vinputTable <- getTableNameSlot(newdata)
 
 	if(scoreTable=="")
 	# scoreTable <- getRemoteTableName(getOption("ResultDatabaseFL"),
-	# 								gen_score_table_name(object@table@select@table_name))
-	scoreTable <- gen_score_table_name(object@table@select@table_name)
+	# 								gen_score_table_name(getTableNameSlot(object@table)))
+	scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
 
 	# if(!grepl(".",scoreTable)) scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
@@ -358,8 +358,8 @@ predict.FLCoxPH <-function(object,
 	{
 		vSurvival <- as.character(attr(terms(object@formula),"variables")[[2]])
 		newdataCopy <- newdata
-		vtablename <- newdataCopy@select@table_name
-		vtablename2 <- object@table@select@table_name
+		vtablename <- getTableNameSlot(newdataCopy)
+		vtablename2 <- getTableNameSlot(object@table)
 
 		## SQL to Insert the dependent column ans statusColumn
 		vVaridVec <- c(-2)
@@ -432,7 +432,7 @@ predict.FLCoxPH <-function(object,
 		newdata <- deepx[["table"]]
 		newdata <- setAlias(newdata,"")
 
-		vtablename1 <- newdata@select@table_name
+		vtablename1 <- getTableNameSlot(newdata)
 		vobsid <- getVariables(object@table)[["obs_id_colname"]]
 		# sqlstr <- paste0("INSERT INTO ",vtablename1,"\n        ",
 		# 				paste0(" SELECT ",vobsid," AS obs_id_colname,","\n ",
@@ -447,7 +447,7 @@ predict.FLCoxPH <-function(object,
                                             " FROM ",vfromtbl,collapse=" UNION ALL "))
 		newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 	}
-	vtable <- newdata@select@table_name
+	vtable <- getTableNameSlot(newdata)
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
@@ -455,7 +455,7 @@ predict.FLCoxPH <-function(object,
 	AnalysisID <- sqlStoredProc(getFLConnection(),
 								"FLCoxPHScore",
 								outputParameter=c(AnalysisID="a"),
-								INPUT_TABLE=newdata@select@table_name,
+								INPUT_TABLE=getTableNameSlot(newdata),
 								OBSID_COL=vobsid,
 								VARID_COL=vvarid,
 								VALUE_COL=vvalue,
@@ -463,7 +463,7 @@ predict.FLCoxPH <-function(object,
 								SCORE_TABLE=scoreTable,
 								SURVIVAL_CURVE_TABLE=survivalCurveTable,
 								NOTE=genNote("Scoring coxph"))
-	# sqlstr <- paste0("CALL FLCoxPHScore (",fquote(newdata@select@table_name),",",
+	# sqlstr <- paste0("CALL FLCoxPHScore (",fquote(getTableNameSlot(newdata)),",",
 	# 										 fquote(vobsid),",",
 	# 										 fquote(vvarid),",",
 	# 										 fquote(vvalue),",",
@@ -521,7 +521,7 @@ predict.FLCoxPH <-function(object,
 		if(!is.null(object@results[["linear.predictors"]]))
 		return(object@results[["linear.predictors"]])
 
-		scoreTable <- getRemoteTableName(tableName = gen_score_table_name(object@table@select@table_name), temporaryTable = FALSE)
+		scoreTable <- getRemoteTableName(tableName = gen_score_table_name(getTableNameSlot(object@table)), temporaryTable = FALSE)
 		survivalCurveTable <- getRemoteTableName(tableName = gen_score_table_name("surv"), temporaryTable = FALSE)
 
 		vtemp <- predict(object,
@@ -649,7 +649,7 @@ predict.FLCoxPH <-function(object,
 		{
 			coeffVector <- object$coefficients
 			vcolnames <- names(coeffVector)
-			deeptablename <- object@deeptable@select@table_name
+			deeptablename <- getTableNameSlot(object@deeptable)
 			obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 			var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 			cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -873,7 +873,7 @@ prepareSurvivalFormula <- function(data,
         vStatus <- vSurvival[4]
         if(is.null(vTimeVal))
         vTimeVal <- "FLTimeValCol"
-        vtablename1 <- data@select@table_name
+        vtablename1 <- getTableNameSlot(data)
 
         vtablename <- createView(pViewName=gen_unique_table_name(""),
                                 pSelect=paste0("SELECT b.",vTimeVal2," - b.",vTimeVal1,

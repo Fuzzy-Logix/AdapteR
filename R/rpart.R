@@ -20,7 +20,7 @@ rpart.FLTable<-function(data,
 	if(data@isDeep){
 		deepx<-data
 		deepx<-setAlias(deepx,"")
-		deeptablename<-data@select@table_name
+		deeptablename<-getTableNameSlot(data)
 		vprepspecs<-list()	
 	}
 	else{
@@ -40,7 +40,7 @@ rpart.FLTable<-function(data,
 			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
 			deepx<-deep[["table"]]
 			deepx<- setAlias(deepx,"")
-			deeptablename<-deepx@select@table_name
+			deeptablename<-getTableNameSlot(deepx)
 	}
 	vobsid <- getVariables(deepx)[["obs_id_colname"]]
 	vvarid <- getVariables(deepx)[["var_id_colname"]]
@@ -147,7 +147,7 @@ predict.FLrpart<-function(object,
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
-	scoreTable<-gen_score_table_name(object$deeptable@select@table_name)
+	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
 	if(!newdata@isDeep){
 		deepx<-FLRegrDataPrep(newdata,
@@ -156,12 +156,12 @@ predict.FLrpart<-function(object,
 		newdata<-deepx[["table"]]
 		newdata<-setAlias(newdata,"")
 	}
-	vtable <- newdata@select@table_name
+	vtable <- getTableNameSlot(newdata)
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-	vinputcols <- c(INPUT_TABLE=newdata@select@table_name,
+	vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
 					OBSID_COL=vobsid,
 					VARID_COL=vvarid,
 					VALUE_COL=vvalue,

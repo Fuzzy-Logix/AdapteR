@@ -311,8 +311,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   valExpression <- " FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 "
   if(is.Hadoop())
   valExpression <- paste0(" CASE WHEN ",getMODSQL(pColumn1="(a.serialval+b.serialval)",pColumn2=2),
-                              " = 0 THEN (a.randval+b.randval)*100 ",
-                              " ELSE (a.randval-b.randval)*100 END ")
+                              " = 0 THEN (a.randval+b.randval+b.randval)*100 ",
+                              " ELSE (a.randval-b.randval-b.randval)*100 END ")
   if(type=="int")
   {
       vtableName <- "ARTestIntMatrixTable"

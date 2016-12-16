@@ -18,6 +18,7 @@ test_that("rankMatrix",{
 })
 
 
+## Fails in both TD and Hadoop
 test_that("rankMatrix: tol argument",{
     result = eval_expect_equal({
         test2 = rankMatrix(mat2,tol =1e-20)

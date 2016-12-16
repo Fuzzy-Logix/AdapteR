@@ -171,7 +171,6 @@ setClass("FLSimpleWideTable",
              ))
 
 
-
 #' @export
 setGeneric("getValueSQLName", function(object) {
     standardGeneric("getValueSQLName")
@@ -492,7 +491,7 @@ setMethod("constructSelect", signature(object = "FLTable"),
                    vobsIDCol <- variables["obs_id_colname"])
                 
                 colnames <- appendTableName(colnames(object),
-                              names(object@select@table_name)[1])
+                              names(getTableNameSlot(object))[1])
                 #colnames <- colnames[colnames!=vobsIDCol]
                 newColnames <- renameDuplicates(colnames(object))
                 variables <- as.list(c(vobsIDCol[[1]],colnames))
@@ -572,7 +571,7 @@ setMethod("constructSelect", signature(object = "FLVector"),
               #   vobsIDCol[[1]] <- "b.numIdColname"
               # }
               colnames <- appendTableName(colnames(object),
-                              names(object@select@table_name)[1])
+                              names(getTableNameSlot(object))[1])
 
               variables <- as.list(c("'%insertIDhere%'",vobsIDCol[[1]],colnames))
               names(variables) <- c("vectorIdColumn",
@@ -767,3 +766,69 @@ setMethod("outputSelectMatrix", signature(func_name="character",
           LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID ",
           ") AS ",localName," ",whereClause))
           })
+
+
+getSelectSlot <- function(x){
+    return(tryCatch(x@select,
+                    error=function(x)NULL))
+}
+
+getWhereConditionsSlot <- function(x){
+    return(tryCatch(x@whereconditions,
+                error=function(e)
+                        return(getWhereConditionsSlot(x@select))))
+}
+getDimsSlot <- function(x){
+    return(tryCatch(x@dims,
+                    error=function(x)NULL))
+}
+getTypeSlot <- function(x){
+    return(tryCatch(x@type,
+                    error=function(x)NULL))
+}
+getNamesSlot <- function(x){
+    return(tryCatch(x@names,
+                    error=function(x)NULL))
+}
+getGroupSlot <- function(x){
+    return(tryCatch(x@group,
+                    error=function(x)NULL))
+}
+getOrderSlot <- function(x){
+    return(tryCatch(x@order,
+                    error=function(x)NULL))
+}
+getDimColumnsSlot <- function(x){
+    return(tryCatch(x@dimColumns,
+                    error=function(x)NULL))
+}
+setNamesSlot <- function(x,value){
+    tryCatch(x@names <- value,
+                    error=function(x)NULL)
+    x
+}
+
+
+
+getTablename <- function(x) gsub("^[^.]*\\.","",x)
+getDatabase <- function(x) {
+    db <- gsub("\\.[^.]*$","",x)
+    if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
+    db
+}
+
+#' Getter for remote table name.
+#' 
+#' @export
+setGeneric("getTableNameSlot", function(object) {
+    standardGeneric("getTableNameSlot")
+})
+setMethod("getTableNameSlot",
+          signature(object = "FLSelectFrom"),
+          function(object) object@table_name)
+setMethod("getTableNameSlot",
+          signature(object = "FLIndexedValues"),
+          function(object) getTableNameSlot(object@select))
+setMethod("getTableNameSlot",
+          signature(object = "FLTable"),
+          function(object) getTableNameSlot(object@select))

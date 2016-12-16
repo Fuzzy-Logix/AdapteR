@@ -16,6 +16,9 @@ test_that("solve(m): m %*% solve(m) == I", {
     expectation=c("aI"))
 })
 
+
+## Fails as singular matrices exist in Hadoop's ARTestMatrixResult Table
+## (The big table from where smaller matrices are subsetted in initF)
 ############################################################
 ## initF based tests
 test_that("solve(m), matrices with small numbers", {

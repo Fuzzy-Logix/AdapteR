@@ -541,7 +541,7 @@ lmGeneric <- function(formula,data,
 	# maxiter <- prepData[["maxiter"]]
 	# offset <- prepData[["offset"]]
 
-    deeptable <- deepx@select@table_name
+    deeptable <- getTableNameSlot(deepx)
     
                                         #for more generic output:
     mod <- c(FLCoeffCorrelWithRes="CORRELWITHRES",
@@ -1148,8 +1148,8 @@ prepareData.lmGeneric <- function(formula,data,
                                         temporaryTable=FALSE)
 		if(familytype=="poisson")
 		{
-			vtablename <- deepx@select@table_name
-			vtablename1 <- data@select@table_name
+			vtablename <- getTableNameSlot(deepx)
+			vtablename1 <- getTableNameSlot(data)
 			vobsid <- getObsIdSQLExpression(data)
 			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname,","\n               ",
 							" -2 AS var_id_colname,","\n               ",
@@ -1455,7 +1455,7 @@ prepareData <- prepareData.lmGeneric
             return(object@results[["y"]])
         else
         {
-            vtablename <- object@deeptable@select@table_name
+            vtablename <- getTableNameSlot(object@deeptable)
             obs_id_colname <- getObsIdSQLExpression(object@deeptable)
             var_id_colname <- getVarIdSQLExpression(object@deeptable)
             cell_val_colname <- getValueSQLExpression(object@deeptable)
@@ -1878,7 +1878,7 @@ predict.FLLinRegr <- function(object,
                                  b.",ObsID," AS VectorIndexColumn,
                                  SUM(b.",Num_Val,"*a.Est) AS vectorValueColumn FROM ",
                                  object@vfcalls["coefftablename"]," a,",
-                                 object@deeptable@select@table_name," b
+                                 getTableNameSlot(object@deeptable)," b
                          WHERE a.VarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
                          GROUP BY b.",ObsID,"")
 
@@ -1915,12 +1915,12 @@ predict.lmGeneric <- function(object,
                             ...){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
-	vinputTable <- newdata@select@table_name
+	vinputTable <- getTableNameSlot(newdata)
 
 	if(scoreTable=="")
 	# scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-	# 					gen_score_table_name(object@table@select@table_name))
-	scoreTable <- gen_score_table_name(object@table@select@table_name)
+	# 					gen_score_table_name(getTableNameSlot(object@table)))
+	scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
 	# else if(!grep(".",scoreTable)) 
 	# 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
@@ -1960,9 +1960,9 @@ predict.lmGeneric <- function(object,
 			vVaridCols <- c(vVaridCols,-1)
 			vcellValCols <- c(vcellValCols,all.vars(object@formula)[1])
 
-			# vtablename <- newdataCopy@select@table_name
-			vtablename <- table@select@table_name
-			vtablename1 <- newdata@select@table_name
+			# vtablename <- getTableNameSlot(newdataCopy)
+			vtablename <- getTableNameSlot(table)
+			vtablename1 <- getTableNameSlot(newdata)
 
 			vobsid <- getObsIdSQLExpression(object@table)
 			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
@@ -1974,14 +1974,14 @@ predict.lmGeneric <- function(object,
 			newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
 		}
 	}
-	vtable <- newdata@select@table_name
+	vtable <- getTableNameSlot(newdata)
 	vobsid <- getObsIdSQLExpression(newdata)
 	vvarid <- getVarIdSQLExpression(newdata)
 	vvalue <- getValueSQLExpression(newdata)
 
 	vinputCols <- list()
 	vinputCols <- c(vinputCols,
-					TableName=newdata@select@table_name,
+					TableName=getTableNameSlot(newdata),
 					ObsIDCol=vobsid,
 					VarIDCol=vvarid,
 					ValCol=vvalue

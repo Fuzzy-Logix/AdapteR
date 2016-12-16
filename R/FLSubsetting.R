@@ -155,7 +155,7 @@ NULL
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newrownames <- storeVarnameMapping(connection=getFLConnection(),
-                        tablename=object@select@table_name,
+                        tablename=getTableNameSlot(object),
                         matrixId=MID,
                         dimId= 1,
                         mynames=vrownames
@@ -172,7 +172,7 @@ NULL
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newcolnames <- storeVarnameMapping(connection=getFLConnection(),
-                        tablename=object@select@table_name,
+                        tablename=getTableNameSlot(object),
                         matrixId=MID,
                         dimId= 1,
                         mynames=vcolnames
@@ -312,8 +312,8 @@ NULL
         else{
             if(class(pSet@select)=="FLTableFunctionQuery"
               || FLNamesMappedP(pSet)) pSet <- store(pSet)
-            oldalias <- ifelse(length(names(pSet@select@table_name)>0),
-                              paste0(names(pSet@select@table_name)),
+            oldalias <- ifelse(length(names(getTableNameSlot(pSet))>0),
+                              paste0(names(getTableNameSlot(pSet))),
                               "")
             names(pSet@select@table_name) <- "nameflt"
             nameValueColumn <- getVariables(pSet)[["cell_val_colname"]]
@@ -323,7 +323,7 @@ NULL
             nameIndexColumn <- changeAlias(nameIndexColumn,"nameflt",oldalias)
             mapselect <- new("FLSelectFrom",
                              connectionName = getFLConnectionName(), 
-                             table_name = pSet@select@table_name,
+                             table_name = getTableNameSlot(pSet),
                              variables = list(),
                              whereconditions=c(constraintsSQL(pSet),
                                                paste0(nameValueColumn," = CAST(",
@@ -535,7 +535,7 @@ changeAlias <- function(object,newalias,oldalias){
 #' @export
 setAlias <- function(object,newalias){
   if(isAliasSet(object))
-  oldalias <- names(object@select@table_name)
+  oldalias <- names(getTableNameSlot(object))
   else oldalias <- ""
   if(newalias=="" ||is.null(newalias))
   newalias <- NULL
@@ -551,7 +551,7 @@ setAlias <- function(object,newalias){
 }
 
 isAliasSet <- function(object){
-  if(length(names(object@select@table_name))>0)
+  if(length(names(getTableNameSlot(object)))>0)
   return(TRUE) else return(FALSE)
 }
 

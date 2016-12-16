@@ -336,7 +336,7 @@ drop.FLTable <- function(object)
 {
     vSqlStr <- paste0(" DROP TABLE ",object@tablename)
     sqlSendUpdate(getFLConnection(object), vSqlStr)
-    return(paste0(object@select@table_name," DROPPED"))
+    return(paste0(getTableNameSlot(object)," DROPPED"))
 }
 
 

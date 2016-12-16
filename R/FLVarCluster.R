@@ -84,7 +84,8 @@ FLVarCluster.FLTable<-function(x,
 		sqlstr <- paste0(" SELECT Final_VarID AS vectorIndexColumn,",
 						 " CASE WHEN CatValue IS NOT NULL THEN ",
 						 " CONCAT(COLUMN_NAME,CatValue) else COLUMN_NAME END AS columnName",
-			    	     " FROM fzzlRegrDataPrepMap a ",
+			    	     " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
+                                           "  a ",
 			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"'",
 			    	     " AND a.Final_VarID IS NOT NULL ")
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
@@ -137,7 +138,7 @@ FLVarCluster.FLTable<-function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
     #browser()

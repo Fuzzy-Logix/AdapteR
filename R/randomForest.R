@@ -91,7 +91,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								 scoreTable="",...){ browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
-	vinputTable <- newdata@select@table_name
+	vinputTable <- getTableNameSlot(newdata)
 	if(scoreTable=="")
 	scoreTable <- gen_score_table_name("RandomForestScore")
 	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$RegrDataPrepSpecs,
@@ -100,7 +100,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
 	newdatatable <- deepx[["table"]]
 	newdatatable <- setAlias(newdatatable,"")
-	tablename<- newdatatable@select@table_name
+	tablename<- getTableNameSlot(newdatatable)
 	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
 	vvarid <- getVariables(newdatatable)[["var_id_colname"]]
 	vvalue <- getVariables(newdatatable)[["cell_val_colname"]]
