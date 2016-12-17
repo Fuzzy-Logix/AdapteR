@@ -61,7 +61,6 @@ print(opt$directory)
 # basedir <- gsub("/[^/]*$","",opt$directory)
 # print(packagedir)
 # print(basedir)
-library(survival)
 
 # cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 if(opt$AdapteR=="require"){

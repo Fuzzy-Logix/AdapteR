@@ -17,9 +17,10 @@ test_that("check result for identical",
   FLexpect_equal(identical(V1,V1R),identical(V1R,V1R),check.attributes=FALSE)
   FLexpect_equal(identical(P1$FL,P1$FL),identical(P1$R,P1$R),check.attributes=FALSE)
   FLexpect_equal(identical(V1,P1$FL),identical(V1R,P1$R),check.attributes=FALSE)
-  FLexpect_equal(identical(P1$FL,P1$R),identical(P1$R,P1$R),check.attributes=FALSE)
+  FLexpect_equal(identical(P1$FL,P1$FL),identical(P1$R,P1$R),check.attributes=FALSE)
   FLexpect_equal(identical(M1$FL,V2),identical(M1$R,V2R),check.attributes=FALSE)
   FLexpect_equal(identical(M1$FL,P1$FL),identical(M1$R,P1$R),check.attributes=FALSE)
   FLexpect_equal(identical(V1,V1),identical(V1R,V1R),check.attributes=FALSE)
   FLexpect_equal(identical(P1$FL,M2),identical(P1$R,M2R),check.attributes=FALSE)
 })
+

@@ -43,20 +43,19 @@ test_that("Correlation examples -- data needs pulling out!",{
 ##Failing because of precision errors.
 test_that("check FLCorrel result",
 {
-    if(is.Hadoop())
+    if(getFLPlatform()=="Hadoop")
         fltDeep <- FLTable(getTestTableName("tblUSArrests"),
                        "ObsID","DimID","Value", whereconditions = "ObsID<21")
     else 
-    fltDeep <- FLTable(getTestTableName("tblUSArrests"),
-                       "ObsID","VarID","Num_Val", whereconditions = "ObsID<21")
+        fltDeep <- FLTable(getTestTableName("tblUSArrests"),
+                           "ObsID","VarID","Num_Val", whereconditions = "ObsID<21")
     RtDeep <- as.data.frame(fltDeep)
-
-    if(is.Hadoop())
+    if(getFLPlatform()=="Hadoop")
         fltWide <- FLTable(getTestTableName("tblUSArrests"),
-                       "ObsID",whereconditions = c("DimID=2","ObsID<21"))
-    else 
+                           "ObsID",whereconditions = c("DimID=2","ObsID<21"))
+    else
         fltWide <- FLTable(getTestTableName("tblUSArrests"),
-                       "ObsID",whereconditions = c("DimID=2","ObsID<21"))
+                       "ObsID",whereconditions = c("VarID=2","ObsID<21"))
     RtWide <- as.data.frame(fltWide)
     vRow <- initF.FLVector(20,TRUE)
     flvRow <- vRow$FL

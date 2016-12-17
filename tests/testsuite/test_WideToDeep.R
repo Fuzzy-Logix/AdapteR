@@ -2,7 +2,7 @@
 table2<-FLTable(table= getTestTableName("tblAutoMpg"),
                 obs_id_colname = "ObsID")
 
-if(!is.Hadoop()){
+if(!getFLPlatform()=="Hadoop"){
     table3<-FLTable(table= getTestTableName("tblUSArrests"),
                     obs_id_colname = "OBSID",
                     var_id_colname = "VarID",
@@ -32,6 +32,4 @@ test_that("check if deep to wide works",{
                  mapName="",
                  Analysisid = ""
                  )
-    head(wide)
-    dbDrop(wide)
 })

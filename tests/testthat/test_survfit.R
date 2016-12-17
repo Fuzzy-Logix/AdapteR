@@ -16,7 +16,7 @@ FLenv$fit <- survfit(Surv(TIME_VAL,STATUS)~1,
                     GroupBy="Gender")
 
 ## Testing with R example
-dat <- aml
+dat <- survival::aml
 colnames(dat) <- c("ftime","fstatus","x")
 Renv$data2 <- dat
 

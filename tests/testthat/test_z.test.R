@@ -23,7 +23,7 @@ test_that("test for FLzTest2S",{
   rz<-z.test(a,C,sigma.x=sd(a),sigma.y=sd(C))
   flz<-z.test(as.FLVector(a),as.FLVector(C))
   FLexpect_equal(as.numeric(rz[["p.value"]]),as.numeric(flz[["p.value"]]),tolerance=1e-5)
-  FLexpect_equal(as.numeric(rz[["statistic"]]),as.numeric(flz[["statistic"]]))
+  FLexpect_equal(as.numeric(rz[["statistic"]]),as.numeric(flz[["statistic"]]),tolerance=1e-5)
 })
 
 test_that("test for FLzTest2P",{

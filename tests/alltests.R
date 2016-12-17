@@ -19,7 +19,7 @@ runMyTestFile <- function(f, ask=FALSE, runonly=NULL, skip=NULL,...){
         }
     if(!is.null(runonly))
         if(!grepl(runonly,f)) {
-            cat(paste0("skipped ",f,"\n"))
+            ##cat(paste0("skipped ",f,"\n"))
             return(data.frame())
         }
     cat(paste0("testing ",f,"\n"))
