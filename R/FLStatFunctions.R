@@ -441,7 +441,7 @@ getDescStatsUDT <- function(object,
                             outCol,
                             viewCols,
                             outFLVector=FALSE){
-    if(is.FLTable(object) && !object@isDeep)
+    if(is.FLTable(object) && !isDeep(object))
         object <- wideToDeep(object)
     # sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
     #                 " SELECT ",paste0(viewCols,collapse=",")," \n ",
