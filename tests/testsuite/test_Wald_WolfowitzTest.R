@@ -1,3 +1,4 @@
+library(randtests)
                                         #Wald-Wolf 1s Test
 sqlstr <- paste0("SELECT * FROM tblWW1SMulti WHERE DATASETID = 1")
 res <- sqlQuery(connection, sqlstr)
@@ -15,15 +16,13 @@ test_that("Wald-Wolfowitz One Sample Test:",{
     },Renv,FLenv,
     noexpectation=c("res1"),
     expectation = c("p.val","z"),
-    check.attributes=FALSE,
-    verbose = TRUE)
+    check.attributes=FALSE)
     })
 
 
 
 
                                         #Wald Wolf 1s Test:
-library(randtests)
 data(sweetpotato)
 Renv = new.env(parent = globalenv())
 Renv$yield <- sweetpotato$yield
@@ -38,8 +37,7 @@ test_that("Wald-Wolfowitz One Sample Test:",{
     },Renv,FLenv,
     noexpectation=c("res1"),
     expectation = c("p.val","z"),
-    check.attributes=FALSE,
-    verbose = TRUE)
+    check.attributes=FALSE)
     })
 
                                         #Wald WOlf 2s Test:
@@ -61,8 +59,7 @@ test_that("Wald-Wolfowitz two Sample Test:",{
     },Renv,FLenv,
     noexpectation=c("res1"),
     expectation =c( "p.val", "z"),
-    check.attributes=FALSE,
-    verbose = TRUE)
+    check.attributes=FALSE)
 })
 
 
@@ -90,6 +87,5 @@ test_that("Wald-Wolfowitz two Sample Test:",{
     },Renv,FLenv,
     noexpectation=c("res1"),
     expectation =c( "p.val", "z"),
-    check.attributes=FALSE,
-    verbose = TRUE)
+    check.attributes=FALSE)
 })
