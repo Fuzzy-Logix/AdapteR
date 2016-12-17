@@ -74,7 +74,7 @@ setMethod("genAggregateFunCall",
           function(object,func,...){
     object <- setValueSQLExpression(object=object,func=func,...)
     object@dims <- 1L
-    # object@select@order <- character()
+    object@select@order <- character()
     object <- setNamesSlot(object,NULL)
     object
 })
