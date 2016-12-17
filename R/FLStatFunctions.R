@@ -1,4 +1,5 @@
 #' @include FLMatrix.R
+#' @include apply.R
 NULL
 
 FLStatsDist <- function(x,method="euclidean",
@@ -454,7 +455,8 @@ getDescStatsUDT <- function(object,
     #                 " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a \n ")
     vMap <- getMatrixUDTMapping(functionName)
     pOutColnames <- vMap$argsPlatform
-    pOutColnames["vectorIdColumn"] <- "'%insertIDhere%'"
+    if(!"vectorIdColumn" %in% names(pOutColnames))
+        pOutColnames <- c("vectorIdColumn"="'%insertIDhere%'",pOutColnames)
     pOutColnames <- as.list(pOutColnames)
     pFuncName <- vMap$funcNamePlatform
     
@@ -553,7 +555,7 @@ setGeneric("median",function(x,na.rm=TRUE)
 setMethod("median",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
-                                functionName="FLMedianUDT",
+                                functionName="FLMedianUdt",
                                 outCol=c(vectorValueColumn="oMedian"),
                                 viewCols=c(pGroupID=1,
                                     pValue=getValueSQLName(x))))})
@@ -586,7 +588,7 @@ setMethod("median",signature(x="FLTable.Hadoop"),
 setMethod("median",signature(x="FLTable"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
-                                functionName="FLMedianUDT",
+                                functionName="FLMedianUdt",
                                 outCol=c(vectorValueColumn="oMedian"),
                                 viewCols=c(pGroupID=1,
                                             pValue="cell_val_colname")))})
