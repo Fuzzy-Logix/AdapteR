@@ -595,8 +595,8 @@ setMethod("checkQueryLimits",
           signature(pObj1="ANY"),
           function(pObj1) return(FALSE))
 
-`dimnames<-.FLMatrix` <- function(x,value){
-  lapply(1:2,function(i){
+setDimnames <- function(x,value){
+    lapply(1:length(dim(x)),function(i){
     if(length(value[[i]])!=dim(x)[i] && !is.null(value[[i]])
       && !is.null(dim(x)[i]))
       stop("length mismatch between dimnames and dim \n ")
@@ -612,6 +612,13 @@ setMethod("checkQueryLimits",
                       return(vnames)
                     })
   x@Dimnames <- vdimnames
+  x
+}
+
+`dimnames<-.FLIndexedValues` <- setDimnames
+
+`dimnames<-.FLMatrix` <- function(x,value){
+  x <- setDimnames(x,value)
   x@mapSelect <- new("FLSelectFrom")
   x
 }

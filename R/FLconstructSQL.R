@@ -150,8 +150,7 @@ newFLVector <- function(...) {
 setClass("FLSimpleVector",
          contains="FLIndexedValues",
          slots = list(
-             names = "ANY"          
-             ),prototype = prototype(type="double")
+         ),prototype = prototype(type="double")
          )
 
 

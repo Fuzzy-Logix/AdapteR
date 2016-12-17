@@ -655,17 +655,7 @@ rmDupTables <- function(pTableNames){
 #' @export
 `names<-.FLSimpleVector` <- function(x,value)
 {
-    if(length(value)!=length(x))
-    stop("names should be of same length as FLVector")
-    else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
-    
-    if(is.vector(value))
-        value <- as.FLVector(value)
-    if(is.FLVector(value))
-        value <- as.FLSimpleVector(value)
-    if(!is.FLSimpleVector(value))
-        stop("names vector should be vector \n ")
-    return(setNamesSlot(x,value))
+    dimnames(x) <- list(value)
 }
 
 #' Get names of a FLSimpleVector
@@ -676,7 +666,7 @@ rmDupTables <- function(pTableNames){
 #' @export
 names.FLSimpleVector <- function(x)
 {
-    getNamesSlot(x)
+    dimnames(x)[[1]]
 }
 
 #' @export
