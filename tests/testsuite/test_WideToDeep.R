@@ -22,7 +22,10 @@ test_that("check if wide to deep works",{
                        OutObsIDCol="ObsID",
                        OutVarIDCol="",
                        OutValueCol="out_value")
+    expect_true(is.character(deep@wideToDeepAnalysisID))
+    expect_true(checkRemoteTableExistence(tableName=getTableNameSlot(deep)))
     dbDrop(deep)
+    expect_true(!checkRemoteTableExistence(tableName=getTableNameSlot(deep)))
 })
 
 test_that("check if deep to wide works",{
@@ -32,4 +35,7 @@ test_that("check if deep to wide works",{
                  mapName="",
                  Analysisid = ""
                  )
+    expect_true(checkRemoteTableExistence(tableName=getTableNameSlot(wide$table)))
+    dbDrop(wide$table)
+    expect_true(!checkRemoteTableExistence(tableName=getTableNameSlot(wide$table)))
 })
