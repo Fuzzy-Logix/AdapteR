@@ -1,5 +1,3 @@
-## Overloading problems..
-## Cannot call default R function
 NULL
 #' Compute a Survival Curve for Censored Data
 #'
@@ -36,7 +34,7 @@ survfit <- function(...) UseMethod("survfit")
 survfit.formula <- function(formula,data,...){
     if(!is.FL(data))
         if (!requireNamespace("survival", quietly = TRUE)){
-            stop("survival package needed for geometric.mean. Please install it.",
+            stop("survival package needed for survfit. Please install it.",
             call. = FALSE)
             }
         else
