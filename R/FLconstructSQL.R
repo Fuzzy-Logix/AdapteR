@@ -453,10 +453,10 @@ FLSerial <- function(min,max){
         select=new("FLSelectFrom",
                    table_name=c(fzzlSerial="fzzlSerial"),
                    connectionName=getFLConnectionName(),
-                   variables=list(indexVal="fzzlSerial.serialVal"),
+                   variables=list(serialVal="fzzlSerial.serialVal"),
                    whereconditions=c(paste("fzzlSerial.serialVal>=",min),paste("fzzlSerial.serialVal<=",max)),
-                   order="indexVal"),
-        dimColumns = c("indexVal","indexVal"),
+                   order="serialVal"),
+        dimColumns = c("serialVal","serialVal"),
         ##names=NULL,
         dims    = as.integer(max-min+1),
         type       = "integer"
