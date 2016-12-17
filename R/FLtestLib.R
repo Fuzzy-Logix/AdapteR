@@ -35,17 +35,17 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...)
           })
 setMethod("FLexpect_equal",
-          signature(object="FLSimpleVector",expected="vector"),
+          signature(object="FLSimpleVector",expected="ANY"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
 setMethod("FLexpect_equal",
-          signature(object="FLVector",expected="vector"),
+          signature(object="FLVector",expected="ANY"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
 setMethod("FLexpect_equal",
-          signature(object="FLVector",expected="integer"),
+          signature(object="FLSkalarAggregate",expected="ANY"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
@@ -71,6 +71,17 @@ setMethod("FLexpect_equal",
           })
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
+          function(object,expected,...){
+            if(is.numeric(object) || is.integer(object) || is.vector(object)){
+                # object <- as.vector(object)
+                # return(testthat::expect_equal(object,as.R(expected),...))
+                return(FLexpect_equal(expected,object,...))
+            }
+            else FLexpect_equal(as.FLVector(object),
+                                expected,...)
+          })
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLSkalarAggregate"),
           function(object,expected,...){
             if(is.numeric(object) || is.integer(object) || is.vector(object)){
                 # object <- as.vector(object)

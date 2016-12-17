@@ -9,6 +9,14 @@ as.vector.FLMatrix <- function(object,mode="any")
 	return(as.vector(temp_m))
 }
 
+#' Converts FLSkalarAggregate object to vector in R
+#' @export
+as.vector.FLSkalarAggregate <- function(object,mode="any")
+{
+    do.call(mixedAggregate,append(llply(object@arguments,as.vector),
+                                  list(Rfun=object@func,FLfun="")))
+}
+
 #' @export
 as.vector.FLMatrixBind <- function(object,mode="any")
 {
@@ -48,10 +56,6 @@ as.vector.FLVector <- function(object,mode="any")
     options(stringsAsFactors=vprev1)
     options(warn=vprev2)
     return(x)
-}
-
-as.vector.FLSkalarAggregate <- function(object,mode="any"){
-    do.call(object@func,lapply(object@arguments,as.vector))
 }
 
 #' Converts in-database objects to a data frame in R
