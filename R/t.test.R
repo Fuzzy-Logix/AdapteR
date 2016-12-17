@@ -49,9 +49,8 @@ t.test.FLVector <- function(x,
                                         pGroupBy = "c.FLStatistic")
         vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
         estimate<-c("mean of x"=mean(x))
-        method<-"One Sample t-test"}                                         
-           
-        else{
+        method<-"One Sample t-test"
+        } else {
             if(var.equal==TRUE) {
                     var<-"EQUAL_VAR"
                     method<-" Two Sample t-test"}
@@ -80,7 +79,7 @@ t.test.FLVector <- function(x,
     result <- sqlQuery(connection, sqlstr)
     names(mu)<-if(!is.null(y)) "difference in means" else "mean"
     cint<-cint(x,y,conf.level,mu,var.equal,alternative)
-    df<-cint[3]
+    df<-result[1,3]
     cint<-cint[1:2]
     attr(cint,"conf.level") <- conf.level
     res <- list(statistic =c(t = as.numeric(result[1,1])),
