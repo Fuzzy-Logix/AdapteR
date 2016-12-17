@@ -601,7 +601,7 @@ test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
     len <- length(a)-2
     if(index){
       leni <- sample(1:length(a),len)
-      cat("index is ... ",leni,"\n")
+      ## cat("index is ... ",leni,"\n")
       asel <- a[leni]
       bsel <- b[leni]
       expect_equal_Vector(asel,bsel,
@@ -616,7 +616,7 @@ test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
     }
     else{
       leni <- sample(names(a),len)
-      cat("index is ... ",leni,"\n")
+      ## cat("index is ... ",leni,"\n")
       asel <- a[leni]
       bsel <- b[leni]
       expect_equal_Vector(asel,bsel,
@@ -632,7 +632,7 @@ test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
 }
 
 ##' @export
-expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
+expect_equal_Vector <- function(a,b,desc="",debug=FALSE){
     if(debug==TRUE){
         cat("\n-------------- ",desc,"\nR vector Object:\n")
         print(a)
