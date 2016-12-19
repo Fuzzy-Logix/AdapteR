@@ -79,7 +79,7 @@ t.test.FLVector <- function(x,
     result <- sqlQuery(connection, sqlstr)
     names(mu)<-if(!is.null(y)) "difference in means" else "mean"
     cint<-cint(x,y,conf.level,mu,var.equal,alternative)
-    df<-result[1,3]
+    df<-cint[3]
     cint<-cint[1:2]
     attr(cint,"conf.level") <- conf.level
     res <- list(statistic =c(t = as.numeric(result[1,1])),
