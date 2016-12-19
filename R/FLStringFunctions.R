@@ -47,7 +47,7 @@ setMethod("FLStringDist",
             else if(is.numeric(caseFlag) && (caseFlag==0 ||caseFlag==1)) caseFlag<-caseFlag
             else stop("caseFlag must be numeric 0,1 or logical")
 
-            if(length(dimnames(targets)[[2]])>1 && targets@isDeep==FALSE)
+            if(length(dimnames(targets)[[2]])>1 && isDeep(targets)==FALSE)
             #targets <- store(targets)
             stop("row Vectors not supported for string operations")
 
@@ -120,10 +120,10 @@ setMethod("FLStringDist",
             else if(is.numeric(caseFlag) && (caseFlag==0 ||caseFlag==1)) caseFlag<-caseFlag
             else stop("caseFlag must be numeric 0,1 or logical")
 
-            if(length(dimnames(targets)[[2]])>1 && targets@isDeep==FALSE)
+            if(length(dimnames(targets)[[2]])>1 && isDeep(targets)==FALSE)
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
-            if(length(dimnames(xsource)[[2]])>1 && xsource@isDeep==FALSE)
+            if(length(dimnames(xsource)[[2]])>1 && isDeep(xsource)==FALSE)
             #targets <- store(targets)
             stop("row Vectors are not supported for string operations")
 
@@ -182,14 +182,14 @@ setMethod("FLStringDist",
                 vmaxlen <- length(xsource);
                 vminlen <- length(targets);
                 vmaxref <- "a";
-                ifelse(xsource@isDeep && length(colnames(xsource))>1,
+                ifelse(isDeep(xsource) && length(colnames(xsource))>1,
                 vmaxrownames <- colnames(xsource),
                 vmaxrownames <- rownames(xsource))
                 },{
                     vmaxlen <- length(targets);
                     vmaxref <- "b";
                     vminlen <- length(xsource);
-                    ifelse(targets@isDeep && length(colnames(targets))>1,
+                    ifelse(isDeep(targets) && length(colnames(targets))>1,
                     vmaxrownames <- colnames(targets),
                     vmaxrownames <- rownames(targets))
                 })
@@ -668,7 +668,7 @@ setMethod("FLStrCommon",
             vtype <- list(...)$type
           else vtype <- "character"
           a <- genRandVarName()
-          if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
+          if(length(object@Dimnames[[2]])>1 && isDeep(object)==FALSE)
           stop("row Vectors not supported for string operations")
 
           if(is.null(delimiter)||is.na(delimiter)||length(delimiter)==0)
@@ -1117,7 +1117,7 @@ setMethod("grep",
             a <- genRandVarName()
             b <- genRandVarName()
             object <- x
-            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && isDeep(object)==FALSE)
             stop("row Vectors not supported for string operations")
 
             sqlstr <- paste0("SELECT COUNT(",b,".vectorIndexColumn) AS vlength",
@@ -1213,7 +1213,7 @@ setMethod("grepl",
             a <- genRandVarName()
             b <- genRandVarName()
             object <- x
-            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && isDeep(object)==FALSE)
             stop("row Vectors not supported for string operations")
 
             sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -1417,7 +1417,7 @@ setMethod("FLParseXML",
             object="FLVector"),
           function(object)
           {
-            if(length(object@Dimnames[[2]])>1 && object@isDeep==FALSE)
+            if(length(object@Dimnames[[2]])>1 && isDeep(object)==FALSE)
             stop("row Vectors not supported for string operations")
             sqlstr <- paste0("WITH tw (GroupID, pXML)
                               AS (

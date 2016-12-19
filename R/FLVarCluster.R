@@ -68,16 +68,15 @@ FLVarCluster.FLTable<-function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 
@@ -86,7 +85,7 @@ FLVarCluster.FLTable<-function(x,
 						 " CONCAT(COLUMN_NAME,CatValue) else COLUMN_NAME END AS columnName",
 			    	     " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
                                            "  a ",
-			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"'",
+			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisID,"'",
 			    	     " AND a.Final_VarID IS NOT NULL ")
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                         pSelect=sqlstr)
@@ -186,7 +185,7 @@ FLVarCluster.FLTable<-function(x,
 	clustervector <- tryCatch(as.vector(clustervector),
   						error=function(e){
   							cat("could not fetch data. Storing in Volatile table.\n")
-  							if(!x@isDeep)
+  							if(!isDeep(x))
   							{
   								cat("The mapping table is ",mapTable)
   								cat("Use the mapping table for relation between\n",
@@ -195,7 +194,7 @@ FLVarCluster.FLTable<-function(x,
   							}
   							return(clustervector)})
 
-	if(!x@isDeep)
+	if(!isDeep(x))
 		{
 			sqlstr <- paste0(" SELECT a.columnName AS vcolnames \n ",
                             " FROM ",mapTable," a,",outputTable," b \n ",

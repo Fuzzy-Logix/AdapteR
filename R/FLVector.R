@@ -20,7 +20,7 @@ FLVector <- function(table,
                      whereconditions=character()) {
     stop("Please use subsetting to create vectors")
     V <- NULL
-	if(table@isDeep) {
+	if(isDeep(table)) {
         if(length(val_col_name)) { ## column vector deep table
             V <- newFLVector(
                      table = table, 
@@ -37,7 +37,7 @@ FLVector <- function(table,
                                          equalityConstraint(
                                              table@obs_id_colname,val_row_name)))
         }
-    } else if(!table@isDeep) {
+    } else if(!isDeep(table)) {
         if(length(val_col_name)) { 
             V <- newFLVector(
                      table = table, 

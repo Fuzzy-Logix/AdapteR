@@ -319,7 +319,7 @@ FLVarP.FLAbstractColumn <- function(object){
 #' @export
 FLVarP.FLVector <- function(x,y=NULL,...){
 	if(missing(y)){
-		if(ncol(x)>1 && !x@isDeep)
+		if(ncol(x)>1 && !isDeep(x))
 		x <- as.FLVector(as.vector(x))
 		return(genAggregateFunCall(x,FLVarP.FLAbstractColumn))
 	}
@@ -444,7 +444,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 	if(is.FLVector(y))
 	{
 		if(length(y) != nrow(x)) stop("incompatible dimensions\n")
-		if(nrow(y)==1 && !y@isDeep)
+		if(nrow(y)==1 && !isDeep(y))
 		{
 			y <- as.FLMatrix(y,
                             sparse=TRUE,rows=length(y),cols=1)
@@ -452,7 +452,7 @@ FLCorGeneric.FLMatrix <- function(x,y=NULL,
 						functionName=functionName,
 						method=method,...))
 		}
-		else if(ncol(y)==1 || y@isDeep)
+		else if(ncol(y)==1 || isDeep(y))
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
@@ -634,8 +634,8 @@ FLCorGeneric.FLVector <- function(x,y=NULL,
 	if(is.FLVector(y))
 	{
 		if(length(x)!=length(y)) stop(" incompatible dimensions ")
-		if(nrow(y)==1 && !y@isDeep) y <- as.FLVector(as.vector(y))
-		if(nrow(x)==1 && !x@isDeep) x <- as.FLVector(as.vector(x))
+		if(nrow(y)==1 && !isDeep(y)) y <- as.FLVector(as.vector(y))
+		if(nrow(x)==1 && !isDeep(x)) x <- as.FLVector(as.vector(x))
 
 			a <- genRandVarName()
 			b <- genRandVarName()
@@ -721,7 +721,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	{
 		if(nrow(x) != nrow(y)) stop("incompatible dimensions")
 
-		if(y@isDeep && x@isDeep)
+		if(isDeep(y) && isDeep(x))
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
@@ -763,14 +763,14 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 							pOperator="FLCorGeneric",
 							pStoreResult=vstoreFlag))
 		}
-		if(!y@isDeep && !x@isDeep)
+		if(!isDeep(y) && !isDeep(x))
 		{
 			deepx <- wideToDeep(x)
-			x <- deepx[["table"]]
+			x <- deepx
 
 			if(!vnullFlag){
 				deepy <- wideToDeep(y)
-				y <- deepy[["table"]]
+				y <- deepy
 			}
 			else{
 				deepy <- deepx
@@ -783,13 +783,13 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME AS column_name, Final_VarID AS final_varid 
 								  		   FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
-								  		   " WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
+								  		   " WHERE AnalysisID = '",deepx@wideToDeepAnalysisID,"' 
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("column_name")]
 			varnamesy <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME AS column_name, Final_VarID AS final_varid 
 								  		   FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
-                                           " WHERE AnalysisID = '",deepy[["AnalysisID"]],"' 
+                                           " WHERE AnalysisID = '",deepy@wideToDeepAnalysisID,"' 
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("column_name")]
 
@@ -797,17 +797,17 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 								varnamesy)
 			return(flm)
 		}
-		if(y@isDeep && !x@isDeep)
+		if(isDeep(y) && !isDeep(x))
 		{
 			deepx <- wideToDeep(x)
-			x <- deepx[["table"]]
+			x <- deepx
 			flm <- FLCorGeneric(x=x,y=y,
 						functionName=functionName,
 						method=method,...)
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME AS column_name, Final_VarID AS final_varid 
 								  		   FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
-                                           " WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
+                                           " WHERE AnalysisID = '",deepx@wideToDeepAnalysisID,"' 
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("column_name","final_varid")]
 			rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["final_varid"]]),"column_name"]
@@ -815,7 +815,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 			flm@Dimnames[[1]] <- rownames 
 			return(flm)
 		}
-		if(!y@isDeep && x@isDeep)
+		if(!isDeep(y) && isDeep(x))
 		return ( t(FLCorGeneric(x=y,y=x,
 						functionName=functionName,
 						method=method,...)))
@@ -824,7 +824,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	if(is.FLMatrix(y))
 	{
 		if(nrow(x) != nrow(y)) stop("incompatible dimensions")
-		if(x@isDeep)
+		if(isDeep(x))
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
@@ -867,17 +867,17 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 							pOperator="FLCorGeneric",
 							pStoreResult=vstoreFlag))
 		}
-		if(!x@isDeep)
+		if(!isDeep(x))
 		{
 			deepx <- wideToDeep(x)
-			x <- deepx[["table"]]
+			x <- deepx
 			flm <- FLCorGeneric(x=x,y=y,
 						functionName=functionName,
 						method=method,...)
 			varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME AS column_name, Final_VarID AS final_varid 
 								  		   FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
-                                           " WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
+                                           " WHERE AnalysisID = '",deepx@wideToDeepAnalysisID,"' 
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("column_name","final_varid")]
 			rownames <- varnamesx[charmatch(rownames(flm),varnamesx[["final_varid"]]),"column_name"]
@@ -889,7 +889,7 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 	if(is.FLVector(y))
 	{
 		if(length(y) != nrow(x)) stop("incompatible dimensions")
-		if(nrow(y)==1 && !y@isDeep)
+		if(nrow(y)==1 && !isDeep(y))
 		{
 			y <- as.FLMatrix(y,
                                          sparse=TRUE,rows=length(y),cols=1)
@@ -897,18 +897,18 @@ FLCorGeneric.FLTable <- function(x,y=NULL,
 						functionName=functionName,
 						method=method,...))
 		}
-		else if(ncol(y)==1 || y@isDeep)
+		else if(ncol(y)==1 || isDeep(y))
 		{
 			a <- genRandVarName()
 			b <- genRandVarName()
-			if(!x@isDeep)
+			if(!isDeep(x))
 			{
 				deepx <- wideToDeep(x)
-				x <- deepx[["table"]]
+				x <- deepx
 				varnamesx <- sqlQuery(connection,
 								  paste0(" SELECT COLUMN_NAME AS column_name, Final_VarID AS final_varid 
 								  		   FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
-                                           " WHERE AnalysisID = '",deepx[["AnalysisID"]],"' 
+                                           " WHERE AnalysisID = '",deepx@wideToDeepAnalysisID,"' 
 				                		   AND Final_VarID IS NOT NULL 
 				                		   ORDER BY Final_VarID"))[,c("column_name","final_varid")]
 			}

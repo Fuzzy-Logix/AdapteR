@@ -163,7 +163,8 @@ FLTableMD <- function(table,
                  dims = as.integer(c(length(rows),length(cols),length(vgrp))),
                  isDeep = TRUE,
                  dimColumns=c("group_id_colname","obs_id_colname",
-                                "var_id_colname","cell_val_colname")
+                              "var_id_colname","cell_val_colname"),
+            ...
                 )
         # new("FLTableMD",
         #     select = select,
@@ -241,7 +242,8 @@ FLTableMD <- function(table,
                  select = select,
                  Dimnames = list(rows,cols,vgrp),
                  dims = as.integer(c(nrow,ncol,nMD)),
-                 isDeep = FALSE
+            isDeep = FALSE,
+            ...
             ##type=type ## todo
         )
     }

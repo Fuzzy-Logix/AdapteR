@@ -14,13 +14,11 @@ colnames(Renv$widetable)<-colnames(FLenv$widetable)
 ## step function does not work properly. throws an error
 ## asana ticket- https://app.asana.com/0/143316600934101/158092657328842
 
-options(debugSQL = T)
+##options(debugSQL = T)
 
 test_that("test for step", {
   eval_expect_equal({
-    
     r<-step(widetable,scope = list(lower=Diameter~Height,upper=Diameter~Height+ShellWeight+ShuckedWeight), direction = "backward")
-    
   },Renv,FLenv)
 }
 )

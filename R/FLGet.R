@@ -2,7 +2,7 @@ getAlias <- function(object){
   return(names(getTableNameSlot(object)))
 }
 getObsIdColname <- function(object){
-  if(object@isDeep && ncol(object)>1)
+  if(isDeep(object) && ncol(object)>1)
   return("var_id_colname")
   else return("obs_id_colname")
 }
@@ -59,7 +59,7 @@ setMethod("typeof",signature(x="FLSimpleVector"),
         })
 setMethod("typeof",signature(x="FLTable"),
       function(x){
-        if(x@isDeep){
+        if(isDeep(x)){
           vValCol <- getVariables(x)[["cell_val_colname"]]
           vValCol <- changeAlias(vValCol,"","")
           vtype <- x@type[vValCol]
@@ -170,7 +170,7 @@ setMethod("getValueColumn",signature(object="FLMatrix"),
         })
 setMethod("getValueColumn",signature(object="FLVector"),
       function(object){
-        if(object@isDeep)
+        if(isDeep(object))
         return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
         else{
           vtemp <- ""
@@ -188,7 +188,7 @@ setMethod("getValueColumn",signature(object="FLVector"),
 
 setMethod("getValueColumn",signature(object="FLTable"),
       function(object){
-        if(object@isDeep)
+        if(isDeep(object))
         return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
         vtemp <- ""
         if(!is.null(getAlias(object)) && 
@@ -606,6 +606,7 @@ getFLVectorTableFunctionQuerySQL <- function(idColumn="'%insertIDhere%'",
                     " FROM ",FromTable))
 }
 
+#' @export
 getTestTableName <- function(tableName){
     getRemoteTableName(databaseName=getOption("TestDatabase")[getFLPlatform()],
                         tableName=tableName,

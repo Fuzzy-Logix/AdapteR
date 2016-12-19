@@ -33,6 +33,7 @@ Performs flexible discriminant analysis and stores the results in predefined tab
 involves the use of multivariate adaptive regression splines for obtaining a basis
 transformation of the independent variables and performing the multivariate
 non-parametric regression step in the Flexible Discriminant Analysis procedure.
+
 couldnt be implemented: plot, values, precent.explained
 (lack of data of discriminant space).
 }

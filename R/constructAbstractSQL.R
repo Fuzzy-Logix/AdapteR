@@ -48,6 +48,7 @@ constructMatrixUDTSQL <- function(pObject,
     # pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
     # pViewColnames <- getVariables(pObject)
 
+    pViewColnames <- changeAlias(pViewColnames,"","")
     sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
                             pViewColnames=pViewColnames,
                             pFuncName=pFuncName,
@@ -89,7 +90,6 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             pNest=FALSE,
                             ...){
     if(pNest){
-        pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
                                 " FROM (",pSelect," ) a ")
     }
@@ -102,6 +102,9 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     #     pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
     #     pViewColnames <- getVariables(pObject)
     # }
+    if("UDTInputSubset" %in% names(list(...)))
+        vsubset <- list(...)[["UDTInputSubset"]]
+    else vsubset <- NULL
 
 
     if(is.TD()){
@@ -110,11 +113,16 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                        " AS ( ",vNestedSelect," )",
                        " SELECT ",constructVariables(pOutColnames),
                        " FROM TABLE (",
-                            pFuncName,"(",paste0("z.",names(pViewColnames),
+                            pFuncName,"(",
+                                ifelse(!is.null(vsubset),
+                                    paste0("z.",names(pViewColnames)[vsubset],
                                         collapse=","),
-                                    ifelse(length(setdiff(pArgs,""))>0,
-                                            paste0(",",paste0(pArgs, collapse = ",")),
-                                            ""),
+                                    paste0("z.",names(pViewColnames),
+                                        collapse=",")
+                                    ),
+                                ifelse(length(setdiff(pArgs,""))>0,
+                                        paste0(",",paste0(pArgs, collapse = ",")),
+                                        ""),
                                     ")",
                             " HASH BY ",paste0("z.",pPartitionBy,
                                             collapse=","),
@@ -131,15 +139,23 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                         " ( ON ( ",vNestedSelect," ) a ",
                         " PARTITION BY ",paste0(pPartitionBy,
                                             collapse=",")," ",
-                        paste0("arg",1:length(pViewColnames),
-                            "(",names(pViewColnames),")",
-                            collapse=","),") a ",
+                        ifelse(!is.null(vsubset),
+                                paste0("arg",1:length(pViewColnames[vsubset]),
+                                        "(",names(pViewColnames[vsubset]),")",
+                                    collapse=","),
+                                paste0("arg",1:length(pViewColnames),
+                                        "(",names(pViewColnames),")",
+                                    collapse=",")
+                                ),
+                        ") a ",
                         constructWhere(pWhereConditions)
                     )
                 )
     }
 
     else if(is.TDAster()){
+        if(!is.null(pViewColnames))
+            pViewColnames <- pViewColnames[vsubset]
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                             " ( ON ( ",vNestedSelect," ) ",
@@ -346,14 +362,14 @@ constructScalarSQL <- function(pObject,
         pObject <- store(pObject)
 
     if(is.wideFLTable(pObject))
-        pObject <- wideToDeep(pObject)[["table"]]
+        pObject <- wideToDeep(pObject)
 
     if(is.FLSelectFrom(pObject@select)){
 
         if(is.FLMatrix(pObject) || 
             ((is.FLVector(pObject) || 
                 is.FLTable(pObject)) && 
-                pObject@isDeep)){
+                isDeep(pObject))){
             vVariables <- getVariables(pObject)
             vValueCol <- getValueColumn(pObject)
 

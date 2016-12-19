@@ -37,5 +37,3 @@ test_that("Anderson-Darling Test: DBLytix Example", {
     })
 
 
-FLenv$res
-

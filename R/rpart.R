@@ -17,7 +17,7 @@ rpart.FLTable<-function(data,
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(data@isDeep){
+	if(isDeep(data)){
 		deepx<-data
 		deepx<-setAlias(deepx,"")
 		deeptablename<-getTableNameSlot(data)
@@ -38,7 +38,7 @@ rpart.FLTable<-function(data,
 			depCol<-all.vars(formula)[1]
 			vprepspecs<-list(depCol,vexclude)
 			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
-			deepx<-deep[["table"]]
+			deepx<-deep
 			deepx<- setAlias(deepx,"")
 			deeptablename<-getTableNameSlot(deepx)
 	}
@@ -149,11 +149,11 @@ predict.FLrpart<-function(object,
 	if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
-	if(!newdata@isDeep){
+	if(!isDeep(newdata)){
 		deepx<-FLRegrDataPrep(newdata,
 							  depCol=object$prepspecs$depCol,
 							  excludeCols=object$prepspecs$vexclude)
-		newdata<-deepx[["table"]]
+		newdata<-deepx
 		newdata<-setAlias(newdata,"")
 	}
 	vtable <- getTableNameSlot(newdata)

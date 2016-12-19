@@ -59,7 +59,7 @@ coefficients.FLLogRegrMN <- function(object){
 	else
 	{
 		vfcalls <- object@vfcalls
-		if(object@table@isDeep)
+		if(isDeep(object@table))
 		coeffVector <- sqlQuery(getFLConnection(),
 			paste0("SELECT * FROM ",vfcalls["coefftablename"],
 				" where AnalysisID=",fquote(object@AnalysisID),
@@ -74,7 +74,7 @@ coefficients.FLLogRegrMN <- function(object){
 				   " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
                         "  AS a,",vfcalls["coefftablename"]," AS b \n",
 				   " WHERE a.Final_VarID = b.CoeffID \n",
-					" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisId),
+					" AND a.AnalysisID = ",fquote(object@wideToDeepAnalysisID),
 					"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
 					ifelse(!is.null(object@results[["modelID"]]),
 					paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),

@@ -2,7 +2,7 @@
 ## I've used the examples from R documentation
 
 Renv=new.env(parent=globalenv())
-Renv$M <- as.table(rbind(c(762, 327, 468), c(484, 239, 477)))
+Renv$M <- rbind(c(762, 327, 468), c(484, 239, 477))
 dimnames(Renv$M) <- list(gender = c("F", "M"),
                     party = c("Democrat","Independent", "Republican"))
 Renv$x <- matrix(c(12, 5, 7, 7), ncol = 2)

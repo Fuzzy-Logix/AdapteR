@@ -74,7 +74,7 @@ setMethod("genAggregateFunCall",
           function(object,func,...){
     object <- setValueSQLExpression(object=object,func=func,...)
     object@dims <- 1L
-    # object@select@order <- character()
+    object@select@order <- character()
     object <- setNamesSlot(object,NULL)
     object
 })
@@ -83,47 +83,52 @@ setMethod("genAggregateFunCall",
           signature(object = "FLMatrix"),
           function(object,func,
                   indexCol=FALSE,
-                  MARGIN=1,
+                  MARGIN=c(),
                   ...){
-                object <- setAlias(object,"")
-                if(!MARGIN %in% 1:2) 
-                    stop("MARGIN must be 1 or 2 in apply for FLMatrix")
-                # vgroupCol <- getIndexSQLExpression(object,MARGIN)
-                # vvalueCol <- getValueSQLExpression(object)
-                vrownames <- dimnames(object)[[MARGIN]]
-                # ifelse(is.null(vrownames),vrownames <- 1:(dim(X)[MARGIN]),
-                #     vrownames <- vrownames)
-                if(all(vrownames == 1:length(vrownames)))
-                    vrownames <- NULL
-                obj <-  new("FLSimpleVector",
-                            select=new("FLSelectFrom",
-                                       table_name=getTableNameSlot(object),
-                                       connectionName=getFLConnectionName(),
-                                       variables=list(indexCol=getIndexSQLExpression(object,MARGIN),
-                                                      valueCol=getValueSQLExpression(object)),
-                                       whereconditions=getWhereConditionsSlot(object),
-                                       # group="indexCol", ## CANNOT USE ALIAS NAME IN GROUPBY IN ASTER!
-                                       group=getIndexSQLExpression(object,MARGIN),
-                                       order="indexCol"),
-                            dimColumns = c("indexCol","valueCol"),
-                            names=NULL,
-                            dims = getDimsSlot(object)[setdiff(c(1,2),MARGIN)],
-                            type = "double"
-                            )
-                vres <- genAggregateFunCall(object=obj,
-                                            func=func,
-                                            ...)
-                vres <- setNamesSlot(vres,vrownames)
-                return(vres)
-                # return(func(obj,...))
-            })
+    ##browser()
+    object <- setAlias(object,"")
+    if(length(MARGIN)>0){
+        grp <- getIndexSQLExpression(object,MARGIN)
+    } else
+        grp <- "1"
+    ## vgroupCol <- getIndexSQLExpression(object,MARGIN)
+    ## vvalueCol <- getValueSQLExpression(object)
+    obj <-  new("FLSimpleVector",
+                select=new("FLSelectFrom",
+                           table_name=getTableNameSlot(object),
+                           connectionName=getFLConnectionName(),
+                           variables=list(indexCol=grp,
+                                          valueCol=getValueSQLExpression(object)),
+                           whereconditions=getWhereConditionsSlot(object),
+                                        # group="indexCol", ## CANNOT USE ALIAS NAME IN GROUPBY IN ASTER!
+                           group=grp,
+                           order="indexCol"),
+                dimColumns = c("indexCol","valueCol"),
+                dims = getDimsSlot(object)[setdiff(c(1,2),MARGIN)],
+                type = "double"
+                )
+    vres <- genAggregateFunCall(object=obj,
+                                func=func,
+                                ...)
+    if(length(MARGIN)>0){
+        vrownames <- llply(MARGIN,function(m){
+            r <- dimnames(object)[[MARGIN]]
+            if(all(r == 1:length(r)))
+                r <- NULL
+            r
+        })
+        dimnames(vres) <- vrownames
+    }
+    return(vres)
+                                        # return(func(obj,...))
+})
 
 FLoldGenAggregateFunCall <- function(object,func,
                                     indexCol=FALSE,
                                     ...){
     ##If FLMatrix or FLTable and indexCol may be needed for function
-    if(is.FLTable(object) && !object@isDeep)
-    object <- wideToDeep(object)[["table"]]
+    if(is.FLTable(object) && !isDeep(object))
+    object <- wideToDeep(object)
     if(indexCol && 
        (is.FLMatrix(object)||
         is.FLTable(object))){
@@ -179,12 +184,7 @@ mean.FLIndexedValues <- function(x,...){
     return(x)
 }
 
-#' @export
-mean.FLMatrix <- function(x,...){
-    return(genAggregateFunCall(x,func=mean))
-}
-# function (.data, .variables, .fun = NULL, ..., .progress = "none", 
-#     .inform = FALSE, .drop = TRUE, .parallel = FALSE, .paropts = NULL) 
+mean.FLMatrix <- mean.FLIndexedValues
 
 
 require(plyr)

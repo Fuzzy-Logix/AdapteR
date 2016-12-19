@@ -86,7 +86,7 @@ diag.FLVector <- function(object,...)
     }
     else if(length(object)>1)
     {
-        if(object@isDeep)
+        if(isDeep(object))
             return(FLMatrix(table_name = getTableNameSlot(object), 
                 matrix_id_value = "",
                 matrix_id_colname = "", 

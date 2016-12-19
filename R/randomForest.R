@@ -98,7 +98,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
                                                             values=list(...))
 	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
 								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
-	newdatatable <- deepx[["table"]]
+	newdatatable <- deepx
 	newdatatable <- setAlias(newdatatable,"")
 	tablename<- getTableNameSlot(newdatatable)
 	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]

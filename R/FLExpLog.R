@@ -55,7 +55,7 @@ setMethod("FLExpLog",signature(x="FLMatrix"),
 setMethod("FLExpLog",signature(x="FLVector"),
     function(functionName, x,m1=0,p1=0,lnb=1,...){
         a <- genRandVarName()
-        if(ncol(x)>1 && !x@isDeep)
+        if(ncol(x)>1 && !isDeep(x))
         {
             newColnames <- renameDuplicates(colnames(x))
             maxLength <- length(colnames(x))
@@ -67,14 +67,14 @@ setMethod("FLExpLog",signature(x="FLVector"),
             dimnames <- list(1:maxLength,
                             "vectorValueColumn")
         }
-        else if(ncol(x)==1 || x@isDeep)
+        else if(ncol(x)==1 || isDeep(x))
         {
             a <- genRandVarName()
             sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
                                 a,".vectorIndexColumn AS vectorIndexColumn,",
                             functionName,"(",a,".vectorValueColumn+(1*(",p1,")))/",lnb,"-(1*(",m1,")) AS vectorValueColumn",
                             " FROM(",constructSelect(x),") AS ",a)
-            if(ncol(x)>1 && x@isDeep)
+            if(ncol(x)>1 && isDeep(x))
             dimnames <- list(dimnames(x)[[2]],
                             "vectorValueColumn")
             else dimnames <- list(dimnames(x)[[1]],

@@ -1,6 +1,5 @@
 
 Renv = new.env(parent = globalenv())
-
 Renv$RoundingTimes <- matrix(c(5.40, 5.50, 5.55,
                            5.85, 5.70, 5.75,
                            5.20, 5.60, 5.50,
@@ -60,19 +59,19 @@ test_that("Friedman Test on FLTable: R example: checking Result Equality without
     expectation=c("fit"))
 })
 
-## Replicate same data and then subset
-Renv$wb <- rbind(Renv$wb,Renv$wb)
-FLenv$wb <- as.FLTable(Renv$wb,
-                       tableName="ARBaseTestTempTable",
-                       drop=TRUE)
+## ## Replicate same data and then subset
+## Renv$wb <- rbind(Renv$wb,Renv$wb)
+## FLenv$wb <- as.FLTable(Renv$wb,
+##                        tableName="ARBaseTestTempTable",
+##                        drop=TRUE)
 
-test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
-    result = eval_expect_equal({
-            fit <- friedman.test(x~w|t, data = wb, subset=flv)
-            fit$data.name <- NULL
-            class(fit) <- "list"
-    },Renv,FLenv,
-    verbose=F,
-    expectation=c("fit"))
-})
+## test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
+##     result = eval_expect_equal({
+##             fit <- friedman.test(x~w|t, data = wb, subset=flv)
+##             fit$data.name <- NULL
+##             class(fit) <- "list"
+##     },Renv,FLenv,
+##     verbose=F,
+##     expectation=c("fit"))
+## })
 

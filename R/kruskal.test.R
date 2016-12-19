@@ -92,7 +92,7 @@ kruskal.test.FLTable <- function(formula,data,
                                  ...){
                     data <- setAlias(data,"")
                     connection <- getFLConnection()
-                    if(data@isDeep){
+                    if(isDeep(data)){
                         vSampleIDColname <- getVariables(data)[["var_id_colname"]]
                         vValueColname <- getVariables(data)[["cell_val_colname"]]
                     }

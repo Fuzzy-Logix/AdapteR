@@ -11,7 +11,6 @@ test_that("one sample t test",{
         verbose=F)
 })
 
-
 test_that("two sample t test: conf-int wrong https://app.asana.com/0/143316600934101/195568724935159",{
 	result = eval_expect_equal({
 		obj<-t.test(obja,objb)
@@ -19,7 +18,7 @@ test_that("two sample t test: conf-int wrong https://app.asana.com/0/14331660093
 	},Renv,FLenv,
         tolerance=1e-4,
 	expectation=c("obj","obj2"),
-        verbose=F
+        verbose=T
         )
 })
 

@@ -332,9 +332,9 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
 ##' @param object FLTable object 
 ##' @return message if the table is dropped
 ##' @export
-drop.FLTable <- function(object)
+dbDrop <- function(object)
 {
-    vSqlStr <- paste0(" DROP TABLE ",object@tablename)
+    vSqlStr <- paste0(" DROP TABLE ",getTableNameSlot(object))
     sqlSendUpdate(getFLConnection(object), vSqlStr)
     return(paste0(getTableNameSlot(object)," DROPPED"))
 }

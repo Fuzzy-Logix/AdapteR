@@ -570,7 +570,7 @@ residuals.FLGAM <- function(object)
 		y <- "fPred"
 		vobsid <- "ObsID"
 		
-  #   	if(!object@table@isDeep)
+  #   	if(!isDeep(object@table))
 		# vYVector <- object@table[,all.vars(object@formula)[1]]
 		# else
 		# vYVector <- object@table[,"-1"]
@@ -897,7 +897,7 @@ predict.FLGAM <- function(object,
 						)
 	}
 	else if(is.FLTable(newdata)){
-		if(newdata@isDeep) stop("input wide table for scoring\n")
+		if(isDeep(newdata)) stop("input wide table for scoring\n")
 		vinputCols <- c(vinputCols,
 						InTableName=getTableNameSlot(newdata),
 						ObsIDCol=getVariables(newdata)[["obs_id_colname"]],

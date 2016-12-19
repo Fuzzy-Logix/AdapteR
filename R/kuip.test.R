@@ -1,8 +1,7 @@
 NULL
-#' Kuiper Test
+#' Kuiper Test used to test if two groups of data come from same distribution.
 #'
 #' 
-#' Kuiper test is used to test if two groups of data come from same distribution.
 #' Kuiper test is similar to two-sample Kolmogorov-Smirnov test. Compare to two-sample Kolmogorov-Smirnov test, Kuiper test is as sensitive in the tails as at the median and invariant under cyclic transformations of the independent variable.
 #' 
 #' @param vFLvector1 a FLVector of data values

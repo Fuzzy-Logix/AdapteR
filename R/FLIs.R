@@ -29,7 +29,7 @@ is.FLSimpleVector <- function(object)
     class(object)=="FLSimpleVector"
 is.RowFLVector <- function(pObject){
     if(is.FLVector(pObject) && 
-        !pObject@isDeep && 
+        !isDeep(pObject) && 
             ncol(pObject)>1)
     return(TRUE)
     else return(FALSE)
@@ -40,7 +40,7 @@ is.wideFLTable <- function(pObject){
         && !is.FLTableMD(pObject)
         && !is.FLVector(pObject))
     return(FALSE)
-    else return(!pObject@isDeep)
+    else return(!isDeep(pObject))
 }
 
 is.FLSelectFrom <- function(pObj)

@@ -6,10 +6,10 @@ t <- sqlQuery(connection, sqlstr)
 Renv = new.env(parent = globalenv())
 Renv$a <- t$NUM_VAL
 FLenv = as.FL(Renv)
-
 test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     result = eval_expect_equal({
-        q <- ks.test(a,'pnorm', 3.5, 11.5)
+        res_exact <- ks.test(a,'pnorm', 3.5, 11.5,exact=TRUE)
+        res_nonexact <- ks.test(a,'pnorm', 3.5, 11.5,exact=FALSE)
     },Renv,FLenv,
     expectation = c("q"),
     check.attributes=F,
@@ -27,9 +27,10 @@ Renv$x <- rnorm(10, 1, 2)
 FLenv <- as.FL(Renv)
 test_that("Kolmogorov-Smirnov Test 1s:", {
     result = eval_expect_equal({
-        val <- ks.test(x, 'pnorm', 1, 2, exact = TRUE)
+        res_nonexact <- ks.test(x, 'pnorm', 1, 2, exact = FALSE)
+        res_exact <- ks.test(x, 'pnorm', 1, 2, exact = TRUE)
     },Renv,FLenv,
-    expectation = "val",
+    expectation = c("res_exact","res_nonexact"),
     check.attributes = T,
     tolerance = .0001,
     verbose = FALSE
@@ -43,9 +44,9 @@ Renv$p <- rnorm(50)
 Renv$q <- runif(30)
 FLenv = as.FL(Renv)
 
-test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
+test_that("Kolmogorov-Smirnov Test 2S, exact",{
     result = eval_expect_equal({
-        a <- ks.test(p, q, exact = FALSE)
+        a <- ks.test(p, q, exact = TRUE)
     },Renv,FLenv,
     expectation = c("a"),
     check.attributes=F,
@@ -54,7 +55,6 @@ test_that("Kolmogorov-Smirnov Test 2S: R Example ",{
     )
 }
 )
-
 
                                         # Kolmogorov-Smirnov (KS) Test 2S
 
@@ -66,7 +66,7 @@ Renv$m <- mt$NUM_VAL[mt$GROUPID == 1]
 Renv$n <- mt$NUM_VAL[mt$GROUPID == 2]
 FLenv = as.FL(Renv)
 
-test_that("Kolmogorov-Smirnov Test 2S:DBLytix Example ",{
+test_that("Kolmogorov-Smirnov Test 2S, exact -- DBLytix Example ",{
     result = eval_expect_equal({
         a <- ks.test(m,n)
     },Renv,FLenv,
