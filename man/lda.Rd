@@ -2,7 +2,8 @@
 % Please edit documentation in R/FLLDA.R
 \name{lda}
 \alias{lda}
-\title{Linear discriminant analysis.}
+\title{Linear discriminant analysis.
+\code{lda} performs Linear discriminant analysis on FLTable objects.}
 \usage{
 lda(formula, data = list(), ...)
 }
@@ -15,7 +16,6 @@ lda(formula, data = list(), ...)
 \code{LDA} returns an object of class \code{FLLDA}
 }
 \description{
-\code{lda} performs Linear discriminant analysis on FLTable objects.
 The DB Lytix function called is FLLDA. Performs Linear discriminant analysis and 
 stores the results in predefined tables.
 }
