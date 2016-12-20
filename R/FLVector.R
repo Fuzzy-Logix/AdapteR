@@ -73,7 +73,7 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
     if(!is.null(value)){
         if(length(value)!=length(x))
             stop("names should be of same length as FLVector \n ")
-        else if(is.na(value)) stop("NA names not allowed \n ")
+        else if(any(is.na(value))) stop("NA names not allowed \n ")
     }
     
     if(ncol(x)==1)

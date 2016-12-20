@@ -229,6 +229,24 @@ setMethod("getValueSQLExpression",
 setMethod("getValueSQLExpression",
           signature(object = "FLAbstractColumn"),
           function(object) object@columnName)
+setMethod("getValueSQLExpression",
+          signature(object="FLVector"),
+          function(object){
+            if(isDeep(object))
+                return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
+            else{
+                vtemp <- ""
+                if(!is.null(getAlias(object)) && 
+                    getAlias(object)!="")
+                    vtemp <- paste0(getAlias(object),".")
+                return(sapply(colnames(object),
+                      function(x){
+                        if(!grepl(vtemp,x))
+                        return(paste0(vtemp,x))
+                        else return(x)
+                        }))
+            }
+            })
 
 
 
@@ -238,8 +256,15 @@ setGeneric("setValueSQLExpression", function(object, func,...) {
 })
 setMethod("setValueSQLExpression",
           signature(object = "FLIndexedValues"),
-          function(object,func,...) {
-            vres <- func(object,...)
+          function(object,func,
+                    useAbstractColumn=FALSE,...) {
+            if(useAbstractColumn){
+                vValueCol <- getValueSQLExpression(object)
+                vres <- func(new("FLAbstractColumn",
+                                 columnName=vValueCol),
+                                 ...)
+            }
+            else vres <- func(object,...)
             if(is.FLSimpleVector(vres))
                 return(vres)
             else{
@@ -247,7 +272,24 @@ setMethod("setValueSQLExpression",
                 object
             }
 })
-
+setMethod("setValueSQLExpression",
+          signature(object = "FLVector"),
+          function(object,func,
+                    useAbstractColumn=FALSE,...) {
+            if(useAbstractColumn){
+                vValueCol <- getValueSQLExpression(object)
+                vres <- func(new("FLAbstractColumn",
+                                 columnName=vValueCol),
+                                 ...)
+            }
+            else vres <- func(object,...)
+            if(is.FLSimpleVector(vres))
+                return(vres)
+            else{
+                object@Dimnames[[2]] <- vres
+                object
+            }
+})
 
 #' @export
 setGeneric("getIndexSQLExpression", function(object,margin=1) {

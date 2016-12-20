@@ -342,11 +342,11 @@ getOutputColumns <- function(pObject,
                             pFunc,
                             ...){
     if(is.FLVector(pObject))
-    vOutCols <- c("vectorIdColumn",
-                "vectorIndexColumn",
-                "vectorValueColumn")
+        vOutCols <- c("vectorIdColumn",
+                    "vectorIndexColumn",
+                    "vectorValueColumn")
     else
-    vOutCols <- names(getVariables(pObject))
+        vOutCols <- names(getVariables(pObject))
 
     names(vOutCols) <- vOutCols
     vValueCol <- as.FLAbstractCol(pObject)
@@ -361,37 +361,41 @@ constructScalarSQL <- function(pObject,
     if(is.RowFLVector(pObject))
         pObject <- store(pObject)
 
-    if(is.wideFLTable(pObject))
+    if(is.FLTable(pObject) && 
+        is.wideFLTable(pObject))
         pObject <- wideToDeep(pObject)
 
     if(is.FLSelectFrom(pObject@select)){
 
         if(is.FLMatrix(pObject) || 
             ((is.FLVector(pObject) || 
-                is.FLTable(pObject)) && 
-                isDeep(pObject))){
-            vVariables <- getVariables(pObject)
-            vValueCol <- getValueColumn(pObject)
+                is.FLTable(pObject)))){
+            # vVariables <- getVariables(pObject)
+            # vValueCol <- getValueColumn(pObject)
 
-            vVariables[[names(vValueCol)]] <- pFunc(new("FLAbstractColumn",
-                                                         columnName=vValueCol),
-                                                    ...)
-            pObject@select@variables <- vVariables
-            return(pObject)
+            # vVariables[[names(vValueCol)]] <- pFunc(new("FLAbstractColumn",
+            #                                              columnName=vValueCol),
+            #                                         ...)
+            # pObject@select@variables <- vVariables
+            pObject <- setValueSQLExpression(object=pObject,
+                                            func=pFunc,
+                                            useAbstractColumn=TRUE,
+                                            ...)
         }
-        if(is.FLVector(pObject)){
-            vValueCol <- getValueColumn(pObject)
-            #names(pObject@select@table_name) <- NULL
-            pObject@Dimnames[[2]] <- pFunc(new("FLAbstractColumn",
-                                                columnName=vValueCol),
-                                                ...)
-            return(pObject)
-        }
+        # if(is.FLVector(pObject)){
+        #     vValueCol <- getValueColumn(pObject)
+        #     #names(pObject@select@table_name) <- NULL
+        #     pObject@Dimnames[[2]] <- pFunc(new("FLAbstractColumn",
+        #                                         columnName=vValueCol),
+        #                                         ...)
+        #     return(pObject)
+        # }
     }
     else{
-        vVariables <- getOutputColumns(pObject=pObject,
-                                        pFunc=pFunc,
-                                        ...)
+        # vVariables <- getOutputColumns(pObject=pObject,
+        #                                 pFunc=pFunc,
+        #                                 ...)
+        vVariables <- getVariables(pObject)
         vsqlstr <- paste0("SELECT ",
                         paste0(vVariables," AS ",
                                 names(vVariables),
@@ -399,8 +403,8 @@ constructScalarSQL <- function(pObject,
                         " FROM (",constructSelect(pObject),
                             ") a ")
         pObject@select@SQLquery <- vsqlstr
-        return(pObject)
     }
+    return(pObject)
 }
 
 ##################################### Aggregate SQL ###########################################
