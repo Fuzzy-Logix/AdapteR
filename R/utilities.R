@@ -600,6 +600,7 @@ checkValidFormula <- function(pObject,pData)
         stop(x," not in colnames of data\n"))
 }
 
+#' @export
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
                                       tableName)
 {

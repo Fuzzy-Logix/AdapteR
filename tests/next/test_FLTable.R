@@ -20,3 +20,11 @@ test_that("FLTable in-database transformations, type logical -- UPDATE existing 
         },
     Renv,FLenv,check.attributes=FALSE)
 })
+
+test_that("FLTable dims and names",{
+    result = eval_expect_equal({ 
+        tdims <- dim(irisdata)
+        tcols <- ncol(irisdata)
+        },
+    Renv,FLenv,check.attributes=FALSE)
+})

@@ -40,25 +40,3 @@ test_that("Wald-Wolfowitz One Sample Test:",{
     expectation = c("p.val","z"),
     check.attributes=FALSE)
     })
-
-                                        #Wald WOlf 2s Test:
-sqlstr <- paste0("SELECT * FROM tblWW2SMulti WHERE DATASETID = 1")
-res <- sqlQuery(connection, sqlstr)
-Renv = new.env(parent = globalenv())
-
-Renv$x <- res$num_val[res$groupid == 1]
-Renv$y <- res$num_val[res$groupid == 2]
-FLenv = as.FL(Renv)
-Renv$res1 <- runs.test(Renv$x, Renv$y, alternative = "two.sided")
-FLenv$res1 <- WaldWolftest2s(FLenv$x, FLenv$y)
-
-test_that("Wald-Wolfowitz two Sample Test:",{
-    result = eval_expect_equal({
-        p.val <- res1$p.value
-        z <- res1$statistic
-    },Renv,FLenv,
-    noexpectation=c("res1"),
-    expectation =c( "p.val", "z"),
-    verbose=T,
-    check.attributes=FALSE)
-})

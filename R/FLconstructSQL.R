@@ -500,6 +500,7 @@ FLSerial <- function(min,max){
                    order="serialVal"),
         dimColumns = c("serialVal","serialVal"),
         ##names=NULL,
+        Dimnames = list(NULL),
         dims    = as.integer(max-min+1),
         type       = "integer"
         )

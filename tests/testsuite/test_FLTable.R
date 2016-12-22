@@ -12,18 +12,13 @@ colnames(Renv$irisdata) <- gsub("\\.","",colnames(Renv$irisdata),fixed = FALSE)
 FLenv$irisdata <- as.FLTable.data.frame(Renv$irisdata,temporary=FALSE)
 FLenv$testdf <- as.FLTable.data.frame(Renv$testdf,temporary=FALSE)
 
-require(testthat)
 test_that("FLTable dims and names",{
     result = eval_expect_equal({ 
-        tdims <- dim(irisdata)
         trows <- nrow(irisdata)
-        tcols <- ncol(irisdata)
         tdnames <- dimnames(irisdata)
         },
     Renv,FLenv,check.attributes=FALSE)
 })
-
-FLenv$tdnames
 
 ##options(debugSQL=TRUE)
 test_that("FLTable in-database transformations, type double -- ALTER TABLE, adding new columns",{
