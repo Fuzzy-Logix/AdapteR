@@ -235,6 +235,7 @@ print.FLrpart<-function(object){ #browser()
 # `$.FLrpart` <- function(object,property){
 # 	return(slot(object,property))
 # }
+setOldClass("FLrpart")
 setMethod("show","FLrpart",print.FLrpart)
 
 preorderDataFrame <- function(df){#browser()

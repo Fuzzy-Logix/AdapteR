@@ -25,10 +25,10 @@ setClass(
 
 #' Flexible Discriminant Analysis
 #' 
-#'\code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+#' \code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+#' library(mda)
 #'
 #' The DB Lytix function called is FLFlexDiscriminant. Performs Flexible Discriminant Analysis and stores the results in predefined tables.
-
 #' @seealso \code{\link[stats]{fda}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable or FLTableMD.
@@ -48,7 +48,6 @@ setClass(
 #' couldnt be implemented: plot, values, precent.explained
 #' (lack of data of discriminant space).
 #' @export
-#' library(mda)
 fda <- function (formula,data=list(),...) {
     UseMethod("fda", data)
 }
@@ -77,8 +76,8 @@ fda.FLTable <- fda.FLpreparedData
 fda.FLTableMD <- fda.FLpreparedData
 
 #' Linear discriminant analysis.
+#' 
 #' \code{lda} performs Linear discriminant analysis on FLTable objects.
-#'
 #' The DB Lytix function called is FLLDA. Performs Linear discriminant analysis and 
 #' stores the results in predefined tables.
 #'
@@ -92,9 +91,7 @@ fda.FLTableMD <- fda.FLpreparedData
 #' flmod$scaling, flmod$means;cof <-coefficients(flmod)
 #' predict(flmod): Not implemented yet.
 #' plot(flmod)
-
-## TO DO: predict, 
-
+#' @export
 lda <- function (formula,data=list(),...) {
     UseMethod("lda", data)
 }
@@ -122,13 +119,13 @@ lda.FLTableMD <- lda.FLpreparedData
 
 
 ## MDA function
-#' library(mda)
-## Mixed DA.
-#' @export
 #' Mixture Discriminant Analysis.
-#' \code{mda} performs Mixture Discriminant Analysis on FLTable objects.
+#' 
+#'\code{mda} performs Mixture Discriminant Analysis on FLTable objects.
 #' The DB Lytix function called is FLMDA. Performs Mixture Discriminant Analysis and 
 #' stores the results in predefined tables.
+#'
+#' limitations: no dollar operator access to means, precent.explained, values, plot((lack of data of discriminant space).
 #' @seealso \code{\link[stats]{mda}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable or FLTableMD.
@@ -147,11 +144,7 @@ lda.FLTableMD <- lda.FLpreparedData
 #' FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
 #' class into a number of artificial subclasses. It calibrates the mixture of Gaussians
 #' and the mixing probability by maximizing the log-likelihood with expectation maximization.
-
-
-#' couldnt implement dollar operator: means, precent.explained, values, plot((lack of data of discriminant space).
-
-
+#' @export
 mda <- function (formula,data=list(),...) {
     UseMethod("mda", data)
 }
