@@ -1,3 +1,4 @@
+
 library(randtests)
                                         #Wald-Wolf 1s Test
 sqlstr <- paste0("SELECT * FROM tblWW1SMulti WHERE DATASETID = 1")
@@ -55,10 +56,10 @@ test_that("Wald-Wolfowitz two Sample Test:",{
     result = eval_expect_equal({
         p.val <- res1$p.value
         z <- res1$statistic
-        
     },Renv,FLenv,
     noexpectation=c("res1"),
     expectation =c( "p.val", "z"),
+    verbose=T,
     check.attributes=FALSE)
 })
 
@@ -83,9 +84,9 @@ test_that("Wald-Wolfowitz two Sample Test:",{
     result = eval_expect_equal({
         p.val <- res1$p.value
         z <- res1$statistic
-        
     },Renv,FLenv,
     noexpectation=c("res1"),
     expectation =c( "p.val", "z"),
+    verbose=T,
     check.attributes=FALSE)
 })
