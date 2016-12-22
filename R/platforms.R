@@ -513,3 +513,12 @@ FLClose <- function(connection)
 
 ## Generate Mappings when package is loaded
 FLcreatePlatformsMapping()
+
+checkHypoSystemTableExists <- function(){
+    ## Create System table for HypothesisTesting Statistics Mapping
+    vdf <- read.csv(system.file('data/HypothesisTestsMapping.csv', package='AdapteR'))
+    if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
+        t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
+                        temporary=FALSE,drop=TRUE)
+        
+}

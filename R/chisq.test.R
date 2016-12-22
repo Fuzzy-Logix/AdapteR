@@ -7,6 +7,7 @@ setMethod("chisq.test",signature(x="ANY"),
 			})
 setMethod("chisq.test",signature(x="FLMatrix"),
 	function(x,pear=0,...){
+        checkHypoSystemTableExists()
 		if(!is.FLMatrix(x)) stop("Only FLMatrix objects are supported")
 			if(pear==0){
 			ifelse(is.null(rownames(x)),vrownames<-1:nrow(x),vrownames<-rownames(x))
