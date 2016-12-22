@@ -206,7 +206,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     ## store database where tests need to be run
     TestDatabase <- list(...)$TestDatabase
     if(is.null(TestDatabase)){
-        vmap <- c(TD="FL_DEMO",TDAster="fuzzylogix",Hadoop="mazdoo")
+        vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="mazdoo")
         TestDatabase <- vmap[platform]
     }
     if(platform=="Hadoop")
