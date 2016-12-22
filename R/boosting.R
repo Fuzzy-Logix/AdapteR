@@ -5,7 +5,13 @@ boosting<-function(formula,data,...){
 	UseMethod("boosting",data)
 }
 
-boosting.default<-adabag::boosting
+boosting.default<-function (formula,data=list(),...) {
+    if (!requireNamespace("adabag", quietly = TRUE)){
+        stop("adabag package needed for boosting. Please install it.",
+             call. = FALSE)
+    }
+    else return(adabag::boosting(formula=formula,data=data,...))
+}
 
 boosting.FLTable<-function(data,
 				   formula,

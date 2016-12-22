@@ -2,7 +2,14 @@
 randomForest<-function(data,formula,...){
 	UseMethod("randomForest",data)
 }
-randomForest.default<-randomForest::randomForest
+randomForest.default<-function (formula,data=list(),...) {
+    if (!requireNamespace("randomForest", quietly = TRUE)){
+        stop("randomForest package needed for randomForest. Please install it.",
+             call. = FALSE)
+    }
+    else return(randomForest::randomForest(formula=formula,data=data,...))
+}
+
 
 randomForest.FLTable<-function(data,
 							   formula,
