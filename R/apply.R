@@ -73,9 +73,9 @@ setMethod("genAggregateFunCall",
           signature(object = "FLSimpleVector"),
           function(object,func,...){
     object <- setValueSQLExpression(object=object,func=func,...)
-    object@dims <- 1L
-    object@select@order <- character()
-    object <- setNamesSlot(object,NULL)
+    ## object@dims <- 1L
+    object@select@order <- object@select@group
+    ## object <- setNamesSlot(object,NULL)
     object
 })
 
@@ -85,7 +85,6 @@ setMethod("genAggregateFunCall",
                   indexCol=FALSE,
                   MARGIN=c(),
                   ...){
-    ##browser()
     object <- setAlias(object,"")
     if(length(MARGIN)>0){
         grp <- getIndexSQLExpression(object,MARGIN)
@@ -105,6 +104,7 @@ setMethod("genAggregateFunCall",
                            order="indexCol"),
                 dimColumns = c("indexCol","valueCol"),
                 dims = getDimsSlot(object)[setdiff(c(1,2),MARGIN)],
+                Dimnames = dimnames(object)[setdiff(c(1,2),MARGIN)],
                 type = "double"
                 )
     vres <- genAggregateFunCall(object=obj,
@@ -269,57 +269,4 @@ setMethod("apply",
                                     func=FUN,
                                     MARGIN=MARGIN,
                                     ...))
-		# X <- setAlias(X,"")
-  #       if(!MARGIN %in% 1:2) 
-  #           stop("MARGIN must be 1 or 2 in apply for FLMatrix")
-  #       vgroupCol <- getVariables(X)[[X@dimColumns[MARGIN+1]]]
-  #       vvalueCol <- getVariables(X)[[X@dimColumns[4]]]
-  #       vrownames <- dimnames(X)[[MARGIN]]
-  #       # ifelse(is.null(vrownames),vrownames <- 1:(dim(X)[MARGIN]),
-  #       #     vrownames <- vrownames)
-  #       if(all(vrownames == 1:length(vrownames)))
-  #           vrownames <- NULL
-		# # if(MARGIN==1){
-		# # vgroupCol <- getVariables(X)[["rowIdColumn"]]
-		# # vvalueCol <- getVariables(X)[["valueColumn"]]
-		# # vrownames <- rownames(X)
-		# # ifelse(is.null(vrownames),vrownames <- 1:nrow(X),
-		# # 	vrownames <- vrownames)
-		# # }
-		# # else if(MARGIN==2){
-		# # vgroupCol <- getVariables(X)[["colIdColumn"]]
-		# # vvalueCol <- getVariables(X)[["valueColumn"]]
-		# # vrownames <- colnames(X)
-		# # ifelse(is.null(vrownames),vrownames <- 1:ncol(X),
-		# # 	vrownames <- vrownames)
-		# # }
-		# # else stop("MARGIN can be 0 or 1 in apply.FLMatrix")
-		# vFuncArgs <- list(...)
-  #       vFuncArgs <- c(vFuncArgs,count=dim(X)[setdiff(1:2,MARGIN)])
-  #       vFuncArgs <- unlist(vFuncArgs)
-  #       vabstractCol <- new("FLAbstractColumn",
-  #                           columnName=vvalueCol)
-  #       vfunCalls <- FUN(vabstractCol,vFuncArgs)
-
-		# sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n",
-		# 						vgroupCol," AS vectorIndexColumn,\n",
-		# 						vfunCalls," AS vectorValueColumn \n",
-		# 				" FROM  ",tableAndAlias(X),"\n",
-		# 				constructWhere(constraintsSQL(X)),"\n",
-		# 				" GROUP BY ",vgroupCol)
-
-		# tblfunqueryobj <- new("FLTableFunctionQuery",
-	 #                    connectionName = getFLConnectionName(),
-	 #                    variables = list(
-		# 	                obs_id_colname = "vectorIndexColumn",
-		# 	                cell_val_colname = "vectorValueColumn"),
-	 #                    whereconditions="",
-	 #                    order = "",
-	 #                    SQLquery=sqlstr)
-
-		# flv <- newFLVector(
-		# 			select = tblfunqueryobj,
-		# 			Dimnames = list(vrownames,"vectorValueColumn"),
-		# 			isDeep = FALSE,
-  #                   type=typeof(X))
-	})
+})
