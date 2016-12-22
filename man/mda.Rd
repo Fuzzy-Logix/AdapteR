@@ -2,7 +2,7 @@
 % Please edit documentation in R/FLLDA.R
 \name{mda}
 \alias{mda}
-\title{Mixture Discriminant Analysis.}
+\title{library(mda)}
 \usage{
 mda(formula, data = list(), ...)
 }
@@ -25,12 +25,7 @@ random subclass of its class; 0 otherwise.}
 \code{mda} returns an object of class \code{FLLDA}
 }
 \description{
-\code{mda} performs Mixture Discriminant Analysis on FLTable objects.
-The DB Lytix function called is FLMDA. Performs Mixture Discriminant Analysis and 
-stores the results in predefined tables.
-}
-\details{
-limitations: no dollar operator access to means, precent.explained, values, plot((lack of data of discriminant space).
+library(mda)
 }
 \examples{
 deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
@@ -40,6 +35,7 @@ cof <-coefficients(flmod)
 FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
 class into a number of artificial subclasses. It calibrates the mixture of Gaussians
 and the mixing probability by maximizing the log-likelihood with expectation maximization.
+couldnt implement dollar operator: means, precent.explained, values, plot((lack of data of discriminant space).
 }
 \seealso{
 \code{\link[stats]{mda}} for R reference implementation.

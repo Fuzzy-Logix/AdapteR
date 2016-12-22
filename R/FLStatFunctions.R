@@ -1002,35 +1002,55 @@ getDescStatsUDTjoin <- function(object,
     if(is.FLTable(object) && !isDeep(object))
     object <- wideToDeep(object)
 
-    sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
-                    " SELECT ",paste0(viewCols,collapse=",")," \n ",
-                    " FROM(",constructSelect(object),") a) \n ",
-                    " SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
-                        "z.",names(viewCols)[4]," AS vectorIndexColumn, \n ",
-                        paste0("a.",outCol," AS ",names(outCol),collapse=",")," \n ",
-                    " FROM \n ",
-                    " TABLE (",functionName,"(",paste0("z.",names(viewCols)[1:3],collapse=","),") \n ",
-                    " HASH BY ",paste0("z.",names(viewCols)[1])," \n ",
-                    " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a,z \n ",
-                    " WHERE z.",names(viewCols)[2]," = a.oValue")
+    # sqlstr <- paste0("WITH z (",paste0(names(viewCols),collapse=","),") AS ( \n ",
+    #                 " SELECT ",paste0(viewCols,collapse=",")," \n ",
+    #                 " FROM(",constructSelect(object),") a) \n ",
+    #                 " SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+    #                     "z.",names(viewCols)[4]," AS vectorIndexColumn, \n ",
+    #                     paste0("a.",outCol," AS ",names(outCol),collapse=",")," \n ",
+    #                 " FROM \n ",
+    #                 " TABLE (",functionName,"(",paste0("z.",names(viewCols)[1:3],collapse=","),") \n ",
+    #                 " HASH BY ",paste0("z.",names(viewCols)[1])," \n ",
+    #                 " LOCAL ORDER BY ",paste0("z.",names(viewCols)[1]),") AS a,z \n ",
+    #                 " WHERE z.",names(viewCols)[2]," = a.oValue")
 
-    # vMap <- getMatrixUDTMapping(functionName)
-    # pOutColnames <- vMap$argsPlatform
-    # pOutColnames["vectorIdColumn"] <- "'%insertIDhere%'"
-    # outputValueColumn <- pOutColnames["outputValueColumn"]
-    # pOutColnames <- pOutColnames[setdiff(names(pOutColnames),"outputValueColumn")]
-    # pOutColnames <- as.list(pOutColnames)
-    # pFuncName <- vMap$funcNamePlatform
+    vMap <- getMatrixUDTMapping(functionName)
+    pOutColnames <- vMap$argsPlatform
+    pOutColnames["vectorIdColumn"] <- "'%insertIDhere%'"
+    outputValueColumn <- pOutColnames["outputValueColumn"]
+    pOutColnames <- pOutColnames[setdiff(names(pOutColnames),"outputValueColumn")]
+    pOutColnames <- as.list(pOutColnames)
+    pFuncName <- vMap$funcNamePlatform
     
-    # sqlstr <- constructUDTSQL(pViewColnames=as.list(viewCols),
-    #                           pFuncName=pFuncName,
-    #                           pSelect=constructSelect(object,order=FALSE),
-    #                           pOutColnames=pOutColnames,
-    #                           pNest=TRUE,
-    #                           UDTInputSubset=1:3,
-    #                           pWhereConditions=paste0("z.",names(viewCols)[2],
-    #                                                 "= a.",outputValueColumn)
-    #                           )
+    if(is.TD()){
+        pOutColnames[["vectorIndexColumn"]] <- "z.pObsID"
+        sqlstr <- constructUDTSQL(pViewColnames=as.list(viewCols),
+                              pFuncName=pFuncName,
+                              pSelect=constructSelect(object,order=FALSE),
+                              pOutColnames=pOutColnames,
+                              pNest=TRUE,
+                              UDTInputSubset=1:3
+                              )
+        sqlstr <- paste0(sqlstr,",z WHERE z.pValue = a.",outputValueColumn)
+    }
+    else if(is.Hadoop()){
+        pOutColnames[["outputValueColumn"]] <- outputValueColumn
+        sqlstr <- constructUDTSQL(pViewColnames=as.list(viewCols),
+                              pFuncName=pFuncName,
+                              pSelect=constructSelect(object,order=FALSE),
+                              pOutColnames=pOutColnames,
+                              pNest=TRUE,
+                              UDTInputSubset=1:3
+                              )
+        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
+                                "b.pObsID AS vectorIndexColumn, \n ",
+                                "a.vectorValueColumn AS vectorValueColumn \n ",
+                        " FROM (",sqlstr,") a, \n ",
+                                "(",paste0("SELECT ",constructVariables(viewCols),
+                                            " FROM (",constructSelect(object)," ) a "),
+                                ") b \n ",
+                        " WHERE a.outputValueColumn=b.pValue ")
+    }
     
     tblfunqueryobj <- new("FLTableFunctionQuery",
                     connectionName = getFLConnectionName(),
@@ -1097,35 +1117,35 @@ setMethod("rank",signature(x="FLVector"),
                                 functionName=vfunction,
                                 outCol=c(vectorValueColumn=voutcol),
                                 viewCols=c(pGroupID=1,
-                                        pValue="vectorValueColumn",
+                                        pValue=getValueSQLName(x),
                                         pRankOrder=fquote(rankOrder),
                                         pObsID="vectorIndexColumn")
                                 )
             )
         })
 
-# setMethod("rank",signature(x="FLVector.Hadoop"),
-#     function(x,na.last=TRUE,
-#             ties.method="average",
-#             rankOrder="A",
-#             ...){
-#         vtemp <- selectRankMethod(rankOrder=rankOrder,
-#                         type=ties.method)
-#         vfunction <- vtemp["vfunction"]
-#         voutcol <- vtemp["voutcol"]
-#         names(vfunction) <- NULL
-#         names(voutcol) <- NULL
+setMethod("rank",signature(x="FLVector.Hadoop"),
+    function(x,na.last=TRUE,
+            ties.method="average",
+            rankOrder="A",
+            ...){
+        vtemp <- selectRankMethod(rankOrder=rankOrder,
+                        type=ties.method)
+        vfunction <- vtemp["vfunction"]
+        voutcol <- vtemp["voutcol"]
+        names(vfunction) <- NULL
+        names(voutcol) <- NULL
 
-#         return(getDescStatsUDTjoin(object=x,
-#                                 functionName=vfunction,
-#                                 outCol=c(vectorValueColumn=voutcol),
-#                                 viewCols=c(pGroupID=1,
-#                                         pValue="CAST(vectorValueColumn AS DOUBLE)",
-#                                         pRankOrder=fquote(rankOrder),
-#                                         pObsID="vectorIndexColumn")
-#                                 )
-#             )
-#         })
+        return(getDescStatsUDTjoin(object=x,
+                                functionName=vfunction,
+                                outCol=c(vectorValueColumn=voutcol),
+                                viewCols=c(pGroupID=1,
+                                        pValue=paste0("CAST(",getValueSQLName(x)," AS DOUBLE)"),
+                                        pRankOrder=fquote(rankOrder),
+                                        pObsID="vectorIndexColumn")
+                                )
+            )
+        })
 
 setMethod("rank",signature(x="ANY"),
     function(x,na.last=TRUE,

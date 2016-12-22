@@ -60,3 +60,9 @@ FLMedianAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMedianAbsDev(vectorIdColu
 
 FLFracRankUdt.TD(oGroupID,oValue,oFracRank) <- FLFracRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oFracRank)
 FLFracRankUdt.Hadoop(oGroupID,oValue,oFracRank) <- FLPTFFracRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=FracRank)
+
+FLPercRankUdt.TD(oGroupID,oValue,oPercRank) <- FLPercRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oPercRank)
+FLPercRankUdt.Hadoop(oGroupID,oValue,oPercRank) <- FLPTFPercRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=PercRank)
+
+FLRankUdt.TD(oGroupID,oValue,oRank) <- FLRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oRank)
+FLRankUdt.Hadoop(oGroupID,oValue,oRank) <- FLPTFRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=ValueRank)
