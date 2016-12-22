@@ -6,7 +6,9 @@ Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
 
-test_that("test for decision tree on deeptables",{
+print(methods("rpart"))
+
+test_that("test for decision tree on wide tables",{
   flobj<-rpart(FLenv$table, formula = -1~.)
   robj <- rpart(Col1~., data = Renv$table,method = "class")
   result1= expect_equal(flobj$frame[1,"n"],robj$frame[1,"n"])

@@ -567,9 +567,12 @@ isAliasSet <- function(object){
 # flv <- flSimple[subset]
 # flv[flv1]
 
+
+## todo: optimize for R index vector
 #' @export
 `[.FLSimpleVector` <- function(object,pSet=1:length(object))
 {
+    ## browser()
     if(!is.FLSimpleVector(pSet)){
         if(!is.vector(pSet) && !is.FLVector(pSet)) 
             stop("pSet must be vector, FLVector or FLSimpleVector \n ")
@@ -589,16 +592,15 @@ isAliasSet <- function(object){
         pSet1 <- setAlias(pSet,genRandVarName())
     }
     
-    if(!is.null(getNamesSlot(obj)) &&
+    newnames <- names(object) 
+    if(!is.null(names(obj)) &&
         !getTypeSlot(pSet)=="character")
-        obj <- setNamesSlot(obj,getNamesSlot(obj)[pSet1])
+        obj <- setNamesSlot(obj,names(obj)[pSet1])
     if(getTypeSlot(pSet)=="character"){
-        if(is.null(getNamesSlot(obj)))
+        if(is.null(names(obj)))
             stop("vector not named.Subscript out of bounds. \n ")
-        vnames <- getNamesSlot(obj)
         if(!isAliasSet(vnames))
-        vnames <- setAlias(vnames,genRandVarName())
-
+            vnames <- setAlias(vnames,genRandVarName())
         obj <- setNamesSlot(obj,pSet1)
         pSet <-  new("FLSimpleVector",
                             select=new("FLSelectFrom",
@@ -613,10 +615,14 @@ isAliasSet <- function(object){
                                                                getValueSQLExpression(vnames))),
                                        order="indexCol"),
                             dimColumns = c("indexCol","valueCol"),
-                            names=NULL,
+                            Dimnames=list(NULL),
                             dims    = getDimsSlot(pSet),
                             type       = "integer"
                             )
+        newnames <- newnames[newnames==as.vector(pSet)] ## todo:  optimize by not fetching!!
+    } else{
+        if(!is.null(newnames))
+            newnames <- newnames[as.vector(pSet)] ## todo:  optimize by not fetching!!
     }
     obj <-  new("FLSimpleVector",
                 select=new("FLSelectFrom",
@@ -631,7 +637,7 @@ isAliasSet <- function(object){
                                                    getIndexSQLExpression(obj))),
                            order="indexCol"),
                 dimColumns = c("indexCol","valueCol"),
-                names=getNamesSlot(obj),
+                Dimnames=list(newnames),
                 dims    = getDimsSlot(pSet),
                 type       = getTypeSlot(obj)
                 )
@@ -656,6 +662,7 @@ rmDupTables <- function(pTableNames){
 `names<-.FLSimpleVector` <- function(x,value)
 {
     dimnames(x) <- list(value)
+    x
 }
 
 #' Get names of a FLSimpleVector
@@ -689,7 +696,7 @@ as.FLSimpleVector.FLVector <- function(pObject,...){
     return(new("FLSimpleVector",
                 select= getSelectSlot(pObject),
                 dimColumns = c("idColumn","valColumn"),
-                names=names(pObject),
+                Dimnames=list(names(pObject)),
                 dims    = length(pObject),
                 type       = pObject@type
                 ))

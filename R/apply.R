@@ -73,9 +73,11 @@ setMethod("genAggregateFunCall",
           signature(object = "FLSimpleVector"),
           function(object,func,...){
     object <- setValueSQLExpression(object=object,func=func,...)
-    ## object@dims <- 1L
+    if(length(object@select@group)==0){
+        object@dims <- 1L
+        object@Dimnames <- list(NULL)
+    }
     object@select@order <- object@select@group
-    ## object <- setNamesSlot(object,NULL)
     object
 })
 

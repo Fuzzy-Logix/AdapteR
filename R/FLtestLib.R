@@ -650,7 +650,8 @@ expect_equal_Vector <- function(a,b,desc="",debug=FALSE){
     #     x
     # }
     test_that(desc,{
-        testthat::expect_equal(names(a),as.character(as.vector(names(b))))
+        if(!is.null(names(a)))
+            testthat::expect_equal(names(a),as.character(as.vector(names(b))))
         testthat::expect_equal(a,as.vector(b))
     })
 }

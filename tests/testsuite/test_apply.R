@@ -13,6 +13,5 @@ test_that("apply over FLMatrix", {
         colsd <- apply(m,2,sd)
         rowmax <- apply(m,1,max)
     },Renv,FLenv,
-    expectation=c("test1","test2"),
     tolerance=1e-6)
 })

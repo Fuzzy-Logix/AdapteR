@@ -87,7 +87,7 @@ WaldWolftest2s <- function(vFLvector, vFLvector2)
                              r.P_VALUE AS P_Value
                      FROM ",ret$ResultTable," AS r")
     res_1 <- sqlQuery(connection, sqlstr)
-    result <- list(statistic = c(Z = res_1$Z),
+    result <- list(statistic = c(statistic = res_1$Z),
                    p.value = res_1$P_Value,
                    alternative = "two-sided",
                    method = "Two-sample Wald-Wolfowitz test",

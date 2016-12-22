@@ -15,6 +15,7 @@ test_that("FLSimpleVector: usage of random number vectors and aggregates",{
 })
 
 
+
 ## never use slot access to @dimColumns like:
 ## rvec@dimColumns[[1]]
 ##
@@ -46,7 +47,7 @@ test_that("FLSimpleVector: getting SQL index expression and name",{
         getIndexSQLName(N,1), "serialVal")
     rvec <- runif(N,-1,1)
     expect_equal(
-        getIndexSQLExpression(rvec,1), "fzzlSerial.serialVal")
+        getIndexSQLExpression(rvec,1), "serialVal")
     expect_equal(
         getIndexSQLName(rvec,1), "serialVal")
 })
@@ -58,15 +59,3 @@ test_that("FLSimpleVector: no storage of values required for function expression
     mean <- mean(rvec)
     ##ervec <- exp(rvec)
 })
-
-test_that("FLSimpleVector: values can be stored with store",{
-    rvec <- store(runif(FLSerial(10),-1,1))
-    ##ervec <- store(exp(rvec))
-    mean <- mean(rvec)
-})
-
-
-
-test_that("FLSimpleVector: aggregates by partition",{
-})
-

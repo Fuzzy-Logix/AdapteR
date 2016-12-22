@@ -21,6 +21,7 @@ regression step where multivariate adaptive regression splines is used.}
 }
 \description{
 \code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+library(mda)
 }
 \details{
 The DB Lytix function called is FLFlexDiscriminant. Performs Flexible Discriminant Analysis and stores the results in predefined tables.
