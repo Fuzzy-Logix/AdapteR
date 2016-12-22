@@ -53,7 +53,13 @@ fda <- function (formula,data=list(),...) {
 }
 
 #' @export
-fda.default <- mda::fda
+fda.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("mda", quietly = TRUE)){
+        stop("nortest package needed for mda. Please install it.",
+             call. = FALSE)
+    }
+    else return(mda::fda(formula=formula,data=data,...))
+}
 
 #' @export
 fda.FLpreparedData <- function(formula, data,MaxMARS = 11, MinRsq = .001 ,...)
@@ -150,7 +156,13 @@ mda <- function (formula,data=list(),...) {
 }
 
 #' @export
-mda.default <- mda::mda
+mda.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("mda", quietly = TRUE)){
+        stop("nortest package needed for mda. Please install it.",
+             call. = FALSE)
+    }
+    else return(mda::mda(formula=formula,data=data,...))
+}
 
 #' @export
 mda.FLpreparedData <- function(formula, data,subclasses = 3, iter = 5, init = 1,hypothesis = 5, ...)
