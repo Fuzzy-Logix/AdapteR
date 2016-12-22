@@ -29,7 +29,7 @@ mvr <- function (formula,data=list(),...) {
 
 ## move to file rlm.R
 #' @export
-mvr.default <-  <- function (formula,data=list(),...) {
+mvr.default <- function (formula,data=list(),...) {
     if (!requireNamespace("pls", quietly = TRUE)){
         stop("mvr package needed for mvr. Please install it.",
              call. = FALSE)
