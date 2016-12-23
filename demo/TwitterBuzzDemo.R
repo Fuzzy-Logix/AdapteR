@@ -85,7 +85,7 @@ vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
 ## then AdapteR is doing data prep for you automatically.
 ## The created deep table is accessible afterwards for
 ## further analyses.
-vresFL <- lm(Buzz_Magnitude ~ ., data=FLdeepTable)
+vresFL <- lm(myformula, data=FLdeepTable)
 
 summary(vresFL)
 #### Summary of fit model. Similar to summary on 'lm' object

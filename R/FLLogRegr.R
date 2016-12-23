@@ -235,7 +235,7 @@ summary.FLLogRegr <- function(object,
 
     if(calcResiduals)
         vresiduals <- as.vector(object$residuals)
-    else vresiduals <- NULL
+    else vresiduals <- NA
 
     reqList <- list(call = as.call(object@formula),
                     deviance.resid  = vresiduals,
