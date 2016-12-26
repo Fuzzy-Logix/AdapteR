@@ -209,6 +209,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="mazdoo")
         TestDatabase <- vmap[platform]
     }
+    else names(TestDatabase) <- platform
     if(platform=="Hadoop")
         options(viewToTable=TRUE)
     else options(viewToTable=FALSE)
