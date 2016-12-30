@@ -175,6 +175,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                  call. = FALSE)
         }
         tryCatch({
+            library(RODBC)
             connection <- RODBC::odbcConnect(odbcSource)
         },error=function(e)e)
     }
@@ -508,4 +509,16 @@ FLClose <- function(connection)
     #options("FLTempTables"=c())
     #options("FLTempViews"=c())
     options("FLSessionID"=c())
+}
+
+## Generate Mappings when package is loaded
+FLcreatePlatformsMapping()
+
+checkHypoSystemTableExists <- function(){
+    ## Create System table for HypothesisTesting Statistics Mapping
+    vdf <- read.csv(system.file('data/HypothesisTestsMapping.csv', package='AdapteR'))
+    if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
+        t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
+                        temporary=FALSE,drop=TRUE)
+        
 }

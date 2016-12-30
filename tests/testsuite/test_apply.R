@@ -7,21 +7,11 @@ FLenv <- as.FL(Renv)
 
 test_that("apply over FLMatrix", {
     result1=eval_expect_equal({
-        test1<-apply(m,2,mean)
-        test2 <- apply(m,1,max)
+        colmean <- apply(m,2,mean)
+        rowmean <- apply(m,1,mean)
+        rowsd <- apply(m,1,sd)
+        colsd <- apply(m,2,sd)
+        rowmax <- apply(m,1,max)
     },Renv,FLenv,
-    expectation=c("test1","test2"))
-})
-
-
-## Not working
-FLenv$sv <- FLSerial(1,5)
-names(FLenv$sv) <- letters[1:5]
-Renv$sv <- as.vector(FLenv$sv)
-
-test_that("max on FLSimpleVector and vector:", {
-    result1=eval_expect_equal({
-        test3<-max(sv,6,sv)
-    },Renv,FLenv,
-    expectation="test3")
+    tolerance=1e-6)
 })

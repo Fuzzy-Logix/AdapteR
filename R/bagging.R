@@ -3,7 +3,13 @@ bagging<-function(formula,data,...){
 	UseMethod("bagging",data)
 }
 
-bagging.default<-adabag::bagging
+bagging.default  <- function (formula,data=list(),...) {
+    if (!requireNamespace("adabag", quietly = TRUE)){
+        stop("adabag package needed for bagging. Please install it.",
+             call. = FALSE)
+    }
+    else return(adabag::bagging(formula=formula,data=data,...))
+}
 
 bagging.FLTable<-function(data,
 				  formula,

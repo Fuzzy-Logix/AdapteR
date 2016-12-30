@@ -7,7 +7,7 @@ NULL
 #' @slot centers A numeric vector containing the number of clusters, say k which
 #' should be greater than zero(centers > 0)
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' @slot wideToDeepAnalysisID A character string denoting the intermediate identifier
 #' during widetable to deeptable conversion.
 #' @slot table FLTable object given as input on which analysis is performed
 #' @slot results A list of all fetched components
@@ -123,23 +123,24 @@ hkmeans.FLTable<-function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
+		deepx <- deepx
 		whereconditions <- ""
         deepx <- setAlias(deepx,"")
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID, \n ",
 			    	     	" a.COLUMN_NAME AS ColumnName, \n ",
 			    	     	"  a.FROM_TABLE AS MapName \n ",
-			    	    " FROM fzzlRegrDataPrepMap a \n ",
-			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
+			    	    " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
+                                           "  a \n ",
+			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisID,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
@@ -155,7 +156,7 @@ hkmeans.FLTable<-function(x,
         whereconditions <- c(deepx@select@whereconditions,whereconditions)
         deepx@select@whereconditions <- whereconditions[whereconditions!=""]
 
-		deeptablename <- createView(pViewName=gen_view_name(deepx@select@table_name),
+		deeptablename <- createView(pViewName=gen_view_name(getTableNameSlot(deepx)),
                                     pSelect=constructSelect(deepx))
 
 		deepx <- FLTable(deeptablename,
@@ -186,7 +187,7 @@ hkmeans.FLTable<-function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause=="") whereClause <- "NULL"
 
 	retobj <- sqlStoredProc(
@@ -232,7 +233,7 @@ hkmeans.FLTable<-function(x,
 		# sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID \n ",
 		# 				" WHERE AnalysisID='",AnalysisID,"' \n ",
 		# 				" AND HypothesisID = ",nstart)
-        sqlstr <- constructSelectResult(object,result="levels")
+        sqlstr <- constructSelectFLHKmeansLevels(AnalysisID)
 
 		centers <- sqlQuery(connection,sqlstr)[1,1]
 	}
@@ -241,7 +242,7 @@ hkmeans.FLTable<-function(x,
 	new("FLHKMeans",
 		centers=centers,
 		AnalysisID=AnalysisID,
-		wideToDeepAnalysisId=wideToDeepAnalysisId,
+		wideToDeepAnalysisID=wideToDeepAnalysisID,
 		table=x,
 		results=list(),
 		deeptable=deepx,
@@ -410,7 +411,7 @@ tot.withinss.FLHKMeans<-function(object){
 	else
 	{
 		# connection <- getFLConnection(object@table)
-		# deeptablename <- object@deeptable@select@table_name
+		# deeptablename <- getTableNameSlot(object@deeptable)
 		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		# var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		# cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -486,7 +487,7 @@ betweenss.FLHKMeans<-function(object){
 	{
 		# connection <- getFLConnection(object@table)
 		# flag3Check(connection)
-		# deeptablename <- object@deeptable@select@table_name
+		# deeptablename <- getTableNameSlot(object@deeptable)
 		# obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		# var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		# cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -634,7 +635,7 @@ setMethod("show","FLHKMeans",
 #' @export
 plot.FLHKMeans <- function(object,...)
 {
-	deeptablename <- object@deeptable@select@table_name
+	deeptablename <- getTableNameSlot(object@deeptable)
 	obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
     var_id_colname <- getIndexSQLExpression(object@deeptable,2)
     cell_val_colname <- getIndexSQLExpression(object@deeptable,3)

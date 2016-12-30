@@ -1,7 +1,7 @@
 #R example is just a function. Hence, this example is used as a test case
 Renv <- new.env(parent= globalenv())
 
-Renv$m <- as.matrix( FLMatrix("tblMatrixMulti", 
+Renv$m <- as.matrix( FLMatrix(getTestTableName("tblMatrixMulti"), 
                     6,
                     "MATRIX_ID",
                     "ROW_ID",

@@ -17,7 +17,7 @@ if(!exists("connection")) {
 }
 #############################################################
 ## Create Train and Test DataSets from tblLoanData.
-vSampleDataTables <- suppressWarnings(FLSampleData(pTableName="tblLoanData",
+vSampleDataTables <- suppressWarnings(SampleData(pTableName="tblLoanData",
                                   pObsIDColumn="Loanid",
                                   pTrainTableName="ARtblLoanDataTrain",
                                   pTestTableName="ARtblLoanDataTest",
@@ -27,7 +27,7 @@ vSampleDataTables <- suppressWarnings(FLSampleData(pTableName="tblLoanData",
 vTrainTableName <- vSampleDataTables["TrainTableName"]
 vTestTableName <- vSampleDataTables["TestTableName"]
 
-vtemp <- readline("Above: Using FLSampleData to create Train & Test Data\n ")
+vtemp <- readline("Above: Using SampleData to create Train & Test Data\n ")
 
 ## Create a FLTable object for Training table
 ## Refer ?FLTable for help on creating FLTable Objects.

@@ -6,7 +6,7 @@ NULL
 #'
 #' @slot centers A numeric vector containing the number of clusters, say k
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' @slot wideToDeepAnalysisID A character string denoting the intermediate identifier
 #' during widetable to deeptable conversion.
 #' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{pam}
 #' @slot table FLTable object given as input on which analysis is performed
@@ -193,22 +193,23 @@ pam.FLTable <- function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	vcall <- match.call()
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
+		deepx <- deepx
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 
-		sqlstr <- paste0(" SELECT a.*  
-			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' ")
+		sqlstr <- paste0(" SELECT a.*  \n ",
+			    	     " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
+                                           "  a \n ",
+			    	     " WHERE a.AnalysisID = ",fquote(wideToDeepAnalysisID))
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                 pSelect=sqlstr)
@@ -267,7 +268,7 @@ pam.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
@@ -307,7 +308,7 @@ pam.FLTable <- function(x,
 	FLKMedoidsobject <- new("FLKMedoids",
 						centers=k,
 						AnalysisID=AnalysisID,
-						wideToDeepAnalysisId=wideToDeepAnalysisId,
+						wideToDeepAnalysisID=wideToDeepAnalysisID,
 						table=x,
 						results=list(call=vcall),
 						deeptable=deepx,
@@ -457,7 +458,7 @@ medoids.FLKMedoids<-function(object)
 			connection <- getFLConnection(object@table)
 			## flag1Check(connection)
 			AnalysisID <- object@AnalysisID
-			deeptablename <- object@deeptable@select@table_name
+			deeptablename <- getTableNameSlot(object@deeptable)
 			obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 			var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 			cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -586,7 +587,7 @@ isolation.FLKMedoids <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -726,7 +727,7 @@ clusinfo.FLKMedoids <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -867,7 +868,7 @@ silinfo.FLKMedoids <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -1096,7 +1097,7 @@ diss.FLKMedoids<-function(object)
 		connection <- getFLConnection(object@table)
 		## flag1Check(connection)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)
@@ -1179,7 +1180,7 @@ data.FLKMedoids<-function(object)
 	else if(object@diss==TRUE) dataframe <- c()
 	else
 	{
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getIndexSQLExpression(object@deeptable,1)
 		var_id_colname <- getIndexSQLExpression(object@deeptable,2)
 		cell_val_colname <- getIndexSQLExpression(object@deeptable,3)

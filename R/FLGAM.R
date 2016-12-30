@@ -279,7 +279,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	vresult <- sqlStoredProc(getFLConnection(),
 							"FLGAM",
 							outputParameter=c(AnalysisID="a"),
-							TableName=data@select@table_name,
+							TableName=getTableNameSlot(data),
 							ObsID=getVariables(data)[["obs_id_colname"]],
 							DepVar=vallVars[1],
 							OffsetVar=offset,
@@ -288,7 +288,7 @@ gam.FLTable <- function(formula,family=stats::poisson,
 							MaxIterations=maxiter,
 							Note=genNote("gam")
 							)
-	# vsqlstr <- paste0(" CALL FLGAM(",fquote(data@select@table_name),",",
+	# vsqlstr <- paste0(" CALL FLGAM(",fquote(getTableNameSlot(data)),",",
 	# 							fquote(getVariables(data)[["obs_id_colname"]]),",",
 	# 							fquote(vallVars[1]),",",
 	# 							offset,",",
@@ -535,8 +535,8 @@ fitted.values.FLGAM <- function(object)
     else
     {
         if(object@scoreTable=="")
-            # object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
-            object@scoreTable <- gen_score_table_name(object@table@select@table_name)
+            # object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(getTableNameSlot(object@table)))
+            object@scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
         if(length(object@deeptable@select@variables)>0)
             vtbl <- object@deeptable
         else vtbl <- object@table
@@ -559,18 +559,18 @@ residuals.FLGAM <- function(object)
 		
 		if(object@scoreTable==""){
 		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-		# 	gen_score_table_name(object@table@select@table_name))
-		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
+		# 	gen_score_table_name(getTableNameSlot(object@table)))
+		object@scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
 		fitted.valuesVector <- predict(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- object@table@select@table_name
+		vtablename <- getTableNameSlot(object@table)
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		y <- "fPred"
 		vobsid <- "ObsID"
 		
-  #   	if(!object@table@isDeep)
+  #   	if(!isDeep(object@table))
 		# vYVector <- object@table[,all.vars(object@formula)[1]]
 		# else
 		# vYVector <- object@table[,"-1"]
@@ -612,12 +612,12 @@ deviance.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
-		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(getTableNameSlot(object@table)))
+		object@scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- object@table@select@table_name
+		vtablename <- getTableNameSlot(object@table)
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		y <- paste0(vtablename,".",all.vars(object@formula)[1])
@@ -649,12 +649,12 @@ sig2.FLGAM <- function(object)
 	else
 	{
 		if(object@scoreTable==""){
-		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
-		object@scoreTable <- gen_score_table_name(object@table@select@table_name)
+		# object@scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(getTableNameSlot(object@table)))
+		object@scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
 		fitted.valuesVector <- predict.FLGAM(object,object@table,scoreTable=object@scoreTable)
 		object@results <- c(object@results,list(fitted.values=fitted.valuesVector))
 		}
-		vtablename <- object@table@select@table_name
+		vtablename <- getTableNameSlot(object@table)
 		obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 		df.residualsvector <- object$df.residual
@@ -695,7 +695,7 @@ model.FLGAM <- function(object)
 			# if(interactive())
 			# {
 			# 	vinput <- readline("Fetch top 10 rows only(preferred) y/n ")
-			# 	vtablename <- paste0(object@table@select@database,".",object@table@select@table_name)
+			# 	vtablename <- paste0(object@table@select@database,".",getTableNameSlot(object@table))
 			# 	if(checkYorN(vinput)) vinput <- paste0(" TOP 10 ")
 			# }
 			
@@ -743,7 +743,7 @@ offset.FLGAM <- function(object)
 		offsetvector <- rep(0,nrow(object@table))
 		else
 		{
-			vtablename <- object@table@select@table_name
+			vtablename <- getTableNameSlot(object@table)
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -791,7 +791,7 @@ var.summary.FLGAM <- function(object)
 		}
 		else
 		{
-			vtablename <- object@table@select@table_name
+			vtablename <- getTableNameSlot(object@table)
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			vsqlstr <- paste0("SELECT FLMean(",vcolnames,") AS mean1,",
@@ -828,7 +828,7 @@ y.FLGAM <- function(object)
 		}
 		else
 		{
-			vtablename <- object@table@select@table_name
+			vtablename <- getTableNameSlot(object@table)
 			obs_id_colname <- getVariables(object@table)[["obs_id_colname"]]
 
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
@@ -897,9 +897,9 @@ predict.FLGAM <- function(object,
 						)
 	}
 	else if(is.FLTable(newdata)){
-		if(newdata@isDeep) stop("input wide table for scoring\n")
+		if(isDeep(newdata)) stop("input wide table for scoring\n")
 		vinputCols <- c(vinputCols,
-						InTableName=newdata@select@table_name,
+						InTableName=getTableNameSlot(newdata),
 						ObsIDCol=getVariables(newdata)[["obs_id_colname"]],
 						ScoreSpecID="NULL",
 						TermID="NULL",
@@ -913,7 +913,7 @@ predict.FLGAM <- function(object,
 			" using ... argument \n")
 
 	if(scoreTable=="")
-	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(object@table@select@table_name))
+	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",gen_score_table_name(getTableNameSlot(object@table)))
 	else if(!grep(".",scoreTable)) 
 	scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
@@ -927,7 +927,7 @@ predict.FLGAM <- function(object,
 								)
 	# sqlstr <- paste0("CALL FLGAMScore(",fquote(object@specid),",",
 	# 									fquote(object@AnalysisID),",",
-	# 									fquote(newdata@select@table_name),",",
+	# 									fquote(getTableNameSlot(newdata)),",",
 	# 									fquote(getVariables(newdata)[["obs_id_colname"]]),",",
 	# 									"NULL,",
 	# 									"NULL,",

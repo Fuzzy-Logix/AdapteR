@@ -1,8 +1,8 @@
 getAlias <- function(object){
-  return(names(object@select@table_name))
+  return(names(getTableNameSlot(object)))
 }
 getObsIdColname <- function(object){
-  if(object@isDeep && ncol(object)>1)
+  if(isDeep(object) && ncol(object)>1)
   return("var_id_colname")
   else return("obs_id_colname")
 }
@@ -59,7 +59,7 @@ setMethod("typeof",signature(x="FLSimpleVector"),
         })
 setMethod("typeof",signature(x="FLTable"),
       function(x){
-        if(x@isDeep){
+        if(isDeep(x)){
           vValCol <- getVariables(x)[["cell_val_colname"]]
           vValCol <- changeAlias(vValCol,"","")
           vtype <- x@type[vValCol]
@@ -170,7 +170,7 @@ setMethod("getValueColumn",signature(object="FLMatrix"),
         })
 setMethod("getValueColumn",signature(object="FLVector"),
       function(object){
-        if(object@isDeep)
+        if(isDeep(object))
         return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
         else{
           vtemp <- ""
@@ -188,7 +188,7 @@ setMethod("getValueColumn",signature(object="FLVector"),
 
 setMethod("getValueColumn",signature(object="FLTable"),
       function(object){
-        if(object@isDeep)
+        if(isDeep(object))
         return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
         vtemp <- ""
         if(!is.null(getAlias(object)) && 
@@ -550,57 +550,6 @@ getArithmeticType <- function(pObj1,pObj2,pOperator){
 }
 
 
-getTablename <- function(x) gsub("^[^.]*\\.","",x)
-getDatabase <- function(x) {
-    db <- gsub("\\.[^.]*$","",x)
-    if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
-    db
-}
-
-getTableNameSlot <- function(x){
-    return(tryCatch(x@select@table_name,
-                    error=function(x)NULL))
-}
-
-getSelectSlot <- function(x){
-    return(tryCatch(x@select,
-                    error=function(x)NULL))
-}
-
-getWhereConditionsSlot <- function(x){
-    return(tryCatch(x@whereconditions,
-                error=function(e)
-                        return(getWhereConditionsSlot(x@select))))
-}
-getDimsSlot <- function(x){
-    return(tryCatch(x@dims,
-                    error=function(x)NULL))
-}
-getTypeSlot <- function(x){
-    return(tryCatch(x@type,
-                    error=function(x)NULL))
-}
-getNamesSlot <- function(x){
-    return(tryCatch(x@names,
-                    error=function(x)NULL))
-}
-getGroupSlot <- function(x){
-    return(tryCatch(x@group,
-                    error=function(x)NULL))
-}
-getOrderSlot <- function(x){
-    return(tryCatch(x@order,
-                    error=function(x)NULL))
-}
-getDimColumnsSlot <- function(x){
-    return(tryCatch(x@dimColumns,
-                    error=function(x)NULL))
-}
-setNamesSlot <- function(x,value){
-    tryCatch(x@names <- value,
-                    error=function(x)NULL)
-    x
-}
 ## May use FLMod in future.
 ## https://app.asana.com/0/98264711960805/148450351472400
 ## FLMod related issues
@@ -655,4 +604,11 @@ getFLVectorTableFunctionQuerySQL <- function(idColumn="'%insertIDhere%'",
                             indexColumn," AS vectorIndexColumn,",
                             valueColumn," AS vectorValueColumn",
                     " FROM ",FromTable))
+}
+
+#' @export
+getTestTableName <- function(tableName){
+    getRemoteTableName(databaseName=getOption("TestDatabase")[getFLPlatform()],
+                        tableName=tableName,
+                        temporaryTable=FALSE)
 }

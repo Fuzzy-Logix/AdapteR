@@ -24,10 +24,7 @@ dim.FLTable <- function(object)
 
 
 #' @export
-dimnames.FLMatrix <- function(object)
-  return(object@Dimnames)
-  #' @export
-dimnames.FLVector <- function(object)
+dimnames.FLIndexedValues <- function(object)
   return(object@Dimnames)
 #' @export
 dimnames.FLTable <- function(object)

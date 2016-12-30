@@ -164,7 +164,7 @@ friedman.test.FLTable <- function(formula, data,
                                 ...){
     data <- setAlias(data,"")
     connection <- getFLConnection()
-    if(data@isDeep){
+    if(isDeep(data)){
         vBlockColname <- getVariables(data)[["obs_id_colname"]]
         vGroupColname <- getVariables(data)[["var_id_colname"]]
         vValueColname <- getVariables(data)[["cell_val_colname"]]
@@ -275,7 +275,7 @@ friedman.test.FLTable <- function(formula, data,
 #     else{
 #         data <- setAlias(data,"")
 #         connection <- getFLConnection()
-#         if(data@isDeep){
+#         if(isDeep(data)){
 #             vBlockColname <- getVariables(data)[["obs_id_colname"]]
 #             vGroupColname <- getVariables(data)[["var_id_colname"]]
 #             vValueColname <- getVariables(data)[["cell_val_colname"]]

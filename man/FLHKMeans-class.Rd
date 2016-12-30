@@ -32,7 +32,7 @@ should be greater than zero(centers > 0)}
 
 \item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
 
-\item{\code{wideToDeepAnalysisId}}{A character string denoting the intermediate identifier
+\item{\code{wideToDeepAnalysisID}}{A character string denoting the intermediate identifier
 during widetable to deeptable conversion.}
 
 \item{\code{table}}{FLTable object given as input on which analysis is performed}

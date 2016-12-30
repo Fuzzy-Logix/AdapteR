@@ -266,8 +266,8 @@ NULL
 	}
 	if(is.FLTable(pObj2))
 	{
-		if(!pObj2@isDeep)
-		pObj2 <- wideToDeep(pObj2)[["table"]]
+		if(!isDeep(pObj2))
+		pObj2 <- wideToDeep(pObj2)
 		pObj2 <- as.FLMatrix(pObj2)
 		return(pObj1==pObj2)
 	}
@@ -289,20 +289,20 @@ NULL
 			vmaxlen <- length(pObj1);
 			vminlen <- length(pObj2);
 			vmaxref <- "a";
-			ifelse(pObj1@isDeep && length(colnames(pObj1))>1,
+			ifelse(isDeep(pObj1) && length(colnames(pObj1))>1,
 			vmaxrownames <- colnames(pObj1),
 			vmaxrownames <- rownames(pObj1))
 			},{
 				vmaxlen <- length(pObj2);
 				vmaxref <- "b";
 				vminlen <- length(pObj1);
-				ifelse(pObj2@isDeep && length(colnames(pObj2))>1,
+				ifelse(isDeep(pObj2) && length(colnames(pObj2))>1,
 				vmaxrownames <- colnames(pObj2),
 				vmaxrownames <- rownames(pObj2))
 				})
 
-		if(ncol(pObj1)>1 && !pObj1@isDeep 
-			&& ncol(pObj2)>1 && !pObj2@isDeep)
+		if(ncol(pObj1)>1 && !isDeep(pObj1) 
+			&& ncol(pObj2)>1 && !isDeep(pObj2))
 		{
 			newColnames1 <- renameDuplicates(colnames(pObj1))
 			newColnames2 <- renameDuplicates(colnames(pObj2))
@@ -316,13 +316,13 @@ NULL
 	                        collapse=" UNION ALL ")
 			dimnames <- list(1:vmaxlen,"vectorValueColumn")
 		}
-		if(ncol(pObj1)>1 && !pObj1@isDeep)
+		if(ncol(pObj1)>1 && !isDeep(pObj1))
 		pObj1 <- store(pObj1)
-		if(ncol(pObj2)>1 && !pObj2@isDeep)
+		if(ncol(pObj2)>1 && !isDeep(pObj2))
 		pObj2 <- store(pObj2)
-		if((pObj1@isDeep && pObj2@isDeep) 
-			||(pObj1@isDeep && ncol(pObj2)==1)
-			||(pObj2@isDeep && ncol(pObj1)==1)
+		if((isDeep(pObj1) && isDeep(pObj2)) 
+			||(isDeep(pObj1) && ncol(pObj2)==1)
+			||(isDeep(pObj2) && ncol(pObj1)==1)
 			||(ncol(pObj1)==1 && ncol(pObj2)==1)){
 			sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
 									vmaxref,".vectorIndexColumn AS vectorIndexColumn \n ,",
@@ -379,8 +379,8 @@ NULL
 	}
 	if(is.FLTable(pObj2))
 	{
-		if(!pObj2@isDeep)
-		pObj2 <- wideToDeep(pObj2)[["table"]]
+		if(!isDeep(pObj2))
+		pObj2 <- wideToDeep(pObj2)
 		pObj2 <- as.FLMatrix(pObj2)
 		return(pObj1==pObj2)
 	}
@@ -390,8 +390,8 @@ NULL
 #' @export
 `==.FLTable` <- function(pObj1,pObj2)
 {
-	if(!pObj1@isDeep)
-	pObj1 <- wideToDeep(pObj1)[["table"]]
+	if(!isDeep(pObj1))
+	pObj1 <- wideToDeep(pObj1)
 	pObj1 <- as.FLMatrix(pObj1)
 	pObj2 <- as.FLMatrix(pObj2)
 	return(pObj1==pObj2)
@@ -495,8 +495,8 @@ FLanyall <- function(...,na.rm=FALSE,vfunction="all"){
     ## this would check sequentially for FALSE and when found
     ## terminates the loop.
     for(i in vlist){
-    	if(is.FLTable(i) && !i@isDeep)
-    	i <- wideToDeep(i)[["table"]]
+    	if(is.FLTable(i) && !isDeep(i))
+    	i <- wideToDeep(i)
     	if(vfunction=="all"){
 	    	vresult <- (vresult && getTrueorFalse(x=i,vfunction=vfunction))
 	    	if(!vresult) return(vresult)

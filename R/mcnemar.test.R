@@ -32,6 +32,7 @@ setMethod("mcnemar.test",signature(x="FLVector"),
     function(x,
             y=NULL,
             correct=TRUE){
+        checkHypoSystemTableExists()
         if(is.null(y) || !is.FLVector(y))
             stop("contingency table not supported. x and y should be FLVectors. \n ")
         if(is.logical(correct)){

@@ -48,7 +48,7 @@ An S4 class to represent FLKMedoids
 
 \item{\code{AnalysisID}}{A character output used to retrieve the results of analysis}
 
-\item{\code{wideToDeepAnalysisId}}{A character string denoting the intermediate identifier
+\item{\code{wideToDeepAnalysisID}}{A character string denoting the intermediate identifier
 during widetable to deeptable conversion.}
 
 \item{\code{diss}}{logical TRUE if dissimilarity matrix is supplied to \code{pam}}

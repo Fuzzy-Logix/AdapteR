@@ -17,10 +17,10 @@ rpart.FLTable<-function(data,
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(data@isDeep){
+	if(isDeep(data)){
 		deepx<-data
 		deepx<-setAlias(deepx,"")
-		deeptablename<-data@select@table_name
+		deeptablename<-getTableNameSlot(data)
 		vprepspecs<-list()	
 	}
 	else{
@@ -38,9 +38,9 @@ rpart.FLTable<-function(data,
 			depCol<-all.vars(formula)[1]
 			vprepspecs<-list(depCol,vexclude)
 			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
-			deepx<-deep[["table"]]
+			deepx<-deep
 			deepx<- setAlias(deepx,"")
-			deeptablename<-deepx@select@table_name
+			deeptablename<-getTableNameSlot(deepx)
 	}
 	vobsid <- getVariables(deepx)[["obs_id_colname"]]
 	vvarid <- getVariables(deepx)[["var_id_colname"]]
@@ -147,21 +147,21 @@ predict.FLrpart<-function(object,
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
-	scoreTable<-gen_score_table_name(object$deeptable@select@table_name)
+	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
-	if(!newdata@isDeep){
+	if(!isDeep(newdata)){
 		deepx<-FLRegrDataPrep(newdata,
 							  depCol=object$prepspecs$depCol,
 							  excludeCols=object$prepspecs$vexclude)
-		newdata<-deepx[["table"]]
+		newdata<-deepx
 		newdata<-setAlias(newdata,"")
 	}
-	vtable <- newdata@select@table_name
+	vtable <- getTableNameSlot(newdata)
 	vobsid <- getVariables(newdata)[["obs_id_colname"]]
 	vvarid <- getVariables(newdata)[["var_id_colname"]]
 	vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-	vinputcols <- c(INPUT_TABLE=newdata@select@table_name,
+	vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
 					OBSID_COL=vobsid,
 					VARID_COL=vvarid,
 					VALUE_COL=vvalue,
@@ -235,6 +235,7 @@ print.FLrpart<-function(object){ #browser()
 # `$.FLrpart` <- function(object,property){
 # 	return(slot(object,property))
 # }
+setOldClass("FLrpart")
 setMethod("show","FLrpart",print.FLrpart)
 
 preorderDataFrame <- function(df){#browser()

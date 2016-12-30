@@ -6,7 +6,7 @@ NULL
 #' An S4 class to represent FLAggClustering
 #'
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' @slot wideToDeepAnalysisID A character string denoting the intermediate identifier
 #' during widetable to deeptable conversion.
 #' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{fanny}
 #' @slot table FLTable object given as input on which analysis is performed
@@ -168,7 +168,7 @@ agnes.FLTable <- function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	
 	vcall <- match.call()
@@ -177,21 +177,20 @@ agnes.FLTable <- function(x,
 	stop("method must be one of ",paste0(methodVector,collapse=","))
 	else
 	methodID <- as.integer(charmatch(method[1],methodVector)[1])
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 		sqlstr <- paste0(
 			    	    " SELECT a.Final_VarID AS VarID, \n ",
 			    	     	"    a.COLUMN_NAME AS ColumnName, \n ",
 			    	     	"    a.FROM_TABLE AS MapName \n ",
-			    	    " FROM fzzlRegrDataPrepMap a \n ",
-			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' \n ",
+			    	    " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),"  a \n ",
+			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisID,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
         mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                 pSelect=sqlstr)
@@ -243,7 +242,7 @@ agnes.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
 
@@ -272,7 +271,7 @@ agnes.FLTable <- function(x,
 	
 	FLAggCLustobject <- new("FLAggClust",
 							AnalysisID=AnalysisID,
-							wideToDeepAnalysisId=wideToDeepAnalysisId,
+							wideToDeepAnalysisID=wideToDeepAnalysisID,
 							table=x,
 							results=list(call=vcall),
 							deeptable=deepx,
@@ -389,7 +388,7 @@ height.FLAggClust <- function(object)
 	{
 		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -489,7 +488,7 @@ ac.FLAggClust <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -591,7 +590,7 @@ merge.FLAggClust <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		AnalysisID <- object@AnalysisID
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]

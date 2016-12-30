@@ -120,7 +120,7 @@ NULL
         object@Dimnames <- list(newrownames,
                                 newcolnames)
         object@dims[[2]] <- length(newcolnames)
-        if(object@isDeep){
+        if(isDeep(object)){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
                   inCondition(paste0(getVariables(object)$var_id_colname),
@@ -133,7 +133,7 @@ NULL
             c(object@select@whereconditions,
               inCondition(paste0(getVariables(object)$obs_id_colname),
                           newrownames))
-        if(object@isDeep & !setequal(object@Dimnames[[2]], newcolnames)){
+        if(isDeep(object) & !setequal(object@Dimnames[[2]], newcolnames)){
             object@select@whereconditions <-
                 c(object@select@whereconditions,
                   inCondition(paste0(getVariables(object)$var_id_colname),
@@ -155,7 +155,7 @@ NULL
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newrownames <- storeVarnameMapping(connection=getFLConnection(),
-                        tablename=object@select@table_name,
+                        tablename=getTableNameSlot(object),
                         matrixId=MID,
                         dimId= 1,
                         mynames=vrownames
@@ -165,14 +165,14 @@ NULL
         newnames <- newrownames
         vobsidcolumn <- "obs_id_colname"
       }
-      else if(object@isDeep && nrow(object)==1 &&
+      else if(isDeep(object) && nrow(object)==1 &&
         (!all(vcolnames==(1:ncol(object)))))
       {
         MID <- getMaxValue(vtable=getOption("NameMapTableFL"),
                 vcolName="MATRIX_ID",
                 vconnection=connection)+1
         newcolnames <- storeVarnameMapping(connection=getFLConnection(),
-                        tablename=object@select@table_name,
+                        tablename=getTableNameSlot(object),
                         matrixId=MID,
                         dimId= 1,
                         mynames=vcolnames
@@ -216,14 +216,14 @@ NULL
         vres <- newFLVector(
                   select=object@select,
                   Dimnames=list(newrownames,newcolnames),
-                  isDeep=object@isDeep,
+                  isDeep=isDeep(object),
                   mapSelect=mapselect)
       }
       else
           vres <- newFLVector(
                       select=object@select,
                       Dimnames=list(vrownames,vcolnames),
-                      isDeep=object@isDeep)
+                      isDeep=isDeep(object))
       vvaluecolumn <- getValueColumn(vres)
       vvaluecolumn <- changeAlias(vvaluecolumn,"","")
       vtype1 <- vtype[vvaluecolumn]
@@ -312,18 +312,18 @@ NULL
         else{
             if(class(pSet@select)=="FLTableFunctionQuery"
               || FLNamesMappedP(pSet)) pSet <- store(pSet)
-            oldalias <- ifelse(length(names(pSet@select@table_name)>0),
-                              paste0(names(pSet@select@table_name)),
+            oldalias <- ifelse(length(names(getTableNameSlot(pSet))>0),
+                              paste0(names(getTableNameSlot(pSet))),
                               "")
             names(pSet@select@table_name) <- "nameflt"
             nameValueColumn <- getVariables(pSet)[["cell_val_colname"]]
-            if(!pSet@isDeep) nameValueColumn <- colnames(pSet)[1]
+            if(!isDeep(pSet)) nameValueColumn <- colnames(pSet)[1]
             nameIndexColumn <- getVariables(pSet)[["obs_id_colname"]]
             nameValueColumn <- changeAlias(nameValueColumn,"nameflt",oldalias)
             nameIndexColumn <- changeAlias(nameIndexColumn,"nameflt",oldalias)
             mapselect <- new("FLSelectFrom",
                              connectionName = getFLConnectionName(), 
-                             table_name = pSet@select@table_name,
+                             table_name = getTableNameSlot(pSet),
                              variables = list(),
                              whereconditions=c(constraintsSQL(pSet),
                                                paste0(nameValueColumn," = CAST(",
@@ -484,13 +484,13 @@ NULL
     return(newFLVector(
                 select=select,
                 Dimnames=list(newrownames,newcolnames),
-                isDeep=object@isDeep,
+                isDeep=isDeep(object),
                 mapSelect=mapselect,
                 type=typeof(object)))
     else return(newFLVector(
                 select=select,
                 Dimnames=list(newrownames,newcolnames),
-                isDeep=object@isDeep,
+                isDeep=isDeep(object),
                 type=typeof(object)))
 }
 
@@ -535,7 +535,7 @@ changeAlias <- function(object,newalias,oldalias){
 #' @export
 setAlias <- function(object,newalias){
   if(isAliasSet(object))
-  oldalias <- names(object@select@table_name)
+  oldalias <- names(getTableNameSlot(object))
   else oldalias <- ""
   if(newalias=="" ||is.null(newalias))
   newalias <- NULL
@@ -551,7 +551,7 @@ setAlias <- function(object,newalias){
 }
 
 isAliasSet <- function(object){
-  if(length(names(object@select@table_name))>0)
+  if(length(names(getTableNameSlot(object)))>0)
   return(TRUE) else return(FALSE)
 }
 
@@ -567,9 +567,12 @@ isAliasSet <- function(object){
 # flv <- flSimple[subset]
 # flv[flv1]
 
+
+## todo: optimize for R index vector
 #' @export
 `[.FLSimpleVector` <- function(object,pSet=1:length(object))
 {
+    ## browser()
     if(!is.FLSimpleVector(pSet)){
         if(!is.vector(pSet) && !is.FLVector(pSet)) 
             stop("pSet must be vector, FLVector or FLSimpleVector \n ")
@@ -589,16 +592,15 @@ isAliasSet <- function(object){
         pSet1 <- setAlias(pSet,genRandVarName())
     }
     
-    if(!is.null(getNamesSlot(obj)) &&
+    newnames <- names(object) 
+    if(!is.null(names(obj)) &&
         !getTypeSlot(pSet)=="character")
-        obj <- setNamesSlot(obj,getNamesSlot(obj)[pSet1])
+        obj <- setNamesSlot(obj,names(obj)[pSet1])
     if(getTypeSlot(pSet)=="character"){
-        if(is.null(getNamesSlot(obj)))
+        if(is.null(names(obj)))
             stop("vector not named.Subscript out of bounds. \n ")
-        vnames <- getNamesSlot(obj)
         if(!isAliasSet(vnames))
-        vnames <- setAlias(vnames,genRandVarName())
-
+            vnames <- setAlias(vnames,genRandVarName())
         obj <- setNamesSlot(obj,pSet1)
         pSet <-  new("FLSimpleVector",
                             select=new("FLSelectFrom",
@@ -613,10 +615,14 @@ isAliasSet <- function(object){
                                                                getValueSQLExpression(vnames))),
                                        order="indexCol"),
                             dimColumns = c("indexCol","valueCol"),
-                            names=NULL,
+                            Dimnames=list(NULL),
                             dims    = getDimsSlot(pSet),
                             type       = "integer"
                             )
+        newnames <- newnames[newnames==as.vector(pSet)] ## todo:  optimize by not fetching!!
+    } else{
+        if(!is.null(newnames))
+            newnames <- newnames[as.vector(pSet)] ## todo:  optimize by not fetching!!
     }
     obj <-  new("FLSimpleVector",
                 select=new("FLSelectFrom",
@@ -631,7 +637,7 @@ isAliasSet <- function(object){
                                                    getIndexSQLExpression(obj))),
                            order="indexCol"),
                 dimColumns = c("indexCol","valueCol"),
-                names=getNamesSlot(obj),
+                Dimnames=list(newnames),
                 dims    = getDimsSlot(pSet),
                 type       = getTypeSlot(obj)
                 )
@@ -655,17 +661,8 @@ rmDupTables <- function(pTableNames){
 #' @export
 `names<-.FLSimpleVector` <- function(x,value)
 {
-    if(length(value)!=length(x))
-    stop("names should be of same length as FLVector")
-    else if(is.null(value) || is.na(value)) stop("NULL or NA names not allowed")
-    
-    if(is.vector(value))
-        value <- as.FLVector(value)
-    if(is.FLVector(value))
-        value <- as.FLSimpleVector(value)
-    if(!is.FLSimpleVector(value))
-        stop("names vector should be vector \n ")
-    return(setNamesSlot(x,value))
+    dimnames(x) <- list(value)
+    x
 }
 
 #' Get names of a FLSimpleVector
@@ -676,7 +673,7 @@ rmDupTables <- function(pTableNames){
 #' @export
 names.FLSimpleVector <- function(x)
 {
-    getNamesSlot(x)
+    dimnames(x)[[1]]
 }
 
 #' @export
@@ -699,7 +696,7 @@ as.FLSimpleVector.FLVector <- function(pObject,...){
     return(new("FLSimpleVector",
                 select= getSelectSlot(pObject),
                 dimColumns = c("idColumn","valColumn"),
-                names=names(pObject),
+                Dimnames=list(names(pObject)),
                 dims    = length(pObject),
                 type       = pObject@type
                 ))

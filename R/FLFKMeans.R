@@ -7,7 +7,7 @@ NULL
 #'
 #' @slot centers A numeric vector containing the number of clusters, say k
 #' @slot AnalysisID A character output used to retrieve the results of analysis
-#' @slot wideToDeepAnalysisId A character string denoting the intermediate identifier
+#' @slot wideToDeepAnalysisID A character string denoting the intermediate identifier
 #' during widetable to deeptable conversion.
 #' @slot diss logical TRUE if dissimilarity matrix is supplied to \code{fanny}
 #' @slot table FLTable object given as input on which analysis is performed
@@ -178,17 +178,16 @@ fanny.FLTable <- function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	
 	vcall <- match.call()
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 
@@ -196,7 +195,7 @@ fanny.FLTable <- function(x,
 			    	     	    a.COLUMN_NAME AS ColumnName,
 			    	     	    a.FROM_TABLE AS MapName 
 			    	     FROM fzzlRegrDataPrepMap a 
-			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisId,"' 
+			    	     WHERE a.AnalysisID = '",wideToDeepAnalysisID,"' 
 			    	     AND a.Final_VarID IS NOT NULL ")
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
@@ -250,7 +249,7 @@ fanny.FLTable <- function(x,
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause=="") whereClause <- "NULL"
 
 	if(diss)
@@ -281,7 +280,7 @@ fanny.FLTable <- function(x,
 	FLFKMeansobject <- new("FLFKMeans",
 						centers=k,
 						AnalysisID=AnalysisID,
-						wideToDeepAnalysisId=wideToDeepAnalysisId,
+						wideToDeepAnalysisID=wideToDeepAnalysisID,
 						table=x,
 						results=list(call=vcall),
 						deeptable=deepx,
@@ -505,7 +504,7 @@ objective.FLFKMeans <- function(object){
 		a <- genRandVarName()
 		connection <- getFLConnection(object@table)
             ## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -590,7 +589,7 @@ silinfo.FLFKMeans <- function(object){
 	{
 		connection <- getFLConnection(object@table)
 		## flag3Check(connection)
-		deeptablename <- object@deeptable@select@table_name
+		deeptablename <- getTableNameSlot(object@deeptable)
 		obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
 		var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
 		cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]

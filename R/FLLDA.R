@@ -25,10 +25,10 @@ setClass(
 
 #' Flexible Discriminant Analysis
 #' 
-#'\code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+#' \code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+#' library(mda)
 #'
 #' The DB Lytix function called is FLFlexDiscriminant. Performs Flexible Discriminant Analysis and stores the results in predefined tables.
-
 #' @seealso \code{\link[stats]{fda}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable or FLTableMD.
@@ -48,13 +48,18 @@ setClass(
 #' couldnt be implemented: plot, values, precent.explained
 #' (lack of data of discriminant space).
 #' @export
-#' library(mda)
 fda <- function (formula,data=list(),...) {
     UseMethod("fda", data)
 }
 
 #' @export
-fda.default <- mda::fda
+fda.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("mda", quietly = TRUE)){
+        stop("nortest package needed for mda. Please install it.",
+             call. = FALSE)
+    }
+    else return(mda::fda(formula=formula,data=data,...))
+}
 
 #' @export
 fda.FLpreparedData <- function(formula, data,MaxMARS = 11, MinRsq = .001 ,...)
@@ -77,8 +82,8 @@ fda.FLTable <- fda.FLpreparedData
 fda.FLTableMD <- fda.FLpreparedData
 
 #' Linear discriminant analysis.
+#' 
 #' \code{lda} performs Linear discriminant analysis on FLTable objects.
-#'
 #' The DB Lytix function called is FLLDA. Performs Linear discriminant analysis and 
 #' stores the results in predefined tables.
 #'
@@ -92,9 +97,7 @@ fda.FLTableMD <- fda.FLpreparedData
 #' flmod$scaling, flmod$means;cof <-coefficients(flmod)
 #' predict(flmod): Not implemented yet.
 #' plot(flmod)
-
-## TO DO: predict, 
-
+#' @export
 lda <- function (formula,data=list(),...) {
     UseMethod("lda", data)
 }
@@ -122,13 +125,13 @@ lda.FLTableMD <- lda.FLpreparedData
 
 
 ## MDA function
-#' library(mda)
-## Mixed DA.
-#' @export
 #' Mixture Discriminant Analysis.
-#' \code{mda} performs Mixture Discriminant Analysis on FLTable objects.
+#' 
+#'\code{mda} performs Mixture Discriminant Analysis on FLTable objects.
 #' The DB Lytix function called is FLMDA. Performs Mixture Discriminant Analysis and 
 #' stores the results in predefined tables.
+#'
+#' limitations: no dollar operator access to means, precent.explained, values, plot((lack of data of discriminant space).
 #' @seealso \code{\link[stats]{mda}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable or FLTableMD.
@@ -147,17 +150,19 @@ lda.FLTableMD <- lda.FLpreparedData
 #' FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
 #' class into a number of artificial subclasses. It calibrates the mixture of Gaussians
 #' and the mixing probability by maximizing the log-likelihood with expectation maximization.
-
-
-#' couldnt implement dollar operator: means, precent.explained, values, plot((lack of data of discriminant space).
-
-
+#' @export
 mda <- function (formula,data=list(),...) {
     UseMethod("mda", data)
 }
 
 #' @export
-mda.default <- mda::mda
+mda.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("mda", quietly = TRUE)){
+        stop("nortest package needed for mda. Please install it.",
+             call. = FALSE)
+    }
+    else return(mda::mda(formula=formula,data=data,...))
+}
 
 #' @export
 mda.FLpreparedData <- function(formula, data,subclasses = 3, iter = 5, init = 1,hypothesis = 5, ...)
@@ -207,7 +212,7 @@ ldaGeneric <- function(formula,data,
     vclass <- "FLLDA"
     for(i in names(prepData))
    	assign(i,prepData[[i]])
-    deeptable <- deepx@select@table_name
+    deeptable <- getTableNameSlot(deepx)
     functionName <- "FLLDA"
     var <- getVariables(deepx)
     vinputcols <- list()
@@ -289,7 +294,7 @@ ldaGeneric <- function(formula,data,
     else if (property == "call"){
         return(object@results$call)}
     else if (property == "counts"){
-        vcount <- sqlQuery(connection, paste0("SELECT ",var[[3]]," AS id, count(*) AS val FROM ",object@deeptable@select@table_name," WHERE ",var[[2]]," = -1 GROUP BY ",var[[3]]," ORDER BY ",var[[3]]," "))
+        vcount <- sqlQuery(connection, paste0("SELECT ",var[[3]]," AS id, count(*) AS val FROM ",getTableNameSlot(object@deeptable)," WHERE ",var[[2]]," = -1 GROUP BY ",var[[3]]," ORDER BY ",var[[3]]," "))
         vect <- vcount$val
         names(vect) <- vcount$id
         return(vect)       
@@ -298,7 +303,7 @@ ldaGeneric <- function(formula,data,
     {
         if(object@results$familytype %in% c("lda", "Mixed"))
         {
-            str <- paste0("SELECT FLMean(d.",var[[3]],") as means, d.",var[[2]]," AS VarID, c.val  FROM ",object@deeptable@select@table_name," d, (SELECT ",var[[1]]," AS ObsID, ",var[[3]]," AS val FROM tbllda b WHERE b.",var[[2]]," = -1) AS
+            str <- paste0("SELECT FLMean(d.",var[[3]],") as means, d.",var[[2]]," AS VarID, c.val  FROM ",getTableNameSlot(object@deeptable)," d, (SELECT ",var[[1]]," AS ObsID, ",var[[3]]," AS val FROM tbllda b WHERE b.",var[[2]]," = -1) AS
 c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",var[[2]]," ORDER BY d.",var[[2]],", c.val ")
             df <- sqlQuery(connection, str)
             var <- unique(df$val)
@@ -321,7 +326,7 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
     }
     
     else if (property == "lev"){
-        level <- sqlQuery(connection, paste0("SELECT DISTINCT ",var[[3]]," AS val FROM ",object@deeptable@select@table_name," WHERE ",var[[2]]," = -1 ORDER BY ",var[[3]]," "))
+        level <- sqlQuery(connection, paste0("SELECT DISTINCT ",var[[3]]," AS val FROM ",getTableNameSlot(object@deeptable)," WHERE ",var[[2]]," = -1 ORDER BY ",var[[3]]," "))
         return(as.character(level$val))
     }
     else if (property == "xlevels")
@@ -406,7 +411,7 @@ predict.FLLDA <- function(object){
         tblname <- gen_unique_table_name("flexscore")
         
         ret <- sqlStoredProc(connection,"FLFlexDiscriminantScore",
-                             TableName = object@deeptable@select@table_name,
+                             TableName = getTableNameSlot(object@deeptable),
                              ObsIDCol = var[[1]],
                              VarIDCol = var[[2]],
                              ValueCol = var[[3]],

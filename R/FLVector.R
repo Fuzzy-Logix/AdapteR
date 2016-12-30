@@ -20,7 +20,7 @@ FLVector <- function(table,
                      whereconditions=character()) {
     stop("Please use subsetting to create vectors")
     V <- NULL
-	if(table@isDeep) {
+	if(isDeep(table)) {
         if(length(val_col_name)) { ## column vector deep table
             V <- newFLVector(
                      table = table, 
@@ -37,7 +37,7 @@ FLVector <- function(table,
                                          equalityConstraint(
                                              table@obs_id_colname,val_row_name)))
         }
-    } else if(!table@isDeep) {
+    } else if(!isDeep(table)) {
         if(length(val_col_name)) { 
             V <- newFLVector(
                      table = table, 
@@ -73,7 +73,7 @@ setMethod("show","FLVector",function(object) print(as.vector(object)))
     if(!is.null(value)){
         if(length(value)!=length(x))
             stop("names should be of same length as FLVector \n ")
-        else if(is.na(value)) stop("NA names not allowed \n ")
+        else if(any(is.na(value))) stop("NA names not allowed \n ")
     }
     
     if(ncol(x)==1)

@@ -1,22 +1,17 @@
-Renv=new.env(parent= globalenv())
-FLenv= as.FL(Renv)
-Renv$kyphosis<-kyphosis
-colnames(Renv$kyphosis)<-paste0("Col",1:ncol(kyphosis))
-FLenv$kyphosis<-as.FLTable(Renv$kyphosis,temporary=FALSE)
+Renv=new.env(globalenv())
+FLenv=as.FL(Renv)
 
-FLenv$deeptable<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
-Renv$deeptable<-as.data.frame(FLenv$deeptable)
+FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+Renv$table<-as.data.frame(FLenv$table)
+Renv$table$`-1`<-as.factor(Renv$table$`-1`)
+colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
 
-test_that("FLrpart: test for deep tables",{
-	robj<-rpart(Renv$deeptable,formula= Renv$deeptable$`-1`~.,method="class")
-	flobj<-rpart(FLenv$deeptable,formula= -1~.)
-	FLexpect_equal(robj$frame$var,flobj$frame$var)
-	FLexpect_equal(robj$frame$n,flobj$frame$n)
-})
+print(methods("rpart"))
 
-test_that("FLrpart: test for wide tables",{
-	robj<-rpart(Renv$kyphosis,formula= Renv$kyphosis$`-1`~.,method="class")
-	flobj<-rpart(FLenv$kyphosis,formula= -1~.)
-	FLexpect_equal(robj$frame$var,flobj$frame$var)
-	FLexpect_equal(robj$frame$n,flobj$frame$n)
+test_that("test for decision tree on wide tables",{
+  flobj<-rpart(FLenv$table, formula = -1~.)
+  robj <- rpart(Col1~., data = Renv$table,method = "class")
+  result1= expect_equal(flobj$frame[1,"n"],robj$frame[1,"n"])
+  result3= expect_equal(as.numeric(rownames(flobj$frame)),as.numeric(flobj$frame$NodeID))
+  result5= expect_equal(any(flobj$frame$var=="<leaf>"),TRUE)
 })

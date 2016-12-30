@@ -9,6 +9,14 @@ as.vector.FLMatrix <- function(object,mode="any")
 	return(as.vector(temp_m))
 }
 
+#' Converts FLSkalarAggregate object to vector in R
+#' @export
+as.vector.FLSkalarAggregate <- function(object,mode="any")
+{
+    do.call(mixedAggregate,append(llply(object@arguments,as.vector),
+                                  list(Rfun=object@func,FLfun="")))
+}
+
 #' @export
 as.vector.FLMatrixBind <- function(object,mode="any")
 {
@@ -50,10 +58,6 @@ as.vector.FLVector <- function(object,mode="any")
     return(x)
 }
 
-as.vector.FLSkalarAggregate <- function(object,mode="any"){
-    do.call(object@func,lapply(object@arguments,as.vector))
-}
-
 #' Converts in-database objects to a data frame in R
 #' 
 #' Caution: data is fetched into R session
@@ -79,7 +83,7 @@ as.data.frame.FLTable <- function(x, ...){
     names(D) <- toupper(names(D))
     D <- plyr::arrange(D,D[[toupper(vobsidcol)]])
     ##browser()
-    if(x@isDeep) {
+    if(isDeep(x)) {
         vvaridcol <- getIndexSQLName(x,margin=2)
         vvaluecol <- getIndexSQLName(x,margin=3)
         D <- reshape2::dcast(D, paste0(toupper(vobsidcol),
@@ -95,7 +99,7 @@ as.data.frame.FLTable <- function(x, ...){
     D[[toupper(vobsidcol)]] <- NULL
     ## For sparse deep table
     D[is.na(D)] <- 0
-    if(!x@isDeep)
+    if(!isDeep(x))
         names(D) <- vnames
     return(D)
 }
@@ -114,7 +118,7 @@ as.data.frame.FLVector <- function(x, ...){
     x <- populateDimnames(x)
     vrownames <- rownames(x)
     vcolnames <- colnames(x)
-    # if(ncol(x)<=1 && !(!x@isDeep && nrow(x)==1 && ncol(x)==1))
+    # if(ncol(x)<=1 && !(!isDeep(x) && nrow(x)==1 && ncol(x)==1))
     #if(ncol(x)<=1 && class(x@select)!="FLTableFunctionQuery")
     if(ncol(x)<=1)
     {
@@ -128,12 +132,12 @@ as.data.frame.FLVector <- function(x, ...){
     }
 
      i <- charmatch(vrownames,D[[toupper("vectorIndexColumn")]],nomatch=0)
-     if(x@isDeep) {
+     if(isDeep(x)) {
         if(length(colnames(x))>1)
         i <- charmatch(vcolnames,D[[toupper("vectorIndexColumn")]],nomatch=0)
     }
     D <- D[i,]
-    if(x@isDeep) {
+    if(isDeep(x)) {
         if(length(colnames(x))>1)
          D <- reshape2::dcast(D, paste0(toupper("vectorIdColumn"),
                              " ~ ",
@@ -665,8 +669,8 @@ as.FLMatrix.data.frame <- function(object,
 as.FLMatrix.FLTable <- function(object,
                                 sparse=TRUE,...){
   object <- setAlias(object,"")
-  if(!object@isDeep)
-  object <- wideToDeep(object=object)[["table"]]
+  if(!isDeep(object))
+  object <- wideToDeep(object=object)
 
   vdimnames <- lapply(dimnames(object),
                   function(x){
@@ -674,7 +678,7 @@ as.FLMatrix.FLTable <- function(object,
                       return(NULL)
                       else return(x)
                   })
-  return(FLMatrix(table_name=object@select@table_name,
+  return(FLMatrix(table_name=getTableNameSlot(object),
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
@@ -875,7 +879,7 @@ setMethod("as.FLTable",signature(object="FLMatrix"),
 
 as.FLTable.FLMatrix <- function(object=object,...){
     object <- setAlias(object,"")
-    return(FLTable(table=object@select@table_name,
+    return(FLTable(table=getTableNameSlot(object),
                    obs_id_colname=getVariables(object)[["rowIdColumn"]],
                    var_id_colnames=getVariables(object)[["colIdColumn"]],
                    cell_val_colname=getVariables(object)[["valueColumn"]],
@@ -1081,7 +1085,7 @@ setMethod("populateDimnames",
     function(x,...){
         if(!length(rownames(x))>0)
             x@Dimnames[[1]] <- 1:(x@dims[1])
-        if(x@isDeep)
+        if(isDeep(x))
             x@Dimnames[[2]] <- 1:(x@dims[2])
         return(x)
 })
