@@ -1125,7 +1125,6 @@ prepareData.lmGeneric <- function(formula,data,
                                 ClassSpec=classSpec,
                                 WhereClause=whereconditions,
                                 InAnalysisID="",
->>>>>>> 3ebe29887eb997cc7c974e1a07bf50e69599ea07
                                 fetchIDs=fetchIDs)
 
         vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
