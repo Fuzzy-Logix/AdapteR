@@ -1,8 +1,6 @@
 Renv = new.env(parent = globalenv())
 FLenv = as.FL(Renv)
 
-require(survival)
-
 ## data1 is DBLytix example
 ## data2 is R example
 
@@ -12,7 +10,7 @@ Renv$fit1 <- dlply(Renv$data1,c("DataSetID"),
               function(x)
                 survival::survdiff(Surv(TIME_VAL,STATUS)~Gender,
                                     data=x))
-Renv$data2 <- ovarian
+Renv$data2 <- survival::ovarian
 Renv$fit2 <- survival::survdiff(Surv(futime, fustat) ~ rx,
                                 data=Renv$data2)
 

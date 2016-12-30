@@ -1,7 +1,12 @@
 
 #Initialized a matrix from tblMatrixMulti of database for testing FLMatrixNorm.
 
-testmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+testmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 
+                        5,
+                        "MATRIX_ID",
+                        "ROW_ID",
+                        "COL_ID",
+                        "CELL_VAL")
 
 #Presently, there are 4 Norm methods for FLMatrixNorm.
 #Every result using different Norm method  would be printed in following test code.

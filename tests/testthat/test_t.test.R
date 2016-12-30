@@ -1,6 +1,7 @@
 Renv=new.env(parent=globalenv())
-Renv$obja<-rnorm(50)
-Renv$objb<-sample(c(1,2),replace = T,size = 25)
+## Using R examples
+Renv$obja<-1:10
+Renv$objb<-7:20
 FLenv<-as.FL(Renv)
 
 test_that("one sample t test",{
@@ -8,13 +9,13 @@ test_that("one sample t test",{
 		obj<-t.test(obja)
 	},Renv,FLenv,
         tolerance=1e-4,
+        expectation=c("obj"),
         verbose=F)
 })
 
-
-test_that("two sample t test: conf-int wrong https://app.asana.com/0/143316600934101/195568724935159",{
+test_that("two sample t test: ",{
 	result = eval_expect_equal({
-		obj<-t.test(obja,objb)
+		obj1<-t.test(obja,objb)
 		obj2<-t.test(obja,objb,var.equal = TRUE)
 	},Renv,FLenv,
         tolerance=1e-4,

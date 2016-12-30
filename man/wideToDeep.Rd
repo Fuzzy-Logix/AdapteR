@@ -4,9 +4,7 @@
 \alias{wideToDeep}
 \title{Convert Wide Table to Deep Table in database.}
 \usage{
-wideToDeep(object, excludeCols = "", classSpec = list(),
-  whereconditions = "", outDeepTableName = "", outObsIDCol = "",
-  outVarIDCol = "", outValueCol = "")
+wideToDeep(object, ...)
 }
 \arguments{
 \item{object}{FLTable object}
@@ -35,8 +33,7 @@ FLWideToDeep does not require dependent variable or intercept, thus it creates d
 }
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
-resultList <- wideToDeep(widetable)
-deeptable <- resultList$table
-analysisID <- resultList$AnalysisID
+deeptable <- wideToDeep(widetable)
+analysisID <- deeptable@wideToDeepAnalysisID
 }
 

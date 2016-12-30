@@ -76,7 +76,7 @@ setMethod("survdiff",
                         stop("Allowed rho values are:",unique(c(vRhoMap,0,1))," \n ")
                     data <- setAlias(data,"")
                     connection <- getFLConnection()
-                    if(data@isDeep)
+                    if(isDeep(data))
                         stop("input table must be wide \n ")
                     vtemp <- prepareSurvivalFormula(data=data,
                                                     formula=formula)

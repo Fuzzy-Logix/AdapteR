@@ -22,18 +22,20 @@ NULL
 #' component regression (PCR), with a formula interface.
 #' Cross-validation can be used.  Prediction, model extraction, plot,
 #' print and summary methods exist.
- 
-
-##library(pls)
 #' @export
-#' library(pls)
 mvr <- function (formula,data=list(),...) {
 	UseMethod("mvr", data)
 }
 
 ## move to file rlm.R
 #' @export
-mvr.default <- pls::mvr
+mvr.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("pls", quietly = TRUE)){
+        stop("mvr package needed for mvr. Please install it.",
+             call. = FALSE)
+    }
+    else return(pls::mvr(formula=formula,data=data,...))
+}
 
 ## move to file rlm.R
 #' @export
@@ -129,7 +131,7 @@ setClass(
 
     if(property=="Xmeans"){
         str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS Xmeans
-                       FROM ",object@deeptable@select@table_name," a
+                       FROM ",getTableNameSlot(object@deeptable)," a
 WHERE a.",getVariables(object@deeptable)$var_id_colname," > -1
 GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVariables(object@deeptable)$var_id_colname," ")
         mval <- sqlQuery(connection, str)
@@ -138,7 +140,7 @@ GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVar
     }
     else if(property == "Ymeans"){
         str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS Ymeans
-        FROM ",object@deeptable@select@table_name," a
+        FROM ",getTableNameSlot(object@deeptable)," a
                            WHERE a.",getVariables(object@deeptable)$var_id_colname," = -1
                            GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
         mval <- sqlQuery(connection, str)
@@ -215,7 +217,7 @@ GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVar
             return(object@results[["y"]])
         else
         {
-            vtablename <- object@deeptable@select@table_name
+            vtablename <- getTableNameSlot(object@deeptable)
             obs_id_colname <- getVariables(object@deeptable)[["obs_id_colname"]]
             var_id_colname <- getVariables(object@deeptable)[["var_id_colname"]]
             cell_val_colname <- getVariables(object@deeptable)[["cell_val_colname"]]
@@ -286,7 +288,7 @@ predict.FLPLSRegr <- function(object,
                                  b.",ObsID," AS VectorIndexColumn,
                                  FLSUMProd(b.",Num_Val,", a.",cof,") AS vectorValueColumn FROM ",
                                  object@vfcalls["coefftablename"]," a,",
-                                 object@deeptable@select@table_name," b
+                                 getTableNameSlot(object@deeptable)," b
                          WHERE a.XVarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
                          GROUP BY b.",ObsID,"")
         dt <- sqlQuery(connection, str)

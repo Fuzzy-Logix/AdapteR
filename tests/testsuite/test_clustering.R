@@ -6,7 +6,7 @@ options(debugSQL=F)
 
 FLenv <- as.FL(Renv)
 
-test_that("Kmeans compare R and FL Manually ",{
+test_that("kmeans: square sums and cluster size",{
     eval_expect_equal({
         cl <- kmeans(x, 2)
         kmeans.totSS <- cl$totss
@@ -16,6 +16,26 @@ test_that("Kmeans compare R and FL Manually ",{
         kmeans.size <- cl$size
     },Renv,FLenv,
     ##verbose=T,
+    tolerance=1e-5,
+    noexpectation=c("cl","property"))
+})
+
+test_that("pam: kmedoids isolation, clusinfo, silinfo, idmed",{
+    eval_expect_equal({
+        cl <- pam(x, 2)
+        pam.isolation <- cl$isolation
+        pam.clusinfo <- cl$clusinfo
+        pam.idmed <- cl$id.med
+    },Renv,FLenv,
+    noexpectation=c("cl","property"))
+})
+
+test_that("pam: kmedoids isolation, clusinfo, silinfo, idmed",{
+    eval_expect_equal({
+        cl <- pam(x, 2)
+        pam.silinfo <- cl$silinfo
+    },Renv,FLenv,
+    tolerance=1e-3,
     noexpectation=c("cl","property"))
 })
 
@@ -24,17 +44,12 @@ test_that("Kmeans compare R and FL Manually ",{
 ## The difference is not AdapteR specific as result is fetched
 ## from fzzlkmedoidstotalCost table.
 ## The main idea is the same,i.e to see improvement from build to swap.
-test_that("pam: kmedoids results",{
-    eval_expect_equal({
-        cl <- pam(x, 2)
-        pam.objective <- cl$objective
-        pam.isolation <- cl$isolation
-        pam.clusinfo <- cl$clusinfo
-        pam.silinfo <- cl$silinfo
-        pam.idmed <- cl$id.med
-    },Renv,FLenv,
-    noexpectation=c("cl","property"))
-})
+## test_that("pam: objective",{
+##     eval_expect_equal({
+##         pam.objective <- cl$objective
+##     },Renv,FLenv,
+##     noexpectation=c("cl","property"))
+## })
 
 ## In convergence component, NA returned in iterations
 ## as that info is not available in DB-Lytix.
@@ -50,15 +65,21 @@ test_that("fanny: Fuzzy kmeans results ",{
     noexpectation=c("cl","property"))
 })
 
-## Height component differs.
-## Height gives distance between merging clusters
-## at each stage. Somehow AdapeR height is monotonously increasing.
 test_that("agnes results",{
     eval_expect_equal({
         cl <- agnes(x)
         agnes.order <- cl$order
         agnes.merge <- cl$merge
         agnes.ac <- cl$ac
+    },Renv,FLenv,
+    noexpectation=c("cl","property"))
+})
+
+## Height component differs.
+## Height gives distance between merging clusters
+## at each stage. Somehow AdapeR height is monotonously increasing.
+test_that("agnes results",{
+    eval_expect_equal({
         agnes.height <- cl$height
     },Renv,FLenv,
     noexpectation=c("cl","property"))

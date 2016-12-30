@@ -1,7 +1,7 @@
 ## cat("Below Example shows how expressions with number of nested queries exceeding the limit are handled:")
 FLenv = new.env(parent = globalenv())
 
-FLenv$flm <- FLMatrix("tblmatrixMulti",3,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+FLenv$flm <- FLMatrix(getTestTableName("tblMatrixMulti"),3,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 
 ## Generate an expression which has >141 nested queries:
 FLenv$vexpression <- paste0(rep("flm+flm",20),collapse="+")

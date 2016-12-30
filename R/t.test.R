@@ -29,19 +29,19 @@ t.test.FLVector <- function(x,
                             var.equal=FALSE,
                             alternative="two.sided",...)
 {       
+        checkHypoSystemTableExists()
         if(is.null(x)||!is.FLVector(x))
         stop("Only FLVector is supported")
 
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
-
+        df <- NULL
         if(length(y)==0){
         sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
                                         pFuncArgs = c("c.FLStatistic",
                                                         mu,
                                                       "a.vectorValueColumn",
                                                        tails),
-                                        pAddSelect = c(stat="c.FLStatistic",
-                                                       df = "COUNT(DISTINCT a.vectorValueColumn)"),
+                                        pAddSelect = c(stat="c.FLStatistic"),
                                                                               
                                         pFrom = c(a = constructSelect(x),
                                                   c = "fzzlARHypTestStatsMap"),
@@ -49,9 +49,9 @@ t.test.FLVector <- function(x,
                                         pGroupBy = "c.FLStatistic")
         vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
         estimate<-c("mean of x"=mean(x))
-        method<-"One Sample t-test"}                                         
-           
-        else{
+        method<-"One Sample t-test"
+        df <- length(x)-1
+        } else {
             if(var.equal==TRUE) {
                     var<-"EQUAL_VAR"
                     method<-" Two Sample t-test"}
@@ -78,14 +78,16 @@ t.test.FLVector <- function(x,
             estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))
             }
     result <- sqlQuery(connection, sqlstr)
+    colnames(result) <- tolower(colnames(result))
     names(mu)<-if(!is.null(y)) "difference in means" else "mean"
     cint<-cint(x,y,conf.level,mu,var.equal,alternative)
-    df<-cint[3]
+    if(is.null(df))
+        df <- cint[3]
     cint<-cint[1:2]
     attr(cint,"conf.level") <- conf.level
-    res <- list(statistic =c(t = as.numeric(result[1,1])),
+    res <- list(statistic =c(t = as.numeric(result[tolower(result[,"stat"])=="t_stat","outval"])),
                 parameter= c(df=df),
-                p.value=   c(as.vector(result[2,1])),
+                p.value=   c(as.vector(result[tolower(result[,"stat"])=="p_value","outval"])),
                 conf.int = cint,
                 estimate =estimate,
                 null.value=mu,

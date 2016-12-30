@@ -12,13 +12,7 @@
 #' 
 #' Data is transformed into a dichotomous vector according as each values is above or below a given threshold. Values equal to the level are removed from the sample.
 #' The default threshold value used in applications is the sample median which give us the special case of this test with n1 = n2, the runs test above and below the median.
-
 #' @export
-
-#TO-DO: need to add documentation of Waldwolfwotiz 2S.
-
-
-
 WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
     if(!is.FLVector(vFLvector))
         stop("Only take FLVector")
@@ -64,6 +58,7 @@ WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
 
 
 
+#' @export
 WaldWolftest2s <- function(vFLvector, vFLvector2)
 {
     vviewName <- gen_view_name("wwt2s")
@@ -92,7 +87,7 @@ WaldWolftest2s <- function(vFLvector, vFLvector2)
                              r.P_VALUE AS P_Value
                      FROM ",ret$ResultTable," AS r")
     res_1 <- sqlQuery(connection, sqlstr)
-    result <- list(statistic = c(Z = res_1$Z),
+    result <- list(statistic = c(statistic = res_1$Z),
                    p.value = res_1$P_Value,
                    alternative = "two-sided",
                    method = "Two-sample Wald-Wolfowitz test",

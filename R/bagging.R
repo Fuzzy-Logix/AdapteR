@@ -3,7 +3,13 @@ bagging<-function(formula,data,...){
 	UseMethod("bagging",data)
 }
 
-bagging.default<-adabag::bagging
+bagging.default  <- function (formula,data=list(),...) {
+    if (!requireNamespace("adabag", quietly = TRUE)){
+        stop("adabag package needed for bagging. Please install it.",
+             call. = FALSE)
+    }
+    else return(adabag::bagging(formula=formula,data=data,...))
+}
 
 bagging.FLTable<-function(data,
 				  formula,
@@ -11,7 +17,7 @@ bagging.FLTable<-function(data,
 							maxdepth=5,
 							cp=0.95),
 				  mfinal=5){
-	x<-FLrpart(data,formula,control,mfinal=mfinal)
+	x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
 	vfuncName<-"FLBagDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,

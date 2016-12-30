@@ -1,8 +1,8 @@
 getAlias <- function(object){
-  return(names(object@select@table_name))
+  return(names(getTableNameSlot(object)))
 }
 getObsIdColname <- function(object){
-  if(object@isDeep && ncol(object)>1)
+  if(isDeep(object) && ncol(object)>1)
   return("var_id_colname")
   else return("obs_id_colname")
 }
@@ -59,7 +59,7 @@ setMethod("typeof",signature(x="FLSimpleVector"),
         })
 setMethod("typeof",signature(x="FLTable"),
       function(x){
-        if(x@isDeep){
+        if(isDeep(x)){
           vValCol <- getVariables(x)[["cell_val_colname"]]
           vValCol <- changeAlias(vValCol,"","")
           vtype <- x@type[vValCol]
@@ -77,22 +77,91 @@ setMethod("typeof",signature(x="FLTable"),
         return(vtype)
       })
 
-setGeneric("getIdColname",function(object)
-      standardGeneric("getIdColname"))
-setMethod("getIdColname",signature(object="FLMatrix"),
+setGeneric("getGroupIdSQLExpression",function(object)
+      standardGeneric("getGroupIdSQLExpression"))
+setMethod("getGroupIdSQLExpression",signature(object="FLTable"),
       function(object){
-        return("MATRIX_ID")
+        return(NULL)
         })
-setMethod("getIdColname",signature(object="FLVector"),
+setMethod("getGroupIdSQLExpression",signature(object="FLTableMD"),
       function(object){
-        return("vectorIdColumn")
-        })
-setMethod("getIdColname",signature(object="FLTable"),
-      function(object){
-        return("obs_id_colname")
+        return(getIndexSQLExpression(object,1))
         })
 
+setGeneric("getObsIdSQLExpression",function(object)
+      standardGeneric("getObsIdSQLExpression"))
+setMethod("getObsIdSQLExpression",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLExpression(object,1))
+        })
+setMethod("getObsIdSQLExpression",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLExpression(object,2))
+        })
+setGeneric("getVarIdSQLExpression",function(object)
+      standardGeneric("getVarIdSQLExpression"))
+setMethod("getVarIdSQLExpression",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLExpression(object,2))
+        })
+setMethod("getVarIdSQLExpression",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLExpression(object,3))
+        })
 
+setMethod("getValueSQLExpression",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLExpression(object,3))
+        })
+setMethod("getValueSQLExpression",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLExpression(object,4))
+        })
+
+setGeneric("getGroupIdSQLName",function(object)
+      standardGeneric("getGroupIdSQLName"))
+setMethod("getGroupIdSQLName",signature(object="FLTable"),
+      function(object){
+        return(NULL)
+        })
+setMethod("getGroupIdSQLName",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLName(object,1))
+        })
+
+setGeneric("getObsIdSQLName",function(object)
+      standardGeneric("getObsIdSQLName"))
+setMethod("getObsIdSQLName",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLName(object,1))
+        })
+setMethod("getObsIdSQLName",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLName(object,2))
+        })
+setGeneric("getVarIdSQLName",function(object)
+      standardGeneric("getVarIdSQLName"))
+setMethod("getVarIdSQLName",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLName(object,2))
+        })
+setMethod("getVarIdSQLName",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLName(object,3))
+        })
+
+setMethod("getValueSQLName",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLName(object,3))
+        })
+setMethod("getValueSQLName",signature(object="FLTableMD"),
+      function(object){
+        return(getIndexSQLName(object,4))
+        })
+
+## @phani: below functions need review.
+## update to use dimColumns or deprecate
+###########################################################################################
 setGeneric("getValueColumn",function(object)
       standardGeneric("getValueColumn"))
 setMethod("getValueColumn",signature(object="FLMatrix"),
@@ -101,7 +170,7 @@ setMethod("getValueColumn",signature(object="FLMatrix"),
         })
 setMethod("getValueColumn",signature(object="FLVector"),
       function(object){
-        if(object@isDeep)
+        if(isDeep(object))
         return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
         else{
           vtemp <- ""
@@ -119,7 +188,7 @@ setMethod("getValueColumn",signature(object="FLVector"),
 
 setMethod("getValueColumn",signature(object="FLTable"),
       function(object){
-        if(object@isDeep)
+        if(isDeep(object))
         return(c(cell_val_colname=getVariables(object)[["cell_val_colname"]]))
         vtemp <- ""
         if(!is.null(getAlias(object)) && 
@@ -133,6 +202,22 @@ setMethod("getValueColumn",signature(object="FLTable"),
                         }))
         })
 
+setGeneric("getIdColname",function(object)
+      standardGeneric("getIdColname"))
+setMethod("getIdColname",signature(object="FLMatrix"),
+      function(object){
+        return("MATRIX_ID")
+        })
+setMethod("getIdColname",signature(object="FLVector"),
+      function(object){
+        return("vectorIdColumn")
+        })
+setMethod("getIdColname",signature(object="FLTable"),
+      function(object){
+        return("obs_id_colname")
+        })
+
+########################################################################################
 genDeepFormula <- function(pColnames,
                           pDepColumn=NULL)
 {
@@ -167,9 +252,14 @@ getXMatrix <- function(object,
     vID <- object@results$mod[["nID"]]
 
   pDropCols <- unique(c(pDropCols,vdroppedCols))
+
+  vobsidSQLName <- getObsIdSQLName(object@deeptable)
+  vvaridSQLName <- getVarIdSQLName(object@deeptable)
+  vvalueSQLName <- getValueSQLName(object@deeptable)
+
   if(length(pDropCols)>0)
   modelframe@select@whereconditions <- c(modelframe@select@whereconditions,
-                  paste0("var_id_colname NOT IN ",
+                  paste0(getVarIdSQLExpression(object@deeptable)," NOT IN ",
                     "(",paste0(pDropCols,collapse=","),
                     ")"))
 
@@ -214,36 +304,39 @@ getXMatrix <- function(object,
   #   else vtablename <- object@results[["varidMapTable"]]
 
     if(isContinuous(rownames(modelframe)))
-        vrowidcolumn <- "a.obs_id_colname"
-    else vrowidcolumn <- "DENSE_RANK()OVER(ORDER BY a.obs_id_colname)"
+        vrowidcolumn <- paste0("a.",vobsidSQLName)
+    else vrowidcolumn <- paste0("DENSE_RANK()OVER(ORDER BY ",vobsidSQLName,")")
 
     if(is.null(object@results[[vID]])
         ||!isContinuous(object@results[[vID]]))
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                            vrowidcolumn," AS rowIdColumn, \n ",
-                            "b.CoeffIDNew AS colIdColumn, \n ",
-                            "a.cell_val_colname AS valueColumn \n ",
+                            "CAST(",vrowidcolumn," AS INT) AS rowIdColumn, \n ",
+                            "CAST(b.CoeffIDNew AS INT) AS colIdColumn, \n ",
+                            "a.",vvalueSQLName," AS valueColumn \n ",
                       " FROM (",constructSelect(modelframe),") a, \n ",
                             "(SELECT ",vID,",ROW_NUMBER()over(order by ",vID,") AS CoeffIDNew \n ",
                             " FROM ",object@vfcalls["coefftablename"]," a \n ",
                             " WHERE a.AnalysisID = ",fquote(object@AnalysisID),
-                                    ifelse(length(object@results[["modelID"]])>0 && object@vfcalls["functionName"]!= "FLRobustRegr",
-                                        paste0("\n AND a.ModelID = ",object@results[["modelID"]]),""),
+                                    ifelse(length(object@results[["modelID"]])>0 
+                                            && object@vfcalls["functionName"]!= "FLRobustRegr",
+                                        paste0("\n AND a.ModelID = ",
+                                                object@results[["modelID"]]),""),
                             ") b \n ",
-                      " WHERE b.",vID,"=a.var_id_colname "
+                      " WHERE b.",vID,"=a.",vvaridSQLName," "
                     )
     else
     vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
-                            vrowidcolumn," AS rowIdColumn, \n ",
-                            "b.",vID," ",
-                            ifelse(varidoffset==0,"",paste0("+",varidoffset))," AS colIdColumn, \n ",
-                            "a.cell_val_colname AS valueColumn \n ",
+                            "CAST(",vrowidcolumn," AS INT) AS rowIdColumn, \n ",
+                            "CAST(b.",vID," ",
+                            ifelse(varidoffset==0,"",paste0("+",varidoffset))," AS INT) AS colIdColumn, \n ",
+                            "a.",vvalueSQLName," AS valueColumn \n ",
                       " FROM (",constructSelect(modelframe),") a, \n ",
                             object@vfcalls["coefftablename"]," b \n ",
                       " WHERE b.AnalysisID = ",fquote(object@AnalysisID),
-                            ifelse(length(object@results[["modelID"]])>0 && object@vfcalls["functionName"]!= "FLRobustRegr",
+                            ifelse(length(object@results[["modelID"]])>0 
+                                    && object@vfcalls["functionName"]!= "FLRobustRegr",
                                 paste0("\n AND b.ModelID = ",object@results[["modelID"]]),""),
-                            " AND b.",vID,"=a.var_id_colname "
+                            " AND b.",vID,"=a.",vvaridSQLName," "
                     )
 
     # vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n ",
@@ -260,13 +353,13 @@ getXMatrix <- function(object,
 
   # }
   vselect <- new("FLTableFunctionQuery",
-          connectionName = getFLConnectionName(object),
-          variables=list(MATRIX_ID="MATRIX_ID",
-                  rowIdColumn="rowIdColumn",
-                  colIdColumn="colIdColumn",
-                  valueColumn="valueColumn"),
-          whereconditions="",
-          SQLquery=vsqlstr)
+                connectionName = getFLConnectionName(object),
+                variables=list(MATRIX_ID="MATRIX_ID",
+                              rowIdColumn="rowIdColumn",
+                              colIdColumn="colIdColumn",
+                              valueColumn="valueColumn"),
+                whereconditions="",
+                SQLquery=vsqlstr)
 
   vallVars <- all.vars(object@formula)
   
@@ -286,7 +379,8 @@ getXMatrix <- function(object,
 
   modelframe <- newFLMatrix(
                   select=vselect,
-                  dims=as.integer(c(nrow(modelframe),length(vcolnames))),
+                  dims=as.integer(c(nrow(modelframe),
+                                    length(vcolnames))),
                   Dimnames=list(NULL,vcolnames))
   #dimnames(modelframe) <- vdimnames
 
@@ -456,57 +550,6 @@ getArithmeticType <- function(pObj1,pObj2,pOperator){
 }
 
 
-getTablename <- function(x) gsub("^[^.]*\\.","",x)
-getDatabase <- function(x) {
-    db <- gsub("\\.[^.]*$","",x)
-    if(db=="" | db==x) db <- getOption("ResultDatabaseFL")
-    db
-}
-
-getTableNameSlot <- function(x){
-    return(tryCatch(x@select@table_name,
-                    error=function(x)NULL))
-}
-
-getSelectSlot <- function(x){
-    return(tryCatch(x@select,
-                    error=function(x)NULL))
-}
-
-getWhereConditionsSlot <- function(x){
-    return(tryCatch(x@whereconditions,
-                error=function(e)
-                        return(getWhereConditionsSlot(x@select))))
-}
-getDimsSlot <- function(x){
-    return(tryCatch(x@dims,
-                    error=function(x)NULL))
-}
-getTypeSlot <- function(x){
-    return(tryCatch(x@type,
-                    error=function(x)NULL))
-}
-getNamesSlot <- function(x){
-    return(tryCatch(x@names,
-                    error=function(x)NULL))
-}
-getGroupSlot <- function(x){
-    return(tryCatch(x@group,
-                    error=function(x)NULL))
-}
-getOrderSlot <- function(x){
-    return(tryCatch(x@order,
-                    error=function(x)NULL))
-}
-getDimColumnsSlot <- function(x){
-    return(tryCatch(x@dimColumns,
-                    error=function(x)NULL))
-}
-setNamesSlot <- function(x,value){
-    tryCatch(x@names <- value,
-                    error=function(x)NULL)
-    x
-}
 ## May use FLMod in future.
 ## https://app.asana.com/0/98264711960805/148450351472400
 ## FLMod related issues
@@ -519,4 +562,53 @@ getMODSQL <- function(pConnection=getFLConnection(),
         return(paste0(" MOD(",pColumn1,",",pColumn2,") "))
     else if(is.Hadoop(pConnection))
         return(paste0(" ",pColumn1,"%",pColumn2," "))
+}
+
+
+## Mapping of R Types to in-DB Types
+getRToFLDataTypeMap <- function(pRType){
+    vnames <- names(pRType)
+    pRType[pRType=="character"] <- "VARCHAR(255)"
+    pRType[pRType=="numeric"] <- "FLOAT"
+    pRType[pRType=="integer"] <- "INT"
+    pRType[pRType=="logical"] <- "VARCHAR(255)"
+    if(!all(pRType %in% c("VARCHAR(255)","INT","FLOAT"))==TRUE)
+    stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible \n ")
+    names(pRType) <- vnames
+    # return(pRType)
+    return(getFLPlatformDataTypeMap(pRType))
+}
+getFLPlatformDataTypeMap <- function(pFLType){
+    vnames <- names(pFLType)
+    vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
+                        "VARCHAR(255)"="VARCHAR(255)",
+                        FLOAT="FLOAT"),
+                    TDAster=c(INT="INT",BYTEINT="BYTEA",
+                        "VARCHAR(255)"="VARCHAR(255)",
+                        FLOAT="FLOAT"),
+                    Hadoop=c(INT="INT",BYTEINT="TINYINT",
+                        "VARCHAR(255)"="VARCHAR(255)",
+                        FLOAT="FLOAT"))
+    if(!is.null(pFLType)){
+        pFLType <- vtypeMap[[getFLPlatform()]][pFLType]
+        names(pFLType) <- vnames
+    }
+    return(pFLType)
+}
+
+getFLVectorTableFunctionQuerySQL <- function(idColumn="'%insertIDhere%'",
+                                            indexColumn,
+                                            valueColumn,
+                                            FromTable){
+    return(paste0(" SELECT ",idColumn," AS vectorIdColumn,",
+                            indexColumn," AS vectorIndexColumn,",
+                            valueColumn," AS vectorValueColumn",
+                    " FROM ",FromTable))
+}
+
+#' @export
+getTestTableName <- function(tableName){
+    getRemoteTableName(databaseName=getOption("TestDatabase")[getFLPlatform()],
+                        tableName=tableName,
+                        temporaryTable=FALSE)
 }

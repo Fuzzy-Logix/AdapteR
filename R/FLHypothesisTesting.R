@@ -1,11 +1,12 @@
 
 cint<-function(x,y=NULL,conf.level=0.95,mu=0,var.equal=FALSE,alternative="two.sided"){
-    if (alternative=="two.sided"){
+    if (alternative=="two.sided"){ #browser()
       if(length(y)==0){
         df<-length(x)-1
         sd<-sd(x)/sqrt(length(x))
         qt<-qt(conf.level+(1-conf.level)/2,df)*sd
-        res<-mean(x)+c(-qt,qt)}
+        res<-mean(x)+c(-qt,qt)
+        return(c(res,df))}
       else{
         if(var.equal){
           nx<-length(x)
@@ -29,9 +30,9 @@ cint<-function(x,y=NULL,conf.level=0.95,mu=0,var.equal=FALSE,alternative="two.si
           res<- qt(1 - alpha/2, df)
           res<- tstat + c(-res,res)
           res<-mu+res*stder
-          result<-c(res,df)
-          return(result)
         }
+        result<-c(res,df)
+        return(result)
       }
     }
 

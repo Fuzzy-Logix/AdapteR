@@ -34,7 +34,7 @@ diag.FLMatrix<-function(object,...)
     connection<-getFLConnection(object)
     ## flag3Check(connection)
 
-    table <- FLTable(table=object@select@table_name,
+    table <- FLTable(table=getTableNameSlot(object),
                      obs_id_colname = getVariables(object)[[object@dimColumns[[2]]]],
                      whereconditions=c(object@select@whereconditions,
                                        paste0(getVariables(object)[[object@dimColumns[[2]]]],
@@ -86,8 +86,8 @@ diag.FLVector <- function(object,...)
     }
     else if(length(object)>1)
     {
-        if(object@isDeep)
-            return(FLMatrix(table_name = object@select@table_name, 
+        if(isDeep(object))
+            return(FLMatrix(table_name = getTableNameSlot(object), 
                 matrix_id_value = "",
                 matrix_id_colname = "", 
                 row_id_colname = getVariables(object)$obs_id_colname, 
@@ -130,7 +130,7 @@ diag.FLVector <- function(object,...)
                 ))
             }
             else return(FLMatrix(
-                     table_name= object@select@table_name,
+                     table_name= getTableNameSlot(object),
                      matrix_id_value = "",
                      matrix_id_colname = "", 
                      row_id_colname = getVariables(object)$obs_id_colname, 

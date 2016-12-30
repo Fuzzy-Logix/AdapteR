@@ -4,7 +4,7 @@
 test_that("typeof: matrix, vector and expressions",
 {
   M1 <- initF.FLMatrix(n=5,isSquare=TRUE)
-  M2 <- FLMatrix("tblmatrixMulti",5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
+  M2 <- FLMatrix(getTestTableName("tblmatrixMulti"),5,"Matrix_id","ROW_ID","COL_ID","CELL_VAL")
   expect_equal(typeof(M2),"double")
   expect_equal(typeof(M1$FL),"double")
   V1 <- as.FLVector(sample(1:100,10))
@@ -34,7 +34,7 @@ test_that("typeof: matrix, vector and expressions",
 ## Testing typeof
 test_that("typeof: FLTable fzzlSerial, subsetting vector",
 {
-  flt <- FLTable("FL_DEMO.fzzlSerial","SERIALVAL", whereconditions = "SERIALVAL<100")
+  flt <- FLTable(getTestTableName("fzzlSerial"),"SERIALVAL", whereconditions = "SERIALVAL<100")
   flv1 <- flt[1:8,"RANDVAL"]
   flv <- flt[1:10,"RANDVAL"]
   expect_equal(typeof(flv1),"double")

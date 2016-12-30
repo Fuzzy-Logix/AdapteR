@@ -1,4 +1,4 @@
-flmatrix <- FLMatrix("tblMatrixMulti",
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"),
                      5,
                      "MATRIX_ID",
                      "ROW_ID",
@@ -14,8 +14,8 @@ test_that("FLSolveExcl", {
 ## Testing FLSolveExcl
 test_that("check FLSolveExcl",
 {
-  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
-  FLexpect_equal(dim(FLSolveExcl(M,3)),dim(M)-1)
+  M <- as.FLMatrix(matrix(rnorm(25),5))
+  FLexpect_equal(dim(FLSolveExcl(M,4)),dim(M)-1)
   FLexpect_equal(dim(FLSolveExcl(M,6)),dim(M))
 })
 
