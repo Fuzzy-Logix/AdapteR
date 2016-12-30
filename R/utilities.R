@@ -520,6 +520,7 @@ getMaxValue <- function(vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
                         vconnection=getFLConnection())
 {
+    browser()
     R <- sqlQuery(vconnection,
                     paste0("SELECT max(",
                            vcolName,")",

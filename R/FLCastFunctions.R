@@ -479,7 +479,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
 
     dn <- dimnames(object)
     if(any(is.na(c(i,j))))
-        browser()
+        
     values <- valuedf[[tolower(object@dimColumns[[4]])]]
 
     ##@phani:- some connection drivers give boolean as character
@@ -725,6 +725,7 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 as.FLVector.vector <- function(object,connection=getFLConnection())
 {
     ##flag3Check(connection)
+    browser()
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))
   newnames <- as.character(names(object))
   else newnames <- 1:length(object)
@@ -886,6 +887,7 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
+    browser()
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -957,43 +959,46 @@ as.FLTable.data.frame <- function(object,
     #                         tablename=tableName,
     #                         rownames=FALSE),
     #   error=function(e){stop(e)})
-    
+       
     ## This bulk insertion may fail for very big data
     ## as there size of query fired may exceed odbc limits!
     ## These cases will be handled by Parameterized sql
 
-    ## Replace NAs with NULL
-    object[is.na(object)] <- ''
-    vresult <- tryCatch(insertIntotbl(pTableName=tableName,
-                                    pValues=object),
-                        error=function(e){
-                            if(!is.ODBC(vconnection)) stop(e)
-                            sqlstr <- paste0("INSERT INTO ",tableName,
-                                            " VALUES(",paste0(rep("?",vcols),
-                                            collapse=","),")")
-                            sqlExecute(vconnection,sqlstr,object)
-                        })
-  }
-  else if(is.JDBC(vconnection))
-  {
-    .jcall(vconnection@jc,"V","setAutoCommit",FALSE)
-    sqlstr <- paste0("INSERT INTO ",
-                tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
-    ps = .jcall(vconnection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
-    myinsert <- function(namedvector,x){
-                  vsetvector <- c()
-                  vsetvector[" VARCHAR(255) "] <- "setString"
-                  vsetvector[" FLOAT "] <- "setFloat"
-                  vsetvector[" INT "] <- "setInt"
-                  for(i in 1:length(namedvector))
-                  {
-                    .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
-                      if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
-                      else if(namedvector[i]==" FLOAT ") .jfloat(x[i])
-                      else as.integer(x[i]))
-                  }
-                  .jcall(ps,"V","addBatch")
-                }
+        ## Replace NAs with NULL
+        object[is.na(object)] <- ''
+        vresult <- tryCatch(insertIntotbl(pTableName=tableName,
+                                          pValues=object),
+                            error=function(e){
+                                if(!is.ODBC(vconnection))) {stop(e)}
+                                 sqlstr <- paste0("INSERT INTO ",tableName,
+                                                 " VALUES(",paste0(rep("?",vcols),
+                                                                   collapse=","),")")
+                                sqlExecute(vconnection,sqlstr,object)
+                            })
+    }
+    else if (class(vconnection) == "ODBCConnection"){
+        comm <- dbWriteTable(vconnection,tableName, object, append = TRUE )
+    }
+    else if(is.JDBC(vconnection))
+    {
+        .jcall(vconnection@jc,"V","setAutoCommit",FALSE)
+        sqlstr <- paste0("INSERT INTO ",
+                         tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
+        ps = .jcall(vconnection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
+        myinsert <- function(namedvector,x){
+            vsetvector <- c()
+            vsetvector[" VARCHAR(255) "] <- "setString"
+            vsetvector[" FLOAT "] <- "setFloat"
+            vsetvector[" INT "] <- "setInt"
+            for(i in 1:length(namedvector))
+            {
+                .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
+                       if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
+                       else if(namedvector[i]==" FLOAT ") .jfloat(x[i])
+                       else as.integer(x[i]))
+            }
+            .jcall(ps,"V","addBatch")
+        }
 
     ##Chunking
     {
