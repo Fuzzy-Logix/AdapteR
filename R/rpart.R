@@ -332,6 +332,9 @@ plot.FLrpart<-function(x){ #browser()
         ycor[k]<-"2.25"
         segments(as.numeric(xcor[1]),as.numeric(ycor[1]),mean(c(as.numeric(xcor[j]),as.numeric(xcor[k]))),mean(c(as.numeric(ycor[j]),as.numeric(ycor[k]))))
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        var<-as.numeric(frame$var[1])
+        SplitVal<-as.numeric(frame$SplitVal[1])
+        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
         }
       else{
         xcor[j]<-as.numeric(xcor[i])-0.25/frame$treelevel[i]
@@ -344,7 +347,11 @@ plot.FLrpart<-function(x){ #browser()
         ymid<-as.numeric((as.numeric(ycor[j])+as.numeric(ycor[k]))/2)
         segments(pxcor,pycor,xmid,ymid)
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        var<-as.numeric(frame$var[i])
+        SplitVal<-as.numeric(frame$SplitVal[i])
+        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
         }
   	}
+  	else segments(as.numeric(xcor[i]),as.numeric(ycor[i]),as.numeric(xcor[i]),2.5-(as.numeric(frame$treelevel[i])+1)*0.25)
   }
 }
