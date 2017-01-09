@@ -1,4 +1,22 @@
 #' @export
+NULL
+
+#' Recursive partitioning and Regression Trees
+#' 
+#' Fit a rpart model
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param control A list of options that control details of the rpart algorithm.
+#' Minsplit: Minimum number of observations a node should have in order to be splitted.
+#' Maxdepth: The maximum depth to which the tree can go.
+#' cp: Complexity parameter
+#'
+#' @return An object of class "FLrpart" containing the tree structure details.
+#' @examples
+#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flobj<-rpart(data = flt, formula = -1~.)
+#' @export
 
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
@@ -143,7 +161,7 @@ summary.FLrpart<-function(x,...){
 predict.FLrpart<-function(object,
 						  newdata=object$deeptable,
 						  scoreTable="",
-						  ...){#browser()
+						  ...){
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
@@ -172,7 +190,7 @@ predict.FLrpart<-function(object,
 	AnalysisID<-sqlStoredProc(getFLConnection(),
 							  vfuncName,
 							  outputParameter=c(AnalysisID="a"),
-						 	  pInputParameters=vinputcols)
+						 	  pInputParams=vinputcols)
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 	query<-paste0("Select * from ",scoreTable," Order by 1")
 	result<-sqlQuery(getFLConnection(),query)
