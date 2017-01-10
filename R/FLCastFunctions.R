@@ -969,7 +969,7 @@ as.FLTable.data.frame <- function(object,
         vresult <- tryCatch(insertIntotbl(pTableName=tableName,
                                           pValues=object),
                             error=function(e){
-                                if(!is.ODBC(vconnection))) {stop(e)}
+                                if(!is.ODBC(vconnection)) {stop(e)}
                                  sqlstr <- paste0("INSERT INTO ",tableName,
                                                  " VALUES(",paste0(rep("?",vcols),
                                                                    collapse=","),")")
