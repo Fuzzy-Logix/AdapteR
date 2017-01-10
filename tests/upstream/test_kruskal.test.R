@@ -22,19 +22,20 @@ test_that("kruskal Test on FLVectors: R example: checking Result Equality withou
                 fit$data.name <- NULL
                 class(fit) <- "list"
     },Renv,FLenv,
-    expectation=c("fit"))
+    expectation=c("fit"),
+    verbose=T)
 })
 
-test_that("kruskal Test on FLTable using subset: R example: checking Result Equality with subset:",{
-    result = eval_expect_equal({
-            fit <- kruskal.test(Ozone ~ theMonth, data = mydata,subset=flv)
-            # fit$p.value <- NULL
-            fit$data.name <- NULL
-            class(fit) <- "list"
-            },Renv,FLenv,
-    verbose=T,
-    expectation=c("fit"))
-})
+## test_that("kruskal Test on FLTable using subset: R example: checking Result Equality with subset:",{
+##     result = eval_expect_equal({
+##             fit <- kruskal.test(Ozone ~ theMonth, data = mydata,subset=flv)
+##             # fit$p.value <- NULL
+##             fit$data.name <- NULL
+##             class(fit) <- "list"
+##             },Renv,FLenv,
+##     verbose=T,
+##     expectation=c("fit"))
+## })
 
 test_that("kruskal Test on FLTable: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({

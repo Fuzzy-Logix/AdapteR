@@ -40,7 +40,6 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
 	# 				HASH BY z.Matrix_ID 
 	# 				LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID) AS a;"
  #                   )
-
     vdimcolumns <- getDimColumnsSlot(object)
     pViewColnames <- as.list(c(vdimcolumns,NormMethod))
     names(pViewColnames) <- c(vdimcolumns,"NormMethod")

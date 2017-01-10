@@ -1,9 +1,10 @@
 Renv = new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
 Renv$dataf<- data.frame(var1 = rnorm(200),
                         var2 = rnorm(200), 
                         var3 = sample( c(0, 10), 200, replace = TRUE),
                         offset=1)
-FLenv <- as.FL(Renv)
+FLenv$dataf <- as.FLTable(Renv$dataf,temporary=F)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({
@@ -17,18 +18,18 @@ test_that("glm: execution for poisson ",{
 }) 
 
 
-
-
+## Below cases fail in Hadoop:-
+## No FLPoissonRegrScore function in Hadoop!
 test_that("glm: equality of coefficients, residuals, fitted.values, df.residual for poisson",{
     result = eval_expect_equal({
         coeffs2 <- glmobj$coefficients
         res <- as.vector(glmobj$residuals)
-        fitteds <- as.vector(glmobj$fitted.values)
+        fitted <- as.vector(glmobj$fitted.values)
         names(res) <- names(fitted) <- NULL ## todo: support names in AdapteR
         dfres <- glmobj$df.residual
     },Renv,FLenv,
     expectation=c("coeffs2","res",
-                "fitteds","dfres"),
+                "fitted","dfres"),
     noexpectation = "glmobj",
     tolerance = .000001,
     check.attribute = F

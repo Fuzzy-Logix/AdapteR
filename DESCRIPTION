@@ -1,10 +1,12 @@
 Package: AdapteR
 Title: Converts R syntax to SQL to provide fast analytics using in-database C++
     library DB Lytix.
-Version: 2.3
+Version: 2.4
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
+    person("Sanchit", "Chiplunkar", email = "Sanchit.Chiplunkar@fuzzylogix.com", role = c("ctb")),
+    person("Amal", "Shrivastava", email = "Amal.Shrivastava@fuzzylogix.com", role = c("ctb")),
     person("Rushil", "Nagda", email = "rushil9292@gmail.com", role = c("ctb")),
     person("Suryavamshig", "Iitr", email = "suryavamshig.iitr@gmail.com", role = c("ctb")),
     person("Mitul", "Mundra", email = "Mitul.Mundra@fuzzylogix.com", role = c("ctb")),
@@ -24,7 +26,7 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     how AdapteR can be used to build interactive analytics at scale with just a few
     lines of R code!
 Depends:
-    R (>= 3.2.0),
+    R (>= 3.1.0),
     methods,
     Matrix (>= 1.1-5)
 Imports:
@@ -65,8 +67,12 @@ Collate:
     'FLAggClustering.R'
     'FLCApply.R'
     'FLCastFunctions.R'
+    'FLCastFunctions.R.BASE.R'
+    'FLCastFunctions.R.LOCAL.R'
+    'FLCastFunctions.R.REMOTE.R'
     'FLCbind.R'
     'FLCholeskyDecomp.R'
+    'apply.R'
     'FLStatFunctions.R'
     'FLCorrel.R'
     'FLCoxph.R'
@@ -84,6 +90,7 @@ Collate:
     'FLGinv.R'
     'FLHClust.R'
     'FLHKMeans.R'
+    'FLHKMeansSQL.R'
     'FLHeadTail.R'
     'FLHessenDecomp.R'
     'FLHypothesisTesting.R'
@@ -91,8 +98,7 @@ Collate:
     'FLIs.R'
     'FLJordanDecomp.R'
     'FLKMeans.R'
-    'FLKSTest.R'
-    'FLKuiperTest.R'
+    'FLLDA.R'
     'FLLUDecomp.R'
     'FLLength.R'
     'FLLogRegr.R'
@@ -111,7 +117,6 @@ Collate:
     'FLRbind.R'
     'FLSV.R'
     'FLSVDecomp.R'
-    'FLSVM.R'
     'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
@@ -122,10 +127,8 @@ Collate:
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
-    'FLrpart.R'
     'FLtestLib.R'
     'SiegelTukeyTest.R'
-    'apply.R'
     'bagging.R'
     'binom.test.R'
     'boosting.R'
@@ -137,8 +140,13 @@ Collate:
     'experiment_benchmarking.R'
     'friedman.test.R'
     'kruskal.test.R'
+    'ks.test.R'
+    'kuip.test.R'
+    'mahalanobis.R'
     'mcnemar.test.R'
+    'randomForest.R'
     'rowcolOps.R'
+    'rpart.R'
     'survdiff.R'
     'survfit.R'
     't.test.R'

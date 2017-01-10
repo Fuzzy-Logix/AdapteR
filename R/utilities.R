@@ -351,11 +351,11 @@ sqlQuery.ODBCConnection <- function(connection, query, ...){
 ##' @param object FLTable object 
 ##' @return message if the table is dropped
 ##' @export
-drop.FLTable <- function(object)
+dbDrop <- function(object)
 {
-    vSqlStr <- paste0(" DROP TABLE ",object@tablename)
+    vSqlStr <- paste0(" DROP TABLE ",getTableNameSlot(object))
     sqlSendUpdate(getFLConnection(object), vSqlStr)
-    return(paste0(object@select@table_name," DROPPED"))
+    return(paste0(getTableNameSlot(object)," DROPPED"))
 }
 
 
@@ -619,6 +619,7 @@ checkValidFormula <- function(pObject,pData)
         stop(x," not in colnames of data\n"))
 }
 
+#' @export
 checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL"),
                                       tableName)
 {

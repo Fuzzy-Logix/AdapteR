@@ -65,8 +65,9 @@ setMethod("getRConnection",
 ##' @param driverClass 
 ##' @param temporary TRUE if result tables are to be created as volatile tables
 ##' @param verbose print debugging messages
-##' @param ... include platform here. Use TD for Teradata.
-##' platform is mandatory for odbc connection
+##' @param ... include 'platform' here. Use TD for Teradata.
+##' platform is mandatory for odbc connection. 
+##' 'TestDatabase' on which tests are to be run.
 ##' @return either an ODBC connection or an JDBC connection
 ##' @examples
 ##' connection <- flConnect("jdbc:teradata://xx.xxx.x.xxx",
@@ -204,6 +205,17 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
         if(!(platform %in% unique (platformMap))) ## use map
             platform <- platformMap[[platform]]
     }
+
+    ## store database where tests need to be run
+    TestDatabase <- list(...)$TestDatabase
+    if(is.null(TestDatabase)){
+        vmap <- c(TD="FL_DEMO",TDAster="fuzzylogix",Hadoop="mazdoo")
+        TestDatabase <- vmap[platform]
+    }
+    if(platform=="Hadoop")
+        options(viewToTable=TRUE)
+    else options(viewToTable=FALSE)
+    options("TestDatabase"=TestDatabase)
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
@@ -260,10 +272,10 @@ FLStartSession <- function(connection,
                                 "TableName","ElementID",
                                 "ObjType",
                                 "UserComments"),
-                    pColTypes=c("VARCHAR(100)","VARCHAR(100)",
-                                "VARCHAR(100)","VARCHAR(100)",
-                                "VARCHAR(100)","INT","VARCHAR(100)",
-                                "VARCHAR(100)"),
+                    pColTypes=c("VARCHAR(255)","VARCHAR(255)",
+                                "VARCHAR(255)","VARCHAR(255)",
+                                "VARCHAR(255)","INT","VARCHAR(255)",
+                                "VARCHAR(255)"),
                     pTableOptions=tableoptions,
                     pPrimaryKey="UserName",
                     pTemporary=FALSE,
@@ -273,8 +285,8 @@ FLStartSession <- function(connection,
         createTable(pTableName="tblNameMapping",
                     pColNames=c("TABLENAME","MATRIX_ID",
                                 "DIM_ID","NAME","NUM_ID"),
-                    pColTypes=c("VARCHAR(100)","INT",
-                                "INT","VARCHAR(100)",
+                    pColTypes=c("VARCHAR(255)","INT",
+                                "INT","VARCHAR(255)",
                                 "INT"),
                     pTableOptions=tableoptions,
                     pPrimaryKey=c("TABLENAME","MATRIX_ID",
@@ -316,7 +328,7 @@ FLStartSession <- function(connection,
             else if(grepl("int",tolower(vtable)))
                 vtype <- "INT"
             else if(grepl("char",tolower(vtable)))
-                vtype <- "VARCHAR(100)"
+                vtype <- "VARCHAR(255)"
             else vtype <- "FLOAT"
             if(!is.null(vclass))
                 genCreateResulttbl(tablename=vtable,
@@ -434,6 +446,12 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
 getMatrixUDTMapping <- function(query) 
     getOption("MatrixUDTMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
+## return the name of systemTable based on platform
+getSystemTableMapping <- function(query,connection=getFLConnection()){
+    vlist <- getOption("storedProcMappingsFL")[[paste0("FLSystemTables.",getFLPlatform(connection=connection))]]
+    argsMap <- vlist$argsPlatform
+    return(names(argsMap)[argsMap==query])
+}
 
 genCreateResulttbl <- function(tablename,
                                temporaryTable=TRUE,
@@ -444,6 +462,7 @@ genCreateResulttbl <- function(tablename,
     ##browser()
     if(!pDrop & checkRemoteTableExistence(tableName=tablename))
         return()
+    
     if(vclass=="matrix"){
         createTable(pTableName=tablename,
                     pColNames=c("MATRIX_ID","rowIdColumn",
@@ -493,4 +512,16 @@ FLClose <- function(connection)
     #options("FLTempTables"=c())
     #options("FLTempViews"=c())
     options("FLSessionID"=c())
+}
+
+## Generate Mappings when package is loaded
+FLcreatePlatformsMapping()
+
+checkHypoSystemTableExists <- function(){
+    ## Create System table for HypothesisTesting Statistics Mapping
+    vdf <- read.csv(system.file('data/HypothesisTestsMapping.csv', package='AdapteR'))
+    if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
+        t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
+                        temporary=FALSE,drop=TRUE)
+        
 }

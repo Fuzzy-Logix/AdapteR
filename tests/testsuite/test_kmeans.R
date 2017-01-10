@@ -3,13 +3,14 @@
 ############################################################
 ## First you pull all variable / data setup out of the example:
 Renv <- new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
 ## a 2-dimensional example
 Renv$x <- rbind(matrix(rnorm(100, sd = 0.3), ncol = 2),
                  matrix(rnorm(100, mean = 1, sd = 0.3), ncol = 2))
-Renv$iris <- iris
-FLenv <- as.FL(Renv)
+FLenv$x <- as.FLTable(as.FL(Renv$x),temporary=F)
+# Renv$iris <- iris
 ## gk @phani:  please make rownames invisible as FLtable column, expose only through rownames()
-Renv$iris <- cbind(rownames=1:nrow(Renv$iris),Renv$iris)
+# Renv$iris <- cbind(rownames=1:nrow(Renv$iris),Renv$iris)
 
 test_that("kmeans(FLMatrix): results on simulated 2-cluster data with clusters far apart",{
     eval_expect_equal({

@@ -46,11 +46,12 @@ FLVarCluster.FLTable<-function(x,
 							groupBy = "NULL",
 							excludeCols = as.character(c()),
 							classSpec = list(),
-							whereconditions = ""
+							whereconditions = "",
+                            ...
 							)
 {
 	#Type validation
-	if(!(base::toupper(matrixType) %in% c("COVAR","CORREL")))
+	if(!(base::toupper(matrixType) %in% c("COVAR","CORREL","TRUE","FALSE")))
 	stop("matrixType should be in c(COVAR,CORREL)")
 	if(!is.numeric(contrib)) stop("contrib should be between 0 and 1")
 	if(contrib[1]>1 || contrib[1]<0) stop("contrib should be between 0 and 1")
@@ -67,24 +68,24 @@ FLVarCluster.FLTable<-function(x,
 	validate_args(argList, typeList, classList)
 
     connection <- getFLConnection(x)
-    wideToDeepAnalysisId <- ""
+    wideToDeepAnalysisID <- ""
     mapTable <- ""
 	
-	if(!x@isDeep){
+	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
 							whereconditions=whereconditions)
 
-		wideToDeepAnalysisId <- deepx[["AnalysisID"]]
-		deepx <- deepx[["table"]]
+		wideToDeepAnalysisID <- deepx@wideToDeepAnalysisID
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 
 		sqlstr <- paste0(" SELECT Final_VarID AS vectorIndexColumn,",
 						 " CASE WHEN CatValue IS NOT NULL THEN ",
 						 " CONCAT(COLUMN_NAME,CatValue) else COLUMN_NAME END AS columnName",
-			    	     " FROM fzzlRegrDataPrepMap a ",
-			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisId,"'",
+			    	     " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
+                                           "  a ",
+			    	     " WHERE a.AnalysisID = '",wideToDeepAnalysisID,"'",
 			    	     " AND a.Final_VarID IS NOT NULL ")
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                         pSelect=sqlstr)
@@ -100,12 +101,16 @@ FLVarCluster.FLTable<-function(x,
 		deeptablename1 <- createView(pViewName=gen_view_name("New"),
                                              pSelect=paste0("SELECT * FROM ",deeptablename,constructWhere(whereconditions)))
 
-		deepx <- FLTable(
-                   deeptablename1,
-                   "obs_id_colname",
-                   "var_id_colname",
-                   "cell_val_colname"
-                  )
+        deepx <- FLTable(deeptablename1,
+                        getObsIdSQLName(x),
+                        getVarIdSQLName(x),
+                        getValueSQLName(x))
+		# deepx <- FLTable(
+  #                  deeptablename1,
+  #                  "obs_id_colname",
+  #                  "var_id_colname",
+  #                  "cell_val_colname"
+  #                 )
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
@@ -115,43 +120,53 @@ FLVarCluster.FLTable<-function(x,
 		deeptablename <- createView(pViewName=gen_view_name("New"),
                                             pSelect=constructSelect(x))
 
-		deepx <- FLTable(
-                   deeptablename,
-                   "obs_id_colname",
-                   "var_id_colname",
-                   "cell_val_colname"
-                  )
+        deepx <- FLTable(deeptablename,
+                        getObsIdSQLName(x),
+                        getVarIdSQLName(x),
+                        getValueSQLName(x))
+
+		# deepx <- FLTable(
+  #                  deeptablename,
+  #                  "obs_id_colname",
+  #                  "var_id_colname",
+  #                  "cell_val_colname"
+  #                 )
 		deepx <- setAlias(deepx,"")
 		whereconditions <- ""
 	}
 
 	whereconditions <- whereconditions[whereconditions!=""]
 	whereClause <- constructWhere(whereconditions)
-	deeptable <- deepx@select@table_name
+	deeptable <- getTableNameSlot(deepx)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
     #browser()
+
+    if("TableOutput" %in% names(list(...)))
+        vTableOutput <- list(...)[["TableOutput"]]
+    else vTableOutput <- 1
     retobj <- sqlStoredProc(
         connection,
         "FLVarCluster",
         TableName=deeptable,
-        ObsIDColName=getVariables(deepx)[["obs_id_colname"]],
-        VarIDColName=getVariables(deepx)[["var_id_colname"]],
-        ValueIDColName=getVariables(deepx)[["cell_val_colname"]],
+        ObsIDColName=getObsIdSQLExpression(deepx),
+        VarIDColName=getVarIdSQLExpression(deepx),
+        ValueColName=getValueSQLExpression(deepx),
         WhereClause= whereClause,
         GroupBy=groupBy,
         MatrixType=matrixType,
         Contrib=contrib,
-        TableOutput=1,
+        TableOutput=vTableOutput,
         outputParameter=c(ResultTable="a")
         )
 	outputTable <- as.character(retobj[1,1])
 
-	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-						getVariables(deepx)[["var_id_colname"]]," AS vectorIndexColumn,",
-						" ClusterID AS vectorValueColumn",
-					" FROM ",outputTable)
-
+	# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+	# 					getVarIdSQLExpression(deepx)," AS vectorIndexColumn,",
+	# 					" ClusterID AS vectorValueColumn",
+	# 				" FROM ",outputTable)
+    
+    sqlstr <- getFLVectorSQLFLVarCluster(deepx,outputTable)
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = attr(connection,"name"),
                         variables = list(
@@ -170,7 +185,7 @@ FLVarCluster.FLTable<-function(x,
 	clustervector <- tryCatch(as.vector(clustervector),
   						error=function(e){
   							cat("could not fetch data. Storing in Volatile table.\n")
-  							if(!x@isDeep)
+  							if(!isDeep(x))
   							{
   								cat("The mapping table is ",mapTable)
   								cat("Use the mapping table for relation between\n",
@@ -179,7 +194,7 @@ FLVarCluster.FLTable<-function(x,
   							}
   							return(clustervector)})
 
-	if(!x@isDeep)
+	if(!isDeep(x))
 		{
 			sqlstr <- paste0(" SELECT a.columnName AS vcolnames \n ",
                             " FROM ",mapTable," a,",outputTable," b \n ",
@@ -209,4 +224,41 @@ FLVarCluster.FLMatrix <- function(x,
                 excludeCols = excludeCols,
                 classSpec = classSpec,
                 whereconditions = whereconditions))
+}
+
+#' @export
+FLVarCluster.FLTable.Hadoop <- function(x,
+                                        contrib,
+                                        matrixType = "COVAR",
+                                        groupBy = "NULL",
+                                        excludeCols = as.character(c()),
+                                        classSpec = list(),
+                                        whereconditions = ""
+                                        ){
+    vmap <- c(COVAR=FALSE,CORREL=TRUE)
+    matrixType <- vmap[matrixType]
+    if(is.na(matrixType))
+        stop("matrixType must be COVAR or CORREL \n ")
+    FLVarCluster.FLTable(x=x,
+                        contrib=contrib,
+                        matrixType=matrixType,
+                        groupBy=groupBy,
+                        excludeCols=excludeCols,
+                        classSpec=classSpec,
+                        whereconditions=whereconditions,
+                        TableOutput="")
+}
+
+getFLVectorSQLFLVarCluster <- function(object,outputTable){
+    UseMethod("getFLVectorSQLFLVarCluster",object)
+}
+getFLVectorSQLFLVarCluster.FLTable.Hadoop <- function(object,outputTable){
+    getFLVectorTableFunctionQuerySQL(indexColumn="varid",
+                                    valueColumn="clusterid",
+                                    FromTable=outputTable)
+}
+getFLVectorSQLFLVarCluster.default <- function(object,outputTable){
+    getFLVectorTableFunctionQuerySQL(indexColumn=getVarIdSQLExpression(object),
+                                    valueColumn="clusterid",
+                                    FromTable=outputTable)
 }

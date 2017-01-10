@@ -156,7 +156,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
 store.FLVector <- function(object,pTableName=NULL,...)
 {
   connection <- getFLConnection(object)
-  if(length(colnames(object))>1 && object@isDeep==FALSE)
+  if(length(colnames(object))>1 && isDeep(object)==FALSE)
   {
     object <- as.vector(object)
     names(object)<-NULL
@@ -244,10 +244,10 @@ store.FLTable <- function(object,pTableName=NULL,...)
 
   ## Store MetaInfo if permanent Storage
   updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
-                  pType=ifelse(object@isDeep,"deepTable","wideTable"),
+                  pType=ifelse(isDeep(object),"deepTable","wideTable"),
                   ...)
 
-  if(object@isDeep)
+  if(isDeep(object))
   table <- FLTable(
                    vdatabase,
                    vtableName,

@@ -9,6 +9,14 @@ as.vector.FLMatrix <- function(object,mode="any")
 	return(as.vector(temp_m))
 }
 
+#' Converts FLSkalarAggregate object to vector in R
+#' @export
+as.vector.FLSkalarAggregate <- function(object,mode="any")
+{
+    do.call(mixedAggregate,append(llply(object@arguments,as.vector),
+                                  list(Rfun=object@func,FLfun="")))
+}
+
 #' @export
 as.vector.FLMatrixBind <- function(object,mode="any")
 {
@@ -50,10 +58,6 @@ as.vector.FLVector <- function(object,mode="any")
     return(x)
 }
 
-as.vector.FLSkalarAggregate <- function(object,mode="any"){
-    do.call(object@func,lapply(object@arguments,as.vector))
-}
-
 #' Converts in-database objects to a data frame in R
 #' 
 #' Caution: data is fetched into R session
@@ -74,25 +78,28 @@ as.data.frame.FLTable <- function(x, ...){
     tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
     vnames <- names(D)
-    vnames <- vnames[-grepl("obs_id_colname",vnames,ignore.case=TRUE)]
+    vobsidcol <- getIndexSQLName(x,margin=1)
+    vnames <- vnames[-grepl(vobsidcol,vnames,ignore.case=TRUE)]
     names(D) <- toupper(names(D))
-    D <- plyr::arrange(D,D[["OBS_ID_COLNAME"]])
+    D <- plyr::arrange(D,D[[toupper(vobsidcol)]])
     ##browser()
-    if(x@isDeep) {
-        D <- reshape2::dcast(D, paste0(toupper("obs_id_colname"),
+    if(isDeep(x)) {
+        vvaridcol <- getIndexSQLName(x,margin=2)
+        vvaluecol <- getIndexSQLName(x,margin=3)
+        D <- reshape2::dcast(D, paste0(toupper(vobsidcol),
                              " ~ ",
-                             toupper("var_id_colname")),
-                   value.var = toupper("cell_val_colname"))
+                             toupper(vvaridcol)),
+                   value.var = toupper(vvaluecol))
     } 
-    i <- charmatch(rownames(x),D[[toupper("obs_id_colname")]],nomatch=0)
+    i <- charmatch(rownames(x),D[[toupper(vobsidcol)]],nomatch=0)
                                         # print(i)
     D <- D[i,]
-    if(any(D[[toupper("obs_id_colname")]]!=1:nrow(D)))
-        rownames(D) <- D[[toupper("obs_id_colname")]]
-    D[[toupper("obs_id_colname")]] <- NULL
+    if(any(D[[toupper(vobsidcol)]]!=1:nrow(D)))
+        rownames(D) <- D[[toupper(vobsidcol)]]
+    D[[toupper(vobsidcol)]] <- NULL
     ## For sparse deep table
     D[is.na(D)] <- 0
-    if(!x@isDeep)
+    if(!isDeep(x))
         names(D) <- vnames
     return(D)
 }
@@ -111,7 +118,7 @@ as.data.frame.FLVector <- function(x, ...){
     x <- populateDimnames(x)
     vrownames <- rownames(x)
     vcolnames <- colnames(x)
-    # if(ncol(x)<=1 && !(!x@isDeep && nrow(x)==1 && ncol(x)==1))
+    # if(ncol(x)<=1 && !(!isDeep(x) && nrow(x)==1 && ncol(x)==1))
     #if(ncol(x)<=1 && class(x@select)!="FLTableFunctionQuery")
     if(ncol(x)<=1)
     {
@@ -125,12 +132,12 @@ as.data.frame.FLVector <- function(x, ...){
     }
 
      i <- charmatch(vrownames,D[[toupper("vectorIndexColumn")]],nomatch=0)
-     if(x@isDeep) {
+     if(isDeep(x)) {
         if(length(colnames(x))>1)
         i <- charmatch(vcolnames,D[[toupper("vectorIndexColumn")]],nomatch=0)
     }
     D <- D[i,]
-    if(x@isDeep) {
+    if(isDeep(x)) {
         if(length(colnames(x))>1)
          D <- reshape2::dcast(D, paste0(toupper("vectorIdColumn"),
                              " ~ ",
@@ -662,8 +669,8 @@ as.FLMatrix.data.frame <- function(object,
 as.FLMatrix.FLTable <- function(object,
                                 sparse=TRUE,...){
   object <- setAlias(object,"")
-  if(!object@isDeep)
-  object <- wideToDeep(object=object)[["table"]]
+  if(!isDeep(object))
+  object <- wideToDeep(object=object)
 
   vdimnames <- lapply(dimnames(object),
                   function(x){
@@ -671,7 +678,7 @@ as.FLMatrix.FLTable <- function(object,
                       return(NULL)
                       else return(x)
                   })
-  return(FLMatrix(table_name=object@select@table_name,
+  return(FLMatrix(table_name=getTableNameSlot(object),
                   row_id_colname=getVariables(object)[["obs_id_colname"]],
                   col_id_colname=getVariables(object)[["var_id_colname"]],
                   cell_val_colname=getVariables(object)[["cell_val_colname"]],
@@ -872,7 +879,7 @@ setMethod("as.FLTable",signature(object="FLMatrix"),
 
 as.FLTable.FLMatrix <- function(object=object,...){
     object <- setAlias(object,"")
-    return(FLTable(table=object@select@table_name,
+    return(FLTable(table=getTableNameSlot(object),
                    obs_id_colname=getVariables(object)[["rowIdColumn"]],
                    var_id_colnames=getVariables(object)[["colIdColumn"]],
                    cell_val_colname=getVariables(object)[["valueColumn"]],
@@ -925,20 +932,20 @@ as.FLTable.data.frame <- function(object,
     object[,vcolnames=="factor"] <- apply(as.data.frame(object[,vcolnames=="factor"]),
                                     2,as.character)
     object[,as.logical(vcolnames=="logical")] <- apply(as.data.frame(object[,as.logical(vcolnames=="logical")]),
-                                    2,as.character)
+                                                        2,as.character)
     vcolnames[vcolnames=="factor"] <- "character"
     # Removing "." if any from colnames
     names(vcolnames) <- gsub("\\.","",names(vcolnames),fixed=FALSE)
-    vcolnamesCopy <- vcolnames
-    vcolnamesCopy[vcolnamesCopy=="character"] <- " VARCHAR(255) "
-    vcolnamesCopy[vcolnamesCopy=="numeric"] <- " FLOAT "
-    vcolnamesCopy[vcolnamesCopy=="integer"] <- " INT "
-    vcolnamesCopy[vcolnamesCopy=="logical"] <- " VARCHAR(255) "
-    if(!all(vcolnamesCopy %in% c(" VARCHAR(255) "," INT "," FLOAT "))==TRUE)
-    stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
-
+    # vcolnamesCopy <- vcolnames
+    # vcolnamesCopy[vcolnamesCopy=="character"] <- "VARCHAR(255)"
+    # vcolnamesCopy[vcolnamesCopy=="numeric"] <- "FLOAT"
+    # vcolnamesCopy[vcolnamesCopy=="integer"] <- "INT"
+    # vcolnamesCopy[vcolnamesCopy=="logical"] <- "VARCHAR(255)"
+    # if(!all(vcolnamesCopy %in% c("VARCHAR(255)","INT","FLOAT"))==TRUE)
+    # stop("currently class(colnames(object)) can be only character,numeric,integer. Use casting if possible")
+    vcolnamesCopy <- getRToFLDataTypeMap(vcolnames)
     
-    if(!checkRemoteTableExistence(tableName=tableName))
+    if(!checkRemoteTableExistence(tableName=tableName) | drop)
         tryCatch({
             t <- createTable(pTableName=tableName,
                              pColNames=names(vcolnamesCopy),
@@ -961,43 +968,41 @@ as.FLTable.data.frame <- function(object,
     ## This bulk insertion may fail for very big data
     ## as there size of query fired may exceed odbc limits!
     ## These cases will be handled by Parameterized sql
-
-        ## Replace NAs with NULL
-        object[is.na(object)] <- ''
-        vresult <- tryCatch(insertIntotbl(pTableName=tableName,
-                                          pValues=object),
-                            error=function(e){
-                                if(!is.ODBC(vconnection) || class(vconnection) != "ODBCConnection" ) {stop(e)}
-                                 sqlstr <- paste0("INSERT INTO ",tableName,
-                                                 " VALUES(",paste0(rep("?",vcols),
-                                                                   collapse=","),")")
-                                sqlExecute(vconnection,sqlstr,object)
-                            })
-    }
-   ##  else if (class(vconnection) == "ODBCConnection"){
-   ##     comm <- dbWriteTable(vconnection,tableName, object, append = TRUE )
-  ##  }
-    else if(is.JDBC(vconnection))
-    {
-        .jcall(vconnection@jc,"V","setAutoCommit",FALSE)
-        sqlstr <- paste0("INSERT INTO ",
-                         tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
-        ps = .jcall(vconnection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
-        myinsert <- function(namedvector,x){
-            vsetvector <- c()
-            vsetvector[" VARCHAR(255) "] <- "setString"
-            vsetvector[" FLOAT "] <- "setFloat"
-            vsetvector[" INT "] <- "setInt"
-            for(i in 1:length(namedvector))
-            {
-                .jcall(ps,"V",vsetvector[namedvector[i]],as.integer(i),
-                       if(namedvector[i]==" VARCHAR(255) ") as.character(x[i])
-                       else if(namedvector[i]==" FLOAT ") .jfloat(x[i])
-                       else as.integer(x[i]))
-            }
-            .jcall(ps,"V","addBatch")
-        }
-
+    ## Replace NAs with NULL
+    object[is.na(object)] <- ''
+    vresult <- tryCatch(insertIntotbl(pTableName=tableName,
+                                    pValues=object),
+                        error=function(e){
+                            if(!is.ODBC(vconnection)) stop(e)
+                            sqlstr <- paste0("INSERT INTO ",tableName,
+                                            " VALUES(",paste0(rep("?",vcols),
+                                            collapse=","),")")
+                            sqlExecute(vconnection,sqlstr,object)
+                        })
+  }
+  else if(is.JDBC(vconnection))
+  {
+    .jcall(vconnection@jc,"V","setAutoCommit",FALSE)
+    sqlstr <- paste0("INSERT INTO ",
+                tableName," VALUES(",paste0(rep("?",vcols),collapse=","),")")
+    ps = .jcall(vconnection@jc,"Ljava/sql/PreparedStatement;","prepareStatement",sqlstr)
+    myinsert <- function(namedvector,x){
+                  vsetvector <- c("VARCHAR(255)"="setString",
+                                  "FLOAT"="setFloat",
+                                  "INT"="setInt")
+                  for(i in 1:length(namedvector))
+                  {
+                      if(namedvector[i]=="VARCHAR(255)")
+                          val <- as.character(x[i])
+                      else if(namedvector[i]=="FLOAT")
+                          val <- .jfloat(x[i])
+                      else
+                          val <- as.integer(x[i])
+                      .jcall(ps,"V",vsetvector[namedvector[i]],
+                             as.integer(i),val)
+                  }
+                  .jcall(ps,"V","addBatch")
+                }
     ##Chunking
     {
       if(batchSize>10000)
@@ -1076,9 +1081,9 @@ setGeneric("populateDimnames",
 setMethod("populateDimnames",
     signature(x="ANY"),
     function(x,...){
-        if(is.null(rownames(x)))
-            x@Dimnames[[1]] <- 1:x@dims[1]
-        if(x@isDeep)
-            x@Dimnames[[2]] <- 1:x@dims[2]
+        if(!length(rownames(x))>0)
+            x@Dimnames[[1]] <- 1:(x@dims[1])
+        if(isDeep(x))
+            x@Dimnames[[2]] <- 1:(x@dims[2])
         return(x)
 })

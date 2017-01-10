@@ -4,12 +4,12 @@
 \alias{FLRegrDataPrep}
 \title{Convert Wide Table to Deep Table in database.}
 \usage{
-FLRegrDataPrep(object, depCol, ...)
+FLRegrDataPrep(object, depCol = "NULL", ...)
 }
 \arguments{
 \item{object}{FLTable object}
 
-\item{depcol}{Name of the column in the wide table which represents the dependent variable}
+\item{DepCol}{Name of the column in the wide table which represents the dependent variable}
 
 \item{catToDummy}{Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.}
 
@@ -30,7 +30,7 @@ standard deviation below this threshold is eliminated. This parameter is only co
 absolute value of the correlation exceeds this threshold, one of the columns is not transformed. Again, this parameter is 
 only consequential if the parameter PerformVarReduc = 1.}
 
-\item{trainOrTest}{if  0 => Create training data set; if 1 => Create test data set using the transformation
+\item{TrainOrTest}{if  0 => Create training data set; if 1 => Create test data set using the transformation
 that has already been done for a prior training data set.}
 
 \item{inAnalysisID}{provided in case we want to re-run the transformation of a training data set or run the
@@ -51,8 +51,7 @@ transformation of a testing data set else this value is NULL.}
 \item{outValueCol}{name to give to the value column of the output deep table}
 }
 \value{
-\code{wideToDeep} returns a list containing components 
-\code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
+\code{wideToDeep} returns a FLTableDeep referencing the deep table, the original table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
 The DB Lytix function called is FLRegrDataPrep. In DB Lytix, data mining functions such as linear 
@@ -63,8 +62,7 @@ deep tables and also prepares the data for regression analysis.
 }
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
-resultList <- wideToDeep(widetable)
-deeptable <- resultList$table
-analysisID <- resultList$AnalysisID
+deeptable <- FLRegrDataPrep(widetable,"Diameter")
+analysisID <- deeptable@wideToDeepAnalysisID
 }
 

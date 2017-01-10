@@ -62,7 +62,6 @@ lapply(1:niter, function(x){
     })
 
 
-
 ##individual time
 
 ARtym <- system.time(sqlQuery(connection, query))
@@ -71,11 +70,6 @@ rodbitym <- system.time(dbGetQuery(rodbi, query))
 
 query <- paste0("SELECT * FROM fzzlKMeansInfo WHERE AnalysisID = 'A646958'")
 inform <- dbGetQuery(rodbi, query )
-
-
-
-
-
 #### UDT's Working
 
 

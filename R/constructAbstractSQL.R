@@ -44,10 +44,11 @@ constructMatrixUDTSQL <- function(pObject,
     }
     pSelect <- constructSelect(pObject,joinNames=FALSE)
 
-    ## Ensure proper ordering for UDT especially
-    pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
-    pViewColnames <- getVariables(pObject)
+    # ## Ensure proper ordering for UDT especially
+    # pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
+    # pViewColnames <- getVariables(pObject)
 
+    pViewColnames <- changeAlias(pViewColnames,"","")
     sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
                             pViewColnames=pViewColnames,
                             pFuncName=pFuncName,
@@ -89,90 +90,39 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             pNest=FALSE,
                             ...){
     if(pNest){
-        pViewColnames <- changeAlias(pViewColnames,"","")
         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM (SELECT * FROM ",pSelect," ) a ")
+                                " FROM (",pSelect," ) a ")
     }
     else vNestedSelect <- pSelect
+
+    # ## if(names(getVariables(pObject))==pViewColnames)
+    # ## Then do not nest
+    # ## Ensure proper ordering for UDT especially
+    # if(missing(pViewColnames) || length(pViewColnames)==0){
+    #     pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
+    #     pViewColnames <- getVariables(pObject)
+    # }
+    if("UDTInputSubset" %in% names(list(...)))
+        vsubset <- list(...)[["UDTInputSubset"]]
+    else vsubset <- NULL
+
+
     if(is.TD()){
         return(paste0("WITH z( ",paste0(names(pViewColnames),
                                         collapse=",")," )",
                        " AS ( ",vNestedSelect," )",
                        " SELECT ",constructVariables(pOutColnames),
                        " FROM TABLE (",
-                            pFuncName,"(",paste0("z.",names(pViewColnames),
-                                        collapse=","),",",paste0(pArgs, collapse = ","),
-                                    ")",
-                            " HASH BY ",paste0("z.",pPartitionBy,
-                                            collapse=","),
-                            " LOCAL ORDER BY ",paste0("z.",pLocalOrderBy,
-                                            collapse=","),
-                            ") AS a ",
-                        constructWhere(pWhereConditions)
-                    )
-                )
-    }
-    ## if(names(getVariables(pObject))==pViewColnames)
-    ## Then do not nest
-    ## Ensure proper ordering for UDT especially
-    if(missing(pViewColnames) || length(pViewColnames)==0){
-        pObject <- orderVariables(pObject,getDimColumnsSlot(pObject))
-        pViewColnames <- getVariables(pObject)
-    }
-
-    sqlstr <- constructUDTSQL( pConnection=getFLConnection(pObject),
-                            pViewColnames=pViewColnames,
-                            pFuncName=pFuncName,
-                            pOutColnames=pOutColnames,
-                            pWhereConditions=pWhereConditions,
-                            pSelect=pSelect,
-                            ...
-                            )
-    if(!is.null(list(...)[["pReturnQuery"]]) && 
-        list(...)[["pReturnQuery"]])
-        return(sqlstr)
-    tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = getFLConnectionName(),
-                        variables=pOutColnames,
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-
-    flm <- newFLMatrix(
-             select= tblfunqueryobj,
-             dims=pdims,
-             Dimnames=pdimnames,
-             dimColumns=names(pOutColnames))
-    flm
-
-}
-
-## @phani: I think we need separate connection classes for
-## each platform.eg- JDBCAster
-constructUDTSQL <- function(pConnection=getFLConnection(),
-                            pViewColnames,
-                            pFuncName,
-                            pOutColnames,
-                            pWhereConditions="",
-                            pSelect,
-                            pPartitionBy=names(pViewColnames)[1],
-                            pLocalOrderBy=names(pViewColnames)[1],
-                            pNest=FALSE,
-                            ...){
-    if(pNest){
-        pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
-        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM ( ",pSelect," ) a ")
-    }
-    else vNestedSelect <- pSelect
-    if(is.TD()){
-        return(paste0("WITH z( ",paste0(names(pViewColnames),
-                                        collapse=",")," )",
-                       " AS ( ",vNestedSelect," )",
-                       " SELECT ",constructVariables(pOutColnames),
-                       " FROM TABLE (",
-                            pFuncName,"(",paste0("z.",names(pViewColnames),
+                            pFuncName,"(",
+                                ifelse(!is.null(vsubset),
+                                    paste0("z.",names(pViewColnames)[vsubset],
                                         collapse=","),
+                                    paste0("z.",names(pViewColnames),
+                                        collapse=",")
+                                    ),
+                                ifelse(length(setdiff(pArgs,""))>0,
+                                        paste0(",",paste0(pArgs, collapse = ",")),
+                                        ""),
                                     ")",
                             " HASH BY ",paste0("z.",pPartitionBy,
                                             collapse=","),
@@ -183,8 +133,6 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                     )
                 )
     }
-    ## if(names(getVariables(pObject))==pViewColnames)
-    ## Then do not nest
 
     else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
@@ -192,15 +140,23 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                         " ( ON ( ",vNestedSelect," ) a ",
                         " PARTITION BY ",paste0(pPartitionBy,
                                             collapse=",")," ",
-                        paste0("arg",1:length(pViewColnames),
-                            "(",names(pViewColnames),")",
-                            collapse=","),") a ",
+                        ifelse(!is.null(vsubset),
+                                paste0("arg",1:length(pViewColnames[vsubset]),
+                                        "(",names(pViewColnames[vsubset]),")",
+                                    collapse=","),
+                                paste0("arg",1:length(pViewColnames),
+                                        "(",names(pViewColnames),")",
+                                    collapse=",")
+                                ),
+                        ") a ",
                         constructWhere(pWhereConditions)
                     )
                 )
     }
 
     else if(is.TDAster()){
+        if(!is.null(pViewColnames))
+            pViewColnames <- pViewColnames[vsubset]
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                             " ( ON ( ",vNestedSelect," ) ",
@@ -215,6 +171,74 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                 )
     }
 }
+
+## @phani: I think we need separate connection classes for
+## each platform.eg- JDBCAster
+# constructUDTSQL <- function(pConnection=getFLConnection(),
+#                             pViewColnames,
+#                             pFuncName,
+#                             pOutColnames,
+#                             pWhereConditions="",
+#                             pSelect,
+#                             pPartitionBy=names(pViewColnames)[1],
+#                             pLocalOrderBy=names(pViewColnames)[1],
+#                             pNest=FALSE,
+#                             ...){
+#     if(pNest){
+#         pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
+#         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+#                                 " FROM ( ",pSelect," ) a ")
+#     }
+#     else vNestedSelect <- pSelect
+#     if(is.TD()){
+#         return(paste0("WITH z( ",paste0(names(pViewColnames),
+#                                         collapse=",")," )",
+#                        " AS ( ",vNestedSelect," )",
+#                        " SELECT ",constructVariables(pOutColnames),
+#                        " FROM TABLE (",
+#                             pFuncName,"(",paste0("z.",names(pViewColnames),
+#                                         collapse=","),
+#                                     ")",
+#                             " HASH BY ",paste0("z.",pPartitionBy,
+#                                             collapse=","),
+#                             " LOCAL ORDER BY ",paste0("z.",pLocalOrderBy,
+#                                             collapse=","),
+#                             ") AS a ",
+#                         constructWhere(pWhereConditions)
+#                     )
+#                 )
+#     }
+#     ## if(names(getVariables(pObject))==pViewColnames)
+#     ## Then do not nest
+#    else if(is.Hadoop()){
+#         return(paste0("SELECT ",constructVariables(pOutColnames),
+#                       " FROM ",pFuncName,
+#                         " ( ON ( ",vNestedSelect," ) a ",
+#                         " PARTITION BY ",paste0(pPartitionBy,
+#                                             collapse=",")," ",
+#                         paste0("arg",1:length(pViewColnames),
+#                             "(",names(pViewColnames),")",
+#                             collapse=","),") a ",
+#                         constructWhere(pWhereConditions)
+#                     )
+#                 )
+#     }
+
+#     else if(is.TDAster()){
+#         return(paste0("SELECT ",constructVariables(pOutColnames),
+#                       " FROM ",pFuncName,
+#                             " ( ON ( ",vNestedSelect," ) ",
+#                             " PARTITION BY ",paste0(pPartitionBy,
+#                                                     collapse=","),
+#                             " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
+#                                                         pPartitionBy))),
+#                                                 collapse=",")
+#                             ,")) a ",
+#                         constructWhere(pWhereConditions)
+#                     )
+#                 )
+#     }
+# }
 
 
 ############################## Stored Procs ###########################
@@ -319,11 +343,11 @@ getOutputColumns <- function(pObject,
                             pFunc,
                             ...){
     if(is.FLVector(pObject))
-    vOutCols <- c("vectorIdColumn",
-                "vectorIndexColumn",
-                "vectorValueColumn")
+        vOutCols <- c("vectorIdColumn",
+                    "vectorIndexColumn",
+                    "vectorValueColumn")
     else
-    vOutCols <- names(getVariables(pObject))
+        vOutCols <- names(getVariables(pObject))
 
     names(vOutCols) <- vOutCols
     vValueCol <- as.FLAbstractCol(pObject)
@@ -338,37 +362,41 @@ constructScalarSQL <- function(pObject,
     if(is.RowFLVector(pObject))
         pObject <- store(pObject)
 
-    if(is.wideFLTable(pObject))
-        pObject <- wideToDeep(pObject)[["table"]]
+    if(is.FLTable(pObject) && 
+        is.wideFLTable(pObject))
+        pObject <- wideToDeep(pObject)
 
     if(is.FLSelectFrom(pObject@select)){
 
         if(is.FLMatrix(pObject) || 
             ((is.FLVector(pObject) || 
-                is.FLTable(pObject)) && 
-                pObject@isDeep)){
-            vVariables <- getVariables(pObject)
-            vValueCol <- getValueColumn(pObject)
+                is.FLTable(pObject)))){
+            # vVariables <- getVariables(pObject)
+            # vValueCol <- getValueColumn(pObject)
 
-            vVariables[[names(vValueCol)]] <- pFunc(new("FLAbstractColumn",
-                                                         columnName=vValueCol),
-                                                    ...)
-            pObject@select@variables <- vVariables
-            return(pObject)
+            # vVariables[[names(vValueCol)]] <- pFunc(new("FLAbstractColumn",
+            #                                              columnName=vValueCol),
+            #                                         ...)
+            # pObject@select@variables <- vVariables
+            pObject <- setValueSQLExpression(object=pObject,
+                                            func=pFunc,
+                                            useAbstractColumn=TRUE,
+                                            ...)
         }
-        if(is.FLVector(pObject)){
-            vValueCol <- getValueColumn(pObject)
-            #names(pObject@select@table_name) <- NULL
-            pObject@Dimnames[[2]] <- pFunc(new("FLAbstractColumn",
-                                                columnName=vValueCol),
-                                                ...)
-            return(pObject)
-        }
+        # if(is.FLVector(pObject)){
+        #     vValueCol <- getValueColumn(pObject)
+        #     #names(pObject@select@table_name) <- NULL
+        #     pObject@Dimnames[[2]] <- pFunc(new("FLAbstractColumn",
+        #                                         columnName=vValueCol),
+        #                                         ...)
+        #     return(pObject)
+        # }
     }
     else{
-        vVariables <- getOutputColumns(pObject=pObject,
-                                        pFunc=pFunc,
-                                        ...)
+        # vVariables <- getOutputColumns(pObject=pObject,
+        #                                 pFunc=pFunc,
+        #                                 ...)
+        vVariables <- getVariables(pObject)
         vsqlstr <- paste0("SELECT ",
                         paste0(vVariables," AS ",
                                 names(vVariables),
@@ -376,8 +404,8 @@ constructScalarSQL <- function(pObject,
                         " FROM (",constructSelect(pObject),
                             ") a ")
         pObject@select@SQLquery <- vsqlstr
-        return(pObject)
     }
+    return(pObject)
 }
 
 ##################################### Aggregate SQL ###########################################
@@ -502,7 +530,8 @@ createTable <- function(pTableName,
                         ...){
     if(getTablename(pTableName)!=pTableName){
         if(getDatabase(pTableName)!=pDatabase)
-            stop(paste0("pTableName specified conflicting database: ", pTableName," =/= ",pDatabase,""))
+            stop(paste0("pTableName specified conflicting database: ", 
+                        pTableName," =/= ",pDatabase,""))
         pTableName <- getTablename(pTableName)
     }
     pTableName <- getRemoteTableName(databaseName = pDatabase,
@@ -519,6 +548,19 @@ createTable <- function(pTableName,
                       TDAster="TEMPORARY")  ##TEMPORARY="TDAster"
     vtempKeyword <- vtempKeyword[getFLPlatform()]
 
+    # vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
+    #                     "VARCHAR(100)"="VARCHAR(100)",
+    #                     FLOAT="FLOAT"),
+    #                 TDAster=c(INT="INT",BYTEINT="BYTEA",
+    #                     "VARCHAR(100)"="VARCHAR(100)",
+    #                     FLOAT="FLOAT"),
+    #                 Hadoop=c(INT="INT",BYTEINT="TINYINT",
+    #                     "VARCHAR(100)"="VARCHAR(100)",
+    #                     FLOAT="FLOAT"))
+    # if(!is.null(pColTypes))
+    #     pColTypes <- vtypeMap[[getFLPlatform()]][pColTypes]
+
+    pColTypes <- getFLPlatformDataTypeMap(pColTypes)
     addColNameType <- function(pColNames,pColTypes){
         return(paste0(" ( ",
                     paste0(pColNames," ",pColTypes,collapse=","),
@@ -605,10 +647,11 @@ createTable <- function(pTableName,
     #vsqlstr <- paste0(vsqlstr,";")
     if(!pTemporary & getOption("temporaryFL")){
         if(!pDrop){
-            if(checkRemoteTableExistence(tableName=pTableName))
+            if(checkRemoteTableExistence(tableName=pTableName)){
                 if(getOption("debugSQL"))
                    warning(pTableName," already exists. Set pDrop input to TRUE to drop it \n ")
                 return()
+            }
         }
         warning(paste0("Creating non-temporary table in temporary session:",vsqlstr))
     }
@@ -621,6 +664,8 @@ createTable <- function(pTableName,
     }
 
     vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    if(!all(vres))
+        stop("table could not be created \n ")
     updateMetaTable(pTableName=pTableName,
                     pType="wideTable",
                     ...)
@@ -646,11 +691,21 @@ createView <- function(pViewName,
     vsqlstr <- paste0("CREATE VIEW ",pViewName,
                         " AS ",pSelect)
     res <- sqlSendUpdate(getFLConnection(),vsqlstr)
+    ##gk @ phani: what was this for?  I moved it into creatView
+    ##phani: detect if create view query worked
+    ## Hadoop hive throws error while creating view from temp table.
+    if(!all(res)){
+        if(getOption("viewToTable")){
+            tryCatch({res <- createTable(pViewName,pSelect=pSelect,pTemporary=FALSE)
+                    return(res)},
+                    error=function(e)stop("view could not be created \n "))
+        }
+        else stop("View could not be created \n ")
+    }
     if(pStore)
     updateMetaTable(pTableName=pViewName,
                     pType="view",
                     ...)
-    if(!all(res)) stop("View could not be created") ##gk @ phani: what was this for?  I moved it into creatView
 
     return(pViewName) ## previously res was returned
 }

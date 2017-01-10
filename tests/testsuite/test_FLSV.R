@@ -1,7 +1,7 @@
 
 ## gk @anany: this needs to be svd function tests, please delete and move
 test_that("computes the singular values for FLMatrix objects(FLSV)", {
-    flmatrix <- FLMatrix("tblMatrixMulti",
+    flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"),
                          5,
                          "MATRIX_ID",
                          "ROW_ID",
@@ -14,7 +14,7 @@ test_that("computes the singular values for FLMatrix objects(FLSV)", {
 ## Testing FLSV
 test_that("check FLSV working",
 {
-  M <- initF.FLMatrix(n=5,isSquare=TRUE)$FL
+  M <- initF.FLMatrix(n=3,isSquare=TRUE)$FL
     FLexpect_equal(
               length(FLSV(M)),
               nrow(M)

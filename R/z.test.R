@@ -36,6 +36,7 @@ setMethod("z.test",signature(x="FLVector"),
             tails=2,
             conf.level=0.95,
             prob=0){
+        checkHypoSystemTableExists()
         if(is.null(x)||!is.FLVector(x))
             stop("Only FLVector is supported")
 
@@ -122,10 +123,11 @@ setMethod("z.test",signature(x="FLVector"),
          }
 
     vres<-sqlQuery(connection,vsqlstr)
+    colnames(vres) <- tolower(colnames(vres))
     cint<-cint(x,conf.level)
     attr(cint,"conf.level") <- conf.level
-    vresList<-list(statistic=c("Z stat"=vres[2,1]),
-                   p.value=c("p-value"=vres[1,1]),
+    vresList<-list(statistic=c("Z stat"=vres[tolower(vres[,"stat"])=="z_stat","outval"]),
+                   p.value=c("p-value"=vres[tolower(vres[,"stat"])=="p_value","outval"]),
                    data.name=vcall,
                    alternative=alter,
                    estimate =estimate,

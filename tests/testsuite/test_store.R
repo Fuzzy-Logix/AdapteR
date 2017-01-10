@@ -8,7 +8,7 @@ test_that("cast: numeric types",{
 })
 
 test_that("check cross database name mapping",{
-    x <- FLMatrix("FL_TRAIN.tblmatrixMulti",
+    x <- FLMatrix(getTestTableName("tblmatrixMulti"),
                     5,"Matrix_id","ROW_ID",
                     "COL_ID","CELL_VAL",
                     dimnames = list(5:1,letters[1:5]))

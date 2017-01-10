@@ -35,17 +35,17 @@ setMethod("FLexpect_equal",
                                      as.matrix(expected),...)
           })
 setMethod("FLexpect_equal",
-          signature(object="FLSimpleVector",expected="vector"),
+          signature(object="FLSimpleVector",expected="ANY"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
 setMethod("FLexpect_equal",
-          signature(object="FLVector",expected="vector"),
+          signature(object="FLVector",expected="ANY"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
 setMethod("FLexpect_equal",
-          signature(object="FLVector",expected="integer"),
+          signature(object="FLSkalarAggregate",expected="ANY"),
           function(object,expected,...)
               testthat::expect_equal(as.vector(object),
                                      expected,...))
@@ -71,6 +71,17 @@ setMethod("FLexpect_equal",
           })
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
+          function(object,expected,...){
+            if(is.numeric(object) || is.integer(object) || is.vector(object)){
+                # object <- as.vector(object)
+                # return(testthat::expect_equal(object,as.R(expected),...))
+                return(FLexpect_equal(expected,object,...))
+            }
+            else FLexpect_equal(as.FLVector(object),
+                                expected,...)
+          })
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="FLSkalarAggregate"),
           function(object,expected,...){
             if(is.numeric(object) || is.integer(object) || is.vector(object)){
                 # object <- as.vector(object)
@@ -210,6 +221,7 @@ expect_flequal <- function(a,b,...){
 #' @export
 initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
 {
+    
   if(n>1000000)
   stop("maximum n allowed is 1000000 \n ")
   else if(!isRowVec){
@@ -218,9 +230,10 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       select <- new("FLSelectFrom",
                     connectionName = getFLConnectionName(), 
                     ##database = getOption("ResultDatabaseFL"), 
-                    table_name = "fzzlserial",
+                    table_name = paste0(getOption("TestDatabase"),".fzzlserial"),
                     variables = list(obs_id_colname="SERIALVAL"),
-                    whereconditions=paste0(getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    whereconditions=paste0(getRemoteTableName(tableName = paste0(getOption("TestDatabase"),".fzzlserial"),
+                                                              temporaryTable=FALSE),".SERIALVAL < ",n+1),
                     order = "")
       flv <- newFLVector(
                 select=select,
@@ -305,18 +318,23 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   stop("maximum rows,cols allowed is 1000 \n ")
 
   ## here manually set option as true if tables exist.
+  vFromTable <- paste0(getOption("TestDatabase"),".fzzlserial")
+  valExpression <- " FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 "
+  if(is.Hadoop())
+  valExpression <- paste0(" CASE WHEN ",getMODSQL(pColumn1="(a.serialval+b.serialval)",pColumn2=2),
+                              " = 0 THEN (a.randval+b.randval+b.randval)*100 ",
+                              " ELSE (a.randval-b.randval-b.randval)*100 END ")
   if(type=="int")
   {
       vtableName <- "ARTestIntMatrixTable"
-      valExpression <- " CAST(FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 AS INT)"
+      valExpression <- paste0(" CAST( ",valExpression," AS INT)")
   }
   else if(type=="character"){
       vtableName <- "ARTestCharMatrixTable"
-      valExpression <- " CAST(FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 AS VARCHAR(20))"
+      valExpression <- paste0(" CAST( ",valExpression," AS VARCHAR)")
   }
   else if(type=="float"){
       vtableName <- "ARTestMatrixTable"
-      valExpression <- " FLSimUniform(a.serialval*100+b.serialval,0,1)"
   }
   else stop("type should be int,float,character")
   if(!checkRemoteTableExistence(tableName=vtableName))
@@ -324,7 +342,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                            pSelect=paste0(" SELECT a.serialval AS rowIdColumn, \n ",
                                           " b.serialval AS colIdColumn, \n ",
                                           valExpression, " AS valueColumn \n ",
-                                          " FROM fzzlserial a,fzzlserial b \n ",
+                                          " FROM ",vFromTable," a,",
+                                                   vFromTable," b \n ",
                                           " WHERE a.serialval < 1001 \n ",
                                           " AND b.serialval < 1001 "),
                            pTemporary=FALSE,
@@ -354,7 +373,9 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
 #' @export
 initF.FLTable <- function(rows,cols,...)
 {
-  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = "fzzlserial",temporaryTable=FALSE)),
+  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = paste0(getOption("TestDatabase"),
+                                                                    ".fzzlserial"),
+                                                temporaryTable=FALSE)),
                        "SERIALVAL",
                        whereconditions=paste0("SERIALVAL < ",rows+1))
   return(WideTable[1:rows,base::sample(c("RANDVAL","SERIALVAL"),cols,replace=TRUE)])
@@ -554,6 +575,7 @@ expect_equal_RVector_FLVector <- function(a){
     test_Vector_Subsetting(a,b,"as.FLVector",index=FALSE)
 }
 
+#' @export
 expect_equal_FLSimpleVector_RVector <- function(a){
     # browser()
     debugOld <- getOption("debugSQL")
@@ -579,7 +601,7 @@ test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
     len <- length(a)-2
     if(index){
       leni <- sample(1:length(a),len)
-      cat("index is ... ",leni,"\n")
+      ## cat("index is ... ",leni,"\n")
       asel <- a[leni]
       bsel <- b[leni]
       expect_equal_Vector(asel,bsel,
@@ -594,7 +616,7 @@ test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
     }
     else{
       leni <- sample(names(a),len)
-      cat("index is ... ",leni,"\n")
+      ## cat("index is ... ",leni,"\n")
       asel <- a[leni]
       bsel <- b[leni]
       expect_equal_Vector(asel,bsel,
@@ -610,7 +632,7 @@ test_Vector_Subsetting <- function(a,b, desc="",index=TRUE){
 }
 
 ##' @export
-expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
+expect_equal_Vector <- function(a,b,desc="",debug=FALSE){
     if(debug==TRUE){
         cat("\n-------------- ",desc,"\nR vector Object:\n")
         print(a)
@@ -628,7 +650,8 @@ expect_equal_Vector <- function(a,b,desc="",debug=TRUE){
     #     x
     # }
     test_that(desc,{
-        testthat::expect_equal(names(a),as.character(as.vector(names(b))))
+        if(!is.null(names(a)))
+            testthat::expect_equal(names(a),as.character(as.vector(names(b))))
         testthat::expect_equal(a,as.vector(b))
     })
 }

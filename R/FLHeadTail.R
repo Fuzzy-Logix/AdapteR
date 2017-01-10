@@ -69,7 +69,7 @@ head.FLVector <- function(x,n=6,...){
     }
     stopifnot(length(n) == 1L)
     n <- if (n < 0L) max(length(x) + n, 0L) else min(n, length(x))
-    if(n <= 0) stop("n value in head function is out of bounds")
+    if(n <= 0L) stop("n value in head function is out of bounds")
     return(x[1:n])
 }
 
@@ -81,6 +81,20 @@ tail.FLVector <- function(x,n=6,...){
     stopifnot(length(n) == 1L)
     nrx <- length(x)
     n <- if (n < 0L) max(nrx + n, 0L) else min(n, nrx)
-    if(n <= 0) stop("n value in head function is out of bounds")
+    if(n <= 0L) stop("n value in head function is out of bounds")
     return(x[(nrx-n+1):nrx])
+}
+
+#' @export
+head.FLTableMD <- function(x,n=6,...){
+    vgrpCol <- changeAlias(getVariables(x)[[1]],"","")
+
+    sqlQuery(getFLConnection(),
+            paste0("SELECT * \n ",
+                    "FROM ",getTableNameSlot(x)," \n ",
+                    "WHERE ",vgrpCol," IN(",
+                            paste0(x@Dimnames[[3]],
+                                collapse=","),") \n ",
+                    " SAMPLE ",n," \n ",
+                    "ORDER BY ",vgrpCol))
 }

@@ -27,7 +27,7 @@ NULL
 setGeneric("binom.test",function(x, n, p = 0.5,
                                 alternative = c("two.sided", "less","greater"),
                                 conf.level = 0.95)
-                standardGeneric("binom.test"))
+                        standardGeneric("binom.test"))
 
 setMethod("binom.test",signature(x="FLAbstractColumn"),
     function(x,n,
