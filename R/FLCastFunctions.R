@@ -725,7 +725,6 @@ setMethod("as.FLVector", signature(object = "FLMatrix"),
 as.FLVector.vector <- function(object,connection=getFLConnection())
 {
     ##flag3Check(connection)
-    browser()
   if(!is.null(names(object)) && !all(names(object)==1:length(object)))
   newnames <- as.character(names(object))
   else newnames <- 1:length(object)
@@ -887,7 +886,6 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
-    browser()
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -949,7 +947,7 @@ as.FLTable.data.frame <- function(object,
                              pDrop=drop
                              )},
             error=function(e)NULL)
-    if(is.ODBC(vconnection) || is.Hadoop())
+    if(is.ODBC(vconnection) || is.Hadoop()|| class(vconnection) == "ODBCConnection")
     {
     ## SqlSave uses parameterized sql which is slow for odbc.
     ## SqlSave does not include distribute by during table creation.
@@ -969,16 +967,16 @@ as.FLTable.data.frame <- function(object,
         vresult <- tryCatch(insertIntotbl(pTableName=tableName,
                                           pValues=object),
                             error=function(e){
-                                if(!is.ODBC(vconnection)) {stop(e)}
+                                if(!is.ODBC(vconnection) || class(vconnection) != "ODBCConnection" ) {stop(e)}
                                  sqlstr <- paste0("INSERT INTO ",tableName,
                                                  " VALUES(",paste0(rep("?",vcols),
                                                                    collapse=","),")")
                                 sqlExecute(vconnection,sqlstr,object)
                             })
     }
-    else if (class(vconnection) == "ODBCConnection"){
-        comm <- dbWriteTable(vconnection,tableName, object, append = TRUE )
-    }
+   ##  else if (class(vconnection) == "ODBCConnection"){
+   ##     comm <- dbWriteTable(vconnection,tableName, object, append = TRUE )
+  ##  }
     else if(is.JDBC(vconnection))
     {
         .jcall(vconnection@jc,"V","setAutoCommit",FALSE)

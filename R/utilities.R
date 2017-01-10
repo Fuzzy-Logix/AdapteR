@@ -110,7 +110,7 @@ sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
     #cat("DONE...\n")
 }
 sqlSendUpdate.ODBCConnection <- function(connection, query ){
-    dbSendQuery(connection, query)
+    suppressWarnings(sqlQuery(connection, query))
 }
 
 #' @export
@@ -339,7 +339,11 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
 #' @export
 sqlQuery.ODBCConnection <- function(connection, query, ...){
     resd <- dbGetQuery(connection,query )
-    return(resd)
+    if(is.null(resd)){
+        return(TRUE)
+    }
+    else
+        return(resd)
 }
 
 ##' drop a table
@@ -520,7 +524,6 @@ getMaxValue <- function(vtable=getOption("ResultVectorTableFL"),
                         vcolName="vectorIdColumn",
                         vconnection=getFLConnection())
 {
-    browser()
     R <- sqlQuery(vconnection,
                     paste0("SELECT max(",
                            vcolName,")",

@@ -689,9 +689,7 @@ insertIntotbl <- function(pTableName,
     # if(!grepl(".",pTableName,fixed=TRUE))
     # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
     #                                 pTableName)
-
     vsqlstr <- paste0("INSERT INTO ",pTableName)
-
     if(!is.null(pValues)){
         if(!is.null(pColNames) && !is.Hadoop())
             vsqlstr <- paste0(vsqlstr,"(",
