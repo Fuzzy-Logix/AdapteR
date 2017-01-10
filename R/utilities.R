@@ -109,7 +109,7 @@ sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
     return(verrflag)
     #cat("DONE...\n")
 }
-sqlSendUpdate.ODBCConnection <- function(connection, query ){
+sqlSendUpdate.ODBCConnection <- function(connection, query , warn = TRUE){
     suppressWarnings(sqlQuery(connection, query))
 }
 
