@@ -110,6 +110,30 @@ glm <- function (formula,data=list(),...) {
 glm.default <- stats::glm
 
 #' @export
+glm.FLpreparedData <- function(formula,family="binomial",data,...)
+{
+    vcallObject <- match.call()
+    if(is.character(family)){
+        if(!family%in%c("poisson","binomial","multinomial","logisticwt"))
+        stop("only poisson,binomial and multinomial are currently supported in glm\n")
+        if(family %in% "binomial") family <- "logistic"
+    }
+    if(is.function(family)){
+        if(base::identical(family,stats::poisson))
+        family <- "poisson"
+        else if(base::identical(family,stats::binomial))
+        family <- "logistic"
+        else stop("only poisson,binomial,multinomial and logisticwt families are currently supported in glm\n")
+    }
+    return(lmGeneric(formula=formula,
+                       data=data,
+                       callObject=vcallObject,
+                       familytype=family,
+                       ...))
+}
+
+
+#' @export
 glm.FLTable <- function(formula,
 						family="binomial",
 						data,
@@ -223,6 +247,7 @@ predict.FLLogRegr <- function(object,
 summary.FLLogRegr <- function(object,
                               calcResiduals=FALSE){
     stat <- object$FLLogRegrStats
+    colnames(stat) <- toupper(colnames(stat))
   	coeffframe <- data.frame(object$coefficients,
 							object$FLCoeffStdErr,
 							object$FLCoeffChiSq,

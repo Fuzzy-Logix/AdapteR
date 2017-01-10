@@ -69,9 +69,9 @@ if(!existsRemoteTable(tableName=deepTableName)){
 } else {
     ## or you can use an already created deep table again:
     FLdeepTable <- FLTable(deepTableName,
-                           obs_id_colname   = 'obs_id_colname',    
-                           var_id_colnames  = 'var_id_colname', 
-                           cell_val_colname = 'cell_val_colname',
+                           obs_id_colname   = 'obsid',    
+                           var_id_colnames  = 'varid', 
+                           cell_val_colname = 'numval',
                            fetchIDs = FALSE)
 }
 vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
