@@ -61,7 +61,7 @@ vtemp <- readline("Press <ENTER> to start in-database Robust linear regression. 
 ## then AdapteR is doing data prep for you automatically.
 ## The created deep table is accessible afterwards for
 ## further analyses.
-vresFL <- rlm(Buzz_Magnitude ~ ., data=FLwideTable)
+vresFL <- rlm(Buzz_Magnitude ~ ., data=FLwideTable, maxiter = 100)
 
 summary(vresFL)
 #### Summary of fit model. Similar to summary on 'lm' object
