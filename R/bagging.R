@@ -1,4 +1,23 @@
-## bag decision tree
+#' Applies the Bagging algorithm to a dataset
+#'
+#' Fits the Bagging algorithm proposed by Breiman in
+#' 1996 using classification trees as single classifiers.
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param mfinal an integer, the number of iterations
+#' for which boosting is run or the number of trees to use.
+#' Defaults to mfinal=5 iterations.
+#' @param control options that control details of the rpart algorithm. See rpart for more details.
+#' 
+#' @return An object of class "FLBagging" which has details about the trees generated
+#' and the number of votes in bag corresponding to every ObsID.
+#'
+#' @examples
+#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flobj<-bagging(flt, formula = -1~.,mfinal=mfinal)
+#' @export
+
 bagging<-function(formula,data,...){
 	UseMethod("bagging",data)
 }
