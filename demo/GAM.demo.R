@@ -23,7 +23,7 @@ demo("connecting",package="AdapteR")
 ## Create a FLTable object (Equivalent to R's data.frame)
 ## to hold the metadata of the remote table
 
-FLTableObject <- FLTable("tblGAMSimData","ObsID")
+FLTableObject <- FLTable(getTestTableName("tblGAMSimData"),"ObsID")
 
 readline("Above: FLTable object is created: ")
 
