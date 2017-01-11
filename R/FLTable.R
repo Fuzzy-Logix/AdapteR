@@ -995,27 +995,33 @@ SampleData <- function(pTableName,
                          pTestTableName=paste0(pTableName,
                                               "Test"),
                          pTemporary=getOption("temporaryFL"),
-                         pDrop=TRUE
+                         pDrop=TRUE,
+                         ...
                          ){
 
-  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
-                    " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+    if(is.Hadoop())
+        vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+                    " WHERE  RAND() < ",
                       pTrainDataRatio," ")
-  vtemp <- createTable(pTableName=pTrainTableName,
+    else
+        vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+                        " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+                          pTrainDataRatio," ")
+    vtemp <- createTable(pTableName=pTrainTableName,
                       pPrimaryKey=pObsIDColumn,
                       pTemporary=pTemporary,
                       pDrop=pDrop,
                       pSelect=vsqlstr)
 
-  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a \n ",
+    vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a \n ",
                     " WHERE NOT EXISTS \n (SELECT 1 FROM ",
                       pTrainTableName," b WHERE b.",
                       pObsIDColumn,"=a.",pObsIDColumn," \n ) ")
-  vtemp <- createTable(pTableName=pTestTableName,
+    vtemp <- createTable(pTableName=pTestTableName,
                       pPrimaryKey=pObsIDColumn,
                       pTemporary=pTemporary,
                       pDrop=pDrop,
                       pSelect=vsqlstr)
-  return(c(TrainTableName=pTrainTableName,
-          TestTableName=pTestTableName))
+    return(c(TrainTableName=pTrainTableName,
+            TestTableName=pTestTableName))
 }

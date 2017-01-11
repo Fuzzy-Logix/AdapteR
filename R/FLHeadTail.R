@@ -64,7 +64,7 @@ head.FLVector <- function(x,n=6,...){
                            " FROM (",constructSelect(x),") a ",
                            " ORDER BY a.vectorIndexColumn")
         vres <- sqlQuery(getFLConnection(),vsqlstr)[[1]]
-        names(vres) <- sort(names(x))[1:n]
+        names(vres) <- names(x)[1:n]
         return(vres)
     }
     stopifnot(length(n) == 1L)
