@@ -486,6 +486,7 @@ as.sparseMatrix.FLMatrix <- function(object) {
 
     dn <- dimnames(object)
     if(any(is.na(c(i,j))))
+            browser()
         
     values <- valuedf[[tolower(object@dimColumns[[4]])]]
 
@@ -893,6 +894,7 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
+    
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
