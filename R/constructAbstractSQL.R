@@ -838,6 +838,7 @@ updateMetaTable <- function(pTableName,
                         ))
 }
 
+#' @export
 limitRowsSQL <- function(pSelect,pRows){
     vlimitKeyword <- c(LIMIT="TDAster",
                         LIMIT="Hadoop",

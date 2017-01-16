@@ -54,3 +54,6 @@ FLVarCluster.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause
 
 FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
+
+RANDOM.Hadoop() <- RAND(pArg2=pArg2)
+RANDOM.TD() <- RANDOM(pArg1=pArg1,pArg2=pArg2)
