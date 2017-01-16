@@ -1026,6 +1026,25 @@ SampleData <- function(pTableName,
             TestTableName=pTestTableName))
 }
 
+
+#' Data Preparation
+#'
+#' Process deep table to have consistent 
+#' obs and var ids
+#' @param data name of table in the database
+#' @param formula should be of form column1~column2
+#' @param value.var column containing the values
+#' @param outTable name of output table
+#' @param deepOutput TRUE if output has to be a deep table
+#' @return \code{list} of \code{table} FLTable object, \code{Dimnames} Mappings
+#' @examples
+#' resultList <- FLReshape(data="medEconomicData",
+#'                         formula=CountryName ~ IndicatorCode,
+#'                         value.var="TimeSeriesVal",
+#'                         subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Year=2010",
+#'                         outTable="tbl1",
+#'                         drop=TRUE)
+#' @export
 FLReshape <- function(data,formula,
                      value.var,subset=NULL,
                      outTable=paste0("ARBase",data,"Reshape"),
