@@ -33,9 +33,6 @@ vtemp <- readline("Above: deep FLTable object created. \n ")
 str(FLdeepTable)
 vtemp <- readline("Above: str prints a summary of the table \n ")
 
-dim(FLdeepTable)
-vtemp <- readline("Above: the number of rows and columns of the table \n ")
-
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
 head(FLdeepTable,n=10)

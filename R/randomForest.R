@@ -143,3 +143,14 @@ print.FLRandomForest<-function(object,...){
 	cat("\nConfusion matrix: \n")
 	print(object$confusion)
 }
+
+plot.FLRandomForest<-function(object){ #browser()
+	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
+	ntree<-object$ntree
+	x<-ceiling(sqrt(ntree))
+	old.par <- par(mfrow=c(x,x))
+	for(i in 1:ntree){
+		class(object$forest[[i]])<-"data.frame"
+		plot.FLrpart(object$forest[[i]])
+	}
+}	

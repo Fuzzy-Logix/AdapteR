@@ -332,11 +332,12 @@ plot.FLrpart<-function(x){ #browser()
  # 	#if(newframe$)
  # 	lines(parent, child)
  # 	#invisible(list(x = xcor, y = ycor))
- return(createcor(x$frame))
+ if(class(x)=="data.frame") return(createcor(x))
+ else return(createcor(x$frame))
  }
 
  createcor<-function(frame){#browser()
-  plot(2.5,2)
+  plot(2.5,2, axes=F, type="n", xlab="", ylab="")
   xcor<-c("2.5")
   ycor<-c("2.5")
   for(i in 1:nrow(frame)){
@@ -352,7 +353,7 @@ plot.FLrpart<-function(x){ #browser()
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
         var<-as.numeric(frame$var[1])
         SplitVal<-as.numeric(frame$SplitVal[1])
-        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
+        text(as.numeric(xcor[i]),as.numeric(ycor[j])+0.05,labels=paste0(var,"  <",round(SplitVal,digits=2)))
         }
       else{
         xcor[j]<-as.numeric(xcor[i])-0.25/frame$treelevel[i]
@@ -367,7 +368,7 @@ plot.FLrpart<-function(x){ #browser()
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
         var<-as.numeric(frame$var[i])
         SplitVal<-as.numeric(frame$SplitVal[i])
-        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
+        text(as.numeric(xcor[i]),as.numeric(ycor[j])+0.05,labels=paste0(var," <",round(SplitVal,digits=2)))
         }
   	}
   	else segments(as.numeric(xcor[i]),as.numeric(ycor[i]),as.numeric(xcor[i]),2.5-(as.numeric(frame$treelevel[i])+1)*0.25)
