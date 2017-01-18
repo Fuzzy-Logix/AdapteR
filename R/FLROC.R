@@ -2,8 +2,15 @@
 ## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
 #' tbl <- FLTable("tblROCCurve", "ObsID")
 #' mod <- roc(tbl$ActualVal, tbl$ProbVal)
-#'
-#'
+#'Example 2:
+#' data(aSAH)
+#'fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
+#'fltbl$res <- as.numeric(fltbl$res)
+#' fltbl$res <- fltbl$res - 1
+#' fltbl <- fltbl[-55, ]
+#' head(fltbl)
+#'fltbl <- as.FLTable(fltbl)
+#'flmod <- roc(fltbl$res, fltbl$pred)
 #' 
 #' @export
 ##roc.default <- function (response, predictor,...) {
@@ -14,7 +21,7 @@
 ##    else return(pROC::roc(response, predictor,...))
 ##}
 ##
-
+## to-do : work on formula aspect of function, print function, $ operator[(levels),convert numeric to FLVector] .
 
 
 #' @export
@@ -45,18 +52,7 @@ roc.FLTableMD <- roc.FLVector
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    browser()
     vvolName <- gen_view_name("roccurve")
-
-    ##    sqlstr <- paste0("CREATE VOLATILE TABLE ",vvolName," SELECT a.vectorValueColumn as res, b.vectorValueColumn AS pred
-    ##                          FROM ",response@select@table_name," AS a ,
-    ##                               ",predictor@select@table_name," AS b
-    ##                          WHERE ",ifelse(length(response@select@whereconditions),
-    ##                                         response@select@whereconditions," "),"",var,"
-    ##                                ",ifelse(length(predictor@select@whereconditions),
-    ##                                         predictor@select@whereconditions," " ),"
-    ##WITH DATA
-    ##ON COMMIT PRESERVE ROWS;")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
                                (",constructSelect(predictor),") AS b
@@ -78,7 +74,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     vclass <- "FLROC"
     return(new(vclass,
                otbl = ret$ResultTable,
-               results = list(call = callobject)
+               results = list(call = callobject,
+                              itable = vvolName)
                ))
     
 }
@@ -90,26 +87,58 @@ rocgeneric <- function(response, predictor,callobject,  ...)
         ##TPR
         vquery <- paste0("SELECT TPR FROM ",object@otbl," ORDER BY TPR DESC ")
         df <- sqlQuery(connection, vquery)
-        return(as.numeric(df$TPR))
+        val <- as.numeric(df$TPR)
+        return(val)
+        ##return(as.numeric(df$TPR))
+        
         
     }
     else if(property == "specificities"){
-        vquery <- paste0("SELECT FPR FROM ",object@otbl," ORDER BY FPR ASC ")
+        vquery <- paste0("SELECT FPR FROM ",object@otbl," ORDER BY FPR DESC ")
         df <- sqlQuery(connection, vquery)
-        return(as.numeric(df$FPR))
+        val <- as.numeric(df$FPR)
+        val <- 1 - val
+        return(val)
     }
     else if(property == "auc")
     {
-        return(auc(object, ...))
+        return(auc(object))
     }
-    
-    
+    else if(property == "original.predictors"){
+        vquery <- paste0("SELECT pred FROM ",object@results$itable," ORDER BY OBSID")
+        df <- sqlQuery(connection, vquery)
+        return(as.numeric(df$pred))
+    }
+    else if(property == "original.response"){
+        vquery <- paste0("SELECT res FROM ",object@results$itable," ORDER BY OBSID")
+        df <- sqlQuery(connection, vquery)
+        return(as.numeric(df$res))
+
+    }
+    else if(property == "levels"){}
+    else if(property == "controls"){
+        vquery <- paste0("SELECT pred FROM ",object@results$itable," WHERE res = 0 ORDER BY OBSID")
+        df <- sqlQuery(connection, vquery)
+        return(as.numeric(df$pred)) }
+    else if(property == "cases"){
+        vquery <- paste0("SELECT pred FROM ",object@results$itable," WHERE res = 1 ORDER BY OBSID")
+        df <- sqlQuery(connection, vquery)
+        return(as.numeric(df$pred))}
+    else if(property == "call"){
+        return(object@results$call)}
+    else if(property == "percent"){
+        return(FALSE)}
+
 }
 
 
 auc.FLROC <- function(object, ...){
-    reqList <- list(call = NULL ,
-                    percent = FALSE,
+    reqList <- list(call = object$call,
+                    cases = object$cases,
+                    controls = object$controls,
+                    original.predictor = object$original.predictor,
+                    original.response = object$original.response,
+                    percent = object$percent,
                     sensitivities =object$sensitivities ,
                     specificities = object$specificities
                     )
@@ -121,14 +150,21 @@ auc.FLROC <- function(object, ...){
 
 plot.FLROC <- function(object, ...)
 {
-##    reqList <- list(call = NULL ,
-##                    percent = FALSE,
-##                    sensitivities =object$sensitivities ,
-##                    specificities = object$specificities
-##                    )
-##    class(reqList) <- "roc"
-    ##    return(plot(reqList, ...))
-    vquery <- paste0("SELECT TPR, FPR FROM ",object@otbl," ")
-    df <- sqlQuery(connection, vquery)
-    return(plot(val$FPR, val$TPR))
+    reqList <- list(call = object$call,
+                    cases = object$cases,
+                    controls = object$controls,
+                    original.predictor = object$original.predictor,
+                    original.response = object$original.response,
+                    percent = object$percent,
+                    sensitivities =object$sensitivities ,
+                    specificities = object$specificities,
+                    auc = object$auc
+                    )
+
+    class(reqList) <- "roc"
+    return(plot(reqList, ...))
 }
+
+
+
+
