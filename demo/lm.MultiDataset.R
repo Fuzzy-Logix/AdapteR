@@ -25,7 +25,7 @@ demo("connecting",package="AdapteR")
 ## Create a FLTable object (Equivalent to R's data.frame)
 ## to hold the metadata of the remote table
 
-FLTableMDObject <- FLTableMD(table="tblAutoMPGMD",
+FLTableMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),
                             group_id_colname="GroupID",
                             obs_id_colname="ObsID",
                             group_id = c(2,4))

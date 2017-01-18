@@ -17,7 +17,7 @@ if(!exists("connection")) {
 }
 #############################################################
 ## Create Train and Test DataSets from tblLoanData.
-vSampleDataTables <- suppressWarnings(SampleData(pTableName="tblLoanData",
+vSampleDataTables <- suppressWarnings(SampleData(pTableName=getTestTableName("tblLoanData"),
                                   pObsIDColumn="Loanid",
                                   pTrainTableName="ARtblLoanDataTrain",
                                   pTestTableName="ARtblLoanDataTest",

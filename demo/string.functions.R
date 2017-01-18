@@ -18,13 +18,13 @@ if(!exists("connection")) {
 
 ## ActressLDist table has information about hollywood movies
 ## Examining table schema
-sqlQuery(connection,paste0(
-"SELECT TOP 10 * ",
-" FROM ActressLDist "))
+sqlQuery(connection,limitRowsSQL(paste0(
+"SELECT * ",
+" FROM ",getTestTableName("ActressLDist")),10))
 
 vtemp <- readline("Table is wide and has obsid as unique index:")
 
-FLTblObj <- FLTable(table="ActressLDist",
+FLTblObj <- FLTable(table=getTestTableName("ActressLDist"),
                     obs_id_colname="ObsID")
 
 vtemp <- readline("Above: FLTable object created for the table")
@@ -87,7 +87,7 @@ run.FLStringDistShiny <- function (){
     ##
     ## A search string can be inserted
     ## and results are shown after matching
-    FLTblObj <- FLTable(table="ActressLDist",
+    FLTblObj <- FLTable(table=getTestTableName("ActressLDist"),
                         obs_id_colname="ObsID",
                         whereconditions = "Actor<>'' AND Actress<>'' AND Director<>'' AND FilmTitle<>''")
     findName <- function(FLTblObj,

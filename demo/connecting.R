@@ -23,6 +23,17 @@ if(!exists("yourPlatform"))
 if(!exists("yourODBCSource") & !exists("yourUser"))
     stop("Please set the variable \nyourODBCSource <- \"...\" for odbc login!\nor set for jdbc login:\nyourUser <- \"...\"\nyourPassword <- \"...\"")
 
+## If the fuzzylogix installed database is different from FL_TRAIN(TD),fuzzylogix(TDAster),dblytix(Hadoop)
+## Set it using "yourFLDBName" variable before starting this demo.
+if(!exists("yourFLDBName")){
+    vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="dblytix")
+    yourFLDBName <- vmap[yourPlatform]
+}
+
+## If the Data database is different from FL_TRAIN(TD),fuzzylogix(TDAster),mazdoo(Hadoop)
+## Set it using "yourDataDBName" variable before starting this demo.
+if(!exists("yourDataDBName"))
+    yourDataDBName <- NULL
 if(!exists("connection") & exists("yourODBCSource")){
     if(!exists("yourPlatform"))
     stop("Please set the variable \nyourPlatform <- \"...\" for odbc login!\n")
@@ -32,8 +43,9 @@ if(!exists("connection") & exists("yourODBCSource")){
     ### ................##########................
     
     connection <- flConnect(odbcSource = yourODBCSource,
-                            database="FL_TRAIN",
-                            platform=yourPlatform)
+                            database=yourFLDBName,
+                            platform=yourPlatform,
+                            TestDatabase=yourDataDBName)
 }
 
 ## If ODBC has failed we try to create a JDBC connection
@@ -49,14 +61,15 @@ if(!exists("connection")){
 
     connection <- flConnect(
                     host     = yourHost,
-                    database = "FL_TRAIN",
+                    database = yourFLDBName,
                     user = yourUser,
                     passwd = yourPassword,
                     ## set jdbc.jarsDir to add jdbc driver
                     ## and security jars to classpath:
                     ##    terajdbc4.jar tdgssconfig.jar
                     ## CAVE: fully qualified PATH required
-                    jdbc.jarsDir = yourJarDir)
+                    jdbc.jarsDir = yourJarDir,
+                    TestDatabase=yourDataDBName)
     if(!exists("connection")) 
         stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
@@ -66,7 +79,7 @@ if(!exists("connection")){
 ## ....Trying to Fetch a matrix from FL_TRAIN.tblmatrixmulti using sqlQuery......
 ## .......................#################..................
 
-sqlQuery(connection,paste0("SELECT * \n FROM FL_TRAIN.tblmatrixmulti a \n ",
+sqlQuery(connection,paste0("SELECT * \n FROM ",getTestTableName("tblmatrixmulti")," a \n ",
                             "WHERE a.Matrix_ID=1 \n ",
                             "ORDER BY 1,2,3"))
 

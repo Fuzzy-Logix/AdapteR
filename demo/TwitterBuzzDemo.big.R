@@ -27,7 +27,7 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-FLwideTable <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE)
+FLwideTable <- FLTable(getTestTableName("tblTwitterBuzz"),"OBSID",fetchIDs=FALSE)
 vtemp <- readline("Above: wide FLTable object created. \n ")
 
 str(FLwideTable)
@@ -50,9 +50,14 @@ vtemp <- readline("Above: Head is supported to examine structure of data \n Pres
 deepTableName <- "tblTwitterBuzzDeepARDemo"
 ## here we drop the table
 dropTable(deepTableName)
+## Create Formula object just like R
+vdependentColumn <- grep("Buzz_Magnitude",colnames(FLwideTable),ignore.case = T,value=TRUE)
+myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
+cat("formula object used in fit: ")
+print(myformula)
 
 if(!existsRemoteTable(tableName=deepTableName)){
-    FLdeepTable <- prepareData(formula         = Buzz_Magnitude ~ . ,
+    FLdeepTable <- prepareData(formula         = myformula ,
                                data            = FLwideTable,
                                outDeepTable    = deepTableName,
                                makeDataSparse  = 1,

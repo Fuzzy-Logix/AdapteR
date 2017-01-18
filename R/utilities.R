@@ -679,8 +679,10 @@ separateDBName <- function(vtableName){
     vdatabase <- vdatabase[1]
   }
   else vdatabase <- getOption("ResultDatabaseFL")
-  return(c(vdatabase=vdatabase,
-          vtableName=vtableName))
+  vres <- c(vdatabase=vdatabase,
+            vtableName=vtableName)
+  names(vres) <- c("vdatabase","vtableName")
+  vres
 }
 
 removeAlias <- function(pName){
