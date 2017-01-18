@@ -743,7 +743,6 @@ insertIntotbl <- function(pTableName,
     # if(!grepl(".",pTableName,fixed=TRUE))
     # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
     #                                 pTableName)
-
     vsqlstr <- paste0("INSERT INTO ",pTableName)
 
     if(!is.null(pValues)){
@@ -839,6 +838,7 @@ updateMetaTable <- function(pTableName,
                         ))
 }
 
+#' @export
 limitRowsSQL <- function(pSelect,pRows){
     vlimitKeyword <- c(LIMIT="TDAster",
                         LIMIT="Hadoop",

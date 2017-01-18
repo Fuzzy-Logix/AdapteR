@@ -27,7 +27,7 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-FLwideTable <- FLTable("tblTwitterBuzz","OBSID",fetchIDs=FALSE,whereconditions=" OBSID<4001 ")
+FLwideTable <- FLTable(getTestTableName("tblTwitterBuzz"),"OBSID",fetchIDs=FALSE,whereconditions=" OBSID<4001 ")
 vtemp <- readline("Above: wide FLTable object created. \n ")
 
 str(FLwideTable)
@@ -51,8 +51,14 @@ deepTableName <- "tblTwitterBuzzDeepARDemo"
 ## here we drop the table
 dropTable(deepTableName)
 
+## Create Formula object just like R
+vdependentColumn <- grep("Buzz_Magnitude",colnames(FLwideTable),ignore.case = T,value=TRUE)
+myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
+cat("formula object used in fit: ")
+print(myformula)
+
 if(!existsRemoteTable(tableName=deepTableName)){
-    FLdeepTable <- prepareData(formula         = Buzz_Magnitude ~ . ,
+    FLdeepTable <- prepareData(formula         = myformula ,
                                data            = FLwideTable,
                                outDeepTable    = deepTableName,
                                makeDataSparse  = 1,
@@ -63,9 +69,9 @@ if(!existsRemoteTable(tableName=deepTableName)){
 } else {
     ## or you can use an already created deep table again:
     FLdeepTable <- FLTable(deepTableName,
-                           obs_id_colname   = 'obs_id_colname',    
-                           var_id_colnames  = 'var_id_colname', 
-                           cell_val_colname = 'cell_val_colname',
+                           obs_id_colname   = 'obsid',    
+                           var_id_colnames  = 'varid', 
+                           cell_val_colname = 'numval',
                            fetchIDs = FALSE)
 }
 vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
@@ -79,7 +85,7 @@ vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
 ## then AdapteR is doing data prep for you automatically.
 ## The created deep table is accessible afterwards for
 ## further analyses.
-vresFL <- lm(Buzz_Magnitude ~ ., data=FLdeepTable)
+vresFL <- lm(myformula, data=FLdeepTable)
 
 summary(vresFL)
 #### Summary of fit model. Similar to summary on 'lm' object

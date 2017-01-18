@@ -995,27 +995,166 @@ SampleData <- function(pTableName,
                          pTestTableName=paste0(pTableName,
                                               "Test"),
                          pTemporary=getOption("temporaryFL"),
-                         pDrop=TRUE
+                         pDrop=TRUE,
+                         ...
                          ){
 
-  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
-                    " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+    if(is.Hadoop())
+        vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+                    " WHERE  RAND() < ",
                       pTrainDataRatio," ")
-  vtemp <- createTable(pTableName=pTrainTableName,
+    else
+        vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+                        " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
+                          pTrainDataRatio," ")
+    vtemp <- createTable(pTableName=pTrainTableName,
                       pPrimaryKey=pObsIDColumn,
                       pTemporary=pTemporary,
                       pDrop=pDrop,
                       pSelect=vsqlstr)
 
-  vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a \n ",
+    vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a \n ",
                     " WHERE NOT EXISTS \n (SELECT 1 FROM ",
                       pTrainTableName," b WHERE b.",
                       pObsIDColumn,"=a.",pObsIDColumn," \n ) ")
-  vtemp <- createTable(pTableName=pTestTableName,
+    vtemp <- createTable(pTableName=pTestTableName,
                       pPrimaryKey=pObsIDColumn,
                       pTemporary=pTemporary,
                       pDrop=pDrop,
                       pSelect=vsqlstr)
-  return(c(TrainTableName=pTrainTableName,
-          TestTableName=pTestTableName))
+    return(c(TrainTableName=pTrainTableName,
+            TestTableName=pTestTableName))
+}
+
+
+#' Data Preparation
+#'
+#' Process deep table to have consistent 
+#' obs and var ids
+#' @param data name of table in the database
+#' @param formula should be of form column1~column2
+#' @param value.var column containing the values
+#' @param outTable name of output table
+#' @param deepOutput TRUE if output has to be a deep table
+#' @return \code{list} of \code{table} FLTable object, \code{Dimnames} Mappings
+#' @examples
+#' resultList <- FLReshape(data="medEconomicData",
+#'                         formula=CountryName ~ IndicatorCode,
+#'                         value.var="TimeSeriesVal",
+#'                         subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Year=2010",
+#'                         outTable="tbl1",
+#'                         drop=TRUE)
+#' @export
+FLReshape <- function(data,formula,
+                     value.var,subset=NULL,
+                     outTable=paste0("ARBase",data,"Reshape"),
+                     deepOutput=TRUE,
+                     ...){
+    vallVars <- all.vars(formula)
+    vobsid <- vallVars[1]
+    vvarid <- vallVars[2]
+
+    if("drop" %in% names(list(...)))
+        if(list(...)$drop)
+            vres <- dropTable(pTableName=outTable)
+
+    if("temporary" %in% names(list(...)))
+        vtemporary <- list(...)$temporary
+    else vtemporary <- FALSE
+
+    if(deepOutput){
+
+        sqlstr <- paste0(" SELECT DENSE_RANK()OVER(PARTITION BY b.varid ORDER BY b.obsid) as obsid, \n ",
+                                "DENSE_RANK()OVER(PARTITION BY b.obsid ORDER BY b.varid) as varid, \n ",
+                                "b.num_val as num_val, \n ",
+                                "b.obsid as obsidnames, \n ",
+                                "b.varid as varidnames \n ",
+                        " FROM ( \n ",
+                            " SELECT ",vobsid," as obsid, count(DISTINCT ",vvarid,") as varidcount \n ",
+                            " FROM ",data," \n ",constructWhere(subset),
+                            " \n GROUP BY ",vobsid,") a, \n ",
+                            " (SELECT COUNT(DISTINCT ",vvarid,") as maxvarid FROM ",data," \n ",constructWhere(subset),
+                            " \n ) c, \n ",
+                            " (SELECT ",vobsid," as obsid,",vvarid," as varid,",value.var," as num_val \n ",
+                                " FROM ",data," \n ",constructWhere(subset),") b \n ",
+                        " WHERE a.obsid = b.obsid AND a.varidcount = c.maxvarid "
+                        )
+
+        vres <- createTable(pTableName=outTable,
+                            pSelect=sqlstr,
+                            pTemporary=vtemporary,
+                            pDrop=TRUE)
+
+        ## TODO: standardization of data
+
+        vres <- sqlQuery(getFLConnection(),
+                        paste0("SELECT MAX(obsid) as rows, MAX(varid) as cols FROM ",outTable))
+        rows <- vres[["rows"]]
+        cols <- vres[["cols"]]
+
+        ## Mappings
+        sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",
+                            " obsid AS vectorIndexColumn, \n ",
+                            " obsidnames AS vectorValueColumn \n ",
+                        " FROM ",outTable)
+
+        tblfunqueryobj <- new("FLTableFunctionQuery",
+                                  connectionName = attr(getFLConnection(),"name"),
+                                  variables = list(
+                                      obs_id_colname = "vectorIndexColumn",
+                                      cell_val_colname = "vectorValueColumn"),
+                                  whereconditions="",
+                                  order = "",
+                                  SQLquery=sqlstr)
+        Rownames <- newFLVector(
+                       select = tblfunqueryobj,
+                       Dimnames = list(1:rows,"vectorValueColumn"),
+                       isDeep = FALSE,
+                       type="character")
+
+        sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",
+                            " varid AS vectorIndexColumn, \n ",
+                            " varidnames AS vectorValueColumn \n ",
+                        " FROM ",outTable)
+
+        tblfunqueryobj <- new("FLTableFunctionQuery",
+                                  connectionName = attr(getFLConnection(),"name"),
+                                  variables = list(
+                                      obs_id_colname = "vectorIndexColumn",
+                                      cell_val_colname = "vectorValueColumn"),
+                                  whereconditions="",
+                                  order = "",
+                                  SQLquery=sqlstr)
+        Colnames <- newFLVector(
+                       select = tblfunqueryobj,
+                       Dimnames = list(1:cols,"vectorValueColumn"),
+                       isDeep = FALSE,
+                       type="character")
+
+        ##
+
+        select <- new("FLSelectFrom",
+                      connectionName = attr(getFLConnection(),"name"), 
+                      table_name = outTable, 
+                      variables = list(
+                          obs_id_colname = "obsid",
+                          var_id_colname = "varid",
+                          cell_val_colname = "num_val"),
+                      whereconditions="",
+                      order = "")
+        
+        deepTable <- newFLTable(
+                        select = select,
+                        Dimnames = list(1:rows,1:cols),
+                        dims = as.integer(c(rows,cols)),
+                        isDeep = TRUE,
+                        type="double",
+                        dimColumns=c("obs_id_colname","var_id_colname","cell_val_colname")
+                        )
+        return(list(table=deepTable,
+                    Dimnames=list(Rownames,Colnames)))
+
+    }
+    else stop("yet to be implemented.Please leave a comment on github. \n ")
+
 }

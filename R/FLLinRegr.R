@@ -1109,7 +1109,7 @@ prepareData.lmGeneric <- function(formula,data,
 	if(!isDeep(data))
 	{
         deepx <- FLRegrDataPrep(data,depCol=vdependent,
-                                OutDeepTableName=outDeepTableName,
+                                OutDeepTable=outDeepTableName,
                                 OutObsIDCol="obsid",
                                 OutVarIDCol="varid",
                                 OutValueCol="numval",
@@ -2106,7 +2106,9 @@ plot.FLLinRegr <- function(object,method="R",limit=4000,...)
                                 getTableNameSlot(object@deeptable)," b \n ",
                         " WHERE b.",vObsIdColname,"=a.",vObsIdColname,
                                 " AND b.",vVarIdColname,"=-1 ", 
-                                " AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p)
+                                " AND FLSimUniform(",
+                                    getNativeRandFunction(pArg1=1,pArg2=10000),
+                                    ", 0.0, 1.0) < ",p)
 
         vdf <- sqlQuery(getFLConnection(),sqlstr)
         vfit <- vdf[["yhat"]]

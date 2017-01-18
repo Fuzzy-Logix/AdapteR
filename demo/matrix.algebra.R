@@ -23,27 +23,27 @@ vtemp <- readline("This demo is about transparent in-database matrix algebra.\nP
 ## Matrix Inversion
 ##
 ## The SQL from R way.SQL taken from Manual:
-vresult <- sqlQuery(connection, "
-WITH z (Matrix_ID, Row_ID, Col_ID, NumVal) AS
-(
-SELECT a.Matrix_ID,
-       a.Row_ID,
-       a.Col_ID,
-       a.Cell_Val
-FROM fl_TRAIN.tblMatrixMulti a
-WHERE a.Matrix_ID = 5
-)
-SELECT a.*
-FROM TABLE (
-     FLMatrixInvUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.NumVal) HASH BY z.Matrix_ID
-  LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
-) AS a
-ORDER BY 1,2,3;")
+# vresult <- sqlQuery(connection, "
+# WITH z (Matrix_ID, Row_ID, Col_ID, NumVal) AS
+# (
+# SELECT a.Matrix_ID,
+#        a.Row_ID,
+#        a.Col_ID,
+#        a.Cell_Val
+# FROM fl_TRAIN.tblMatrixMulti a
+# WHERE a.Matrix_ID = 5
+# )
+# SELECT a.*
+# FROM TABLE (
+#      FLMatrixInvUdt(z.Matrix_ID, z.Row_ID, z.Col_ID, z.NumVal) HASH BY z.Matrix_ID
+#   LOCAL ORDER BY z.Matrix_ID, z.Row_ID, z.Col_ID
+# ) AS a
+# ORDER BY 1,2,3;")
 
-print(vresult)
+# print(vresult)
 vtemp <- readline("Ceck above that Matrix inversion output (SQL from R) is in deep format!\nPress <ENTER> to continue.")
 
-m <- FLMatrix(table_name        = "tblMatrixMulti",
+m <- FLMatrix(table_name        = getTestTableName("tblMatrixMulti"),
               matrix_id_colname = "Matrix_ID",
               matrix_id_value   = "5",
               row_id_colname    = "Row_ID",
@@ -76,7 +76,8 @@ round(m %*% ms,3)
 require(testthat)
 expect_equal(as.matrix(ms),
              solve(rm),
-             check.attributes=FALSE)
+             check.attributes=FALSE,
+             tolerance=0.00000001,scale=1)
 vtemp <- readline("AdapteR uses unit-tests with expect_equal to check if R and DB Lytix results match up for most of the R documentation examples of supported functions.\nPress <ENTER> to continue.")
 
 flM <- as.FLMatrix(matrix(runif(25),5))
