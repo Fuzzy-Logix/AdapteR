@@ -115,7 +115,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
         return(as.numeric(df$res))
 
     }
-    else if(property == "levels"){}
+    else if(property == "levels"){print("need to do:")}
     else if(property == "controls"){
         vquery <- paste0("SELECT pred FROM ",object@results$itable," WHERE res = 0 ORDER BY OBSID")
         df <- sqlQuery(connection, vquery)
