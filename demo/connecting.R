@@ -30,6 +30,7 @@ if(!exists("yourFLDBName")){
     yourFLDBName <- vmap[yourPlatform]
 }
 
+?flConnect
 ## If the Data database is different from FL_TRAIN(TD),fuzzylogix(TDAster),mazdoo(Hadoop)
 ## Set it using "yourDataDBName" variable before starting this demo.
 if(!exists("yourDataDBName"))
