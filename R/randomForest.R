@@ -149,7 +149,7 @@ plot.FLRandomForest<-function(object){ #browser()
 	ntree<-object$ntree
 	x<-ceiling(sqrt(ntree))
 	old.par <- par(mfrow=c(x,ceiling(ntree/x)),
-				   oma = c(0,0,0,0) + 0.1,
+				   oma = c(0,0,0,0) + 0,
           		   mar = c(0,0,0,0) + 0)
 	for(i in 1:ntree){
 		class(object$forest[[i]])<-"data.frame"
