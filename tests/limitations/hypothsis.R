@@ -1,25 +1,25 @@
-##Anderson-Darling Test:Test Case 1
+## Kolmogorov-Smirnov (KS) Test 1S
 
+sqlstr <- paste0("SELECT * FROM tblKSTest WHERE GroupID = 1")
+t <- sqlQuery(connection, sqlstr)
 Renv = new.env(parent = globalenv())
-set.seed(200)
-Renv$a <- rnorm(100, mean = 5, sd = 3)
+Renv$a <- t$NUM_VAL
 FLenv = as.FL(Renv)
 
-test_that("Anderson-Darling Test: nortest package example", {
+test_that("Kolmogorov-Smirnov Test 1S: Testing DBLytix Example ",{
     result = eval_expect_equal({
-        res <- ad.test(a)
+        q <- ks.test(a,'pnorm', 3.5, 11.5)
     },Renv,FLenv,
-    expectation = "res",
-    check.attributes = T,
+    expectation = c("q"),
+    check.attributes=F,
     tolerance = .01,
-    verbose = T
+    verbose = FALSE
     )
-    })
+}
+)
 
-ad.test(FLenv$a)
+##Anderson-Darling Test:Test Case 
 
-
-                                        #Anderson-Darling Test:Test Case 2
 FLenv = new.env(parent = globalenv())
 data <- FLTable(table ="tblADTest", obs_id_colname="ObsID",whereconditions="datasetid=1")
 FLenv$val <- data$NUM_VAL
@@ -31,7 +31,7 @@ test_that("Anderson-Darling Test: DBLytix Example", {
     },Renv,FLenv,
     expectation = "res",
     check.attributes = T,
-    tolerance = .0001,
+    tolerance = .01,
     verbose = T
     )
     })

@@ -13,7 +13,7 @@ test_that("wilcox.test: unpaired Mann-Whitney Wilcoxon Test: correct p.value and
   },Renv,FLenv,
   #check.attributes=F,
   tolerance = .000001,
-  verbose = F
+  verbose = FALSE
   )
   }) 
 
