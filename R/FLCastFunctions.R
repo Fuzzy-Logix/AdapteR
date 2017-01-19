@@ -72,7 +72,6 @@ as.data.frame <- function(x, ...)
 
 #' @export
 as.data.frame.FLTable <- function(x, ...){
-    ##browser()
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
     tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
@@ -972,8 +971,24 @@ as.FLTable.data.frame <- function(object,
     ## These cases will be handled by Parameterized sql
     ## Replace NAs with NULL
     object[is.na(object)] <- ''
-    vresult <- tryCatch(insertIntotbl(pTableName=tableName,
-                                    pValues=object),
+    vresult <- tryCatch({
+                        ## Add batch insert for ODBC
+                        if(batchSize>10000)
+                        {
+                            batchSize <- 10000
+                            warning("using max batchSize=10000")
+                        }
+                        for(i in 1:ceiling(nrow(object)/batchSize)){
+                            print(paste0("inserting batch: ",i, " of ",
+                                        ceiling(nrow(object)/batchSize)))
+                            vlower <- 1+((i-1)*batchSize)
+                            vupper <- i*batchSize
+                            if(vupper>nrow(object))
+                                vupper <- nrow(object)
+                            insertIntotbl(pTableName=tableName,
+                                        pValues=object[vlower:vupper,])
+                        }
+                        },
                         error=function(e){
                             if(!is.ODBC(vconnection)) stop(e)
                             sqlstr <- paste0("INSERT INTO ",tableName,

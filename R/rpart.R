@@ -1,4 +1,22 @@
 #' @export
+NULL
+
+#' Recursive partitioning and Regression Trees
+#' 
+#' Fit a rpart model
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param control A list of options that control details of the rpart algorithm.
+#' Minsplit: Minimum number of observations a node should have in order to be splitted.
+#' Maxdepth: The maximum depth to which the tree can go.
+#' cp: Complexity parameter
+#'
+#' @return An object of class "FLrpart" containing the tree structure details.
+#' @examples
+#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flobj<-rpart(data = flt, formula = -1~.)
+#' @export
 
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
@@ -143,7 +161,7 @@ summary.FLrpart<-function(x,...){
 predict.FLrpart<-function(object,
 						  newdata=object$deeptable,
 						  scoreTable="",
-						  ...){#browser()
+						  ...){
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
@@ -172,7 +190,7 @@ predict.FLrpart<-function(object,
 	AnalysisID<-sqlStoredProc(getFLConnection(),
 							  vfuncName,
 							  outputParameter=c(AnalysisID="a"),
-						 	  pInputParameters=vinputcols)
+						 	  pInputParams=vinputcols)
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 	query<-paste0("Select * from ",scoreTable," Order by 1")
 	result<-sqlQuery(getFLConnection(),query)
@@ -332,6 +350,9 @@ plot.FLrpart<-function(x){ #browser()
         ycor[k]<-"2.25"
         segments(as.numeric(xcor[1]),as.numeric(ycor[1]),mean(c(as.numeric(xcor[j]),as.numeric(xcor[k]))),mean(c(as.numeric(ycor[j]),as.numeric(ycor[k]))))
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        var<-as.numeric(frame$var[1])
+        SplitVal<-as.numeric(frame$SplitVal[1])
+        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
         }
       else{
         xcor[j]<-as.numeric(xcor[i])-0.25/frame$treelevel[i]
@@ -344,7 +365,11 @@ plot.FLrpart<-function(x){ #browser()
         ymid<-as.numeric((as.numeric(ycor[j])+as.numeric(ycor[k]))/2)
         segments(pxcor,pycor,xmid,ymid)
         segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        var<-as.numeric(frame$var[i])
+        SplitVal<-as.numeric(frame$SplitVal[i])
+        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
         }
   	}
+  	else segments(as.numeric(xcor[i]),as.numeric(ycor[i]),as.numeric(xcor[i]),2.5-(as.numeric(frame$treelevel[i])+1)*0.25)
   }
 }

@@ -10,8 +10,8 @@
 ## library.
 ##
 ## The demo highlights how to perform
-## Linear Regression on tblTwitterBuzz dataset
-## to predict the buzz magnitude
+## Linear Regression on Hadoop Platform 
+## using the example from the stats::lm documentation
 
 ### Pre-setup
 oldWarn <- getOption("warn")
@@ -24,11 +24,23 @@ if(!exists("connection")) {
 
 
 #############################################################
-## Create a FLTable object for tblTwitterBuzz table
-## Refer ?FLTable for help on creating FLTable Objects.
-?FLTable
-FLwideTable <- FLTable(getTestTableName("tblTwitterBuzz"),"OBSID",fetchIDs=FALSE)
-vtemp <- readline("Above: wide FLTable object created. \n ")
+## Use the data from R example stats::lm 
+
+ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
+trt <- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
+groupf <- gl(2, 10, 20, labels = c("Ctl","Trt"))
+groupb = rep(0:1,each = 10)
+weight <- c(ctl, trt)
+dataframe = data.frame(weight = weight,groupf =groupf,groupb =groupb)
+rownames(dataframe) <- 1:nrow(dataframe)
+
+## FLTable object can be created by casting
+## dataframe into FLTable object 
+FLwideTable <- as.FLTable(dataframe,
+                          temporary=F,
+                          tableName="ARBaselmRExampleDemo",
+                          drop=TRUE)
+vtemp <- readline("Above: Create FLTable object by pushing R dataframe in-database \n ")
 
 str(FLwideTable)
 vtemp <- readline("Above: str prints a summary of the table \n ")
@@ -47,23 +59,16 @@ vtemp <- readline("Above: Head is supported to examine structure of data \n Pres
 ## prepare data in a sparse format for
 ## the fast in-database linear regression
 ## algorithm exploiting sparseness.
-deepTableName <- "tblTwitterBuzzDeepARDemo"
-## here we drop the table
+deepTableName <- "ARBaselmRExampleDemoDeep"
+## Drop Deeptable if already exists
+## To demo Data Prep Step
 dropTable(deepTableName)
-## Create Formula object just like R
-vdependentColumn <- grep("Buzz_Magnitude",colnames(FLwideTable),ignore.case = T,value=TRUE)
-myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
-cat("formula object used in fit: ")
-print(myformula)
+
 
 if(!existsRemoteTable(tableName=deepTableName)){
-    FLdeepTable <- prepareData(formula         = myformula ,
+    FLdeepTable <- prepareData(formula         = weight ~ groupb ,
                                data            = FLwideTable,
-                               outDeepTable    = deepTableName,
-                               makeDataSparse  = 1,
-                               performVarReduc = 0,
-                               minStdDev       = .01,
-                               maxCorrel       = .8,
+                               outDeepTableName= deepTableName,
                                fetchIDs        = FALSE)
 } else {
     ## or you can use an already created deep table again:
@@ -84,7 +89,7 @@ vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
 ## then AdapteR is doing data prep for you automatically.
 ## The created deep table is accessible afterwards for
 ## further analyses.
-vresFL <- lm(Buzz_Magnitude ~ ., data=FLdeepTable)
+vresFL <- lm(weight ~ groupb, data=FLdeepTable)
 
 summary(vresFL)
 #### Summary of fit model. Similar to summary on 'lm' object

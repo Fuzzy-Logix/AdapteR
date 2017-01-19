@@ -612,3 +612,12 @@ getTestTableName <- function(tableName){
                         tableName=tableName,
                         temporaryTable=FALSE)
 }
+
+getNativeRandFunction <- function(...){
+    vfuncName <- getStoredProcMapping("RANDOM")$funcNamePlatform
+    vinputArgNames <- names(getStoredProcMapping("RANDOM")$argsPlatform)
+    return(paste0(vfuncName,
+                "(",paste0(list(...)[vinputArgNames],
+                            collapse=","),")")
+            )
+}
