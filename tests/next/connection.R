@@ -17,6 +17,19 @@ library(DBI)
 
 ## RODBCDBI base package connection.(page 10 RODBCDBI)
 rodbi <- dbConnect(RODBCDBI::ODBC(), dsn = "Gandalf", user = "AReddy", password = "fzzlpass")
+
+## RODBCDBI connection through flconnect.
+connection <- flConnect(odbcSource = "Gandalf", database = "FL_DEMO", platform = "TD")
+
+##flconnect:jdbc
+connection <- flConnect("jdbc:teradata://10.200.4.116",
+                      "FL_DEMO",
+                      "mbondre","fzzlpass",
+                      c("F:/terajdbc4.jar",
+                         "F:/tdgssconfig.jar"),
+                      debug=FALSE)
+
+
 # RODBC base package connection.
 rodb <-odbcConnect("Gandalf", uid = "AReddy", pwd = "fzzlpass")
 
@@ -49,10 +62,6 @@ lapply(1:niter, function(x){
     })
 
 
-
-
-
-
 ##individual time
 
 ARtym <- system.time(sqlQuery(connection, query))
@@ -61,11 +70,6 @@ rodbitym <- system.time(dbGetQuery(rodbi, query))
 
 query <- paste0("SELECT * FROM fzzlKMeansInfo WHERE AnalysisID = 'A646958'")
 inform <- dbGetQuery(rodbi, query )
-
-
-
-
-
 #### UDT's Working
 
 

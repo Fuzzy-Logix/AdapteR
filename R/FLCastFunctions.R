@@ -486,7 +486,8 @@ as.sparseMatrix.FLMatrix <- function(object) {
 
     dn <- dimnames(object)
     if(any(is.na(c(i,j))))
-        browser()
+            browser()
+        
     values <- valuedf[[tolower(object@dimColumns[[4]])]]
 
     ##@phani:- some connection drivers give boolean as character
@@ -893,6 +894,7 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
+    
   if(missing(tableName))
   tableName <- genRandVarName()
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -954,7 +956,7 @@ as.FLTable.data.frame <- function(object,
                              pDrop=drop
                              )},
             error=function(e)NULL)
-    if(is.ODBC(vconnection) || is.Hadoop())
+    if(is.ODBC(vconnection) || is.Hadoop()|| class(vconnection) == "ODBCConnection")
     {
     ## SqlSave uses parameterized sql which is slow for odbc.
     ## SqlSave does not include distribute by during table creation.
@@ -964,11 +966,10 @@ as.FLTable.data.frame <- function(object,
     #                         tablename=tableName,
     #                         rownames=FALSE),
     #   error=function(e){stop(e)})
-    
+       
     ## This bulk insertion may fail for very big data
     ## as there size of query fired may exceed odbc limits!
     ## These cases will be handled by Parameterized sql
-
     ## Replace NAs with NULL
     object[is.na(object)] <- ''
     vresult <- tryCatch(insertIntotbl(pTableName=tableName,
@@ -1004,7 +1005,6 @@ as.FLTable.data.frame <- function(object,
                   }
                   .jcall(ps,"V","addBatch")
                 }
-
     ##Chunking
     {
       if(batchSize>10000)

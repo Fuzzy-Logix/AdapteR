@@ -1108,6 +1108,7 @@ prepareData.lmGeneric <- function(formula,data,
     vRegrDataPrepSpecs <- list()
 	if(!isDeep(data))
 	{
+
         deepx <- FLRegrDataPrep(data,depCol=vdependent,
                                 OutDeepTableName=outDeepTableName,
                                 OutObsIDCol="obsid",
