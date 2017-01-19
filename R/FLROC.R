@@ -1,4 +1,3 @@
-
 ## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
 #' tbl <- FLTable("tblROCCurve", "ObsID")
 #' mod <- roc(tbl$ActualVal, tbl$ProbVal)
@@ -6,7 +5,7 @@
 #' data(aSAH)
 #'fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
 #'fltbl$res <- as.numeric(fltbl$res)
-#' fltbl$res <- fltbl$res - 1
+#'fltbl$res <- fltbl$res - 1
 #' fltbl <- fltbl[-55, ]
 #' head(fltbl)
 #'fltbl <- as.FLTable(fltbl)
@@ -40,8 +39,7 @@ roc.FLVector <- function (response, predictor, ...)
     return(rocgeneric(response = response,
                       predictor = predictor,
                       callobject = vcallObject,
-                      ...))
-}
+                      ...))}
 
 #' @export
 roc.FLTable <- roc.FLVector
@@ -52,6 +50,7 @@ roc.FLTableMD <- roc.FLVector
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
+    browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -61,6 +60,9 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                        pWithData = TRUE,
                        pTemporary = TRUE,
                        pSelect = vselect )
+    vrw <- nrow(response)
+    rnames <- rownames(response)
+    cnames <- c("ObsID", colnames(response), colnames(predictor))
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
                          InputTable = vvolName,
@@ -75,7 +77,9 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     return(new(vclass,
                otbl = ret$ResultTable,
                results = list(call = callobject,
-                              itable = vvolName)
+                              itable = vvolName,
+                              Dimnames = list(row = rnames, col = cnames),
+                              dims = c(vrw, 3))
                ))
     
 }
@@ -83,49 +87,79 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 
 `$.FLROC`<-function(object,property){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
-    if(property == "sensitivities"){
-        ##TPR
-        vquery <- paste0("SELECT TPR FROM ",object@otbl," ORDER BY TPR DESC ")
-        df <- sqlQuery(connection, vquery)
-        val <- as.numeric(df$TPR)
-        return(val)
-        ##return(as.numeric(df$TPR))
-        
-        
-    }
-    else if(property == "specificities"){
-        vquery <- paste0("SELECT FPR FROM ",object@otbl," ORDER BY FPR DESC ")
-        df <- sqlQuery(connection, vquery)
-        val <- as.numeric(df$FPR)
-        val <- 1 - val
-        return(val)
-    }
-    else if(property == "auc")
-    {
-        return(auc(object))
-    }
-    else if(property == "original.predictors"){
-        vquery <- paste0("SELECT pred FROM ",object@results$itable," ORDER BY OBSID")
-        df <- sqlQuery(connection, vquery)
-        return(as.numeric(df$pred))
-    }
-    else if(property == "original.response"){
-        vquery <- paste0("SELECT res FROM ",object@results$itable," ORDER BY OBSID")
-        df <- sqlQuery(connection, vquery)
-        return(as.numeric(df$res))
+    
+    flvgeneric <- function(object, vquery){
+        tblfunqueryobj <- new("FLTableFunctionQuery",
+                              connectionName = getFLConnectionName(),
+                              variables = list(
+                                  obs_id_colname = "vectorIndexColumn",
+                                  cell_val_colname = "vectorValueColumn"),
+                              whereconditions="",
+                              order = "",
+                              SQLquery=vquery)
 
+        yvector <- newFLVector(
+            select = tblfunqueryobj,
+            Dimnames = list(object@results$Dimnames$row,
+                            "vectorValueColumn"),
+            dims = as.integer(c(object@results$dims[[1]],1)),
+            isDeep = FALSE)
+        return(yvector)}
+
+    if(property == "sensitivities"){
+        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
+                                  a.OBSID AS vectorIndexColumn,
+                                  a.TPR  AS vectorValueColumn
+                          FROM ",object@otbl," AS a  ORDER BY TPR DESC")
+        return(flvgeneric(object, sqlstr))
     }
+    
+    else if(property == "specificities"){
+        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
+                                  a.OBSID AS vectorIndexColumn,
+                                  (1-a.FPR)  AS vectorValueColumn
+                          FROM ",object@otbl," AS a  ORDER BY FPR DESC")
+        return(flvgeneric(object, sqlstr))
+    }
+    else if(property == "auc") {
+        return(auc(object)) }
+    
+    else if(property == "original.predictors"){
+        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
+                                  a.OBSID AS vectorIndexColumn,
+                                  a.pred  AS vectorValueColumn
+                         FROM ",object@results$itable," AS a ORDER BY OBSID")
+
+        return(flvgeneric(object, sqlstr))}
+
+    else if(property == "original.response"){
+        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
+                                  a.OBSID AS vectorIndexColumn,
+                                  a.res  AS vectorValueColumn
+                         FROM ",object@results$itable," AS a ORDER BY OBSID")
+        return(flvgeneric(object, sqlstr))
+    }
+
     else if(property == "levels"){print("need to do:")}
+
     else if(property == "controls"){
-        vquery <- paste0("SELECT pred FROM ",object@results$itable," WHERE res = 0 ORDER BY OBSID")
-        df <- sqlQuery(connection, vquery)
-        return(as.numeric(df$pred)) }
+        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
+                                  a.OBSID AS vectorIndexColumn,
+                                  a.pred  AS vectorValueColumn
+                         FROM ",object@results$itable," AS a WHERE res = 0  ORDER BY OBSID")
+        return(flvgeneric(object, sqlstr)) }
+
     else if(property == "cases"){
         vquery <- paste0("SELECT pred FROM ",object@results$itable," WHERE res = 1 ORDER BY OBSID")
-        df <- sqlQuery(connection, vquery)
-        return(as.numeric(df$pred))}
+            sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
+                                  a.OBSID AS vectorIndexColumn,
+                                  a.pred  AS vectorValueColumn
+                         FROM ",object@results$itable," AS a WHERE res = 1  ORDER BY OBSID")
+        return(flvgeneric(object, sqlstr)) }
+    
     else if(property == "call"){
         return(object@results$call)}
+    
     else if(property == "percent"){
         return(FALSE)}
 
@@ -139,8 +173,8 @@ auc.FLROC <- function(object, ...){
                     original.predictor = object$original.predictor,
                     original.response = object$original.response,
                     percent = object$percent,
-                    sensitivities =object$sensitivities ,
-                    specificities = object$specificities
+                    sensitivities =as.vector(object$sensitivities) ,
+                    specificities = as.vector(object$specificities)
                     )
     class(reqList) <- "roc"
     return(auc(reqList, ...))  
@@ -150,6 +184,8 @@ auc.FLROC <- function(object, ...){
 
 plot.FLROC <- function(object, ...)
 {
+    p <- min(limit,length(object$fitted.values))/length(object$fitted.values)
+
     reqList <- list(call = object$call,
                     cases = object$cases,
                     controls = object$controls,
@@ -166,5 +202,9 @@ plot.FLROC <- function(object, ...)
 }
 
 
-
-
+print.FLROC <- function(object, ...){
+    reqList <- list(call = object$call,
+                    auc = object$auc)
+    class(reqList) <- "roc"
+    return(print(reqList, ...))
+}
