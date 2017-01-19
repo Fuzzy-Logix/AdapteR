@@ -95,7 +95,7 @@ randomForest.FLTable<-function(data,
 }
 
 predict.FLRandomForest<-function(object,newdata=object$data,
-								 scoreTable="",...){ browser()
+								 scoreTable="",...){ #browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -105,7 +105,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
                                                             values=list(...))
 	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
 								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
-	newdatatable <- deepx
+	newdatatable <- deepx$table
 	newdatatable <- setAlias(newdatatable,"")
 	tablename<- getTableNameSlot(newdatatable)
 	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
@@ -148,7 +148,9 @@ plot.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	ntree<-object$ntree
 	x<-ceiling(sqrt(ntree))
-	old.par <- par(mfrow=c(x,x))
+	old.par <- par(mfrow=c(x,ceiling(ntree/x)),
+				   oma = c(0,0,0,0) + 0.1,
+          		   mar = c(0,0,0,0) + 0)
 	for(i in 1:ntree){
 		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
