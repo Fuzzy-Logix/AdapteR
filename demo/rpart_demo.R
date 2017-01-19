@@ -77,3 +77,12 @@ vtemp<-readline("Above: Examining the sample result obtained through predict fun
 #### Thank You ####
 ## clean up
 options(warn=oldWarn)
+
+
+
+## random forest
+
+rfobj<-randomForest(FLdeepTable, -1~., ntree=9)
+
+plot(rfobj)
+x<-predict(rfobj)
