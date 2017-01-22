@@ -20,7 +20,7 @@
 ##    else return(pROC::roc(response, predictor,...))
 ##}
 ##
-## to-do : work on formula aspect of function, print function, $ operator[(levels),convert numeric to FLVector] .
+## to-do : work on formula aspect of function, print function, $ operator[(levels),convert numeric to FLVector].
 
 
 #' @export
@@ -48,6 +48,9 @@ roc.FLTable <- roc.FLVector
 #' @export
 roc.FLTableMD <- roc.FLVector
 
+
+## setMethod("show","auc",print.FLROC)
+
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
     browser()
@@ -74,12 +77,17 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                          outputParameter = c(OutTable = 'a') 
                          )
     vclass <- "FLROC"
+    quer <- paste0("SELECT COUNT(res) AS val FROM ",vvolName," GROUP BY res")
+    df <- sqlQuery(connection, quer)
+    
     return(new(vclass,
                otbl = ret$ResultTable,
                results = list(call = callobject,
                               itable = vvolName,
                               Dimnames = list(row = rnames, col = cnames),
-                              dims = c(vrw, 3))
+                              dims = c(vrw, 3),
+                              vals = c(controls = df$val[2], cases =df$val[1] )
+                              )
                ))
     
 }
@@ -88,123 +96,138 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 `$.FLROC`<-function(object,property){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     
-    flvgeneric <- function(object, vquery){
-        tblfunqueryobj <- new("FLTableFunctionQuery",
-                              connectionName = getFLConnectionName(),
-                              variables = list(
-                                  obs_id_colname = "vectorIndexColumn",
-                                  cell_val_colname = "vectorValueColumn"),
-                              whereconditions="",
-                              order = "",
-                              SQLquery=vquery)
-
-        yvector <- newFLVector(
-            select = tblfunqueryobj,
-            Dimnames = list(object@results$Dimnames$row,
-                            "vectorValueColumn"),
-            dims = as.integer(c(object@results$dims[[1]],1)),
-            isDeep = FALSE)
-        return(yvector)}
+    flvgeneric <- function(object, tblname,var,whereconditions,vorder, dcolumn,
+                          dnames = object@results$Dimnames$row,
+                          vdims = object@results$dims[[1]])
+        {
+        val <- new("FLSimpleVector",
+                   select= new("FLSelectFrom",
+                               table_name=tblname,
+                               connectionName=getFLConnectionName(),
+                               variables=var,
+                               whereconditions=whereconditions,
+                               order=vorder),
+                   dimColumns = dcolumn,
+                   ##names=NULL,
+                   Dimnames = list(dnames),
+                   dims    = as.integer(vdims),
+                   type       = "integer"
+                   )
+        return(val) }
 
     if(property == "sensitivities"){
-        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-                                  a.OBSID AS vectorIndexColumn,
-                                  a.TPR  AS vectorValueColumn
-                          FROM ",object@otbl," AS a  ORDER BY TPR DESC")
-        return(flvgeneric(object, sqlstr))
-    }
+        return(flvgeneric(object,
+                          tblname = object@otbl,
+                          var = list(OBSID = "OBSID", sen = "TPR"),
+                          whereconditions = "" ,
+                          vorder = "TPR",
+                          dcolumn = c("OBSID", "sen")))}
     
     else if(property == "specificities"){
-        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-                                  a.OBSID AS vectorIndexColumn,
-                                  (1-a.FPR)  AS vectorValueColumn
-                          FROM ",object@otbl," AS a  ORDER BY FPR DESC")
-        return(flvgeneric(object, sqlstr))
-    }
+        return(flvgeneric(object,
+                          tblname = object@otbl,
+                          var = list(OBSID = "OBSID", spec = "(1 - FPR)"),
+                          whereconditions = "" ,
+                          vorder = "FPR DESC",
+                          dcolumn = c("OBSID","spec")))}
     else if(property == "auc") {
         return(auc(object)) }
     
-    else if(property == "original.predictors"){
-        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-                                  a.OBSID AS vectorIndexColumn,
-                                  a.pred  AS vectorValueColumn
-                         FROM ",object@results$itable," AS a ORDER BY OBSID")
-
-        return(flvgeneric(object, sqlstr))}
+    else if(property == "original.predictor"){
+        return(flvgeneric(object,
+                          tblname = object@results$itable,
+                          var = list("pred"),
+                          whereconditions = "" ,
+                          vorder = "OBSID",
+                          dcolumn = c("OBSID", "pred")))
+    }
 
     else if(property == "original.response"){
-        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-                                  a.OBSID AS vectorIndexColumn,
-                                  a.res  AS vectorValueColumn
-                         FROM ",object@results$itable," AS a ORDER BY OBSID")
-        return(flvgeneric(object, sqlstr))
-    }
+        return(flvgeneric(object,
+                          tblname = object@results$itable,
+                          var = list("res"),
+                          whereconditions = "" ,
+                          vorder = "OBSID",
+                          dcolumn = c("OBSID", "res"))) }
 
     else if(property == "levels"){print("need to do:")}
 
     else if(property == "controls"){
-        sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-                                  a.OBSID AS vectorIndexColumn,
-                                  a.pred  AS vectorValueColumn
-                         FROM ",object@results$itable," AS a WHERE res = 0  ORDER BY OBSID")
-        return(flvgeneric(object, sqlstr)) }
-
+        return(flvgeneric(object,
+                          tblname = object@results$itable,
+                          var = list("pred"),
+                          whereconditions = "res = 0",
+                          vorder = "OBSID",
+                          dcolumn = c("OBSID", "pred"),
+                          dnames = (1:mod@results$vals[1]),
+                          vdims  = mod@results$vals[1]
+                          ))
+    }
+    
     else if(property == "cases"){
-        vquery <- paste0("SELECT pred FROM ",object@results$itable," WHERE res = 1 ORDER BY OBSID")
-            sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,
-                                  a.OBSID AS vectorIndexColumn,
-                                  a.pred  AS vectorValueColumn
-                         FROM ",object@results$itable," AS a WHERE res = 1  ORDER BY OBSID")
-        return(flvgeneric(object, sqlstr)) }
+        return(flvgeneric(object,
+                          tblname = object@results$itable,
+                          var = list("pred"),
+                          whereconditions = "res = 1",
+                          vorder = "OBSID",
+                          dcolumn = c("OBSID", "pred"),
+               dnames = (1:mod@results$vals[2]),
+               vdims  = mod@results$vals[2]))
+    }
     
     else if(property == "call"){
         return(object@results$call)}
     
     else if(property == "percent"){
         return(FALSE)}
-
+    
 }
 
-
-auc.FLROC <- function(object, ...){
-    reqList <- list(call = object$call,
-                    cases = object$cases,
-                    controls = object$controls,
-                    original.predictor = object$original.predictor,
-                    original.response = object$original.response,
-                    percent = object$percent,
-                    sensitivities =as.vector(object$sensitivities) ,
-                    specificities = as.vector(object$specificities)
-                    )
-    class(reqList) <- "roc"
-    return(auc(reqList, ...))  
+auc.FLROC <- function(object,limit = 1000,...){
+    vlist <- as.roc(object, limit)
+    class(vlist) <- "roc"
+    return(auc(vlist, ...))  
 }
 
-
-
-plot.FLROC <- function(object, ...)
-{
-    p <- min(limit,length(object$fitted.values))/length(object$fitted.values)
-
-    reqList <- list(call = object$call,
-                    cases = object$cases,
-                    controls = object$controls,
-                    original.predictor = object$original.predictor,
-                    original.response = object$original.response,
-                    percent = object$percent,
-                    sensitivities =object$sensitivities ,
-                    specificities = object$specificities,
-                    auc = object$auc
-                    )
-
-    class(reqList) <- "roc"
-    return(plot(reqList, ...))
+plot.FLROC <- function(object,limit = 1000,  ...){
+    vlist <- as.roc(object, limit)
+    vlist <- c(vlist, auc = auc(object, limit))
+    class(vlist) <- "roc"
+    return(plot(vlist, ...))
 }
-
 
 print.FLROC <- function(object, ...){
     reqList <- list(call = object$call,
-                    auc = object$auc)
+                    auc = object$auc,
+                    controls = object$controls,
+                    cases = object$cases)
     class(reqList) <- "roc"
     return(print(reqList, ...))
 }
+
+
+as.roc <- function(object,limit = 1000,... ){
+    p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
+    vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
+    vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
+
+    str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+    df <- sqlQuery(connection, str1)
+    sen <- sort(as.numeric(df$sen), decreasing = TRUE)
+    spec <- sort(as.numeric(df$spec))
+
+    reqList <- list(call = object$call,
+                    cases = object$cases,
+                    controls = object$controls,
+                    percent = object$percent,
+                    sensitivities =sen ,
+                    specificities = spec
+                    )
+
+    class(reqList) <- "roc"
+    return(reqList)}
+
+
+
+
+
