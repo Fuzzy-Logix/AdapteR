@@ -371,6 +371,9 @@ plot.FLrpart<-function(x){ #browser()
         text(xcor[i],ycor[j]+0.075,labels=paste0(var,"  <  ",round(SplitVal,digits=2)))
         }
   	}
-  	else segments(xcor[i],ycor[i],xcor[i],2.5-(as.numeric(frame$treelevel[i])+1)*0.25)
+  	else{
+  		segments(xcor[i],ycor[i],xcor[i],2.5-(frame$treelevel[i]+1)*0.25)
+  		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
+		}  
   }
 }

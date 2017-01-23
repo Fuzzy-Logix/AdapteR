@@ -72,7 +72,7 @@ randomForest.FLTable<-function(data,
 	trees<-list()
 	for(l in 1:length(ntrees)){
 		trees[[l]]<-subset(frame,TreeID==l)
-		class(trees[[l]])<-"FLrpart"	
+		class(trees[[l]])<-"data.frame"	
 	}
 
 	retobj<-list(call=match.call(),
@@ -152,7 +152,6 @@ plot.FLRandomForest<-function(object){ #browser()
 				   oma = c(0,0,0,0) + 0,
           		   mar = c(0,0,0,0) + 0)
 	for(i in 1:ntree){
-		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
 }	
