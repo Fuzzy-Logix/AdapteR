@@ -53,7 +53,6 @@ roc.FLTableMD <- roc.FLVector
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -63,8 +62,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                        pWithData = TRUE,
                        pTemporary = TRUE,
                        pSelect = vselect )
-    vrw <- nrow(response)
-    rnames <- rownames(response)
+    vrw <- nrow(predictor)
+    rnames <- rownames(predictor)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
@@ -97,9 +96,9 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     
     flvgeneric <- function(object, tblname,var,whereconditions,vorder, dcolumn,
-                          dnames = object@results$Dimnames$row,
-                          vdims = object@results$dims[[1]])
-        {
+                           dnames = object@results$Dimnames$row,
+                           vdims = object@results$dims[[1]])
+    {
         val <- new("FLSimpleVector",
                    select= new("FLSelectFrom",
                                table_name=tblname,
@@ -159,8 +158,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                           whereconditions = "res = 0",
                           vorder = "OBSID",
                           dcolumn = c("OBSID", "pred"),
-                          dnames = (1:mod@results$vals[1]),
-                          vdims  = mod@results$vals[1]
+                          dnames = (1:object@results$vals[1]),
+                          vdims  = object@results$vals[1]
                           ))
     }
     
@@ -171,8 +170,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                           whereconditions = "res = 1",
                           vorder = "OBSID",
                           dcolumn = c("OBSID", "pred"),
-               dnames = (1:mod@results$vals[2]),
-               vdims  = mod@results$vals[2]))
+                          dnames = (1:object@results$vals[2]),
+                          vdims  = object@results$vals[2]))
     }
     
     else if(property == "call"){
@@ -191,22 +190,21 @@ auc.FLROC <- function(object,limit = 1000,...){
 
 plot.FLROC <- function(object,limit = 1000,  ...){
     vlist <- as.roc(object, limit)
-    vlist <- c(vlist, auc = auc(object, limit))
+    vlist <- c(vlist, auc = auc(vlist))
     class(vlist) <- "roc"
     return(plot(vlist, ...))
 }
 
-print.FLROC <- function(object, ...){
-    reqList <- list(call = object$call,
-                    auc = object$auc,
-                    controls = object$controls,
-                    cases = object$cases)
-    class(reqList) <- "roc"
-    return(print(reqList, ...))
+print.FLROC <- function(object,limit = 1000, ...){
+    vlist <- as.roc(object, limit)
+    vlist <- c(vlist, auc = auc(vlist))
+    class(vlist) <- "roc"
+    return(print(vlist, ...))
 }
 
 
 as.roc <- function(object,limit = 1000,... ){
+    ##browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
     vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )

@@ -143,7 +143,7 @@ summary.FLrpart<-function(x,...){
 predict.FLrpart<-function(object,
 						  newdata=object$deeptable,
 						  scoreTable="",
-						  ...){#browser()
+                          ...){#browser()
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
@@ -172,7 +172,7 @@ predict.FLrpart<-function(object,
 	AnalysisID<-sqlStoredProc(getFLConnection(),
 							  vfuncName,
 							  outputParameter=c(AnalysisID="a"),
-						 	  pInputParameters=vinputcols)
+						 	  pInputParams=vinputcols)
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 	query<-paste0("Select * from ",scoreTable," Order by 1")
 	result<-sqlQuery(getFLConnection(),query)
