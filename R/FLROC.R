@@ -53,6 +53,7 @@ roc.FLTableMD <- roc.FLVector
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
+    browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -80,7 +81,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     df <- sqlQuery(connection, quer)
     
     return(new(vclass,
-               otbl = ret$ResultTable,
+               otbl = as.character(ret[[1]]),
                results = list(call = callobject,
                               itable = vvolName,
                               Dimnames = list(row = rnames, col = cnames),
