@@ -373,7 +373,7 @@ plot.FLrpart<-function(x){ #browser()
   	}
   	else{
   		segments(xcor[i],ycor[i],xcor[i],2.5-(frame$treelevel[i]+1)*0.25)
-  		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
+  		text(xcor[i],2.450-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
 		}  
   }
 }
