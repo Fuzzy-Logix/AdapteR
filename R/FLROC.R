@@ -20,7 +20,7 @@
 ##    else return(pROC::roc(response, predictor,...))
 ##}
 ##
-## to-do : work on formula aspect of function, print function, $ operator[(levels),convert numeric to FLVector].
+## to-do : work on formula aspect of function, print function, $ operator[(levels)].
 
 
 #' @export
@@ -183,29 +183,17 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     
 }
 
-auc.FLROC <- function(object,limit = 1000,...){
-    vlist <- as.roc(object, limit)
-    class(vlist) <- "roc"
-    return(auc(vlist, ...))  
-}
+auc.FLROC <- function(object,limit = 1000,...)
+    return(as.roc(object, limit,auc=TRUE)$auc)
 
-plot.FLROC <- function(object,limit = 1000,  ...){
-    vlist <- as.roc(object, limit)
-    vlist <- c(vlist, auc = auc(vlist))
-    class(vlist) <- "roc"
-    return(plot(vlist, ...))
-}
+plot.FLROC <- function(object,limit = 1000,  ...)
+    return(plot(as.roc(object, limit=limit), ...))
 
-print.FLROC <- function(object,limit = 1000, ...){
-    vlist <- as.roc(object, limit)
-    vlist <- c(vlist, auc = auc(vlist))
-    class(vlist) <- "roc"
-    return(print(vlist, ...))
-}
+print.FLROC <- function(object, ...)
+    return(print(as.roc(object, auc=TRUE, ...)))
 
 
-as.roc <- function(object,limit = 1000,... ){
-    ##browser()
+as.roc <- function(object,limit = 1000, auc=TRUE, ... ){
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
     vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
@@ -215,16 +203,19 @@ as.roc <- function(object,limit = 1000,... ){
     sen <- sort(as.numeric(df$sen), decreasing = TRUE)
     spec <- sort(as.numeric(df$spec))
 
-    reqList <- list(call = object$call,
-                    cases = object$cases,
-                    controls = object$controls,
-                    percent = object$percent,
-                    sensitivities =sen ,
-                    specificities = spec
-                    )
+    reqList <- structure(
+        list(call = object$call,
+             cases = object$cases,
+             controls = object$controls,
+             percent = object$percent,
+             sensitivities =sen,
+             specificities = spec
+             ),
+        class="roc")
+    if(auc) reqList$auc <- auc(reqList)
+    return(reqList)
+}
 
-    class(reqList) <- "roc"
-    return(reqList)}
 
 
 
