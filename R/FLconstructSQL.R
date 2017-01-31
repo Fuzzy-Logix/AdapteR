@@ -316,7 +316,7 @@ setMethod("getIndexSQLName",
           function(object,margin=1:2) object@dimColumns[2:3][margin])
 setMethod("getIndexSQLName",
           signature(object = "FLVector"),
-          function(object,margin=1) stop("use FLSimpleVector"))
+          function(object,margin=1) c("vectorIdColumn","vectorIndexColumn"))
 setMethod("getIndexSQLName",
           signature(object = "FLIndexedValues"),
           function(object,margin=1) object@dimColumns[[margin]])
@@ -881,4 +881,4 @@ setMethod("getTableNameSlot",
           signature(object = "FLTable"),
           function(object) getTableNameSlot(object@select))
 
-isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep")
+isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep") | inherits(x,"FLMatrix")
