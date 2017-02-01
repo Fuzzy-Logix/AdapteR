@@ -1,5 +1,6 @@
 ## make plot side by side of dt, rf, glm.
 library(pROC)
+library(randomForest)
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
@@ -27,7 +28,8 @@ glm.model <- glm(Classvar ~ ., data = FLtbl, family = "binomial")
 glm.predict <- predict(glm.model, newdata= FLTestTbl)
 head(glm.predict, display = TRUE, n = 5)
 glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
-plot(glm.roc, limit = 1000)
+plot(glm.roc, limit = 1000, main = "glm-roc")
+plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
 
 
 
@@ -36,4 +38,20 @@ dt.model <- rpart(Classvar ~ ., data = FLtbl)
 dt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
-plot(dt.roc, limit = 1000)
+plot.FLROC(dt.roc, limit = 1000, main = "dt-roc", method = 0)
+
+
+## Random Forest:
+rf.model <- randomForest(Classvar ~ ., data = FLtbl)
+rf.predict <- predict(rf.model,type = "prob")
+length(dt.predict)
+rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict)
+plot.FLROC(rf.roc, limit = 1000, main = "rf-roc", method = 0)
+
+## combined plot:
+png("combined-plot.png")
+par(mfrow = c(3, 1))
+plot.FLROC(rf.roc, limit = 1000, main = "rf-roc")
+plot.FLROC(dt.roc, limit = 1000, main = "dt-roc")
+plot(glm.roc, limit = 1000, main = "glm-roc")
+dev.off()

@@ -17,7 +17,7 @@ randomForest.FLTable<-function(data,
 							   mtry=2,
 							   nodesize=10,
 							   maxdepth=5,
-							   cp=0.95,...){ #browser()
+							   cp=0.95,...){ browser()
 	control<-c()
 	control<-c(control,
 			   minsplit=nodesize,
@@ -72,7 +72,7 @@ randomForest.FLTable<-function(data,
 	trees<-list()
 	for(l in 1:length(ntrees)){
 		trees[[l]]<-subset(frame,TreeID==l)
-		class(trees[[l]])<-"FLrpart"	
+		class(trees[[l]])<-"data.frame"	
 	}
 
 	retobj<-list(call=match.call(),
@@ -95,7 +95,8 @@ randomForest.FLTable<-function(data,
 }
 
 predict.FLRandomForest<-function(object,newdata=object$data,
-								 scoreTable="",...){ browser()
+								 scoreTable="",
+								 type="response",...){ browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -105,7 +106,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
                                                             values=list(...))
 	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
 								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
-	newdatatable <- deepx
+	newdatatable <- deepx$table
 	newdatatable <- setAlias(newdatatable,"")
 	tablename<- getTableNameSlot(newdatatable)
 	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
@@ -126,9 +127,52 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								vfuncName,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
-	query<-paste0("Select * from ",scoreTable," Order By 1")
-	retobj<-sqlQuery(getFLConnection(),query)
-	return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
+
+	if(type %in% "prob"){
+ 	   val <- "NumOfVotes"
+   	   x<-1/(object$ntree)}
+	else{
+	   val <- "PredictedClass"
+	   x<-1}
+   	
+
+   	# yvector <- new("FLVector",
+    #               select= new("FLSelectFrom",
+    #                           table_name=scoreTable,
+    #                           connectionName=getFLConnectionName(),
+    #                           variables=list(ObsID=vobsid,
+    #                           				 val=val),
+    #                           whereconditions="",
+    #                           order=vobsid),
+    #               dimColumns = c("ObsID","val"),
+    #               ##names=NULL,
+    #               Dimnames = list(rownames(newdata),1),
+    #               dims    = c(nrow(newdata),1),
+    #               type       = "integer"
+    #               )
+   	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+   	                          ",vobsid," AS vectorIndexColumn,\n
+    	                         ",val,"*",x," AS vectorValueColumn\n",
+        	            " FROM ",scoreTable,"")
+   	tblfunqueryobj <- new("FLTableFunctionQuery",
+    	                   connectionName = getFLConnectionName(),
+                           variables = list(
+            	               obs_id_colname = "vectorIndexColumn",
+                	           cell_val_colname = "vectorValueColumn"),
+      	                   whereconditions="",
+        	               order = "",
+                           SQLquery=sqlstr)
+    vrw <- nrow(newdata)
+    yvector <- newFLVector(
+    			   select = tblfunqueryobj,
+       			   Dimnames = list(as.integer(1:vrw),
+                   			      "vectorValueColumn"),
+      			   dims = as.integer(c(vrw,1)),
+ 			       isDeep = FALSE)
+   	return(yvector)
+	# query<-paste0("Select * from ",scoreTable," Order By 1")
+	# retobj<-sqlQuery(getFLConnection(),query)
+	# return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
 }
 
 print.FLRandomForest<-function(object,...){
@@ -143,3 +187,15 @@ print.FLRandomForest<-function(object,...){
 	cat("\nConfusion matrix: \n")
 	print(object$confusion)
 }
+
+plot.FLRandomForest<-function(object){ #browser()
+	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
+	ntree<-object$ntree
+	x<-ceiling(sqrt(ntree))
+	old.par <- par(mfrow=c(x,ceiling(ntree/x)),
+				   oma = c(0,0,0,0) + 0,
+          		   mar = c(0,0,0,0) + 0)
+	for(i in 1:ntree){
+		plot.FLrpart(object$forest[[i]])
+	}
+}	

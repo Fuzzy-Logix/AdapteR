@@ -183,22 +183,33 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     
 }
 
-auc.FLROC <- function(object,limit = 1000,...)
-    return(as.roc(object, limit,auc=TRUE)$auc)
+auc.FLROC <- function(object,limit = 1000,method = 1, ...)
+    return(as.roc(object, limit,auc=TRUE, method = method)$auc)
 
-plot.FLROC <- function(object,limit = 1000,  ...)
-    return(plot(as.roc(object, limit=limit), ...))
+plot.FLROC <- function(object,limit = 1000,method = 1, ...)
+    return(plot(as.roc(object, limit=limit, method = method), ...))
 
-print.FLROC <- function(object, ...)
-    return(print(as.roc(object, auc=TRUE, ...)))
+print.FLROC <- function(object,method = 1, ...)
+    return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
 
-as.roc <- function(object,limit = 1000, auc=TRUE, ... ){
+## to include : condition when TPR,FPR are NA's
+as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
+    browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
-    vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
-    vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
-
-    str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+    if(method)
+    {
+        vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
+        vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
+        str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+    }
+    else
+    {
+        val <- object@results$vals
+        neg <-1/val[[1]]
+        pos <- 1/val[[2]]
+        str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")       
+    }
     df <- sqlQuery(connection, str1)
     sen <- sort(as.numeric(df$sen), decreasing = TRUE)
     spec <- sort(as.numeric(df$spec))
@@ -219,5 +230,32 @@ as.roc <- function(object,limit = 1000, auc=TRUE, ... ){
 
 
 
+## for TPR, FPR,  givng NA's
+## TPR = True Positives/Total Number of Events
+## FPR = False Positives/Total Number of Non-events
+##
+##as.roc2 <- function(object,limit = 1000, auc=TRUE, ... ){browser()
+##    p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
+##    val <- object@results$vals
+##    neg <-1/val[[1]]
+##    pos <- 1/val[[2]]
+##    str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")
+##    df <- sqlQuery(connection, str1)
+##    sen <- sort(as.numeric(df$sen), decreasing = TRUE)
+##    spec <- sort(as.numeric(df$spec))    
+##    reqList <- structure(
+##        list(call = object$call,
+##             cases = object$cases,
+##             controls = object$controls,
+##             percent = object$percent,
+##             sensitivities =sen,
+##             specificities = spec
+##             ),
+##        class="roc")
+##    if(auc) reqList$auc <- auc(reqList)
+##    return(reqList)
+##}
+##
 
-
+##plot2.FLROC <- function(object,limit = 1000,  ...)
+##    return(plot(as.roc2(object, limit=limit), ...))
