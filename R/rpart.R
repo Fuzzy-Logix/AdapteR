@@ -29,7 +29,8 @@ rpart.FLTable<-function(data,
 							maxdepth=5,
                             cp=0.95),
 				  method="class",
-				  ...){ #browser()
+				  ...){
+    ##browser()
 	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
@@ -159,42 +160,64 @@ summary.FLrpart<-function(x,...){
 }
 
 predict.FLrpart<-function(object,
-						  newdata=object$deeptable,
-						  scoreTable="",
-						  ...){
-	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
-	newdata <- setAlias(newdata,"")
-	if(scoreTable=="")
+                          newdata=object$deeptable,
+                          scoreTable="",type = "response",
+                          ...){
+    if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
+    newdata <- setAlias(newdata,"")
+    if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
-	if(!isDeep(newdata)){
-		deepx<-FLRegrDataPrep(newdata,
-							  depCol=object$prepspecs$depCol,
-							  excludeCols=object$prepspecs$vexclude)
-		newdata<-deepx
-		newdata<-setAlias(newdata,"")
-	}
-	vtable <- getTableNameSlot(newdata)
-	vobsid <- getVariables(newdata)[["obs_id_colname"]]
-	vvarid <- getVariables(newdata)[["var_id_colname"]]
-	vvalue <- getVariables(newdata)[["cell_val_colname"]]
+    if(!isDeep(newdata)){
+        deepx<-FLRegrDataPrep(newdata,
+                              depCol=object$prepspecs$depCol,
+                              excludeCols=object$prepspecs$vexclude)
+        newdata<-deepx
+        newdata<-setAlias(newdata,"")
+    }
+    vtable <- getTableNameSlot(newdata)
+    vobsid <- getVariables(newdata)[["obs_id_colname"]]
+    vvarid <- getVariables(newdata)[["var_id_colname"]]
+    vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-	vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
-					OBSID_COL=vobsid,
-					VARID_COL=vvarid,
-					VALUE_COL=vvalue,
-					ANALYSISID=object$AnalysisID,
-					OUTPUT_TABLE=scoreTable,
-					NOTE=genNote("Score"))
-	vfuncName<-"FLDecisionTreeMNScore"
-	AnalysisID<-sqlStoredProc(getFLConnection(),
-							  vfuncName,
-							  outputParameter=c(AnalysisID="a"),
-						 	  pInputParams=vinputcols)
-	AnalysisID <- checkSqlQueryOutput(AnalysisID)
-	query<-paste0("Select * from ",scoreTable," Order by 1")
-	result<-sqlQuery(getFLConnection(),query)
-	return(result)
+    vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
+                    OBSID_COL=vobsid,
+                    VARID_COL=vvarid,
+                    VALUE_COL=vvalue,
+                    ANALYSISID=object$AnalysisID,
+                    OUTPUT_TABLE=scoreTable,
+                    NOTE=genNote("Score"))
+    vfuncName<-"FLDecisionTreeMNScore"
+    AnalysisID<-sqlStoredProc(getFLConnection(),
+                              vfuncName,
+                              outputParameter=c(AnalysisID="a"),
+                              pInputParams=vinputcols)
+    AnalysisID <- checkSqlQueryOutput(AnalysisID)
+    ##query<-paste0("Select * from ",scoreTable," Order by 1")
+    val <- "PredictedClass"
+    if(type %in% "prob")
+        val <- "PredictClassProb"
+    
+    sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+                              ",vobsid," AS vectorIndexColumn,\n
+                              ",val," AS vectorValueColumn\n",
+                     " FROM ",scoreTable,"")
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = getFLConnectionName(),
+                          variables = list(
+                              obs_id_colname = "vectorIndexColumn",
+                              cell_val_colname = "vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
+    vrw <- nrow(newdata)
+    yvector <- newFLVector(
+        select = tblfunqueryobj,
+        Dimnames = list(as.integer(1:vrw),
+                        "vectorValueColumn"),
+        dims = as.integer(c(vrw,1)),
+        isDeep = FALSE)
+    return(yvector)
 }
 
 print.FLrpart<-function(object){ #browser()

@@ -20,7 +20,7 @@
 ##    else return(pROC::roc(response, predictor,...))
 ##}
 ##
-## to-do : work on formula aspect of function, print function, $ operator[(levels),convert numeric to FLVector].
+## to-do : work on formula aspect of function, print function, $ operator[(levels)].
 
 
 #' @export
@@ -53,7 +53,7 @@ roc.FLTableMD <- roc.FLVector
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    browser()
+    ##browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -63,8 +63,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                        pWithData = TRUE,
                        pTemporary = TRUE,
                        pSelect = vselect )
-    vrw <- nrow(response)
-    rnames <- rownames(response)
+    vrw <- nrow(predictor)
+    rnames <- rownames(predictor)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
@@ -81,7 +81,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     df <- sqlQuery(connection, quer)
     
     return(new(vclass,
-               otbl = ret$ResultTable,
+               otbl = as.character(ret[[1]]),
                results = list(call = callobject,
                               itable = vvolName,
                               Dimnames = list(row = rnames, col = cnames),
@@ -97,9 +97,9 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     
     flvgeneric <- function(object, tblname,var,whereconditions,vorder, dcolumn,
-                          dnames = object@results$Dimnames$row,
-                          vdims = object@results$dims[[1]])
-        {
+                           dnames = object@results$Dimnames$row,
+                           vdims = object@results$dims[[1]])
+    {
         val <- new("FLSimpleVector",
                    select= new("FLSelectFrom",
                                table_name=tblname,
@@ -159,8 +159,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                           whereconditions = "res = 0",
                           vorder = "OBSID",
                           dcolumn = c("OBSID", "pred"),
-                          dnames = (1:mod@results$vals[1]),
-                          vdims  = mod@results$vals[1]
+                          dnames = (1:object@results$vals[1]),
+                          vdims  = object@results$vals[1]
                           ))
     }
     
@@ -171,8 +171,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                           whereconditions = "res = 1",
                           vorder = "OBSID",
                           dcolumn = c("OBSID", "pred"),
-               dnames = (1:mod@results$vals[2]),
-               vdims  = mod@results$vals[2]))
+                          dnames = (1:object@results$vals[2]),
+                          vdims  = object@results$vals[2]))
     }
     
     else if(property == "call"){
