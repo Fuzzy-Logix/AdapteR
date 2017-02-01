@@ -2,6 +2,8 @@
 randomForest<-function(data,formula,...){
 	UseMethod("randomForest",data)
 }
+
+#' @export
 randomForest.default<-function (formula,data=list(),...) {
     if (!requireNamespace("randomForest", quietly = TRUE)){
         stop("randomForest package needed for randomForest. Please install it.",
@@ -10,7 +12,7 @@ randomForest.default<-function (formula,data=list(),...) {
     else return(randomForest::randomForest(formula=formula,data=data,...))
 }
 
-
+#' @export
 randomForest.FLTable<-function(data,
 							   formula,
 							   ntree=25,
@@ -94,6 +96,7 @@ randomForest.FLTable<-function(data,
 	return(retobj)
 }
 
+#' @export
 predict.FLRandomForest<-function(object,newdata=object$data,
 								 scoreTable="",
 								 type="response",...){ #browser()
@@ -175,6 +178,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 	# return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
 }
 
+#' @export
 print.FLRandomForest<-function(object,...){
 	cat("Call:\n")
 	dput(object$call)
@@ -188,6 +192,7 @@ print.FLRandomForest<-function(object,...){
 	print(object$confusion)
 }
 
+#' @export
 plot.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	ntree<-object$ntree
@@ -198,4 +203,4 @@ plot.FLRandomForest<-function(object){ #browser()
 	for(i in 1:ntree){
 		plot.FLrpart(object$forest[[i]])
 	}
-}	
+}

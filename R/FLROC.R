@@ -93,6 +93,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 }
 
 
+#' @export
 `$.FLROC`<-function(object,property){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     
@@ -180,15 +181,32 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     
     else if(property == "percent"){
         return(FALSE)}
-    
 }
 
+#' @export
+auc <- function(object,...) UseMethod("auc")
+
+#' @export
+auc.default <- function(object,...) {
+    if (!requireNamespace("pROC", quietly = TRUE)){
+        stop("pROC package needed for auc. Please install it.",
+             call. = FALSE)
+    }
+    else return(pROC::auc(object,...))
+}
+
+#' @export
+roc <- function(object,limit = 1000,...) UseMethod("roc")
+
+#' @export
 auc.FLROC <- function(object,limit = 1000,...)
     return(as.roc(object, limit,auc=TRUE)$auc)
 
+#' @export
 plot.FLROC <- function(object,limit = 1000,  ...)
     return(plot(as.roc(object, limit=limit), ...))
 
+#' @export
 print.FLROC <- function(object, ...)
     return(print(as.roc(object, auc=TRUE, ...)))
 

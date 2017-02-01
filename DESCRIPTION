@@ -110,6 +110,7 @@ Collate:
     'FLPLSRegr.R'
     'FLPrint.R'
     'FLQRDecomp.R'
+    'FLROC.R'
     'FLRankMatrix.R'
     'FLRbind.R'
     'FLSV.R'

@@ -17,12 +17,32 @@ NULL
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-rpart(data = flt, formula = -1~.)
 #' @export
-
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
 }
-rpart.default<-rpart::rpart
 
+#' @export
+rpart.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("rpart", quietly = TRUE)){
+        stop("rpart package needed for rpart. Please install it.",
+             call. = FALSE)
+    }
+    else return(rpart::rpart(formula,data,...))
+}
+
+#' @export
+rpart.FLpreparedData <- function(data,
+                                 formula,
+                                 control=c(minsplit=10,
+                                           maxdepth=5,
+                                           cp=0.95),
+                                 method="class",
+                                 ...){
+    rpart.FLTable(data=data$deepx, formula = formula,
+                  control=control, method=method,...)
+}
+    
+#' @export
 rpart.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
@@ -139,6 +159,7 @@ rpart.FLTable<-function(data,
 
 ## todo: implement $ operator for all names in a rpart S3 object
 
+#' @export
 summary.FLrpart<-function(x,...){
     ## todo: create a rpart S3 object xrpart (populate as much as possible)
     ## print(xrpart)
@@ -156,9 +177,10 @@ summary.FLrpart<-function(x,...){
 			cat("\n ",x$frame$var[i]," < ",x$frame$SplitVal[i])
 		}
 	}
-
+    cat("\n")
 }
 
+#' @export
 predict.FLrpart<-function(object,
                           newdata=object$deeptable,
                           scoreTable="",type = "response",
@@ -220,6 +242,7 @@ predict.FLrpart<-function(object,
     return(yvector)
 }
 
+#' @export
 print.FLrpart<-function(object){ #browser()
 	if(is.null(object$frame)) frame<-object
 	else frame <- object$frame
@@ -254,7 +277,7 @@ print.FLrpart<-function(object){ #browser()
  	# 	}
 	 # }
  	#browser()
- 	ylevel <- attr(x, "ylevels")
+ 	##ylevel <- attr(x, "ylevels")
 	node <- as.numeric(newframe$NodeID)
  	depth <- newframe$treelevel
  	spaces<-2
@@ -318,6 +341,7 @@ popstack <- function(stack){
   return(list(stack=stack[-length(stack)],value=val))
 }
 
+#' @export
 plot.FLrpart<-function(x){ #browser()
 	# newframe<-preorderDataFrame(x$frame)
 	# curnode<-c()
