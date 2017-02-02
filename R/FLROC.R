@@ -213,7 +213,6 @@ print.FLROC <- function(object, ...)
 
 ## to include : condition when TPR,FPR are NA's
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
-    browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     if(method)
     {
@@ -274,6 +273,3 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 ##    return(reqList)
 ##}
 ##
-
-##plot2.FLROC <- function(object,limit = 1000,  ...)
-##    return(plot(as.roc2(object, limit=limit), ...))

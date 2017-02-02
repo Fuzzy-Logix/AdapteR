@@ -13,13 +13,17 @@ randomForest.default<-function (formula,data=list(),...) {
 }
 
 #' @export
+randomForest.FLpreparedData<-function(data,...) randomForest.FLTable(data$deepx,...)
+
+
+#' @export
 randomForest.FLTable<-function(data,
 							   formula,
 							   ntree=25,
 							   mtry=2,
 							   nodesize=10,
 							   maxdepth=5,
-							   cp=0.95,...){ browser()
+							   cp=0.95,...){ 
 	control<-c()
 	control<-c(control,
 			   minsplit=nodesize,
@@ -133,11 +137,11 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 
 	if(type %in% "prob"){
  	   val <- "NumOfVotes"
-   	   x<-object$ntree}
-   	   x<-1/(object$ntree)}
-	else{
+       x<-1/(object$ntree)
+    } else {
 	   val <- "PredictedClass"
-	   x<-1}
+	   x<-1
+    }
    	
 
    	# yvector <- new("FLVector",
