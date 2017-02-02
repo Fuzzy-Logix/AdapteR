@@ -110,7 +110,6 @@ rlm.default <- MASS::rlm
 rlm.FLpreparedData <- function(formula,data,psi = "psi.huber", ...)
 {
         vcallObject <- match.call()
-        data <- setAlias(data,"")
         return(lmGeneric(formula=formula,
                          data=data,
                          callObject=vcallObject,
@@ -213,7 +212,6 @@ lm.FLpreparedData <- function(formula,data,...)
 	return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
-                     familytype="linear",
                      ...))
 }
 
@@ -223,11 +221,9 @@ lm.FLTable <- function(formula,data,...)
 {
 	vcallObject <- match.call()
 	data <- setAlias(data,"")
-	familytype<-"linear"
 	return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
-                     familytype=familytype,
                      ...))
 }
 
@@ -508,41 +504,23 @@ lmGeneric <- function(formula,data,
                       direction="",
                       trace=1,
                       ...)
-{	#browser()
+{   ##browser()
     if(inherits(data,"FLTable"))
-        prepData <- prepareData.lmGeneric(formula,data,
-                                          callObject=callObject,
-                                          familytype=familytype,
-                                          specID=specID,
-                                          direction=direction,
-                                          trace=trace,
-                                          ...)
+        prepData <- prepareData(formula,data,
+                                callObject=callObject,
+                                familytype=familytype,
+                                specID=specID,
+                                direction=direction,
+                                trace=trace,
+                                ...)
     else if(inherits(data,"FLpreparedData")){
         prepData <- data
         data <- prepData$wideTable
     }
 	for(i in names(prepData))
-	assign(i,prepData[[i]])
-	# deepx <- prepData[["deepx"]]
-	# vmapping <- prepData[["vmapping"]]
-	# formula <- prepData[["formula"]]
-	# wideToDeepAnalysisID <- prepData[["wideToDeepAnalysisID"]]
-	# mapTable <- prepData[["mapTable"]]
-	# vspecID <- prepData[["vspecID"]]
-	# highestpAllow1 <- prepData[["highestpAllow1"]]
-	# highestpAllow2 <- prepData[["highestpAllow2"]]
-	# topN <- prepData[["topN"]]
-	# stepWiseDecrease <- prepData[["stepWiseDecrease"]]
-	# vexclude <- prepData[["vexclude"]]
-	# vallVars <- prepData[["vallVars"]]
-	# pThreshold <- prepData[["pThreshold"]]
-	# eventweight <- prepData[["eventweight"]]
-	# noneventweight <- prepData[["noneventweight"]]
-	# maxiter <- prepData[["maxiter"]]
-	# offset <- prepData[["offset"]]
-
+        assign(i,prepData[[i]])
+    deepx <- setAlias(deepx,"")
     deeptable <- getTableNameSlot(deepx)
-    
                                         #for more generic output:
     mod <- c(FLCoeffCorrelWithRes="CORRELWITHRES",
              FLCoeffNonZeroDensity="NONZERODENSITY",
@@ -552,7 +530,6 @@ lmGeneric <- function(formula,data,
              nCoeffEstim = "COEFFVALUE",
              nID = "COEFFID"
              )
-
     ## todo: create a list for this lookup 
 	if(familytype=="linear"){
 		if(direction=="sf") vfcalls<-c(functionName="FLLinRegrSF",
@@ -902,8 +879,97 @@ lmGeneric <- function(formula,data,
                       RegrDataPrepSpecs=RegrDataPrepSpecs))
 }
 
+#' @export
+prepareData <- function(formula,...) UseMethod("prepareData")
+
+#' @export
+prepareData.FLpreparedData <- function(formula, data, fetchIDs=FALSE, outDeepTable="", ...) {
+    template <- formula
+    dataCopy <- data
+    vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=template$RegrDataPrepSpecs,
+                                                       values=list(...))
+    deepx <- FLRegrDataPrep(data,depCol=vRegrDataPrepSpecs$depCol,
+                            OutDeepTable=outDeepTable,
+                            OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+                            OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+                            OutValueCol=vRegrDataPrepSpecs$outValueCol,
+                            CatToDummy=vRegrDataPrepSpecs$catToDummy,
+                            PerformNorm=vRegrDataPrepSpecs$performNorm,
+                            PerformVarReduc=vRegrDataPrepSpecs$performVarReduc,
+                            MakeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+                            MinStdDev=vRegrDataPrepSpecs$minStdDev,
+                            MaxCorrel=vRegrDataPrepSpecs$maxCorrel,
+                            TrainOrTest=1,
+                            ExcludeCols=vRegrDataPrepSpecs$excludeCols,
+                            ClassSpec=vRegrDataPrepSpecs$classSpec,
+                            WhereClause=vRegrDataPrepSpecs$whereconditions,
+                            InAnalysisID=template$wideToDeepAnalysisID,
+                            fetchIDs=fetchIDs)
+    data <- deepx
+    data <- setAlias(data,"")
+    data
+}
+
+
+## gk: todo: make this obsolete and refactor to use prepareData.FLpreparedData
+#' @export
+prepareData.FLRegr <- function(formula, data, outDeepTableName="",
+                               fetchIDs=FALSE, ...) {
+    if(isDeep(data)) return(data)
+    dataCopy <- data
+    vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=formula@RegrDataPrepSpecs,
+                                                       values=list(...))
+    deepx <- FLRegrDataPrep(data,depCol=vRegrDataPrepSpecs$depCol,
+                            OutDeepTable=outDeepTableName,
+                            OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
+                            OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
+                            OutValueCol=vRegrDataPrepSpecs$outValueCol,
+                            CatToDummy=vRegrDataPrepSpecs$catToDummy,
+                            PerformNorm=vRegrDataPrepSpecs$performNorm,
+                            PerformVarReduc=vRegrDataPrepSpecs$performVarReduc,
+                            MakeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
+                            MinStdDev=vRegrDataPrepSpecs$minStdDev,
+                            MaxCorrel=vRegrDataPrepSpecs$maxCorrel,
+                            TrainOrTest=1,
+                            ExcludeCols=vRegrDataPrepSpecs$excludeCols,
+                            ClassSpec=vRegrDataPrepSpecs$classSpec,
+                            WhereClause=vRegrDataPrepSpecs$whereconditions,
+                            InAnalysisID=formula@wideToDeepAnalysisID,
+                            fetchIDs=fetchIDs)
+    data <- deepx
+    data <- setAlias(data,"")
+    
+    if(formula@vfcalls["functionName"]=="FLPoissonRegr"){
+        ## Insert dependent and offset varids in deeptable
+        vVaridCols <- c(-2)
+        vcellValCols <- ifelse(formula@offset!="",formula@offset,0)
+        
+        ## if(!all.vars(formula@formula)[1] %in% colnames(dataCopy))
+		## 	stop("dependent column ",all.vars(formula@formula)[1],
+        ## 		" not in data \n ")
+        vVaridCols <- c(vVaridCols,-1)
+        vcellValCols <- c(vcellValCols,all.vars(formula@formula)[1])
+
+                                        # vtablename <- getTableNameSlot(dataCopy)
+        vtablename <- getTableNameSlot(table)
+        vtablename1 <- getTableNameSlot(data)
+
+        vobsid <- getObsIdSQLExpression(formula@table)
+        sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
+                         vVaridCols," AS var_id_colname, \n ",
+                         vcellValCols," AS cell_val_colname \n  ",
+                         " FROM ",vtablename,collapse=" UNION ALL ")
+        t <- insertIntotbl(pTableName=vtablename1,
+                           pSelect=sqlstr)
+        data@Dimnames[[2]] <- c("-1","-2",data@Dimnames[[2]])
+    }
+    data
+}
+
+
 ## move to file lmGeneric.R
-prepareData.lmGeneric <- function(formula,data,
+#' @export
+prepareData.formula <- function(formula,data,
 								callObject=NULL,
 								familytype="linear",
 								specID=list(),
@@ -1316,7 +1382,7 @@ prepareData.lmGeneric <- function(formula,data,
 }
 
 #' @export
-prepareData <- prepareData.lmGeneric
+prepareData.lmGeneric <- prepareData.formula
 
 
 ## move to file lm.R
@@ -1891,16 +1957,15 @@ predict.FLLinRegr <- function(object,
                         SQLquery=str)
 
 	flv <- newFLVector(
-				select = tblfunqueryobj,
-				Dimnames = list(rownames(object@table),
-								"vectorValueColumn"),
-                dims = as.integer(c(newdata@dims[1],1)),
-				isDeep = FALSE)
+            select = tblfunqueryobj,
+            Dimnames = list(rownames(object@table),
+                            "vectorValueColumn"),
+            dims = as.integer(c(newdata@dims[1],1)),
+            isDeep = FALSE)
 
 	return(flv)
     }
     else
-        
         return(predict.lmGeneric(object,newdata=newdata,
                                  scoreTable=scoreTable,
                                  ...))
@@ -1924,55 +1989,8 @@ predict.lmGeneric <- function(object,
 	# 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
 	
 	vfcalls <- object@vfcalls
-	if(!isDeep(newdata))
-	{
-		newdataCopy <- newdata
-        vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object@RegrDataPrepSpecs,
-                                                            values=list(...))
-		deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
-								OutDeepTable=vRegrDataPrepSpecs$outDeepTableName,
-								OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
-								OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
-								OutValueCol=vRegrDataPrepSpecs$outValueCol,
-								CatToDummy=vRegrDataPrepSpecs$catToDummy,
-								PerformNorm=vRegrDataPrepSpecs$performNorm,
-								PerformVarReduc=vRegrDataPrepSpecs$performVarReduc,
-								MakeDataSparse=vRegrDataPrepSpecs$makeDataSparse,
-								MinStdDev=vRegrDataPrepSpecs$minStdDev,
-								MaxCorrel=vRegrDataPrepSpecs$maxCorrel,
-								TrainOrTest=1,
-								ExcludeCols=vRegrDataPrepSpecs$excludeCols,
-								ClassSpec=vRegrDataPrepSpecs$classSpec,
-								WhereClause=vRegrDataPrepSpecs$whereconditions,
-								InAnalysisID=object@wideToDeepAnalysisID)
-		newdata <- deepx
-		newdata <- setAlias(newdata,"")
-
-		if(object@vfcalls["functionName"]=="FLPoissonRegr"){
-			## Insert dependent and offset varids in deeptable
-			vVaridCols <- c(-2)
-			vcellValCols <- ifelse(object@offset!="",object@offset,0)
-
-			# if(!all.vars(object@formula)[1] %in% colnames(newdataCopy))
-			# 	stop("dependent column ",all.vars(object@formula)[1],
-			# 		" not in newdata \n ")
-			vVaridCols <- c(vVaridCols,-1)
-			vcellValCols <- c(vcellValCols,all.vars(object@formula)[1])
-
-			# vtablename <- getTableNameSlot(newdataCopy)
-			vtablename <- getTableNameSlot(table)
-			vtablename1 <- getTableNameSlot(newdata)
-
-			vobsid <- getObsIdSQLExpression(object@table)
-			sqlstr <- paste0(" SELECT ",vobsid," AS obs_id_colname, \n ",
-											vVaridCols," AS var_id_colname, \n ",
-											vcellValCols," AS cell_val_colname \n  ",
-							" FROM ",vtablename,collapse=" UNION ALL ")
-			t <- insertIntotbl(pTableName=vtablename1,
-                                pSelect=sqlstr)
-			newdata@Dimnames[[2]] <- c("-1","-2",newdata@Dimnames[[2]])
-		}
-	}
+    newdata <- prepareData(object,newdata,outDeepTableName="", ...)
+	
 	vtable <- getTableNameSlot(newdata)
 	vobsid <- getObsIdSQLExpression(newdata)
 	vvarid <- getVarIdSQLExpression(newdata)

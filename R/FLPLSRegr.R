@@ -42,7 +42,6 @@ mvr.default <- function (formula,data=list(),...) {
 mvr.FLpreparedData <- function(formula, data, ncomp = 4,...)
 {
     vcallObject <- match.call()
-    data <- setAlias(data,"")
     return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
@@ -79,11 +78,7 @@ mvr.FLTableMD <- mvr.FLpreparedData
 #' flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
 #' cof <- coefficients(flmod)
 #' pred <- predict(flmod);res <- residuals(flmod) 
-
 #' @export
-
-
-
 opls <- function (formula,data=list(),...) {
 	UseMethod("opls", data)
 }
@@ -94,7 +89,6 @@ opls <- function (formula,data=list(),...) {
 opls.FLpreparedData <- function(formula, data, ncomp = 4,northo = 5, ...)
 {
     vcallObject <- match.call()
-    data <- setAlias(data,"")
     return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
