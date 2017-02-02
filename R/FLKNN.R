@@ -12,7 +12,7 @@
 #' @param prob If this is true, 
 #' the proportion of the votes for the winning class are returned as attribute prob.
 #' @param classify logical if classification/regression is solved
-#' @param metric distance metric to be used. Euclidean,Manhattan supported.
+#' @param metric distance metric to be used. euclidean,manhattan supported.
 #' @return FLVector of classifications of test set.
 #' @examples
 #' FLdeepTbl <- FLTable(getTestTableName("ARknnDevSmall"),"obsid","varid","num_val")
@@ -43,7 +43,7 @@ knn.FLTable <- function(train,
                         prob=FALSE,
                         use.all=FALSE,
                         classify=TRUE,
-                        metric="Euclidean",
+                        metric="euclidean",
                         ...){
     vupper <- TRUE
     vdiag <- FALSE
@@ -172,114 +172,6 @@ knn.FLTable <- function(train,
 #' @export
 knn.FLMatrix <- knn.FLTable
 
-FLgetDistMatrix <- function(pObj1,
-                            pObj2,
-                            metric="Euclidean",
-                            temporary=TRUE,
-                            outTableName=NULL,
-                            upper=FALSE,
-                            diag=FALSE,
-                            ...){
-    flm <- FLgetUpperDistMatrix(pObj1=pObj1,
-                                pObj2=pObj2,
-                                metric=metric,
-                                temporary=temporary,
-                                outTableName=outTableName,
-                                upper=upper,
-                                diag=diag,
-                                ...)
-
-    if(!upper){
-        vDimColumns <- c(getObsIdSQLName(flm),
-                    getVarIdSQLName(flm),
-                    getValueSQLName(flm))
-
-        vsqlstr <- paste0("SELECT ",vDimColumns[2],",",vDimColumns[1],",",vDimColumns[3]," \n ",
-                            " FROM (",constructSelect(flm),") a ")
-
-        vtempResult <- insertIntotbl(pTableName=getTableNameSlot(flm),
-                                    pSelect=vsqlstr)
-    }
-    return(flm)
-}
-
-FLgetUpperDistMatrix <- function(pObj1,
-                                pObj2,
-                                metric="Euclidean",
-                                temporary=TRUE,
-                                outTableName=NULL,
-                                upper=FALSE,
-                                diag=FALSE,
-                                ...){
-
-    if(is.FLTable(pObj1) && !isDeep(pObj1))
-        pObj1 <- wideToDeep(pObj1)
-    if(is.FLTable(pObj2) && !isDeep(pObj2))
-        pObj2 <- wideToDeep(pObj2)
-
-    vtableNames <- sapply(list(pObj1,pObj2),getTableNameSlot)
-    vobsidColnames <- sapply(list(pObj1,pObj2),getObsIdSQLName)
-    vvaridColnames <- sapply(list(pObj1,pObj2),getVarIdSQLName)
-    vvalueColnames <- sapply(list(pObj1,pObj2),getValueSQLName)
-
-    ## Create a distance matrix
-    metric <- c(Euclidean="FLEuclideanDist",
-                Manhattan="FLManhattanDist")[metric]
-
-    if(!is.null(outTableName))
-        vDistTableName <- outTableName
-    else 
-        vDistTableName <- gen_unique_table_name(paste0(vtableNames[1],"Dist"))
-
-    if(upper){
-        if(diag)
-            vRestrictOperator <- NULL
-        else vRestrictOperator <- " <> "
-    }
-    else{
-        if(diag)
-            vRestrictOperator <- " <= "
-        else vRestrictOperator <- " < "
-    }
-
-    vRestrictClause <- ifelse(is.null(vRestrictOperator),"",
-                            paste0(" \n AND a.",vobsidColnames[1],
-                                    vRestrictOperator," b.",vobsidColnames[2]," \n "))
-
-    vsqlstr <- paste0("SELECT a.",vobsidColnames[1]," AS rowIdColumn, \n ",
-                            " b.",vobsidColnames[2]," AS colIdColumn, \n ",
-                            metric,"(a.",vvalueColnames[1],",b.",vvalueColnames[2],
-                                    ") AS valueColumn \n ",
-                    " FROM(",constructSelect(pObj1),")a, \n ",
-                         "(",constructSelect(pObj2),")b \n ",
-                    " WHERE a.",vvaridColnames[1],"=b.",vvaridColnames[2],
-                    vRestrictClause,
-                    " AND a.",vvaridColnames[1]," <> -1 AND b.",vvaridColnames[2]," <> -1 \n ",
-                    " GROUP BY a.",vobsidColnames[1],",b.",vobsidColnames[2])
-
-    vtempResult <- createTable(pTableName=vDistTableName,
-                                pSelect=vsqlstr,
-                                temporary=temporary)
-
-    select <- new("FLSelectFrom",
-                  connectionName = attr(getFLConnection(),"name"),
-                  table_name = vDistTableName,
-                  variables=list(
-                              Matrix_ID="'%insertIDhere%'",
-                              rowIdColumn="rowIdColumn",
-                              colIdColumn="colIdColumn",
-                              valueColumn="valueColumn"),
-                  whereconditions="",
-                  order = "")
-    
-    flm  <- newFLMatrix(
-                  select = select,
-                  dims = c(nrow(pObj1),nrow(pObj2)),
-                  Dimnames = list(rownames(pObj1),
-                                rownames(pObj2)),
-                  type="double")
-    return(flm)
-}
 
 ## pMultiplier to populate the table vertically and
 ## horizontally
@@ -355,7 +247,7 @@ benchMarkFLgetUpperDistMatrix <- function(pMultiplier=c(1,1),
                         )
 
     require(plyr)
-    vbenchmarkResults <- ldply(c("Euclidean","Manhattan"),
+    vbenchmarkResults <- ldply(c("euclidean","manhattan"),
                                 function(x){
                                     vtime <- system.time(
                                                     distMatrix <- FLgetUpperDistMatrix(pObj1=FLdeepTbl,
