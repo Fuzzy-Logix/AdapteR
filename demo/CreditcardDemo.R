@@ -1,4 +1,7 @@
 ## make plot side by side of dt, rf, glm.
+##str <- paste0("SELECT a.vectorValueColumn AS depVar FROM (",constructSelect(depVar),") AS ##a ORDER BY a.vectorIndexColumn")
+## use deep table instead of wide as consuming more time.
+## ARBaseARcreditcardTrainD1485952077
 library(pROC)
 library(randomForest)
 if(!exists("connection")) {
@@ -25,7 +28,7 @@ FLTestTbl <- FLTable(vTestTableName,"ObsID",fetchIDs=FALSE)
 
 ## glm model , plot with auc.
 glm.model <- glm(Classvar ~ ., data = FLtbl, family = "binomial")
-glm.predict <- predict(glm.model, newdata= FLTestTbl)
+glm.predict <- predict(glm.model, newdata= deeptbl)
 head(glm.predict, display = TRUE, n = 5)
 glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
 plot(glm.roc, limit = 1000, main = "glm-roc")
@@ -34,24 +37,36 @@ plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
 
 
 ## Decision Tree.
-dt.model <- rpart(Classvar ~ ., data = FLtbl)
+## change purity level  -> .999
+dt.model <- rpart(Classvar ~ ., data = FLtbl, minsplit = 15, cp = .9999, maxdepth = 10)
 dt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
-plot.FLROC(dt.roc, limit = 1000, main = "dt-roc", method = 0)
+plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
 
 
 ## Random Forest:
-rf.model <- randomForest(Classvar ~ ., data = FLtbl)
+rf.model <- randomForest.FLTable(Classvar ~ ., data = FLtbl, minsplit = 15, cp = .9999, maxdepth = 7)
 rf.predict <- predict(rf.model,type = "prob")
 length(dt.predict)
 rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict)
 plot.FLROC(rf.roc, limit = 1000, main = "rf-roc", method = 0)
 
+
+
+
+
 ## combined plot:
-png("combined-plot.png")
-par(mfrow = c(3, 1))
-plot.FLROC(rf.roc, limit = 1000, main = "rf-roc")
-plot.FLROC(dt.roc, limit = 1000, main = "dt-roc")
-plot(glm.roc, limit = 1000, main = "glm-roc")
+png("combined-plot1.png")
+par(mfrow = c(2, 1))
+##rf.plot <- plot(rf.roc, limit = 1000, main = "rf-roc")
+##ch <- paste0("auc of ",round(rf.plot$auc, digits=3))
+##mtext(ch, side = 3)
+dt.plot <- plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
+ch <- paste0("auc of ",round(dt.plot$auc, digits=3))
+mtext(ch, side = 3)
+glm.plot <- plot(glm.roc, limit = 1000, main = "glm-roc")
+ch <- paste0("auc of ",round(glm.plot$auc, digits=3))
+mtext(ch, side = 3)
 dev.off()
+
