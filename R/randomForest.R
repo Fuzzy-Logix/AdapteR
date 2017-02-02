@@ -19,7 +19,7 @@ randomForest.FLTable<-function(data,
 							   mtry=2,
 							   nodesize=10,
 							   maxdepth=5,
-							   cp=0.95,...){ #browser()
+							   cp=0.95,...){ browser()
 	control<-c()
 	control<-c(control,
 			   minsplit=nodesize,
@@ -134,6 +134,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 	if(type %in% "prob"){
  	   val <- "NumOfVotes"
    	   x<-object$ntree}
+   	   x<-1/(object$ntree)}
 	else{
 	   val <- "PredictedClass"
 	   x<-1}
@@ -154,8 +155,8 @@ predict.FLRandomForest<-function(object,newdata=object$data,
     #               type       = "integer"
     #               )
    	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
-   	                          ObsID AS vectorIndexColumn,\n
-    	                         ",val," AS vectorValueColumn\n",
+   	                          ",vobsid," AS vectorIndexColumn,\n
+    	                         ",val,"*",x," AS vectorValueColumn\n",
         	            " FROM ",scoreTable,"")
    	tblfunqueryobj <- new("FLTableFunctionQuery",
     	                   connectionName = getFLConnectionName(),
@@ -172,7 +173,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
                    			      "vectorValueColumn"),
       			   dims = as.integer(c(vrw,1)),
  			       isDeep = FALSE)
-   	return(yvector/x)
+   	return(yvector)
 	# query<-paste0("Select * from ",scoreTable," Order By 1")
 	# retobj<-sqlQuery(getFLConnection(),query)
 	# return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
@@ -203,4 +204,4 @@ plot.FLRandomForest<-function(object){ #browser()
 	for(i in 1:ntree){
 		plot.FLrpart(object$forest[[i]])
 	}
-}
+}	
