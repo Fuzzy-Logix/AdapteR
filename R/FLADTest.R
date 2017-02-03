@@ -61,7 +61,7 @@ setMethod("ad.test",signature(x="FLVector"),
               } else {
                   pval <- res_1$P_Value
               }
-              result <- list(statistics = c(A = res_1$TStat),
+              result <- list(statistic = c(A = res_1$TStat),
                              p.value=pval,
                              method="Anderson-Darling normality test",
                              data.name = dname)

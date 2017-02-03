@@ -1,4 +1,21 @@
-## boost decision trees
+#' Applies the AdaBoost.M1 and SAMME algorithms to a data set
+#'
+#' Fits the AdaBoost.M1 (Freund and Schapire, 1996) and SAMME (Zhu et al., 2009)
+#' algorithms using classification trees as single classifiers.
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param mfinal an integer, the number of iterations
+#' for which boosting is run or the number of trees to use.
+#' Defaults to mfinal=10 iterations.
+#' @param control options that control details of the rpart algorithm. See rpart for more details.
+#' 
+#' @return An object of class "FLBoosting" which has details about the trees generated
+#' and the number of votes in bag corresponding to every ObsID.
+#'
+#' @examples
+#' flt<-FLTable("tblBoostDT","ObsID","VarID","Num_Val")
+#' flobj<-boosting(flt, formula = -1~.,mfinal=mfinal)
 #' @export
 
 boosting<-function(formula,data,...){

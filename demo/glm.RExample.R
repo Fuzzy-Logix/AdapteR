@@ -10,8 +10,8 @@
 ## library.
 ##
 ## The demo highlights how to perform
-## Linear Regression on tblTwitterBuzz dataset
-## to predict the buzz magnitude
+## Logistic Regression on Hadoop Platform 
+## using the randomly generated data
 
 ### Pre-setup
 oldWarn <- getOption("warn")
@@ -24,11 +24,19 @@ if(!exists("connection")) {
 
 
 #############################################################
-## Create a FLTable object for tblTwitterBuzz table
-## Refer ?FLTable for help on creating FLTable Objects.
-?FLTable
-FLwideTable <- FLTable(getTestTableName("tblTwitterBuzz"),"OBSID",fetchIDs=FALSE)
-vtemp <- readline("Above: wide FLTable object created. \n ")
+## Use the data from R example stats::lm 
+
+dataframe <- data.frame(var1 = rnorm(200),
+                        var2 = rnorm(200), 
+                        var3 = sample( c(0, 1), 200, replace = TRUE))
+
+## FLTable object can be created by casting
+## dataframe into FLTable object 
+FLwideTable <- as.FLTable(dataframe,
+                          temporary=F,
+                          tableName="ARBaseglmRExampleDemo",
+                          drop=TRUE)
+vtemp <- readline("Above: Create FLTable object by pushing R dataframe in-database \n ")
 
 str(FLwideTable)
 vtemp <- readline("Above: str prints a summary of the table \n ")
@@ -39,31 +47,24 @@ vtemp <- readline("Above: the number of rows and columns of the table \n ")
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
 head(FLwideTable,n=10,display=TRUE)
-vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to prepare the data for fitting a linear model.\n ")
+vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to prepare the data for fitting the model.\n ")
 
 ## You can explicitly use prepareData
 ## to remove highly collinear predictors
 ## and near-constant predictors and
 ## prepare data in a sparse format for
-## the fast in-database linear regression
+## the fast in-database logistic regression
 ## algorithm exploiting sparseness.
-deepTableName <- "tblTwitterBuzzDeepARDemo"
-## here we drop the table
+deepTableName <- "ARBaseglmRExampleDemoDeep"
+## Drop Deeptable if already exists
+## To demo Data Prep Step
 dropTable(deepTableName)
-## Create Formula object just like R
-vdependentColumn <- grep("Buzz_Magnitude",colnames(FLwideTable),ignore.case = T,value=TRUE)
-myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
-cat("formula object used in fit: ")
-print(myformula)
+
 
 if(!existsRemoteTable(tableName=deepTableName)){
-    FLdeepTable <- prepareData(formula         = myformula ,
+    FLdeepTable <- prepareData(formula         = var3 ~ var1 + var2 ,
                                data            = FLwideTable,
-                               outDeepTable    = deepTableName,
-                               makeDataSparse  = 1,
-                               performVarReduc = 0,
-                               minStdDev       = .01,
-                               maxCorrel       = .8,
+                               outDeepTableName= deepTableName,
                                fetchIDs        = FALSE)
 } else {
     ## or you can use an already created deep table again:
@@ -73,37 +74,37 @@ if(!existsRemoteTable(tableName=deepTableName)){
                            cell_val_colname = 'numval',
                            fetchIDs = FALSE)
 }
-vtemp <- readline("Press <ENTER> to start in-database linear regression. \n ")
+vtemp <- readline("Press <ENTER> to start in-database logistic regression. \n ")
 
 ## NOTE:
-## You can omit the prepareData step, and call linear regression on
+## You can omit the prepareData step, and call logistic regression on
 ## a wide table directly:
 ##
-## > vresFL <- lm(Buzz_Magnitude ~ ., data=FLwideTable)
+## > vresFL <- glm(var3 ~ var1 + var2, data=FLwideTable, family = "binomial")
 ##
 ## then AdapteR is doing data prep for you automatically.
 ## The created deep table is accessible afterwards for
 ## further analyses.
-vresFL <- lm(Buzz_Magnitude ~ ., data=FLdeepTable)
+vresFL <- glm(var3 ~ var1 + var2, data=FLdeepTable, family = "binomial")
 
 summary(vresFL)
-#### Summary of fit model. Similar to summary on 'lm' object
+#### Summary of fit model. Similar to summary on 'glm' object
 vtemp <- readline("Above: summary method on fitted object \n ")
 
 ####
-#### Examine the Coefficients. Syntax exactly mimics default stats::lm behavior
+#### Examine the Coefficients. Syntax exactly mimics default stats::glm behavior
 head(vresFL$coefficients)
 vtemp <- readline("Above: Examining the fitted coefficients and other elements like for an  \n ")
 
 ### AdapteR + DB Lytix does provide you with
 ### 
 ### Print residuals after scoring on same dataset as used for model training.
-### (Mimics R behaviour: Properties of lm object are supported)
+### (Mimics R behaviour: Properties of glm object are supported)
 head(vresFL$residuals,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the residuals \n ")
 
 ### Print fitted values after scoring on same dataset as used for model training.
-### (Mimics R behaviour: Properties of lm object are supported)
+### (Mimics R behaviour: Properties of glm object are supported)
 head(vresFL$fitted.values,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 

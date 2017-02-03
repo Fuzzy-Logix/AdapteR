@@ -135,6 +135,10 @@ setMethod("getObsIdSQLName",signature(object="FLTable"),
       function(object){
         return(getIndexSQLName(object,1))
         })
+setMethod("getObsIdSQLName",signature(object="FLMatrix"),
+      function(object){
+        return(getIndexSQLName(object,1))
+        })
 setMethod("getObsIdSQLName",signature(object="FLTableMD"),
       function(object){
         return(getIndexSQLName(object,2))
@@ -142,6 +146,10 @@ setMethod("getObsIdSQLName",signature(object="FLTableMD"),
 setGeneric("getVarIdSQLName",function(object)
       standardGeneric("getVarIdSQLName"))
 setMethod("getVarIdSQLName",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLName(object,2))
+        })
+setMethod("getVarIdSQLName",signature(object="FLMatrix"),
       function(object){
         return(getIndexSQLName(object,2))
         })
@@ -611,4 +619,13 @@ getTestTableName <- function(tableName){
     getRemoteTableName(databaseName=getOption("TestDatabase")[getFLPlatform()],
                         tableName=tableName,
                         temporaryTable=FALSE)
+}
+
+getNativeRandFunction <- function(...){
+    vfuncName <- getStoredProcMapping("RANDOM")$funcNamePlatform
+    vinputArgNames <- names(getStoredProcMapping("RANDOM")$argsPlatform)
+    return(paste0(vfuncName,
+                "(",paste0(list(...)[vinputArgNames],
+                            collapse=","),")")
+            )
 }

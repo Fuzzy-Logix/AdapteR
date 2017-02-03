@@ -133,6 +133,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                     )
                 )
     }
+
     else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
@@ -743,9 +744,7 @@ insertIntotbl <- function(pTableName,
     # if(!grepl(".",pTableName,fixed=TRUE))
     # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
     #                                 pTableName)
-
     vsqlstr <- paste0("INSERT INTO ",pTableName)
-
     if(!is.null(pValues)){
         if(!is.null(pColNames) && !is.Hadoop())
             vsqlstr <- paste0(vsqlstr,"(",
@@ -839,6 +838,7 @@ updateMetaTable <- function(pTableName,
                         ))
 }
 
+#' @export
 limitRowsSQL <- function(pSelect,pRows){
     vlimitKeyword <- c(LIMIT="TDAster",
                         LIMIT="Hadoop",

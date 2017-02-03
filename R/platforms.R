@@ -98,6 +98,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       temporary=TRUE,
                       verbose=FALSE,
                       tablePrefix=NULL,
+                      pkg = "dbi",
                       ...){
     if(is.null(tablePrefix) & temporary)
         tablePrefix <- user
@@ -174,9 +175,11 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             stop("RODBC package needed for using ODBC connections. Please install it.",
                  call. = FALSE)
         }
-        tryCatch({
-            library(RODBC)
-            connection <- RODBC::odbcConnect(odbcSource)
+         tryCatch({
+            if(pkg %in% "dbi")
+                connection <- RODBCDBI::dbConnect(RODBCDBI::ODBC(), dsn = odbcSource)
+            else if (pkg %in% "dbc")
+                connection <- RODBC::odbcConnect(odbcSource)              
         },error=function(e)e)
     }
     if(is.null(connection))
@@ -206,9 +209,10 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     ## store database where tests need to be run
     TestDatabase <- list(...)$TestDatabase
     if(is.null(TestDatabase)){
-        vmap <- c(TD="FL_DEMO",TDAster="fuzzylogix",Hadoop="mazdoo")
+        vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="mazdoo")
         TestDatabase <- vmap[platform]
     }
+    else names(TestDatabase) <- platform
     if(platform=="Hadoop")
         options(viewToTable=TRUE)
     else options(viewToTable=FALSE)

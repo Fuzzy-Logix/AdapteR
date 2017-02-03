@@ -20,7 +20,8 @@ if(!exists("connection")) {
 ## For in-database analytics the matrix is in the warehouse
 ## to begin with.
 sqlQuery(connection,
-           "select top 10 * from FL_TRAIN.finEquityReturns")
+           limitRowsSQL(pSelect=paste0("select * from ",getTestTableName("finEquityReturns")),
+                        pRows=10))
 
 vtemp <- readline("Above: The table has equity returns stored as triples (what was the equity return of which ticker on what date).\nThese triples define a matrix in deep format.")
 
@@ -29,27 +30,27 @@ vtemp <- readline("Above: The table has equity returns stored as triples (what w
 ## The SQL-through R way to compute a
 ## correlation matrix with DB Lytix:
 ##
-sqlQuery(connection, "
-SELECT  a.TickerSymbol           AS Ticker1,
-        b.TickerSymbol           AS Ticker2,
-        FLCorrel(a.EquityReturn,
-                 b.EquityReturn) AS FLCorrel
-FROM    FL_TRAIN.finEquityReturns a,
-        FL_TRAIN.finEquityReturns b
-WHERE   b.TxnDate = a.TxnDate
-AND     a.TickerSymbol IN ('AAPL')
-AND     b.TickerSymbol IN ('AAPL','HPQ','IBM',
-                           'MSFT','ORCL')
-GROUP BY a.TickerSymbol,
-         b.TickerSymbol
-ORDER BY 1, 2;")
+# sqlQuery(connection, "
+# SELECT  a.TickerSymbol           AS Ticker1,
+#         b.TickerSymbol           AS Ticker2,
+#         FLCorrel(a.EquityReturn,
+#                  b.EquityReturn) AS FLCorrel
+# FROM    FL_TRAIN.finEquityReturns a,
+#         FL_TRAIN.finEquityReturns b
+# WHERE   b.TxnDate = a.TxnDate
+# AND     a.TickerSymbol IN ('AAPL')
+# AND     b.TickerSymbol IN ('AAPL','HPQ','IBM',
+#                            'MSFT','ORCL')
+# GROUP BY a.TickerSymbol,
+#          b.TickerSymbol
+# ORDER BY 1, 2;")
 
 vtemp <- readline("Above: The SQL-through R way to compute a correlation matrix with DB Lytix.")
 
 ## A remote matrix is easily created by specifying
 ## table, row id, column id and value columns
 ##
-eqnRtn <- FLMatrix(table_name        = "finEquityReturns",
+eqnRtn <- FLMatrix(table_name        = getTestTableName("finEquityReturns"),
                    row_id_colname    = "TxnDate",
                    col_id_colname    = "TickerSymbol",
                    cell_val_colname  = "EquityReturn")
@@ -110,13 +111,14 @@ vtemp <- readline("Note: The result is in the same format as the R results.")
 
 vtemp <- readline("Above: dimnames and index support")
 
-eqnRtn[dec2006[1:5], c("HPQ","MSFT")]
+eqnRtn[, c("HPQ","MSFT")]
 
 vtemp <- readline("Above: Inspecting subsets of data in R is easy with matrix subsetting syntax")
 
 E <- eqnRtn[dec2006, randomstocks]
 vtemp <- readline("NO SQL is sent during the definition of subsetting")
 
+if(!is.Hadoop())
 print(E)
 vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 

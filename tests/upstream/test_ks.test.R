@@ -32,12 +32,12 @@ test_that("Kolmogorov-Smirnov Test 1s:", {
     },Renv,FLenv,
     expectation = c("res_exact","res_nonexact"),
     check.attributes = T,
-    tolerance = .0001,
+    tolerance = .1,
     verbose = FALSE
     )
-    })
+})
 
-                                        # Kolmogorov-Smirnov (KS) Test 2S
+## Kolmogorov-Smirnov (KS) Test 2S
 set.seed(100)                                       
 Renv = new.env(parent = globalenv())
 Renv$p <- rnorm(50)
@@ -72,7 +72,7 @@ test_that("Kolmogorov-Smirnov Test 2S, exact -- DBLytix Example ",{
     },Renv,FLenv,
     expectation = c("a"),
     check.attributes= T,
-    tolerance = .0001,
+    tolerance = .1,
     verbose = FALSE
     )
 }

@@ -62,10 +62,7 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                                       q.W_STAT_Posi AS W_Pos
                            FROM ",ret$ResultTable," AS q")
             result <-  sqlQuery(connection,sqlstr)
-            if(result$W_Pos > result$W_Neg) {
-                stats = c(V = result$W_Neg) ## gk: please check and write a test case for both conditions
-            } else
-                stats <- c(V = result$W_Pos)  
+            stats <- c(V = result$W_Pos)  
             ##
             res <- list(statistic = stats,
                         parameter = NULL,

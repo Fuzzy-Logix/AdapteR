@@ -57,24 +57,24 @@ randomForest.FLTable<-function(data,
     m[is.na(m)]<-0
     predicted<-votestable$PredictedClass
 
-    frame<-data.frame(NodeID=foresttable$NodeID,
-                      n=foresttable$NodeSize,
-                      prob=foresttable$PredictClassProb,
-                      yval=foresttable$PredictClass,
-                      var=foresttable$SplitVarID,
-                      SplitVal=foresttable$SplitVal,
-                      leftson=foresttable$ChildNodeLeft,
-                      rightson=foresttable$ChildNodeRight,
-                      treelevel=foresttable$TreeLevel,
-                      parent=foresttable$ParentNodeID,
-                      Leaf=foresttable$IsLeaf,
-                      TreeID=foresttable$DatasetID)
-    ntrees<-unique(frame$TreeID)
-    trees<-list()
-    for(l in 1:length(ntrees)){
-        trees[[l]]<-subset(frame,TreeID==l)
-        class(trees[[l]])<-"data.frame"	
-    }
+	frame<-data.frame(NodeID=foresttable$NodeID,
+					  n=foresttable$NodeSize,
+					  prob=foresttable$PredictClassProb,
+					  yval=foresttable$PredictClass,
+					  var=foresttable$SplitVarID,
+					  SplitVal=foresttable$SplitVal,
+					  leftson=foresttable$ChildNodeLeft,
+					  rightson=foresttable$ChildNodeRight,
+					  treelevel=foresttable$TreeLevel,
+					  parent=foresttable$ParentNodeID,
+					  Leaf=foresttable$IsLeaf,
+					  TreeID=foresttable$DatasetID)
+	ntrees<-unique(frame$TreeID)
+	trees<-list()
+	for(l in 1:length(ntrees)){
+		trees[[l]]<-subset(frame,TreeID==l)
+		class(trees[[l]])<-"data.frame"	
+	}
 
     retobj<-list(call=match.call(),
                  type="classification",

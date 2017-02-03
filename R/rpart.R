@@ -1,4 +1,22 @@
 #' @export
+NULL
+
+#' Recursive partitioning and Regression Trees
+#' 
+#' Fit a rpart model
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param control A list of options that control details of the rpart algorithm.
+#' Minsplit: Minimum number of observations a node should have in order to be splitted.
+#' Maxdepth: The maximum depth to which the tree can go.
+#' cp: Complexity parameter
+#'
+#' @return An object of class "FLrpart" containing the tree structure details.
+#' @examples
+#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flobj<-rpart(data = flt, formula = -1~.)
+#' @export
 
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
@@ -141,13 +159,12 @@ summary.FLrpart<-function(x,...){
 }
 
 predict.FLrpart<-function(object,
-                          newdata=object$deeptable,
-                          scoreTable="",type = "response",
-                          ...){
-    browser()
-    if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
-    newdata <- setAlias(newdata,"")
-    if(scoreTable=="")
+						  newdata=object$deeptable,
+						  scoreTable="",
+						  ...){
+	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
+	newdata <- setAlias(newdata,"")
+	if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
     if(!isDeep(newdata)){
@@ -339,37 +356,48 @@ plot.FLrpart<-function(x){ #browser()
  # 	#if(newframe$)
  # 	lines(parent, child)
  # 	#invisible(list(x = xcor, y = ycor))
- return(createcor(x$frame))
+ if(class(x)=="data.frame") return(createcor(x))
+ else return(createcor(x$frame))
  }
 
  createcor<-function(frame){#browser()
-  plot(2.5,2)
-  xcor<-c("2.5")
-  ycor<-c("2.5")
+  plot(2.5,2, axes=F, type="n", xlab="", ylab="")
+  xcor<-c(2.5)
+  ycor<-c(2.5)
   for(i in 1:nrow(frame)){
     if(frame$Leaf[i]==0){
       j<-frame$leftson[i]
       k<-frame$rightson[i]
       if(i==1) {
-        xcor[j]<-as.numeric(xcor[i])-0.5
-        xcor[k]<-as.numeric(xcor[i])+0.5
-        ycor[j]<-"2.25"
-        ycor[k]<-"2.25"
-        segments(as.numeric(xcor[1]),as.numeric(ycor[1]),mean(c(as.numeric(xcor[j]),as.numeric(xcor[k]))),mean(c(as.numeric(ycor[j]),as.numeric(ycor[k]))))
-        segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        xcor[j]<-xcor[i]-0.5
+        xcor[k]<-xcor[i]+0.5
+        ycor[j]<-2.25
+        ycor[k]<-2.25
+        segments(xcor[1],ycor[1],mean(c(xcor[j],xcor[k])),mean(c(ycor[j],ycor[k])))
+        segments(xcor[j],ycor[j],xcor[k],ycor[k])
+        var<-frame$var[1]
+        SplitVal<-frame$SplitVal[1]
+        text(xcor[i],ycor[j]+0.075,labels=paste0(var,"  <  ",round(SplitVal,digits=2)))
         }
       else{
-        xcor[j]<-as.numeric(xcor[i])-0.25/frame$treelevel[i]
-        xcor[k]<-as.numeric(xcor[i])+0.25/frame$treelevel[i]
-        ycor[j]<-2.5-as.numeric(frame$treelevel[j])*0.25
-        ycor[k]<-2.5-as.numeric(frame$treelevel[k])*0.25
-        pxcor<-as.numeric(xcor[i])
-        pycor<-as.numeric(ycor[i])
-        xmid<-as.numeric((as.numeric(xcor[j])+as.numeric(xcor[k]))/2)
-        ymid<-as.numeric((as.numeric(ycor[j])+as.numeric(ycor[k]))/2)
+        xcor[j]<-xcor[i]-0.25/frame$treelevel[i]
+        xcor[k]<-xcor[i]+0.25/frame$treelevel[i]
+        ycor[j]<-2.5-frame$treelevel[j]*0.25
+        ycor[k]<-2.5-frame$treelevel[k]*0.25
+        pxcor<-xcor[i]
+        pycor<-ycor[i]
+        xmid<-(xcor[j]+xcor[k])/2
+        ymid<-(ycor[j]+ycor[k])/2
         segments(pxcor,pycor,xmid,ymid)
-        segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
+        segments(xcor[j],ycor[j],xcor[k],ycor[k])
+        var<-frame$var[i]
+        SplitVal<-frame$SplitVal[i]
+        text(xcor[i],ycor[j]+0.075,labels=paste0(var,"  <  ",round(SplitVal,digits=2)))
         }
   	}
+  	else{
+  		segments(xcor[i],ycor[i],xcor[i],2.5-(frame$treelevel[i]+1)*0.25)
+  		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
+		}  
   }
 }
