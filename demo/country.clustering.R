@@ -63,13 +63,35 @@ kmeansobject <- kmeans(deepTable,6)
 
 vtemp <- readline("kmeans Run Completed \n ")
 
+## Examine Result object
+vtemp <- readline("Press ENTER to display components of output object: \n ")
+## Fetch the resulting clusters
+clusters <- as.vector(kmeansobject$cluster)
+clusters
+
+Sys.sleep(3)
+
+kmeansobject$centers
+
+kmeansobject$size
+
+kmeansobject$betweenss
+
+Sys.sleep(3)
+
+kmeansobject$withinss
+
+Sys.sleep(3)
+
+kmeansobject$tot.withinss
+
+Sys.sleep(3)
+
+kmeansobject$totss
+
 
 ## Visualization using pltoly
 vtemp <- readline("Data Visualization: \n ")
-## Fetch the resulting clusters
-clusters <- as.vector(kmeansobject$cluster)
-
-vtemp <- readline("Above: Fetch result cluster vector \n ")
 
 ## Fetch the processed data
 medEconomicData <- as.data.frame(deepTable)
