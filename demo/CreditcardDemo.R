@@ -28,7 +28,7 @@ FLTestTbl <- FLTable(vTestTableName,"ObsID",fetchIDs=FALSE)
 
 ## glm model , plot with auc.
 glm.model <- glm(Classvar ~ ., data = FLtbl, family = "binomial")
-glm.predict <- predict(glm.model, newdata= deeptbl)
+glm.predict <- predict(glm.model)
 head(glm.predict, display = TRUE, n = 5)
 glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
 plot(glm.roc, limit = 1000, main = "glm-roc")
@@ -38,7 +38,7 @@ plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
 
 ## Decision Tree.
 ## change purity level  -> .999
-dt.model <- rpart(Classvar ~ ., data = FLtbl, minsplit = 15, cp = .9999, maxdepth = 10)
+dt.model <- rpart(Classvar ~ ., data = deeptable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 dt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)

@@ -10,17 +10,18 @@
 #' head(fltbl)
 #'fltbl <- as.FLTable(fltbl)
 #'flmod <- roc(fltbl$res, fltbl$pred)
-#' 
+ 
+
 #' @export
-##roc.default <- function (response, predictor,...) {
-##    if (!requireNamespace("pROC", quietly = TRUE)){
-##        stop("pROC package needed for roc. Please install it.",
-##             call. = FALSE)
-##    }
-##    else return(pROC::roc(response, predictor,...))
-##}
-##
-## to-do : work on formula aspect of function, print function, $ operator[(levels)].
+roc.default <- function (response, predictor,...) {
+   if (!requireNamespace("pROC", quietly = TRUE)){
+       stop("pROC package needed for roc. Please install it.",
+            call. = FALSE)
+   }
+   else return(pROC::roc(response, predictor,...))
+}
+
+to-do : work on formula aspect of function, print function, $ operator[(levels)].
 
 
 #' @export
@@ -41,13 +42,42 @@ roc.FLVector <- function (response, predictor, ...)
                       callobject = vcallObject,
                       ...))}
 
-#' @export
-roc.FLTable <- roc.FLVector
-
 
 #' @export
-roc.FLTableMD <- roc.FLVector
-
+#' roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
+#' roc.FLTable(ActualVal~ProbVal, data = roctbl)
+roc.FLTable <- function(formula,data,... ){
+    browser()
+    vcallObject <- match.call()
+    var <- all.vars(formula)
+    pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
+    
+    tname <- getTableNameSlot(data)[[1]]
+    ret <- sqlStoredProc(connection,
+                         "FLROCCurve",
+                         InputTable = tname,
+                         RecID = pId,
+                         ActualColName = var[1],
+                         ProbColName = var[2],
+                         WhereClause =NULL ,
+                         TableOutput = 1,
+                         outputParameter = c(OutTable = 'a') 
+                         )
+    rnames <- rownames(data)
+    cnames <- colnames(data)
+    vrw <- nrow(data)
+    vclass <- "FLROC"
+    quer <- paste0("SELECT COUNT(",var[1],") AS val FROM ",tname," GROUP BY ",var[1],"")
+    df <- sqlQuery(connection, quer)
+    
+    return(new(vclass,
+               otbl = as.character(ret[[1]]),
+               results = list(call = vcallObject,
+                              Dimnames = list(row = rnames, col = cnames),
+                              dims = c(vrw, 3),
+                              vals = c(controls = df$val[2], cases =df$val[1] )
+                              )
+               ))}
 
 ## setMethod("show","auc",print.FLROC)
 
@@ -226,36 +256,3 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     if(auc) reqList$auc <- auc(reqList)
     return(reqList)
 }
-
-
-
-
-## for TPR, FPR,  givng NA's
-## TPR = True Positives/Total Number of Events
-## FPR = False Positives/Total Number of Non-events
-##
-##as.roc2 <- function(object,limit = 1000, auc=TRUE, ... ){browser()
-##    p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
-##    val <- object@results$vals
-##    neg <-1/val[[1]]
-##    pos <- 1/val[[2]]
-##    str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")
-##    df <- sqlQuery(connection, str1)
-##    sen <- sort(as.numeric(df$sen), decreasing = TRUE)
-##    spec <- sort(as.numeric(df$spec))    
-##    reqList <- structure(
-##        list(call = object$call,
-##             cases = object$cases,
-##             controls = object$controls,
-##             percent = object$percent,
-##             sensitivities =sen,
-##             specificities = spec
-##             ),
-##        class="roc")
-##    if(auc) reqList$auc <- auc(reqList)
-##    return(reqList)
-##}
-##
-
-##plot2.FLROC <- function(object,limit = 1000,  ...)
-##    return(plot(as.roc2(object, limit=limit), ...))

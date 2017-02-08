@@ -160,7 +160,8 @@ summary.FLrpart<-function(x,...){
 
 predict.FLrpart<-function(object,
 						  newdata=object$deeptable,
-						  scoreTable="",
+                          scoreTable="",
+                          type = "response",
 						  ...){
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
