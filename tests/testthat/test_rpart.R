@@ -25,3 +25,12 @@ test_that("test for prediction in rpart",{
   result2 = expect_equal(length(flobj2), nrow(FLenv$newdata))
   result3 = expect_equal(FALSE, any(as.vector(flobj2>1)))
 })
+
+test_that("test for printing decision tree object",{
+  flobj<-rpart(FLenv$table, formula = -1~.)
+  result1= expect_output(print(flobj))
+  result2= expect_output(print(flobj),paste0("n= ",flobj$frame[1,"n"]))
+  for(i in 1:nrow(flobj$frame)){
+    expect_output(print(flobj),paste0(i,")"))
+  }
+})
