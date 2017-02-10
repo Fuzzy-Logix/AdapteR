@@ -91,7 +91,8 @@ FLgetDistMatrix <- function(pObj1,
 
     vtempResult <- createTable(pTableName=vDistTableName,
                                 pSelect=vsqlstr,
-                                temporary=temporary)
+                                temporary=temporary,
+                                pPrimaryKey=c("rowIdColumn","colIdColumn"))
 
     select <- new("FLSelectFrom",
                   connectionName = attr(getFLConnection(),"name"),

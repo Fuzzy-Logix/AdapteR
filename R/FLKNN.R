@@ -16,7 +16,7 @@
 #' @return FLVector of classifications of test set.
 #' @examples
 #' FLdeepTbl <- FLTable(getTestTableName("ARknnDevSmall"),"obsid","varid","num_val")
-#' FLknnOutput <- knn(FLdeepTbl,FLdeepTbl,k=3,prob=TRUE)
+#' FLknnOutput <- knn(FLdeepTbl,k=3,prob=TRUE)
 #' FLknnOutput
 #' attributes(FLknnOutput)$prob
 #' @export
@@ -49,7 +49,8 @@ knn.FLTable <- function(train,
     vdiag <- FALSE
 
     if(is.vector(cl) || is.factor(cl))
-        cl <- as.FL(c(cl))
+        if(cl!="NULL")
+            cl <- as.FL(c(cl))
 
     if(!isDeep(train))
         train <- FLRegrDataPrep(train,depCol=cl)
@@ -79,6 +80,17 @@ knn.FLTable <- function(train,
     vvaridColnames <- sapply(list(train,test,vDistMatrix),getVarIdSQLName)
     vvalueColnames <- sapply(list(train,test,vDistMatrix),getValueSQLName)
     vtableNames <- c(vtableNames,getTableNameSlot(vDistMatrix))
+
+    ## Populate the matrix
+    if(!vupper){
+    vsqlstr <- paste0("SELECT ",vvaridColnames[3],", \n ",
+                                vobsidColnames[3],", \n ",
+                                vvalueColnames[3]," \n ",
+                        " FROM (",constructSelect(vDistMatrix),") a ")
+
+    vtempResult <- insertIntotbl(pTableName=getTableNameSlot(vDistMatrix),
+                                pSelect=vsqlstr)
+    }
 
     genFLVector <- function(pQuery){
         tblfunqueryobj <- new("FLTableFunctionQuery",
@@ -208,12 +220,13 @@ benchMarkFLKNN <- function(pMultiplier=c(1,1),
     rm <- matrix(rnorm(vrows*vcols),vrows)
     
     cl <- sample(1:3,nrow(flm),replace=TRUE)
+    FLcl <- as.FL(c(cl))
 
     require(plyr)
     vbenchmarkResults <- ldply(list(flm,rm),
                                 function(x){
                                     vtime <- system.time(
-                                                    FLknnOutput <- tryCatch(knn(x,cl=cl,k=3,...),
+                                                    FLknnOutput <- tryCatch(knn(x,cl=FLcl,k=3,...),
                                                                         error=function(e)
                                                                             return(knn(x,x,cl=cl,k=3,...)))
                                                     )
@@ -281,8 +294,9 @@ runbenchMarkFLgetUpperDistMatrix <- function(pMultiplierLimit=c(10,5)){
     return(vres)
 }
 
-runbenchMarkFLKNN <- function(pMultiplierLimit=c(10,5)){
-    vincreaseLimit <- 5
+runbenchMarkFLKNN <- function(pMultiplierLimit=c(10,5),
+                              pIncreaseLimit=5){
+    vincreaseLimit <- pIncreaseLimit
     vrows <- seq(1,pMultiplierLimit[1],vincreaseLimit)
     vcols <- seq(1,pMultiplierLimit[2],vincreaseLimit)
 
