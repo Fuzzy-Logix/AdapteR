@@ -15,3 +15,9 @@ test_that("test for boosting on deeptables",{
   result3= expect_equal(as.numeric(rownames(FLenv$table)),as.numeric(flobj$votes$ObsID))
   result4= expect_equal(flobj$prob$PredictClassProb,(flobj$votes$Votes)/max(flobj$votes$Votes))
 })
+
+test_that("test for prediction in boostingDTs",{
+  flobj<-boosting(FLenv$table, formula = -1~.,mfinal=mfinal)
+  flobj1<-predict(flobj, FLenv$newdata)
+  result1 = expect_equal(nrow(flobj1), nrow(FLenv$newdata))
+})

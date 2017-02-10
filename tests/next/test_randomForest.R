@@ -22,9 +22,7 @@ test_that("test for predict in randomForest",{
   flobj<-randomForest(FLenv$table, formula = -1~.,ntree=ntree)
   flobj1<-predict(flobj, FLenv$newdata)
   flobj2<-predict(flobj, FLenv$newdata, type = "prob")
-  result1 = expect_equal(length(flobj1), nrow(FLenv$newdata))
-  result2 = expect_equal(flobj$classes, unique(as.vector(flobj1)))
-  result3 = expect_equal(length(flobj2), nrow(FLenv$newdata))
-  result4 = expect_equal(FALSE, any(as.vector(flobj2>1)))
+  result1 = expect_equal(nrow(flobj1), nrow(FLenv$newdata))
+  result3 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
 })
 

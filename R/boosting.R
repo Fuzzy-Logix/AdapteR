@@ -38,12 +38,12 @@ boosting.FLTable<-function(data,
 							 cp=0.95),
 				   mfinal=10){ #browser()
 	call<-match.call()
-	x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
+	obj<-rpart.FLTable(data,formula,control,mfinal=mfinal)
 	vfuncName<-"FLBoostDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
-						  pInputParameters=x)
+						  pInputParameters=obj$vinputcols)
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("SELECT * FROM fzzlBoostDecisionTree AS a 
 					WHERE AnalysisID = ",fquote(AnalysisID)," ORDER BY 2,4")
@@ -66,7 +66,7 @@ boosting.FLTable<-function(data,
 	trees<-list()
 	for(l in 1:length(ntrees)){
 		trees[[l]]<-subset(frame,TreeID==l)
-		class(trees[[l]])<-"FLrpart"	
+		class(trees[[l]])<-"data.frame"	
 	}
 	x<-sqlQuery(getFLConnection(),paste0("SELECT * FROM fzzlBoostDecisionTreePred WHERE AnalysisID = ",
 											 fquote(AnalysisID), "ORDER BY 1, 2, 3"))
@@ -85,7 +85,49 @@ boosting.FLTable<-function(data,
 				 votes=votes,
 				 class=class,
 				 weights=weights,
-				 prob=prob)
+				 prob=prob,
+				 RegrDataPrepSpecs=obj$vprepspecs,
+ 				 data=obj$data,
+ 				 AnalysisID=AnalysisID)
 	class(retobj)<-"FLboosting"
 	return(retobj)
+}
+
+predict.FLboosting<-function(object,
+                          newdata=object$data,
+                          scoreTable="",
+                          ...){ #browser()
+    if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
+    newdata <- setAlias(newdata,"")
+    if(scoreTable=="")
+	scoreTable<-gen_score_table_name(getTableNameSlot(object$data))
+
+    if(!isDeep(newdata)){
+        deepx<-FLRegrDataPrep(newdata,
+                              depCol=object$prepspecs$depCol,
+                              excludeCols=object$prepspecs$vexclude)
+        newdata<-deepx
+        newdata<-setAlias(newdata,"")
+    }
+    vtable <- getTableNameSlot(newdata)
+    vobsid <- getVariables(newdata)[["obs_id_colname"]]
+    vvarid <- getVariables(newdata)[["var_id_colname"]]
+    vvalue <- getVariables(newdata)[["cell_val_colname"]]
+
+    vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
+                    OBSID_COL=vobsid,
+                    VARID_COL=vvarid,
+                    VALUE_COL=vvalue,
+                    ANALYSISID=object$AnalysisID,
+                    OUTPUT_TABLE=scoreTable,
+                    NOTE=genNote("Score"))
+    vfuncName<-"FLBoostDecisionTreeScore"
+    AnalysisID<-sqlStoredProc(getFLConnection(),
+                              vfuncName,
+                              outputParameter=c(AnalysisID="a"),
+                              pInputParams=vinputcols)
+    AnalysisID <- checkSqlQueryOutput(AnalysisID)
+    #query<-paste0("Select * from ",scoreTable," Order by 1")
+  
+   	return(FLTable(scoreTable,"ObsID"))
 }
