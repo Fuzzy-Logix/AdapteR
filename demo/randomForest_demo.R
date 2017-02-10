@@ -10,8 +10,8 @@
 ## library.
 ##
 ## The demo highlights how to perform
-## Decision Tree Classification on tblDecisionTreeMulti dataset
-## to build a tree based on CART algorithm.
+## Random forest Classification on tblDecisionTreeMulti dataset
+## to build a forest based on CART and ID3 algorithms.
 
 ### Pre-setup
 oldWarn <- getOption("warn")
@@ -26,7 +26,9 @@ if(!exists("connection")) {
 #############################################################
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
-?FLTable
+
+## Random Forests
+
 FLdeepTable <- FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 vtemp <- readline("Above: deep FLTable object created. \n ")
 
@@ -36,39 +38,35 @@ vtemp <- readline("Above: str prints a summary of the table \n ")
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
 head(FLdeepTable,n=10)
-vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to decision tree.\n ")
+vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to continue to build the decision tree.\n ")
 
 ## NOTE:
-## You can also call the decision tree function on a widetable
+## You can also call the random forest function on a widetable
 ## where AdapteR will do the data prep automatically
 ## and convert the wide table to a deep table.
 ## The created deep table is accessible afterwards for
 ## further analysis.
 
-vresFL<-rpart(data=FLdeepTable, formula= -1~.)
-## Calling the decision tree function, rpart.
+vresFL<-randomForest(data=FLdeepTable, formula= -1~., ntree=9)
+## Calling the random forest function, randomForest.
 
-## Examine the tree details such as parent nodes, child nodes,
+## Examine the forest details with individual trees such as parent nodes, child nodes,
 ## Split variables, Split values, strength of node, etc.
-head(vresFL$frame)
-vtemp<-readline("Above: Examining decision tree structure details")
+head(vresFL$forest[1:5])
+vtemp<-readline("Above: Examining forest structure")
 ##
 
-summary(vresFL)
-#### Summary of the created classification tree. Similar to summary of 'rpart' object.
-vtemp <- readline("Above: summary method on created tree \n ")
-
 print(vresFL)
-#### Printing the created tree in a similar manner as R.
-vtemp<-readline("Above: Examining the created tree")
+#### Printing the confusion matrix and basic forest details.
+vtemp<-readline("Above: Examining the forest confusion matrix")
 
 plot(vresFL)
-#### Examining the plot for decision tree
-vtemp<-readline("Above: Plot for decision tree")
+#### Examining the plot for random forest
+vtemp<-readline("Above: Plots for randomForest")
 
-head(predict(vresFL))
+head(predict(vresFL),n=50,display=T)
 #### Predicting the class for every observation using the already
-#### created model tree. You can use a different dataset too, in this demo however,
+#### created model forest. You can use a different dataset too, in this demo however,
 #### since we didn't specify the new data, predict function uses the old data itself.
 vtemp<-readline("Above: Examining the sample result obtained through predict function")
 

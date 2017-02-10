@@ -23,7 +23,8 @@ mahalanobis<-function(x,y,S,...){
 
 mahalanobis.default<-stats::mahalanobis
 
-mahalanobis.FLVector<-function(x,y,S,...){ browser()
+mahalanobis.FLVector<-function(x,y,S,...){
+    ##browser()
 	#if(!class(x)||!class(y)=="FLVector") stop("Function only applies to numeric FLVectors of x and y")
 	#if(!class(S)=="FLMatrix") stop("Function works for a covariance matrix")
 

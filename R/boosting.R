@@ -17,11 +17,11 @@
 #' flt<-FLTable("tblBoostDT","ObsID","VarID","Num_Val")
 #' flobj<-boosting(flt, formula = -1~.,mfinal=mfinal)
 #' @export
-
 boosting<-function(formula,data,...){
 	UseMethod("boosting",data)
 }
 
+#' @export
 boosting.default<-function (formula,data=list(),...) {
     if (!requireNamespace("adabag", quietly = TRUE)){
         stop("adabag package needed for boosting. Please install it.",
@@ -30,6 +30,7 @@ boosting.default<-function (formula,data=list(),...) {
     else return(adabag::boosting(formula=formula,data=data,...))
 }
 
+#' @export
 boosting.FLTable<-function(data,
 				   formula,
 				   control=c(minsplit=10,
