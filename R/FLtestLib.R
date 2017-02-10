@@ -318,7 +318,7 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
   stop("maximum rows,cols allowed is 1000 \n ")
 
   ## here manually set option as true if tables exist.
-  vFromTable <- paste0(getOption("TestDatabase"),".fzzlserial")
+  vFromTable <- getRemoteTableName(tableName="fzzlserial")
   valExpression <- " FLSimUniform(a.serialval*100+b.serialval,0,1)*1000 "
   if(is.Hadoop())
   valExpression <- paste0(" CASE WHEN ",getMODSQL(pColumn1="(a.serialval+b.serialval)",pColumn2=2),

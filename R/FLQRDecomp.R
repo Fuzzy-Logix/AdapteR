@@ -18,7 +18,7 @@ NULL
 #' \item{QMatrix}{the resulting Q Matrix stored in-database as FLMatrix}
 #' \item{RMatrix}{the resulting R Matrix stored in-database as FLMatrix}
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- qr(flmatrix)
 #' resultList$qr
 #' resultList$qraux
@@ -59,9 +59,22 @@ qr.FLMatrix<-function(object,...)
 	                           pInput=list(object),
 	                           pOperator="qr")
 
-	tempResultTable <- createTable(pTableName=gen_unique_table_name("tblQRDecompResult"),
-                                   pSelect=sqlstr)
+    tempResultTable <- cacheDecompResults(pFuncName="FLQRDecompUdt",
+                                          pQuery=sqlstr)
+
+ #    vtblName <- gen_unique_table_name("tblQRDecompResult")
+ #    tempResultTable <- createTable(pTableName=vtblName,
+ #                                    pColNames=c("OutputMatrixID","OutputRowNum",
+ #                                                "OutputColNum","OutputValQ","OutputValR"),
+ #                                    pColTypes=c("INT","INT","INT","FLOAT","FLOAT"),
+ #                                    pPrimaryKey=c("OutputMatrixID","OutputRowNum",
+ #                                                "OutputColNum")
+ #                                    )
+
+	# tempResultTable <- insertIntotbl(pTableName=vtblName,
+ #                                    pSelect=sqlstr)
 	
+ #    tempResultTable <- vtblName
 	#calculating QRMatrix
 
     sqlstrQR <-paste0(" SELECT ",MID1," AS MATRIX_ID, \n ",
@@ -317,3 +330,22 @@ setMethod("qr.qty",signature(qr="ANY"),
         return(base::qr.qty(qr=qr,
             y=y))
         })
+
+## caches the decomposition results from UDT's in a temporary table
+cacheDecompResults <- function(pFuncName,pQuery){
+    vOutColnames <- getMatrixUDTMapping(pFuncName)[["args"]]
+
+    pFuncNameTrim <- gsub("Udt","",gsub("FL","",pFuncName))
+    vlen <- length(vOutColnames)-3
+    vtblName <- gen_unique_table_name(pFuncNameTrim)
+    tempResultTable <- createTable(pTableName=vtblName,
+                                    pColNames=vOutColnames,
+                                    pColTypes=c(rep("INT",3),rep("FLOAT",vlen)),
+                                    pPrimaryKey=c("OutputMatrixID","OutputRowNum","OutputColNum")
+                                    )
+
+    tempResultTable <- insertIntotbl(pTableName=vtblName,
+                                    pSelect=pQuery)
+    
+    return(vtblName)
+}

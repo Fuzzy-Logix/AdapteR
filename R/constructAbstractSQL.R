@@ -155,20 +155,20 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
 
     else if(is.TDAster()){
-        if(!is.null(pViewColnames))
+        if(!is.null(pViewColnames) && !is.null(vsubset))
             pViewColnames <- pViewColnames[vsubset]
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                             " ( ON ( ",vNestedSelect," ) ",
                             " PARTITION BY ",paste0(pPartitionBy,
                                                     collapse=","),
-                            " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
+                            " TARGET (",paste0(fquote(tolower(setdiff(names(pViewColnames),
                                                         pPartitionBy))),
                                                 collapse=",")
                             ,")) a ",
                         constructWhere(pWhereConditions)
                     )
-                )
+            )
     }
 }
 
