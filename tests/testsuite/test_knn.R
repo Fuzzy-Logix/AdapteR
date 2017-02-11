@@ -40,7 +40,7 @@ test_that("knn classification: Result correctness",{
 #                             if(upper) vmat+t(vmat)
 #                             else t(vmat)
 #                         }
-# Renv$rrdist <- Renv$dist2matrix(Renv$rdist)
+# Renv$rrdist <- Renv$dist2matrix(Renv$rdist,upper=TRUE)
 # Renv$dist <- Renv$rrdist[1:75,76:150]
 
 # FLenv$dist <- as.matrix(FLgetDistMatrix(FLenv$test,FLenv$train,upper=TRUE,diag=TRUE))
