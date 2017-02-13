@@ -70,28 +70,35 @@ FLSVUdt.TD(OutputMatrixID,OutputID,OutputSV) <- FLSVUdt(OutputMatrixID=vectorIDC
 FLSVUdt.TDAster(OutputMatrixID,OutputID,OutputSV) <- FLSVUdt(partition1=vectorIDColumn,col_id=vectorIndexColumn,singularval=vectorValueColumn)
 
 FLMatrixTrace.Hadoop(MatrixID,MatrixTrace) <- FLPTFMatrixTrace(matrix_id=matrix_id,trace_value=trace_value)
-FLMatrixTrace.TDAster(MatrixID,MatrixTrace) <- FLMatrixTrace(matrix_id=matrix_id,matrixtrace=trace_value)
+FLMatrixTrace.TDAster(MatrixID,MatrixTrace) <- FLMatrixTrace(matrix_id=matrix_id,matrixtrace=matrixtrace)
 
 FLModeUdt.TD(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMode)
 FLModeUdt.Hadoop(oGroupID,oMode) <- FLPTFMode(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLModeUdt.TDAster(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=partition1,vectorValueColumn=oMode)
 
 FLMedianUdt.TD(oGroupID,oMedian) <- FLMedianUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedian)
 FLMedianUdt.Hadoop(oGroupID,oMedian) <- FLPTFMedian(vectorIdColumn=GroupID,vectorValueColumn=MedianValue)
+FLMedianUdt.TDAster(oGroupID,oMedian) <- FLMedianUdt(vectorIdColumn=partition1,vectorValueColumn=Median)
 
 FLPercUdt.TD(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=oGroupID,vectorValueColumn=oPercVal)
 FLPercUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPerc(vectorIdColumn=GroupID,vectorValueColumn=PercValue)
+FLPercUdt.TDAster(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=partition1,vectorValueColumn=oPercVal)
 
 FLPercentUdt.TD(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=oObsID,vectorValueColumn=oPercentVal)
 FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=GroupID,vectorValueColumn=PercValue)
+FLPercentUdt.TDAster(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=ObsID,vectorValueColumn=oPercentValue)
 
 FLMeanAbsDevUdt.TD(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMeanAbsDev)
 FLMeanAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMeanAbsDev(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLMeanAbsDevUdt.TDAster(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=partition1,vectorValueColumn=oMeanAbsDev)
 
 FLMedianAbsDevUdt.TD(oGroupID,oMedianAbsDev) <- FLMedianAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedianAbsDev)
 FLMedianAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMedianAbsDev(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLMedianAbsDevUdt.TDAster(oGroupID,oMedianAbsDev) <- FLMedianAbsDevUdt(vectorIdColumn=partition1,vectorValueColumn=oMedianAbsDev)
 
 FLFracRankUdt.TD(oGroupID,oValue,oFracRank) <- FLFracRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oFracRank)
 FLFracRankUdt.Hadoop(oGroupID,oValue,oFracRank) <- FLPTFFracRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=FracRank)
+FLFracRankUdt.TDAster(oGroupID,oValue,oFracRank) <- FLFracRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oFracRank)
 
 FLPercRankUdt.TD(oGroupID,oValue,oPercRank) <- FLPercRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oPercRank)
 FLPercRankUdt.Hadoop(oGroupID,oValue,oPercRank) <- FLPTFPercRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=PercRank)
