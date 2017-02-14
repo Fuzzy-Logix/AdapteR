@@ -934,3 +934,11 @@ setMethod("getTableNameSlot",
           function(object) getTableNameSlot(object@select))
 
 isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep") | inherits(x,"FLMatrix")
+
+
+
+#' Recieves the result of a "show table ..." SQL query as a character string.
+#' 
+#' @export
+showTable <- function(x)
+    gsub("\r","\n",sqlQuery(connection, paste0("show table ",getTableNameSlot(x)))[1,1],fixed=T)
