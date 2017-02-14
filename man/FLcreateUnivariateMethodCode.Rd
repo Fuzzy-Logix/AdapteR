@@ -18,4 +18,3 @@ stats::pweibull            <- FLCDFWeibull(q,location=0,scale,shape)
 for executing the R function (left of " <- ") with
 in-dabase with DB Lytix function (right of " <- ").
 }
-

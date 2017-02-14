@@ -24,6 +24,7 @@ cov(x, y = NULL, use = "everything", method = "pearson", ...)
 The number of non-null pairs must be greater than or equal to 2.
 If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 }
+
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
 deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
@@ -31,4 +32,3 @@ widetable <- FLTable("tblAbaloneWide","ObsID")
 cov(deeptable,deeptable)
 cov(widetable,widetable)
 }
-

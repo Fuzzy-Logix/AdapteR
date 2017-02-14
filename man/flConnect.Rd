@@ -8,7 +8,7 @@ the FL session tables.}
 flConnect(host = NULL, database = NULL, user = NULL, passwd = NULL,
   jdbc.jarsDir = NULL, jdbc.options = "", odbcSource = NULL,
   driverClass = NULL, temporary = TRUE, verbose = FALSE,
-  tablePrefix = NULL, ...)
+  tablePrefix = NULL, pkg = "dbi", ...)
 }
 \arguments{
 \item{host}{}
@@ -70,4 +70,3 @@ connection <- flConnect("jdbc:ncluster://xx.xxx.x.xxx","fuzzylogix",
 connection <- flConnect(odbcSource="sourceName",database="FL_TRAIN",platform="TD")
 connection <- flConnect(odbcSource="SorceName",database="fuzzylogix",platform="TDAster")
 }
-

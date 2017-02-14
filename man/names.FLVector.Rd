@@ -16,4 +16,3 @@ of FLVector if exists. Else NULL
 \description{
 Get names of a FLVector
 }
-

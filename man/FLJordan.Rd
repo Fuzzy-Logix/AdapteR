@@ -24,6 +24,7 @@ FLJordan(object, ...)
 
 Input can only be square matrix with maximum dimension limitations of (700 x 700).
 }
+
 \examples{
 flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- FLJordan(flmatrix)
@@ -31,4 +32,3 @@ resultList$J
 resultList$P
 resultList$PInv
 }
-

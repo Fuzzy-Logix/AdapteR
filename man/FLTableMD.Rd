@@ -49,4 +49,3 @@ deeptableMD <- FLTableMD(table="LinRegrMultiMD",
 head(widetableMD)
 head(deeptableMD)
 }
-

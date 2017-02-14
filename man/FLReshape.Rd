@@ -33,4 +33,3 @@ resultList <- FLReshape(data="medEconomicData",
                         outTable="tbl1",
                         drop=TRUE)
 }
-

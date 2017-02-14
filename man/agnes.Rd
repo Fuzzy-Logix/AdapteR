@@ -68,6 +68,7 @@ cluster is formed at any step.
 If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
+
 \examples{
 deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
 agnesobject <- agnes(deeptable,maxit=50)
@@ -87,4 +88,3 @@ plot(agnesobjectnew)
 \seealso{
 \code{\link[cluster]{agnes}} for R reference implementation.
 }
-

@@ -21,4 +21,3 @@ rowSums(object, ...)
 flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- rowSums(flmatrix)
 }
-

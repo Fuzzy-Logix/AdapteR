@@ -37,6 +37,7 @@ and the matrix P is a permutation matrix, L is lower triangular and U is upper t
 Input can only be with maximum dimension limitations
 of (1000 x 1000).
 }
+
 \examples{
 flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 FLLUobject <- lu(flmatrix)
@@ -45,4 +46,3 @@ listresult$L
 listresult$U
 listresult$P
 }
-
