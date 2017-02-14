@@ -838,10 +838,45 @@ getSelectSlot <- function(x){
                     error=function(x)NULL))
 }
 
+#' @export
+setGeneric("where",function(x,value)
+    standardGeneric("where"))
+
+
+setMethod("where",signature(x="FLTable"),
+          function(x) where(x@select))
+
+setMethod("where",signature(x="FLSelectFrom"),
+          function(x,value){
+    x@whereconditions
+})
+
+
+#' @export
+setGeneric("where<-",function(x,value)
+    standardGeneric("where<-"))
+
+
+setMethod("where<-",signature(x="FLTable"),
+          function(x,value) {
+    where(x@select) <- value
+    x
+})
+
+setMethod("where<-",signature(x="FLSelectFrom"),
+          function(x,value){
+    for(var in x@variables)
+        if(length(var)>0)
+            value <- gsub(paste0("[^\\\\.]",var,"[ $]"),paste0(x@table_name,".",var),value)
+    print(value)
+    x@whereconditions <- value
+    x
+})
+
+
 getWhereConditionsSlot <- function(x){
-    return(tryCatch(x@whereconditions,
-                error=function(e)
-                        return(getWhereConditionsSlot(x@select))))
+    warning("DEPRECATED. please use where(x) instead of getWhereConditionsSlot(x)")
+    where(x)
 }
 getDimsSlot <- function(x){
     return(tryCatch(x@dims,
