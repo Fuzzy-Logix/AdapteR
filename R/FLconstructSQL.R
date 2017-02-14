@@ -737,8 +737,25 @@ constructGroupBy <- function(GroupByVars,...) {
     else return("")
 }
 
-constructWhere <- function(conditions,
-                            includeWhere=TRUE) {
+setGeneric("constructWhere", function(conditions,
+                                      includeWhere=TRUE)
+    standardGeneric("constructWhere"))
+
+setMethod("constructWhere", signature(conditions="FLTable",
+                                      includeWhere="ANY"),
+          function(conditions, includeWhere=TRUE) {
+    constructWhere(conditions@select,includeWhere)
+})
+
+setMethod("constructWhere", signature(conditions="FLSelectFrom",
+                                      includeWhere="ANY"),
+          function(conditions, includeWhere=TRUE) {
+    constructWhere(conditions@whereconditions,includeWhere)
+})
+
+setMethod("constructWhere", signature(conditions="character",
+                                      includeWhere="ANY"),
+          function(conditions, includeWhere=TRUE) {
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)==0)
       return("")
@@ -749,10 +766,10 @@ constructWhere <- function(conditions,
     else vWhere <- " "
     if(length(conditions)>0)
         paste0(vWhere,paste0("   (",conditions,")",
-                                collapse=" AND ")," ")
+                                collapse="\n     AND ")," ")
     else
         ""
-}
+})
 
 
 setGeneric("viewSelectMatrix", function(object,localName, withName) {
