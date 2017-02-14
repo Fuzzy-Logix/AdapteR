@@ -339,13 +339,16 @@ wideToDeep <- function(object,...)
 
 #' @export
 wideToDeep.default <- function(object,
-                                fetchIDs=TRUE,
+                               fetchIDs=TRUE,
+                               OutDeepTable=NULL,
                                 ...){
     object <- setAlias(object,"")
     inputParams <- list(...)
+    if(is.null(OutDeepTable))
+        OutDeepTable <- gen_deep_table_name(getTableNameSlot(object))
     requiredParams <- list(InWideTable=getTableNameSlot(object),
                           ObsIDCol=getVariables(object)[["obs_id_colname"]],
-                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutDeepTable=OutDeepTable,
                           OutObsIDCol="obs_id_colname",
                           OutVarIDCol="var_id_colname",
                           OutValueCol="cell_val_colname",
@@ -367,12 +370,15 @@ wideToDeep.default <- function(object,
 #' @export
 wideToDeep.FLTable.Hadoop <- function(object,
                                     fetchIDs=TRUE,
+                                    OutDeepTable=NULL,
                                     ...){
     object <- setAlias(object,"")
     inputParams <- list(...)
+    if(is.null(OutDeepTable))
+        OutDeepTable <- gen_deep_table_name(getTableNameSlot(object))
     requiredParams <- list(InWideTable=getTableNameSlot(object),
                           ObsIDCol=getVariables(object)[["obs_id_colname"]],
-                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutDeepTable=OutDeepTable,
                           OutObsIDCol="obs_id_colname",
                           OutVarIDCol="var_id_colname",
                           OutValueCol="cell_val_colname",
