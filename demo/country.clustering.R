@@ -27,7 +27,7 @@ if(!exists("connection")) {
 #### Data Preparation
 vtemp <- readline("Data Preparation: \n ")
 
-vtableName <- getTestTableName("medeconomicdata")
+vtableName <- getTestTableName("ARmedEconomicData")
 
 ## Display subset of Table in database
 sqlQuery(getFLConnection(),
@@ -42,7 +42,7 @@ if(!exists("resultList"))
 resultList <- FLReshape(data=vtableName,
                         formula=CountryName ~ IndicatorCode,
                         value.var="TimeSeriesVal",
-                        subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Year=2010",
+                        subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Years=2010",
                         outTable="tbl1",
                         drop=TRUE)
 
@@ -108,7 +108,7 @@ colnames(medEconomicData) <- vIndicatorMap[colnames(medEconomicData)]
 head(medEconomicData)
 dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
-
+require(plotly)
 colr <- c("grey","yellow","blue","green","brown","orange")
 p1 <- plot_ly(medEconomicData,x= Inflation,y= GDP,
               type = 'scatter', mode = 'markers',

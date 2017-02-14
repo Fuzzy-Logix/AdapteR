@@ -594,7 +594,7 @@ setMethod("FLRegrDataPrep",
                     ),
           function(object,
                   depCol="NULL",
-                  fetchIDs=TRUE,
+                  fetchIDs=FALSE,
                   ...
                   )
             {
@@ -617,7 +617,7 @@ setMethod("FLRegrDataPrep",
 FLTrainDataPrep <- function(object,
                             DepCol,
                             inputParams,
-                            fetchIDs=TRUE){
+                            fetchIDs=FALSE){
     UseMethod("FLTrainDataPrep")
 }
 
@@ -634,7 +634,7 @@ setDefaultInputParams <- function(requiredParams,
 FLTrainDataPrep.default <- function(object,
                                     DepCol,
                                     inputParams,
-                                    fetchIDs=TRUE){
+                                    fetchIDs=FALSE){
     requiredParams <- list(InWideTable=getTableNameSlot(object),
                           ObsIDCol=getVariables(object)[["obs_id_colname"]],
                           DepCol=DepCol,
@@ -1088,9 +1088,9 @@ FLReshape <- function(data,formula,
         ## TODO: standardization of data
 
         vres <- sqlQuery(getFLConnection(),
-                        paste0("SELECT MAX(obsid) as rows, MAX(varid) as cols FROM ",outTable))
-        rows <- vres[["rows"]]
-        cols <- vres[["cols"]]
+                        paste0("SELECT MAX(obsid) as vrows, MAX(varid) as vcols FROM ",outTable))
+        rows <- vres[["vrows"]]
+        cols <- vres[["vcols"]]
 
         ## Mappings
         sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",

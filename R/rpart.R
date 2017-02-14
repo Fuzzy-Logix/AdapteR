@@ -17,19 +17,40 @@ NULL
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-rpart(data = flt, formula = -1~.)
 #' @export
-
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
 }
-rpart.default<-rpart::rpart
 
+#' @export
+rpart.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("rpart", quietly = TRUE)){
+        stop("rpart package needed for rpart. Please install it.",
+             call. = FALSE)
+    }
+    else return(rpart::rpart(formula,data,...))
+}
+
+#' @export
+rpart.FLpreparedData <- function(data,
+                                 formula,
+                                 control=c(minsplit=10,
+                                           maxdepth=5,
+                                           cp=0.95),
+                                 method="class",
+                                 ...){
+    rpart.FLTable(data=data$deepx, formula = formula,
+                  control=control, method=method,...)
+}
+    
+#' @export
 rpart.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
                             cp=0.95),
 				  method="class",
-				  ...){ #browser()
+				  ...){
+    ##browser()
 	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
@@ -138,6 +159,7 @@ rpart.FLTable<-function(data,
 
 ## todo: implement $ operator for all names in a rpart S3 object
 
+#' @export
 summary.FLrpart<-function(x,...){
     ## todo: create a rpart S3 object xrpart (populate as much as possible)
     ## print(xrpart)
@@ -155,48 +177,72 @@ summary.FLrpart<-function(x,...){
 			cat("\n ",x$frame$var[i]," < ",x$frame$SplitVal[i])
 		}
 	}
-
+    cat("\n")
 }
 
+#' @export
 predict.FLrpart<-function(object,
-						  newdata=object$deeptable,
-						  scoreTable="",
-						  ...){
-	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
-	newdata <- setAlias(newdata,"")
-	if(scoreTable=="")
+                          newdata=object$deeptable,
+                          scoreTable="",type = "response",
+                          ...){
+    if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
+    newdata <- setAlias(newdata,"")
+    if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
-	if(!isDeep(newdata)){
-		deepx<-FLRegrDataPrep(newdata,
-							  depCol=object$prepspecs$depCol,
-							  excludeCols=object$prepspecs$vexclude)
-		newdata<-deepx
-		newdata<-setAlias(newdata,"")
-	}
-	vtable <- getTableNameSlot(newdata)
-	vobsid <- getVariables(newdata)[["obs_id_colname"]]
-	vvarid <- getVariables(newdata)[["var_id_colname"]]
-	vvalue <- getVariables(newdata)[["cell_val_colname"]]
+    if(!isDeep(newdata)){
+        deepx<-FLRegrDataPrep(newdata,
+                              depCol=object$prepspecs$depCol,
+                              excludeCols=object$prepspecs$vexclude)
+        newdata<-deepx
+        newdata<-setAlias(newdata,"")
+    }
+    vtable <- getTableNameSlot(newdata)
+    vobsid <- getVariables(newdata)[["obs_id_colname"]]
+    vvarid <- getVariables(newdata)[["var_id_colname"]]
+    vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-	vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
-					OBSID_COL=vobsid,
-					VARID_COL=vvarid,
-					VALUE_COL=vvalue,
-					ANALYSISID=object$AnalysisID,
-					OUTPUT_TABLE=scoreTable,
-					NOTE=genNote("Score"))
-	vfuncName<-"FLDecisionTreeMNScore"
-	AnalysisID<-sqlStoredProc(getFLConnection(),
-							  vfuncName,
-							  outputParameter=c(AnalysisID="a"),
-						 	  pInputParams=vinputcols)
-	AnalysisID <- checkSqlQueryOutput(AnalysisID)
-	query<-paste0("Select * from ",scoreTable," Order by 1")
-	result<-sqlQuery(getFLConnection(),query)
-	return(result)
+    vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
+                    OBSID_COL=vobsid,
+                    VARID_COL=vvarid,
+                    VALUE_COL=vvalue,
+                    ANALYSISID=object$AnalysisID,
+                    OUTPUT_TABLE=scoreTable,
+                    NOTE=genNote("Score"))
+    vfuncName<-"FLDecisionTreeMNScore"
+    AnalysisID<-sqlStoredProc(getFLConnection(),
+                              vfuncName,
+                              outputParameter=c(AnalysisID="a"),
+                              pInputParams=vinputcols)
+    AnalysisID <- checkSqlQueryOutput(AnalysisID)
+    ##query<-paste0("Select * from ",scoreTable," Order by 1")
+    val <- "PredictedClass"
+    if(type %in% "prob")
+        val <- "PredictClassProb"
+    
+    sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+                              ",vobsid," AS vectorIndexColumn,\n
+                              ",val," AS vectorValueColumn\n",
+                     " FROM ",scoreTable,"")
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = getFLConnectionName(),
+                          variables = list(
+                              obs_id_colname = "vectorIndexColumn",
+                              cell_val_colname = "vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
+    vrw <- nrow(newdata)
+    yvector <- newFLVector(
+        select = tblfunqueryobj,
+        Dimnames = list(as.integer(1:vrw),
+                        "vectorValueColumn"),
+        dims = as.integer(c(vrw,1)),
+        isDeep = FALSE)
+    return(yvector)
 }
 
+#' @export
 print.FLrpart<-function(object){ #browser()
 	if(is.null(object$frame)) frame<-object
 	else frame <- object$frame
@@ -231,7 +277,7 @@ print.FLrpart<-function(object){ #browser()
  	# 	}
 	 # }
  	#browser()
- 	ylevel <- attr(x, "ylevels")
+ 	##ylevel <- attr(x, "ylevels")
 	node <- as.numeric(newframe$NodeID)
  	depth <- newframe$treelevel
  	spaces<-2
@@ -295,6 +341,7 @@ popstack <- function(stack){
   return(list(stack=stack[-length(stack)],value=val))
 }
 
+#' @export
 plot.FLrpart<-function(x){ #browser()
 	# newframe<-preorderDataFrame(x$frame)
 	# curnode<-c()
@@ -373,7 +420,7 @@ plot.FLrpart<-function(x){ #browser()
   	}
   	else{
   		segments(xcor[i],ycor[i],xcor[i],2.5-(frame$treelevel[i]+1)*0.25)
-  		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
+  		text(xcor[i],2.450-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
 		}  
   }
 }

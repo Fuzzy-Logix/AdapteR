@@ -50,3 +50,23 @@ expectations = c("sen", "spec"))
 
 
 
+
+
+
+
+
+
+## test case for creditcard.
+## ROC made using predictions of FL models of glm, rf, dt.
+setwd("f:/Use Case/")
+glm.predict <- dget(file = "glm.predict")
+dt.predict <- dget(file = "dt.predict")
+rf.predict <- dget(file = "rf.predict")
+dt.predict <- dt.predict$depVar
+rf.predict <- rf.predict$depVar
+glm.predict <- glm.predict$depVar
+depVar <- dget(file = "depVar")
+depVar <- depVar$depVar
+rf.roc <- roc(depVar, rf.predict)
+glm.roc <- roc(depVar, glm.predict)
+dt.roc <- roc(depVar, dt.predict)
