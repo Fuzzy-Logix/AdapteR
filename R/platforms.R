@@ -149,7 +149,9 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             }
             Sys.sleep(1)
             require(RJDBC)
-            drv <- JDBC(driverClass)
+            tryCatch({
+                drv <- JDBC(driverClass)
+            }, error=function(e) stop("jdbc driver not found, please provide location by using argument jdbc.jarsDir"))
             st <- paste0(host)
             if(!is.null(database))
                 st <- paste0(st, "/",database[1], 
