@@ -125,12 +125,23 @@ predict.FLbagging<-function(object,newdata=object$data,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
 
-	if(type %in% "prob"){
- 	   val <- "probability"
-       sqlQuery(getFLConnection(), paste0("alter table ",scoreTable, " add  probability float"))
-       sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",length(object$trees)))											
-    } else {
-       val <- "NumOfVotes"}
-
-   	return(FLTable(scoreTable,"ObsID","PredictedClass",val))
+    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    								   " add probability float, add matrix_id float"))
+    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",length(object$trees)))											
+    x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
+    m<-matrix(nrow = length(unique(x$ObservedClass)), ncol=length(unique(x$ObservedClass)))
+	rownames(m)<-1:length(unique(x$ObservedClass))
+	colnames(m)<-1:length(unique(x$ObservedClass))
+	m[is.na(m)]<-0
+	for(i in 1:length(x$ObservedClass)){
+	  		j<-x[i,1]
+	  		k<-x[i,2]	
+	 		m[j,k]<-m[j,k]+1
+	}
+   	return(list(formula= object$formula,
+   				votes = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"),
+   				prob = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"),
+   				class=as.factor(x$PredictedClass),
+   				confusion=m))
 }

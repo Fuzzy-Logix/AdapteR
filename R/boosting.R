@@ -128,6 +128,18 @@ predict.FLboosting<-function(object,
                               pInputParams=vinputcols)
     AnalysisID <- checkSqlQueryOutput(AnalysisID)
     #query<-paste0("Select * from ",scoreTable," Order by 1")
-  
-   	return(FLTable(scoreTable,"ObsID"))
+  	x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
+    m<-matrix(nrow = length(unique(x$ObservedClass)), ncol=length(unique(x$ObservedClass)))
+	rownames(m)<-1:length(unique(x$ObservedClass))
+	colnames(m)<-1:length(unique(x$ObservedClass))
+	m[is.na(m)]<-0
+	for(i in 1:length(x$ObservedClass)){
+	  		j<-x[i,1]
+	  		k<-x[i,2]	
+	 		m[j,k]<-m[j,k]+1
+	}
+   	return(list(formula=object$formula,
+   		   pred=FLTable(scoreTable,"ObsID"),
+   		   class=as.factor(x$PredictedClass),
+   		   confusion=m))
 }

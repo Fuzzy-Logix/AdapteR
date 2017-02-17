@@ -171,3 +171,11 @@ plot.FLRandomForest<-function(object){ #browser()
 		plot.FLrpart(object$forest[[i]])
 	}
 }	
+
+summary.FLRandomForest<-function(object){ browser()
+	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
+	x<-predict(object,type="prob")
+	tablename<-x@select@table_name
+	tablex<-FLTable(tablename,"ObsID")
+	a<-roc(tablex$PredictedClass,tablex$probability)
+}
