@@ -172,10 +172,27 @@ plot.FLRandomForest<-function(object){ #browser()
 	}
 }	
 
-summary.FLRandomForest<-function(object){ browser()
+summary.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	x<-predict(object,type="prob")
 	tablename<-x@select@table_name
 	tablex<-FLTable(tablename,"ObsID")
-	a<-roc(tablex$PredictedClass,tablex$probability)
+	tabler<-as.data.frame(tablex)
+	ret<-list()
+	if(!all(tabler$PredictedClass) %in% c("0","1")){
+		i<-unique(tabler$PredictedClass)
+		c<-combn(i,m=2)
+		for(t in 1:ncol(c)){
+			resv<-c[,t]
+			subdf1<-tabler[tabler$PredictedClass==resv[1],]
+			subdf2<-tabler[tabler$PredictedClass==resv[2],]
+			probv1<-subdf1[,5]
+			probv2<-subdf2[,5]
+			ret<-c(ret, roc(as.FLVector(c(rep(0,length(probv1)),rep(1,length(probv2)))),
+							as.FLVector(c(probv1,probv2))))
+		}
+	}
+	else ret<-roc(tablex$PredictedClass,tablex$probability)
+	ret<-c(ret, confusion=object$confusion)
+	return(ret)
 }
