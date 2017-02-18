@@ -29,15 +29,16 @@
 ##' @export
 matchit <- function(formula, data, method = "nearest", distance = "logit",
                     distance.options = list(), discard = "none",
-                    reestimate = FALSE, ...){
+                    reestimate = FALSE,...){
     if(reestimate) stop("reestimate not supported.")
     if(discard!="none") stop("discard not supported.")
     if(distance!="logit") stop("only logit distance supported.")
     if(method!="nearest") stop("only nearest neighbor matching supported.")
     if(length(distance.options)>0) warning("distance options ignored")
     TIME <- list()
-    browser()
+    ## browser()
     connection <- getFLConnection(data)
+    ##excludeCols=c(excludeCols)
     ## prepare data for glm
     TIME$dataprep <- system.time({
         deepD <- prepareData(formula, data=data, family="binomial", ...)
@@ -46,7 +47,7 @@ matchit <- function(formula, data, method = "nearest", distance = "logit",
     ##
     ## logistic regression training
     TIME$logregr <- system.time({
-        fit <- glm(formula,data=deepD, family="binomial")
+        fit <- glm(formula,data=deepD, family="binomial",excludeCols,...)
         ## fit <- glm(TREATMENT ~ ., data=deepD, family="binomial")
     })
     ##
@@ -56,37 +57,59 @@ matchit <- function(formula, data, method = "nearest", distance = "logit",
     })
     ##
     ## create a table for Matchit
-    sel <- setAlias(scores, "predTab")
-    Y <- setAlias(data,"respTab")
-    obsid <- getIndexSQLExpression(Y,1)
-    sel@select@table_name <- c(sel@select@table_name,getTableNameSlot(Y))
-    sel@select@variables <- c(sel@select@variables,
-                              exposure=paste0("respTab.",all.vars(update(fit@formula, .~0))))
-    where(sel) <- c(where(sel),paste0("predTab.obsid = ",obsid))
-    sel@select@order <- ""
-    cat(constructSelect(sel))
+    ## browser()
     e <- gen_unique_table_name("matchit")
-    createTable(pTableName=e, pSelect=constructSelect(sel),
-                pPrimaryKey=getIndexSQLName(sel,1),pWithData = TRUE)
+    Y <- setAlias(data,"a")
+    sql <- paste0("
+SELECT ", getIndexSQLExpression(Y,1)," obsid,
+       a.TREATMENT exposure,
+       b.vectorValueColumn prob
+FROM (",constructSelect(Y),") a,
+     (",constructSelect(scores),") b
+WHERE a.obsid=b.vectorIndexColumn
+")
+    createTable(pTableName=e, pSelect=sql,
+                pPrimaryKey="obsid",pWithData = TRUE)
+    ## obsid <- getIndexSQLExpression(Y,1)
+    ## sel@select@table_name <- c(sel@select@table_name,getTableNameSlot(Y))
+    ## sel@select@variables <- c(sel@select@variables,
+    ##                           exposure=paste0("respTab.",all.vars(update(fit@formula, .~0))))
+    ## where(sel) <- c(where(sel),paste0("predTab.obsid = ",obsid))
+    ## sel@select@order <- ""
+    ## cat(constructSelect(sel))
+    ## createTable(pTableName=e, pSelect=constructSelect(sel),
+    ##             pPrimaryKey=getIndexSQLName(sel,1),pWithData = TRUE)
 
     TIME$matchit <- system.time({
         ret <- sqlStoredProc(connection,
                              "FLMatchIt",
                              TableName = e,
-                             ObsIDColName = getIndexSQLName(sel,1), 
+                             ObsIDColName = "obsid", ##getIndexSQLName(sel,1), 
                              TreatmentColName = "exposure",
-                             PropScoreCol = getValueSQLName(sel),
-                             MatchOrderCol = getValueSQLName(sel),
+                             PropScoreCol = "prob", ## getValueSQLName(sel),
+                             MatchOrderCol = "prob", ## getValueSQLName(sel), 
                              TableOutput = 1,
                              outputParameter = c(OutTable = 'a')
                              )
     })
+    discarded <- FLSimpleVector(as.character(ret$OutTable),"obsid","obsid")
+    whereClause <- function(fordat=data){
+        unsel <- setAlias(discarded, "adpaterSel")
+        unsel@select@order <- ""
+        where(unsel) <- c(where(unsel),
+                          paste0(getValueSQLExpression(unsel)," = ",getIndexSQLExpression(fordat,1)))
+        paste0(" NOT EXISTS (",
+               constructSelect(unsel),")")
+    }
+    environment(whereClause)$data <- data
+    environment(whereClause)$discarded <- discarded
     structure(list(
         model=fit,
         propensities=scores,
         formula=formula,
-        treat=FLSimpleVector(e,getIndexSQLName(sel,1),"exposure"),
-        discarded=FLSimpleVector(ret$OutTable,getIndexSQLName(sel,1),getIndexSQLName(sel,1))
+        treat=FLSimpleVector(e,"obsid","exposure"), # getIndexSQLName(sel,1),"exposure"),
+        discarded=discarded, ##getIndexSQLName(sel,1),getIndexSQLName(sel,1))
+        whereClause=whereClause
     ),
     timing=TIME,
     class="FLmatchit")

@@ -5,7 +5,8 @@
 \title{Perform matchit algorithm in database.}
 \usage{
 matchit(formula, data, method = "nearest", distance = "logit",
-  distance.options = list(), discard = "none", reestimate = FALSE, ...)
+  distance.options = list(), discard = "none", reestimate = FALSE,
+  excludeCols = c(), ...)
 }
 \arguments{
 \item{formula}{This argument takes the usual syntax of R formula,
