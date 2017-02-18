@@ -1,7 +1,19 @@
 
 ##' Perform matchit algorithm in database.
 ##'
-##' The function returns a FLSimpleVector discarded 
+##'
+##' The matchit function wraps all steps for a matchit analysis:
+##' 1) data prep, if a wide table is provided.
+##' 2) logistic regression
+##' 3) propensity score matching
+##' 4) matchit
+##' All steps are done in-database with DB Lytix.
+##' 
+##' The function returns a list with the logistic regression model,
+##' a FLSimpleVector with the propensities
+##' FLSimpleVector with discarded obsids,
+##' and a closure function whereClause for restricting
+##' a FLTable or FLVector to the matched set for further statistical analyses.
 ##'
 ##' 
 ##' @seealso \code{\link[MatchIt]{matchit}} for R reference
