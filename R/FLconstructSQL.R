@@ -809,6 +809,11 @@ setMethod("constructWhere", signature(conditions="character",
           function(conditions, includeWhere=TRUE)  constructWhereClause(conditions=conditions,
                                                                         includeWhere=TRUE,
                                                                         clauseName="WHERE"))
+setMethod("constructWhere", signature(conditions="NULL",
+                                      includeWhere="ANY"),
+          function(conditions, includeWhere=TRUE)  constructWhereClause(conditions=character(),
+                                                                        includeWhere=includeWhere,
+                                                                        clauseName="WHERE"))
     
 
 constructWhereClause <- function(conditions, includeWhere=TRUE, clauseName="WHERE") {

@@ -1398,6 +1398,9 @@ prepareData.formula <- function(formula,data,
 #' @export
 prepareData.lmGeneric <- prepareData.formula
 
+#' @export
+prepareData.NULL <- prepareData.formula
+
 
 ## move to file lm.R
 #' @export
