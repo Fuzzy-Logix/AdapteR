@@ -28,8 +28,8 @@ There are 4 types of norms of a matrix:
 
 Input can only be with maximum dimension limitations of (700 x 700).
 }
+
 \examples{
 flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLVector <- FLMatrixNorm(flmatrix,4)
 }
-

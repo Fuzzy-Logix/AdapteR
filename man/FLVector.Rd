@@ -23,4 +23,3 @@ flvectorColumn
 \seealso{
 \code{\link{FLTable}}
 }
-

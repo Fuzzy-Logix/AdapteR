@@ -36,4 +36,3 @@ widetable  <- FLTable("tblAbaloneWide", "ObsID")
 deeptable <- wideToDeep(widetable)
 analysisID <- deeptable@wideToDeepAnalysisID
 }
-

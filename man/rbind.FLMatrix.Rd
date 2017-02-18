@@ -4,7 +4,7 @@
 \alias{rbind.FLMatrix}
 \title{Combine objects by rows.}
 \usage{
-rbind.FLMatrix(x, ...)
+\method{rbind}{FLMatrix}(x, ...)
 }
 \arguments{
 \item{x...}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}
@@ -23,8 +23,8 @@ combines them by rows and makes a FLMatrix.
 
 Input matrices, FLMatrices and data frames should have same number of columns.
 }
+
 \examples{
 flmatrix <- FLMatrix("tblMatrixMulti", 5)
 resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
 }
-

@@ -15,4 +15,3 @@
 \description{
 computes the length of FLVector object.
 }
-

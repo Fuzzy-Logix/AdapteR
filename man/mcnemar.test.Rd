@@ -30,4 +30,3 @@ ResulthtestObject <- mcnemar.test(x,y)
 ResulthtestObject <- mcnemar.test(x,y,FALSE)
 ResulthtestObject <- mcnemar.test(x,y,"YATES")
 }
-

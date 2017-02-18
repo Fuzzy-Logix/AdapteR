@@ -15,4 +15,3 @@ message if the table is dropped
 \description{
 drop a table
 }
-

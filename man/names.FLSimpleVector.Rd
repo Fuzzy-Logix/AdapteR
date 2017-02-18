@@ -2,6 +2,7 @@
 % Please edit documentation in R/FLconstructSQL.R, R/FLSubsetting.R
 \name{names.FLSimpleVector}
 \alias{names.FLSimpleVector}
+\alias{names.FLSimpleVector}
 \title{Get names of a FLVector}
 \usage{
 \method{names}{FLSimpleVector}(x)
@@ -25,4 +26,3 @@ Get names of a FLVector
 
 Get names of a FLSimpleVector
 }
-

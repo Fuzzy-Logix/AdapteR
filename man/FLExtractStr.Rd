@@ -32,6 +32,7 @@ but the position is indicated, then the last segment is returned.
 
 row vectors are not supported currently.
 }
+
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -41,4 +42,3 @@ resultflvector <- FLExtractStr(flv,"A",1)
 \code{\link[base]{substr}} , \code{\link[base]{strsplit}} for R function reference
 implementation.
 }
-
