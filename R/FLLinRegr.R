@@ -2455,7 +2455,7 @@ getReferenceCategories <- function(data,pExcludeCols="",
     unused_cols <- c(pExcludeCols,
                     getObsIdSQLExpression(data),
                     getGroupIdSQLExpression(data))
-
+    
     ## Detect factors and assign classSpec
     vfirstRow <- sqlQuery(getFLConnection(),
                           limitRowsSQL(paste0("SELECT * FROM (",

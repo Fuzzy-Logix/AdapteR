@@ -243,7 +243,6 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 # head(irisFL)
 #' @export
 `$<-.FLTable` <- function(x,name,value){
-    ## browser()
   vcolnames <- x@Dimnames[[2]]
   vtablename <- getTableNameSlot(x)
   name <- gsub("\\.","",name,fixed=TRUE)

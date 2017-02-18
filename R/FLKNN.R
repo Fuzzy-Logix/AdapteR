@@ -387,7 +387,7 @@ batchIndexCompute <- function(pDataTbl,
                                 # pasteOperator(vobsidColnames[1],vobsidColnames[2]),
                                 # pasteOperator(vvaridColnames[1],-1),
                                 # pasteOperator(vvaridColnames[2],-1),
-                                # pasteOperator(vvalueColnames[1],vvalueColnames[2]), ## fails if we match and remove points which are exactly
+                                pasteOperator(vvalueColnames[1],vvalueColnames[2]), ## fails if we match and remove points which are exactly
                                                                                     ## same.. in the where clause in FLKNN
                                 pasteOperator(pasteOperator(vobsidColnames[1],
                                                             vBatchSize,"MOD"),
