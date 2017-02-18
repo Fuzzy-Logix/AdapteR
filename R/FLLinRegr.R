@@ -2450,7 +2450,7 @@ coefficients.FLLinRegrSF<-function(object){
 getReferenceCategories <- function(data,pExcludeCols="",
                                     classSpec=list(),
                                     ...){
-    browser()
+    ##browser()
     vcolnames <- colnames(data)
     unused_cols <- c(pExcludeCols,
                     getObsIdSQLExpression(data),
