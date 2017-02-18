@@ -136,9 +136,15 @@ newFLVector <- function(...) {
   if(is.null(vtemp$dims)){
       vtemp$dims <- sapply(vtemp$Dimnames,length)
   }
-  return(do.call("new",
+  a <- do.call("new",
                  c(Class=paste0("FLVector.",getFLPlatform()),
-                   vtemp)))
+                   vtemp))
+  if(a@dims[1]==0){
+      a@dims <- c(sqlQuery(connection,paste0("
+SELECT COUNT(",getIndexSQLExpression(a,1),") AS n
+FROM (",constructSelect(a),") flt"))[1,1],1)
+  }
+  return(a)
 }
 
 validity.FLSimpleVector <- function(x){
