@@ -783,7 +783,7 @@ as.FLVector.vector <- function(object,connection=getFLConnection())
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
-                whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
+                whereconditions=paste0("flt.vectorIdColumn = ",VID),
                 order = "")
 
   return(newFLVector(
