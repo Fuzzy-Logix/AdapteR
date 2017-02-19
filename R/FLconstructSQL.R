@@ -141,7 +141,7 @@ newFLVector <- function(...) {
                    vtemp))
   if(a@dims[1]==0){
       a@dims <- c(sqlQuery(connection,paste0("
-SELECT COUNT(",getIndexSQLExpression(a,1),") AS n
+SELECT COUNT(1) AS n
 FROM (",constructSelect(a),") flt"))[1,1],1)
   }
   return(a)
