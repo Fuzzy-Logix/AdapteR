@@ -28,7 +28,6 @@ user supplied delimiter to separate the fields.
 
 row vectors are not supported currently.
 }
-
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -38,3 +37,4 @@ resultflvector <- FLConcatString(flv,",")
 \code{\link[base]{paste0}} for R function reference
 implementation.
 }
+

@@ -43,7 +43,6 @@ scaler that replaces a character in a string with a another character.
 row FLVectors are not supported currently.
 Currently only one character is used for replacement.
 }
-
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -52,3 +51,4 @@ flvector <- gsub("A","X",flv)
 \seealso{
 \code{\link[base]{gsub}} for R function reference implementation.
 }
+

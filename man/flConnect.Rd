@@ -70,3 +70,4 @@ connection <- flConnect("jdbc:ncluster://xx.xxx.x.xxx","fuzzylogix",
 connection <- flConnect(odbcSource="sourceName",database="FL_TRAIN",platform="TD")
 connection <- flConnect(odbcSource="SorceName",database="fuzzylogix",platform="TDAster")
 }
+

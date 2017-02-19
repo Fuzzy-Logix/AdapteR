@@ -34,3 +34,4 @@ pred <- predict(flmod);res <- residuals(flmod)
 \seealso{
 \code{\link[stats]{opls}} for R reference implementation.
 }
+

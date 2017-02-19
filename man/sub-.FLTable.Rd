@@ -26,3 +26,4 @@ which replicates the equivalent R extraction.
 fltable <- FLTable("tblAbaloneWide", "ObsID")
 resultFLtable <- fltable[1:10,4:6]
 }
+

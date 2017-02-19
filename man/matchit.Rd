@@ -53,3 +53,4 @@ a FLTable or FLVector to the matched set for further statistical analyses.
 \code{\link[MatchIt]{matchit}} for R reference
     implementation.
 }
+

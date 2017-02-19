@@ -29,3 +29,4 @@ DeepTable <- FLTable("tblUSArrests","ObsID")
 flvectorDeep <- DeepTable[1:5,1]
 resultFLMatrix <- diag(flvectorDeep)
 }
+

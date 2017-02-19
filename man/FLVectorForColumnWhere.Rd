@@ -16,3 +16,4 @@ FLVectorForColumnWhere(data, column, where)
 \description{
 Creates FLVector from a column from a database table after applying WHERE conditions.
 }
+

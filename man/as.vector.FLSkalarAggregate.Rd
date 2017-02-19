@@ -4,8 +4,9 @@
 \alias{as.vector.FLSkalarAggregate}
 \title{Converts FLSkalarAggregate object to vector in R}
 \usage{
-\method{as.vector}{FLSkalarAggregate}(object, mode = "any")
+as.vector.FLSkalarAggregate(object, mode = "any")
 }
 \description{
 Converts FLSkalarAggregate object to vector in R
 }
+

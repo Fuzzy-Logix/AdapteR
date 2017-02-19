@@ -63,7 +63,6 @@ Only \code{coefficients},\code{linear.predictors},\code{FLSurvivalData},
 \code{means},\code{terms} can be called on fitted object using $.
 coefficients,plot,print,summary methods are available for fitted object.
 }
-
 \examples{
 widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
 fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
@@ -80,3 +79,4 @@ fitT$coefficients
 summary(fitT)
 plot(fitT)
 }
+

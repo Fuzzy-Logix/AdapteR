@@ -51,3 +51,4 @@ resultFLVector <- log(flvector,4)
 implementation. \code{\link[base]{sqrt}}, \code{\link[grDevices]{sqrt}} 
 for sqrt base reference.
 }
+

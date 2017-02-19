@@ -25,7 +25,6 @@ The number of non-null pairs must be greater than or equal to 2.
 If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 Only methods c("pearson","spearman","shuffle") are supported.
 }
-
 \examples{
 deeptable <- FLTable( 
 "tblUSArrests", "ObsID","VarID","Num_Val")
@@ -33,3 +32,4 @@ widetable <- FLTable("tblAbaloneWide","ObsID")
 cor(deeptable,deeptable)
 cor(widetable,widetable)
 }
+

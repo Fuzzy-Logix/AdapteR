@@ -29,3 +29,4 @@ plot(flmod)
 \seealso{
 \code{\link[stats]{lda}} for R reference implementation.
 }
+

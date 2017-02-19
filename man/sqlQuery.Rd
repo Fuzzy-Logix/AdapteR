@@ -16,3 +16,4 @@ sqlQuery(connection, query, ...)
 Send a query to database
 Result is returned as data.frame
 }
+

@@ -9,3 +9,4 @@
 \description{
 Converts FLVector object to vector in R
 }
+

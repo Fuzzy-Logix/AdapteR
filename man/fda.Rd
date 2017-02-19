@@ -41,3 +41,4 @@ couldnt be implemented: plot, values, precent.explained
 \seealso{
 \code{\link[stats]{fda}} for R reference implementation.
 }
+

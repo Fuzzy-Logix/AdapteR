@@ -51,3 +51,4 @@ FLTableObj <- as.FLTable(airquality,tableName="ARBaseTestTempTable",drop=TRUE)
 result2 <- kruskal.test(Ozone ~ Month, data = FLTableObj)
 print(result2)
 }
+

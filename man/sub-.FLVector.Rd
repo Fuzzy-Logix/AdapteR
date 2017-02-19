@@ -23,3 +23,4 @@ WideTable <- FLTable("tblAbaloneWide","ObsID")
 flvector <- FLVector[,"Diameter"]
 resultFLVector <- flvector[10:1]
 }
+

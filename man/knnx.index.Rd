@@ -3,7 +3,7 @@
 \name{knnx.index}
 \alias{knnx.index}
 \title{k-Nearest Neighbour Indexes
-For each row of the test set, the k nearest (according to distance metric speicified) 
+For each row of the test set, the k nearest (according to Euclidean distance metric) 
 training set vectors are found and indices,distances are returned.}
 \usage{
 knnx.index(data, query, k = 1, algorithm = "kd_tree", ...)
@@ -22,7 +22,7 @@ FLVector of indices or a list of dist & index if dist FLag is true.
 }
 \description{
 k-Nearest Neighbour Indexes
-For each row of the test set, the k nearest (according to distance metric speicified) 
+For each row of the test set, the k nearest (according to Euclidean distance metric) 
 training set vectors are found and indices,distances are returned.
 }
 \examples{
@@ -30,3 +30,4 @@ FLdeepTbl <- FLTable(getTestTableName("ARknnDevSmall"),"obsid","varid","num_val"
 FLknnOutput <- knnx.index(FLdeepTbl,FLdeepTbl,k=2)
 FLknnOutput
 }
+

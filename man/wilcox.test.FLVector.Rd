@@ -35,7 +35,6 @@ alternative "greater" is that x is shifted to the right of y).
 \section{Constraints}{
  conf.level, conf.int is not supported currently for FL objects.
 }
-
 \examples{
 Wilcoxon Signed Rank test:
 a <- as.FLVector(c(85,70,40,65,80,75,55,20))
@@ -48,3 +47,4 @@ b <-  c(7, 10, 4, 3, 5, 6)
 res <- wilcox.test(a, b, paired = FALSE)
 
 }
+

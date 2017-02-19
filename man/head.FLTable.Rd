@@ -22,7 +22,6 @@ returns an object (usually) like x i.e. an in-database object but generally smal
 \section{Usage}{
  \code{tail.FLMatrix(x, n=6L, ...)}
 }
-
 \examples{
 flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 headflmatrix <- head(flmatrix, n=6L, ...)
@@ -31,3 +30,4 @@ print(headflmatrix)
 \seealso{
 \code{\link[utils]{head}} , \code{\link[utils]{tail}} for R reference implementation.
 }
+

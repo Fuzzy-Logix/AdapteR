@@ -205,7 +205,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
   return(NULL)
   if(isDeep(object) && !property %in% colnames(object))
     property <- getVarIDIndex(object,property)
-  if(property %in% colnames(object))
+  if(all(property %in% colnames(object)))
   return(object[,as.character(property)])
   else return(NULL)
 }
@@ -292,10 +292,10 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
   else{
     ##browser()
 
-    if(is.na(as.numeric(name)))
+    if(is.na(suppressWarnings(as.numeric(name))))
         name <- getVarIDIndex(x,name)
 
-    if(tolower(name)%in%tolower(vcolnames)){
+    if(all(tolower(name)%in%tolower(vcolnames))){
         value <- setAlias(value,"a")
         value <- setIndexSQLName(value,1,"obsid")
         value <- setIndexSQLName(value,2,"varid")

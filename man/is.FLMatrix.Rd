@@ -9,3 +9,4 @@ is.FLMatrix(object)
 \description{
 Check if the object is an FLMatrix object
 }
+

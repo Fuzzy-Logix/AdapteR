@@ -16,3 +16,4 @@ FLConnection(connection, platform, name)
 A FLConnection object stores either a JDBC or a ODBC connection
 as well as the platform that is connected to.
 }
+

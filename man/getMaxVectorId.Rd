@@ -13,3 +13,4 @@ getMaxVectorId(vconnection = getFLConnection(),
 \description{
 used to know ID of next entry in table
 }
+

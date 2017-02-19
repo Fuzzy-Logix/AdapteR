@@ -32,3 +32,4 @@ resultList <- deepToWide(deeptable)
 widetable <- resultList$table
 analysisID <- resultList$AnalysisID
 }
+

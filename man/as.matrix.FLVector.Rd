@@ -9,3 +9,4 @@
 \description{
 Converts FLVector object to a matrix in R
 }
+

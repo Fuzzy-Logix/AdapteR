@@ -41,7 +41,6 @@ each cluster until the desired hierarchical level is reached.
 If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
-
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
 hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX")
@@ -54,3 +53,4 @@ The clusters may not be well-defined as is observed in the case below:-
 hkmeansobjectnew <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 plot(hkmeansobjectnew)
 }
+

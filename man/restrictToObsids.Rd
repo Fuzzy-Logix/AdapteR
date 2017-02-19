@@ -16,3 +16,4 @@ restrictToObsids(table, select, exclude = FALSE)
 \description{
 Select obsids in a larger table with fast EXISTS SQL sub-queries.
 }
+

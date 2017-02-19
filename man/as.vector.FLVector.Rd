@@ -4,8 +4,9 @@
 \alias{as.vector.FLVector}
 \title{Converts FLVector object to vector in R}
 \usage{
-\method{as.vector}{FLVector}(object, mode = "any")
+as.vector.FLVector(object, mode = "any")
 }
 \description{
 Converts FLVector object to vector in R
 }
+

@@ -15,7 +15,6 @@ Distance Matrix Computation
 
 only manhattan and euclidean are supported currently.
 }
-
 \examples{
 flmatrix <- FLMatrix("FL_DEM.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 dist(flmatrix)
@@ -24,3 +23,4 @@ dist(flmatrix,upper=TRUE)
 dist(flmatrix,diag=TRUE,upper=TRUE)
 dist(flmatrix,"manhattan",TRUE,TRUE)
 }
+

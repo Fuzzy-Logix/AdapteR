@@ -32,7 +32,6 @@ are supported. Comparision of FLMatrix with FLVector is not currently Supported.
 In case of FLVector and Rvector comparision use FLVector==RVector in place of 
 RVector==FLVector
 }
-
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
 flmatrix <- FLMatrix("FL_DEMO.tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
@@ -41,3 +40,4 @@ Result <- flmatrix == flmatrix
 Result <- flvector==flvector
 Result <- flvector==1:5
 }
+

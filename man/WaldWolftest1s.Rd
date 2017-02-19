@@ -20,7 +20,6 @@ Performs the Wald-Wolfowitz runs test of randomness for continuous data.
 \section{Constraints}{
  alternative, plot, pvalue isnt't currently supported for FL objects.
 }
-
 \examples{
 WaldWolfowitz test 1s:
 data(sweetpotato)
@@ -30,3 +29,4 @@ WaldWolftest1s(yield)
 Data is transformed into a dichotomous vector according as each values is above or below a given threshold. Values equal to the level are removed from the sample.
 The default threshold value used in applications is the sample median which give us the special case of this test with n1 = n2, the runs test above and below the median.
 }
+

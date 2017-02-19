@@ -47,3 +47,4 @@ FLknnOutput <- knn(FLdeepTbl,k=3,prob=TRUE)
 FLknnOutput
 attributes(FLknnOutput)$prob
 }
+

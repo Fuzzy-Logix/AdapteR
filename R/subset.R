@@ -1,12 +1,4 @@
 
-# SELECT
-#      ROW_NUMBER()OVER(ORDER BY flt.final_varid) obsid,
-#      flt.column_name columnName,
-#      flt.final_varid varid
-#  FROM fzzlRegrDataPrepMap AS flt 
-#  WHERE    (flt.final_varid is not null)   AND    (flt.Analysisid='A189032') 
-#  ORDER BY ob
-
 ## 
 #' @export
 subset.FLTableDeep <- function(x,

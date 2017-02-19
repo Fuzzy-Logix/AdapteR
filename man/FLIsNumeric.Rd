@@ -23,7 +23,6 @@ input string is a valid decimal number.
 
 row vectors are not supported currently.
 }
-
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -33,3 +32,4 @@ resultflvector <- FLIsNumeric(flv)
 \code{\link[base]{numeric}} for R function reference
 implementation.
 }
+
