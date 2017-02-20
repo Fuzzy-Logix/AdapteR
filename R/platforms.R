@@ -378,6 +378,7 @@ parsePlatformMapping <- function(definition){
 
 
 ## gk: todo document
+#' @export
 getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
 #' Function to generate platforms mappings for stored procs and UDTs from definitions file.
@@ -391,6 +392,8 @@ getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste
 
     
 # }
+
+#' @export
 FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL',
                                                     'data/platformMatrixUDT.RFL')){
     defs <- readLines(system.file(definitions[1], package='AdapteR'))
@@ -519,9 +522,11 @@ FLClose <- function(connection)
 ## Generate Mappings when package is loaded
 FLcreatePlatformsMapping()
 
+## check if hypothesis tables exists
+#' @export
 checkHypoSystemTableExists <- function(){
     ## Create System table for HypothesisTesting Statistics Mapping
-    vdf <- read.csv(system.file('data/HypothesisTestsMapping.csv', package='AdapteR'))
+    vdf <- read.csv(system.file('data/HypothesisTestsMapping.rfl', package='AdapteR'))
     if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
         t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
                         temporary=FALSE,drop=TRUE)
