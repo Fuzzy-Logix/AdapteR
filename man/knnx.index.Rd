@@ -2,16 +2,14 @@
 % Please edit documentation in R/knnx.index.R
 \name{knnx.index}
 \alias{knnx.index}
-\title{k-Nearest Neighbour Indexes
-For each row of the test set, the k nearest (according to Euclidean distance metric) 
-training set vectors are found and indices,distances are returned.}
+\title{knnx.index}
 \usage{
 knnx.index(data, query, k = 1, algorithm = "kd_tree", ...)
 }
 \arguments{
-\item{data}{input deep FLTable}
+\item{data}{input FLTable with pool space to search for}
 
-\item{query}{input deep FLTable}
+\item{query}{input search FLTable}
 
 \item{k}{number of neighbours considered.}
 
@@ -20,10 +18,12 @@ knnx.index(data, query, k = 1, algorithm = "kd_tree", ...)
 \item{...}{additional parameters like dist Flag to get the distances as well.}
 }
 \value{
-FLVector of indices or a list of dist & index if dist FLag is true.
+FLMatrix of indices or a list of dist & index if dist FLag is true.
 }
 \description{
 k-Nearest Neighbour Indexes
+}
+\details{
 For each row of the test set, the k nearest (according to Euclidean distance metric) 
 training set vectors are found and indices,distances are returned.
 }

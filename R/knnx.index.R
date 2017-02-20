@@ -1,13 +1,15 @@
-
+#' knnx.index
+#'
 #' k-Nearest Neighbour Indexes
+#'
 #' For each row of the test set, the k nearest (according to Euclidean distance metric) 
 #' training set vectors are found and indices,distances are returned.
-#' @param data input deep FLTable
-#' @param query input deep FLTable
+#' @param data input FLTable with pool space to search for
+#' @param query input search FLTable
 #' @param k number of neighbours considered.
 #' @param algorithm currently only brute is supported
 #' @param ... additional parameters like dist Flag to get the distances as well.
-#' @return FLVector of indices or a list of dist & index if dist FLag is true.
+#' @return FLMatrix of indices or a list of dist & index if dist FLag is true.
 #' @examples
 #' FLdeepTbl <- FLTable(getTestTableName("ARknnDevSmall"),"obsid","varid","num_val")
 #' FLknnOutput <- knnx.index(FLdeepTbl,FLdeepTbl,k=2)

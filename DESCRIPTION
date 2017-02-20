@@ -138,6 +138,7 @@ Collate:
     'crossprod.R'
     'experiment_benchmarking.R'
     'friedman.test.R'
+    'knnx.index.R'
     'kruskal.test.R'
     'ks.test.R'
     'kuip.test.R'
