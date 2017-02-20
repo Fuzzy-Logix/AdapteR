@@ -33,6 +33,8 @@ ignored)}
 
 \item{reestimate}{(for API compatibility with MatchIt, not
 supported)}
+
+\item{...}{additional arguments}
 }
 \description{
 The matchit function wraps all steps for a matchit analysis:
