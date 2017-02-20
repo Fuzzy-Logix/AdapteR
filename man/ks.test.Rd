@@ -22,7 +22,6 @@ Perform a one- or two-sample Kolmogorov-Smirnov test.
 \section{Constraints}{
  As of now only supports normal disctribution, alternative and exact isn't supported for FL objects
 }
-
 \examples{
 set.seed(100)                                       
 p <- as.FLVector(rnorm(50))
@@ -32,3 +31,4 @@ If y is a FLVector, a two-sample test of the null hypothesis that x and y were d
 Alternatively, y can be a character string naming a continuous (cumulative) distribution function, or such a function. 
 In this case, a one-sample test is carried out of the null that the distribution function which generated x is distribution y with parameters.
 }
+

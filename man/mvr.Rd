@@ -37,3 +37,4 @@ print and summary methods exist.
 \seealso{
 \code{\link[stats]{mvr}} for R reference implementation.
 }
+

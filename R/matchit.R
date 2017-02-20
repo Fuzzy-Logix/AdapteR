@@ -37,7 +37,7 @@
 ##' @param discard (for API compatibility with MatchIt, must be none)
 ##' @param reestimate (for API compatibility with MatchIt, not
 ##'     supported)
-##' @param ...
+##' @param ... additional arguments
 ##' @export
 matchit <- function(formula, data, method = "nearest", distance = "logit",
                     distance.options = list(), discard = "none",

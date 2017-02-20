@@ -4,7 +4,7 @@
 \alias{cbind.FLMatrix}
 \title{Combine objects by columns.}
 \usage{
-\method{cbind}{FLMatrix}(object, ...)
+cbind.FLMatrix(object, ...)
 }
 \arguments{
 \item{object...}{can be a sequence of vector, FLVector, matrix, FLMatrix or data frames}

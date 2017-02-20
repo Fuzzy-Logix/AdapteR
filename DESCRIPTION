@@ -138,6 +138,7 @@ Collate:
     'crossprod.R'
     'experiment_benchmarking.R'
     'friedman.test.R'
+    'knnx.index.R'
     'kruskal.test.R'
     'ks.test.R'
     'kuip.test.R'
@@ -157,4 +158,4 @@ Collate:
     'wald_wolfowitz.R'
     'wilcox.test.R'
     'z.test.R'
-RoxygenNote: 6.0.1
+RoxygenNote: 5.0.1

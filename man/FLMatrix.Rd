@@ -53,3 +53,4 @@ flmatrix <- FLMatrix("tblMatrixMulti",
                      5, "Matrix_id","ROW_ID","COL_ID","CELL_VAL")
 flmatrix
 }
+

@@ -38,7 +38,6 @@ Match \code{pattern} in each element of \code{x}
 row FLVectors are not supported currently.
 Output slightly differs from base::grepl. See \code{return}
 }
-
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -47,3 +46,4 @@ flvector <- grepl("A",flv)
 \seealso{
 \code{\link[base]{grepl}} for R function reference implementation.
 }
+

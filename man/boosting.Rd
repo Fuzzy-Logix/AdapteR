@@ -29,3 +29,4 @@ algorithms using classification trees as single classifiers.
 flt<-FLTable("tblBoostDT","ObsID","VarID","Num_Val")
 flobj<-boosting(flt, formula = -1~.,mfinal=mfinal)
 }
+

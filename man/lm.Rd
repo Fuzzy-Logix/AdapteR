@@ -66,7 +66,6 @@ methods are defined.Predict method on \code{FLTableMD}
 Properties like \code{print(x),model,plot} might take time as they
 have to fetch data
 }
-
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
@@ -89,3 +88,4 @@ summaryList <- summary(lmfit)
 \seealso{
 \code{\link[stats]{lm}} for R reference implementation.
 }
+

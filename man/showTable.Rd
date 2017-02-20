@@ -9,3 +9,4 @@ showTable(x)
 \description{
 Recieves the result of a "show table ..." SQL query as a character string.
 }
+

@@ -65,3 +65,4 @@ widetable  <- FLTable("tblAbaloneWide", "ObsID")
 deeptable <- FLRegrDataPrep(widetable,"Diameter")
 analysisID <- deeptable@wideToDeepAnalysisID
 }
+

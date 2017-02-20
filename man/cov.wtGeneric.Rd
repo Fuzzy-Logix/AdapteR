@@ -28,7 +28,6 @@ The \code{method} input can be 1,2,3 as in DB-Lytix manual.
 The number of non-null pairs must be greater than or equal to 2.
 If number of non-null pairs is less than 2, FLCorrel returns a NULL.
 }
-
 \examples{
 connection <- flConnect(odbcSource="Gandalf")
 deeptable <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
@@ -36,3 +35,4 @@ widetable <- FLTable("tblAbaloneWide","ObsID")
 cor(deeptable,deeptable)
 cor(widetable,widetable)
 }
+

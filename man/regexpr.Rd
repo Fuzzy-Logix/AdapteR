@@ -43,7 +43,6 @@ search position indicated.
 
 row FLVectors are not supported currently.
 }
-
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -52,3 +51,4 @@ resultflvector <- regexpr("A",flv)
 \seealso{
 \code{\link[base]{regexpr}} for R function reference implementation.
 }
+

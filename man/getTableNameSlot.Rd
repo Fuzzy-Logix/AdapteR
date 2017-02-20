@@ -9,3 +9,4 @@ getTableNameSlot(object)
 \description{
 Getter for remote table name.
 }
+

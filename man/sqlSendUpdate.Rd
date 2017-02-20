@@ -14,3 +14,4 @@ sqlSendUpdate(connection, query, ...)
 \description{
 No result is returned
 }
+

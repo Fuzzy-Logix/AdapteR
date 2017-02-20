@@ -33,6 +33,8 @@ ignored)}
 
 \item{reestimate}{(for API compatibility with MatchIt, not
 supported)}
+
+\item{...}{additional arguments}
 }
 \description{
 The matchit function wraps all steps for a matchit analysis:
@@ -53,3 +55,4 @@ a FLTable or FLVector to the matched set for further statistical analyses.
 \code{\link[MatchIt]{matchit}} for R reference
     implementation.
 }
+

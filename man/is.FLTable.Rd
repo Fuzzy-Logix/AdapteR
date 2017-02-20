@@ -9,3 +9,4 @@ is.FLTable(object)
 \description{
 Check if the object is an FLTable object
 }
+

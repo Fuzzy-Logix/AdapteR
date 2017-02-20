@@ -35,3 +35,4 @@ cat("no.of Nested Queries: ",length(gregexpr("FROM",constructSelect(eval(parse(t
 vResult <- eval(parse(text=vexpression))
 cat("no.of Nested Queries in Result: ",length(gregexpr("FROM",constructSelect(vResult))[[1]]))
 }
+

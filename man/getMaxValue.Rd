@@ -19,3 +19,4 @@ getMaxValue(vtable = getOption("ResultVectorTableFL"),
 \description{
 used to know ID of last entry in table
 }
+

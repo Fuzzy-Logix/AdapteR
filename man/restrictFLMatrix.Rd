@@ -20,3 +20,4 @@ a inCondition for the rownames is appended, if 2 for the columns respectively.}
 \description{
 Appends where clauses for subsetting etc.
 }
+

@@ -33,3 +33,4 @@ flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
 z.test(fla,prob=1)
 z.test(fla,flb,prob=1)
 }
+

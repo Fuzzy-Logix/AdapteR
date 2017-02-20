@@ -24,3 +24,4 @@ FLMatrix object after casting.
 \description{
 Converts input to a FLMatrix object
 }
+

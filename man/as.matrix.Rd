@@ -15,3 +15,4 @@ R matrix object
 \description{
 Caution: data is fetched into R session
 }
+

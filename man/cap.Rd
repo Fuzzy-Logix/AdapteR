@@ -29,3 +29,4 @@ flvector <- as.FLVector(1:5)
 Result <- cap(flmatrix,1)
 Result <- cap(flvector,3)
 }
+

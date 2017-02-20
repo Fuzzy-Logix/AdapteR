@@ -28,3 +28,4 @@ print(resultList$setosa)
 plot(resultList$virginica)
 print(resultList$versicolor)
 }
+

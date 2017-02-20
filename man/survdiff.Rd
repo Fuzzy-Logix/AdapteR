@@ -41,9 +41,9 @@ Only single predictor is supported in formula.
 \code{var} is not available in the output.
 rho values supported are mentioned above.
 }
-
 \examples{
 fltMD <- FLTableMD("vwWHAS100","DataSetID","ObsID")
 resultList <- survdiff(Surv(TIME_VAL,STATUS)~Gender,data=fltMD)
 print(resultList[[1]])
 }
+

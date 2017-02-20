@@ -29,3 +29,4 @@ Fits the Bagging algorithm proposed by Breiman in
 flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 flobj<-bagging(flt, formula = -1~.,mfinal=mfinal)
 }
+

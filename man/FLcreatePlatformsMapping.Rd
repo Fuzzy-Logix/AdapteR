@@ -13,3 +13,4 @@ The definitions file has one definition per line
 The definitions file for UDTs has one definition per line
 <TD_FNAME>.<PLATFORM>(<TD_OUTPUTCOLS>) <- <PLATFORM_FNAME>(<PLATFORM_OUTPUTCOLS>)
 }
+

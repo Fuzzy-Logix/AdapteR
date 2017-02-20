@@ -25,9 +25,9 @@ evaluated as a hexadecimal.
 
 row vectors are not supported currently.
 }
-
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
 resultflvector <- FLIsHex(flv)
 }
+

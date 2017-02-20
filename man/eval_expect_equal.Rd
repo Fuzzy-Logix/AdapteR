@@ -38,3 +38,4 @@ TDOD: collect more information: length of sql sent, amount of data fetched
 \author{
 Gregor Kappler <gregor.kappler@fuzzylogix.com>
 }
+
