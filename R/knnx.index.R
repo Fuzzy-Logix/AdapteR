@@ -177,8 +177,8 @@ subsetFLIndices <- function(object,rows,cols){
     sqlstr <- paste0("SELECT '%insertIDhere%' as vectorIdColumn, ",
                         "a.",vmatDims[1]," as vectorIndexColumn,\n ",
                         "b.",cols," as vectorValueColumn \n ",
-                 "FROM (",constructSelect(indicesKNN),") a,\n ",
-                        "(",constructSelect(controlKNN),") b \n ",
+                 "FROM (",constructSelect(rows),") a,\n ",
+                        "(",constructSelect(object),") b \n ",
                  "WHERE a.",vmatDims[3],"=b.",vtblobsid)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
