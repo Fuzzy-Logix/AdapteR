@@ -43,7 +43,6 @@ subset.FLTableDeep <- function(x,
                         dims    = c(),
                         type       = "integer"
                         )
-    cat(constructSelect(vexistsClause))
     where(x) <- paste0("EXISTS (",constructSelect(vexistsClause),")")
 
     nrows <- sqlQuery(getFLConnection(),
