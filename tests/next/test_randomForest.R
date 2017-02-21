@@ -26,3 +26,9 @@ test_that("test for predict in randomForest",{
   result3 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
 })
 
+test_that("test for summary in randomForest",{
+    flobj<-randomForest(FLenv$table, formula = -1~.,ntree=ntree)
+    flobj1<-summary(flobj)
+    expect_equal(length(flobj1)-1 , ncol(combn(length(unique(as.vector(flobj$predicted))),2)))
+    expect_equal(flobj1[[1]]$auc>0,TRUE)
+  })

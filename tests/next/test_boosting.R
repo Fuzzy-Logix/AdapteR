@@ -20,7 +20,7 @@ test_that("test for boosting on deeptables",{
   result4= expect_equal(flobj$prob$PredictClassProb,(flobj$votes$Votes)/max(flobj$votes$Votes))
 })
 
-## this test fails due to an issue in subsetting FLTable
+## @amal: this test fails due to an issue in subsetting FLTable
 test_that("test for prediction in boostingDTs",{
   flobj<-boosting(FLenv$table, formula = -1~.,mfinal=mfinal)
   robj <- boosting(Col1~., data = Renv$table,mfinal=mfinal)

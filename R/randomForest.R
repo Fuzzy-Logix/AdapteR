@@ -188,11 +188,12 @@ summary.FLRandomForest<-function(object){ #browser()
 			subdf2<-tabler[tabler$PredictedClass==resv[2],]
 			probv1<-subdf1[,5]
 			probv2<-subdf2[,5]
-			ret<-c(ret, roc(as.FLVector(c(rep(0,length(probv1)),rep(1,length(probv2)))),
-							as.FLVector(c(probv1,probv2))))
+			eval(parse(text=paste0("ret$roc",resv[1],resv[2],"<-roc(as.FLVector(c(rep(0,length(probv1)),rep(1,length(probv2)))),
+							as.FLVector(c(probv1,probv2)))")))
+
 		}
 	}
-	else ret<-roc(tablex$PredictedClass,tablex$probability)
-	ret<-c(ret, confusion=object$confusion)
+	else ret$roc<-roc(tablex$PredictedClass,tablex$probability)
+	ret$confusion=object$confusion
 	return(ret)
 }

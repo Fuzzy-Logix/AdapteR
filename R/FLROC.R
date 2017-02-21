@@ -49,8 +49,6 @@ roc.FLTable <- roc.FLVector
 roc.FLTableMD <- roc.FLVector
 
 
-## setMethod("show","auc",print.FLROC)
-
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
     ##browser()
@@ -207,8 +205,8 @@ plot.FLROC <- function(object,limit = 1000,  ...)
     return(plot(as.roc(object, limit=limit,...), ...))
 
 #' @export
-print.FLROC <- function(object, ...)
-    return(print(as.roc(object, auc=TRUE, ...),...))
+print.FLROC <- function(object)
+    return(print(as.roc(object, auc=TRUE)))
 
 
 ## to include : condition when TPR,FPR are NA's
@@ -273,3 +271,5 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 ##    return(reqList)
 ##}
 ##
+
+setMethod("show","FLROC",print.FLROC)
