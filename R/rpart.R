@@ -219,10 +219,12 @@ predict.FLrpart<-function(object,
     AnalysisID <- checkSqlQueryOutput(AnalysisID)
     #query<-paste0("Select * from ",scoreTable," Order by 1")
     if(type %in% "prob"){
-   	   	return(FLTable(scoreTable,"ObsID","PredictedClass","PredictClassProb"))
+    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+   	   	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","PredictClassProb"))
     } else {
     	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," drop NodeID, drop PredictClassProb"))
-       	return(FLTable(scoreTable,"ObsID"))
+       	x<-FLTable(scoreTable,"ObsID")
+       	return(x$PredictedClass)
     }
 }
 

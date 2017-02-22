@@ -21,7 +21,7 @@ test_that("test for prediction in rpart",{
   flobj<-rpart(FLenv$table, formula = -1~.)
   flobj1<-predict(flobj, FLenv$newdata)
   flobj2<-predict(flobj, FLenv$newdata, type = "prob")
-  result1 = expect_equal(nrow(flobj1), nrow(FLenv$newdata))
+  result1 = expect_equal(length(flobj1), nrow(FLenv$newdata))
   result2 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
 })
 

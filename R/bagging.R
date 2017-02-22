@@ -92,8 +92,7 @@ bagging.FLTable<-function(data,
 # setMethod("show","FLbagging",print.FLbagging)
 
 predict.FLbagging<-function(object,newdata=object$data,
-								 scoreTable="",
-								 type="response",...){ #browser()
+								 scoreTable="",...){ #browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)

@@ -136,13 +136,18 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								pInputParams=vinputcols)
 
 	if(type %in% "prob"){
- 	   val <- "probability"
-       sqlQuery(getFLConnection(), paste0("alter table ",scoreTable, " add  probability float"))
-       sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))											
-    } else {
-       val <- "NumOfVotes"}
-
-   	return(FLTable(scoreTable,"ObsID","PredictedClass",val))
+    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    								   " add probability float, add matrix_id float"))
+    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
+	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"))
+	}
+	else if(type %in% "votes"){
+		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+		return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"))
+	}
+	else x <-FLTable(scoreTable,"ObsID")
+   	return(x$PredictedClass)
 }
 
 #' @export
