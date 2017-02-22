@@ -141,14 +141,31 @@ friedman.test.formula <- function(formula, data,
                                   subset=TRUE,
                                   na.action=getOption("na.action"),
                                   ...){
+    ## browser()
     if(!is.FL(data)){
         return(stats:::friedman.test.formula(formula=formula,
                                              data=data,
                                              ## subset=quote(subset), 
                                              na.action=na.action,
                                              ...))
-    } else
-        UseMethod("friedman.test", data)
+    } else{
+        # UseMethod("friedman.test", data)
+        vFuncMap <- c("FLMatrix",
+                      "FLTable",
+                      "FLVector")
+        names(vFuncMap) <- tolower(vFuncMap)
+        vindex <- sapply(names(vFuncMap),
+                        function(x){
+                            grepl(x,tolower(class(data)))
+                        })
+        vFuncName <- vFuncMap[vindex]
+        vFuncName <- paste0("friedman.test.",vFuncName)
+        return(do.call(vFuncName,list(formula=formula,
+                                    data=data,
+                                    subset=subset,
+                                    na.action=na.action,
+                                    ...)))
+    }
 }
 
 #' @export

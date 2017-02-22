@@ -18,7 +18,7 @@ option_list = list(
                 help="password [default= %default]",
                 type="character"),
     make_option(c("-D", "--database"),
-                default="Fl_demo", 
+                default="FL_TRAIN", 
                 help="database [default= %default]",
                 type="character"),
     make_option(c("-c", "--dropTables"),
