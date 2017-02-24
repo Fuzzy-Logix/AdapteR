@@ -1,7 +1,7 @@
                                         #Not in R .
 ## Table does not exist in FL_TRAIN
 test_that("FLSqueezeSpace",{
-    widetable  <- FLTable("tblstringID", "stringID")
+    widetable  <- FLTable(getTestTableName("tblstringID"), "stringID")
     flv <- widetable[1:6,"string"]
     resultflvector <- FLSqueezeSpace(flv)
     expect_equal(as.R(flv),as.R(resultflvector))

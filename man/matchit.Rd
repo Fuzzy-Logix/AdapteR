@@ -34,7 +34,37 @@ ignored)}
 \item{reestimate}{(for API compatibility with MatchIt, not
 supported)}
 
-\item{...}{additional arguments}
+\item{...}{additional arguments. Can be the following:
+\itemize{
+\item catToDummy - Transform categorical variables to numerical values
+either using dummy variables or by using Empirical
+Logit. If the value is 1, transformation is done using
+dummy variables, else if the value is 0,
+transformation is done using Empirical Logit.
+\item performNorm - 0/1 indicating whether to perform standardization of data.
+\item performVarReduc - 0/1. If the value is 1,
+the stored procedure eliminates variables based on standard deviation and
+correlation.
+\item makeDataSparse - If 0,Retains zeroes and NULL values
+from the input table. If 1, Removes zeroes and NULL. If 2,Removes zeroes 
+but retains NULL values.
+\item minStdDev - Minimum acceptable standard deviation for
+elimination of variables. Any variable that has a
+standard deviation below this threshold is
+eliminated. This parameter is only consequential if
+the parameter PerformVarReduc = 1. Must be >0.
+\item maxCorrel - Maximum acceptable absolute correlation between
+a pair of columns for eliminating variables. If the
+absolute value of the correlation exceeds this
+threshold, one of the columns is not transformed.
+Again, this parameter is only consequential if the
+parameter PerformVarReduc = 1. Must be >0 and <=1.
+\item classSpec - list describing the categorical dummy variables.
+Should include the reference value for each column in the list.
+\item whereconditions - takes the where_clause as a string to subset rows.
+\item excludeCols character vector specifying columns to be excluded from Analysis.
+ Can also be deduced from the formula object.
+}}
 }
 \description{
 The matchit function wraps all steps for a matchit analysis:

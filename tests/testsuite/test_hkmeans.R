@@ -16,7 +16,7 @@ test_that("check HKMeans output dimensions ",{
     ## two levels and 3 centers => 3^2
     ## 2 excludeCols and 1 obsID
     FLexpect_equal(dim(FLenv$hkmeansobject$centers),
-                    c(Ncenters^Nlevels,ncol(FLenv$data)-3))
+                    c(Ncenters^Nlevels,ncol(FLenv$data)+3))
     FLexpect_equal(length(FLenv$hkmeansobject$tot.withinss),
                     1)
     FLexpect_equal(length(FLenv$hkmeansobject$withinss),
@@ -24,7 +24,7 @@ test_that("check HKMeans output dimensions ",{
     FLexpect_equal(length(FLenv$hkmeansobject$size),
                     Ncenters^Nlevels)
     FLexpect_equal(dim(FLenv$hkmeansobject$mapping),
-                    c(ncol(FLenv$data)-3,3))
+                    c(ncol(FLenv$data)+3,3))
 })
 
 
