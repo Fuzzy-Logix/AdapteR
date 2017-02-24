@@ -1,4 +1,28 @@
 #' @export
+NULL
+
+#' Classification and Regression with Random Forest
+#'
+#' Random forest is a technique for reducing
+#' the variance of an estimated prediction function.
+#' It takes multiple random samples(with replacement) from the training
+#' data set, uses each of these samples to construct a separate model and separate predictions for test set, and
+#' then averages them.
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param ntree	Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
+#' @param mtry	Number of variables randomly sampled as candidates at each split
+#' @param nodesize Minimum size of terminal nodes.
+#' @param maxdepth The maximum depth to which the tree can go.
+#' cp: Complexity parameter
+#'
+#' @return An object of class "FLRandomForest" containing the forest structure details.
+#' @examples
+#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flobj<-randomForest(data = flt, formula = -1~., ntree=5)
+
+#' @export
 randomForest<-function(data,formula,...){
 	UseMethod("randomForest",data)
 }
@@ -157,7 +181,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 					"ObsID"," AS vectorIndexColumn,",
  					vval," AS vectorValueColumn",
 	 				" FROM ",scoreTable)
-	
+
 	tblfunqueryobj <- new("FLTableFunctionQuery",
 	                        connectionName = getFLConnectionName(),
 	                        variables = list(
