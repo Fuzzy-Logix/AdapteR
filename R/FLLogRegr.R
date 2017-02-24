@@ -238,9 +238,10 @@ residuals.FLLogRegr<-function(object)
 #' @export
 predict.FLLogRegr <- function(object,
 							newdata=object@table,
-							scoreTable=""){
+							scoreTable="",
+							type="response"){
 	return(predict.lmGeneric(object,newdata=newdata,
-							scoreTable=scoreTable))
+							scoreTable=scoreTable,type=type))
 }
 
 #' @export

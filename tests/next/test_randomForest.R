@@ -22,8 +22,14 @@ test_that("test for predict in randomForest",{
   flobj<-randomForest(FLenv$table, formula = -1~.,ntree=ntree)
   flobj1<-predict(flobj, FLenv$newdata)
   flobj2<-predict(flobj, FLenv$newdata, type = "prob")
-  result1 = expect_equal(nrow(flobj1), nrow(FLenv$newdata))
-  result3 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
+  flobj3<-predict(flobj, FLenv$newdata, type = "votes")
+  flobj4<-predict(flobj, FLenv$newdata, type = "link")
+  result1 = expect_equal(length(flobj1), nrow(FLenv$newdata))
+  result2 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
+  result3 = expect_equal(nrow(flobj3), nrow(FLenv$newdata))
+  result3 = expect_equal(ncol(flobj2),length(unique(as.vector(flobj1))))
+  result4 = expect_equal(ncol(flobj3),length(unique(as.vector(flobj1))))
+  result5 = expect_equal(length(flobj4), nrow(FLenv$newdata))
 })
 
 test_that("test for summary in randomForest",{

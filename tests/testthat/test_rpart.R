@@ -21,8 +21,11 @@ test_that("test for prediction in rpart",{
   flobj<-rpart(FLenv$table, formula = -1~.)
   flobj1<-predict(flobj, FLenv$newdata)
   flobj2<-predict(flobj, FLenv$newdata, type = "prob")
+  flobj3<-predict(flobj, FLenv$newdata, type = "link")
   result1 = expect_equal(length(flobj1), nrow(FLenv$newdata))
   result2 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
+  result3 = expect_equal(ncol(flobj2),length(unique(as.vector(flobj1))))
+  result4 = expect_equal(length(flobj3), nrow(FLenv$newdata))
 })
 
 test_that("test for printing decision tree object",{

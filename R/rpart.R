@@ -218,14 +218,39 @@ predict.FLrpart<-function(object,
                               pInputParams=vinputcols)
     AnalysisID <- checkSqlQueryOutput(AnalysisID)
     #query<-paste0("Select * from ",scoreTable," Order by 1")
+    vval<-"PredictedClass"
+    
     if(type %in% "prob"){
     	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
    	   	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","PredictClassProb"))
-    } else {
-    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," drop NodeID, drop PredictClassProb"))
-       	x<-FLTable(scoreTable,"ObsID")
-       	return(x$PredictedClass)
     }
+
+    else if(type %in% "link"){
+    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add logit float"))
+    	sqlQuery(getFLConnection(),paste0("update ",scoreTable," set logit = -ln(1/PredictClassProb - 1) where PredictClassProb<1"))
+    	vval<-"logit"
+    }
+    sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+					"ObsID"," AS vectorIndexColumn,",
+ 					vval," AS vectorValueColumn",
+	 				" FROM ",scoreTable)
+	
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                        connectionName = getFLConnectionName(),
+	                        variables = list(
+				                obs_id_colname = "vectorIndexColumn",
+				                cell_val_colname = "vectorValueColumn"),
+	                        whereconditions="",
+	                        order = "",
+	                        SQLquery=sqlstr)
+
+	flv <- newFLVector(
+				select = tblfunqueryobj,
+				Dimnames = list(rownames(newdata),
+								"vectorValueColumn"),
+                dims = as.integer(c(newdata@dims[1],1)),
+				isDeep = FALSE)
+	return(flv)
 }
 
 #' @export
