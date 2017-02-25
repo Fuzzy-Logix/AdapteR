@@ -1062,8 +1062,22 @@ FLReshape <- function(data,formula,
         vtemporary <- list(...)$temporary
     else vtemporary <- FALSE
 
-    if(deepOutput){
+    vdepColname <- NULL
+    if("dependentColumn" %in% names(list(...))){
+        vdepColname <- setdiff(list(...)[["dependentColumn"]],"")
+    }
+    vIncludeIntercept <- FALSE
+    if("includeIntercept" %in% names(list(...))){
+        vIncludeIntercept <- list(...)[["includeIntercept"]]
+    }
 
+    if(length(vdepColname)>0){
+        vWhereClause <- constructWhere(c(subset,
+                                        paste0(vvarid," NOT IN(",
+                                            paste0(vdepColname,collapse=","),")")))
+    }
+    if(deepOutput){
+        browser()
         sqlstr <- paste0(" SELECT DENSE_RANK()OVER(PARTITION BY b.varid ORDER BY b.obsid) as obsid, \n ",
                                 "DENSE_RANK()OVER(PARTITION BY b.obsid ORDER BY b.varid) as varid, \n ",
                                 "b.num_val as num_val, \n ",
@@ -1071,12 +1085,12 @@ FLReshape <- function(data,formula,
                                 "b.varid as varidnames \n ",
                         " FROM ( \n ",
                             " SELECT ",vobsid," as obsid, count(DISTINCT ",vvarid,") as varidcount \n ",
-                            " FROM ",data," \n ",constructWhere(subset),
+                            " FROM ",data," \n ",vWhereClause,
                             " \n GROUP BY ",vobsid,") a, \n ",
-                            " (SELECT COUNT(DISTINCT ",vvarid,") as maxvarid FROM ",data," \n ",constructWhere(subset),
+                            " (SELECT COUNT(DISTINCT ",vvarid,") as maxvarid FROM ",data," \n ",vWhereClause,
                             " \n ) c, \n ",
                             " (SELECT ",vobsid," as obsid,",vvarid," as varid,",value.var," as num_val \n ",
-                                " FROM ",data," \n ",constructWhere(subset),") b \n ",
+                                " FROM ",data," \n ",vWhereClause,") b \n ",
                         " WHERE a.obsid = b.obsid AND a.varidcount = c.maxvarid "
                         )
 
@@ -1085,12 +1099,22 @@ FLReshape <- function(data,formula,
                             pTemporary=vtemporary,
                             pDrop=TRUE)
 
+        if(length(vdepColname)>0){
+            vres <- insertIntotbl(pTableName=outTable,
+                                  pSelect=paste0("SELECT ",vobsid,", -1, ",value.var," FROM \n ",
+                                                data," \n WHERE ",vvarid," IN (",paste0(vdepColname,collapse=","),")"))
+        }
+        if(vIncludeIntercept){
+            vres <- insertIntotbl(pTableName=outTable,
+                                  pSelect=paste0("SELECT ",vobsid,", 0, 1 FROM \n ",
+                                                data," \n WHERE ",vvarid," IN (",paste0(vdepColname,collapse=","),")"))
+        }
         ## TODO: standardization of data
 
         vres <- sqlQuery(getFLConnection(),
-                        paste0("SELECT MAX(obsid) as rows, MAX(varid) as cols FROM ",outTable))
-        rows <- vres[["rows"]]
-        cols <- vres[["cols"]]
+                        paste0("SELECT MAX(obsid) as vrows, MAX(varid) as vcols FROM ",outTable))
+        rows <- vres[["vrows"]]
+        cols <- vres[["vcols"]]
 
         ## Mappings
         sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",
