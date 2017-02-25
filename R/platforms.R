@@ -526,7 +526,18 @@ FLcreatePlatformsMapping()
 #' @export
 checkHypoSystemTableExists <- function(){
     ## Create System table for HypothesisTesting Statistics Mapping
-    vdf <- read.csv(system.file('data/HypothesisTestsMapping.rfl', package='AdapteR'))
+    vdf <- tryCatch(read.csv(system.file('data/HypthesisTestsMapping.rfl', 
+                            package='AdapteR')),
+                    error=function(e){
+                        suppressWarnings({data("HypothesisTestsMapping")
+                        vdf <- HypothesisTestsMapping
+                        vdf <- apply(vdf,1,function(x)strsplit(as.character(x),","))
+                        vdf <- ldply(vdf,function(vdf)vdf[[1]])
+                        colnames(vdf) <- c("X","rownames",
+                                           "FLFuncName","FLStatistic")
+                        rm(HypothesisTestsMapping,envir=.GlobalEnv)})
+                        return(vdf)
+                    })
     if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
         t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
                         temporary=FALSE,drop=TRUE)
