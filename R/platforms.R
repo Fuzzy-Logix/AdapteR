@@ -531,6 +531,7 @@ checkHypoSystemTableExists <- function(){
                     error=function(e){
                         suppressWarnings({data("HypothesisTestsMapping")
                         vdf <- HypothesisTestsMapping
+                        require(plyr)
                         vdf <- apply(vdf,1,function(x)strsplit(as.character(x),","))
                         vdf <- ldply(vdf,function(vdf)vdf[[1]])
                         colnames(vdf) <- c("X","rownames",
