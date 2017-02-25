@@ -526,7 +526,7 @@ FLcreatePlatformsMapping()
 #' @export
 checkHypoSystemTableExists <- function(){
     ## Create System table for HypothesisTesting Statistics Mapping
-    vdf <- tryCatch(read.csv(system.file('data/HypthesisTestsMapping.rfl', 
+    vdf <- tryCatch(read.csv(system.file('data/HypothesisTestsMapping.rfl', 
                             package='AdapteR')),
                     error=function(e){
                         suppressWarnings({data("HypothesisTestsMapping")
