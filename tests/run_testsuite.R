@@ -36,7 +36,7 @@ option_list = list(
                 help="if 'require' load installed AdapteR version, otherwise load from git repository provided [default= %default]",
                 type="character"),
     make_option(c("-J", "--jarDir"),
-                default="/Users/gregor/fuzzylogix/Teradata/jdbc", 
+                default="~/SecuriSync/AdapteR 2015/Connectors/jdbc drivers/Teradata", 
                 help="directory with jar files to load [default= %default]",
                 type="character"),
     make_option(c("-P", "--platform"),
