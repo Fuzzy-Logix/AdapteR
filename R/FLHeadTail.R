@@ -21,7 +21,7 @@ NULL
 #' @export
 head.FLTable <- function(x,n=6L,...){
     if("display" %in% names(list(...))){
-        vobsidcol <- changeAlias(getVariables(x)[["obs_id_colname"]],"","")
+        vobsidcol <- changeAlias(getObsIdSQLName(x),"","")
         vsqlstr <- paste0("SELECT TOP ",n," a.* \n ",
                            " FROM (",constructSelect(x),") a ",
                            " ORDER BY a.",vobsidcol)

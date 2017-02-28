@@ -1074,10 +1074,9 @@ FLReshape <- function(data,formula,
     if(length(vdepColname)>0){
         vWhereClause <- constructWhere(c(subset,
                                         paste0(vvarid," NOT IN(",
-                                            paste0(vdepColname,collapse=","),")")))
+                                            fquote(vdepColname),")")))
     }
     if(deepOutput){
-        browser()
         sqlstr <- paste0(" SELECT DENSE_RANK()OVER(PARTITION BY b.varid ORDER BY b.obsid) as obsid, \n ",
                                 "DENSE_RANK()OVER(PARTITION BY b.obsid ORDER BY b.varid) as varid, \n ",
                                 "b.num_val as num_val, \n ",
@@ -1101,13 +1100,15 @@ FLReshape <- function(data,formula,
 
         if(length(vdepColname)>0){
             vres <- insertIntotbl(pTableName=outTable,
-                                  pSelect=paste0("SELECT ",vobsid,", -1, ",value.var," FROM \n ",
-                                                data," \n WHERE ",vvarid," IN (",paste0(vdepColname,collapse=","),")"))
+                                  pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY ",vobsid,"), -1, ",
+                                                        value.var,",",vobsid,",",fquote(vdepColname)," FROM \n ",
+                                                    data," \n WHERE ",vvarid," IN (",fquote(vdepColname),")"))
         }
         if(vIncludeIntercept){
             vres <- insertIntotbl(pTableName=outTable,
-                                  pSelect=paste0("SELECT ",vobsid,", 0, 1 FROM \n ",
-                                                data," \n WHERE ",vvarid," IN (",paste0(vdepColname,collapse=","),")"))
+                                  pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY ",vobsid,"), 0, 1, ",
+                                                        vobsid,", 'Intercept' FROM \n ",
+                                                    data," \n WHERE ",vvarid," IN (",fquote(vdepColname),")"))
         }
         ## TODO: standardization of data
 

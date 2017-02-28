@@ -528,7 +528,6 @@ createTable <- function(pTableName,
                         pDatabase=getOption("ResultDatabaseFL"),
                         pSelect=NULL,
                         ...){
-    browser()
     if(getTablename(pTableName)!=pTableName){
         if(getDatabase(pTableName)!=pDatabase)
             stop(paste0("pTableName specified conflicting database: ", 
