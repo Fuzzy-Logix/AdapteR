@@ -15,7 +15,7 @@ NULL
 #'       \item{P}{FLMatrix representing P matrix obtained from Hessenberg decomposition}
 #'       \item{H}{FLMatrix representing H matrix obtained from Hessenberg decomposition}
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
@@ -52,8 +52,10 @@ FLHessen.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="FLHessen")
 
-    tempResultTable <- createTable(pTableName=gen_unique_table_name("Hessen"),
-                                   pSelect=sqlstr)
+    tempResultTable <- cacheDecompResults(pFuncName="FLHessenbergDecompUdt",
+                                          pQuery=sqlstr)
+    # tempResultTable <- createTable(pTableName=gen_unique_table_name("Hessen"),
+    #                                pSelect=sqlstr)
 
 	PMatrix <- FLMatrix(connection = connection, 
 				       table_name = tempResultTable, 
