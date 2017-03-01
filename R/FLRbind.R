@@ -17,8 +17,10 @@ rbind.default <- base::rbind
 #' @examples
 #' flmatrix <- FLMatrix("tblMatrixMulti", 5)
 #' resultFLMatrix <- rbind(flmatrix,1:5,flmatrix)
+#' @method rbind FLMatrix
 #' @export
 rbind.FLMatrix<-function(x,...) FLbind(list(x,...),1)
 
+#' @method cbind FLMatrixBind
 #' @export
 rbind.FLMatrixBind <- rbind.FLMatrix
