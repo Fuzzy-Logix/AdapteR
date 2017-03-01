@@ -89,6 +89,11 @@ NULL
     object <- populateDimnames(object)
     if(is.FLVector(rows)) rows <- as.vector(rows)
     if(is.FLVector(cols)) cols <- as.vector(cols)
+    ##@phani: todo: implement subsetting
+    ## based on in-database indices as arguments
+    if(is.FLMatrix(rows) || is.FLMatrix(cols)){
+        return(subsetFLIndices(object,rows,cols))
+    }
     if(is.numeric(rows))
         newrownames <- object@Dimnames[[1]][rows]
     else
