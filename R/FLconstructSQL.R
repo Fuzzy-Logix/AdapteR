@@ -836,7 +836,7 @@ constructWhereClause <- function(conditions, includeWhere=TRUE, clauseName="WHER
                                 collapse="   AND ")," ") ## \n creates problem in FLWideToDeep
     else
         ""
-})
+}
 
 
 setGeneric("viewSelectMatrix", function(object,localName, withName) {

@@ -1,4 +1,28 @@
 #' @export
+NULL
+
+#' Classification and Regression with Random Forest
+#'
+#' Random forest is a technique for reducing
+#' the variance of an estimated prediction function.
+#' It takes multiple random samples(with replacement) from the training
+#' data set, uses each of these samples to construct a separate model and separate predictions for test set, and
+#' then averages them.
+#'
+#' @param data FLTable
+#' @param formula formula specifying the independent and dependent variable columns
+#' @param ntree	Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.
+#' @param mtry	Number of variables randomly sampled as candidates at each split
+#' @param nodesize Minimum size of terminal nodes.
+#' @param maxdepth The maximum depth to which the tree can go.
+#' cp: Complexity parameter
+#'
+#' @return An object of class "FLRandomForest" containing the forest structure details.
+#' @examples
+#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flobj<-randomForest(data = flt, formula = -1~., ntree=5)
+
+#' @export
 randomForest<-function(data,formula,...){
 	UseMethod("randomForest",data)
 }
@@ -134,53 +158,46 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								vfuncName,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
-
+	vval<-"PredictedClass"
 	if(type %in% "prob"){
- 	   val <- "NumOfVotes"
-       x<-1/(object$ntree)
-    } else {
-	   val <- "PredictedClass"
-	   x<-1
-    }
-   	
+    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    								   " add probability float, add matrix_id float"))
+    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
+	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"))
+	}
+	else if(type %in% "votes"){
+		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+		return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"))
+	}
+	else if(type %in% "link"){
+		sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+	    								   " add probability float, add logit float"))
+	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
+	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
+	   	vval<-"logit"
+	}
+	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+					"ObsID"," AS vectorIndexColumn,",
+ 					vval," AS vectorValueColumn",
+	 				" FROM ",scoreTable)
 
-   	# yvector <- new("FLVector",
-    #               select= new("FLSelectFrom",
-    #                           table_name=scoreTable,
-    #                           connectionName=getFLConnectionName(),
-    #                           variables=list(ObsID=vobsid,
-    #                           				 val=val),
-    #                           whereconditions="",
-    #                           order=vobsid),
-    #               dimColumns = c("ObsID","val"),
-    #               ##names=NULL,
-    #               Dimnames = list(rownames(newdata),1),
-    #               dims    = c(nrow(newdata),1),
-    #               type       = "integer"
-    #               )
-   	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
-   	                          ",vobsid," AS vectorIndexColumn,\n
-    	                         ",val,"*",x," AS vectorValueColumn\n",
-        	            " FROM ",scoreTable,"")
-   	tblfunqueryobj <- new("FLTableFunctionQuery",
-    	                   connectionName = getFLConnectionName(),
-                           variables = list(
-            	               obs_id_colname = "vectorIndexColumn",
-                	           cell_val_colname = "vectorValueColumn"),
-      	                   whereconditions="",
-        	               order = "",
-                           SQLquery=sqlstr)
-    vrw <- nrow(newdata)
-    yvector <- newFLVector(
-    			   select = tblfunqueryobj,
-       			   Dimnames = list(as.integer(1:vrw),
-                   			      "vectorValueColumn"),
-      			   dims = as.integer(c(vrw,1)),
- 			       isDeep = FALSE)
-   	return(yvector)
-	# query<-paste0("Select * from ",scoreTable," Order By 1")
-	# retobj<-sqlQuery(getFLConnection(),query)
-	# return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                        connectionName = getFLConnectionName(),
+	                        variables = list(
+				                obs_id_colname = "vectorIndexColumn",
+				                cell_val_colname = "vectorValueColumn"),
+	                        whereconditions="",
+	                        order = "",
+	                        SQLquery=sqlstr)
+
+	flv <- newFLVector(
+				select = tblfunqueryobj,
+				Dimnames = list(rownames(newdata),
+								"vectorValueColumn"),
+                dims = as.integer(c(newdata@dims[1],1)),
+				isDeep = FALSE)
+	return(flv)
 }
 
 #' @export
@@ -209,3 +226,29 @@ plot.FLRandomForest<-function(object){ #browser()
 		plot.FLrpart(object$forest[[i]])
 	}
 }	
+
+summary.FLRandomForest<-function(object){ #browser()
+	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
+	x<-predict(object,type="prob")
+	tablename<-x@select@table_name
+	tablex<-FLTable(tablename,"ObsID")
+	tabler<-as.data.frame(tablex)
+	ret<-list()
+	if(!all(tabler$PredictedClass) %in% c("0","1")){
+		i<-unique(tabler$PredictedClass)
+		c<-combn(i,m=2)
+		for(t in 1:ncol(c)){
+			resv<-c[,t]
+			subdf1<-tabler[tabler$PredictedClass==resv[1],]
+			subdf2<-tabler[tabler$PredictedClass==resv[2],]
+			probv1<-subdf1[,5]
+			probv2<-subdf2[,5]
+			eval(parse(text=paste0("ret$roc",resv[1],resv[2],"<-roc(as.FLVector(c(rep(0,length(probv1)),rep(1,length(probv2)))),
+							as.FLVector(c(probv1,probv2)))")))
+
+		}
+	}
+	else ret$roc<-roc(tablex$PredictedClass,tablex$probability)
+	ret$confusion=object$confusion
+	return(ret)
+}
