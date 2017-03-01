@@ -1,7 +1,7 @@
 Package: AdapteR
 Title: Converts R syntax to SQL to provide fast analytics using in-database C++
     library DB Lytix.
-Version: 2.4
+Version: 2.4.1
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -138,14 +138,17 @@ Collate:
     'crossprod.R'
     'experiment_benchmarking.R'
     'friedman.test.R'
+    'knnx.index.R'
     'kruskal.test.R'
     'ks.test.R'
     'kuip.test.R'
     'mahalanobis.R'
+    'matchit.R'
     'mcnemar.test.R'
     'randomForest.R'
     'rowcolOps.R'
     'rpart.R'
+    'subset.R'
     'survdiff.R'
     'survfit.R'
     't.test.R'

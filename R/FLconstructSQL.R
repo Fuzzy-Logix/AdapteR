@@ -20,13 +20,10 @@ setClass("FLTableQuery",
              variables  = "list",
              connectionName = "character",
              whereconditions="character",
+             qualifyconditions="character",
              order = "character",
              group = "character"
          ))
-
-
-
-
 
 #' Models sparse data objects.
 #' 
@@ -139,9 +136,20 @@ newFLVector <- function(...) {
   if(is.null(vtemp$dims)){
       vtemp$dims <- sapply(vtemp$Dimnames,length)
   }
-  return(do.call("new",
+  a <- do.call("new",
                  c(Class=paste0("FLVector.",getFLPlatform()),
-                   vtemp)))
+                   vtemp))
+  if(a@dims[1]==0){
+      a@dims <- c(sqlQuery(connection,paste0("
+SELECT COUNT(1) AS n
+FROM (",constructSelect(a),") flt"))[1,1],1)
+  }
+  return(a)
+}
+
+validity.FLSimpleVector <- function(x){
+    if(is.null(names(x@select@variables)))
+        stop("Variables in select need to have alias names!")
 }
 
 #' An S4 class to represent FLVector
@@ -150,8 +158,36 @@ newFLVector <- function(...) {
 setClass("FLSimpleVector",
          contains="FLIndexedValues",
          slots = list(
-         ),prototype = prototype(type="double")
+         ),prototype = prototype(type="double"),
+         validity = validity.FLSimpleVector
          )
+
+
+#' @export
+FLSimpleVector <- function(table, id, value, order=id,length=NULL,...){
+    ##browser()
+    if(is.null(names(table))) names(table) <- table
+    X <- unique(c(id=id,val=value,O=order))
+    names(X) <- X
+    variables <- as.list(X)
+    R <- new("FLSimpleVector",
+        select=new("FLSelectFrom",
+                   table_name=table,
+                   connectionName=getFLConnectionName(),
+                   variables=variables,
+                   order=order,
+                   ...),
+        dimColumns = c(id,value),
+        ##names=NULL,
+        Dimnames = list(NULL),
+        type     = "integer"
+        )
+    if(is.null(length))
+        length <- sqlQuery(getFLConnection(),
+                          paste0("select count(",id,") from ",getTableNameSlot(R),constructWhere(R)))[1,1]
+    R@dims <- length
+    R
+}
 
 
 #' An S4 class to represent FLTable, an in-database data.frame.
@@ -165,7 +201,7 @@ setClass("FLSimpleVector",
 setClass("FLSimpleWideTable",
          contains="FLIndexedValues",
          slots = list(
-             dims = "integer"
+             dims = "numeric"
              ##mapSelect = "FLSelectFrom",          
              ))
 
@@ -489,6 +525,20 @@ as.vector.FLSimpleVector <- function(object,mode="any")
     return(vres)
 }
 
+#' Converts FLVector object to vector in R
+#' @export
+as.data.frame.FLSimpleWideTable <- function(object,mode="any")
+{
+    x <- sqlQuery(connection,constructSelect(object))
+    x
+    ## Required as in Aster output cols are always lowercase
+    # colnames(x) <- toupper(colnames(x))
+    # vres <- x[[toupper(object@dimColumns[[2]])]]
+    # if(!is.null(names(object)))
+    #     names(vres) <- as.vector(names(object))
+    # return(vres)
+}
+
 #' @export
 FLSerial <- function(min,max){
     new("FLSimpleVector",
@@ -551,13 +601,14 @@ setMethod("constructSelect", signature(object = "FLTableQuery"),
               return(paste0("SELECT ",
                             paste(colnames(object),collapse=", "),
                             " FROM ",tableAndAlias(object),
-                            constructWhere(c(constraintsSQL(object))),
+                            constructWhere(object),
                             constructGroupBy(GroupByVars=getGroupSlot(object),...),
                             constructOrder(orderVars=object@order,...),
                             "\n"))
           })
 
 
+## todo: this needs serious rework:  select@variables should be reflecting variables
 setMethod("constructSelect", signature(object = "FLTable"),
           function(object,...) {
             if(class(object@select)=="FLTableFunctionQuery") 
@@ -703,7 +754,7 @@ setMethod("constructSelect",
             "SELECT\n",
             constructVariables(variables),
             "\n FROM ",tableAndAlias(object),
-            constructWhere(c(constraintsSQL(object))),
+            constructWhere(object),
             constructGroupBy(GroupByVars=getGroupSlot(object),...),
             constructOrder(orderVars=getOrderSlot(object),...),
             "\n"))
@@ -740,33 +791,49 @@ constructGroupBy <- function(GroupByVars,...) {
 setGeneric("constructWhere", function(conditions,
                                       includeWhere=TRUE)
     standardGeneric("constructWhere"))
-
+setMethod("constructWhere", signature(conditions="FLIndexedValues",
+                                      includeWhere="ANY"),
+          function(conditions, includeWhere=TRUE) {
+    constructWhere(conditions@select,includeWhere)
+})
 setMethod("constructWhere", signature(conditions="FLTable",
                                       includeWhere="ANY"),
           function(conditions, includeWhere=TRUE) {
     constructWhere(conditions@select,includeWhere)
 })
-
 setMethod("constructWhere", signature(conditions="FLSelectFrom",
                                       includeWhere="ANY"),
           function(conditions, includeWhere=TRUE) {
-    constructWhere(conditions@whereconditions,includeWhere)
+    ## browser()
+    paste0(
+        constructWhereClause(conditions@whereconditions,includeWhere),
+        constructWhereClause(conditions@qualifyconditions,includeWhere,clauseName="QUALIFY")
+    )
 })
-
 setMethod("constructWhere", signature(conditions="character",
                                       includeWhere="ANY"),
-          function(conditions, includeWhere=TRUE) {
+          function(conditions, includeWhere=TRUE)  constructWhereClause(conditions=conditions,
+                                                                        includeWhere=TRUE,
+                                                                        clauseName="WHERE"))
+setMethod("constructWhere", signature(conditions="NULL",
+                                      includeWhere="ANY"),
+          function(conditions, includeWhere=TRUE)  constructWhereClause(conditions=character(),
+                                                                        includeWhere=includeWhere,
+                                                                        clauseName="WHERE"))
+    
+
+constructWhereClause <- function(conditions, includeWhere=TRUE, clauseName="WHERE") {
     conditions <- setdiff(conditions,c(NA,""))
     if(length(conditions)==0)
       return("")
     if(!is.character(conditions))
         stop("Provide constraints as character vector")
     if(!is.null(includeWhere) && includeWhere)
-        vWhere <- " WHERE "
+        vWhere <- paste0(" ",clauseName," ")
     else vWhere <- " "
     if(length(conditions)>0)
         paste0(vWhere,paste0("   (",conditions,")",
-                                collapse="\n     AND ")," ")
+                                collapse="   AND ")," ") ## \n creates problem in FLWideToDeep
     else
         ""
 })
@@ -839,15 +906,14 @@ getSelectSlot <- function(x){
 }
 
 #' @export
-setGeneric("where",function(x,value)
+setGeneric("where",function(x)
     standardGeneric("where"))
 
-
-setMethod("where",signature(x="FLTable"),
+setMethod("where",signature(x="FLIndexedValues"),
           function(x) where(x@select))
 
 setMethod("where",signature(x="FLSelectFrom"),
-          function(x,value){
+          function(x){
     x@whereconditions
 })
 
@@ -856,8 +922,13 @@ setMethod("where",signature(x="FLSelectFrom"),
 setGeneric("where<-",function(x,value)
     standardGeneric("where<-"))
 
-
 setMethod("where<-",signature(x="FLTable"),
+          function(x,value) {
+    where(x@select) <- value
+    x
+})
+
+setMethod("where<-",signature(x="FLIndexedValues"),
           function(x,value) {
     where(x@select) <- value
     x
@@ -865,11 +936,45 @@ setMethod("where<-",signature(x="FLTable"),
 
 setMethod("where<-",signature(x="FLSelectFrom"),
           function(x,value){
-    for(var in x@variables)
-        if(length(var)>0)
-            value <- gsub(paste0("[^\\\\.]",var,"[ $]"),paste0(x@table_name,".",var),value)
-    print(value)
+    ## for(var in x@variables)
+    ##     if(length(var)>0)
+    ##         value <- gsub(paste0("[^\\\\.]",var,"[ $]"),paste0(x@table_name,".",var),value)
+    ## print(value)
     x@whereconditions <- value
+    x
+})
+
+#' @export
+setGeneric("qualify",function(x)
+    standardGeneric("qualify"))
+
+setMethod("qualify",signature(x="FLIndexedValues"),
+          function(x) qualify(x@select))
+
+setMethod("qualify",signature(x="FLSelectFrom"),
+          function(x){
+    x@qualifyconditions
+})
+
+
+#' @export
+setGeneric("qualify<-",function(x,value)
+    standardGeneric("qualify<-"))
+
+
+setMethod("qualify<-",signature(x="FLTable"),
+          function(x,value) {
+    qualify(x@select) <- value
+    x
+})
+
+setMethod("qualify<-",signature(x="FLSelectFrom"),
+          function(x,value){
+    ## for(var in x@variables)
+    ##     if(length(var)>0)
+    ##         value <- gsub(paste0("[^\\\\.]",var,"[ $]"),paste0(x@table_name,".",var),value)
+    ## print(value)
+    x@qualifyconditions <- value
     x
 })
 
