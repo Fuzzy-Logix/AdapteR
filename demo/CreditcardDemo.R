@@ -38,7 +38,7 @@ plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
 
 ## Decision Tree.
 ## change purity level  -> .999
-dt.model <- rpart(Classvar ~ ., data = deeptable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+dt.model <- rpart(Classvar ~ ., data = FLtbl, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 dt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
@@ -70,3 +70,4 @@ ch <- paste0("auc of ",round(glm.plot$auc, digits=3))
 mtext(ch, side = 3)
 dev.off()
 
+   
