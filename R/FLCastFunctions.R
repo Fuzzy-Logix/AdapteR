@@ -1001,8 +1001,10 @@ as.FLTable.data.frame <- function(object,
                             warning("using max batchSize=10000")
                         }
                         for(i in 1:ceiling(nrow(object)/batchSize)){
-                            print(paste0("inserting batch: ",i, " of ",
-                                        ceiling(nrow(object)/batchSize)))
+                            if(getOption("debugSQL"))
+                                cat(paste0("inserting batch: ",i, " of ",
+                                           ceiling(nrow(object)/batchSize),
+                                           "\n"))
                             vlower <- 1+((i-1)*batchSize)
                             vupper <- i*batchSize
                             if(vupper>nrow(object))
