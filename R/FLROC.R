@@ -14,7 +14,7 @@ roc.default <- function (response, predictor,...) {
    else return(pROC::roc(response, predictor,...))
 }
 
-##to-do : work on formula aspect of function, print function, $ operator[(levels)].
+##to-do : print function, $ operator[(levels)].
 
 
 #' @export
@@ -87,7 +87,6 @@ roc.FLTable <- function(formula,data,... ){
                )
            )}
 
-## setMethod("show","auc",print.FLROC)
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
@@ -231,11 +230,15 @@ auc.FLROC <- function(object,limit = 1000,method = 1, ...)
 plot.FLROC <- function(object,limit = 1000,method = 1, ...)
     return(plot(as.roc(object, limit=limit, method = method), ...))
 
+
 print.FLROC <- function(object,method = 1, ...)
     return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
+#' @export
+setMethod("show","FLROC",function(object){
+          return(print.FLROC(object))})
 
-## to include : condition when TPR,FPR are NA's
+
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     ##browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
@@ -258,8 +261,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             ## cases = object$cases,
-             ## controls = object$controls,
+             cases = object$cases,
+             controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec
@@ -268,3 +271,6 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     if(auc) reqList$auc <- auc(reqList)
     return(reqList)
 }
+
+
+

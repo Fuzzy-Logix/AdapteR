@@ -75,7 +75,12 @@ setClass(
 	"FLLogRegrSF",
 	contains="FLRegr",
 	slots=list(offset="character",
-				vfcalls="character"))
+                   vfcalls="character"))
+#' @export
+setClass(
+    "FLRobustRegr",
+    contains="FLLinRegr")
+
 
 #' Robust Regression.
 #' 
@@ -96,6 +101,7 @@ setClass(
 #' summary(flmod)
 #' coefficients(flmod)
 #' residuals(flmod)
+#' TO-DO: warning message for deeptable in model.
 #' @export
 rlm <- function (formula,data=list(),psi, ...) {
 	UseMethod("rlm", data)
@@ -732,7 +738,7 @@ lmGeneric <- function(formula,data,
                         TuneConstant= tunconst,
                         MaxIterations =maxiter
                         )
-        functionName <- "FLLinRegr"
+        functionName <- "FLRobustRegr"
         mod <- c(FLCoeffCorrelWithRes="",
                  FLCoeffNonZeroDensity="",
                  FLCoeffTStat="T_VAL",
@@ -881,9 +887,9 @@ lmGeneric <- function(formula,data,
         if(trace>0) print(d)
     }
 
-	vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
-					"FLLogRegr",functionName)
-	vfuncName <- base::gsub("MultiDataSet","MD",vfuncName)
+    vfuncName <- ifelse(familytype %in% c("logisticwt","poisson"),
+                        "FLLogRegr",functionName)
+    vfuncName <- base::gsub("MultiDataSet","MD",vfuncName)
     vfuncName <- ifelse(familytype %in% c("pls", "opls"), "FLPLSRegr", vfuncName)
 
     return(new(vfuncName,
@@ -1862,6 +1868,7 @@ summary.FLLinRegr <- function(object,
 
 ## move to file lm.R
 ## Add deep statment, also problem can be of vobsid
+#' Use FLSUMPROD: usemethod dispatch, create new class.
 #' @export
 predict.FLLinRegr <- function(object,
                               newdata=object@table,
@@ -1905,6 +1912,42 @@ predict.FLLinRegr <- function(object,
         return(predict.lmGeneric(object,newdata=newdata,
                                  scoreTable=scoreTable,
                                  ...))
+}
+
+predict.FLRobustRegr <- function(object,
+                                 newdata=object@table,
+                                 scoreTable="",
+                                 ...)
+{
+    ObsID <- getVariables(object@deeptable)$obs_id_colname
+    VarID <- getVariables(object@deeptable)$var_id_colname
+    Num_Val <- getVariables(object@deeptable)$cell_val_colname
+    
+    str <- paste0(" SELECT  '%insertIDhere%' AS vectorIdColumn,
+                                 b.",ObsID," AS VectorIndexColumn,
+                                 SUM(b.",Num_Val,"*a.Est) AS vectorValueColumn FROM ",
+                  object@vfcalls["coefftablename"]," a,",
+                  getTableNameSlot(object@deeptable)," b
+                         WHERE a.VarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
+                         GROUP BY b.",ObsID,"")
+
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = getFLConnectionName(),
+                          variables = list(
+                              obs_id_colname = "vectorIndexColumn",
+                              cell_val_colname = "vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=str)
+
+    flv <- newFLVector(
+        select = tblfunqueryobj,
+        Dimnames = list(rownames(object@table),
+                        "vectorValueColumn"),
+        dims = as.integer(c(newdata@dims[1],1)),
+        isDeep = FALSE)
+
+    return(flv)
 }
 
 ## move to file lmGeneric.R
