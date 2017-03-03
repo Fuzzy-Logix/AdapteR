@@ -74,14 +74,14 @@ randomForest.FLTable<-function(data,
 	votestable<-sqlQuery(getFLConnection(),votesquery)
 	conmatrixtbl<-sqlQuery(getFLConnection(),conmatrixquery)
 	foresttable<-sqlQuery(getFLConnection(),forestquery)
-	m<-matrix(nrow = length(unique(conmatrixtbl$ObservedClass)), ncol=length(unique(conmatrixtbl$ObservedClass)))
-	rownames(m)<-unique(conmatrixtbl$ObservedClass)
-	colnames(m)<-unique(conmatrixtbl$ObservedClass)
+	m<-matrix(nrow = max(conmatrixtbl$ObservedClass)-min(conmatrixtbl$ObservedClass)+1, ncol=max(conmatrixtbl$PredictedClass)-min(conmatrixtbl$PredictedClass)+1)
+	rownames(m)<-min(conmatrixtbl$ObservedClass):max(conmatrixtbl$ObservedClass)
+	colnames(m)<-min(conmatrixtbl$PredictedClass):max(conmatrixtbl$PredictedClass)
 
 	for(i in 1:length(conmatrixtbl$ObservedClass)){
   		j<-conmatrixtbl[i,2]
   		k<-conmatrixtbl[i,3]	
- 		m[j,k]<-conmatrixtbl[i,4]
+ 		m[as.character(j),as.character(k)]<-conmatrixtbl[i,4]
 	}
 	m[is.na(m)]<-0
 	predicted<-votestable$PredictedClass
@@ -164,6 +164,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
     								   " add probability float, add matrix_id float"))
     sqlQuery(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
+    warning("The probability values are only true for predicted class. The sum may not be 1.")
 	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"))
 	}
 	else if(type %in% "votes"){
@@ -231,24 +232,47 @@ summary.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	x<-predict(object,type="prob")
 	tablename<-x@select@table_name
-	tablex<-FLTable(tablename,"ObsID")
-	tabler<-as.data.frame(tablex)
-	ret<-list()
-	if(!all(tabler$PredictedClass) %in% c("0","1")){
-		i<-unique(tabler$PredictedClass)
-		c<-combn(i,m=2)
-		for(t in 1:ncol(c)){
-			resv<-c[,t]
-			subdf1<-tabler[tabler$PredictedClass==resv[1],]
-			subdf2<-tabler[tabler$PredictedClass==resv[2],]
-			probv1<-subdf1[,5]
-			probv2<-subdf2[,5]
-			eval(parse(text=paste0("ret$roc",resv[1],resv[2],"<-roc(as.FLVector(c(rep(0,length(probv1)),rep(1,length(probv2)))),
-							as.FLVector(c(probv1,probv2)))")))
+	# tabler<-as.data.frame(tablex)
+	# ret<-list()
+	# if(!all(tabler$PredictedClass) %in% c("0","1")){
+	# 	i<-unique(tabler$PredictedClass)
+	# 	c<-combn(i,m=2)
+	# 	for(t in 1:ncol(c)){
+	# 		resv<-c[,t]
+	# 		subdf1<-tabler[tabler$PredictedClass==resv[1],]
+	# 		subdf2<-tabler[tabler$PredictedClass==resv[2],]
+	# 		probv1<-subdf1[,5]
+	# 		probv2<-subdf2[,5]
+	# 		eval(parse(text=paste0("ret$roc",resv[1],resv[2],"<-roc(as.FLVector(c(rep(0,length(probv1)),rep(1,length(probv2)))),
+	# 						as.FLVector(c(probv1,probv2)))")))
 
+	# 	}
+	# }
+	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",tablename))
+	comb<-combn(nrow(predclass),m=2)
+	if(!all(predclass) %in% c("0","1")){
+		for (t in 1:ncol(comb)) {
+			resv<-comb[,t]
+			temptable<-genRandVarName()
+			sqlstr<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
+							tablename," Where PredictedClass = ",fquote(resv[1]))		
+			vres<-createTable(pTableName=temptable,
+	                  	      pSelect=sqlstr,
+	                  	      pTemporary=TRUE,
+	                 	      pDrop=TRUE)
+			sqlstr2<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
+							tablename," Where PredictedClass = ",fquote(resv[2]))
+			insertIntotbl(pTableName=temptable,
+						  pSelect=sqlstr2)
+			flt<-FLTable(temptable,"ObsID")
+			eval(parse(text= paste0("ret$roc",resv[1],resv[2],
+									"<-roc(flt,formula = Response~probability)")))
 		}
 	}
-	else ret$roc<-roc(tablex$PredictedClass,tablex$probability)
+	else {
+		tablex<-FLTable(tablename,"ObsID")
+		ret$roc<-roc(tablex$PredictedClass,tablex$probability)
+	}
 	ret$confusion=object$confusion
 	return(ret)
 }
