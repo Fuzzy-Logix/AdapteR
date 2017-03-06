@@ -641,12 +641,10 @@ FLTrainDataPrep <- function(object,
 
 setDefaultInputParams <- function(requiredParams,
                                   inputParams){
-    vtemp <- sapply(names(requiredParams),
-                    function(x){
-                        if(!x %in% names(inputParams))
-                            inputParams[[x]] <- requiredParams[[x]]
-                    })
-    return(append(inputParams,vtemp))
+    for(x in setdiff(names(requiredParams),names(inputParams))){
+        inputParams[[x]] <- requiredParams[[x]]
+    }
+    inputParams
 }
 
 FLTrainDataPrep.default <- function(object,
