@@ -387,16 +387,16 @@ getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste
 #' <TD_FNAME>.<PLATFORM>(<TD_ARGS>) <- <PLATFORM_FNAME>(<PLATFORM_ARGS>)
 #' The definitions file for UDTs has one definition per line
 #' <TD_FNAME>.<PLATFORM>(<TD_OUTPUTCOLS>) <- <PLATFORM_FNAME>(<PLATFORM_OUTPUTCOLS>)
-# FLcreatePlatformMatrixUDTMapping <- function(definitions='data/platformMatrixUDT.RFL'){
+# FLcreatePlatformMatrixUDTMapping <- function(definitions='def/platformMatrixUDT.rfl'){
 #     defs <- readLines(system.file(definitions, package='AdapteR'))
 
     
 # }
 
 #' @export
-FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL',
-                                                    'data/platformMatrixUDT.RFL')){
-    defs <- readLines(system.file(definitions[1], package='AdapteR'))
+FLcreatePlatformsMapping <- function(definitions=c('def/platformStoredProcs.rfl',
+                                                    'def/platformMatrixUDT.rfl')){
+    defs <- readLines(system.file(definitions[1], package='AdapteR'),encoding="UTF-8")
 
     storedProcMappings <- lapply(defs,
                                 parsePlatformMapping)
@@ -431,12 +431,12 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
     storedProcMappings$includeWhere.TDAster=TRUE
     storedProcMappings$includeWhere.TD=TRUE
 
-
     storedProcMappings$valueMapping.TDAster <- list("NULL"="")
     storedProcMappings$valueMapping.Hadoop <- list("NULL"="")
 
     options(storedProcMappingsFL=storedProcMappings)
-    defs <- readLines(system.file(definitions[2], package='AdapteR'))
+
+    defs <- readLines(system.file(definitions[2], package='AdapteR'),encoding="UTF-8")
     
     MatrixUDTMappings <- lapply(defs,
                                 parsePlatformMapping)
@@ -526,8 +526,7 @@ FLcreatePlatformsMapping()
 #' @export
 checkHypoSystemTableExists <- function(){
     ## Create System table for HypothesisTesting Statistics Mapping
-    vdf <- tryCatch(read.csv(system.file('data/HypothesisTestsMapping.rfl', 
-                            package='AdapteR')),
+    vdf <- tryCatch(read.csv(system.file('def/HypothesisTestsMapping.rfl',package='AdapteR'),encoding="UTF-8"),
                     error=function(e){
                         suppressWarnings({data("HypothesisTestsMapping")
                         vdf <- HypothesisTestsMapping
