@@ -357,6 +357,8 @@ FLStartSession <- function(connection,
         })
     genSessionID()
 
+    options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+    options(storedProcMappingsFL=storedProcMappingsFL)
 
     cat("Session Started..\n")
 }
