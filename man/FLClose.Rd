@@ -4,7 +4,7 @@
 \alias{FLClose}
 \title{Close Session and Drop temp Tables}
 \usage{
-FLClose(connection)
+FLClose(connection = getFLConnection())
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection object}

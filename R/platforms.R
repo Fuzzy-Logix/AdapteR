@@ -515,13 +515,15 @@ genCreateResulttbl <- function(tablename,
 #' Strongly recommended to run before quitting current R session
 #' @param connection ODBC/JDBC connection object
 #' @export
-FLClose <- function(connection)
+flClose <- function(connection=getFLConnection())
 {
    # if(length(getOption("FLTempTables"))>0)
    #      sapply(getOption("FLTempTables"),dropTable)
    #  if(length(getOption("FLTempViews"))>0)
    #      sapply(getOption("FLTempViews"),dropView)
-
+    if(inherits(connection,"FLConnection")){
+        connection <- connection$connection
+    }
     if(class(connection)=="RODBC")
         RODBC::odbcClose(connection)
     else
@@ -534,8 +536,15 @@ FLClose <- function(connection)
     options("FLSessionID"=c())
 }
 
-## Generate Mappings when package is loaded
-FLcreatePlatformsMapping()
+#' Close Session and Drop temp Tables
+#'
+#' Strongly recommended to run before quitting current R session
+#' @param connection ODBC/JDBC connection object
+#' @export
+FLClose <- function(connection=getFLConnection()){
+    warning("Deprecated, calling flClose(connection).")
+    flClose(connection)
+}
 
 ## check if hypothesis tables exists
 #' @export
