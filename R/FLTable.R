@@ -644,7 +644,7 @@ setDefaultInputParams <- function(requiredParams,
     for(x in setdiff(names(requiredParams),names(inputParams))){
         inputParams[[x]] <- requiredParams[[x]]
     }
-    inputParams
+    inputParams[names(requiredParams)]
 }
 
 FLTrainDataPrep.default <- function(object,
