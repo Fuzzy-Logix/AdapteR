@@ -808,6 +808,7 @@ FLTestDataPrep.FLTable.Hadoop <- function(object,
                                 useBoolean=TRUE))
 }
 
+## improve: remove assign and get and use lists
 checkInputParamsRegrDataPrep <- function(object,
                                         DepCol,
                                         inputParams,
