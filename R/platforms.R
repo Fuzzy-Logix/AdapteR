@@ -1,3 +1,18 @@
+#' @include platformMappings.R
+NULL
+## platform mappings are to created during
+## build time:
+##
+## FLcreatePlatformsMapping()
+## storedProcMappingsFL <- getOption("storedProcMappingsFL")
+## dump("storedProcMappingsFL",file="AdapteR/R/platformMappings.R")
+## MatrixUDTMappingsFL <- getOption("MatrixUDTMappingsFL")
+## dump("MatrixUDTMappingsFL",file="AdapteR/R/platformMappings.R",append=TRUE)
+## FLcreatePlatformsMapping()
+
+options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+options(storedProcMappingsFL=storedProcMappingsFL)
+
 #' @export
 setClass("FLConnection",slots=list())
 
@@ -342,7 +357,7 @@ FLStartSession <- function(connection,
         })
     genSessionID()
 
-    FLcreatePlatformsMapping()
+
     cat("Session Started..\n")
 }
 
