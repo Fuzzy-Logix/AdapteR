@@ -1784,6 +1784,35 @@ model.FLLinRegr <- function(object,...)
 	}
 }
 
+summary.FLRobustRegr <- function(object, ...){
+    str <- paste0("SELECT a.StdDev, a.T_Val FROM ",object@vfcalls["coefftablename"]," a
+                           WHERE a.AnalysisID = ",fquote(object@AnalysisID),"
+                           ")
+    df <- sqlQuery(connection, str)
+    vcoeff <- data.frame(coefficients(object), df)
+    names(vcoeff) <- c("Value", "Std.Error", "t Value")
+    vresiduals <- as.vector(object$residuals)
+    vdf <- c(length(object@deeptable@Dimnames[[2]]),
+             length(object@deeptable@Dimnames[[1]]) + 1 - length(object@deeptable@Dimnames[[2]]),
+             length(object@deeptable@Dimnames[[2]]))
+    
+    reqList <- list(call = object$call,
+                    residuals=vresiduals,
+                    coefficients = vcoeff,
+                    sigma = object$s,
+                    stddev = NA,
+                    df = vdf,
+                    r.squared = NA,
+                    cov.unscaled = NA,
+                    terms = NA
+                    )
+                                        #print(reqList)
+    class(reqList) <- "summary.rlm"
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character
+    (sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    assign(parentObject,object,envir=parent.frame())
+    return(reqList)
+}
 ## move to file lm.R
 #' @export
 summary.FLLinRegr <- function(object,
@@ -1791,35 +1820,6 @@ summary.FLLinRegr <- function(object,
     if(is.FLTableMD(object@table))
         reqList <- summary.FLLinRegrMD(object)
 
-    else if (object@vfcalls["functionName"] == "FLRobustRegr")
-    {
-                                        #results part:
-                                        #if(object@results)
-        str <- paste0("SELECT a.StdDev, a.T_Val FROM ",object@vfcalls["coefftablename"]," a
-                           WHERE a.AnalysisID = ",fquote(object@AnalysisID),"
-                           ")
-        df <- sqlQuery(connection, str)
-        vcoeff <- data.frame(coefficients(object), df)
-        names(vcoeff) <- c("Value", "Std.Error", "t Value")
-        vresiduals <- as.vector(object$residuals)
-        vdf <- c(length(object@deeptable@Dimnames[[2]]),
-                 length(object@deeptable@Dimnames[[1]]) + 1 - length(object@deeptable@Dimnames[[2]]),
-                 length(object@deeptable@Dimnames[[2]]))
-        
-        reqList <- list(call = object$call,
-                        residuals=vresiduals,
-                        coefficients = vcoeff,
-                        sigma = object$s,
-                        stddev = NA,
-                        df = vdf,
-                        r.squared = NA,
-                        cov.unscaled = NA,
-                        terms = NA
-                        )
-                                        #print(reqList)
-        class(reqList) <- "summary.rlm"
-
-    }
     else
     {
         stat <- object$FLLinRegrStats
@@ -1874,44 +1874,10 @@ predict.FLLinRegr <- function(object,
                               newdata=object@table,
                               scoreTable="",
                               ...){
-    if(object@vfcalls["functionName"] %in% "FLRobustRegr")
-    {
-                                        #vobsid <- getVariables(object@table)[["obs_id_colname"]]
-        ObsID <- getVariables(object@deeptable)$obs_id_colname
-        VarID <- getVariables(object@deeptable)$var_id_colname
-        Num_Val <- getVariables(object@deeptable)$cell_val_colname
-        
-        str <- paste0(" SELECT  '%insertIDhere%' AS vectorIdColumn,
-                                 b.",ObsID," AS VectorIndexColumn,
-                                 SUM(b.",Num_Val,"*a.Est) AS vectorValueColumn FROM ",
-                                 object@vfcalls["coefftablename"]," a,",
-                                 getTableNameSlot(object@deeptable)," b
-                         WHERE a.VarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
-                         GROUP BY b.",ObsID,"")
-
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = getFLConnectionName(),
-                        variables = list(
-			                obs_id_colname = "vectorIndexColumn",
-			                cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=str)
-
-	flv <- newFLVector(
-				select = tblfunqueryobj,
-				Dimnames = list(rownames(object@table),
-								"vectorValueColumn"),
-                dims = as.integer(c(newdata@dims[1],1)),
-				isDeep = FALSE)
-
-	return(flv)
-    }
-    else
-        
-        return(predict.lmGeneric(object,newdata=newdata,
-                                 scoreTable=scoreTable,
-                                 ...))
+    
+    return(predict.lmGeneric(object,newdata=newdata,
+                             scoreTable=scoreTable,
+                             ...))
 }
 
 predict.FLRobustRegr <- function(object,

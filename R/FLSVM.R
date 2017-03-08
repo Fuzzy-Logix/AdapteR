@@ -74,8 +74,7 @@ svmGeneric <- function(formula,data,
                        ...)
 
 {
-
-    browser()
+##    browser()
     prepData <- prepareData.lmGeneric(formula,data,
                                       callObject=callObject,
                                       familytype=familytype,
@@ -112,7 +111,8 @@ svmGeneric <- function(formula,data,
                table=data,
                results=list(call=callObject,
                             kernel = kernel,
-                            outtbl=tblname),
+                            outtbl=tblname,
+                            varg = pArg),
                deeptable=deepx,
                mapTable=mapTable,
                scoreTable="",
@@ -147,17 +147,81 @@ predict.FLSVM <- function(object, newData = object@table){
                                         #parentObject <- deparse(substitute(object))
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
+    if(is.null(object@results$votbl))
+    {
+        quer <- paste0("SELECT TOP 1 * FROM ",object@results$outtbl," ")
+        dno <- sqlQuery(connection, quer)
+        object@results <- c(object@results,list(votbl = dno))
+        assign(parentObject,object,envir=parent.frame())
+    }
     if(property=="degree"){
-        browser()
-        if(object@results$kernel == "polynomial"){
-            quer <- paste0("SELECT TOP 1 DegreePoly FROM ",object@results$outtbl," ")
-            dno <- sqlQuery(connection, quer)
-            return(dno$DegreePoly)
-            
-        }
+        if(object@results$kernel == "polynomial")
+            return(object@results$votbl$DegreePoly)
+        else
+            return("Not applicable for this kernel")     
+    }
+    if(property == "cost"){
+        return(object@results$varg[1]) }
+
+    if(property == "lambda"){
+        if(any(c("polynomial", "gaussian") == object@results$kernel) )
+            return(object@results$votbl$lambda)
+        else
+            return("Not applicable for this kernel")
+    }
+
+    if(property == "BValue"){
+        if(any(c("polynomial", "gaussian") == object@results$kernel))
+            return(object@results$votbl$BValue)
+        else   
+            return("Not applicable for this kernel")          
+    }
+    if(property == "crbfConstant"){
+        if(object@results$kernel == "gaussian")
+            return(object@results$votbl$crbfConstant)
+        else
+            return("Not applicable for this kernel")          
+    }
+
+    if(property == "misclassifications"){
+        return(object@results$votbl$NumOfMisclassifications)
+    }
+
+    if(property == "SV"){
+       # browser()
+
+        ObsID <- getVariables(object@deeptable)$obs_id_colname
+        VarID <- getVariables(object@deeptable)$var_id_colname
+        Num_Val <- getVariables(object@deeptable)$cell_val_colname
+        dim <- object@table@Dimnames[[2]][-length(object@table@Dimnames[[2]])]
+        vdimnames <- list(object@table@Dimnames[[1]], dim)
         
+        quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",VarID," AS var_id_colname, b.PlaneWt*a.",Num_Val," AS cell_val_colname FROM ",object@deeptable@select@table_name," AS a, ",object@results$outtbl," AS b WHERE ",VarID," = planedimension AND  planedimension<> 0 AND ",VarID," <> 0 ")
+
+        tblfunqueryobj <- new("FLTableFunctionQuery",
+                              connectionName = getFLConnectionName(),
+                              variables = list(
+                                  obs_id_colname = "obs_id_colname",
+                                  var_id_colname = "var_id_colname",
+                                  cell_val_colname = "cell_val_colname"),
+                              whereconditions="",
+                              order = "",
+                              SQLquery=quer)
+
+        T <- newFLTable( 
+            select = tblfunqueryobj,
+            Dimnames = vdimnames,
+            dims = c(nrow(object@table), ncol(object@table)-1),
+            isDeep = TRUE,
+            type=object@table@type,
+            dimColumns=c("obs_id_colname","var_id_colname", "cell_val_colname"))
+        
+        return(T)
+
+    }
+    if(property == "call"){
+        return(object@results$call)
     }
 }
-
 
 
