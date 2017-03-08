@@ -436,3 +436,58 @@ plot.FLrpart<-function(x){ #browser()
 		}  
   }
 }
+
+rtree<-function(object,
+				ntree=25,
+			    mtry=2,
+			    nodesize=10,
+			    maxdepth=5,
+			    cp=0.95,
+			    sampsize=0.8,
+			    pSeed=0.5,
+			    pRandomForest=1,...){ browser()
+	if(pRandomForest==0){
+		sampsize<-NULL
+		pSampleRateVars<-NULL
+		ntree<-NULL
+		pSeed<-NULL
+	}
+	else{
+		pSampleRateVars<-mtry/(object@dims[2]-1)
+	}
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(object)),
+                           pSelect=list(a=c(pGroupID=1,
+                           					pObsID="a.obs_id_colname",
+                           					pVarID="a.var_id_colname",
+                           					pValue="a.cell_val_colname",
+                           					pMaxLevel=maxdepth,
+                           					pMinObs=nodesize,
+                           					pMinSSEDiff=cp,
+                           					pRandomForest=pRandomForest,
+                           					pSampleRateObs=sampsize,
+                           					pSampleRateVars=pSampleRateVars,
+                           					pNumOfTrees=ntree,
+                           					pSeed=pSeed)))
+    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
+    pSelect<-paste0("Select pGroupID, pObsID, pVarID, pValue from ",p)
+	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",
+										   ObsID="obs_id_colname",
+						   				   VarID="var_id_colname",
+						   				   Num_Val="cell_val_colname",
+						   				   pMaxLevel="pMaxLevel",
+						   				   pMinObs="pMinObs",
+						   				   pMinSSEDiff="pMinSSEDiff",
+						   				   pRandomForest="pRandomForest",
+						   				   pSampleRateVars="pSampleRateVars",
+						   				   pSampleRateObs="pSampleRateObs",
+						   				   pNumOfTrees="pNumOfTrees",
+						   				   pSeed="pSeed"),
+						   pSelect=pSelect,
+						   pOutColnames="a.*",
+						   pFuncName="FLRegrTreeUdt",
+						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
+	tName <- gen_unique_table_name("RegrTree")
+	p <- createTable(tName,pSelect=query,pTemporary=TRUE)
+    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
+    return(a)
+}
