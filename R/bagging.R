@@ -17,11 +17,11 @@
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-bagging(flt, formula = -1~.,mfinal=mfinal)
 #' @export
-
 bagging<-function(formula,data,...){
 	UseMethod("bagging",data)
 }
 
+#' @export
 bagging.default  <- function (formula,data=list(),...) {
     if (!requireNamespace("adabag", quietly = TRUE)){
         stop("adabag package needed for bagging. Please install it.",
@@ -30,6 +30,7 @@ bagging.default  <- function (formula,data=list(),...) {
     else return(adabag::bagging(formula=formula,data=data,...))
 }
 
+#' @export
 bagging.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,

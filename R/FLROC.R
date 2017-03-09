@@ -20,7 +20,7 @@
 ##    else return(pROC::roc(response, predictor,...))
 ##}
 ##
-## to-do : work on formula aspect of function, print function, $ operator[(levels),convert numeric to FLVector].
+## to-do : work on formula aspect of function, print function, $ operator[(levels)].
 
 
 #' @export
@@ -53,7 +53,7 @@ roc.FLTableMD <- roc.FLVector
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    browser()
+    ##browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -63,8 +63,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                        pWithData = TRUE,
                        pTemporary = TRUE,
                        pSelect = vselect )
-    vrw <- nrow(response)
-    rnames <- rownames(response)
+    vrw <- nrow(predictor)
+    rnames <- rownames(predictor)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
@@ -81,7 +81,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     df <- sqlQuery(connection, quer)
     
     return(new(vclass,
-               otbl = ret$ResultTable,
+               otbl = as.character(ret[[1]]),
                results = list(call = callobject,
                               itable = vvolName,
                               Dimnames = list(row = rnames, col = cnames),
@@ -93,13 +93,14 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 }
 
 
+#' @export
 `$.FLROC`<-function(object,property){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     
     flvgeneric <- function(object, tblname,var,whereconditions,vorder, dcolumn,
-                          dnames = object@results$Dimnames$row,
-                          vdims = object@results$dims[[1]])
-        {
+                           dnames = object@results$Dimnames$row,
+                           vdims = object@results$dims[[1]])
+    {
         val <- new("FLSimpleVector",
                    select= new("FLSelectFrom",
                                table_name=tblname,
@@ -159,8 +160,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                           whereconditions = "res = 0",
                           vorder = "OBSID",
                           dcolumn = c("OBSID", "pred"),
-                          dnames = (1:mod@results$vals[1]),
-                          vdims  = mod@results$vals[1]
+                          dnames = (1:object@results$vals[1]),
+                          vdims  = object@results$vals[1]
                           ))
     }
     
@@ -171,8 +172,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                           whereconditions = "res = 1",
                           vorder = "OBSID",
                           dcolumn = c("OBSID", "pred"),
-               dnames = (1:mod@results$vals[2]),
-               vdims  = mod@results$vals[2]))
+                          dnames = (1:object@results$vals[2]),
+                          vdims  = object@results$vals[2]))
     }
     
     else if(property == "call"){
@@ -180,54 +181,95 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     
     else if(property == "percent"){
         return(FALSE)}
-    
 }
 
-auc.FLROC <- function(object,limit = 1000,...){
-    vlist <- as.roc(object, limit)
-    class(vlist) <- "roc"
-    return(auc(vlist, ...))  
+#' @export
+auc <- function(object,...) UseMethod("auc")
+
+#' @export
+auc.default <- function(object,...) {
+    if (!requireNamespace("pROC", quietly = TRUE)){
+        stop("pROC package needed for auc. Please install it.",
+             call. = FALSE)
+    }
+    else return(pROC::auc(object,...))
 }
 
-plot.FLROC <- function(object,limit = 1000,  ...){
-    vlist <- as.roc(object, limit)
-    vlist <- c(vlist, auc = auc(object, limit))
-    class(vlist) <- "roc"
-    return(plot(vlist, ...))
-}
+#' @export
+roc <- function(object,limit = 1000,...) UseMethod("roc")
 
-print.FLROC <- function(object, ...){
-    reqList <- list(call = object$call,
-                    auc = object$auc,
-                    controls = object$controls,
-                    cases = object$cases)
-    class(reqList) <- "roc"
-    return(print(reqList, ...))
-}
+#' @export
+auc.FLROC <- function(object,limit = 1000,...)
+    return(as.roc(object, limit,auc=TRUE,...)$auc)
+
+#' @export
+plot.FLROC <- function(object,limit = 1000,  ...)
+    return(plot(as.roc(object, limit=limit,...), ...))
+
+#' @export
+print.FLROC <- function(object, ...)
+    return(print(as.roc(object, auc=TRUE, ...),...))
 
 
-as.roc <- function(object,limit = 1000,... ){
+## to include : condition when TPR,FPR are NA's
+as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
-    vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
-    vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
-
-    str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+    if(method)
+    {
+        vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
+        vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
+        str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+    }
+    else
+    {
+        val <- object@results$vals
+        neg <-1/val[[1]]
+        pos <- 1/val[[2]]
+        str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")       
+    }
     df <- sqlQuery(connection, str1)
     sen <- sort(as.numeric(df$sen), decreasing = TRUE)
     spec <- sort(as.numeric(df$spec))
 
-    reqList <- list(call = object$call,
-                    cases = object$cases,
-                    controls = object$controls,
-                    percent = object$percent,
-                    sensitivities =sen ,
-                    specificities = spec
-                    )
+    reqList <- structure(
+        list(call = object$call,
+             cases = object$cases,
+             controls = object$controls,
+             percent = object$percent,
+             sensitivities =sen,
+             specificities = spec
+             ),
+        class="roc")
+    if(auc) reqList$auc <- auc(reqList)
+    return(reqList)
+}
 
-    class(reqList) <- "roc"
-    return(reqList)}
 
 
 
-
-
+## for TPR, FPR,  givng NA's
+## TPR = True Positives/Total Number of Events
+## FPR = False Positives/Total Number of Non-events
+##
+##as.roc2 <- function(object,limit = 1000, auc=TRUE, ... ){browser()
+##    p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
+##    val <- object@results$vals
+##    neg <-1/val[[1]]
+##    pos <- 1/val[[2]]
+##    str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")
+##    df <- sqlQuery(connection, str1)
+##    sen <- sort(as.numeric(df$sen), decreasing = TRUE)
+##    spec <- sort(as.numeric(df$spec))    
+##    reqList <- structure(
+##        list(call = object$call,
+##             cases = object$cases,
+##             controls = object$controls,
+##             percent = object$percent,
+##             sensitivities =sen,
+##             specificities = spec
+##             ),
+##        class="roc")
+##    if(auc) reqList$auc <- auc(reqList)
+##    return(reqList)
+##}
+##

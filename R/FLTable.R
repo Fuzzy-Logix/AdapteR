@@ -594,7 +594,7 @@ setMethod("FLRegrDataPrep",
                     ),
           function(object,
                   depCol="NULL",
-                  fetchIDs=TRUE,
+                  fetchIDs=FALSE,
                   ...
                   )
             {
@@ -617,7 +617,7 @@ setMethod("FLRegrDataPrep",
 FLTrainDataPrep <- function(object,
                             DepCol,
                             inputParams,
-                            fetchIDs=TRUE){
+                            fetchIDs=FALSE){
     UseMethod("FLTrainDataPrep")
 }
 
@@ -634,7 +634,7 @@ setDefaultInputParams <- function(requiredParams,
 FLTrainDataPrep.default <- function(object,
                                     DepCol,
                                     inputParams,
-                                    fetchIDs=TRUE){
+                                    fetchIDs=FALSE){
     requiredParams <- list(InWideTable=getTableNameSlot(object),
                           ObsIDCol=getVariables(object)[["obs_id_colname"]],
                           DepCol=DepCol,

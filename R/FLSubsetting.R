@@ -99,8 +99,12 @@ NULL
     else
         newcolnames <- cols
 
-    if(any(is.na(newrownames)) || any(is.na(newcolnames)))
-    stop("index out of bounds")
+    if(!is.null(newrownames))
+        if(any(is.na(newrownames)))
+            stop("index out of bounds")
+    if(!is.null(newcolnames))
+        if(any(is.na(newcolnames)))
+            stop("index out of bounds")
     ##browser()
     if(missing(cols))
     {
