@@ -90,6 +90,7 @@ The anova method is not yet available for FLLinRegr.
 Properties like \code{print(fit$x),model,plot} might take time as they
 have to fetch data
 }
+
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
 s <- step(widetable,scope=list(lower=Rings~Height+Diameter),direction = "UFbackward")
@@ -166,4 +167,3 @@ summary(s)
 \seealso{
 \code{\link[stats]{step}} for R reference implementation.
 }
-

@@ -17,4 +17,3 @@ logical
 \description{
 Takes two matrices in-database or R, and returns true if they have same dimensions
 }
-

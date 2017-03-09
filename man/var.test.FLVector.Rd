@@ -28,10 +28,10 @@ is equal to ratio.
 \section{Constraints}{
  conf.level, ratio, formula, data aren't supported currently for FL objects.
 }
+
 \examples{
 set.seed(450)
 x <- as.FLVector(rnorm(50, mean = 0, sd = 2))
 y <- as.FLVector(rnorm(30, mean = 1, sd = 1))
 var.test(x, y, "two.sided")
 }
-

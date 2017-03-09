@@ -18,4 +18,3 @@ named FLVector
 \description{
 Assign names to FLVectors
 }
-

@@ -448,7 +448,7 @@ equalityConstraint <- function(tableColName,constantValue){
 
 
 
-setGeneric("constraintsSQL", function(object) {
+setGeneric("constraintsSQL", function(object,...) {
     standardGeneric("constraintsSQL")
 })
 setMethod("constraintsSQL", signature(object = "FLMatrix"),
@@ -475,6 +475,19 @@ setMethod("constraintsSQL", signature(object = "FLSelectFrom"),
           function(object) {
               constraints <- object@whereconditions
               tablenames <- object@table_name
+              if(!is.null(names(tablenames)))
+                  for(ti in 1:length(tablenames)){
+                      tname <- tablenames[ti]
+                      talias <- names(tablenames)[ti]
+                      constraints <- gsub(paste0("[^ ,=]*",tname,"\\."),
+                                          paste0(" ",talias,"."),
+                                          constraints)
+                  }
+              return(constraints)
+          })
+setMethod("constraintsSQL", signature(object = "character"),
+          function(object,tablenames) {
+              constraints <- object
               if(!is.null(names(tablenames)))
                   for(ti in 1:length(tablenames)){
                       tname <- tablenames[ti]

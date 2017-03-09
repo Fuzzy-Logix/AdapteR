@@ -25,4 +25,3 @@ summary(flmod)
 coefficients(flmod)
 residuals(flmod)
 }
-

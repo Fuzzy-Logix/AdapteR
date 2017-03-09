@@ -31,4 +31,3 @@ t.test(flx)
 t.test(flx,fly)
 t.test(flx,fly,var.equal=F)
 }
-

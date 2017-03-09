@@ -1021,6 +1021,8 @@ prepareData.formula <- function(formula,data,
             vexcludeCols <- NULL
             if("excludeCols" %in% names(list(...)))
                 vexcludeCols <- list(...)$excludeCols
+            if("ExcludeCols" %in% names(list(...)))
+                vexcludeCols <- list(...)$ExcludeCols
             formula <- genDeepFormula(pColnames=setdiff(colnames(data),
                                                 c(vexcludeCols,
                                                 getObsIdSQLExpression(data))),
@@ -1103,6 +1105,7 @@ prepareData.formula <- function(formula,data,
     }
 
     if(!isDeep(data)){
+        ##browser()
     	unused_cols <- setdiff(vcolnames,c(all.vars(formula),specID[["exclude"]]))
         unused_cols <- setdiff(unused_cols,
                                c(getGroupIdSQLExpression(data),
@@ -1111,6 +1114,12 @@ prepareData.formula <- function(formula,data,
         vfirstRow <- sqlQuery(getFLConnection(),
                               limitRowsSQL(paste0("SELECT * FROM (",
                                                   constructSelect(data),") a "),1))
+        vtblInfo <- separateDBName(getTableNameSlot(data))
+        vColInfo <- sqlQuery(getFLConnection(),
+                            paste0("SELECT columnName FROM dbc.columns WHERE \n ",
+                                    "columnType = 'CV' AND databaseName= ",
+                                    fquote(vtblInfo["vdatabase"])," \n ",
+                                    " AND tableName = ",fquote(vtblInfo["vtableName"])))[[1]]
         vfactorCols <- list()
 		## apply(t,2,function(x){class(x[[1]])}) gives all character
 		for(i in setdiff(colnames(vfirstRow),
@@ -1121,10 +1130,12 @@ prepareData.formula <- function(formula,data,
 							getGroupIdSQLExpression(data),
 							"group_id_colname",
                             list(...)[["doNotTransform"]]))){
+            ##browser()
 			if(length(i)==0) break;
 			if(is.factor(vfirstRow[[i]]) 
 				|| is.character(vfirstRow[[i]])
-				|| is.logical(vfirstRow[[i]])){
+				|| is.logical(vfirstRow[[i]])
+                || (i %in% sub("\\s+$", "", vColInfo))){ ## remove trailing spaces
 				# if(is.logical(vfirstRow[[i]])){
 				# 	vtemp <- levels(sqlQuery(getFLConnection(),
 				# 					paste0("SELECT DISTINCT(",i,
@@ -1145,7 +1156,8 @@ prepareData.formula <- function(formula,data,
 								paste0("MIN(",names(vfactorCols),
 									") AS ",names(vfactorCols),
 									collapse=","),
-								" FROM (",constructSelect(data),") a "))
+								" FROM (",constructSelect(data),") a "),
+                            as.is=TRUE)
 			vtempList <- list()
             vrefVarNames <- names(vrefVars)
 			for(i in colnames(vrefVars)){
@@ -1173,7 +1185,8 @@ prepareData.formula <- function(formula,data,
 			classSpec <- c(classSpec,vtempList)
 		}
 		
-		vexcludeCols <- paste0(unused_cols,collapse=",")
+		# vexcludeCols <- paste0(unused_cols,collapse=",")
+        vexcludeCols <- paste0(unused_cols)
     }
 	
 	vcallObject <- callObject
@@ -1390,6 +1403,9 @@ prepareData.formula <- function(formula,data,
 
 #' @export
 prepareData.lmGeneric <- prepareData.formula
+
+#' @export
+prepareData.NULL <- prepareData.formula
 
 
 ## move to file lm.R
@@ -2441,4 +2457,62 @@ coefficients.FLLinRegrSF<-function(object){
 	if(!isDotFormula(object@formula)) rownames(ret)<-setdiff(all.vars(object@formula),all.vars(object@formula)[1])
 	else rownames(ret)<- setdiff(colnames(object@table),all.vars(object@formula)[1])
 	return(data.matrix(ret))
+}
+
+
+getReferenceCategories <- function(data,pExcludeCols="",
+                                    classSpec=list(),
+                                    ...){
+    ##browser()
+    vcolnames <- colnames(data)
+    unused_cols <- c(pExcludeCols,
+                    getObsIdSQLExpression(data),
+                    getGroupIdSQLExpression(data))
+    
+    ## Detect factors and assign classSpec
+    vfirstRow <- sqlQuery(getFLConnection(),
+                          limitRowsSQL(paste0("SELECT * FROM (",
+                                              constructSelect(data),") a "),1))
+    vfactorCols <- list()
+    ## apply(t,2,function(x){class(x[[1]])}) gives all character
+    for(i in setdiff(colnames(vfirstRow),
+                    c(unused_cols,names(classSpec),
+                    list(...)[["doNotTransform"]],
+                    "obs_id_colname",
+                    "group_id_colname"))){
+        if(length(i)==0) break;
+        if(is.factor(vfirstRow[[i]]) 
+            || is.character(vfirstRow[[i]])
+            || is.logical(vfirstRow[[i]])){
+                r<-as.character(vfirstRow[[i]])
+                names(r) <- i
+                vfactorCols <- c(vfactorCols,r)
+        }
+    }
+    if(length(vfactorCols)>0){
+        vrefVars <- sqlQuery(getFLConnection(),
+                        paste0("SELECT ",
+                            paste0("MIN(",names(vfactorCols),
+                                ") AS ",names(vfactorCols),
+                                collapse=","),
+                            " FROM (",constructSelect(data),") a "),
+                            as.is=TRUE)
+        vtempList <- list()
+        vrefVarNames <- names(vrefVars)
+        for(i in colnames(vrefVars)){
+            ## Remove variables with NA
+            if(is.na(vrefVars[[i]]))
+                vrefVarNames <- setdiff(vrefVarNames,
+                                        i)
+            else if(is.logical(vrefVars[[i]]))
+                vtempList <- c(vtempList,
+                                levels(sqlQuery(getFLConnection(),
+                                            paste0("SELECT DISTINCT(",i,
+                                            ") FROM(",constructSelect(data),") a "))[[1]])[1])
+            else vtempList <- c(vtempList,as.character(vrefVars[[i]]))
+        }
+        names(vtempList) <- vrefVarNames
+        return(c(classSpec,vtempList))
+    }
+    return(classSpec)
 }

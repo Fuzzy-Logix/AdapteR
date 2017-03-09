@@ -69,6 +69,7 @@ Plotting for large datasets takes longer time to fetch data.
 If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
+
 \examples{
 widetable  <- FLTable("iris", "rownames")
 fkmeansobject <- fanny(widetable,2,memb.exp=2)
@@ -85,4 +86,3 @@ plot(fannyobjectnew)
 \seealso{
 \code{\link[cluster]{fanny}} for R function reference implementation.
 }
-

@@ -17,4 +17,3 @@ character vector giving reference to in-database object
 \description{
 reference in-database object
 }
-

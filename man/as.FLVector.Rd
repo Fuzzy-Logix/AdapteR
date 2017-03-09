@@ -23,4 +23,3 @@ FLVector object after casting.
 \description{
 Converts input \code{obj} to FLVector object
 }
-

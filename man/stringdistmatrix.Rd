@@ -42,6 +42,7 @@ according to a and columns according to b.
 
 row vectors are not supported currently.
 }
+
 \examples{
 widetable  <- FLTable("iris", "rownames")
 flv <- widetable[1:10,"Species"]
@@ -55,4 +56,3 @@ resultflmatrix <- stringdistmatrix(flv,c("xyz","abc"),method="jw")
 \code{\link[stringdist]{stringdist}} for R function reference
 implementation.
 }
-
