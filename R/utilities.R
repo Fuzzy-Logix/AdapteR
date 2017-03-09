@@ -109,6 +109,9 @@ sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
     return(verrflag)
     #cat("DONE...\n")
 }
+sqlSendUpdate.ODBCConnection <- function(connection, query , warn = TRUE){
+    suppressWarnings(sqlQuery(connection, query))
+}
 
 #' @export
 constructStoredProcArgs <- function(query,
@@ -189,8 +192,8 @@ sqlStoredProc.RODBC <- function(connection, query,
                                 ...) {
     ##browser()
     vlist <- constructStoredProcArgs(query=query,
-                                    outputParameter=outputParameter,
-                                    ...)
+                                     outputParameter=outputParameter,
+                                     ...)
     args <- vlist$args
     query <- vlist$query
     sqlstr <- do.call("constructStoredProcSQL",
@@ -200,6 +203,12 @@ sqlStoredProc.RODBC <- function(connection, query,
                              args))
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
+}
+sqlStoredProc.ODBCConnection <- function(connection,
+                                         query,
+                                         outputParameter, ...)
+{
+    return(sqlStoredProc.RODBC(connection, query, outputParameter, ...))
 }
 
 #' @export
@@ -325,6 +334,16 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     })
+}
+
+#' @export
+sqlQuery.ODBCConnection <- function(connection, query, ...){
+    resd <- dbGetQuery(connection,query )
+    if(is.null(resd)){
+        return(TRUE)
+    }
+    else
+        return(resd)
 }
 
 ##' drop a table

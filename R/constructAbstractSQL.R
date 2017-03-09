@@ -88,10 +88,17 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             pPartitionBy=names(pViewColnames)[1],
                             pLocalOrderBy=names(pViewColnames)[1],
                             pNest=FALSE,
+                            pFromTableFlag = FALSE,
                             ...){
     if(pNest){
-        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM (",pSelect," ) a ")
+        if(pFromTableFlag)
+            vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                    " FROM ",pSelect,"  a ")
+        else
+            vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                    " FROM (",pSelect,")  a ")
+        
+            
     }
     else vNestedSelect <- pSelect
 
@@ -133,6 +140,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                     )
                 )
     }
+
     else if(is.Hadoop()){
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
@@ -744,7 +752,6 @@ insertIntotbl <- function(pTableName,
     # pTableName <- getRemoteTableName(getOption("ResultDatabaseFL"),
     #                                 pTableName)
     vsqlstr <- paste0("INSERT INTO ",pTableName)
-
     if(!is.null(pValues)){
         if(!is.null(pColNames) && !is.Hadoop())
             vsqlstr <- paste0(vsqlstr,"(",

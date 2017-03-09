@@ -18,49 +18,49 @@ randomForest.FLpreparedData<-function(data,...) randomForest.FLTable(data$deepx,
 
 #' @export
 randomForest.FLTable<-function(data,
-							   formula,
-							   ntree=25,
-							   mtry=2,
-							   nodesize=10,
-							   maxdepth=5,
-							   cp=0.95,...){ 
-	control<-c()
-	control<-c(control,
-			   minsplit=nodesize,
-			   maxdepth=maxdepth,
-			   cp=cp)
-	x<-rpart.FLTable(data,formula,control,ntree=ntree,mtry=mtry,...)
-	vfuncName<-"FLRandomForest"
-	retobj<-sqlStoredProc(getFLConnection(),
-						  vfuncName,
-						  outputParameter=c(AnalysisID="a"),
-						  pInputParameters=x$vinputcols)
-	AnalysisID<-as.character(retobj[1,1])
-	query<-paste0("SELECT * FROM fzzlRFPredByTree 
+                               formula,
+                               ntree=25,
+                               mtry=2,
+                               nodesize=10,
+                               maxdepth=5,
+                               cp=0.95,...){ 
+    control<-c()
+    control<-c(control,
+               minsplit=nodesize,
+               maxdepth=maxdepth,
+               cp=cp)
+    x<-rpart.FLTable(data,formula,control,ntree=ntree,mtry=mtry,...)
+    vfuncName<-"FLRandomForest"
+    retobj<-sqlStoredProc(getFLConnection(),
+                          vfuncName,
+                          outputParameter=c(AnalysisID="a"),
+                          pInputParameters=x$vinputcols)
+    AnalysisID<-as.character(retobj[1,1])
+    query<-paste0("SELECT * FROM fzzlRFPredByTree 
 				   WHERE AnalysisID = ",fquote(AnalysisID), 
-				   "ORDER BY 1, 2, 3, 4, 5")
-	conmatrixquery<-paste0("SELECT * FROM fzzlRFConfusionMtx
+                  "ORDER BY 1, 2, 3, 4, 5")
+    conmatrixquery<-paste0("SELECT * FROM fzzlRFConfusionMtx
 					WHERE AnalysisID = ",fquote(AnalysisID), 
-				   "ORDER BY 1, 2, 3")
-	votesquery<-paste0("SELECT * FROM fzzlRandomForestPred 
+                           "ORDER BY 1, 2, 3")
+    votesquery<-paste0("SELECT * FROM fzzlRandomForestPred 
 				   WHERE AnalysisID = ",fquote(AnalysisID), 
-				   "ORDER BY 1, 2, 3, 4, 5")
-	forestquery<-paste0("SELECT * FROM fzzlDecisionTreeMNMD WHERE AnalysisID = ",fquote(AnalysisID),
-						"ORDER BY 1, 2, 3, 4, 5")
-	votestable<-sqlQuery(getFLConnection(),votesquery)
-	conmatrixtbl<-sqlQuery(getFLConnection(),conmatrixquery)
-	foresttable<-sqlQuery(getFLConnection(),forestquery)
-	m<-matrix(nrow = length(unique(conmatrixtbl$ObservedClass)), ncol=length(unique(conmatrixtbl$ObservedClass)))
-	rownames(m)<-unique(conmatrixtbl$ObservedClass)
-	colnames(m)<-unique(conmatrixtbl$ObservedClass)
+                       "ORDER BY 1, 2, 3, 4, 5")
+    forestquery<-paste0("SELECT * FROM fzzlDecisionTreeMNMD WHERE AnalysisID = ",fquote(AnalysisID),
+                        "ORDER BY 1, 2, 3, 4, 5")
+    votestable<-sqlQuery(getFLConnection(),votesquery)
+    conmatrixtbl<-sqlQuery(getFLConnection(),conmatrixquery)
+    foresttable<-sqlQuery(getFLConnection(),forestquery)
+    m<-matrix(nrow = length(unique(conmatrixtbl$ObservedClass)), ncol=length(unique(conmatrixtbl$ObservedClass)))
+    rownames(m)<-unique(conmatrixtbl$ObservedClass)
+    colnames(m)<-unique(conmatrixtbl$ObservedClass)
 
-	for(i in 1:length(conmatrixtbl$ObservedClass)){
-  		j<-conmatrixtbl[i,2]
-  		k<-conmatrixtbl[i,3]	
- 		m[j,k]<-conmatrixtbl[i,4]
-	}
-	m[is.na(m)]<-0
-	predicted<-votestable$PredictedClass
+    for(i in 1:length(conmatrixtbl$ObservedClass)){
+        j<-conmatrixtbl[i,2]
+        k<-conmatrixtbl[i,3]	
+        m[j,k]<-conmatrixtbl[i,4]
+    }
+    m[is.na(m)]<-0
+    predicted<-votestable$PredictedClass
 
 	frame<-data.frame(NodeID=foresttable$NodeID,
 					  n=foresttable$NodeSize,
@@ -81,29 +81,28 @@ randomForest.FLTable<-function(data,
 		class(trees[[l]])<-"data.frame"	
 	}
 
-	retobj<-list(call=match.call(),
-				 type="classification",
-				 votes=data.frame(ObsID=votestable$ObsID,
-				 				  ObservedClass=votestable$ObservedClass,
-				 				  PredictedClass=votestable$PredictedClass,
-				 				  Votes=votestable$NumOfVotes),
-				 predicted=as.factor(structure(predicted,names=votestable$ObsID)),
-				 confusion=m,
-				 classes=unique(conmatrixtbl$ObservedClass),
-				 ntree=ntree,
-				 mtry=mtry,
-				 forest=trees,
-				 data=x$data,
-				 AnalysisID=AnalysisID,
-				 RegrDataPrepSpecs=x$vprepspecs)
-	class(retobj)<-"FLRandomForest"
-	return(retobj)
+    retobj<-list(call=match.call(),
+                 type="classification",
+                 votes=data.frame(ObsID=votestable$ObsID,
+                                  ObservedClass=votestable$ObservedClass,
+                                  PredictedClass=votestable$PredictedClass,
+                                  Votes=votestable$NumOfVotes),
+                 predicted=as.factor(structure(predicted,names=votestable$ObsID)),
+                 confusion=m,
+                 classes=unique(conmatrixtbl$ObservedClass),
+                 ntree=ntree,
+                 mtry=mtry,
+                 forest=trees,
+                 data=x$data,
+                 AnalysisID=AnalysisID,
+                 RegrDataPrepSpecs=x$vprepspecs)
+    class(retobj)<-"FLRandomForest"
+    return(retobj)
 }
 
 #' @export
-predict.FLRandomForest<-function(object,newdata=object$data,
-								 scoreTable="",
-								 type="response",...){ #browser()
+predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
+								 type="response",...){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)

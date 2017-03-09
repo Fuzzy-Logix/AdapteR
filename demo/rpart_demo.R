@@ -36,7 +36,7 @@ vtemp <- readline("Above: str prints a summary of the table \n ")
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
 head(FLdeepTable,n=10)
-vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to decision tree.\n ")
+vtemp <- readline("Above: Head is supported to examine structure of data \n Press <enter> to continue to build the decision tree.\n ")
 
 ## NOTE:
 ## You can also call the decision tree function on a widetable
@@ -77,3 +77,12 @@ vtemp<-readline("Above: Examining the sample result obtained through predict fun
 #### Thank You ####
 ## clean up
 options(warn=oldWarn)
+
+
+
+## random forest
+
+rfobj<-randomForest(FLdeepTable, -1~., ntree=9)
+
+plot(rfobj)
+x<-predict(rfobj)

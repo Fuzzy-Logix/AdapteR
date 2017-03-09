@@ -102,6 +102,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       temporary=TRUE,
                       verbose=FALSE,
                       tablePrefix=NULL,
+                      pkg = "dbi",
                       ...){
     if(is.null(tablePrefix) & temporary)
         tablePrefix <- user
@@ -178,9 +179,11 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             stop("RODBC package needed for using ODBC connections. Please install it.",
                  call. = FALSE)
         }
-        tryCatch({
-            library(RODBC)
-            connection <- RODBC::odbcConnect(odbcSource)
+         tryCatch({
+            if(pkg %in% "dbi")
+                connection <- RODBCDBI::dbConnect(RODBCDBI::ODBC(), dsn = odbcSource)
+            else if (pkg %in% "dbc")
+                connection <- RODBC::odbcConnect(odbcSource)              
         },error=function(e)e)
     }
     if(is.null(connection))

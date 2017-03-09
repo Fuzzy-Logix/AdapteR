@@ -6,6 +6,8 @@ Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
 
+print(methods("rpart"))
+
 test_that("test for decision tree on deep tables",{
   flobj<-rpart(FLenv$table, formula = -1~.)
   robj <- rpart(Col1~., data = Renv$table,method = "class")
