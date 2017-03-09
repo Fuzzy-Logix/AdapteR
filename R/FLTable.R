@@ -1066,7 +1066,7 @@ SampleData <- function(pTableName,
 #' resultList <- FLReshape(data="medEconomicData",
 #'                         formula=CountryName ~ IndicatorCode,
 #'                         value.var="TimeSeriesVal",
-#'                         subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Year=2010",
+#'                         subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Years=2010",
 #'                         outTable="tbl1",
 #'                         drop=TRUE)
 #' @export
@@ -1087,8 +1087,24 @@ FLReshape <- function(data,formula,
         vtemporary <- list(...)$temporary
     else vtemporary <- FALSE
 
-    if(deepOutput){
+    vdepColname <- NULL
+    if("dependentColumn" %in% names(list(...))){
+        vdepColname <- setdiff(list(...)[["dependentColumn"]],"")
+    }
+    vIncludeIntercept <- FALSE
+    if("includeIntercept" %in% names(list(...))){
+        vIncludeIntercept <- list(...)[["includeIntercept"]]
+    }
 
+    if(length(vdepColname)>0){
+        vWhereClause <- constructWhere(c(subset,
+                                        paste0(vvarid," NOT IN(",
+                                            fquote(vdepColname),")")))
+    }
+    else{
+        vWhereClause <- constructWhere(subset)
+    }
+    if(deepOutput){
         sqlstr <- paste0(" SELECT DENSE_RANK()OVER(PARTITION BY b.varid ORDER BY b.obsid) as obsid, \n ",
                                 "DENSE_RANK()OVER(PARTITION BY b.obsid ORDER BY b.varid) as varid, \n ",
                                 "b.num_val as num_val, \n ",
@@ -1096,12 +1112,12 @@ FLReshape <- function(data,formula,
                                 "b.varid as varidnames \n ",
                         " FROM ( \n ",
                             " SELECT ",vobsid," as obsid, count(DISTINCT ",vvarid,") as varidcount \n ",
-                            " FROM ",data," \n ",constructWhere(subset),
+                            " FROM ",data," \n ",vWhereClause,
                             " \n GROUP BY ",vobsid,") a, \n ",
-                            " (SELECT COUNT(DISTINCT ",vvarid,") as maxvarid FROM ",data," \n ",constructWhere(subset),
+                            " (SELECT COUNT(DISTINCT ",vvarid,") as maxvarid FROM ",data," \n ",vWhereClause,
                             " \n ) c, \n ",
                             " (SELECT ",vobsid," as obsid,",vvarid," as varid,",value.var," as num_val \n ",
-                                " FROM ",data," \n ",constructWhere(subset),") b \n ",
+                                " FROM ",data," \n ",vWhereClause,") b \n ",
                         " WHERE a.obsid = b.obsid AND a.varidcount = c.maxvarid "
                         )
 
@@ -1110,6 +1126,18 @@ FLReshape <- function(data,formula,
                             pTemporary=vtemporary,
                             pDrop=TRUE)
 
+        if(length(vdepColname)>0){
+            vres <- insertIntotbl(pTableName=outTable,
+                                  pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY ",vobsid,"), -1, ",
+                                                        value.var,",",vobsid,",",fquote(vdepColname)," FROM \n ",
+                                                    data," \n WHERE ",vvarid," IN (",fquote(vdepColname),")"))
+        }
+        if(vIncludeIntercept){
+            vres <- insertIntotbl(pTableName=outTable,
+                                  pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY ",vobsid,"), 0, 1, ",
+                                                        vobsid,", 'Intercept' FROM \n ",
+                                                    data," \n WHERE ",vvarid," IN (",fquote(vdepColname),")"))
+        }
         ## TODO: standardization of data
 
         vres <- sqlQuery(getFLConnection(),
@@ -1119,7 +1147,7 @@ FLReshape <- function(data,formula,
 
         ## Mappings
         sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",
-                            " obsid AS vectorIndexColumn, \n ",
+                            " ROW_NUMBER()OVER(PARTITION BY varid ORDER BY obsid) AS vectorIndexColumn, \n ",
                             " obsidnames AS vectorValueColumn \n ",
                         " FROM ",outTable)
 
@@ -1138,7 +1166,7 @@ FLReshape <- function(data,formula,
                        type="character")
 
         sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",
-                            " varid AS vectorIndexColumn, \n ",
+                            " ROW_NUMBER()OVER(PARTITION BY obsid ORDER BY varid) AS vectorIndexColumn, \n ",
                             " varidnames AS vectorValueColumn \n ",
                         " FROM ",outTable)
 
