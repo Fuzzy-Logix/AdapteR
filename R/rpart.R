@@ -219,9 +219,10 @@ predict.FLrpart<-function(object,
     AnalysisID <- checkSqlQueryOutput(AnalysisID)
     #query<-paste0("Select * from ",scoreTable," Order by 1")
     vval<-"PredictedClass"
-    
+
     if(type %in% "prob"){
     	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+   	   	warning("The probability values are only true for predicted class. The sum may not be 1.")
    	   	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","PredictClassProb"))
     }
 
@@ -431,7 +432,62 @@ plot.FLrpart<-function(x){ #browser()
   	}
   	else{
   		segments(xcor[i],ycor[i],xcor[i],2.5-(frame$treelevel[i]+1)*0.25)
-  		text(xcor[i],2.450-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
+  		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
 		}  
   }
+}
+
+rtree<-function(object,
+				ntree=25,
+			    mtry=2,
+			    nodesize=10,
+			    maxdepth=5,
+			    cp=0.95,
+			    sampsize=0.8,
+			    pSeed=0.5,
+			    pRandomForest=1,...){ browser()
+	if(pRandomForest==0){
+		sampsize<-NULL
+		pSampleRateVars<-NULL
+		ntree<-NULL
+		pSeed<-NULL
+	}
+	else{
+		pSampleRateVars<-mtry/(object@dims[2]-1)
+	}
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(object)),
+                           pSelect=list(a=c(pGroupID=1,
+                           					pObsID="a.obs_id_colname",
+                           					pVarID="a.var_id_colname",
+                           					pValue="a.cell_val_colname",
+                           					pMaxLevel=maxdepth,
+                           					pMinObs=nodesize,
+                           					pMinSSEDiff=cp,
+                           					pRandomForest=pRandomForest,
+                           					pSampleRateObs=sampsize,
+                           					pSampleRateVars=pSampleRateVars,
+                           					pNumOfTrees=ntree,
+                           					pSeed=pSeed)))
+    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
+    pSelect<-paste0("Select pGroupID, pObsID, pVarID, pValue from ",p)
+	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",
+										   ObsID="obs_id_colname",
+						   				   VarID="var_id_colname",
+						   				   Num_Val="cell_val_colname",
+						   				   pMaxLevel="pMaxLevel",
+						   				   pMinObs="pMinObs",
+						   				   pMinSSEDiff="pMinSSEDiff",
+						   				   pRandomForest="pRandomForest",
+						   				   pSampleRateVars="pSampleRateVars",
+						   				   pSampleRateObs="pSampleRateObs",
+						   				   pNumOfTrees="pNumOfTrees",
+						   				   pSeed="pSeed"),
+						   pSelect=pSelect,
+						   pOutColnames="a.*",
+						   pFuncName="FLRegrTreeUdt",
+						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
+	tName <- gen_unique_table_name("RegrTree")
+	p <- createTable(tName,pSelect=query,pTemporary=TRUE)
+    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
+    return(a)
 }

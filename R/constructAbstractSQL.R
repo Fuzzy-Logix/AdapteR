@@ -88,10 +88,17 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             pPartitionBy=names(pViewColnames)[1],
                             pLocalOrderBy=names(pViewColnames)[1],
                             pNest=FALSE,
+                            pFromTableFlag = FALSE,
                             ...){
     if(pNest){
-        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM (",pSelect," ) a ")
+        if(pFromTableFlag)
+            vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                    " FROM ",pSelect,"  a ")
+        else
+            vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                    " FROM (",pSelect,")  a ")
+        
+            
     }
     else vNestedSelect <- pSelect
 

@@ -123,7 +123,11 @@ constructStoredProcArgs <- function(query,
     else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
 
+    ## print("stored PROC Arguments:")
+    ## print(args)
     spMap <- getStoredProcMapping(query)
+    ## print("stored PROC Mapping:")
+    ## print(spMap)
     if(!is.null(spMap)){
         query <- spMap$funcNamePlatform
         if(length(spMap$argsPlatform)>0){
@@ -131,6 +135,8 @@ constructStoredProcArgs <- function(query,
             names(args) <- names(spMap$argsPlatform)
         }
     }
+    ## print("remapped stored PROC Arguments:")
+    ## print(args)
     return(list(args=args,
                 query=query))
 }

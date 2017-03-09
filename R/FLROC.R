@@ -1,4 +1,28 @@
 ## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
+
+#' @export
+roc <- function (formula,data=list(),...) {
+	UseMethod("roc", data)
+}
+
+#' @export
+roc.default <- function (response, predictor,...) {
+   if (!requireNamespace("pROC", quietly = TRUE)){
+       stop("pROC package needed for roc. Please install it.",
+            call. = FALSE)
+   }
+   else return(pROC::roc(response, predictor,...))
+}
+
+##to-do : print function, $ operator[(levels)].
+
+
+#' @export
+setClass(
+    "FLROC",
+    contains="FLRegr",
+    slots=list(otbl="character"))
+
 #' tbl <- FLTable("tblROCCurve", "ObsID")
 #' mod <- roc(tbl$ActualVal, tbl$ProbVal)
 #'Example 2:
@@ -10,25 +34,6 @@
 #' head(fltbl)
 #'fltbl <- as.FLTable(fltbl)
 #'flmod <- roc(fltbl$res, fltbl$pred)
-#' 
-#' @export
-##roc.default <- function (response, predictor,...) {
-##    if (!requireNamespace("pROC", quietly = TRUE)){
-##        stop("pROC package needed for roc. Please install it.",
-##             call. = FALSE)
-##    }
-##    else return(pROC::roc(response, predictor,...))
-##}
-##
-## to-do : work on formula aspect of function, print function, $ operator[(levels)].
-
-
-#' @export
-setClass(
-    "FLROC",
-    contains="FLRegr",
-    slots=list(otbl="character"))
-
 
 #' @export
 roc.FLVector <- function (response, predictor, ...)
@@ -41,17 +46,49 @@ roc.FLVector <- function (response, predictor, ...)
                       callobject = vcallObject,
                       ...))}
 
-#' @export
-roc.FLTable <- roc.FLVector
-
 
 #' @export
-roc.FLTableMD <- roc.FLVector
-
+#' TO-DO:- implementation in rocgeneric
+#' roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
+#' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
+roc.FLTable <- function(formula,data,... ){
+##    browser()
+    vcallObject <- match.call()
+    var <- all.vars(formula)
+    pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
+    
+    tname <- getTableNameSlot(data)[[1]]
+    ret <- sqlStoredProc(connection,
+                         "FLROCCurve",
+                         InputTable = tname,
+                         RecID = pId,
+                         ActualColName = var[1],
+                         ProbColName = var[2],
+                         WhereClause =NULL ,
+                         TableOutput = 1,
+                         outputParameter = c(OutTable = 'a') 
+                         )
+    rnames <- rownames(data)
+    cnames <- colnames(data)
+    vrw <- nrow(data)
+    vclass <- "FLROC"
+    quer <- paste0("SELECT COUNT(",var[1],") AS val FROM ",tname," GROUP BY ",var[1],"")
+    df <- sqlQuery(connection, quer)
+    
+    return(new(vclass,
+               otbl = as.character(ret[[1]]),
+               results = list(call = vcallObject,
+                              itable = tname,
+                              Dimnames = list(row = rnames, col = cnames),
+                              dims = c(vrw, 3),
+                              vals = c(controls = df$val[2], cases =df$val[1] ),
+                              doperator = list(Var = list(var[1], var[2]),
+                                               Vorder = pId) )
+               )
+           )}
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    ##browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -84,9 +121,12 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                               itable = vvolName,
                               Dimnames = list(row = rnames, col = cnames),
                               dims = c(vrw, 3),
-                              vals = c(controls = df$val[2], cases =df$val[1] )
-                              )
-               ))
+                              vals = c(controls = df$val[2], cases =df$val[1] ),
+                              doperator = list(Var = list("res", "pred"),
+                                               Vorder = "OBSID") )
+
+               )
+           )
     
 }
 
@@ -103,7 +143,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                    select= new("FLSelectFrom",
                                table_name=tblname,
                                connectionName=getFLConnectionName(),
-                               variables=var,
+                               variables=as.list(var),
                                whereconditions=whereconditions,
                                order=vorder),
                    dimColumns = dcolumn,
@@ -133,31 +173,32 @@ rocgeneric <- function(response, predictor,callobject,  ...)
         return(auc(object)) }
     
     else if(property == "original.predictor"){
+        browser()
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list("pred"),
+                          var = list(object@results$doperator$Var[[2]]),
                           whereconditions = "" ,
-                          vorder = "OBSID",
-                          dcolumn = c("OBSID", "pred")))
+                          vorder = object@results$doperator$Vorder,
+                          dcolumn = c(object@results$doperator$Vorder, object@results$doperator$Var[[2]])))
     }
-
+    ## var <- res, vorder <- "obsId", dcolumn <-c("obsID",res)
     else if(property == "original.response"){
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list("res"),
+                          var = list(object@results$doperator$Var[[1]]),
                           whereconditions = "" ,
-                          vorder = "OBSID",
-                          dcolumn = c("OBSID", "res"))) }
+                          vorder = object@results$doperator$Vorder,
+                          dcolumn = c(object@results$doperator$Vorder,object@results$doperator$Var[[1]] ))) }
 
     else if(property == "levels"){print("need to do:")}
 
     else if(property == "controls"){
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list("pred"),
-                          whereconditions = "res = 0",
-                          vorder = "OBSID",
-                          dcolumn = c("OBSID", "pred"),
+                          var = list(object@results$doperator$Var[[2]]),
+                          whereconditions = paste0(object@results$doperator$Var[[1]], "= 0"),
+                          vorder = object@results$doperator$Vorder,
+                          dcolumn = c(object@results$doperator$Vorder, object@results$doperator$Var[[2]]),
                           dnames = (1:object@results$vals[1]),
                           vdims  = object@results$vals[1]
                           ))
@@ -166,10 +207,10 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     else if(property == "cases"){
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list("pred"),
-                          whereconditions = "res = 1",
-                          vorder = "OBSID",
-                          dcolumn = c("OBSID", "pred"),
+                          var = list(object@results$doperator$Var[[2]]),
+                          whereconditions = paste0(object@results$doperator$Var[[1]], "= 1"),
+                          vorder = object@results$doperator$Vorder,
+                          dcolumn = c(object@results$doperator$Vorder, object@results$doperator$Var[[2]]),
                           dnames = (1:object@results$vals[2]),
                           vdims  = object@results$vals[2]))
     }
@@ -200,17 +241,22 @@ roc <- function(object,limit = 1000,...) UseMethod("roc")
 auc.FLROC <- function(object,limit = 1000,...)
     return(as.roc(object, limit,auc=TRUE,...)$auc)
 
+
 #' @export
-plot.FLROC <- function(object,limit = 1000,  ...)
-    return(plot(as.roc(object, limit=limit,...), ...))
+plot.FLROC <- function(object,limit = 1000,method = 1, ...) 
+    return(plot(as.roc(object, limit=limit, method = method), ...))
+
+#' @export
+print.FLROC <- function(object,method = 1, ...) 
+    return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
 #' @export
 print.FLROC <- function(object)
     return(print(as.roc(object, auc=TRUE)))
 
 
-## to include : condition when TPR,FPR are NA's
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
+    ##browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     if(method)
     {
@@ -241,35 +287,5 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     if(auc) reqList$auc <- auc(reqList)
     return(reqList)
 }
-
-
-
-
-## for TPR, FPR,  givng NA's
-## TPR = True Positives/Total Number of Events
-## FPR = False Positives/Total Number of Non-events
-##
-##as.roc2 <- function(object,limit = 1000, auc=TRUE, ... ){browser()
-##    p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
-##    val <- object@results$vals
-##    neg <-1/val[[1]]
-##    pos <- 1/val[[2]]
-##    str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")
-##    df <- sqlQuery(connection, str1)
-##    sen <- sort(as.numeric(df$sen), decreasing = TRUE)
-##    spec <- sort(as.numeric(df$spec))    
-##    reqList <- structure(
-##        list(call = object$call,
-##             cases = object$cases,
-##             controls = object$controls,
-##             percent = object$percent,
-##             sensitivities =sen,
-##             specificities = spec
-##             ),
-##        class="roc")
-##    if(auc) reqList$auc <- auc(reqList)
-##    return(reqList)
-##}
-##
 
 setMethod("show","FLROC",print.FLROC)

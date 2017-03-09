@@ -641,12 +641,10 @@ FLTrainDataPrep <- function(object,
 
 setDefaultInputParams <- function(requiredParams,
                                   inputParams){
-    vtemp <- sapply(names(requiredParams),
-                    function(x){
-                        if(!x %in% names(inputParams))
-                            inputParams[[x]] <- requiredParams[[x]]
-                    })
-    return(append(inputParams,vtemp))
+    for(x in setdiff(names(requiredParams),names(inputParams))){
+        inputParams[[x]] <- requiredParams[[x]]
+    }
+    inputParams[names(requiredParams)]
 }
 
 FLTrainDataPrep.default <- function(object,
@@ -810,6 +808,7 @@ FLTestDataPrep.FLTable.Hadoop <- function(object,
                                 useBoolean=TRUE))
 }
 
+## improve: remove assign and get and use lists
 checkInputParamsRegrDataPrep <- function(object,
                                         DepCol,
                                         inputParams,

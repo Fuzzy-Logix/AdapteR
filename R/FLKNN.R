@@ -12,7 +12,7 @@
 #' @param prob If this is true, 
 #' the proportion of the votes for the winning class are returned as attribute prob.
 #' @param classify logical if classification/regression is solved
-#' @param metric distance metric to be used. euclidean,manhattan supported.
+#' @param metric distance metric to be used. euclidean, manhattan supported.
 #' @return FLVector of classifications of test set.
 #' @examples
 #' FLdeepTbl <- FLTable(getTestTableName("ARknnDevSmall"),"obsid","varid","num_val")
@@ -63,7 +63,6 @@ knn.FLTable <- function(train,
         test <- FLRegrDataPrep(test,depCol=cl)
 
     vtableNames <- sapply(list(train,test),getTableNameSlot)
-
 
     ## Calculate Dist Matrix
     vDistTableName <- gen_unique_table_name(paste0(vtableNames[1],"Dist"))
@@ -237,61 +236,6 @@ benchMarkFLKNN <- function(pMultiplier=c(1,1),
                                 })
 
     return(vbenchmarkResults)
-}
-
-
-benchMarkFLgetUpperDistMatrix <- function(pMultiplier=c(1,1),
-                                        ...
-                                        ){
-    ## base case (1x) (100*5)
-    if(pMultiplier[1]>150)
-        pMultiplier[1] <- 1
-    if(pMultiplier[2]>30)
-        pMultiplier[2] <- 1
-
-    vrows <- 100*pMultiplier[1]
-    vcols <- 5*pMultiplier[2]
-
-
-    FLdeepTbl <- FLTable(getTestTableName("tblLinRegr"),
-                        "obsid","varid","num_val",
-                        whereconditions=c(paste0("obsid < ",vrows+1),
-                                        paste0("varid < ",vcols+1))
-                        )
-
-    require(plyr)
-    vbenchmarkResults <- ldply(c("euclidean","manhattan"),
-                                function(x){
-                                    vtime <- system.time(
-                                                    distMatrix <- FLgetUpperDistMatrix(pObj1=FLdeepTbl,
-                                                                                        pObj2=FLdeepTbl,
-                                                                                        metric=x,
-                                                                                        temporary=TRUE,
-                                                                                        outTableName=NULL,
-                                                                                        ...))
-                                    return(data.frame(rows=vrows,cols=vcols,
-                                            dim=vrows*vcols,
-                                            DistanceMetric=x,
-                                            BenchmarkTime=vtime["elapsed"]))
-                                })
-
-    return(vbenchmarkResults)
-}
-
-
-runbenchMarkFLgetUpperDistMatrix <- function(pMultiplierLimit=c(10,5)){
-    vincreaseLimit <- 5
-    vrows <- seq(1,pMultiplierLimit[1],vincreaseLimit)
-    vcols <- seq(1,pMultiplierLimit[2],vincreaseLimit)
-
-    vcomb <- expand.grid(vrows,vcols)
-    vres <- apply(vcomb,1,benchMarkFLgetUpperDistMatrix)
-    vres <- ldply(vres,rbind)
-    p1 <- ggplot(vres,aes(x=rows,y=BenchmarkTime,colour=DistanceMetric))+
-                facet_grid(.~cols)+geom_line()+geom_point()+
-                ylab("time(sec)")
-    plot(p1)
-    return(vres)
 }
 
 runbenchMarkFLKNN <- function(pMultiplierLimit=c(10,5),
