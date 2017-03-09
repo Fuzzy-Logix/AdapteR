@@ -259,7 +259,7 @@ summary.FLRandomForest<-function(object){ #browser()
 	                  	      pSelect=sqlstr,
 	                  	      pTemporary=TRUE,
 	                 	      pDrop=TRUE)
-			sqlstr2<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
+			sqlstr2<-paste0("Select ObsID as ObsID, 0 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[2]))
 			insertIntotbl(pTableName=temptable,
 						  pSelect=sqlstr2)

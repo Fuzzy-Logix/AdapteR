@@ -1088,9 +1088,11 @@ FLReshape <- function(data,formula,
         ## TODO: standardization of data
 
         vres <- sqlQuery(getFLConnection(),
-                        paste0("SELECT MAX(obsid) as rows, MAX(varid) as cols FROM ",outTable))
-        rows <- vres[["rows"]]
-        cols <- vres[["cols"]]
+                        paste0("SELECT MAX(obsid) as vrows, MAX(varid) as vcols FROM ",outTable))
+        rows <- vres[["vrows"]]
+        cols <- vres[["vcols"]]
+
+        sqlQuery(getFLConnection(),paste0("Update ",outTable," set varid = -1 Where varidnames = ",fquote(list(...)$dependentColumn)))
 
         ## Mappings
         sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",
