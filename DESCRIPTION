@@ -1,7 +1,7 @@
 Package: AdapteR
 Title: Converts R syntax to SQL to provide fast analytics using in-database C++
     library DB Lytix.
-Version: 2.4
+Version: 2.4.2.2
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -55,8 +55,9 @@ Suggests:
     stringdist
 License: GPL-2
 LazyData: true
-Collate:
+Collate: 
     'FLconstructSQL.R'
+    'platformMappings.R'
     'platforms.R'
     'FLMatrix.R'
     'FLADTest.R'
@@ -95,6 +96,7 @@ Collate:
     'FLIs.R'
     'FLJordanDecomp.R'
     'FLKMeans.R'
+    'FLKNN.R'
     'FLLDA.R'
     'FLLUDecomp.R'
     'FLLength.R'
@@ -137,14 +139,17 @@ Collate:
     'crossprod.R'
     'experiment_benchmarking.R'
     'friedman.test.R'
+    'knnx.index.R'
     'kruskal.test.R'
     'ks.test.R'
     'kuip.test.R'
     'mahalanobis.R'
+    'matchit.R'
     'mcnemar.test.R'
     'randomForest.R'
     'rowcolOps.R'
     'rpart.R'
+    'subset.R'
     'survdiff.R'
     'survfit.R'
     't.test.R'
@@ -154,4 +159,4 @@ Collate:
     'wald_wolfowitz.R'
     'wilcox.test.R'
     'z.test.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

@@ -4,11 +4,11 @@
 \alias{FLcreateUnivariateMethodsFile}
 \title{Function to generate S4 methods for univariate distributions code.}
 \usage{
-FLcreateUnivariateMethodsFile(definitions = "data/univariate.RFL",
+FLcreateUnivariateMethodsFile(definitions = "def/univariate.rfl",
   genFile = "AdapteR/R/univariate.R")
 }
 \description{
-Univariate distribution functions are defined in data/univariate.RFL.
+Univariate distribution functions are defined in def/univariate.rfl.
 Uses R-like syntax to define function and argument mappings efficiently.
 This code is parsed programmatically:
 function definitions like are created programmatically.
@@ -19,4 +19,3 @@ stats::pweibull            <- FLCDFWeibull(q,location=0,scale,shape)
 for executing the R function (left of " <- ") with
 in-dabase with DB Lytix function (right of " <- ").
 }
-

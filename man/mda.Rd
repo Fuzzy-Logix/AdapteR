@@ -44,4 +44,3 @@ and the mixing probability by maximizing the log-likelihood with expectation max
 \seealso{
 \code{\link[stats]{mda}} for R reference implementation.
 }
-

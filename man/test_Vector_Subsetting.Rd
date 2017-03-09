@@ -19,4 +19,3 @@ tests vector subsetting by names and by index recursively.
 \author{
 Gregor Kappler <g.kappler@gmx.net>
 }
-

@@ -4,9 +4,8 @@
 \alias{as.vector.FLMatrix}
 \title{Converts FLMatrix object to vector in R}
 \usage{
-as.vector.FLMatrix(object, mode = "any")
+\method{as.vector}{FLMatrix}(object, mode = "any")
 }
 \description{
 Converts FLMatrix object to vector in R
 }
-
