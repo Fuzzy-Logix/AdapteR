@@ -87,7 +87,6 @@ roc.FLTable <- function(formula,data,... ){
                )
            )}
 
-
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
     vvolName <- gen_view_name("roccurve")
@@ -252,8 +251,8 @@ print.FLROC <- function(object,method = 1, ...)
     return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
 #' @export
-setMethod("show","FLROC",function(object){
-          return(print.FLROC(object))})
+print.FLROC <- function(object)
+    return(print(as.roc(object, auc=TRUE)))
 
 
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
@@ -289,5 +288,4 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     return(reqList)
 }
 
-
-
+setMethod("show","FLROC",print.FLROC)

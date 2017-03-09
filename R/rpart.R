@@ -96,7 +96,9 @@ rpart.FLTable<-function(data,
 				 	    MAXLEVEL=control["maxdepth"],
 				  		PURITY=control["cp"],
 				  		NOTE=vnote)
-		return(vinputcols)
+		return(list(vinputcols=vinputcols,
+					data=deepx,
+					vprepspecs=vprepspecs))
 	}
 	else if(!is.null(list(...)[["ntree"]])){
 		vinputcols<-list(INPUT_TABLE=deeptablename,
@@ -184,7 +186,7 @@ summary.FLrpart<-function(x,...){
 predict.FLrpart<-function(object,
                           newdata=object$deeptable,
                           scoreTable="",type = "response",
-                          ...){
+                          ...){ #browser()
     if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
     newdata <- setAlias(newdata,"")
     if(scoreTable=="")
@@ -215,31 +217,41 @@ predict.FLrpart<-function(object,
                               outputParameter=c(AnalysisID="a"),
                               pInputParams=vinputcols)
     AnalysisID <- checkSqlQueryOutput(AnalysisID)
-    ##query<-paste0("Select * from ",scoreTable," Order by 1")
-    val <- "PredictedClass"
-    if(type %in% "prob")
-        val <- "PredictClassProb"
-    
-    sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
-                              ",vobsid," AS vectorIndexColumn,\n
-                              ",val," AS vectorValueColumn\n",
-                     " FROM ",scoreTable,"")
-    tblfunqueryobj <- new("FLTableFunctionQuery",
-                          connectionName = getFLConnectionName(),
-                          variables = list(
-                              obs_id_colname = "vectorIndexColumn",
-                              cell_val_colname = "vectorValueColumn"),
-                          whereconditions="",
-                          order = "",
-                          SQLquery=sqlstr)
-    vrw <- nrow(newdata)
-    yvector <- newFLVector(
-        select = tblfunqueryobj,
-        Dimnames = list(as.integer(1:vrw),
-                        "vectorValueColumn"),
-        dims = as.integer(c(vrw,1)),
-        isDeep = FALSE)
-    return(yvector)
+    #query<-paste0("Select * from ",scoreTable," Order by 1")
+    vval<-"PredictedClass"
+
+    if(type %in% "prob"){
+    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+   	   	warning("The probability values are only true for predicted class. The sum may not be 1.")
+   	   	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","PredictClassProb"))
+    }
+
+    else if(type %in% "link"){
+    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add logit float"))
+    	sqlQuery(getFLConnection(),paste0("update ",scoreTable," set logit = -ln(1/PredictClassProb - 1) where PredictClassProb<1"))
+    	vval<-"logit"
+    }
+    sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+					"ObsID"," AS vectorIndexColumn,",
+ 					vval," AS vectorValueColumn",
+	 				" FROM ",scoreTable)
+	
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                        connectionName = getFLConnectionName(),
+	                        variables = list(
+				                obs_id_colname = "vectorIndexColumn",
+				                cell_val_colname = "vectorValueColumn"),
+	                        whereconditions="",
+	                        order = "",
+	                        SQLquery=sqlstr)
+
+	flv <- newFLVector(
+				select = tblfunqueryobj,
+				Dimnames = list(rownames(newdata),
+								"vectorValueColumn"),
+                dims = as.integer(c(newdata@dims[1],1)),
+				isDeep = FALSE)
+	return(flv)
 }
 
 #' @export
@@ -423,4 +435,59 @@ plot.FLrpart<-function(x){ #browser()
   		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= frame$yval[i])
 		}  
   }
+}
+
+rtree<-function(object,
+				ntree=25,
+			    mtry=2,
+			    nodesize=10,
+			    maxdepth=5,
+			    cp=0.95,
+			    sampsize=0.8,
+			    pSeed=0.5,
+			    pRandomForest=1,...){ browser()
+	if(pRandomForest==0){
+		sampsize<-NULL
+		pSampleRateVars<-NULL
+		ntree<-NULL
+		pSeed<-NULL
+	}
+	else{
+		pSampleRateVars<-mtry/(object@dims[2]-1)
+	}
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(object)),
+                           pSelect=list(a=c(pGroupID=1,
+                           					pObsID="a.obs_id_colname",
+                           					pVarID="a.var_id_colname",
+                           					pValue="a.cell_val_colname",
+                           					pMaxLevel=maxdepth,
+                           					pMinObs=nodesize,
+                           					pMinSSEDiff=cp,
+                           					pRandomForest=pRandomForest,
+                           					pSampleRateObs=sampsize,
+                           					pSampleRateVars=pSampleRateVars,
+                           					pNumOfTrees=ntree,
+                           					pSeed=pSeed)))
+    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
+    pSelect<-paste0("Select pGroupID, pObsID, pVarID, pValue from ",p)
+	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",
+										   ObsID="obs_id_colname",
+						   				   VarID="var_id_colname",
+						   				   Num_Val="cell_val_colname",
+						   				   pMaxLevel="pMaxLevel",
+						   				   pMinObs="pMinObs",
+						   				   pMinSSEDiff="pMinSSEDiff",
+						   				   pRandomForest="pRandomForest",
+						   				   pSampleRateVars="pSampleRateVars",
+						   				   pSampleRateObs="pSampleRateObs",
+						   				   pNumOfTrees="pNumOfTrees",
+						   				   pSeed="pSeed"),
+						   pSelect=pSelect,
+						   pOutColnames="a.*",
+						   pFuncName="FLRegrTreeUdt",
+						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
+	tName <- gen_unique_table_name("RegrTree")
+	p <- createTable(tName,pSelect=query,pTemporary=TRUE)
+    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
+    return(a)
 }

@@ -1985,7 +1985,7 @@ predict.FLRobustRegr <- function(object,
 predict.lmGeneric <- function(object,
 							newdata=object@table,
 							scoreTable="",
-                            ...){
+                            type="response",...){ #browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -2029,29 +2029,34 @@ predict.lmGeneric <- function(object,
 								pInputParams=vinputCols)
 	AnalysisID <- checkSqlQueryOutput(AnalysisID)
 
-    sqlstr <- getFittedValuesLogRegrSQL(object,newdata,scoreTable)
-	# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-	# 					vobsid," AS vectorIndexColumn,",
-	# 					vfcalls["valcolnamescoretable"]," AS vectorValueColumn",
-	# 				" FROM ",scoreTable)
+    if(type %in% "link"){
+    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add logit float"))
+    	sqlQuery(getFLConnection(),paste0("update ",scoreTable," set logit = -ln(1/Y - 1) where Y<1"))
+    	object@vfcalls["valcolnamescoretable"]<-"logit"
+    } 
+	    sqlstr <- getFittedValuesLogRegrSQL(object,newdata,scoreTable)
+		# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+		# 					vobsid," AS vectorIndexColumn,",
+		# 					vfcalls["valcolnamescoretable"]," AS vectorValueColumn",
+		# 				" FROM ",scoreTable)
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = getFLConnectionName(),
-                        variables = list(
-			                obs_id_colname = "vectorIndexColumn",
-			                cell_val_colname = "vectorValueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
+		tblfunqueryobj <- new("FLTableFunctionQuery",
+	                        connectionName = getFLConnectionName(),
+	                        variables = list(
+				                obs_id_colname = "vectorIndexColumn",
+				                cell_val_colname = "vectorValueColumn"),
+	                        whereconditions="",
+	                        order = "",
+	                        SQLquery=sqlstr)
 
-	flv <- newFLVector(
-				select = tblfunqueryobj,
-				Dimnames = list(rownames(newdata),
-								"vectorValueColumn"),
-                dims = as.integer(c(newdata@dims[1],1)),
-				isDeep = FALSE)
+		flv <- newFLVector(
+					select = tblfunqueryobj,
+					Dimnames = list(rownames(newdata),
+									"vectorValueColumn"),
+	                dims = as.integer(c(newdata@dims[1],1)),
+					isDeep = FALSE)
 
-	return(flv)
+		return(flv)
 }
 
 ## move to file lm.R
