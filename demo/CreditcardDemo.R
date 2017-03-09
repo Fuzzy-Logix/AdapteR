@@ -1,5 +1,5 @@
 ## make plot side by side of dt, rf, glm.
-##str <- paste0("SELECT a.vectorValueColumn AS depVar FROM (",constructSelect(depVar),") AS ##a ORDER BY a.vectorIndexColumn")
+##str <- paste0("SELECT a.vectorValueColumn AS depVar FROM (",constructSelect(depVar),") AS ## a ORDER BY a.vectorIndexColumn")
 ## use deep table instead of wide as consuming more time.
 ## ARBaseARcreditcardTrainD1485952077
 library(pROC)
@@ -38,7 +38,7 @@ plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
 
 ## Decision Tree.
 ## change purity level  -> .999
-dt.model <- rpart(Classvar ~ ., data = deeptable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+dt.model <- rpart(Classvar ~ ., data = FLtbl, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 dt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)

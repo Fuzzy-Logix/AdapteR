@@ -21,7 +21,7 @@ roc.default <- function (response, predictor,...) {
    else return(pROC::roc(response, predictor,...))
 }
 
-to-do : work on formula aspect of function, print function, $ operator[(levels)].
+##to-do : work on formula aspect of function, print function, $ operator[(levels)].
 
 
 #' @export
@@ -47,7 +47,6 @@ roc.FLVector <- function (response, predictor, ...)
 #' roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
 #' roc.FLTable(ActualVal~ProbVal, data = roctbl)
 roc.FLTable <- function(formula,data,... ){
-    browser()
     vcallObject <- match.call()
     var <- all.vars(formula)
     pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
@@ -83,7 +82,6 @@ roc.FLTable <- function(formula,data,... ){
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    browser()
     vvolName <- gen_view_name("roccurve")
     vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
                           FROM (",constructSelect(response),") AS a ,
@@ -225,7 +223,6 @@ print.FLROC <- function(object,method = 1, ...)
 
 ## to include : condition when TPR,FPR are NA's
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
-    browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     if(method)
     {
@@ -246,8 +243,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             cases = object$cases,
-             controls = object$controls,
+             ##       cases = object$cases,
+             ##         controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec
