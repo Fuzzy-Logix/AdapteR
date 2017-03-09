@@ -14,9 +14,6 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-
-
-
 #' @export
 #' library(e1071)
 #' Linear Kernel
@@ -120,26 +117,50 @@ svmGeneric <- function(formula,data,
                RegrDataPrepSpecs=RegrDataPrepSpecs))   
 }
 
-
+## use FLsimpleVector
 predict.FLSVM <- function(object, newData = object@table){
     var <- getVariables(object@deeptable@select)
     tblname <- gen_unique_table_name("svmoutput")
     scrmethod <- toupper(substr(object@results$kernel, 1,1))
     browser()
-    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
-                                    ",fquote(object@deeptable@select@table_name),",
-                                    NULL,
-                                    ",fquote(var[[1]])," ,
-                                    ",fquote(var[[2]])," ,
-                                    ",fquote(var[[3]])," ,
-                                    ",fquote(scrmethod),",  
-                                    ",fquote(tblname),",
-                                     OutAnalysisID);")
-    print(qer)
+    ret <- sqlStoredProc(connection,
+                         "FLSVMScore",
+                         ModelTable = object@results$outtbl,
+                         TableName = object@deeptable@select@table_name,
+                         GroupIDCol = NULL,
+                         ObsIDCol = var[[1]],
+                         VarIDCol = var[[2]],
+                         NumValCol = var[[3]],
+                         ScoreMethod = scrmethod,
+                         ScoreTable = tblname,
+                         "OutAnalysisID"
+                         )
+    val <- new("FLSimpleVector",
+               select= new("FLSelectFrom",
+                           table_name=tblname,
+                           connectionName=getFLConnectionName(),
+                           variables=list(OBSID = var[[1]],pred = "PredYScoring" ),
+                           whereconditions="",
+                           order=""),
+               dimColumns = c(var[[1]], "pred"),
+               Dimnames = list(1:nrow(object@deeptable)),
+               dims    = as.integer(c(nrow(object@deeptable), 1)),
+               type       = "double"
+               )
+
+    ##    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
+    ##                                    ",fquote(object@deeptable@select@table_name),",
+    ##                                    NULL,
+    ##                                    ",fquote(var[[1]])," ,
+    ##                                    ",fquote(var[[2]])," ,
+    ##                                    ",fquote(var[[3]])," ,
+    ##                                    ",fquote(scrmethod),",  
+    ##                                    ",fquote(tblname),",
+    ##                                     OutAnalysisID);")
     
-    print(sqlQuery(connection, qer))
-    str <- paste0("SELECT TOP 5 * FROM ",tblname)
-    return(sqlQuery(connection, str) )
+    ##    print(sqlQuery(connection, qer))
+    ##    str <- paste0("SELECT TOP 5 * FROM ",tblname)
+    ##    return(sqlQuery(connection, str) )
 }
 
 
@@ -188,35 +209,39 @@ predict.FLSVM <- function(object, newData = object@table){
     }
 
     if(property == "SV"){
-       # browser()
+                                        # browser()
+        if(object@results$kernel == "linear")
+        {
+            ObsID <- getVariables(object@deeptable)$obs_id_colname
+            VarID <- getVariables(object@deeptable)$var_id_colname
+            Num_Val <- getVariables(object@deeptable)$cell_val_colname
+            dim <- object@table@Dimnames[[2]][-length(object@table@Dimnames[[2]])]
+            vdimnames <- list(object@table@Dimnames[[1]], dim)
+            
+            quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",VarID," AS var_id_colname, b.PlaneWt*a.",Num_Val," AS cell_val_colname FROM ",object@deeptable@select@table_name," AS a, ",object@results$outtbl," AS b WHERE ",VarID," = planedimension AND  planedimension<> 0 AND ",VarID," <> 0 ")
 
-        ObsID <- getVariables(object@deeptable)$obs_id_colname
-        VarID <- getVariables(object@deeptable)$var_id_colname
-        Num_Val <- getVariables(object@deeptable)$cell_val_colname
-        dim <- object@table@Dimnames[[2]][-length(object@table@Dimnames[[2]])]
-        vdimnames <- list(object@table@Dimnames[[1]], dim)
-        
-        quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",VarID," AS var_id_colname, b.PlaneWt*a.",Num_Val," AS cell_val_colname FROM ",object@deeptable@select@table_name," AS a, ",object@results$outtbl," AS b WHERE ",VarID," = planedimension AND  planedimension<> 0 AND ",VarID," <> 0 ")
+            tblfunqueryobj <- new("FLTableFunctionQuery",
+                                  connectionName = getFLConnectionName(),
+                                  variables = list(
+                                      obs_id_colname = "obs_id_colname",
+                                      var_id_colname = "var_id_colname",
+                                      cell_val_colname = "cell_val_colname"),
+                                  whereconditions="",
+                                  order = "",
+                                  SQLquery=quer)
 
-        tblfunqueryobj <- new("FLTableFunctionQuery",
-                              connectionName = getFLConnectionName(),
-                              variables = list(
-                                  obs_id_colname = "obs_id_colname",
-                                  var_id_colname = "var_id_colname",
-                                  cell_val_colname = "cell_val_colname"),
-                              whereconditions="",
-                              order = "",
-                              SQLquery=quer)
-
-        T <- newFLTable( 
-            select = tblfunqueryobj,
-            Dimnames = vdimnames,
-            dims = c(nrow(object@table), ncol(object@table)-1),
-            isDeep = TRUE,
-            type=object@table@type,
-            dimColumns=c("obs_id_colname","var_id_colname", "cell_val_colname"))
-        
-        return(T)
+            T <- newFLTable( 
+                select = tblfunqueryobj,
+                Dimnames = vdimnames,
+                dims = c(nrow(object@table), ncol(object@table)-1),
+                isDeep = TRUE,
+                type=object@table@type,
+                dimColumns=c("obs_id_colname","var_id_colname", "cell_val_colname"))
+            
+            return(T)
+        }
+        else
+            return("Not applicable for this kernel")
 
     }
     if(property == "call"){
