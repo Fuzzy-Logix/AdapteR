@@ -12,4 +12,3 @@ colnames(object, ...)
 \description{
 Gives the column names of FLTable object
 }
-

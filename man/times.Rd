@@ -29,4 +29,3 @@ flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL
 Rvector <- 1:5
 ResultFLmatrix <- flmatrix * Rvector
 }
-

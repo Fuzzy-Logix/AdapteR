@@ -10,11 +10,11 @@
 ##https://developer.teradata.com/connectivity/articles/speed-up-your-jdbcodbc-applications
 ## Benchmarking for RODBC , RJDBC, rsqlserver
 ##https://github.com/agstudy/rsqlserver/wiki/benchmarking
-
-library(RODBCDBI)
-library(RODBC)
-library(DBI)
-
+##
+##library(RODBCDBI)
+##library(RODBC)
+##library(DBI)
+##
 ## RODBCDBI base package connection.(page 10 RODBCDBI)
 rodbi <- dbConnect(RODBCDBI::ODBC(), dsn = "Gandalf", user = "AReddy", password = "fzzlpass")
 

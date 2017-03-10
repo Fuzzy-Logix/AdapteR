@@ -23,4 +23,3 @@ flv <- FLSerial(1,5)
 names(flv) <- letters[1:5]
 print(flv)
 }
-

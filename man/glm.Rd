@@ -72,6 +72,7 @@ also not available.
 Properties like \code{print(fit$x),model,plot} might take time as they
 have to fetch data
 }
+
 \examples{
 deeptable <- FLTable("tblLogRegr","ObsID","VarID","Num_Val",
                whereconditions="ObsID<7001")
@@ -99,4 +100,3 @@ glmfit$FLCoeffStdErr
 summary(glmfit)
 print(glmfit)
 }
-

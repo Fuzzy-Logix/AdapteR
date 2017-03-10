@@ -100,7 +100,7 @@ setMethod("genAggregateFunCall",
                            connectionName=getFLConnectionName(),
                            variables=list(indexCol=grp,
                                           valueCol=getValueSQLExpression(object)),
-                           whereconditions=getWhereConditionsSlot(object),
+                           whereconditions=where(object),
                                         # group="indexCol", ## CANNOT USE ALIAS NAME IN GROUPBY IN ASTER!
                            group=grp,
                            order="indexCol"),

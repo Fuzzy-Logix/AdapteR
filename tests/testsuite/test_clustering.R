@@ -27,7 +27,9 @@ test_that("pam: kmedoids isolation, clusinfo, silinfo, idmed",{
         pam.clusinfo <- cl$clusinfo
         pam.idmed <- cl$id.med
     },Renv,FLenv,
-    noexpectation=c("cl","property"))
+    noexpectation=c("cl","property"),
+    expectation=c("pam.isolation","pam.clusinfo","pam.idmed"),
+    check.attributes=FALSE)
 })
 
 test_that("pam: kmedoids isolation, clusinfo, silinfo, idmed",{
@@ -36,7 +38,9 @@ test_that("pam: kmedoids isolation, clusinfo, silinfo, idmed",{
         pam.silinfo <- cl$silinfo
     },Renv,FLenv,
     tolerance=1e-3,
-    noexpectation=c("cl","property"))
+    noexpectation=c("cl","property"),
+    check.attributes=FALSE,
+    expectation=c("pam.silinfo"))
 })
 
 ## Objective component may differ in R and FL as:

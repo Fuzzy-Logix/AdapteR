@@ -25,4 +25,3 @@ use options to specify the following:-
 ResultDatabaseFL, ResultVectorTableFL, ResultMatrixTableFL, 
 NameMapTableFL, ResultSparseMatrixTableFL
 }
-

@@ -23,6 +23,7 @@ that removes extra spaces within a string and outputs a properly formatted strin
 
 row vectors are not supported currently.
 }
+
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -34,4 +35,3 @@ and \code{\link[stringr]{str_trim}} for stringr approach,
  \code{\link[stringi]{stri_replace_all_charclass}} and \code{\link[stringi]{stri_trim}}  
  for stringi approach in R function reference implementation.
 }
-

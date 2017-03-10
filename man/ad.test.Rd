@@ -19,4 +19,3 @@ a <- as.FL(rnorm(100, mean = 5, sd = 3))
 res <- ad.test(a)
 
 }
-

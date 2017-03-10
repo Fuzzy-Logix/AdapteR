@@ -1,7 +1,7 @@
 
 #' Function to generate S4 methods for univariate distributions code.
 #'
-#' Univariate distribution functions are defined in data/univariate.RFL.
+#' Univariate distribution functions are defined in def/univariate.rfl.
 #' Uses R-like syntax to define function and argument mappings efficiently.
 #' This code is parsed programmatically:
 #' function definitions like are created programmatically.
@@ -51,7 +51,7 @@ FLcreateUnivariateMethodCode <- function(definition){
 
 #' Function to generate S4 methods for univariate distributions code.
 #'
-#' Univariate distribution functions are defined in data/univariate.RFL.
+#' Univariate distribution functions are defined in def/univariate.rfl.
 #' Uses R-like syntax to define function and argument mappings efficiently.
 #' This code is parsed programmatically:
 #' function definitions like are created programmatically.
@@ -61,8 +61,8 @@ FLcreateUnivariateMethodCode <- function(definition){
 #' for executing the R function (left of " <- ") with
 #' in-dabase with DB Lytix function (right of " <- ").
 #' @export
-FLcreateUnivariateMethodsFile <- function(definitions='data/univariate.RFL', genFile="AdapteR/R/univariate.R"){
-    defs <- readLines(system.file(definitions, package='AdapteR'))
+FLcreateUnivariateMethodsFile <- function(definitions='def/univariate.rfl', genFile="AdapteR/R/univariate.R"){
+    defs <- readLines(system.file(definitions, package='AdapteR'),encoding="UTF-8")
     cat("## This file is in most parts automatically generated.\n",
         file=genFile)
     cat("## Manual changes need to be commited to git and then reintroduced after regenerating the file.\n",
