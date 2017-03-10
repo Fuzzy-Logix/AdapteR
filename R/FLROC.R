@@ -248,10 +248,11 @@ plot.FLROC <- function(object,limit = 1000,method = 1, ...)
 print.FLROC <- function(object,method = 1, ...) 
     return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
+##
 #' @export
-print.FLROC <- function(object)
-    return(print(as.roc(object, auc=TRUE)))
-
+##print.FLROC <- function(object)
+##    return(print(as.roc(object, auc=TRUE)))
+##
 
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
@@ -285,4 +286,4 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     return(reqList)
 }
 
-setMethod("show","FLROC",print.FLROC)
+## setMethod("show","FLROC",print.FLROC)
