@@ -13,7 +13,7 @@ vSampleDataTables <- suppressWarnings(SampleData(pTableName="ARcreditcard",
                                   pObsIDColumn="ObsID",
                                   pTrainTableName="ARcreditcardTrain",
                                   pTestTableName="ARcreditcardTest",
-                                  pTrainDataRatio=0.7,
+                                  pTrainDataRatio=.2,
                                   pTemporary=FALSE,
                                   pDrop=TRUE))
 vTrainTableName <- vSampleDataTables["TrainTableName"]
@@ -21,13 +21,36 @@ vTestTableName <- vSampleDataTables["TestTableName"]
 
 vtemp <- readline("Above: Using SampleData to create Train & Test Data\n ")
 
+
+deepTableName<- "ARBaseARcreditcardTrainD1485952077"
+dropTable(deepTableName)
+
 ## Create a FLTable object for Training table
 FLtbl <- FLTable(vTrainTableName,"ObsID",fetchIDs=FALSE)
 FLTestTbl <- FLTable(vTestTableName,"ObsID",fetchIDs=FALSE)
 
+myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
+
+if(!existsRemoteTable(tableName=deepTableName)){
+    FLdeepTable <- prepareData(formula         = myformula ,
+                               data            = FLtbl,
+                               outDeepTable    = deepTableName,
+                               makeDataSparse  = 1,
+                               performVarReduc = 0,
+                               minStdDev       = .01,
+                               maxCorrel       = .8,
+                               fetchIDs        = FALSE)
+} else {
+    ## or you can use an already created deep table again:
+    FLdeepTable <- FLTable(deepTableName,
+                           obs_id_colname   = 'obsid',    
+                           var_id_colnames  = 'varid', 
+                           cell_val_colname = 'numval',
+                           fetchIDs = FALSE)
+}
 
 ## glm model , plot with auc.
-glm.model <- glm(Classvar ~ ., data = FLtbl, family = "binomial")
+glm.model <- glm(myformula, data = FLdeepTable, family = "binomial")
 glm.predict <- predict(glm.model)
 head(glm.predict, display = TRUE, n = 5)
 glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
@@ -38,8 +61,8 @@ plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
 
 ## Decision Tree.
 ## change purity level  -> .999
-dt.model <- rpart(Classvar ~ ., data = FLtbl, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
-dt.predict <- predict(dt.model,type = "prob")
+dt.model <- rpart(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+odt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
 plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
