@@ -249,6 +249,7 @@ summary.FLRandomForest<-function(object){ #browser()
 	# }
 	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",tablename))
 	comb<-combn(nrow(predclass),m=2)
+	retobj<-list()
 	if(!all(predclass) %in% c("0","1")){
 		for (t in 1:ncol(comb)) {
 			resv<-comb[,t]
@@ -264,14 +265,14 @@ summary.FLRandomForest<-function(object){ #browser()
 			insertIntotbl(pTableName=temptable,
 						  pSelect=sqlstr2)
 			flt<-FLTable(temptable,"ObsID")
-			eval(parse(text= paste0("ret$roc",resv[1],resv[2],
-									"<-roc(flt,formula = Response~probability)")))
+			eval(parse(text= paste0("retobj$roc",resv[1],resv[2],
+									"<-roc(flt,formula = Response~Predictor)")))
 		}
 	}
 	else {
 		tablex<-FLTable(tablename,"ObsID")
-		ret$roc<-roc(tablex$PredictedClass,tablex$probability)
+		retobj$roc<-roc(tablex$PredictedClass,tablex$probability)
 	}
-	ret$confusion=object$confusion
-	return(ret)
+	retobj$confusion=object$confusion
+	return(retobj)
 }

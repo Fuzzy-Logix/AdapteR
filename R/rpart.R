@@ -223,7 +223,7 @@ predict.FLrpart<-function(object,
     if(type %in% "prob"){
     	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
    	   	warning("The probability values are only true for predicted class. The sum may not be 1.")
-   	   	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","PredictClassProb"))
+   	   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","PredictClassProb"))
     }
 
     else if(type %in% "link"){
