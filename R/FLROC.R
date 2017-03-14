@@ -52,7 +52,6 @@ roc.FLVector <- function (response, predictor, ...)
 #' roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
 #' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
 roc.FLTable <- function(formula,data,... ){
-##    browser()
     vcallObject <- match.call()
     var <- all.vars(formula)
     pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
@@ -250,13 +249,8 @@ plot.FLROC <- function(object,limit = 1000,method = 1, ...)
 print.FLROC <- function(object,method = 1, ...) 
     return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
-#' @export
-print.FLROC <- function(object)
-    return(print(as.roc(object, auc=TRUE)))
-
 
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
-    ##browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     if(method)
     {
@@ -277,8 +271,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             cases = object$cases,
-             controls = object$controls,
+             #cases = object$cases,
+             #controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec
@@ -288,4 +282,4 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     return(reqList)
 }
 
-setMethod("show","FLROC",print.FLROC)
+##setMethod("show","FLROC",print.FLROC)
