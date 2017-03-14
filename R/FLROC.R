@@ -1,5 +1,3 @@
-## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
-
 #' @export
 roc <- function (formula,data=list(),...) {
 	UseMethod("roc", data)
@@ -22,6 +20,7 @@ setClass(
     contains="FLRegr",
     slots=list(otbl="character"))
 
+## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
 #' tbl <- FLTable("tblROCCurve", "ObsID")
 #' mod <- roc(tbl$ActualVal, tbl$ProbVal)
 #'Example 2:
@@ -46,10 +45,10 @@ roc.FLVector <- function (response, predictor, ...)
                       ...))}
 
 
-#' @export
 #' TO-DO:- implementation in rocgeneric
 #' roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
 #' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
+#' @export
 roc.FLTable <- function(formula,data,... ){
     vcallObject <- match.call()
     var <- all.vars(formula)

@@ -13,7 +13,7 @@ vSampleDataTables <- suppressWarnings(SampleData(pTableName="ARcreditcard",
                                   pObsIDColumn="ObsID",
                                   pTrainTableName="ARcreditcardTrain",
                                   pTestTableName="ARcreditcardTest",
-                                  pTrainDataRatio=.05,
+                                  pTrainDataRatio=.7,
                                   pTemporary=FALSE,
                                   pDrop=TRUE))
 vTrainTableName <- vSampleDataTables["TrainTableName"]
@@ -32,6 +32,7 @@ FLTestTbl <- FLTable(vTestTableName,"ObsID",fetchIDs=FALSE)
 vdependentColumn <- "Classvar"
 
 myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
+
 if(!existsRemoteTable(tableName=deepTableName)){
     FLdeepTable <- prepareData(formula         = myformula ,
                                data            = FLtbl,
@@ -56,8 +57,6 @@ glm.predict <- predict(glm.model)
 head(glm.predict, display = TRUE, n = 5)
 glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
 plot(glm.roc, limit = 1000, main = "glm-roc")
-plot2.FLROC(glm.roc, limit = 1000, main = "glm-roc")
-
 
 
 ## Decision Tree.
@@ -70,11 +69,11 @@ plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
 
 ##
 #### Random Forest:
-##rf.model <- randomForest(myformula,  data = FLdeepTable, minsplit = 15, cp = .9999, maxdepth = 7)
-##rf.predict <- predict(rf.model,type = "prob")
-##length(rf.predict)
-##rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict)
-##plot.FLROC(rf.roc, limit = 1000, main = "rf-roc", method = 0)
+rf.model <- randomForest(myformula,  data = FLdeepTable, minsplit = 15, cp = .9999, maxdepth = 7)
+rf.predict <- predict(rf.model,type = "prob")
+length(rf.predict)
+rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict)
+plot.FLROC(rf.roc, limit = 1000, main = "rf-roc", method = 0)
 ##
 ##
 ##

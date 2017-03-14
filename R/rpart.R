@@ -301,6 +301,7 @@ print.FLrpart<-function(object){ #browser()
   	cat(retobj, sep = "\n")
 }
 
+#' @export
 # `$.FLrpart` <- function(object,property){
 # 	return(slot(object,property))
 # }

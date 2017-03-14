@@ -234,6 +234,7 @@ plot.FLRandomForest<-function(object){ #browser()
 	}
 }	
 
+#' @export
 summary.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	x<-predict(object,type="prob")
