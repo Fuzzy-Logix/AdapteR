@@ -89,7 +89,7 @@ roc.FLTable <- function(formula,data,... ){
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
-    predcol <- "vectorValueColumn"
+    predCol <- "vectorValueColumn"
     predObs <- "vectorIndexColumn"
     vvolName <- gen_view_name("roccurve")
     if(strsplit(class(predictor), split = ".", fixed = TRUE)[[1]][1] == "FLMatrix"){
@@ -179,7 +179,6 @@ rocgeneric <- function(response, predictor,callobject,  ...)
         return(auc(object)) }
     
     else if(property == "original.predictor"){
-        browser()
         return(flvgeneric(object,
                           tblname = object@results$itable,
                           var = list(object@results$doperator$Var[[2]]),
@@ -262,7 +261,6 @@ print.FLROC <- function(object)
 
 
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
-    ##browser()
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     if(method)
     {
@@ -283,8 +281,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             cases = object$cases,
-             controls = object$controls,
+      ##       cases = object$cases,
+    ##         controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec
