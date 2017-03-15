@@ -89,17 +89,23 @@ roc.FLTable <- function(formula,data,... ){
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
+    predcol <- "vectorValueColumn"
+    predObs <- "vectorIndexColumn"
     vvolName <- gen_view_name("roccurve")
-    vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
+    if(strsplit(class(predictor), split = ".", fixed = TRUE)[[1]][1] == "FLMatrix"){
+        predCol <- "valueColumn"
+        predObs <- "rowIdColumn" }
+    
+    vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.",predCol," AS pred
                           FROM (",constructSelect(response),") AS a ,
                                (",constructSelect(predictor),") AS b
-                          WHERE  a.vectorIndexColumn = b.vectorIndexColumn")
+                          WHERE  a.vectorIndexColumn = b.",predObs,"")
     tbl <- createTable(pTableName = vvolName,
                        pWithData = TRUE,
                        pTemporary = TRUE,
                        pSelect = vselect )
-    vrw <- nrow(predictor)
-    rnames <- rownames(predictor)
+    vrw <- nrow(response)
+    rnames <- rownames(response)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
