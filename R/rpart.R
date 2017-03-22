@@ -446,7 +446,7 @@ rtree<-function(data,
                             cp=0.95),
 			    sampsize=0.8,
 			    pSeed=500,
-			    pRandomForest=1,...){ browser()
+			    pRandomForest=1,...){ #browser()
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
@@ -507,11 +507,11 @@ rtree<-function(data,
 						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
-	tName <- "fzzlRegrTreeResults"
+	tName <- "FLrev_4878.fzzlRegrTreeResults"
 	p <- insertIntotbl(tName,pSelect=query)
     ret<-sqlQuery(getFLConnection(),paste0("Select * from FLrev_4878.fzzlRegrTreeResults 
-    								Where AnalysisID= ",fquote(AnalysisID)," or
-                                           der by 2,3,4"))
+    								Where AnalysisID= ",fquote(AnalysisID),"
+                                           order by 2,3,4"))
     frame<-data.frame(TreeID=ret$TreeID,
     				  NodeID=ret$NodeID,
 					  n=ret$NumOfObs,
@@ -519,7 +519,7 @@ rtree<-function(data,
 					  varID=ret$SplitVarID,
 					  Splitval=ret$SplitVal,
 					  Splitcond=ret$SplitCond,
-					  treelevel=ret$Level,
+					  treelevel=ret$LEVEL,
 					  parent=ret$ParentNodeID,
 					  Leaf=ret$IsLeaf)
     frame$leftson<-NA
@@ -558,7 +558,7 @@ rtree<-function(data,
 			 	  control=control,
 			 	  where=ret$NodeID,
 				  call=call,
-				  deeptable=p,
+				  deeptable=deepx,
 				  AnalysisID=AnalysisID,
 				  prepspecs=vprepspecs)
     class(retobj)<-"FLrtree"
@@ -566,8 +566,8 @@ rtree<-function(data,
 }
 
 predict.FLrtree<-function(object,
-						  newdata=object$data,
-						  scoreTable="",...){
+						  newdata=object$deeptable,
+						  scoreTable="",...){ browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -580,22 +580,45 @@ predict.FLrtree<-function(object,
 	newdatatable <- deepx$table
 	newdatatable <- setAlias(newdatatable,"")
 	tablename<- getTableNameSlot(newdatatable)
-	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
-	vvarid <- getVariables(newdatatable)[["var_id_colname"]]
-	vvalue <- getVariables(newdatatable)[["cell_val_colname"]]
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(newdatatable)),
+                           pSelect=list(a=c(pGroupID=1,
+                           					pObsID="a.obs_id_colname",
+                           					pVarID="a.var_id_colname",
+                           					pValue="a.cell_val_colname")))
+    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
 
-	vinputcols<-list()
-	vinputcols <- c(vinputcols,
-					InAnalysisID=object$AnalysisID,
-					TableName=tablename,
-					ObsIDCol=vobsid,
-					VarIDCol=vvarid,
-					ValueCol=vvalue,
-					ScoreTable=scoreTable,
-					Note=genNote("RandomForestPrediction"))
-	vfuncName<-"FLRandomForestScore"
-	AnalysisID <- sqlStoredProc(getFLConnection(),
-								vfuncName,
-								outputParameter=c(AnalysisID="a"),
-								pInputParams=vinputcols)
+	# vinputcols<-list()
+	# vinputcols <- c(vinputcols,
+	# 				InAnalysisID=object$AnalysisID,
+	# 				TableName=tablename,
+	# 				ObsIDCol=vobsid,
+	# 				VarIDCol=vvarid,
+	# 				ValueCol=vvalue,
+	# 				ScoreTable=scoreTable,
+	# 				Note=genNote("RegressionTreePrediction"))
+	# vfuncName<-"FLrtreeScore"
+	# AnalysisID <- sqlStoredProc(getFLConnection(),
+	# 							vfuncName,
+	# 							outputParameter=c(AnalysisID="a"),
+	# 							pInputParams=vinputcols)
+	x<-sqlQuery(getFLConnection(),paste0("CALL FLRegrTreeScore(",fquote(object$AnalysisID),",",
+						fquote(p),",
+						'pGroupID',
+						'pObsID',
+						'pVarID',
+						'pValue',",
+						fquote(scoreTable),")"))
+	return(x)
+}
+
+plot.FLrtree<-function(object){ #browser()
+	if(!class(object)=="FLrtree") stop("The object class is not FLrtree")
+	ntree<-length(object$forest)
+	x<-ceiling(sqrt(ntree))
+	old.par <- par(mfrow=c(x,ceiling(ntree/x)),
+				   oma = c(0,0,0,0) + 0,
+          		   mar = c(0,0,0,0) + 0)
+	for(i in 1:ntree){
+		plot.FLrpart(object$forest[[i]])
+	}
 }
