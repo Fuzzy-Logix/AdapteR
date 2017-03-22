@@ -49,7 +49,7 @@ p5
 ### Use case in FL environment
 
 ## getting the table name
-vtableName <- getTestTableName("medeconomicdataAmal")
+vtableName <- "FL_Demo.medeconomicdataAmal"
 
 ## selecting a few indicators with maximum countries in common
 
@@ -62,7 +62,7 @@ resultList <- FLReshape(data=vtableName,
                         value.var="TimeSeriesVal",
                         subset="IndicatorCode in ('SH.ANM.NPRG.ZS','SH.DYN.NMRT','SP.URB.TOTL','SL.TLF.CACT.ZS',
                                                   'NY.GNP.PCAP.PP.CD','SP.POP.DPND.OL','SM.POP.REFG.OR','AG.LND.FRST.ZS',
-                                                  'SH.H2O.SAFE.ZS','NY.ADJ.AEDU.GN.ZS','SP.DYN.LE00.MA.IN','EG.NSF.ACCS.ZS',
+                                                  'SH.H2O.SAFE.ZS','NY.ADJ.AEDU.GN.ZS','SP.RUR.TOTL','EG.NSF.ACCS.ZS',
                                                   'NY.GDP.MINR.RT.ZS','SH.STA.ACSN.UR','NY.GDP.PETR.RT.ZS','EN.ATM.CO2E.PP.GD.KD',
                                                   'NY.GNP.ATLS.CD','SP.RUR.TOTL.ZS','SL.TLF.ACTI.1524.ZS','SH.XPD.PUBL.ZS',
                                                   'SH.XPD.TOTL.ZS','SP.POP.65UP.TO.ZS','NY.GDP.PCAP.PP.CD','NY.GDP.PCAP.KD.ZG',
@@ -78,9 +78,22 @@ tbl<-resultList$table
 vmap1<-sqlQuery(connection,"select varid, varidnames from tbl11  where obsid=1 order by 1,2")
 vmap2<-sqlQuery(connection,"select distinct(obsidnames) from tbl11 order by 1")
 
+sub<-rdata[rdata$IndicatorCode == c('SH.ANM.NPRG.ZS','SH.DYN.NMRT','SP.URB.TOTL','SL.TLF.CACT.ZS',
+                                    'NY.GNP.PCAP.PP.CD','SP.POP.DPND.OL','SM.POP.REFG.OR','AG.LND.FRST.ZS',
+                                    'SH.H2O.SAFE.ZS','NY.ADJ.AEDU.GN.ZS','SP.RUR.TOTL','EG.NSF.ACCS.ZS',
+                                    'NY.GDP.MINR.RT.ZS','SH.STA.ACSN.UR','NY.GDP.PETR.RT.ZS','EN.ATM.CO2E.PP.GD.KD',
+                                    'NY.GNP.ATLS.CD','SP.RUR.TOTL.ZS','SL.TLF.ACTI.1524.ZS','SH.XPD.PUBL.ZS',
+                                    'SH.XPD.TOTL.ZS','SP.POP.65UP.TO.ZS','NY.GDP.PCAP.PP.CD','NY.GDP.PCAP.KD.ZG',
+                                    'EG.ELC.ACCS.UR.ZS','IT.NET.USER.P2','SP.POP.1564.TO.ZS','EN.ATM.CO2E.PP.GD',
+                                    'SL.TLF.ACTI.ZS','IC.IMP.DURS','SP.DYN.LE00.IN'),c("IndicatorName","IndicatorCode")]
+a<-unique(sub$IndicatorName)
+b<-unique(sub$IndicatorCode)
+vmap3<-data.frame(a,b)
+
 ## running decision tree on the table
 
 flobj<-rpart(tbl, formula = -1~.)
+flobj<-rtree(tbl, formula = -1~.)
 flobj
 plot(flobj)
 

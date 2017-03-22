@@ -437,57 +437,165 @@ plot.FLrpart<-function(x){ #browser()
   }
 }
 
-rtree<-function(object,
+rtree<-function(data,
+				formula,
 				ntree=25,
-			    mtry=2,
-			    nodesize=10,
-			    maxdepth=5,
-			    cp=0.95,
+			    mtry=0.8,
+			    control=c(minsplit=10,
+							maxdepth=5,
+                            cp=0.95),
 			    sampsize=0.8,
-			    pSeed=0.5,
+			    pSeed=500,
 			    pRandomForest=1,...){ browser()
+	call<-match.call()
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(isDeep(data)){
+		deepx<-data
+		deepx<-setAlias(deepx,"")
+		deeptablename<-getTableNameSlot(data)
+		vprepspecs<-list()	
+	}
+	else{
+		if(!isDotFormula(formula)){
+			data <- setAlias(data,"")
+			vcolnames<-colnames(data)		
+			vexclude<-setdiff(vcolnames,all.vars(formula))
+			obs<-getVariables(data)[["obs_id_colname"]]
+			vexclude<-setdiff(vexclude,obs)
+			vexclude<-paste0(vexclude,collapse=",")
+		}
+		else{
+			vexclude<-NULL
+		}
+			depCol<-all.vars(formula)[1]
+			vprepspecs<-list(depCol,vexclude)
+			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
+			deepx<-deep
+			deepx<- setAlias(deepx,"")
+			deeptablename<-getTableNameSlot(deepx)
+	}
 	if(pRandomForest==0){
 		sampsize<-NULL
 		pSampleRateVars<-NULL
 		ntree<-NULL
 		pSeed<-NULL
+		mtry<-NULL
 	}
-	else{
-		pSampleRateVars<-mtry/(object@dims[2]-1)
-	}
-	t <- constructUnionSQL(pFrom=c(a=constructSelect(object)),
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(deepx)),
                            pSelect=list(a=c(pGroupID=1,
                            					pObsID="a.obs_id_colname",
                            					pVarID="a.var_id_colname",
-                           					pValue="a.cell_val_colname",
-                           					pMaxLevel=maxdepth,
-                           					pMinObs=nodesize,
-                           					pMinSSEDiff=cp,
-                           					pRandomForest=pRandomForest,
-                           					pSampleRateObs=sampsize,
-                           					pSampleRateVars=pSampleRateVars,
-                           					pNumOfTrees=ntree,
-                           					pSeed=pSeed)))
+                           					pValue="a.cell_val_colname")))
     p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
     pSelect<-paste0("Select pGroupID, pObsID, pVarID, pValue from ",p)
+    AnalysisID<-genRandVarName()
 	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",
-										   ObsID="obs_id_colname",
-						   				   VarID="var_id_colname",
-						   				   Num_Val="cell_val_colname",
-						   				   pMaxLevel="pMaxLevel",
-						   				   pMinObs="pMinObs",
-						   				   pMinSSEDiff="pMinSSEDiff",
-						   				   pRandomForest="pRandomForest",
-						   				   pSampleRateVars="pSampleRateVars",
-						   				   pSampleRateObs="pSampleRateObs",
-						   				   pNumOfTrees="pNumOfTrees",
-						   				   pSeed="pSeed"),
+										   	pObsID="obs_id_colname",
+						   				   	pVarID="var_id_colname",
+						   				   	pNum_Val="cell_val_colname"),
+						   pArgs=list(pMaxLevel=control["maxdepth"],
+									pMinObs=control["minsplit"],
+	            					pMinSSEDiff=1-control["cp"],
+	            					pRandomForest=pRandomForest,
+	            					pSampleRateObs=sampsize,
+	            					pSampleRateVars=mtry,
+	            					pNumOfTrees=ntree,
+	            					pSeed=pSeed),
 						   pSelect=pSelect,
-						   pOutColnames="a.*",
+						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
-	tName <- gen_unique_table_name("RegrTree")
-	p <- createTable(tName,pSelect=query,pTemporary=TRUE)
-    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
-    return(a)
+	tName <- "fzzlRegrTreeResults"
+	p <- insertIntotbl(tName,pSelect=query)
+    ret<-sqlQuery(getFLConnection(),paste0("Select * from FLrev_4878.fzzlRegrTreeResults 
+    								Where AnalysisID= ",fquote(AnalysisID)," or
+                                           der by 2,3,4"))
+    frame<-data.frame(TreeID=ret$TreeID,
+    				  NodeID=ret$NodeID,
+					  n=ret$NumOfObs,
+					  yval=ret$PredVal,
+					  varID=ret$SplitVarID,
+					  Splitval=ret$SplitVal,
+					  Splitcond=ret$SplitCond,
+					  treelevel=ret$Level,
+					  parent=ret$ParentNodeID,
+					  Leaf=ret$IsLeaf)
+    frame$leftson<-NA
+    frame$rightson<-NA
+    frame$var<-NA
+    frame$SplitVal<-NA
+    trees<-list()
+	for(t in 1:length(unique(frame$TreeID))){
+		framex<-subset(frame, TreeID==t)
+	    for (i in 1:nrow(framex)) {
+	    	if(framex$Splitcond[i]=="<"){
+	    		j<-framex$parent[i]
+	    		k<-framex$varID[i]
+	    		l<-framex$Splitval[i]
+	    		framex$leftson[j]<-i
+	    		framex$var[j]<-k
+	    		framex$SplitVal[j]<-l
+	    	}
+	    	else if(framex$Splitcond[i]==">="){
+	    		j<-framex$parent[i]
+	    		k<-framex$varID[i]
+	    		l<-framex$Splitval[i]
+	    		framex$rightson[j]<-i
+	    		framex$var[j]<-k
+	    		framex$SplitVal[j]<-l
+	    	}
+	    }
+	    framex$TreeID<-NULL
+	    framex$Splitcond<-NULL
+	    framex$varID<-NULL
+	    framex$Splitval<-NULL
+	    trees[[t]]<-framex
+	    class(trees[[t]])<-"FLrpart"
+	}
+    retobj<- list(forest=trees,
+			 	  control=control,
+			 	  where=ret$NodeID,
+				  call=call,
+				  deeptable=p,
+				  AnalysisID=AnalysisID,
+				  prepspecs=vprepspecs)
+    class(retobj)<-"FLrtree"
+    return(retobj)
+}
+
+predict.FLrtree<-function(object,
+						  newdata=object$data,
+						  scoreTable="",...){
+	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
+	newdata <- setAlias(newdata,"")
+	vinputTable <- getTableNameSlot(newdata)
+	if(scoreTable=="")
+	scoreTable <- gen_score_table_name("RegrTreeScore")
+	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$vprepspecs,
+                                                            values=list(...))
+	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
+	newdatatable <- deepx$table
+	newdatatable <- setAlias(newdatatable,"")
+	tablename<- getTableNameSlot(newdatatable)
+	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
+	vvarid <- getVariables(newdatatable)[["var_id_colname"]]
+	vvalue <- getVariables(newdatatable)[["cell_val_colname"]]
+
+	vinputcols<-list()
+	vinputcols <- c(vinputcols,
+					InAnalysisID=object$AnalysisID,
+					TableName=tablename,
+					ObsIDCol=vobsid,
+					VarIDCol=vvarid,
+					ValueCol=vvalue,
+					ScoreTable=scoreTable,
+					Note=genNote("RandomForestPrediction"))
+	vfuncName<-"FLRandomForestScore"
+	AnalysisID <- sqlStoredProc(getFLConnection(),
+								vfuncName,
+								outputParameter=c(AnalysisID="a"),
+								pInputParams=vinputcols)
 }
