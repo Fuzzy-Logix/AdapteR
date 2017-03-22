@@ -140,8 +140,8 @@ predict.FLbagging<-function(object,newdata=object$data,
 	}
 	warning("The probability values are only true for predicted class. The sum may not be 1.")
    	return(list(formula= object$formula,
-   				votes = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"),
-   				prob = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"),
+   				votes = FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"),
+   				prob = FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"),
    				class=as.factor(x$PredictedClass),
    				confusion=m))
 }

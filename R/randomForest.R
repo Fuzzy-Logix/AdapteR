@@ -102,7 +102,7 @@ randomForest.FLTable<-function(data,
 	trees<-list()
 	for(l in 1:length(ntrees)){
 		trees[[l]]<-subset(frame,TreeID==l)
-		class(trees[[l]])<-"data.frame"	
+		class(trees[[l]])<-"FLrpart"	
 	}
 
     retobj<-list(call=match.call(),
@@ -164,11 +164,11 @@ predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
     sqlQuery(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
     warning("The probability values are only true for predicted class. The sum may not be 1.")
-	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"))
+	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"))
 	}
 	else if(type %in% "votes"){
 		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
-		return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"))
+		return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"))
 	}
 	else if(type %in% "link"){
 		sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
