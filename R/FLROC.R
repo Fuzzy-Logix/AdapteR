@@ -277,8 +277,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             cases = object$cases,
-             controls = object$controls,
+##             cases = object$cases,
+##             controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec
