@@ -567,7 +567,7 @@ rtree<-function(data,
 
 predict.FLrtree<-function(object,
 						  newdata=object$deeptable,
-						  scoreTable="",...){ browser()
+						  scoreTable="",...){ #browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -581,10 +581,10 @@ predict.FLrtree<-function(object,
 	newdatatable <- setAlias(newdatatable,"")
 	tablename<- getTableNameSlot(newdatatable)
 	t <- constructUnionSQL(pFrom=c(a=constructSelect(newdatatable)),
-                           pSelect=list(a=c(pGroupID=1,
-                           					pObsID="a.obs_id_colname",
-                           					pVarID="a.var_id_colname",
-                           					pValue="a.cell_val_colname")))
+                           pSelect=list(a=c(GroupID=1,
+                           					ObsID="a.obs_id_colname",
+                           					VarID="a.var_id_colname",
+                           					Num_Val="a.cell_val_colname")))
     p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
 
 	# vinputcols<-list()
@@ -601,13 +601,14 @@ predict.FLrtree<-function(object,
 	# 							vfuncName,
 	# 							outputParameter=c(AnalysisID="a"),
 	# 							pInputParams=vinputcols)
-	x<-sqlQuery(getFLConnection(),paste0("CALL FLRegrTreeScore(",fquote(object$AnalysisID),",",
+	sqlQuery(getFLConnection(),paste0("CALL FLRegrTreeScore(",fquote(object$AnalysisID),",",
 						fquote(p),",
-						'pGroupID',
-						'pObsID',
-						'pVarID',
-						'pValue',",
+						'GroupID',
+						'ObsID',
+						'VarID',
+						'Num_Val',",
 						fquote(scoreTable),")"))
+	x<-sqlQuery(getFLConnection(),paste0("Select * from ",scoreTable," Order by 1,2,4"))
 	return(x)
 }
 
@@ -619,6 +620,7 @@ plot.FLrtree<-function(object){ #browser()
 				   oma = c(0,0,0,0) + 0,
           		   mar = c(0,0,0,0) + 0)
 	for(i in 1:ntree){
+		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
 }

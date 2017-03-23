@@ -223,6 +223,7 @@ plot.FLRandomForest<-function(object){ #browser()
 				   oma = c(0,0,0,0) + 0,
           		   mar = c(0,0,0,0) + 0)
 	for(i in 1:ntree){
+		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
 }	
