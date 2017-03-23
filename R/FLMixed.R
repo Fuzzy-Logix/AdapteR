@@ -13,7 +13,8 @@ lmer.default <- function (formula,data=list(),...) {
        stop("lme4 package needed for mixed models. Please install it.",
             call. = FALSE)
    }
-   else return(lme4::lmer(formula,data=list(),...))
+   else
+       return(lme4::lmer(formula,data=data,...))
 }
 
 #' @export
@@ -26,12 +27,12 @@ setClass(
                  ) )
 
 ## One Random Effect.
-#' tbl  <- FLTable("tblMixedModel", "ObsID")
-#' flmod <- lmer(yVal ~ (FixVal | RanVal), tbl, pIntercept = 1)
+#' fltbl  <- FLTable("tblMixedModel", "ObsID")
+#' flmod <- lmer(yVal ~ (FixVal | RanVal), data = fltbl, pIntercept = 1)
 ## 2 Random Effects.
 #' tbl  <- FLTable("tblMixedModelInt", "ObsID")
 #' flmod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), tbl)
-## TO-DO: summary, plot, coefficients
+## TO-DO: summary, plot, coefficients.
 
 #' @export
 lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
@@ -70,7 +71,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
     t <- createTable(tblname, pSelect =  constructUDTSQL(pViewColnames = cnames,
                                                          pFuncName = functionName,
                                                          pOutColnames = c("a.*"),
-                                                         pSelect = tbl@select@table_name[[1]],
+                                                         pSelect = data@select@table_name[[1]],
                                                          pArgs = vArg,
                                                          pLocalOrderBy=c("GroupID"), pNest = TRUE, pFromTableFlag = TRUE))
 
@@ -97,7 +98,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
         return(df$AIC) }
 
 
-    if(property == "LogLik"){
+    if(property == "logLik"){
         quer <- paste0("SELECT  DISTINCT(LogLikeliHood) FROM ",object@results$outtbl," ")
         df <- sqlQuery(connection,quer )
         return(df$LogLik) }
@@ -179,8 +180,8 @@ AIC.FLMix <- function(object, ...){
 
 
 #' @export
-LogLik.FLMix <- function(object, ...){
-    return(object$LogLik)}
+logLik.FLMix <- function(object, ...){
+    return(object$logLik)}
 
 #' @export
 residuals.FLMix <- function(object,newdata = object@table, ...){
