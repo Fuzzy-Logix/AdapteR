@@ -6,7 +6,7 @@ Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
 FLenv$mod <- lmer(yVal ~ (FixVal | RanVal), data = fltbl)
-Renv$mod <- lmer(yVal ~ (FixVal | RanVal), data = rtbl)
+Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = rtbl)
 
 
 
@@ -25,7 +25,7 @@ Renv$mod <- lmer(yVal ~ (FixVal | RanVal), data = rtbl)
 ## AIC, Log-Likehhood
 test_that("AIC, LogLik:", {eval_expect_equal({
     vAkaike <- AIC(mod)
-    vLik <- LogLik(mod)
+    vLik <- logLik(mod)
     
 },Renv,FLenv,
 verbose = TRUE,
@@ -43,6 +43,17 @@ check.attributes = FALSE,
 expectations = c("vpred"))
 })
 
+## predict
+test_that("residuals:", {eval_expect_equal({
+    vres <- residuals(mod)
+    
+},Renv,FLenv,
+verbose = TRUE,
+check.attributes = FALSE,
+expectations = c("vpred"))
+})
+
+
 ## using 2 Random Effect.
 FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable("tblMixedModelInt", "ObsID")
@@ -51,8 +62,6 @@ rtbl <- as.R(fltbl)
 
 FLenv$mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), data = fltbl)
 Renv$mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), data = rtbl)
-
-
 ##eval_expect_equal({
 ##    mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), tbl)
 ##    },Renv,FLenv,
@@ -73,6 +82,17 @@ expectations = c("vAkaike", "vLik"))
 ## predict
 test_that("AIC, LogLik:", {eval_expect_equal({
     vpred <- predict(mod)
+    
+},Renv,FLenv,
+verbose = TRUE,
+check.attributes = FALSE,
+expectations = c("vpred"))
+})
+
+
+## predict
+test_that("residuals:", {eval_expect_equal({
+    vres <- residuals(mod)
     
 },Renv,FLenv,
 verbose = TRUE,
