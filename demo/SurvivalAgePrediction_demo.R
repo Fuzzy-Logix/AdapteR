@@ -78,6 +78,8 @@ tbl<-resultList$table
 vmap1<-sqlQuery(connection,"select varid, varidnames from tbl11  where obsid=1 order by 1,2")
 vmap2<-sqlQuery(connection,"select distinct(obsidnames) from tbl11 order by 1")
 
+colnames(vmap2)<-"CountryNames"
+
 sub<-rdata[rdata$IndicatorCode == c('SH.ANM.NPRG.ZS','SH.DYN.NMRT','SP.URB.TOTL','SL.TLF.CACT.ZS',
                                     'NY.GNP.PCAP.PP.CD','SP.POP.DPND.OL','SM.POP.REFG.OR','AG.LND.FRST.ZS',
                                     'SH.H2O.SAFE.ZS','NY.ADJ.AEDU.GN.ZS','SP.RUR.TOTL','EG.NSF.ACCS.ZS',
@@ -90,19 +92,29 @@ a<-unique(sub$IndicatorName)
 b<-unique(sub$IndicatorCode)
 vmap3<-data.frame(a,b)
 
-## running decision tree on the table
+## running regression tree on the table
 
-flobj<-rpart(tbl, formula = -1~.)
 flobj<-rtree(tbl, formula = -1~.)
 flobj
 plot(flobj)
 
-## prediction from the decision tree model
+## prediction from the decision tree model(Sometimes requires dropping tables fzzlRegrTreePath and fzzlRegrTreeNodes)
 pred<-predict(flobj)
+## aggregate mean for prediction values
+pred2<-aggregate(pred[,6], list(pred$ObsID), mean)
+colnames(pred2)<-c("Group","PredictedAge")
 
+## plotting predictions on world map
+l<-data.frame(pred2, vmap2)
+p5 <- plot_ly(l) %>%
+  add_trace(
+    z = l$PredictedAge,
+    text= paste('Country:',l$CountryNames,
+                '</br> Predicted Life expectancy:',l$PredictedAge),
+    locations = l$CountryNames,
+    type = "choropleth",locationmode="country names",
+    filename="choropleth/world",title="Life expectancy prediction",
+    hoverinfo="text") %>%
+  layout(title="Life expectancy predictive model")
+p5
 
-## bagging and prediction from bagging
-flobj<-bagging(tbl, formula = -1~.)
-
-## prediction from bagging
-pred<-predict(flobj)
