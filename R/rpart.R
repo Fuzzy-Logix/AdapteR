@@ -587,27 +587,26 @@ predict.FLrtree<-function(object,
                            					Num_Val="a.cell_val_colname")))
     p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
 
-	# vinputcols<-list()
-	# vinputcols <- c(vinputcols,
-	# 				InAnalysisID=object$AnalysisID,
-	# 				TableName=tablename,
-	# 				ObsIDCol=vobsid,
-	# 				VarIDCol=vvarid,
-	# 				ValueCol=vvalue,
-	# 				ScoreTable=scoreTable,
-	# 				Note=genNote("RegressionTreePrediction"))
-	# vfuncName<-"FLrtreeScore"
-	# AnalysisID <- sqlStoredProc(getFLConnection(),
-	# 							vfuncName,
-	# 							outputParameter=c(AnalysisID="a"),
-	# 							pInputParams=vinputcols)
-	sqlQuery(getFLConnection(),paste0("CALL FLRegrTreeScore(",fquote(object$AnalysisID),",",
-						fquote(p),",
-						'GroupID',
-						'ObsID',
-						'VarID',
-						'Num_Val',",
-						fquote(scoreTable),")"))
+	vinputcols<-list()
+	vinputcols <- c(vinputcols,
+					InAnalysisID=object$AnalysisID,
+					TableName=p,
+					GroupID="GroupID",
+					ObsIDCol="ObsID",
+					VarIDCol="VarID",
+					ValueCol="Num_Val",
+					ScoreTable=scoreTable)
+	vfuncName<-"FLRegrTreeScore"
+	sqlStoredProc(getFLConnection(),
+								vfuncName,
+								pInputParams=vinputcols)
+	# sqlQuery(getFLConnection(),paste0("CALL FLRegrTreeScore(",fquote(object$AnalysisID),",",
+	# 					fquote(p),",
+	# 					'GroupID',
+	# 					'ObsID',
+	# 					'VarID',
+	# 					'Num_Val',",
+	# 					fquote(scoreTable),")"))
 	x<-sqlQuery(getFLConnection(),paste0("Select * from ",scoreTable," Order by 1,2,4"))
 	return(x)
 }

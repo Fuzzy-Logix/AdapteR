@@ -156,7 +156,7 @@ sqlStoredProc <- function(connection,
 #' @export
 sqlStoredProc.FLConnection <- function(connection,
                                         query,
-                                        outputParameter,
+                                        outputParameter=NULL,
                                         ...) {
     if((is.TDAster(connection=connection)||is.Hadoop(connection=connection)) && 
         class(getRConnection(connection))=="JDBCConnection")
@@ -196,7 +196,7 @@ sqlStoredProc.JDBCTDAster <- function(connection,
 sqlStoredProc.RODBC <- function(connection, query, 
                                 outputParameter,
                                 ...) {
-    ##browser()
+    #browser()
     vlist <- constructStoredProcArgs(query=query,
                                      outputParameter=outputParameter,
                                      ...)
@@ -219,8 +219,8 @@ sqlStoredProc.ODBCConnection <- function(connection,
 
 #' @export
 sqlStoredProc.JDBCConnection <- function(connection, query, 
-                                         outputParameter,
-                                         ...) {
+                                         outputParameter=NULL,
+                                         ...) { #browser()
     ## http://developer.teradata.com/doc/connectivity/jdbc/reference/current/jdbcug_chapter_2.html
     ## Creating a CallableStatement object, representing
     ## a precompiled SQL statement and preparing the callable
