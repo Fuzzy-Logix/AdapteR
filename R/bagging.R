@@ -129,19 +129,19 @@ predict.FLbagging<-function(object,newdata=object$data,
     sqlQuery(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",length(object$trees)))											
     x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
-    m<-matrix(nrow = length(unique(x$ObservedClass)), ncol=length(unique(x$ObservedClass)))
-	rownames(m)<-1:length(unique(x$ObservedClass))
-	colnames(m)<-1:length(unique(x$ObservedClass))
+    m<-matrix(nrow = max(x$ObservedClass)-min(x$ObservedClass)+1, ncol=max(x$PredictedClass)-min(x$PredictedClass)+1)
+	rownames(m)<-min(x$ObservedClass):max(x$ObservedClass)
+	colnames(m)<-min(x$PredictedClass):max(x$PredictedClass)
 	m[is.na(m)]<-0
 	for(i in 1:length(x$ObservedClass)){
 	  		j<-x[i,1]
 	  		k<-x[i,2]	
-	 		m[j,k]<-m[j,k]+1
+	 		m[as.character(j),as.character(k)]<-m[as.character(j),as.character(k)]+1
 	}
 	warning("The probability values are only true for predicted class. The sum may not be 1.")
    	return(list(formula= object$formula,
-   				votes = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"),
-   				prob = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"),
+   				votes = FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"),
+   				prob = FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"),
    				class=as.factor(x$PredictedClass),
    				confusion=m))
 }
