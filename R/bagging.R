@@ -30,15 +30,20 @@ bagging.default  <- function (formula,data=list(),...) {
     else return(adabag::bagging(formula=formula,data=data,...))
 }
 
+
 #' @export
 bagging.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
 							cp=0.95),
-				  mfinal=5){ #browser()
-	x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
-	vfuncName<-"FLBagDecisionTree"
+                          mfinal=5){
+    if(class(data) == "FLpreparedData")
+        x<-rpart.FLpreparedData(data,formula,control,mfinal=mfinal)
+    else
+        x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
+                
+    	vfuncName<-"FLBagDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
@@ -82,6 +87,10 @@ bagging.FLTable<-function(data,
 	class(retobj)<-"FLbagging"
 	return(retobj)
 }
+
+#' @export
+bagging.FLpreparedData <- bagging.FLTable
+
 
 # print.FLbagging<-function(object){
 # 	for(i in 1:length(object$trees)){

@@ -39,8 +39,8 @@ setClass(
 roc.FLVector <- function (response, predictor, ...)
 {
     vcallObject <- match.call()
-    if(!is.FLVector(predictor))
-    {predictor <- as.FL(predictor)}
+ ##   if(!is.FLVector(predictor))
+ ##   {predictor <- as.FL(predictor)}
     return(rocgeneric(response = response,
                       predictor = predictor,
                       callobject = vcallObject,
