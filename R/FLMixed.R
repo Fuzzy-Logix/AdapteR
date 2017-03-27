@@ -34,8 +34,7 @@ setClass(
 #' tbl  <- FLTable("tblMixedModelInt", "ObsID")
 #' flmod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), tbl)
 #' flpred <- predict(flmod)
-## TO-DO: IMP:: print, summary, plot, coefficients, .
-## TOP 1 usage, formula implementation.
+## TO-DO: plot.
 
 
 #' @export
@@ -125,9 +124,15 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
         return(df$CovErr)}
 
     if(property == "CovRandom"){
-        quer <- paste0("SELECT  TOP 1 CovRandom FROM ",object@results$outtbl," ")
-        df <- sqlQuery(connection,quer )
-        return(df$CovRandom) }
+        if(!object@results$vfun[1]){
+            quer <- paste0("SELECT  TOP 1 CovRandom FROM ",object@results$outtbl," ")
+            df <- sqlQuery(connection,quer )
+            return(df$CovRandom)}
+        else
+        {    quer <- paste0("SELECT  TOP 1 CovRandom1,CovRandom2 FROM ",object@results$outtbl," ")
+            df <- sqlQuery(connection,quer )
+            return(c(df$CovRandom1,df$CovRandom2)) } }
+
     if(property == "u"){
         quer <- paste0("SELECT CoeffEst, CoeffID FROM ",object@results$outtbl," WHERE coeffName LIKE 'RANDOM%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
@@ -137,7 +142,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
         quer <- paste0("SELECT CoeffEst, CoeffID FROM ",object@results$outtbl," WHERE coeffName LIKE 'FIXED%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
         return(df$CoeffEst)
-    }
+    }   
 }
 
 
@@ -257,8 +262,12 @@ print.FLMix <- function(object, ...)
     }  
     else
     {
-        print("hi")
-    }
+        cat("Groups", "   Name", "   Std. Dev. \n")
+        cat(flmod@results$pArgs$Rvar[1]," (Intercept)", flmod$CovRandom[1],"\n")
+        cat(flmod@results$pArgs$Rvar[2]," (Intercept)", flmod$CovRandom[2], "\n")
+        cat("Number of obs: ",object@results$vdf[[1]]$vobs,", ",
+            object@results$pArgs$Rvar[1],object@results$vdf[[1]]$vrobs,", "
+            ,object@results$pArgs$Rvar[2],object@results$vdf[[2]]$vrobs, "\n\n")}
     cat("Fixed Effects: \n")
     val <- c("(Intercept)" = object@results$vin$coeff, "TStat" = object@results$vin$TStat)
     print.default(val, digits = 3, print.gap = 2L, quote = FALSE) }
@@ -267,3 +276,9 @@ print.FLMix <- function(object, ...)
 
 #' @export
 setMethod("show","FLMix",function(object){print.FLMix(object)})
+
+
+#' @export
+summary <- function(object, ...){
+    return(print(object))
+}
