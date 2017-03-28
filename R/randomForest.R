@@ -125,8 +125,10 @@ randomForest.FLTable<-function(data,
 }
 
 #' @export
-predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
-								 type="response",...){
+predict.FLRandomForest<-function(object,newdata=object$data,
+								 scoreTable="",
+                                 type="response",...){
+    
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -157,47 +159,52 @@ predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
 								vfuncName,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
-	vval<-"PredictedClass"
+
 	if(type %in% "prob"){
-    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
-    								   " add probability float, add matrix_id float"))
-    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
-    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
-    warning("The probability values are only true for predicted class. The sum may not be 1.")
-	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"))
-	}
-	else if(type %in% "votes"){
-		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
-		return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"))
-	}
-	else if(type %in% "link"){
-		sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
-	    								   " add probability float, add logit float"))
-	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
-	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
-	   	vval<-"logit"
-	}
-	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-					"ObsID"," AS vectorIndexColumn,",
- 					vval," AS vectorValueColumn",
-	 				" FROM ",scoreTable)
+ 	   val <- "NumOfVotes"
+   	   x<-1/(object$ntree)}
+	else{
+	   val <- "PredictedClass"
+	   x<-1}
+   	
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connectionName = getFLConnectionName(),
-	                        variables = list(
-				                obs_id_colname = "vectorIndexColumn",
-				                cell_val_colname = "vectorValueColumn"),
-	                        whereconditions="",
-	                        order = "",
-	                        SQLquery=sqlstr)
-
-	flv <- newFLVector(
-				select = tblfunqueryobj,
-				Dimnames = list(rownames(newdata),
-								"vectorValueColumn"),
-                dims = as.integer(c(newdata@dims[1],1)),
-				isDeep = FALSE)
-	return(flv)
+   	# yvector <- new("FLVector",
+    #               select= new("FLSelectFrom",
+    #                           table_name=scoreTable,
+    #                           connectionName=getFLConnectionName(),
+    #                           variables=list(ObsID=vobsid,
+    #                           				 val=val),
+    #                           whereconditions="",
+    #                           order=vobsid),
+    #               dimColumns = c("ObsID","val"),
+    #               ##names=NULL,
+    #               Dimnames = list(rownames(newdata),1),
+    #               dims    = c(nrow(newdata),1),
+    #               type       = "integer"
+    #               )
+   	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+   	                          ",vobsid," AS vectorIndexColumn,\n
+    	                         ",val,"*",x," AS vectorValueColumn\n",
+        	            " FROM ",scoreTable,"")
+   	tblfunqueryobj <- new("FLTableFunctionQuery",
+    	                   connectionName = getFLConnectionName(),
+                           variables = list(
+            	               obs_id_colname = "vectorIndexColumn",
+                	           cell_val_colname = "vectorValueColumn"),
+      	                   whereconditions="",
+        	               order = "",
+                           SQLquery=sqlstr)
+    vrw <- nrow(newdata)
+    yvector <- newFLVector(
+    			   select = tblfunqueryobj,
+       			   Dimnames = list(as.integer(1:vrw),
+                   			      "vectorValueColumn"),
+      			   dims = as.integer(c(vrw,1)),
+ 			       isDeep = FALSE)
+   	return(yvector)
+	# query<-paste0("Select * from ",scoreTable," Order By 1")
+	# retobj<-sqlQuery(getFLConnection(),query)
+	# return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
 }
 
 #' @export
@@ -227,6 +234,7 @@ plot.FLRandomForest<-function(object){ #browser()
 	}
 }	
 
+#' @export
 summary.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	x<-predict(object,type="prob")

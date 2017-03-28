@@ -184,12 +184,13 @@ summary.FLrpart<-function(x,...){
 
 #' @export
 predict.FLrpart<-function(object,
-                          newdata=object$deeptable,
-                          scoreTable="",type = "response",
-                          ...){ #browser()
-    if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
-    newdata <- setAlias(newdata,"")
-    if(scoreTable=="")
+						  newdata=object$deeptable,
+                          scoreTable="",
+                          type = "response",
+                          ...){
+	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
+	newdata <- setAlias(newdata,"")
+	if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
     if(!isDeep(newdata)){
@@ -217,41 +218,33 @@ predict.FLrpart<-function(object,
                               outputParameter=c(AnalysisID="a"),
                               pInputParams=vinputcols)
     AnalysisID <- checkSqlQueryOutput(AnalysisID)
-    #query<-paste0("Select * from ",scoreTable," Order by 1")
-    vval<-"PredictedClass"
-
-    if(type %in% "prob"){
-    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
-   	   	warning("The probability values are only true for predicted class. The sum may not be 1.")
-   	   	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","PredictClassProb"))
-    }
-
-    else if(type %in% "link"){
-    	sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add logit float"))
-    	sqlQuery(getFLConnection(),paste0("update ",scoreTable," set logit = -ln(1/PredictClassProb - 1) where PredictClassProb<1"))
-    	vval<-"logit"
-    }
-    sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
-					"ObsID"," AS vectorIndexColumn,",
- 					vval," AS vectorValueColumn",
-	 				" FROM ",scoreTable)
-	
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connectionName = getFLConnectionName(),
-	                        variables = list(
-				                obs_id_colname = "vectorIndexColumn",
-				                cell_val_colname = "vectorValueColumn"),
-	                        whereconditions="",
-	                        order = "",
-	                        SQLquery=sqlstr)
-
-	flv <- newFLVector(
-				select = tblfunqueryobj,
-				Dimnames = list(rownames(newdata),
-								"vectorValueColumn"),
-                dims = as.integer(c(newdata@dims[1],1)),
-				isDeep = FALSE)
-	return(flv)
+    ##query<-paste0("Select * from ",scoreTable," Order by 1")
+    val <- "PredictedClass"
+    if(type %in% "prob")
+        val <- "PredictClassProb"
+    
+    sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+                              ",vobsid," AS vectorIndexColumn,\n
+                              ",val," AS vectorValueColumn\n",
+                     " FROM ",scoreTable,"")
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = getFLConnectionName(),
+                          variables = list(
+                              obs_id_colname = "vectorIndexColumn",
+                              cell_val_colname = "vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
+    vrw <- nrow(newdata)
+    yvector <- newFLVector(
+        select = tblfunqueryobj,
+        Dimnames = list(as.integer(1:vrw),
+                        "vectorValueColumn"),
+        dims = as.integer(c(vrw,1)),
+        isDeep = FALSE)
+    return(yvector)
+    
+    
 }
 
 #' @export
@@ -308,6 +301,7 @@ print.FLrpart<-function(object){ #browser()
   	cat(retobj, sep = "\n")
 }
 
+#' @export
 # `$.FLrpart` <- function(object,property){
 # 	return(slot(object,property))
 # }

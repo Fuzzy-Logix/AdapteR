@@ -1,5 +1,5 @@
 NULL
-
+#' @export
 ##https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
 ##http://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
 ##https://www.analyticsvidhya.com/blog/2015/09/naive-bayes-explained/
@@ -16,7 +16,6 @@ NULL
 #' @method plot FLLDA. 
 #' @method predict FLLDA. 
 #' @export
-
 setClass(
     "FLLDA",
     contains="FLRegr",
@@ -120,7 +119,7 @@ lda.FLpreparedData <- function(formula, data,...)
 #' @export
 lda.FLTable <- lda.FLpreparedData
 
-
+#' @export
 lda.FLTableMD <- lda.FLpreparedData
 
 
@@ -403,6 +402,7 @@ coefficients.FLLDA <- function(object)
 }
 ##posterior probablity:https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
 ## http://sites.stat.psu.edu/~jiali/course/stat597e/notes2/lda.pdf
+#' @export
 predict.FLLDA <- function(object){
     var <- getVariables(object@deeptable)
     if(object@results$familytype %in% "Flex")
@@ -447,6 +447,7 @@ predict.FLLDA <- function(object){
 
 
 
+#' @export
 confusion.FLLDA <- function(object){
     if(object@results$familytype %in% "Flex")
         return(object$confusion)
@@ -454,6 +455,7 @@ confusion.FLLDA <- function(object){
         return(NULL)
 }
 
+#' @export
 plot.FLLDA <- function(object){
     if(object@results$familytype %in% "lda")
         val <- predict(object)$x
