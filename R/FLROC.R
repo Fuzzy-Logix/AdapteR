@@ -247,7 +247,7 @@ plot.FLROC <- function(object,limit = 1000,method = 1, ...)
 print.FLROC <- function(object,method = 1, ...) 
     return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
-setMethod("show", signature("FLROC"), function(x) print.FLROC(x))
+setMethod("show", signature("FLROC"), function(x) print.FLROC(x,method=0))
 
 #' @export
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
