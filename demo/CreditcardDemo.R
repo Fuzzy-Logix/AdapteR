@@ -31,7 +31,7 @@ FLTestTbl <- FLTable(vTestTableName,"ObsID",fetchIDs=FALSE)
 
 vdependentColumn <- "Classvar"
 
-myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
+myformula <- Classvar ~ .
 
 if(!existsRemoteTable(tableName=deepTableName)){
     FLdeepTable <- prepareData(formula         = myformula ,
@@ -55,7 +55,7 @@ if(!existsRemoteTable(tableName=deepTableName)){
 glm.model <- glm(myformula, data = FLdeepTable, family = "binomial")
 glm.predict <- predict(glm.model)
 head(glm.predict, display = TRUE, n = 5)
-glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
+glm.roc <- roc(FLtbl$Classvar, glm.predict)
 plot(glm.roc, limit = 1000, main = "glm-roc")
 
 
@@ -64,8 +64,10 @@ plot(glm.roc, limit = 1000, main = "glm-roc")
 dt.model <- rpart(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 dt.predict <- predict(dt.model,type = "prob")
 length(dt.predict)
-dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
+dt.roc <- roc(FLtbl$Classvar, dt.predict)
 plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
+
+dt.roc
 
 ##
 #### Random Forest:
