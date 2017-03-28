@@ -1,3 +1,4 @@
+
 #' @export
 roc <- function (formula,data=list(),...) {
 	UseMethod("roc", data)
@@ -23,16 +24,15 @@ setClass(
 ## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
 #' tbl <- FLTable("tblROCCurve", "ObsID")
 #' mod <- roc(tbl$ActualVal, tbl$ProbVal)
-#'Example 2:
+#' Example 2:
 #' data(aSAH)
-#'fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-#'fltbl$res <- as.numeric(fltbl$res)
-#'fltbl$res <- fltbl$res - 1
+#' fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
+#' fltbl$res <- as.numeric(fltbl$res)
+#' fltbl$res <- fltbl$res - 1
 #' fltbl <- fltbl[-55, ]
 #' head(fltbl)
-#'fltbl <- as.FLTable(fltbl)
-#'flmod <- roc(fltbl$res, fltbl$pred)
-
+#' fltbl <- as.FLTable(fltbl)
+#' flmod <- roc(fltbl$res, fltbl$pred)
 #' @export
 roc.FLVector <- function (response, predictor, ...)
 {
@@ -247,12 +247,9 @@ plot.FLROC <- function(object,limit = 1000,method = 1, ...)
 print.FLROC <- function(object,method = 1, ...) 
     return(print(as.roc(object, auc=TRUE,method = method, ...)))
 
-##
-#' @export
-##print.FLROC <- function(object)
-##    return(print(as.roc(object, auc=TRUE)))
-##
+setMethod("show", signature("FLROC"), function(x) print.FLROC(x))
 
+#' @export
 as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     p <- min(limit,object@results$dims[[1]])/(object@results$dims[[1]])
     if(method)
@@ -260,9 +257,7 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
         vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
         vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
         str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
-    }
-    else
-    {
+    } else {
         val <- object@results$vals
         neg <-1/val[[1]]
         pos <- 1/val[[2]]

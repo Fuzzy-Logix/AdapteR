@@ -1,10 +1,7 @@
 NULL
-#' @export
 ##https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
 ##http://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
 ##https://www.analyticsvidhya.com/blog/2015/09/naive-bayes-explained/
-
-
 
 #' An S4 class to represent output from Discriminant Analysis on in-database Objects
 #'

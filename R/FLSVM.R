@@ -1,4 +1,3 @@
-#' @export
 #' An S4 class to represent output from Support Vector Machine(svm) on in-database Objects
 #'
 #' @slot offset column name used as offset
@@ -15,7 +14,6 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-#' @export
 #' library(e1071)
 #' Linear Kernel
 #' tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")

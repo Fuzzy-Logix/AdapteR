@@ -961,6 +961,10 @@ setMethod("FLExtractStr",
             })
 
 
+## RV: StartPos argument in DB Lytix for FLInStr had not been implemented here in regexpr though it is calling FLInStr. 
+## TODO: implement passing of startpos argument(default = 1)
+## RV: StartPos argument need only be included in regexpr since only that is calling DB Lytix FLInStr right?
+##     Others(gregexpr,grep,sub,......) dont though they essentially perform similar functions; so we dont need startpos there right???
 ## move to file regexpr.R
 #' Pattern Matching
 #'
@@ -993,13 +997,6 @@ setMethod("FLExtractStr",
 #' flv <- widetable[1:6,"string"]
 #' resultflvector <- regexpr("A",flv)
 #' @export
-
-
-## RV: StartPos argument in DB Lytix for FLInStr had not been implemented here in regexpr though it is calling FLInStr. 
-## TODO: implement passing of startpos argument(default = 1)
-## RV: StartPos argument need only be included in regexpr since only that is calling DB Lytix FLInStr right?
-##     Others(gregexpr,grep,sub,......) dont though they essentially perform similar functions; so we dont need startpos there right???
-
 setGeneric("regexpr", function(pattern, text, ignore.case = FALSE, perl = FALSE,
         fixed = FALSE, useBytes = FALSE,startpos = 1)
     standardGeneric("regexpr"))
@@ -1099,7 +1096,6 @@ setMethod("gregexpr",
 #' flvector <- grep("A",flv,invert=TRUE)
 #' flvector <- grep("A",flv,invert=TRUE,value=TRUE)
 #' @export
-
 setGeneric("grep", function(pattern,x,ignore.case=FALSE,
                             perl=FALSE,value=FALSE,
                             fixed=FALSE,useBytes=FALSE,invert=FALSE)

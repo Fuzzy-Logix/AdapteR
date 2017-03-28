@@ -1,6 +1,3 @@
-#' @export
-NULL
-
 #' Classification and Regression with Random Forest
 #'
 #' Random forest is a technique for reducing
@@ -21,7 +18,6 @@ NULL
 #' @examples
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-randomForest(data = flt, formula = -1~., ntree=5)
-
 #' @export
 randomForest<-function(data,formula,...){
 	UseMethod("randomForest",data)
