@@ -177,13 +177,15 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     else if(property == "auc") {
         return(auc(object)) }
     
+    ## dname <- c(object@results$doperator$Vorder, object@results$doperator$Var[[2]])
+    
     else if(property == "original.predictor"){
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list(object@results$doperator$Var[[2]]),
+                          var = list(OBSID= "ObsID", pred = object@results$doperator$Var[[2]]),
                           whereconditions = "" ,
                           vorder = object@results$doperator$Vorder,
-                          dcolumn = c(object@results$doperator$Vorder, object@results$doperator$Var[[2]])))
+                          dcolumn =c("OBSID", "pred") ))
     }
     ## var <- res, vorder <- "obsId", dcolumn <-c("obsID",res)
     else if(property == "original.response"){
@@ -199,10 +201,10 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     else if(property == "controls"){
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list(object@results$doperator$Var[[2]]),
+                          var = list(OBSID = "ObsID", controls = object@results$doperator$Var[[2]]),
                           whereconditions = paste0(object@results$doperator$Var[[1]], "= 0"),
                           vorder = object@results$doperator$Vorder,
-                          dcolumn = c(object@results$doperator$Vorder, object@results$doperator$Var[[2]]),
+                          dcolumn = c("OBSID", "controls"),
                           dnames = (1:object@results$vals[1]),
                           vdims  = object@results$vals[1]
                           ))
@@ -211,10 +213,10 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     else if(property == "cases"){
         return(flvgeneric(object,
                           tblname = object@results$itable,
-                          var = list(object@results$doperator$Var[[2]]),
+                          var = list(OBSID = "ObsID", cases = object@results$doperator$Var[[2]]),
                           whereconditions = paste0(object@results$doperator$Var[[1]], "= 1"),
                           vorder = object@results$doperator$Vorder,
-                          dcolumn = c(object@results$doperator$Vorder, object@results$doperator$Var[[2]]),
+                          dcolumn = c("OBSID", "cases"),
                           dnames = (1:object@results$vals[2]),
                           vdims  = object@results$vals[2]))
     }
@@ -276,8 +278,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             #cases = object$cases,
-             #controls = object$controls,
+             cases = object$cases,
+             controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec

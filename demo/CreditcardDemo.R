@@ -4,6 +4,9 @@
 ## ARBaseARcreditcardTrainD1485952077
 
 ## gkappler creditdemo.
+## 1.) control, cases fix: 2.) method dispatch, 3.)do same in R., data on securisync.
+## gkappler creditdemo.
+
 library(pROC)
 library(randomForest)
 if(!exists("connection")) {
@@ -56,7 +59,7 @@ if(!existsRemoteTable(tableName=deepTableName)){
 glm.model <- glm(myformula, data = FLdeepTable, family = "binomial")
 glm.predict <- predict(glm.model,FLdeepTable)
 head(glm.predict, display = TRUE, n = 5)
-glm.roc <- roc.FLVector(FLtbl$Classvar, glm.predict)
+glm.roc <- roc(FLtbl$Classvar, glm.predict)
 plot(glm.roc, limit = 1000, main = "glm-roc")
 
 ## Decision Tree.
@@ -64,20 +67,20 @@ plot(glm.roc, limit = 1000, main = "glm-roc")
 dt.model <- rpart(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 dt.predict <- predict(dt.model,type = "prob")
 ##length(dt.predict)
-dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
+dt.roc <- roc(FLtbl$Classvar, dt.predict)
 plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
 
 
 ## RF:
 rf.model <- randomForest(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 rf.predict <- predict(rf.model,type = "prob")
-rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict$prob)
+rf.roc <- roc(FLtbl$Classvar, rf.predict$prob)
 rf.plot <- plot(rf.roc, limit = 1000, main = "rf-roc")
 
 ## Bagging:
 bag.model <- bagging(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 bag.predict <- predict(bag.model,type = "prob")
-bag.roc <- roc.FLVector(FLtbl$Classvar, bag.predict$prob)
+bag.roc <- roc(FLtbl$Classvar, bag.predict$prob)
 plot(bag.roc, limit = 1000, main = "bag-roc", method = 0)
 
 
