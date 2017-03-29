@@ -2,6 +2,11 @@
 ##str <- paste0("SELECT a.vectorValueColumn AS depVar FROM (",constructSelect(depVar),") AS ## a ORDER BY a.vectorIndexColumn")
 ## use deep table instead of wide as consuming more time.
 ## ARBaseARcreditcardTrainD1485952077
+
+## gkappler creditdemo.
+## 1.) control, cases fix: 2.) method dispatch, 3.)do same in R., data on securisync.
+## gkappler creditdemo.
+
 library(pROC)
 library(randomForest)
 if(!exists("connection")) {
@@ -13,7 +18,7 @@ vSampleDataTables <- suppressWarnings(SampleData(pTableName="ARcreditcard",
                                   pObsIDColumn="ObsID",
                                   pTrainTableName="ARcreditcardTrain",
                                   pTestTableName="ARcreditcardTest",
-                                  pTrainDataRatio=.2,
+                                  pTrainDataRatio=.60,
                                   pTemporary=FALSE,
                                   pDrop=TRUE))
 vTrainTableName <- vSampleDataTables["TrainTableName"]
@@ -72,11 +77,19 @@ dt.predict <- predict(dt.model,type = "prob")
 dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
 plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
 
+
+## RF:
+rf.model <- randomForest(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+rf.predict <- predict(rf.model,type = "prob")
+rf.roc <- roc(FLtbl$Classvar, rf.predict$prob)
+rf.plot <- plot(rf.roc, limit = 1000, main = "rf-roc")
+
 ## Bagging:
-bag.model <- bagging.FLpreparedData(myformula,data = FLtrainDeep, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+bag.model <- bagging(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 bag.predict <- predict(bag.model,type = "prob")
-bag.roc <- roc.FLVector(FLtbl$Classvar, bag.predict$prob)
+bag.roc <- roc(FLtbl$Classvar, bag.predict$prob)
 plot(bag.roc, limit = 1000, main = "bag-roc", method = 0)
+
 
 
 ##No probablities in Boosting 
@@ -93,10 +106,12 @@ rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict)
 plot.FLROC(rf.roc, limit = 1000, main = "rf-roc", method = 0)
 
 
+
+
+
 #### combined plot:
 ##png("combined-plot1.png")
 ##par(mfrow = c(2, 1))
-####rf.plot <- plot(rf.roc, limit = 1000, main = "rf-roc")
 ####ch <- paste0("auc of ",round(rf.plot$auc, digits=3))
 ####mtext(ch, side = 3)
 ##dt.plot <- plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
