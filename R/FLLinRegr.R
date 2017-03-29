@@ -1998,41 +1998,45 @@ predict.FLRobustRegr <- function(object,
 ## move to file lmGeneric.R
 #' @export
 predict.lmGeneric <- function(object,
-							newdata=object@table,
-							scoreTable="",
-                            type="response",...){ #browser()
-	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
-	newdata <- setAlias(newdata,"")
-	vinputTable <- getTableNameSlot(newdata)
+                              newdata=object@table,
+                              scoreTable="",
+                              type="response",...){ 
+    if(!is.FLTable(newdata) && class(newdata) != "FLpreparedData") stop("scoring allowed on FLTable only")
+    vfcalls <- object@vfcalls
+    if(class(newdata) == "FLpreparedData"){
+        newdata <- newdata$deepx
+    }
+    else{
+        newdata <- prepareData(object,newdata,outDeepTableName="", ...) }
 
-	if(scoreTable=="")
-	# scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-	# 					gen_score_table_name(getTableNameSlot(object@table)))
+    newdata <- setAlias(newdata,"")
+
+    if(scoreTable=="")
+                                        # scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
+                                        # 					gen_score_table_name(getTableNameSlot(object@table)))
 	scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
-	# else if(!grep(".",scoreTable)) 
-	# 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
-	
-	vfcalls <- object@vfcalls
-    newdata <- prepareData(object,newdata,outDeepTableName="", ...)
-	
-	vtable <- getTableNameSlot(newdata)
-	vobsid <- getObsIdSQLExpression(newdata)
-	vvarid <- getVarIdSQLExpression(newdata)
-	vvalue <- getValueSQLExpression(newdata)
+                                        # else if(!grep(".",scoreTable)) 
+                                        # 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+    
+    vinputTable <- getTableNameSlot(newdata)
+    vtable <- getTableNameSlot(newdata)
+    vobsid <- getObsIdSQLExpression(newdata)
+    vvarid <- getVarIdSQLExpression(newdata)
+    vvalue <- getValueSQLExpression(newdata)
 
-	vinputCols <- list()
-	vinputCols <- c(vinputCols,
-					TableName=getTableNameSlot(newdata),
-					ObsIDCol=vobsid,
-					VarIDCol=vvarid,
-					ValCol=vvalue
-					)
-	if(!object@vfcalls["functionName"]=="FLPoissonRegr")
-	vinputCols <- c(vinputCols,
-					WhereClause="NULL")
-	vinputCols <- c(vinputCols,
-					RegrAnalysisID=object@AnalysisID,
-					ScoreTable=scoreTable)
+    vinputCols <- list()
+    vinputCols <- c(vinputCols,
+                    TableName=vtable,
+                    ObsIDCol=vobsid,
+                    VarIDCol=vvarid,
+                    ValCol=vvalue
+                    )
+    if(!object@vfcalls["functionName"]=="FLPoissonRegr")
+        vinputCols <- c(vinputCols,
+                        WhereClause="NULL")
+    vinputCols <- c(vinputCols,
+                    RegrAnalysisID=object@AnalysisID,
+                    ScoreTable=scoreTable)
 
 	if(!is.Hadoop())
 	vinputCols <- c(vinputCols,
@@ -2391,6 +2395,14 @@ getFittedValuesLogRegrSQL.FLTable.Hadoop <- function(object,newdata,scoreTable){
 }
 getFittedValuesLogRegrSQL.default <- function(object,newdata,scoreTable){
     vobsid <- getObsIdSQLExpression(newdata)
+    vfcalls <- object@vfcalls
+    getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
+                                    valueColumn=vfcalls["valcolnamescoretable"],
+                                    FromTable=scoreTable)
+}
+
+getFittedValuesLogRegrSQL.FLpreparedData <- function(object,newdata,scoreTable){
+    vobsid <- newdata$deepx@select@variables$obs_id_colname
     vfcalls <- object@vfcalls
     getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
                                     valueColumn=vfcalls["valcolnamescoretable"],

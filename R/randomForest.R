@@ -98,7 +98,7 @@ randomForest.FLTable<-function(data,
 	trees<-list()
 	for(l in 1:length(ntrees)){
 		trees[[l]]<-subset(frame,TreeID==l)
-		class(trees[[l]])<-"data.frame"	
+		class(trees[[l]])<-"FLrpart"	
 	}
 
     retobj<-list(call=match.call(),
@@ -155,6 +155,30 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								vfuncName,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
+	vval<-"PredictedClass"
+	if(type %in% "prob"){
+    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    								   " add probability float, add matrix_id float"))
+    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
+    warning("The probability values are only true for predicted class. The sum may not be 1.")
+	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"))
+	}
+	else if(type %in% "votes"){
+		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+		return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"))
+	}
+	else if(type %in% "link"){
+		sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+	    								   " add probability float, add logit float"))
+	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
+	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
+	   	vval<-"logit"
+	}
+	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+					"ObsID"," AS vectorIndexColumn,",
+ 					vval," AS vectorValueColumn",
+	 				" FROM ",scoreTable)
 
 	if(type %in% "prob"){
  	   val <- "NumOfVotes"
@@ -226,6 +250,7 @@ plot.FLRandomForest<-function(object){ #browser()
 				   oma = c(0,0,0,0) + 0,
           		   mar = c(0,0,0,0) + 0)
 	for(i in 1:ntree){
+		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
 }	
@@ -253,6 +278,7 @@ summary.FLRandomForest<-function(object){ #browser()
 	# }
 	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",tablename))
 	comb<-combn(nrow(predclass),m=2)
+	retobj<-list()
 	if(!all(predclass) %in% c("0","1")){
 		for (t in 1:ncol(comb)) {
 			resv<-comb[,t]
@@ -263,19 +289,19 @@ summary.FLRandomForest<-function(object){ #browser()
 	                  	      pSelect=sqlstr,
 	                  	      pTemporary=TRUE,
 	                 	      pDrop=TRUE)
-			sqlstr2<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
+			sqlstr2<-paste0("Select ObsID as ObsID, 0 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[2]))
 			insertIntotbl(pTableName=temptable,
 						  pSelect=sqlstr2)
 			flt<-FLTable(temptable,"ObsID")
-			eval(parse(text= paste0("ret$roc",resv[1],resv[2],
-									"<-roc(flt,formula = Response~probability)")))
+			eval(parse(text= paste0("retobj$roc",resv[1],resv[2],
+									"<-roc(flt,formula = Response~Predictor)")))
 		}
 	}
 	else {
 		tablex<-FLTable(tablename,"ObsID")
-		ret$roc<-roc(tablex$PredictedClass,tablex$probability)
+		retobj$roc<-roc(tablex$PredictedClass,tablex$probability)
 	}
-	ret$confusion=object$confusion
-	return(ret)
+	retobj$confusion=object$confusion
+	return(retobj)
 }

@@ -109,6 +109,7 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
+    'FLMixed.R'
     'FLPLSRegr.R'
     'FLPrint.R'
     'FLQRDecomp.R'

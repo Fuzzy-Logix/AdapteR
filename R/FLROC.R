@@ -37,8 +37,8 @@ setClass(
 roc.FLVector <- function (response, predictor, ...)
 {
     vcallObject <- match.call()
-    if(!is.FLVector(predictor))
-    {predictor <- as.FL(predictor)}
+ ##   if(!is.FLVector(predictor))
+ ##   {predictor <- as.FL(predictor)}
     return(rocgeneric(response = response,
                       predictor = predictor,
                       callobject = vcallObject,
@@ -86,17 +86,23 @@ roc.FLTable <- function(formula,data,... ){
 
 rocgeneric <- function(response, predictor,callobject,  ...)
 {
+    predCol <- "vectorValueColumn"
+    predObs <- "vectorIndexColumn"
     vvolName <- gen_view_name("roccurve")
-    vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.vectorValueColumn AS pred
+    if(strsplit(class(predictor), split = ".", fixed = TRUE)[[1]][1] == "FLMatrix"){
+        predCol <- "valueColumn"
+        predObs <- "rowIdColumn" }
+    
+    vselect <- paste0(" SELECT a.vectorIndexColumn AS OBSID, a.vectorValueColumn as res, b.",predCol," AS pred
                           FROM (",constructSelect(response),") AS a ,
                                (",constructSelect(predictor),") AS b
-                          WHERE  a.vectorIndexColumn = b.vectorIndexColumn")
+                          WHERE  a.vectorIndexColumn = b.",predObs,"")
     tbl <- createTable(pTableName = vvolName,
                        pWithData = TRUE,
                        pTemporary = TRUE,
                        pSelect = vselect )
-    vrw <- nrow(predictor)
-    rnames <- rownames(predictor)
+    vrw <- nrow(response)
+    rnames <- rownames(response)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
@@ -170,7 +176,6 @@ rocgeneric <- function(response, predictor,callobject,  ...)
         return(auc(object)) }
     
     else if(property == "original.predictor"){
-        browser()
         return(flvgeneric(object,
                           tblname = object@results$itable,
                           var = list(object@results$doperator$Var[[2]]),
@@ -269,8 +274,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             ##       cases = object$cases,
-             ##         controls = object$controls,
+             #cases = object$cases,
+             #controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec
@@ -280,4 +285,3 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     return(reqList)
 }
 
-## setMethod("show","FLROC",print.FLROC)
