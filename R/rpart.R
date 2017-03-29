@@ -509,9 +509,9 @@ rtree<-function(data,
 						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
-	tName <- "FLrev_4878.fzzlRegrTreeResults" ## gk: TODO:  REMOVE static database.table reference
+	tName <- getRemoteTableName(tableName="fzzlRegrTreeResults")
 	p <- insertIntotbl(tName,pSelect=query)
-    ret<-sqlQuery(getFLConnection(),paste0("Select * from FLrev_4878.fzzlRegrTreeResults 
+    ret<-sqlQuery(getFLConnection(),paste0("Select * from ",tName,"
     								Where AnalysisID= ",fquote(AnalysisID),"
                                            order by 2,3,4"))
     frame<-data.frame(TreeID=ret$TreeID,
