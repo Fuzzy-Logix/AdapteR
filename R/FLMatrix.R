@@ -143,7 +143,6 @@ FLIndexOf <- function(i,thenames){
 
 #' Appends where clauses for subsetting etc.
 #'
-#' @export
 #' @param object An FLMatrix object
 #' @param whereconditions constraints to be added
 #' @param dimnames new dimension names

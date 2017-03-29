@@ -52,7 +52,6 @@ NULL
 #' @method FLMapping FLKMedoids
 #' @param object gives the mapping data.frame which is used in execution.
 #' @export
-
 setClass(
 	"FLClustering",
 	slots=list(

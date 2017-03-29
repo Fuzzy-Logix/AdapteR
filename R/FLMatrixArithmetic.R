@@ -657,7 +657,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix + Rvector
 #' @export
-
 "+" <- function(pObj1,pObj2)
 {
     UseMethod("+", pObj1)
@@ -717,7 +716,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix - Rvector
 #' @export
-
 "-" <- function(pObj1,pObj2)
 {
     UseMethod("-", pObj1)
@@ -777,7 +775,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %*% Rvector
 #' @export
-
 "%*%" <- function(pObj1,pObj2)
 {
     UseMethod("%*%", pObj1)
@@ -841,7 +838,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %% Rvector
 #' @export
-
 "%%" <- function(pObj1,pObj2)
 {
     UseMethod("%%", pObj1)
@@ -883,7 +879,6 @@ NULL
 `%%.dsCMatrix` <- function(pObj1,pObj2)
     return(FLMatrixArithmetic(pObj1,pObj2,"%%"))
 
-NULL
 #' Element-Wise Multiplication of in-database objects.
 #'
 #' \code{*} does the Element-wise Multiplication of in-database objects.
@@ -901,7 +896,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix * Rvector
 #' @export
-
 "*" <- function(pObj1,pObj2)
 {
     UseMethod("*", pObj1)
@@ -967,7 +961,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix / Rvector
 #' @export
-
 "/" <- function(pObj1,pObj2)
 {
     UseMethod("/", pObj1)
@@ -1009,7 +1002,6 @@ NULL
 `/.dsCMatrix` <- function(pObj1,pObj2)
     return(FLMatrixArithmetic(pObj1,pObj2,"/"))
 
-NULL
 #' Integer Division of in-database objects.
 #'
 #' \code{\%/\%} does the Element-wise Integer Division of in-database objects.
@@ -1029,7 +1021,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix %/% Rvector
 #' @export
-
 "%/%" <- function(pObj1,pObj2)
 {
     UseMethod("%/%", pObj1)
@@ -1071,7 +1062,6 @@ NULL
 `%/%.dsCMatrix` <- function(pObj1,pObj2)
     return(FLMatrixArithmetic(pObj1,pObj2,"%/%"))
 
-NULL
 #' Element-Wise power of in-database objects.
 #'
 #' \code{**} does the Element-wise power of in-database objects.
@@ -1089,7 +1079,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix ** Rvector
 #' @export
-
 "**" <- function(pObj1,pObj2)
 {
     UseMethod("**", pObj1)
@@ -1131,7 +1120,6 @@ NULL
 `**.dsCMatrix` <- function(pObj1,pObj2)
     return(FLMatrixArithmetic(pObj1,pObj2,"**"))
 
-NULL
 #' Element-Wise power of in-database objects.
 #'
 #' \code{^} does the Element-wise power of in-database objects.
@@ -1148,7 +1136,6 @@ NULL
 #' Rvector <- 1:5
 #' ResultFLmatrix <- flmatrix ** Rvector
 #' @export
-
 "^" <- function(pObj1,pObj2)
 {
     UseMethod("^", pObj1)
@@ -1422,7 +1409,7 @@ NULL
 
 ## This is not working for FLMatrix,FLVector case.
 ## Refer FLIdentical for this implementation.
-NULL
+
 #' Equality of in-database objects.
 #'
 #' \code{==} checks the equality of in-database objects.
@@ -1448,50 +1435,3 @@ NULL
 #' Result <- flmatrix == flmatrix
 #' Result <- flvector==flvector
 #' Result <- flvector==1:5
-# #' @export
-# "==" <- function(pObj1,pObj2)
-# {
-#     UseMethod("==", pObj1)
-# }
-
-# #' @export
-# `==.default` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic.default(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.matrix` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.numeric` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.FLMatrix` <- function(pObj1, pObj2){
-# 	browser()
-# 	return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-# }
-
-# #' @export
-# `==.FLVector` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.FLTable` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.dgCMatrix` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.dgeMatrix` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.dgTMatrix` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))
-
-# #' @export
-# `==.dsCMatrix` <- function(pObj1,pObj2)
-# return(FLMatrixArithmetic(pObj1,pObj2,"=="))

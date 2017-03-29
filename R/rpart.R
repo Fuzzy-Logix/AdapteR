@@ -184,12 +184,13 @@ summary.FLrpart<-function(x,...){
 
 #' @export
 predict.FLrpart<-function(object,
-                          newdata=object$deeptable,
-                          scoreTable="",type = "response",
-                          ...){ #browser()
-    if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
-    newdata <- setAlias(newdata,"")
-    if(scoreTable=="")
+						  newdata=object$deeptable,
+                          scoreTable="",
+                          type = "response",
+                          ...){
+	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
+	newdata <- setAlias(newdata,"")
+	if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
     if(!isDeep(newdata)){
@@ -308,6 +309,7 @@ print.FLrpart<-function(object){ #browser()
   	cat(retobj, sep = "\n")
 }
 
+#' @export
 # `$.FLrpart` <- function(object,property){
 # 	return(slot(object,property))
 # }
@@ -507,9 +509,9 @@ rtree<-function(data,
 						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
-	tName <- "FLrev_4878.fzzlRegrTreeResults"
+	tName <- getRemoteTableName(tableName="fzzlRegrTreeResults")
 	p <- insertIntotbl(tName,pSelect=query)
-    ret<-sqlQuery(getFLConnection(),paste0("Select * from FLrev_4878.fzzlRegrTreeResults 
+    ret<-sqlQuery(getFLConnection(),paste0("Select * from ",tName,"
     								Where AnalysisID= ",fquote(AnalysisID),"
                                            order by 2,3,4"))
     frame<-data.frame(TreeID=ret$TreeID,

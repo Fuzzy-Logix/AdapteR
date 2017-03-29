@@ -18,7 +18,6 @@ NULL
 #' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLMatrix <- solveExcl(flmatrix,3)
 #' @export
-
 FLSolveExcl <- function (x,ExclIdx,...){
 	UseMethod("FLSolveExcl", x)
 }

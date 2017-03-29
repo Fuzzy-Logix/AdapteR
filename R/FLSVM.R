@@ -14,7 +14,6 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-#' @export
 #' library(e1071)
 #' Linear Kernel
 #' tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
@@ -24,9 +23,7 @@ setClass(
 #' polynomial Kernel
 #'tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
 #'flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
-#'
-#'
-#' 
+#' @export
 svm <- function (formula,data=list(),...) {
     UseMethod("svm", data)
 }
@@ -54,7 +51,6 @@ svm.FLpreparedData <- function(formula, data,kernel = "linear",cost = 1, degree 
 svm.FLTable <- svm.FLpreparedData
 
 #' @export
-
 svm.FLTableMD <- svm.FLpreparedData
 
 
@@ -118,6 +114,7 @@ svmGeneric <- function(formula,data,
 }
 
 ## use FLsimpleVector
+#' @export
 predict.FLSVM <- function(object, newData = object@table){
     var <- getVariables(object@deeptable@select)
     tblname <- gen_unique_table_name("svmoutput")
@@ -163,7 +160,7 @@ predict.FLSVM <- function(object, newData = object@table){
     ##    return(sqlQuery(connection, str) )
 }
 
-
+#' @export
 `$.FLSVM`<-function(object,property){
                                         #parentObject <- deparse(substitute(object))
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]

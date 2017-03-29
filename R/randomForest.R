@@ -1,6 +1,3 @@
-#' @export
-NULL
-
 #' Classification and Regression with Random Forest
 #'
 #' Random forest is a technique for reducing
@@ -21,7 +18,6 @@ NULL
 #' @examples
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-randomForest(data = flt, formula = -1~., ntree=5)
-
 #' @export
 randomForest<-function(data,formula,...){
 	UseMethod("randomForest",data)
@@ -125,8 +121,10 @@ randomForest.FLTable<-function(data,
 }
 
 #' @export
-predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
-								 type="response",...){
+predict.FLRandomForest<-function(object,newdata=object$data,
+								 scoreTable="",
+                                 type="response",...){
+    
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
 	vinputTable <- getTableNameSlot(newdata)
@@ -182,22 +180,51 @@ predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
  					vval," AS vectorValueColumn",
 	 				" FROM ",scoreTable)
 
-	tblfunqueryobj <- new("FLTableFunctionQuery",
-	                        connectionName = getFLConnectionName(),
-	                        variables = list(
-				                obs_id_colname = "vectorIndexColumn",
-				                cell_val_colname = "vectorValueColumn"),
-	                        whereconditions="",
-	                        order = "",
-	                        SQLquery=sqlstr)
+	if(type %in% "prob"){
+ 	   val <- "NumOfVotes"
+   	   x<-1/(object$ntree)}
+	else{
+	   val <- "PredictedClass"
+	   x<-1}
+   	
 
-	flv <- newFLVector(
-				select = tblfunqueryobj,
-				Dimnames = list(rownames(newdata),
-								"vectorValueColumn"),
-                dims = as.integer(c(newdata@dims[1],1)),
-				isDeep = FALSE)
-	return(flv)
+   	# yvector <- new("FLVector",
+    #               select= new("FLSelectFrom",
+    #                           table_name=scoreTable,
+    #                           connectionName=getFLConnectionName(),
+    #                           variables=list(ObsID=vobsid,
+    #                           				 val=val),
+    #                           whereconditions="",
+    #                           order=vobsid),
+    #               dimColumns = c("ObsID","val"),
+    #               ##names=NULL,
+    #               Dimnames = list(rownames(newdata),1),
+    #               dims    = c(nrow(newdata),1),
+    #               type       = "integer"
+    #               )
+   	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+   	                          ",vobsid," AS vectorIndexColumn,\n
+    	                         ",val,"*",x," AS vectorValueColumn\n",
+        	            " FROM ",scoreTable,"")
+   	tblfunqueryobj <- new("FLTableFunctionQuery",
+    	                   connectionName = getFLConnectionName(),
+                           variables = list(
+            	               obs_id_colname = "vectorIndexColumn",
+                	           cell_val_colname = "vectorValueColumn"),
+      	                   whereconditions="",
+        	               order = "",
+                           SQLquery=sqlstr)
+    vrw <- nrow(newdata)
+    yvector <- newFLVector(
+    			   select = tblfunqueryobj,
+       			   Dimnames = list(as.integer(1:vrw),
+                   			      "vectorValueColumn"),
+      			   dims = as.integer(c(vrw,1)),
+ 			       isDeep = FALSE)
+   	return(yvector)
+	# query<-paste0("Select * from ",scoreTable," Order By 1")
+	# retobj<-sqlQuery(getFLConnection(),query)
+	# return(as.factor(structure(retobj$PredictedClass,names=retobj$ObsID)))
 }
 
 #' @export
@@ -228,6 +255,7 @@ plot.FLRandomForest<-function(object){ #browser()
 	}
 }	
 
+#' @export
 summary.FLRandomForest<-function(object){ #browser()
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	x<-predict(object,type="prob")

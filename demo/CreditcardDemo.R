@@ -24,21 +24,25 @@ vSampleDataTables <- suppressWarnings(SampleData(pTableName="ARcreditcard",
 vTrainTableName <- vSampleDataTables["TrainTableName"]
 vTestTableName <- vSampleDataTables["TestTableName"]
 
+
 vtemp <- readline("Above: Using SampleData to create Train & Test Data\n ")
 
-
-deepTableName<- "ARBaseARcreditcardTrainD1485952077"
-dropTable(deepTableName)
 
 ## Create a FLTable object for Training table
 FLtbl <- FLTable(vTrainTableName,"ObsID",fetchIDs=FALSE)
 FLTestTbl <- FLTable(vTestTableName,"ObsID",fetchIDs=FALSE)
 
+dim(FLtbl)
+dim(FLTestTbl)
+
 vdependentColumn <- "Classvar"
 
-myformula <- eval(parse(text=paste0(vdependentColumn,"~.")))
+myformula <- Classvar ~ .
+
+deepTableName<- "ARBaseARcreditcardTrainD1485952077"
+dropTable(deepTableName)
 if(!existsRemoteTable(tableName=deepTableName)){
-    FLdeepTable <- prepareData(formula         = myformula ,
+    FLtrainDeep <- prepareData(formula         = myformula ,
                                data            = FLtbl,
                                outDeepTable    = deepTableName,
                                makeDataSparse  = 1,
@@ -48,26 +52,29 @@ if(!existsRemoteTable(tableName=deepTableName)){
                                fetchIDs        = FALSE)
 } else {
     ## or you can use an already created deep table again:
-    FLdeepTable <- FLTable(deepTableName,
+    FLtrainDeep <- FLTable(deepTableName,
                            obs_id_colname   = 'obsid',    
                            var_id_colnames  = 'varid', 
                            cell_val_colname = 'numval',
                            fetchIDs = FALSE)
 }
 
+FLtestDeep <- prepareData(FLtrainDeep,data=FLTestTbl)
+
 ## glm model , plot with auc.
-glm.model <- glm(myformula, data = FLdeepTable, family = "binomial")
-glm.predict <- predict(glm.model,FLdeepTable)
+glm.model <- glm(myformula, data = FLtrainDeep, family = "binomial")
+
+glm.predict <- predict(glm.model,FLtestDeep)
+
 head(glm.predict, display = TRUE, n = 5)
 glm.roc <- roc(FLtbl$Classvar, glm.predict)
 plot(glm.roc, limit = 1000, main = "glm-roc")
 
 ## Decision Tree.
 ## change purity level  -> .999
-dt.model <- rpart(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+dt.model <- rpart(myformula,data = FLtrainDeep, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 dt.predict <- predict(dt.model,type = "prob")
-##length(dt.predict)
-dt.roc <- roc(FLtbl$Classvar, dt.predict)
+dt.roc <- roc.FLVector(FLtbl$Classvar, dt.predict)
 plot(dt.roc, limit = 1000, main = "dt-roc", method = 0)
 
 
@@ -87,8 +94,16 @@ plot(bag.roc, limit = 1000, main = "bag-roc", method = 0)
 
 ##No probablities in Boosting 
 ## Boosting
-boost.model <- boosting.FLpreparedData(myformula,data = FLdeepTable, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
+boost.model <- boosting.FLpreparedData(myformula,data = FLtrainDeep, control = c(minsplit = 15, cp = .9999, maxdepth = 10))
 boost.predict <- predict(boost.model)
+
+##
+#### Random Forest:
+rf.model <- randomForest(myformula,  data = FLtrainDeep, minsplit = 15, cp = .9999, maxdepth = 7)
+rf.predict <- predict(rf.model,type = "prob")
+length(rf.predict)
+rf.roc <- roc.FLVector(FLtbl$Classvar, rf.predict)
+plot.FLROC(rf.roc, limit = 1000, main = "rf-roc", method = 0)
 
 
 

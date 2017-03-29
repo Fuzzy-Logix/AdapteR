@@ -1943,14 +1943,13 @@ summary.FLLinRegr <- function(object,
 
 
 ## Amal: If this generic gets defined here, predict doesn't work for rpart
-#' @export
 #predict<-function(object,newdata,...){
 #	UseMethod("predict",object)
 #}
 
 ## move to file lm.R
 ## Add deep statment, also problem can be of vobsid
-#' Use FLSUMPROD: usemethod dispatch, create new class.
+## Use FLSUMPROD: usemethod dispatch, create new class.
 #' @export
 predict.FLLinRegr <- function(object,
                               newdata=object@table,
@@ -2079,9 +2078,6 @@ predict.lmGeneric <- function(object,
 		return(flv)
 }
 
-## move to file lm.R
-NULL
-
 #' Print FLLinRegr Object
 #'
 #' Printing of output from Linear Regression
@@ -2196,11 +2192,11 @@ influence.FLLinRegr <- function(model,...){
 lm.influence <- function(model,do.coef=TRUE,...){
 	UseMethod("lm.influence",model)
 }
+
 #' @export
 lm.influence.default <- stats::lm.influence
-#' @export
 
-## move to file lm.R
+#' @export
 lm.influence.FLLinRegr <- function(model,do.coef=TRUE,...){
 	reqList <- list(residuals=as.vector(model$residuals),
 					coefficients=model$coefficients,
