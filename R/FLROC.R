@@ -173,7 +173,6 @@ rocgeneric <- function(response, predictor,callobject,  ...)
         return(auc(object)) }
     
     else if(property == "original.predictor"){
-        browser()
         return(flvgeneric(object,
                           tblname = object@results$itable,
                           var = list(object@results$doperator$Var[[2]]),

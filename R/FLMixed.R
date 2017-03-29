@@ -32,9 +32,9 @@ setClass(
 #' flpred <- predict(flmod)
 ## 2 Random Effects.
 #' tbl  <- FLTable("tblMixedModelInt", "ObsID")
-#' flmod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), tbl)
+#' flmod <- lmer(yVal ~ FixVal + (1 |   RanVal1) + (1 | RanVal2 ), tbl)
 #' flpred <- predict(flmod)
-## TO-DO: plot.
+## TODO :- implement storage in results slot.
 
 
 #' @export
@@ -152,6 +152,8 @@ predict.FLMix <- function(object,
                           newdata = object@table,
                           scoreTable = "")
 {
+    parentObject <- unlist(strsplit(unlist(strsplit(
+		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
     scoretbl <- gen_unique_table_name("mixedscore")
     vinputcols <- list(CoeffTable  = object@results$outtbl,
                        InTable = newdata@select@table_name,
@@ -195,9 +197,10 @@ predict.FLMix <- function(object,
                dims = as.integer(nrow(newdata)),
                type = "integer"
                )
-    return(val)
     object@results <- c(object@results,list(pred = val))
-    assign(parentObject,object,envir=parent.frame())}
+    assign(parentObject,object,envir=parent.frame())
+    return(val)
+    }
 
 
 #' @export
@@ -211,6 +214,8 @@ logLik.FLMix <- function(object, ...){
 
 #' @export
 residuals.FLMix <- function(object,newdata = object@table, ...){
+    parentObject <- unlist(strsplit(unlist(strsplit(
+        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
     flpred <- predict(object)
     tbl <- object@table@select@table_name
     vob <- object@table@select@variables$obs_id_colname
@@ -231,7 +236,11 @@ residuals.FLMix <- function(object,newdata = object@table, ...){
                dims = as.integer(nrow(newdata)),
                type = "integer"
                )
-    return(val)}
+    object@results <- c(object@results,list(res = val))
+    assign(parentObject,object,envir=parent.frame())
+
+    return(val)
+}
 
 
 
@@ -240,9 +249,13 @@ residuals.FLMix <- function(object,newdata = object@table, ...){
 plot.FLMix <- function(object,limit = 1000, ...){
     vres <- residuals(object)
     vpred <- predict(object)
-    return(plot(vpred, vres))}
+    p <- min(limit,vpred@dims)/(vpred@dims)
+    
+ str1 <- paste0("SELECT  b.pred AS pred, a.res AS res FROM (",constructSelect(vpred),") AS b, (",constructSelect(vres),") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+   df <- sqlQuery(connection, str1)
+    return(plot(df$pred, df$res))}
 
-
+ 
 
 
 ## implement for 2 variable

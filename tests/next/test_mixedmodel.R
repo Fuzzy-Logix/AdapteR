@@ -5,7 +5,7 @@ fltbl  <- FLTable("tblMixedModel", "ObsID")
 Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
-FLenv$mod <- lmer(yVal ~ (FixVal | RanVal), data = fltbl)
+FLenv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
 Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = rtbl)
 
 
@@ -54,14 +54,19 @@ expectations = c("vpred"))
 })
 
 
+test_that("", {
+    expect_equal(FLenv$mod$CovRandom,260.573310,tolerance = .001 )
+})
+
+
 ## using 2 Random Effect.
 FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable("tblMixedModelInt", "ObsID")
 Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
-FLenv$mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), data = fltbl)
-Renv$mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), data = rtbl)
+FLenv$mod <- lmer(yVal ~ FixVal + (1 | RanVal1) + (1 | RanVal2 ), data = fltbl)
+Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal1) + (1 | RanVal2 ), data = rtbl)
 ##eval_expect_equal({
 ##    mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), tbl)
 ##    },Renv,FLenv,
@@ -80,7 +85,7 @@ expectations = c("vAkaike", "vLik"))
 })
 
 ## predict
-test_that("AIC, LogLik:", {eval_expect_equal({
+test_that("predict:", {eval_expect_equal({
     vpred <- predict(mod)
     
 },Renv,FLenv,
@@ -99,3 +104,14 @@ verbose = TRUE,
 check.attributes = FALSE,
 expectations = c("vpred"))
 })
+
+
+##CovRandom:
+test_that("", {
+    expect_equal(FLenv$mod$CovRandom,c(0.01482593,2.38859471),tolerance = .001 )
+})
+
+
+
+
+

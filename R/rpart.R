@@ -445,7 +445,7 @@ rtree<-function(object,
 			    cp=0.95,
 			    sampsize=0.8,
 			    pSeed=0.5,
-			    pRandomForest=1,...){ browser()
+			    pRandomForest=1,...){ 
 	if(pRandomForest==0){
 		sampsize<-NULL
 		pSampleRateVars<-NULL
