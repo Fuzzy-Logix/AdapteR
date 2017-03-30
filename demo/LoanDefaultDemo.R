@@ -62,8 +62,7 @@ vresFL <- glm(default_ind~.,
             minStdDev=0.1,
             maxCorrel=0.75,
             performVarReduc=1,
-            doNotTransform=vCategoricalCols
-            )
+            excludeCols=vCategoricalCols)
 
 
 ####
