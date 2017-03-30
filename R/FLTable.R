@@ -1096,14 +1096,8 @@ FLReshape <- function(data,formula,
         vIncludeIntercept <- list(...)[["includeIntercept"]]
     }
 
-    if(length(vdepColname)>0){
-        vWhereClause <- constructWhere(c(subset,
-                                        paste0(vvarid," NOT IN(",
-                                            fquote(vdepColname),")")))
-    }
-    else{
-        vWhereClause <- constructWhere(subset)
-    }
+    vWhereClause <- constructWhere(subset)
+
     if(deepOutput){
         sqlstr <- paste0(" SELECT DENSE_RANK()OVER(PARTITION BY b.varid ORDER BY b.obsid) as obsid, \n ",
                                 "DENSE_RANK()OVER(PARTITION BY b.obsid ORDER BY b.varid) as varid, \n ",
@@ -1127,10 +1121,11 @@ FLReshape <- function(data,formula,
                             pDrop=TRUE)
 
         if(length(vdepColname)>0){
-            vres <- insertIntotbl(pTableName=outTable,
-                                  pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY ",vobsid,"), -1, ",
-                                                        value.var,",",vobsid,",",fquote(vdepColname)," FROM \n ",
-                                                    data," \n WHERE ",vvarid," IN (",fquote(vdepColname),")"))
+            # vres <- insertIntotbl(pTableName=outTable,
+            #                       pSelect=paste0("SELECT ROW_NUMBER()OVER(ORDER BY ",vobsid,"), -1, ",
+            #                                             value.var,",",vobsid,",",fquote(vdepColname)," FROM \n ",
+            #                                         data," \n WHERE ",vvarid," IN (",fquote(vdepColname),")"))
+            vres<-sqlQuery(getFLConnection(),paste0("Update ",outTable," set varid = -1 where varidnames = ",fquote(vdepColname)))
         }
         if(vIncludeIntercept){
             vres <- insertIntotbl(pTableName=outTable,
@@ -1144,6 +1139,8 @@ FLReshape <- function(data,formula,
                         paste0("SELECT MAX(obsid) as vrows, MAX(varid) as vcols FROM ",outTable))
         rows <- vres[["vrows"]]
         cols <- vres[["vcols"]]
+
+        sqlQuery(getFLConnection(),paste0("Update ",outTable," set varid = -1 Where varidnames = ",fquote(list(...)$dependentColumn)))
 
         ## Mappings
         sqlstr <- paste0("SELECT DISTINCT '%insertIDhere%' AS vectorIdColumn, \n ",

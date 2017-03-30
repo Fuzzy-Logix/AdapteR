@@ -4,6 +4,7 @@
 #' @include utilities.R
 NULL
 setOldClass("family")
+
 #' An S4 class to represent output from gam on in-database objects
 #'
 #' @slot offset column name used as offset
