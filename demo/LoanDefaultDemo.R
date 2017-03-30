@@ -97,8 +97,10 @@ vtemp <- readline("Above: Examining the fitted values on new dataset \n ")
 
 glm.roc <- roc(FLTestTbl$default_ind, FLfit)
 glm.roc
+vtemp <- readline("Above: Area under the Precision-Recall-Curve on Test dataset \n ")
+
 plot(glm.roc, limit = 1000, main = "glm-roc")
-vtemp <- readline("Above: ROC curve on Test dataset \n ")
+vtemp <- readline("Above: Plotting the Precision-Recall-Curve on Test dataset \n ")
 
 ####### END #######
 #### Thank You ####
