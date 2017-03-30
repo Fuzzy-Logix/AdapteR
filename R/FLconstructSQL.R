@@ -147,8 +147,8 @@ FROM (",constructSelect(a),") flt"))[1,1],1)
   return(a)
 }
 
-validity.FLSimpleVector <- function(x){
-    if(is.null(names(x@select@variables)))
+validity.FLSimpleVector <- function(object){
+    if(is.null(names(object@select@variables)))
         stop("Variables in select need to have alias names!")
 }
 
