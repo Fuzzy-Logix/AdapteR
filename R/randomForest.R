@@ -159,22 +159,22 @@ predict.FLRandomForest<-function(object,newdata=object$data,scoreTable="",
 								pInputParams=vinputcols)
 	vval<-"PredictedClass"
 	if(type %in% "prob"){
-    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
     								   " add probability float, add matrix_id float"))
-    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
     warning("The probability values are only true for predicted class. The sum may not be 1.")
 	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"))
 	}
 	else if(type %in% "votes"){
-		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+		sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
 		return(FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"))
 	}
 	else if(type %in% "link"){
-		sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+		sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
 	    								   " add probability float, add logit float"))
-	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
-	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
+	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
+	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
 	   	vval<-"logit"
 	}
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",

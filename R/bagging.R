@@ -124,9 +124,9 @@ predict.FLbagging<-function(object,newdata=object$data,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
 
-    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
     								   " add probability float, add matrix_id float"))
-    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",length(object$trees)))											
     x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
     m<-matrix(nrow = length(unique(x$ObservedClass)), ncol=length(unique(x$ObservedClass)))
