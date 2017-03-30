@@ -10,7 +10,7 @@ NULL
 #' @param control A list of options that control details of the rpart algorithm.
 #' Minsplit: Minimum number of observations a node should have in order to be splitted.
 #' Maxdepth: The maximum depth to which the tree can go.
-#' cp: Complexity parameter
+#' cp: Complexity parameter, 1-purity threshold in DB Lytix manual
 #'
 #' @return An object of class "FLrpart" containing the tree structure details.
 #' @examples
@@ -35,7 +35,7 @@ rpart.FLpreparedData <- function(data,
                                  formula,
                                  control=c(minsplit=10,
                                            maxdepth=5,
-                                           cp=0.95),
+                                           cp=0.05),
                                  method="class",
                                  ...){
     rpart.FLTable(data=data$deepx, formula = formula,
@@ -47,7 +47,7 @@ rpart.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
-                            cp=0.95),
+                            cp=0.05),
 				  method="class",
 				  ...){
     ##browser()
@@ -94,7 +94,7 @@ rpart.FLTable<-function(data,
 				  		NUMOFTREES=mfinal,
 				  		MINOBS=control["minsplit"],
 				 	    MAXLEVEL=control["maxdepth"],
-				  		PURITY=control["cp"],
+				  		PURITY=1-control["cp"],
 				  		NOTE=vnote)
 		return(list(vinputcols=vinputcols,
 					data=deepx,
@@ -109,7 +109,7 @@ rpart.FLTable<-function(data,
 				 		 NoOfVARS=list(...)[["mtry"]],
 				 		 MINOBS=control["minsplit"],
 				  		 MAXLEVEL=control["maxdepth"],
-				 		 PURITY=control["cp"],
+				 		 PURITY=1-control["cp"],
 				 		 NOTE=vnote)
 	return(list(vinputcols=vinputcols,
 				data=deepx,
@@ -121,7 +121,7 @@ rpart.FLTable<-function(data,
 				  		  VALUE=vvalue,
 				  		  MINOBS=control["minsplit"],
 				  		  MAXLEVEL=control["maxdepth"],
-						  PURITY=control["cp"],
+						  PURITY=1-control["cp"],
 				  		  NOTE=vnote)
 	vfuncName<-"FLDecisionTreeMN"
 	retobj<-sqlStoredProc(getFLConnection(),
@@ -445,7 +445,7 @@ rtree<-function(data,
 			    mtry=0.8,
 			    control=c(minsplit=10,
 							maxdepth=5,
-                            cp=0.95),
+                            cp=0.05),
 			    sampsize=0.8,
 			    pSeed=500,
 			    pRandomForest=1,...){ #browser()
@@ -499,7 +499,7 @@ rtree<-function(data,
 						   				   	pNum_Val="cell_val_colname"),
 						   pArgs=list(pMaxLevel=control["maxdepth"],
 									pMinObs=control["minsplit"],
-	            					pMinSSEDiff=1-control["cp"],
+	            					pMinSSEDiff=control["cp"],
 	            					pRandomForest=pRandomForest,
 	            					pSampleRateObs=sampsize,
 	            					pSampleRateVars=mtry,
