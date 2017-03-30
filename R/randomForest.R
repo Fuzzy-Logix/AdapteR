@@ -253,7 +253,7 @@ summary.FLRandomForest<-function(object){ #browser()
 		for (t in 1:ncol(comb)) {
 			resv<-comb[,t]
 			temptable<-genRandVarName()
-			sqlstr<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
+			sqlstr<-paste0("Select ObsID as ObsID, 0 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[1]))		
 			vres<-createTable(pTableName=temptable,
 	                  	      pSelect=sqlstr,
@@ -265,7 +265,7 @@ summary.FLRandomForest<-function(object){ #browser()
 						  pSelect=sqlstr2)
 			flt<-FLTable(temptable,"ObsID")
 			eval(parse(text= paste0("ret$roc",resv[1],resv[2],
-									"<-roc(flt,formula = Response~probability)")))
+									"<-roc(flt,formula = Response~Predictor)")))
 		}
 	}
 	else {
