@@ -134,6 +134,15 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 }
 
 
+setMethod("names", signature("FLROC"), function(object) c("sensitivities","specificities",
+                                                          "original.predictor","original.response",
+                                                          "levels",
+                                                          "controls","cases",
+                                                          "call",
+                                                          "percent"
+                                                          ))
+
+          
 #' @export
 `$.FLROC`<-function(object,property){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
