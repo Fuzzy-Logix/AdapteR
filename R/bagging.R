@@ -30,15 +30,20 @@ bagging.default  <- function (formula,data=list(),...) {
     else return(adabag::bagging(formula=formula,data=data,...))
 }
 
+
 #' @export
 bagging.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
 							cp=0.95),
-				  mfinal=5){ #browser()
-	x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
-	vfuncName<-"FLBagDecisionTree"
+                          mfinal=5){
+    if(class(data) == "FLpreparedData")
+        x<-rpart.FLpreparedData(data,formula,control,mfinal=mfinal)
+    else
+        x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
+                
+    	vfuncName<-"FLBagDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
@@ -83,6 +88,10 @@ bagging.FLTable<-function(data,
 	return(retobj)
 }
 
+#' @export
+bagging.FLpreparedData <- bagging.FLTable
+
+
 # print.FLbagging<-function(object){
 # 	for(i in 1:length(object$trees)){
 # 		cat(object$trees[[i]])
@@ -91,6 +100,7 @@ bagging.FLTable<-function(data,
 
 # setMethod("show","FLbagging",print.FLbagging)
 
+#' @export
 predict.FLbagging<-function(object,newdata=object$data,
 								 scoreTable="",...){ #browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
@@ -129,19 +139,19 @@ predict.FLbagging<-function(object,newdata=object$data,
     sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",length(object$trees)))											
     x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
-    m<-matrix(nrow = length(unique(x$ObservedClass)), ncol=length(unique(x$ObservedClass)))
-	rownames(m)<-1:length(unique(x$ObservedClass))
-	colnames(m)<-1:length(unique(x$ObservedClass))
+    m<-matrix(nrow = max(x$ObservedClass)-min(x$ObservedClass)+1, ncol=max(x$PredictedClass)-min(x$PredictedClass)+1)
+	rownames(m)<-min(x$ObservedClass):max(x$ObservedClass)
+	colnames(m)<-min(x$PredictedClass):max(x$PredictedClass)
 	m[is.na(m)]<-0
 	for(i in 1:length(x$ObservedClass)){
 	  		j<-x[i,1]
 	  		k<-x[i,2]	
-	 		m[j,k]<-m[j,k]+1
+	 		m[as.character(j),as.character(k)]<-m[as.character(j),as.character(k)]+1
 	}
 	warning("The probability values are only true for predicted class. The sum may not be 1.")
    	return(list(formula= object$formula,
-   				votes = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"),
-   				prob = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"),
+   				votes = FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"),
+   				prob = FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"),
    				class=as.factor(x$PredictedClass),
    				confusion=m))
 }

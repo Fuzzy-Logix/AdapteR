@@ -36,7 +36,7 @@ FLtbl <- FLTable(vTrainTableName,"Loanid",fetchIDs=FALSE)
 str(FLtbl)
 FLTestTbl <- FLTable(vTestTableName,"Loanid",fetchIDs=FALSE)
 str(FLTestTbl)
-vtemp <- readline("Above: wide FLTable object created. \n ")
+vtemp <- readline("Above: wide FLTable object created, and the SQL SELECT statements they represent are printed. \n ")
 
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
@@ -45,6 +45,7 @@ vtemp <- readline("Above: Examining data structure using head \n ")
 
 ### Data Preparation and Fitting a binomial glm model
 vtemp <- readline("Below: Fitting glm model on data (Binomial family) excluding some columns\n ")
+
 vCategoricalCols <- c("sub_grade","emp_name",
                     "emp_length","addr_city",
                     "addr_state","bc_util",
@@ -61,8 +62,7 @@ vresFL <- glm(default_ind~.,
             minStdDev=0.1,
             maxCorrel=0.75,
             performVarReduc=1,
-            doNotTransform=vCategoricalCols
-            )
+            excludeCols=vCategoricalCols)
 
 
 ####
@@ -93,6 +93,13 @@ vtemp <- readline("Above: Prediction on Test dataset \n ")
 ### Print y(hat) values
 head(FLfit,n=10,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on new dataset \n ")
+
+glm.roc <- roc(FLTestTbl$default_ind, FLfit)
+glm.roc
+vtemp <- readline("Above: Area under the Precision-Recall-Curve on Test dataset \n ")
+
+plot(glm.roc, limit = 1000, main = "glm-roc")
+vtemp <- readline("Above: Plotting the Precision-Recall-Curve on Test dataset \n ")
 
 ####### END #######
 #### Thank You ####

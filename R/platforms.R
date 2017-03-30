@@ -117,7 +117,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       temporary=TRUE,
                       verbose=FALSE,
                       tablePrefix=NULL,
-                      pkg = "dbi",
+                      pkg = "dbc",
                       ...){
     if(is.null(tablePrefix) & temporary)
         tablePrefix <- user

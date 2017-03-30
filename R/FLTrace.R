@@ -17,7 +17,6 @@ NULL
 #' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultFLVector <- tr(flmatrix)
 #' @export
-
 tr<-function(object, ...){
 	UseMethod("tr", object)
 }

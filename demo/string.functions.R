@@ -82,6 +82,7 @@ if(any(grepl("Star Wars",FLVecObj))){
 vtemp<- readline("Above: Demonstrates support of expressions in AdapteR")
 
 run.FLStringDistShiny <- function (){
+    require(plyr)
     ## #########################################################
     ## Shiny web application Demo
     ##
