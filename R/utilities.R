@@ -344,7 +344,7 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
 
 #' @export
 sqlQuery.ODBCConnection <- function(connection, query, ...){
-    resd <- dbGetQuery(connection,query )
+    resd <- DBI::dbGetQuery(connection,query )
     if(is.null(resd)){
         return(TRUE)
     }
