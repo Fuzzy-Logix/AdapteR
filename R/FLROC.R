@@ -280,7 +280,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
              controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
-             specificities = spec
+             specificities = spec,
+             levels=0:1
              ),
         class="roc")
     if(auc) reqList$auc <- auc(reqList)
