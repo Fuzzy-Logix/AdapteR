@@ -632,24 +632,11 @@ setMethod("FLRegrDataPrep",
                                            fetchIDs=fetchIDs))
             })
 
-FLTrainDataPrep <- function(object,
-                            DepCol,
-                            inputParams,
-                            fetchIDs=FALSE){
-    UseMethod("FLTrainDataPrep")
-}
 
-setDefaultInputParams <- function(requiredParams,
-                                  inputParams){
-    for(x in setdiff(names(requiredParams),names(inputParams))){
-        inputParams[[x]] <- requiredParams[[x]]
-    }
-    inputParams[names(requiredParams)]
-}
-
-FLTrainDataPrep.default <- function(object,
+FLTrainTestDataPrep <- function(object,
                                     DepCol,
                                     inputParams,
+                                    TrainOrTest,
                                     fetchIDs=FALSE){
     requiredParams <- list(InWideTable=getTableNameSlot(object),
                           ObsIDCol=getVariables(object)[["obs_id_colname"]],
@@ -671,15 +658,39 @@ FLTrainDataPrep.default <- function(object,
                           )
     inputParams <- setDefaultInputParams(requiredParams=requiredParams,
                                         inputParams=inputParams)
-    
     return(FLGenericRegrDataPrep(object=object,
                                 DepCol=DepCol,
                                 inputParams=inputParams,
                                 fetchIDs=fetchIDs,
-                                TrainOrTest=0,
+                                TrainOrTest=TrainOrTest,
                                 funcName="FLRegrDataPrep",
                                 MDFlag=FALSE))
 }
+
+FLTrainDataPrep <- function(object,
+                            DepCol,
+                            inputParams,
+                            fetchIDs=FALSE){
+    UseMethod("FLTrainDataPrep")
+}
+
+setDefaultInputParams <- function(requiredParams,
+                                  inputParams){
+    for(x in setdiff(names(requiredParams),names(inputParams))){
+        inputParams[[x]] <- requiredParams[[x]]
+    }
+    inputParams[names(requiredParams)]
+}
+
+FLTrainDataPrep.default <- function(object,
+                                    DepCol,
+                                    inputParams,
+                                    fetchIDs=FALSE)
+    FLTrainTestDataPrep(object=object,
+                        DepCol=DepCol,
+                        inputParams=inputParams,
+                        TrainOrTest=0,
+                        fetchIDs=fetchIDs)
 
 FLTrainDataPrep.FLTable.Hadoop <- function(object,
                                            DepCol,
@@ -779,7 +790,15 @@ FLTestDataPrep <- function(object,
     UseMethod("FLTestDataPrep")
 }
 
-FLTestDataPrep.default <- FLTrainDataPrep.default
+FLTestDataPrep.default <- function(object,
+                                   DepCol="NULL",
+                                   inputParams,
+                                   fetchIDs=TRUE)
+    FLTrainTestDataPrep(object=object,
+                        DepCol=DepCol,
+                        inputParams=inputParams,
+                        TrainOrTest=1,
+                        fetchIDs=fetchIDs)
 
 FLTestDataPrep.FLTable.Hadoop <- function(object,
                                            DepCol="NULL",
@@ -814,10 +833,10 @@ checkInputParamsRegrDataPrep <- function(object,
                                         inputParams,
                                         TrainOrTest=0,
                                         useBoolean=FALSE){
-
-    ##Set defaults to all variables commonly used in
-    ##DataPrep
-    ##browser()
+    ## Set defaults to all variables commonly used in
+    ## DataPrep
+    ## browser()
+    inputParams$TrainOrTest <- TrainOrTest
     vdefaults <- list(OutDeepTable=gen_deep_table_name("AR"),
                       OutObsIDCol="obs_id_colname",
                       OutVarIDCol="var_id_colname",

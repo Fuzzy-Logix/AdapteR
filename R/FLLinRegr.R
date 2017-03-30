@@ -925,7 +925,7 @@ prepareData.FLRegr <- function(formula, data, outDeepTableName="",
     dataCopy <- data
     vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=formula@RegrDataPrepSpecs,
                                                        values=list(...))
-    deepx <- FLRegrDataPrep(data,depCol=vRegrDataPrepSpecs$depCol,
+    deepx <- FLRegrDataPrep(data,depCol=formula@RegrDataPrepSpecs$depCol,
                             OutDeepTable=outDeepTableName,
                             OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
                             OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
