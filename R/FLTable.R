@@ -898,13 +898,14 @@ checkInputParamsRegrDataPrep <- function(object,
       })
 
     if(!is.numeric(MinStdDev) || !MinStdDev>=0)
-    MinStdDev <- 0.0
+        MinStdDev <- 0.0
     if(!is.numeric(MaxCorrel) || MaxCorrel<=0 || MaxCorrel>1)
-    MaxCorrel <- 0.0
+        MaxCorrel <- 0.0
 
-    if(TrainOrTest==1) DepCol <- "NULL"
+    if(TrainOrTest==1)
+        DepCol <- "NULL"
     else if(!(DepCol %in% colnames(object)))
-    stop(DepCol," not in colnames of input table for FLRegrDataPrep")
+        stop(DepCol," not in colnames of input table for FLRegrDataPrep")
 
     # if(TrainOrTest==1 && InAnalysisID %in% c("NULL",""))
     # stop("inAnalysisID should be valid when TrainOrTest=1")
