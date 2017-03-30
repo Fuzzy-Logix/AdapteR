@@ -1211,8 +1211,7 @@ prepareData.formula <- function(formula,data,
                                 WhereClause=whereconditions,
                                 InAnalysisID="",
                                 fetchIDs=fetchIDs)
-
-        vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
+            vRegrDataPrepSpecs <- list(
                                 outObsIDCol="obsid",
                                 outVarIDCol="varid",
                                 outValueCol="numval",
