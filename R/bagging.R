@@ -100,6 +100,7 @@ bagging.FLpreparedData <- bagging.FLTable
 
 # setMethod("show","FLbagging",print.FLbagging)
 
+#' @export
 predict.FLbagging<-function(object,newdata=object$data,
 								 scoreTable="",...){ #browser()
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
