@@ -2359,7 +2359,7 @@ print.FLLinRegrMD <- summary.FLLinRegrMD
 }
 setDefaultsRegrDataPrepSpecs <- function(x,values){
     x <- as.list(x)
-    for(i in c("catToDummy","performNorm",
+    for(i in c("depCol", "catToDummy","performNorm",
                 "performVarReduc","minStdDev",
                 "maxCorrel","makeDataSparse",
                 "excludeCols","classSpec")){
