@@ -203,7 +203,7 @@ setMethod("names", signature("FLROC"), function(object) c("sensitivities","speci
                           vorder = object@results$doperator$Vorder,
                           dcolumn = c(object@results$doperator$Vorder,object@results$doperator$Var[[1]] ))) }
 
-    else if(property == "levels"){print("need to do:")}
+    else if(property == "levels"){ return(0:1)} ## need to generalize
 
     else if(property == "controls"){
         return(flvgeneric(object,
@@ -259,9 +259,53 @@ auc.FLROC <- function(object,limit = 1000,...)
 plot.FLROC <- function(object,limit = 1000,method = 1, ...) 
     return(plot(as.roc(object, limit=limit, method = method), ...))
 
+## from package pROC
+print.roc.dataline <- function (x) 
+{
+    if ("cases" %in% names(x$call) && "controls" %in% names(x$call)) {
+        cat("Data: ", length(x$controls), " controls ", x$direction, 
+            " ", length(x$cases), " cases.\n", sep = "")
+    }
+    else {
+        if ("predictor" %in% names(x$call)) 
+            predictor.name <- as.character(x$call[match("predictor", 
+                names(x$call))])
+        else if (!is.null(x$call$formula)) 
+            predictor.name <- attr(terms(as.formula(x$call$formula)), 
+                "term.labels")
+        else return()
+        if ("response" %in% names(x$call)) 
+            response.name <- as.character(x$call[match("response", 
+                names(x$call))])
+        else if (!is.null(x$call$formula)) {
+            formula.attrs <- attributes(terms(as.formula(x$call$formula)))
+            response.name <- rownames(formula.attrs$factors)[formula.attrs$response]
+        }
+        else if ("x" %in% names(x$call)) 
+            response.name <- as.character(x$call[match("x", names(x$call))])
+        else return()
+        cat("Data: ", predictor.name, " in ", length(x$controls), 
+            " controls (", response.name, " ", x$levels[1], ") ", 
+            x$direction, " ", length(x$cases), " cases (", response.name, 
+            " ", x$levels[2], ").\n", sep = "")
+    }
+}
+
+## from package pROC
 #' @export
-print.FLROC <- function(object,method = 1, ...) 
-    return(print(as.roc(object, auc=TRUE,method = method, ...)))
+print.FLROC <- function(x,method = 1, digits = max(3, getOption("digits") - 3), call = TRUE, ...) {
+    if (call) 
+        cat("\nCall:\n", deparse(x$call), "\n\n", sep = "")
+    print.roc.dataline(x)
+    if (!is.null(x$auc)) {
+        print(x$auc, digits = digits, ...)
+    }
+    else cat("Area under the curve not computed.\n")
+    if (!is.null(x$ci)) {
+        print(x$ci, digits = digits, ...)
+    }
+    invisible(x)
+}
 
 setMethod("show", signature("FLROC"), function(object) print.FLROC(object,method=0))
 
