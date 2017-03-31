@@ -439,6 +439,7 @@ plot.FLrpart<-function(x){ #browser()
   }
 }
 
+#' @export
 rtree<-function(data,
 				formula,
 				ntree=25,
@@ -567,6 +568,7 @@ rtree<-function(data,
     return(retobj)
 }
 
+#' @export
 predict.FLrtree<-function(object,
 						  newdata=object$deeptable,
 						  scoreTable="",...){ #browser()
@@ -613,6 +615,7 @@ predict.FLrtree<-function(object,
 	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","TreeID","PredVal"))
 }
 
+#' @export
 plot.FLrtree<-function(object){ #browser()
 	if(!class(object)=="FLrtree") stop("The object class is not FLrtree")
 	ntree<-length(object$forest)
