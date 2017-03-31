@@ -210,7 +210,7 @@ options(warn=oldWarn)
 
 ### Survival Age Prediction Demo
 ## getting the table name
-vtableName <- "FL_Demo.medeconomicdataAmal"
+vtableName <- "FL_Demo.FLmedeconomicdata"
 
 ## setting up the connection
 connection <- flConnect(odbcSource = "Gandalf",database = "FLRev_4878",platform="TD",pkg = "dbc")
