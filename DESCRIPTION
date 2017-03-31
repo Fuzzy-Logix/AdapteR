@@ -26,7 +26,7 @@ Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     how AdapteR can be used to build interactive analytics at scale with just a few
     lines of R code!
 Depends:
-    R (>= 3.1.0),
+    R (>= 3.3.1),
     methods,
     Matrix (>= 1.1-5)
 Imports:
