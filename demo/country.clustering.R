@@ -60,10 +60,8 @@ head(Mappings)
 vtemp <- readline("Press ENTER to start kmeans in-database: \n ")
 kmeansobject <- kmeans(deepTable,6)
 
-vtemp <- readline("kmeans Run Completed \n ")
-
+vtemp <- readline("kmeans Run Completed\n Press ENTER to display components of output object: \n ")
 ## Examine Result object
-vtemp <- readline("Press ENTER to display components of output object: \n ")
 ## Fetch the resulting clusters
 clusters <- as.vector(kmeansobject$cluster)
 clusters
@@ -107,14 +105,19 @@ colnames(medEconomicData) <- vIndicatorMap[colnames(medEconomicData)]
 head(medEconomicData)
 dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
+## Plot clusters on a world map
+medEconomicData$CountryName <- rownames(medEconomicData)
 
+attach(medEconomicData)
 if (!requireNamespace("plotly", quietly = TRUE)){
     install.packages("plotly")
 }
-library(plotly)
+require(plotly)
 
 colr <- c("grey","yellow","blue","green","brown","orange")
-p1 <- plot_ly(medEconomicData,x= Inflation,y= GDP,
+p1 <- plot_ly(data=medEconomicData,
+              x= Inflation,
+              y= GDP,
               type = 'scatter', mode = 'markers',
               text= paste('Country:',rownames(medEconomicData),
                            '</br> Inflation:',Inflation,
@@ -126,10 +129,8 @@ p1
 
 vtemp <- readline("Above: ScatterPlot of clusters vs features \n ")
 
-## Plot clusters on a world map
-medEconomicData$CountryName <- rownames(medEconomicData)
 
-p2 <- plot_ly(medEconomicData) %>% 
+p2 <- plot_ly() %>% 
       add_trace(
             z = colr[clusters],
             text= paste('Country:',CountryName,
@@ -143,6 +144,8 @@ p2 <- plot_ly(medEconomicData) %>%
       layout(title="country clustering Economic data")
 p2
 
+detach(medEconomicData)
+
 vtemp <- readline("Above: Geographical distribution of clusters \n ")
 
 ## Effect of GDP on clusters formed
@@ -150,30 +153,32 @@ medEconomicDataOrdered <- cbind(medEconomicData,
                                 cluster=clusters)
 medEconomicDataOrdered <- medEconomicDataOrdered[order(medEconomicDataOrdered$GDP),]
 
-p3 <- plot_ly(medEconomicDataOrdered,
-              x=CountryName,y=GDP,type="bar",
+attach(medEconomicDataOrdered)
+p3 <- plot_ly(x=CountryName,y=GDP,type="bar",
               marker=list(color=colr[medEconomicDataOrdered$cluster])) %>%
       layout(title="Effect of GDP on clusters formed",
              xaxis=list(title="Country Name"),
              yaxis=list(title="GDP"))
 p3
+detach(medEconomicDataOrdered)
 
 vtemp <- readline("Above: Effect of GDP on clusters formed \n ")
 
 ## Effect of Inflation on clusters formed
 medEconomicDataOrdered <- medEconomicDataOrdered[order(medEconomicDataOrdered$Inflation),]
-
-p4 <- plot_ly(medEconomicDataOrdered,
-              x=CountryName,y=Inflation,type="bar",
+attach(medEconomicDataOrdered)
+p4 <- plot_ly(x=CountryName,y=Inflation,type="bar",
               marker=list(color=colr[medEconomicDataOrdered$cluster])) %>%
   layout(title="Effect of Inflation on clusters formed",
          xaxis=list(title="Country Name"),
          yaxis=list(title="Inflation"))
 p4
+detach(medEconomicDataOrdered)
 
 vtemp <- readline("Above: Effect of Inflation on clusters formed \n ")
 
 ## Effect of GDP on clusters formed -- world heat map view
+attach(medEconomicData)
 p5 <- plot_ly(medEconomicData) %>% 
       add_trace(
               z = GDP,
@@ -187,11 +192,13 @@ p5 <- plot_ly(medEconomicData) %>%
               hoverinfo="text") %>%
       layout(title="GDP and Clusters distribution")
 p5
+detach(medEconomicData)
 
 vtemp <- readline("Above: Effect of GDP on clusters formed -- world heat map view \n ")
 
 ## Effect of Inflation on clusters formed -- world heat map view
-p5 <- plot_ly(medEconomicData) %>% 
+attach(medEconomicData)
+p5 <- plot_ly() %>% 
       add_trace(
               z = GDP,
               text= paste('Country:',CountryName,
@@ -204,6 +211,7 @@ p5 <- plot_ly(medEconomicData) %>%
               hoverinfo="text") %>%
       layout(title="Inflation and Clusters distribution")
 p5
+detach(medEconomicData)
 
 vtemp <- readline("Above: Effect of Inflation on clusters formed -- world heat map view \n ")
 
@@ -267,7 +275,8 @@ vtemp <- readline("Plot predicted ages on world map: \n ")
 ## plotting predictions on world map
 l<-data.frame(pred2, vmap2)
 colnames(l)<-c("PredictedAge","CountryNames")
-p5 <- plot_ly(l) %>%
+attach(l)
+p5 <- plot_ly() %>%
   add_trace(
     z = l$PredictedAge,
     text= paste('Country:',l$CountryNames,
@@ -278,13 +287,14 @@ p5 <- plot_ly(l) %>%
     hoverinfo="text") %>%
   layout(title="Life expectancy predictive model")
 p5
-
+detach(l)
 ## plotting differences between predicted age and actual age
 
 ret<-sqlQuery(getFLConnection(),"SELECT obsid, num_val FROM ARtblmedEconomicDataDeep WHERE varid = -1 ORDER BY 1")
 ret2<-ret[,2]
 l<-data.frame(ret2 - pred2, vmap2)
 colnames(l)<-c("PredictedAgeDifference","CountryNames")
+attach(l)
 p5 <- plot_ly(l) %>%
   add_trace(
     z = l$PredictedAgeDifference,
@@ -296,7 +306,7 @@ p5 <- plot_ly(l) %>%
     hoverinfo="text") %>%
   layout(title="Life expectancy predictive model")
 p5
-
+detach(l)
 ####### END #######
 #### Thank You ####
 ## clean up
