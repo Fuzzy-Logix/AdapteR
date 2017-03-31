@@ -22,12 +22,13 @@ if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
 
-
+vtableName <- getTestTableName("medeconomicdataAmal")
 #############################################################
+
+##################### KMeans Clustering ########################
+################################################################
 #### Data Preparation
 vtemp <- readline("Data Preparation: \n ")
-
-vtableName <- getTestTableName("medeconomicdata")
 
 ## Display subset of Table in database
 sqlQuery(getFLConnection(),
@@ -38,12 +39,11 @@ vtemp <- readline("Above: Examine the data in the database \n ")
 ####
 ## Process,subset input deepTable -- Data Prep
 ## required by DB-Lytix functions
-if(!exists("resultList"))
 resultList <- FLReshape(data=vtableName,
                         formula=CountryName ~ IndicatorCode,
                         value.var="TimeSeriesVal",
-                        subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Year=2010",
-                        outTable="tbl1",
+                        subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Years=2010",
+                        outTable="ARtblmedEconomicDataDeep",
                         drop=TRUE)
 
 deepTable <- resultList[["table"]]
@@ -58,7 +58,6 @@ head(Mappings)
 
 ## Run kmeans on deepTable
 vtemp <- readline("Press ENTER to start kmeans in-database: \n ")
-if(!exists("kmeansobject"))
 kmeansobject <- kmeans(deepTable,6)
 
 vtemp <- readline("kmeans Run Completed \n ")
@@ -108,6 +107,12 @@ colnames(medEconomicData) <- vIndicatorMap[colnames(medEconomicData)]
 head(medEconomicData)
 dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
+
+if (!requireNamespace("plotly", quietly = TRUE)){
+    stop("plotly package needed for plotting. Please install it.",
+        call. = FALSE)
+}
+library(plotly)
 
 colr <- c("grey","yellow","blue","green","brown","orange")
 p1 <- plot_ly(medEconomicData,x= Inflation,y= GDP,
@@ -203,18 +208,18 @@ p5
 
 vtemp <- readline("Above: Effect of Inflation on clusters formed -- world heat map view \n ")
 
-####### END #######
-#### Thank You ####
-## clean up
-options(warn=oldWarn)
 
-### Survival Age Prediction Demo
+################################## Survival Age Prediction Demo ################################
 ## getting the table name
-vtableName <- "FL_Demo.FLmedeconomicdata"
+## change database to FLRev_4878 for rTree functionality
+voldDatabase <- getOption("ResultDatabaseFL")
+# sqlQuery(connection,"database FLRev_4878;")
+# sqlQuery(connection,"SET ROLE ALL;")
 
-## setting up the connection
-connection <- flConnect(odbcSource = "Gandalf",database = "FLRev_4878",platform="TD",pkg = "dbc")
-
+# connection <- flConnect(odbcSource = "Gandalf",database = "FLRev_4878",platform="TD",pkg = "dbc")
+setCurrentDatabase("FLRev_4878")
+#### Data Preparation
+vtemp <- readline("Data Preparation: \n ")
 ## constructing a deep table for decision tree implementation
 resultList <- FLReshape(data=vtableName,
                         formula=CountryName ~ IndicatorCode,
@@ -227,29 +232,39 @@ resultList <- FLReshape(data=vtableName,
                                                   'SH.XPD.TOTL.ZS','SP.POP.65UP.TO.ZS','NY.GDP.PCAP.PP.CD','NY.GDP.PCAP.KD.ZG',
                                                   'EG.ELC.ACCS.UR.ZS','IT.NET.USER.P2','SP.POP.1564.TO.ZS','EN.ATM.CO2E.PP.GD',
                                                   'SL.TLF.ACTI.ZS','IC.IMP.DURS','SP.DYN.LE00.IN') and Years=2010",
-                        outTable="tbl11",
+                        outTable="ARtblmedEconomicDataDeep",
                         dependentColumn='SP.DYN.LE00.IN',
                         drop=TRUE)
-tbl<-resultList$table
+
+deepTable <- resultList$table
 
 ## mapping tables for metadata
 
-vmap1<-sqlQuery(connection,"select varid, varidnames from tbl11  where obsid=1 order by 1,2")
-vmap2<-sqlQuery(connection,"select distinct(obsidnames) from tbl11 order by 1")
+vmap1<-sqlQuery(connection,"select varid, varidnames from ARtblmedEconomicDataDeep where obsid=1 order by 1,2")
+vmap2<-sqlQuery(connection,"select distinct(obsidnames) from ARtblmedEconomicDataDeep order by 1")
 
 colnames(vmap2)<-"CountryNames"
 
+#### Fitting regression tree
+vtemp <- readline("Running rtree in-database: \n ")
 ## running regression tree on the table
 
-flobj<-rtree(tbl, formula = -1~.)
+flobj<-rtree(deepTable, formula = -1~.)
+
+vtemp <- readline("Plotting the output: \n ")
 plot(flobj)
 
 ## prediction from the decision tree model
+vtemp <- readline("Scoring on same dataset: \n ")
 pred<-predict(flobj)
 
 ## aggregate mean for prediction values
 pred2<-rowMeans(pred)
 
+#####################################################
+############## Data Visualization ###################
+#####################################################
+vtemp <- readline("Plot predicted ages on world map: \n ")
 ## plotting predictions on world map
 l<-data.frame(pred2, vmap2)
 colnames(l)<-c("PredictedAge","CountryNames")
@@ -267,7 +282,7 @@ p5
 
 ## plotting differences between predicted age and actual age
 
-ret<-sqlQuery(getFLConnection(),"Select obsid, num_val from tbl11 where varid = -1 order by 1")
+ret<-sqlQuery(getFLConnection(),"SELECT obsid, num_val FROM ARtblmedEconomicDataDeep WHERE varid = -1 ORDER BY 1")
 ret2<-ret[,2]
 l<-data.frame(ret2 - pred2, vmap2)
 colnames(l)<-c("PredictedAgeDifference","CountryNames")
@@ -282,3 +297,13 @@ p5 <- plot_ly(l) %>%
     hoverinfo="text") %>%
   layout(title="Life expectancy predictive model")
 p5
+
+####### END #######
+#### Thank You ####
+## clean up
+options(warn=oldWarn)
+setCurrentDatabase(voldDatabase)
+# demo("connecting")
+# sqlQuery(connection,paste0("database ",voldDatabase,";"))
+# sqlQuery(connection,"SET ROLE ALL;")
+
