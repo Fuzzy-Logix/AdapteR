@@ -24,7 +24,17 @@ knnx.index <- function(data,
 }
 
 #' @export
-knnx.index.default <- FNN::knnx.index
+knnx.index.default <- function(data, query, k=1, algorithm="kd_tree", ...){
+    if (!requireNamespace("FNN", quietly = TRUE)){
+            stop("FNN package needed for knnx. Please install it.",
+            call. = FALSE)
+        }
+    else return(FNN::knnx.index(data,
+                                query,
+                                k=k,
+                                algorithm=algorithm,
+                                ...))
+}
 
 #' @export
 knnx.index.FLTable <- function(data,
