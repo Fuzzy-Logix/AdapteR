@@ -69,6 +69,7 @@ datasets because data is fetched to R session for plotting.
 If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
+
 \examples{
 widetable  <- FLTable("iris", "rownames")
 kmedoidsobject <- pam(widetable,3)
@@ -85,4 +86,3 @@ plot(pamobjectnew)
 \seealso{
 \code{\link[cluster]{pam}} for R function reference implementation.
 }
-

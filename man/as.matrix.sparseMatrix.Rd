@@ -9,4 +9,3 @@
 \description{
 Converts input FLMatrix object to matrix in R
 }
-

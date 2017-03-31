@@ -41,6 +41,7 @@ Computes an estimate of a survival curve for censored data
 Only Single survival curve supoorted currently.(RHS of formula is 1)
 Only conf.type='plain' supported.
 }
+
 \examples{
 fltMD <- FLTableMD("vwWHAS100","DataSetID","ObsID")
 resultList <- survfit(Surv(TIME_VAL,STATUS)~1,data=fltMD)
@@ -48,4 +49,3 @@ print(resultList[[1]])
 summary(resultList[[1]])
 plot(resultList[[1]])
 }
-

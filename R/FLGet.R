@@ -98,6 +98,10 @@ setMethod("getObsIdSQLExpression",signature(object="FLTableMD"),
       function(object){
         return(getIndexSQLExpression(object,2))
         })
+setMethod("getObsIdSQLExpression",signature(object="FLIndexedValues"),
+      function(object){
+        return(getIndexSQLExpression(object,1))
+        })
 setGeneric("getVarIdSQLExpression",function(object)
       standardGeneric("getVarIdSQLExpression"))
 setMethod("getVarIdSQLExpression",signature(object="FLTable"),
@@ -107,6 +111,10 @@ setMethod("getVarIdSQLExpression",signature(object="FLTable"),
 setMethod("getVarIdSQLExpression",signature(object="FLTableMD"),
       function(object){
         return(getIndexSQLExpression(object,3))
+        })
+setMethod("getVarIdSQLExpression",signature(object="FLIndexedValues"),
+      function(object){
+        return(getIndexSQLExpression(object,2))
         })
 
 setMethod("getValueSQLExpression",signature(object="FLTable"),
@@ -590,7 +598,7 @@ getFLPlatformDataTypeMap <- function(pFLType){
     vnames <- names(pFLType)
     vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
                         "VARCHAR(255)"="VARCHAR(255)",
-                        FLOAT="FLOAT"),
+                        FLOAT="FLOAT",BIGINT="BIGINT"),
                     TDAster=c(INT="INT",BYTEINT="BYTEA",
                         "VARCHAR(255)"="VARCHAR(255)",
                         FLOAT="FLOAT"),

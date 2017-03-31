@@ -833,6 +833,7 @@ clusinfo.FLKMedoids <- function(object){
 		clusinfoDataFrame <- sqlQuery(connection,sqlstr)
 		clusinfoDataFrame$medoidid <- NULL
 		clusinfomatrix <- as.matrix(clusinfoDataFrame)
+        rownames(clusinfomatrix) <- NULL
 
 		
 		object@results <- c(object@results,list(clusinfo = clusinfomatrix))

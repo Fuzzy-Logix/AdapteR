@@ -51,7 +51,7 @@ transformation of a testing data set else this value is NULL.}
 \item{outValueCol}{name to give to the value column of the output deep table}
 }
 \value{
-\code{wideToDeep} returns a FLTableDeep referencing the deep table, the original table and \code{AnalysisID} giving the AnalysisID of conversion
+\code{FLRegrDataPrep} returns a FLTableDeep referencing the deep table, the original table and \code{AnalysisID} giving the AnalysisID of conversion
 }
 \description{
 The DB Lytix function called is FLRegrDataPrep. In DB Lytix, data mining functions such as linear 
@@ -65,4 +65,3 @@ widetable  <- FLTable("tblAbaloneWide", "ObsID")
 deeptable <- FLRegrDataPrep(widetable,"Diameter")
 analysisID <- deeptable@wideToDeepAnalysisID
 }
-

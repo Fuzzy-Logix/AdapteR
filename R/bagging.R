@@ -17,11 +17,11 @@
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-bagging(flt, formula = -1~.,mfinal=mfinal)
 #' @export
-
 bagging<-function(formula,data,...){
 	UseMethod("bagging",data)
 }
 
+#' @export
 bagging.default  <- function (formula,data=list(),...) {
     if (!requireNamespace("adabag", quietly = TRUE)){
         stop("adabag package needed for bagging. Please install it.",
@@ -30,18 +30,19 @@ bagging.default  <- function (formula,data=list(),...) {
     else return(adabag::bagging(formula=formula,data=data,...))
 }
 
+#' @export
 bagging.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
 							cp=0.95),
-				  mfinal=5){
+				  mfinal=5){ #browser()
 	x<-rpart.FLTable(data,formula,control,mfinal=mfinal)
 	vfuncName<-"FLBagDecisionTree"
 	retobj<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
-						  pInputParameters=x)
+						  pInputParameters=x$vinputcols)
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("SELECT * FROM fzzlDecisionTreeMNMD AS a 
 					WHERE AnalysisID = ",fquote(AnalysisID)," ORDER BY 2,4")
@@ -63,7 +64,7 @@ bagging.FLTable<-function(data,
 	trees<-list()
 	for(l in 1:length(ntrees)){
 		trees[[l]]<-subset(frame,TreeID==l)
-		class(trees[[l]])<-"FLrpart"	
+		class(trees[[l]])<-"data.frame"	
 	}
 	#browser()
 	votes<-sqlQuery(getFLConnection(),paste0("SELECT ObsID, ObservedClass, PredictedClass, NumOfVotes
@@ -74,7 +75,10 @@ bagging.FLTable<-function(data,
 				 call=call,
 				 formula=formula,
 				 votes=votes,
-				 class=class)
+				 class=class,
+ 				 RegrDataPrepSpecs=x$vprepspecs,
+ 				 data=x$data,
+ 				 AnalysisID=AnalysisID)
 	class(retobj)<-"FLbagging"
 	return(retobj)
 }
@@ -86,3 +90,58 @@ bagging.FLTable<-function(data,
 # }
 
 # setMethod("show","FLbagging",print.FLbagging)
+
+predict.FLbagging<-function(object,newdata=object$data,
+								 scoreTable="",...){ #browser()
+	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
+	newdata <- setAlias(newdata,"")
+	vinputTable <- getTableNameSlot(newdata)
+	if(scoreTable=="")
+	scoreTable <- gen_score_table_name("BaggingDTScore")
+	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$RegrDataPrepSpecs,
+                                                            values=list(...))
+	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
+	newdatatable <- deepx$table
+	newdatatable <- setAlias(newdatatable,"")
+	tablename<- getTableNameSlot(newdatatable)
+	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
+	vvarid <- getVariables(newdatatable)[["var_id_colname"]]
+	vvalue <- getVariables(newdatatable)[["cell_val_colname"]]
+
+	vinputcols<-list()
+	vinputcols <- c(vinputcols,
+					TableName=tablename,
+					ObsIDCol=vobsid,
+					VarIDCol=vvarid,
+					ValueCol=vvalue,
+					InAnalysisID=object$AnalysisID,
+					ScoreTable=scoreTable,
+					Note=genNote("RandomForestPrediction"))
+	vfuncName<-"FLBagDecisionTreeScore"
+	AnalysisID <- sqlStoredProc(getFLConnection(),
+								vfuncName,
+								outputParameter=c(AnalysisID="a"),
+								pInputParams=vinputcols)
+
+    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    								   " add probability float, add matrix_id float"))
+    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",length(object$trees)))											
+    x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
+    m<-matrix(nrow = length(unique(x$ObservedClass)), ncol=length(unique(x$ObservedClass)))
+	rownames(m)<-1:length(unique(x$ObservedClass))
+	colnames(m)<-1:length(unique(x$ObservedClass))
+	m[is.na(m)]<-0
+	for(i in 1:length(x$ObservedClass)){
+	  		j<-x[i,1]
+	  		k<-x[i,2]	
+	 		m[j,k]<-m[j,k]+1
+	}
+	warning("The probability values are only true for predicted class. The sum may not be 1.")
+   	return(list(formula= object$formula,
+   				votes = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","NumOfVotes"),
+   				prob = FLMatrix(scoreTable,1,"matrix_id","ObsID","PredictedClass","probability"),
+   				class=as.factor(x$PredictedClass),
+   				confusion=m))
+}

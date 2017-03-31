@@ -88,10 +88,17 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             pPartitionBy=names(pViewColnames)[1],
                             pLocalOrderBy=names(pViewColnames)[1],
                             pNest=FALSE,
+                            pFromTableFlag = FALSE,
                             ...){
     if(pNest){
-        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM (",pSelect," ) a ")
+        if(pFromTableFlag)
+            vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                    " FROM ",pSelect,"  a ")
+        else
+            vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+                                    " FROM (",pSelect,")  a ")
+        
+            
     }
     else vNestedSelect <- pSelect
 
@@ -155,20 +162,20 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
 
     else if(is.TDAster()){
-        if(!is.null(pViewColnames))
+        if(!is.null(pViewColnames) && !is.null(vsubset))
             pViewColnames <- pViewColnames[vsubset]
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
                             " ( ON ( ",vNestedSelect," ) ",
                             " PARTITION BY ",paste0(pPartitionBy,
                                                     collapse=","),
-                            " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
+                            " TARGET (",paste0(fquote(tolower(setdiff(names(pViewColnames),
                                                         pPartitionBy))),
                                                 collapse=",")
                             ,")) a ",
                         constructWhere(pWhereConditions)
                     )
-                )
+            )
     }
 }
 
@@ -673,6 +680,17 @@ createTable <- function(pTableName,
 }
 
 ## CREATE VIEW
+#' Create View
+#'
+#' Create an in-database view from a SELECT clause
+#'
+#' @param pViewName Name of view
+#' @param pSelect SELECT clause for view creation
+#' @param pDatabase Name of the database 
+#' @return Name of view if operation is successful
+#' @examples
+#' vres <- createView("myview120","SELECT * FROM tblmatrixmulti")
+#' @export
 createView <- function(pViewName,
                        pSelect,
                        pDatabase=getOption("ResultDatabaseFL"),

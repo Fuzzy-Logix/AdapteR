@@ -6,7 +6,7 @@ require(reshape2)
 require(psych)
 require(MASS)
 library(RJDBC)
-library(RODBC)
+##library(RODBC)
 
 ## This script first tries to create a ODBC connection
 if(!exists("connection"))

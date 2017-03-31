@@ -15,7 +15,7 @@ NULL
 #'       \item{u}{a FLMatrix whose columns contain the left singular vectors of x, present if nu > 0. Dimension c(n, nu).}
 #'       \item{v}{a FLMatrix whose columns contain the right singular vectors of x, present if nv > 0. Dimension c(p, nv).}
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' resultList <- svd(flmatrix)
 #' resultList$d
 #' resultList$u
@@ -56,8 +56,11 @@ svd.FLMatrix<-function(object,nu=c(),nv=c())
 	            pInput=list(object,nu,nv),
 	            pOperator="svd")
 
-    tempResultTable <- createTable(pTableName=gen_unique_table_name("SVD"),
-                                   pSelect=sqlstr)
+    tempResultTable <- cacheDecompResults(pFuncName="FLSVDUdt",
+                                          pQuery=sqlstr)
+
+    # tempResultTable <- createTable(pTableName=gen_unique_table_name("SVD"),
+    #                                pSelect=sqlstr)
 
 	UMatrix <- FLMatrix(connection = connection, 
                         table_name = tempResultTable, 

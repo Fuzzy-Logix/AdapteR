@@ -21,4 +21,3 @@ in-database object after storing
 \description{
 stores an object in database.
 }
-

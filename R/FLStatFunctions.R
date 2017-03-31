@@ -2,57 +2,171 @@
 #' @include apply.R
 NULL
 
-FLStatsDist <- function(x,method="euclidean",
-                        diag=FALSE,
-                        upper=FALSE,
-                        p=2,
-                        vobsidCol=NULL,
-                        vvaridCol=NULL,
-                        vvalueCol=NULL,
-                        functionName){
-    if(!is.null(vvaridCol))
-    vwhereConditions <- paste0("a.",vvaridCol," = b.",vvaridCol)
-    # if(diag && !upper)
-    # vwhereConditions <- c(vwhereConditions,
-    #     paste0("a.",vobsidCol," >= b.",vobsidCol))
-    # else if(upper && !diag)
-    # vwhereConditions <- c(vwhereConditions,
-    #     paste0("a.",vobsidCol," <> b.",vobsidCol))
-    # else if(!diag && !upper)
-    # vwhereConditions <- c(vwhereConditions,
-    #     paste0("a.",vobsidCol," > b.",vobsidCol))
+# FLgetDistMatrix <- function(pObj1,
+#                             pObj2=NULL,
+#                             metric="euclidean",
+#                             temporary=TRUE,
+#                             outTableName=NULL,
+#                             upper=FALSE,
+#                             diag=FALSE,
+#                             ...){
+#     flm <- FLgetUpperDistMatrix(pObj1=pObj1,
+#                                 pObj2=pObj2,
+#                                 metric=metric,
+#                                 temporary=temporary,
+#                                 outTableName=outTableName,
+#                                 upper=upper,
+#                                 diag=diag,
+#                                 ...)
 
-    sqlstr <- paste0("SELECT '%insertIDhere%' AS matrixIdColumn,\n",
-                            "a.",vobsidCol," AS rowIdColumn,\n",
-                            "b.",vobsidCol," AS colIdColumn,\n",
-                            functionName,"(a.",vvalueCol,",b.",vvalueCol,") AS valueColumn\n",
-                        "FROM (",constructSelect(x),") a,(",
-                                constructSelect(x),") b \n",
-                        constructWhere(vwhereConditions),"\n",
-                        " GROUP BY a.",vobsidCol,",b.",vobsidCol)
+#     if(!upper){
+#         vDimColumns <- c(getObsIdSQLName(flm),
+#                     getVarIdSQLName(flm),
+#                     getValueSQLName(flm))
 
-    tblfunqueryobj <- new("FLTableFunctionQuery",
-                        connectionName = getFLConnectionName(),
-                        variables=list(
-                            rowIdColumn="rowIdColumn",
-                            colIdColumn="colIdColumn",
-                            valueColumn="valueColumn"),
-                        whereconditions="",
-                        order = "",
-                        SQLquery=sqlstr)
-        flm <- newFLMatrix(
-                           select= tblfunqueryobj,
-                           dims=as.integer(c(x@dims[1],x@dims[1])),
-                           Dimnames=list(rownames(x),rownames(x)))
+#         vsqlstr <- paste0("SELECT ",vDimColumns[2],",",vDimColumns[1],",",vDimColumns[3]," \n ",
+#                             " FROM (",constructSelect(flm),") a ")
 
-        return(ensureQuerySize(pResult=flm,
-                        pInput=list(x,method,
-                                    diag,upper,
-                                    p,vobsidCol,
-                                    vvaridCol,
-                                    vvalueCol),
-                        pOperator="FLStatsDist"))
+#         vtempResult <- insertIntotbl(pTableName=getTableNameSlot(flm),
+#                                     pSelect=vsqlstr)
+#     }
+#     return(flm)
+# }
+
+FLgetDistMatrix <- function(pObj1,
+                            pObj2=NULL,
+                            metric="euclidean",
+                            temporary=TRUE,
+                            outTableName=NULL,
+                            upper=FALSE,
+                            diag=FALSE,
+                            ...){
+
+    if(is.null(pObj2))
+        pObj2 <- pObj1
+    if(is.FLTable(pObj1) && !isDeep(pObj1))
+        pObj1 <- wideToDeep(pObj1)
+    if(is.FLTable(pObj2) && !isDeep(pObj2))
+        pObj2 <- wideToDeep(pObj2)
+
+    vtableNames <- sapply(list(pObj1,pObj2),getTableNameSlot)
+    vobsidColnames <- sapply(list(pObj1,pObj2),getObsIdSQLName)
+    vvaridColnames <- sapply(list(pObj1,pObj2),getVarIdSQLName)
+    vvalueColnames <- sapply(list(pObj1,pObj2),getValueSQLName)
+
+    ## Create a distance matrix
+    metric <- c(euclidean="FLEuclideanDist",
+                manhattan="FLManhattanDist")[metric]
+
+    if(!is.null(outTableName))
+        vDistTableName <- outTableName
+    else 
+        vDistTableName <- gen_unique_table_name(paste0(vtableNames[1],"Dist"))
+
+    if(upper){
+        if(diag)
+            vRestrictOperator <- NULL
+        else vRestrictOperator <- " <> "
     }
+    else{
+        if(diag)
+            vRestrictOperator <- " >= "
+        else vRestrictOperator <- " > "
+    }
+
+    vRestrictClause <- ifelse(is.null(vRestrictOperator),"",
+                            paste0(" \n AND a.",vobsidColnames[1],
+                                    vRestrictOperator," b.",vobsidColnames[2]," \n "))
+
+    vsqlstr <- paste0("SELECT a.",vobsidColnames[1]," AS rowIdColumn, \n ",
+                            " b.",vobsidColnames[2]," AS colIdColumn, \n ",
+                            metric,"(a.",vvalueColnames[1],",b.",vvalueColnames[2],
+                                    ") AS valueColumn \n ",
+                    " FROM(",constructSelect(pObj1),")a, \n ",
+                         "(",constructSelect(pObj2),")b \n ",
+                    " WHERE a.",vvaridColnames[1],"=b.",vvaridColnames[2],
+                    vRestrictClause,
+                    " AND a.",vvaridColnames[1]," <> -1 AND b.",vvaridColnames[2]," <> -1 \n ",
+                    " GROUP BY a.",vobsidColnames[1],",b.",vobsidColnames[2])
+
+    vtempResult <- createTable(pTableName=vDistTableName,
+                                pSelect=vsqlstr,
+                                temporary=temporary,
+                                pPrimaryKey=c("rowIdColumn","colIdColumn"))
+
+    select <- new("FLSelectFrom",
+                  connectionName = attr(getFLConnection(),"name"),
+                  table_name = vDistTableName,
+                  variables=list(
+                              Matrix_ID="'%insertIDhere%'",
+                              rowIdColumn="rowIdColumn",
+                              colIdColumn="colIdColumn",
+                              valueColumn="valueColumn"),
+                  whereconditions="",
+                  order = "")
+    
+    flm  <- newFLMatrix(
+                  select = select,
+                  dims = c(nrow(pObj1),nrow(pObj2)),
+                  Dimnames = list(rownames(pObj1),
+                                rownames(pObj2)),
+                  type="double")
+    return(flm)
+}
+
+## @phani: currently included for FLVector case in dist
+## needs to be deprecated!
+# FLStatsDist <- function(x,method="euclidean",
+#                         diag=FALSE,
+#                         upper=FALSE,
+#                         p=2,
+#                         vobsidCol=NULL,
+#                         vvaridCol=NULL,
+#                         vvalueCol=NULL,
+#                         functionName){
+#     if(!is.null(vvaridCol))
+#     vwhereConditions <- paste0("a.",vvaridCol," = b.",vvaridCol)
+#     # if(diag && !upper)
+#     # vwhereConditions <- c(vwhereConditions,
+#     #     paste0("a.",vobsidCol," >= b.",vobsidCol))
+#     # else if(upper && !diag)
+#     # vwhereConditions <- c(vwhereConditions,
+#     #     paste0("a.",vobsidCol," <> b.",vobsidCol))
+#     # else if(!diag && !upper)
+#     # vwhereConditions <- c(vwhereConditions,
+#     #     paste0("a.",vobsidCol," > b.",vobsidCol))
+
+#     sqlstr <- paste0("SELECT '%insertIDhere%' AS matrixIdColumn,\n",
+#                             "a.",vobsidCol," AS rowIdColumn,\n",
+#                             "b.",vobsidCol," AS colIdColumn,\n",
+#                             functionName,"(a.",vvalueCol,",b.",vvalueCol,") AS valueColumn\n",
+#                         "FROM (",constructSelect(x),") a,(",
+#                                 constructSelect(x),") b \n",
+#                         constructWhere(vwhereConditions),"\n",
+#                         " GROUP BY a.",vobsidCol,",b.",vobsidCol)
+
+#     tblfunqueryobj <- new("FLTableFunctionQuery",
+#                         connectionName = getFLConnectionName(),
+#                         variables=list(
+#                             rowIdColumn="rowIdColumn",
+#                             colIdColumn="colIdColumn",
+#                             valueColumn="valueColumn"),
+#                         whereconditions="",
+#                         order = "",
+#                         SQLquery=sqlstr)
+#         flm <- newFLMatrix(
+#                            select= tblfunqueryobj,
+#                            dims=as.integer(c(x@dims[1],x@dims[1])),
+#                            Dimnames=list(rownames(x),rownames(x)))
+
+#         return(ensureQuerySize(pResult=flm,
+#                         pInput=list(x,method,
+#                                     diag,upper,
+#                                     p,vobsidCol,
+#                                     vvaridCol,
+#                                     vvalueCol),
+#                         pOperator="FLStatsDist"))
+#     }
 
 NULL
 #' Distance Matrix Computation
@@ -61,7 +175,7 @@ NULL
 #' only manhattan and euclidean are supported currently.
 #' 
 #' @examples
-#' flmatrix <- FLMatrix("FL_DEM.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 #' dist(flmatrix)
 #' dist(flmatrix,diag=TRUE)
 #' dist(flmatrix,upper=TRUE)
@@ -70,66 +184,58 @@ NULL
 #' @export
 setMethod("dist",signature(x="FLMatrix"),
     function(x,method="euclidean",
-            diag=TRUE,
-            upper=TRUE,
+            diag=FALSE,
+            upper=FALSE,
             p=2){
-    if(method=="euclidean")
-    functionName <- "FLEuclideanDist"
-    else if(method=="manhattan")
-    functionName <- "FLManhattanDist"
-    else stop("euclidean and manhattan methods are only supported")
 
-    return(FLStatsDist(x=x,method=method,
-                        diag=diag,
-                        upper=upper,
-                        p=p,
-                        vobsidCol="rowIdColumn",
-                        vvaridCol="colIdColumn",
-                        vvalueCol="valueColumn",
-                        functionName=functionName))
+    return(FLgetDistMatrix(pObj1=x,
+                            pObj2=x,
+                            metric=method,
+                            diag=diag,
+                            upper=upper,
+                            p=p))
         })
 
 #' @export
 setMethod("dist",signature(x="FLVector"),
     function(x,method="euclidean",
-            diag=TRUE,
-            upper=TRUE,
+            diag=FALSE,
+            upper=FALSE,
             p=2){
-    if(method=="euclidean")
-    functionName <- "FLEuclideanDist"
-    else if(method=="manhattan")
-    functionName <- "FLManhattanDist"
-    else stop("euclidean and manhattan methods are only supported")
+    # if(method=="euclidean")
+    # functionName <- "FLEuclideanDist"
+    # else if(method=="manhattan")
+    # functionName <- "FLManhattanDist"
+    # else stop("euclidean and manhattan methods are only supported")
 
-    return(FLStatsDist(x=x,method=method,
-                        diag=diag,
-                        upper=upper,
-                        p=p,
-                        vobsidCol="vectorIndexColumn",
-                        vvalueCol="vectorValueColumn",
-                        functionName=functionName))
+    # return(FLStatsDist(x=x,method=method,
+    #                     diag=diag,
+    #                     upper=upper,
+    #                     p=p,
+    #                     vobsidCol="vectorIndexColumn",
+    #                     vvalueCol="vectorValueColumn",
+    #                     functionName=functionName))
+    return(FLgetDistMatrix(pObj1=x,
+                            pObj2=x,
+                            metric=method,
+                            diag=diag,
+                            upper=upper,
+                            p=p))
         })
 
 #' @export
 setMethod("dist",signature(x="FLTable"),
     function(x,method="euclidean",
-            diag=TRUE,
-            upper=TRUE,
+            diag=FALSE,
+            upper=FALSE,
             p=2){
-    if(method=="euclidean")
-    functionName <- "FLEuclideanDist"
-    else if(method=="manhattan")
-    functionName <- "FLManhattanDist"
-    else stop("euclidean and manhattan methods are only supported")
 
-    return(FLStatsDist(x=x,method=method,
-                        diag=diag,
-                        upper=upper,
-                        p=p,
-                        vobsidCol="obs_id_colname",
-                        vvaridCol="var_id_colname",
-                        vvalueCol="cell_val_colname",
-                        functionName=functionName))
+        return(FLgetDistMatrix(pObj1=x,
+                            pObj2=x,
+                            metric=method,
+                            diag=diag,
+                            upper=upper,
+                            p=p))
         })
 
 

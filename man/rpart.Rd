@@ -26,4 +26,3 @@ Fit a rpart model
 flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 flobj<-rpart(data = flt, formula = -1~.)
 }
-

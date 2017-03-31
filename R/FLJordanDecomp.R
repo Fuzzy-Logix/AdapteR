@@ -52,8 +52,11 @@ FLJordan.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="FLJordan")
 
-	tempResultTable <- createTable(pTableName=gen_unique_table_name("Jordon"),
-                                   pSelect=sqlstr)
+    tempResultTable <- cacheDecompResults(pFuncName="FLJordanDecompUdt",
+                                          pQuery=sqlstr)
+
+	# tempResultTable <- createTable(pTableName=gen_unique_table_name("Jordon"),
+ #                                   pSelect=sqlstr)
 
     PMatrix <- FLMatrix(connection = connection, 
 				       table_name = tempResultTable, 
@@ -78,7 +81,7 @@ FLJordan.FLMatrix<-function(object,...)
 		             "OutputRowNum",
 		             whereconditions=c(paste0(tempResultTable,".OutJVal IS NOT NULL "),
                                        paste0(tempResultTable,".OutputRowNum = ", tempResultTable,".OutputColNum "))
-		             )
+		            )
 
 	JVector <- table[,"OutJVal"]
 

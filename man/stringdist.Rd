@@ -58,6 +58,7 @@ row vectors are not supported currently.
 Output is slightly different from stringdist::stringdist.
 Refer to \code{@return} section.
 }
+
 \examples{
 widetable  <- FLTable("iris", "rownames")
 flv <- widetable[1:10,"Species"]
@@ -71,4 +72,3 @@ resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")
 \code{\link[stringdist]{stringdist}} for R function reference
 implementation.
 }
-

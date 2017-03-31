@@ -9,4 +9,3 @@ expect_eval_equal(initF, FLcomputationF, RcomputationF, ...)
 \description{
 DEPRECATED: use eval_expect_equal
 }
-

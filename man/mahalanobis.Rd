@@ -26,4 +26,3 @@ s<-var(ma)
 S<-as.FLMatrix(s)
 mahalanobis(x,y,S)
 }
-

@@ -617,12 +617,17 @@ FLMatrixArithmetic.sparseMatrix <- function(pObj1,pObj2,pOperator)
 }
 
 #' @export
-FLMatrixArithmetic.FLTable <- function(pObj1,pObj2)
+FLMatrixArithmetic.FLTable <- function(pObj1,pObj2,pOperator)
 {
 	if(!isDeep(pObj1))
         pObj1 <- wideToDeep(pObj1)
-	pObj1 <- as.FLMatrix(pObj1)
-	return(do.call(pOperator,list(pObj1,pObj2)))
+
+	# pObj1 <- as.FLMatrix(pObj1)
+	# return(do.call(pOperator,list(pObj1,pObj2)))
+    if(is.numeric(pObj2) && length(pObj2)==1){
+        pObj1@select@variables[getValueSQLName(pObj1)] <- paste0(pObj2,pOperator," ",getValueSQLExpression(pObj1))
+        return(pObj1)
+    }
 }
 
 #' @export
@@ -920,6 +925,10 @@ NULL
 
 #' @export
 `*.FLVector` <- function(pObj1,pObj2)
+    return(FLMatrixArithmetic(pObj1,pObj2,"*"))
+
+#' @export
+`*.FLTable` <- function(pObj1,pObj2)
     return(FLMatrixArithmetic(pObj1,pObj2,"*"))
 
 #' @export
