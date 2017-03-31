@@ -179,7 +179,7 @@ vtemp <- readline("Above: Effect of Inflation on clusters formed \n ")
 
 ## Effect of GDP on clusters formed -- world heat map view
 attach(medEconomicData)
-p5 <- plot_ly(medEconomicData) %>% 
+p5 <- plot_ly() %>% 
       add_trace(
               z = GDP,
               text= paste('Country:',CountryName,
@@ -299,12 +299,12 @@ p5 <- plot_ly(l) %>%
   add_trace(
     z = l$PredictedAgeDifference,
     text= paste('Country:',l$CountryNames,
-                '</br> Predicted Life expectancy:',l$PredictedAgeDifference),
+                '</br> Actual Life expectancy greater than predicted by (years):',l$PredictedAgeDifference),
     locations = l$CountryNames,
     type = "choropleth",locationmode="country names",
-    filename="choropleth/world",title="Life expectancy prediction",
+    filename="choropleth/world",title="Is the Actual Life Expectancy Greater Than Predicted?",
     hoverinfo="text") %>%
-  layout(title="Life expectancy predictive model")
+  layout(title="Is the Actual Life Expectancy Greater Than Predicted?")
 p5
 detach(l)
 ####### END #######
