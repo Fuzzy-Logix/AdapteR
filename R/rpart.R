@@ -609,8 +609,8 @@ predict.FLrtree<-function(object,
 	# 					'VarID',
 	# 					'Num_Val',",
 	# 					fquote(scoreTable),")"))
-	x<-sqlQuery(getFLConnection(),paste0("Select * from ",scoreTable," Order by 1,2,4"))
-	return(x)
+	sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","TreeID","PredVal"))
 }
 
 plot.FLrtree<-function(object){ #browser()
