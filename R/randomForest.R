@@ -157,36 +157,28 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								pInputParams=vinputcols)
 	vval<-"PredictedClass"
 	if(type %in% "prob"){
-    sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+    sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
     								   " add probability float, add matrix_id float"))
-    sqlQuery(getFLConnection(), paste0("update ",scoreTable,
+    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
     warning("The probability values are only true for predicted class. The sum may not be 1.")
 	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"))
 	}
 	else if(type %in% "votes"){
-		sqlQuery(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+		sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
 		return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"))
 	}
 	else if(type %in% "link"){
-		sqlQuery(getFLConnection(), paste0("alter table ",scoreTable,
+		sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
 	    								   " add probability float, add logit float"))
-	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
-	    sqlQuery(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
-	   	vval<-"logit"
+	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
+	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
+	   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","logit"))
 	}
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 					"ObsID"," AS vectorIndexColumn,",
  					vval," AS vectorValueColumn",
 	 				" FROM ",scoreTable)
-
-	if(type %in% "prob"){
- 	   val <- "NumOfVotes"
-   	   x<-1/(object$ntree)}
-	else{
-	   val <- "PredictedClass"
-	   x<-1}
-   	
 
    	# yvector <- new("FLVector",
     #               select= new("FLSelectFrom",
@@ -283,13 +275,13 @@ summary.FLRandomForest<-function(object){ #browser()
 		for (t in 1:ncol(comb)) {
 			resv<-comb[,t]
 			temptable<-genRandVarName()
-			sqlstr<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
+			sqlstr<-paste0("Select ObsID as ObsID, 0 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[1]))		
 			vres<-createTable(pTableName=temptable,
 	                  	      pSelect=sqlstr,
 	                  	      pTemporary=TRUE,
 	                 	      pDrop=TRUE)
-			sqlstr2<-paste0("Select ObsID as ObsID, 0 as Response, probability as Predictor from ",
+			sqlstr2<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[2]))
 			insertIntotbl(pTableName=temptable,
 						  pSelect=sqlstr2)
