@@ -110,6 +110,9 @@ run.FLStringDistShiny <- function (){
     }
     ##findName(FLTblObj,"Jim","Director")
     require(R.utils)
+    if (!requireNamespace("shiny", quietly = TRUE)){
+        install.packages("shiny")
+    }
     require(shiny)
     shinyApp(
         ui = fluidPage(

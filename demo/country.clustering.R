@@ -109,8 +109,7 @@ dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
 
 if (!requireNamespace("plotly", quietly = TRUE)){
-    stop("plotly package needed for plotting. Please install it.",
-        call. = FALSE)
+    install.packages("plotly")
 }
 library(plotly)
 
