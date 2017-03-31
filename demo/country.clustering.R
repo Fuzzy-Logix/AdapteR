@@ -273,7 +273,7 @@ pred2<-rowMeans(pred)
 #####################################################
 vtemp <- readline("Plot predicted ages on world map: \n ")
 ## plotting predictions on world map
-l<-data.frame(pred2, vmap2)
+l<-data.frame(as.vector(pred2), vmap2)
 colnames(l)<-c("PredictedAge","CountryNames")
 attach(l)
 p5 <- plot_ly() %>%
@@ -292,7 +292,7 @@ detach(l)
 
 ret<-sqlQuery(getFLConnection(),"SELECT obsid, num_val FROM ARtblmedEconomicDataDeep WHERE varid = -1 ORDER BY 1")
 ret2<-ret[,2]
-l<-data.frame(ret2 - pred2, vmap2)
+l<-data.frame(ret2 - as.vector(pred2), vmap2)
 colnames(l)<-c("PredictedAgeDifference","CountryNames")
 attach(l)
 p5 <- plot_ly(l) %>%
