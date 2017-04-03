@@ -1,3 +1,12 @@
+#' @export
+arima<-function(object,...){
+	UseMethod("arima",object)
+}
+
+#' @export
+arima.default  <- function (object,...){
+    return(stats::arima(object,...))
+}
 
 #' @export
 arima.FLVector<-function(object,
@@ -23,6 +32,30 @@ arima.FLVector<-function(object,
 						   pFuncName="FLARIMAUdt",
 						   pLocalOrderBy=c("pGroupID"))
 	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=query)
-	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2))
-	return(ret)
+	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2," order by 2,3"))
+	coefFrame<- ret[ret$oParamType=="1",4:5]
+	coefnames<-coefFrame[,1]
+	coef<-coefFrame[,2]
+	names(coef)<-coefnames
+	rtobj<-list(coef=coef,
+				ret=ret,
+				sigma2=ret[ret$oParamName=="SigmaSq",5],
+				call=match.call(),
+				loglik=ret[ret$oParamName=="Likelihood",5],
+				nobs=length(object),
+				series="object",
+				n.cond=order[1]+order[2])
+	class(rtobj)<-"FLArima"
+	return(rtobj)
 }
+
+print.FLArima<-function(object){ #browser()
+	if(!class(object)=="FLArima") stop("The object class should be FLArima")
+	cat("\nCall:", deparse(object$call, width.cutoff = 75L), "", sep = "\n")
+	s.e.<-object$ret[object$ret$oParamType=="1",6]
+	m<-rbind(object$coef,s.e.)
+	cat("Coefficients:\n")
+	print(m)
+	cat(paste0("\nsigma^2 estimated as ",round(object$sigma2,digits=3),":  log likelihood = ",
+				round(object$loglik, digits=3)))
+}	
