@@ -113,6 +113,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
 
 
 
+
 #' @export
 `$.FLMix`<-function(object,property){
                                         #parentObject <- deparse(substitute(object))
@@ -147,6 +148,11 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
         return(df$CoeffVal)
     }   
 }
+
+setMethod("names", signature("FLMix"), function(object) {c("AIC","logLik",
+                                                          "CovarErr","CovarRandom",
+                                                          "u",
+                                                          "fixedcoef" )})
 
 
 

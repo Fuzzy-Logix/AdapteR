@@ -138,6 +138,13 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
 
 
 
+setMethod("names", signature("FLMixUDT"), function(object) {c("AIC","logLik",
+                                                          "CovErr","CovRandom",
+                                                          "u",
+                                                          "fixedcoef" )})
+
+
+
 #' @export
 predict.FLMixUDT <- function(object,
                           newdata = object@table,
