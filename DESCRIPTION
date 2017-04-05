@@ -129,6 +129,7 @@ Collate:
     'FLTriDiag.R'
     'FLVarCluster.R'
     'FLtestLib.R'
+    'HoltWinters.R'
     'SiegelTukeyTest.R'
     'adf.test.R'
     'arima.R'
