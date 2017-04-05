@@ -1,4 +1,6 @@
 rm(list = setdiff(ls(),"connection"))
+
+## implement as.R for FLSimpleVector.
 ## using 1 Random Effects.
 FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable("tblMixedModel", "ObsID")
@@ -6,22 +8,8 @@ Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
 FLenv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
-Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = rtbl)
-
-
-
-
-##
-##FLenv <- new.env(parent = globalenv())
-##FLenv$tbl  <- FLTable("tblMixedModel", "ObsID")
-##Renv <- as.R(FLenv)
-##
-##eval_expect_equal({
-##    mod <- lmer(lmer(yVal ~ (FixVal | RanVal), data = tbl))
-##    },Renv,FLenv,
-##    expectations = "mod")
-
-
+Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = rtbl, REML = FALSE)
+ 
 ## AIC, Log-Likehhood
 test_that("AIC, LogLik:", {eval_expect_equal({
     vAkaike <- AIC(mod)
@@ -43,7 +31,7 @@ check.attributes = FALSE,
 expectations = c("vpred"))
 })
 
-## predict
+## residuals.
 test_that("residuals:", {eval_expect_equal({
     vres <- residuals(mod)
     
@@ -53,25 +41,28 @@ check.attributes = FALSE,
 expectations = c("vpred"))
 })
 
-
+## Covar Random
 test_that("", {
-    expect_equal(FLenv$mod$CovRandom,260.573310,tolerance = .001 )
+    expect_equal(FLenv$mod$CovarRandom,260.573310,tolerance = .001 )
 })
 
+## Coeff of Random Effect
+test_that("Coeff of Random Effect", {
+    expect_equal(FLenv$mod$u,Renv$mod@u,tolerance = .001 )
+})
 
-## using 2 Random Effect.
+## dblytix Example:
 FLenv <- new.env(parent = globalenv())
-fltbl  <- FLTable("tblMixedModelInt", "ObsID")
+fltbl  <- FLTable("tblLinMixedModelWide2", "ObsID")
 Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
-FLenv$mod <- lmer(yVal ~ FixVal + (1 | RanVal1) + (1 | RanVal2 ), data = fltbl)
-Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal1) + (1 | RanVal2 ), data = rtbl)
-##eval_expect_equal({
-##    mod <- lmer(yVal ~ (FixVal |   RanVal1) + (1 | RanVal2 ), tbl)
-##    },Renv,FLenv,
-##    expectations = "mod")
-##
+
+FLenv$mod <- lmer(MathAch ~ CSes +(1 | School), data = fltbl)
+Renv$mod <- lmer(MathAch ~ CSes +(1 | School), data = rtbl, REML = FALSE)
+
+
+
 
 ## AIC, Log-Likehhood
 test_that("AIC, LogLik:", {eval_expect_equal({
@@ -94,8 +85,7 @@ check.attributes = FALSE,
 expectations = c("vpred"))
 })
 
-
-## predict
+## residuals.
 test_that("residuals:", {eval_expect_equal({
     vres <- residuals(mod)
     
@@ -105,13 +95,12 @@ check.attributes = FALSE,
 expectations = c("vpred"))
 })
 
-
-##CovRandom:
+## Covar Random
 test_that("", {
-    expect_equal(FLenv$mod$CovRandom,c(0.01482593,2.38859471),tolerance = .001 )
+    expect_equal(FLenv$mod$CovarRandom,260.573310,tolerance = .001 )
 })
 
-
-
-
-
+## Coeff of Random Effect
+test_that("Coeff of Random Effect", {
+    expect_equal(FLenv$mod$u,Renv$mod@u,tolerance = .001 )
+})
