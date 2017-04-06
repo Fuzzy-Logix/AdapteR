@@ -1235,11 +1235,12 @@ getMappingFLTable <- function(pAnalysisID){
     vWhereConds <- c("flt.final_varid is not null",
                     paste0("flt.Analysisid=",fquote(pAnalysisID)))
     vdims <- sqlQuery(getFLConnection(),
-                    paste0("SELECT COUNT(*) FROM fzzlRegrDataPrepMap flt \n ",
-                            constructWhere(vWhereConds)))[1,1]
+                    paste0("SELECT COUNT(*) FROM ",
+                        getSystemTableMapping("fzzlRegrDataPrepMap")," flt \n ",
+                        constructWhere(vWhereConds)))[1,1]
     new("FLSimpleWideTable",
         select=new("FLSelectFrom",
-                   table_name=c(flt="fzzlRegrDataPrepMap"),
+                   table_name=c(flt=getSystemTableMapping("fzzlRegrDataPrepMap")),
                    connectionName=getFLConnectionName(),
                    variables=list(obsid="ROW_NUMBER()OVER(ORDER BY flt.final_varid)",
                                   columnName="flt.column_name",

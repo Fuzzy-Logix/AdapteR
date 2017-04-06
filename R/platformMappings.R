@@ -381,7 +381,7 @@ structure(list(FLRegrDataPrep.TDAster = structure(list(funcName = "FLRegrDataPre
     "platform", "funcNamePlatform", "args", "argsPlatform")), 
     . = NULL, FLSystemTables.Hadoop = structure(list(funcName = "FLSystemTables", 
         platform = "Hadoop", funcNamePlatform = "FLSystemTables", 
-        args = "fzzlRegrDataPrepMap", argsPlatform = structure("fzzlRegrDataPrepMap", .Names = "fzzlDataPrepMap")), .Names = c("funcName", 
+        args = "fzzlRegrDataPrepMap", argsPlatform = structure("fzzlDataPrepMap", .Names = "fzzlDataPrepMap")), .Names = c("funcName", 
     "platform", "funcNamePlatform", "args", "argsPlatform")), 
     FLSystemTables.TD = structure(list(funcName = "FLSystemTables", 
         platform = "TD", funcNamePlatform = "FLSystemTables", 
