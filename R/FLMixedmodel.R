@@ -32,7 +32,7 @@ setClass(
 #' flpred <- predict(flmod)
 
 #' @export
-lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
+lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
 {
     vcallObject <- match.call()
     vform <- as.character(vcallObject)[2]
@@ -45,7 +45,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
     Fvar <- gsub("[[:space:]]", "", Fvar)
     Fvar <- strsplit(Fvar, split = "+", fixed = TRUE)
     Fvar <- unlist(Fvar)
-    myformula <- as.formula(paste0(Dvar,"~ ",Fvar," + ",paste0(Rvar,collapse =  " + ")))
+    myformula <- as.formula(paste0(Dvar,"~ ",paste0(Fvar,collapse =  " + ")," + ",paste0(Rvar,collapse =  " + ")))
     deeptblname <- gen_unique_table_name("deepmixlin")
     vArgs <- c(Dvar, Fvar, unlist(Rvar))
     if(!isDeep(data))
@@ -63,10 +63,10 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
     
     data <- setAlias(data,"")
     functionName <- "FLLinMixedModel"
-    vlen <- 2 + length(Rvar)
-    vchr <- c("DEPENDENT", "FIXED", rep("RANDOM", length(Rvar)))
-    vterm <- c(1,1,1:length(Rvar))
-    vclass <- c(0,0, rep(1, length(Rvar)))
+    vlen <- 1 + length(Fvar) + length(Rvar)
+    vchr <- c("DEPENDENT", rep("FIXED", length(Fvar)), rep("RANDOM", length(Rvar)))
+    vterm <- c(1,1:length(Fvar),1:length(Rvar))
+    vclass <- c(0,rep(0, length(Fvar)), rep(1, length(Rvar)))
 
     ## use inserintotbl function
     var <- lapply(1:vlen, function(i){
@@ -78,7 +78,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,...)
                     VarIDCol = FLdeep$deepx@select@variables$var_id_colname,
                     ValueCol = FLdeep$deepx@select@variables$cell_val_colname,
                     SpecID = outtblname,
-                    MaxIter =100 ,
+                    MaxIter =maxiter ,
                     Note = "Mixed model for AdapteR")
 
 
@@ -162,7 +162,9 @@ predict.FLMix <- function(object,
                           scoreTable = "")
 {
     parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+        as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    if(!any(names(object@results) == "pred"))
+{
     scoretbl <- gen_unique_table_name("mixedscore")
     vinputcols <- list(InTable = newdata@select@table_name,
                        ObsIDCol = newdata@select@variables$obs_id_colname,
@@ -197,7 +199,9 @@ predict.FLMix <- function(object,
                )
     object@results <- c(object@results,list(pred = val))
     assign(parentObject,object,envir=parent.frame())
-    return(val)
+    return(val)}
+    else
+        return(object@results$pred)
     }
 
 
@@ -214,7 +218,10 @@ logLik.FLMix <- function(object, ...){
 residuals.FLMix <- function(object,newdata = object@results$deeptbl, ...){
     parentObject <- unlist(strsplit(unlist(strsplit(
         as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-    flpred <- predict(object)
+    if(any(names(object@results) == "pred"))
+        flpred <- object@results$pred
+    else
+        flpred <- predict(object)
     tbl <- newdata@select@table_name
     vob <- newdata@select@variables$obs_id_colname
     str <- paste0("SELECT (a.pred -b.",object@results$pArgs$Dvar,") AS res , a.",vob," AS ObsID FROM (",constructSelect(flpred),") AS a , ",object@table@select@table_name," AS b WHERE a.",vob," = b.",vob," ")
@@ -264,15 +271,17 @@ print.FLMix <- function(object, ...)
 
     cat("Random Effects: \n")
     val <- c("Groups" = object@results$pArgs$Rvar , "Name" = "(Intercept)", "Std.Dev" = object$CovarRandom^.5)
-    print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
-    cat("         Residual           ", "  ", object$CovarErr^.5, "          \n\n")
+    print(val, digits = 2, quote = FALSE)
+    cat("         Residual           ", "     ", object$CovarErr^.5, "          \n\n")
     cat("Number of obs: ",object@results$vdf[7,2],", groups: ", object@results$pArgs$Rvar, ", ",object@results$vdf[8,2],"\n")
     
     cat("Fixed Effects: \n")
-    val <- c("(Intercept)" = object@results$vin[2, ]$coeff, "TStat" = object@results$vin[2, ]$TStat)
-    print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
-    val <- c("FIXED" = object@results$vin[1, ]$coeff, "TStat" = object@results$vin[1, ]$TStat)
-    print.default(val, digits = 3, print.gap = 2L, quote = FALSE)}
+    cat("(Intercept) ",object@results$pArgs$Fvar,"\n", sep = "  ")
+    cat(object@results$vin[object@results$vin$VarType == "Intercept", ]$coeff, object@results$vin[object@results$vin$VarType == "FIXED", ]$coeff,"\n" , sep = "  ")
+    ##print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
+    ##val <- c("FIXED" =)
+    ##print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
+}
 
 #' @export
 setMethod("show","FLMix",function(object){print.FLMix(object)})
