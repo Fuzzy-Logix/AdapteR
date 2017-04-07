@@ -1115,6 +1115,8 @@ prepareData.formula <- function(formula,data,
                               limitRowsSQL(paste0("SELECT * FROM (",
                                                   constructSelect(data),") a "),1))
         vtblInfo <- separateDBName(getTableNameSlot(data))
+        vColInfo <- c()
+        if(is.TD())
         vColInfo <- sqlQuery(getFLConnection(),
                             paste0("SELECT columnName FROM dbc.columns WHERE \n ",
                                     "columnType = 'CV' AND databaseName= ",

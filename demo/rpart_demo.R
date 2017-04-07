@@ -27,7 +27,8 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-FLdeepTable <- FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLdeepTable <- FLTable(getTestTableName("tblDecisionTreeMulti"),
+                        "ObsID","VarID","Num_Val")
 vtemp <- readline("Above: deep FLTable object created. \n ")
 
 str(FLdeepTable)
