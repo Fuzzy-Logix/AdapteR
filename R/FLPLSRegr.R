@@ -247,6 +247,14 @@ GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVar
 
 
 #' @export
+setMethod("names", signature("FLPLSRegr"), function(x) c("y","rsquare","Yloadings",
+                                                     "WeightYN","loading.weights",
+                                                     "loadings","scores","Yscores",
+                                                     "coefficients","fitted.values",
+                                                     "methods","Ymeans","Xmeans"))
+
+
+#' @export
 coefficients<-function(table){
 	UseMethod("coefficients",table)
 }

@@ -497,6 +497,16 @@ gam.FLTable <- function(formula,family=stats::poisson,
 }
 
 #' @export
+setMethod("names", signature("FLGAM"), function(x) c("knots","FLCoeffStdErr",
+                                                     "coefficients","fitted.levels",
+                                                     "linear.predictors", "resdiduals",
+                                                     "FLCoeffPValue", "FLCoeffChiSq",
+                                                     "pred.formula", "prior.weights",
+                                                     "var.summary", "y", "offset",
+                                                     "converged", "deviance", "sig2","assign","df.residual", "pterms", "nsdf", "edf", "scale.estimated", "family","df.null", "model", "min.edf" ))
+
+
+#' @export
 coefficients.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["coefficients"]]))

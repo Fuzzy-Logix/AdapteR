@@ -212,6 +212,17 @@ glm.FLTable <- function(formula,
 	else stop("That's not a valid property")
 }
 
+
+
+#' @export
+setMethod("names", signature("FLLogRegr"), function(x) c("linear.predictors",
+                                                          "df.residual", "FLLogRegrStats",
+                                                          "FLCoeffChiSq","coefficients",
+                                                          "residuals", "fitted.values",
+                                                          "FLCoeffStdErr", "FLCoeffPValue",
+                                                          "call","model","x", "y","qr",
+                                                          "rank","xlevels","terms","assign" ))
+
 #' @export
 coefficients.FLLogRegr<-function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(

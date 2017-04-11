@@ -247,3 +247,13 @@ predict.FLSVM <- function(object, newData = object@table){
 }
 
 
+
+#' @export
+setMethod("names", signature("FLSVM"), function(x) c("BValue",
+                                                          "SV",
+                                                          "misclassifications",
+                                                          "crbfConstant",
+                                                          "lambda",
+                                                          "cost",
+                                                          "degree",
+                                                          "call" ))
