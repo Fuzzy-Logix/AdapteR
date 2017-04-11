@@ -31,8 +31,6 @@ roc.default <- function (response, predictor,...) {
 
 
 #' An S4 class to represent output from ROC on in-database Objects
-#' @slots  results cache list of results computed
-#' @slots votbl stores the table names of output ROC table.
 setClass(
     "FLROC",
     contains="FLRegr",
@@ -41,23 +39,23 @@ setClass(
 #' ROC.
 #' \code{roc} performs ROC  on FLvectors and FLTable objects.
 #'
-#' The DB Lytix function called is FLROC. Performs ROC and 
-#' stores the results in predefined tables.
-#'
+#' The DB Lytix function called is FLROC. Performs ROC and stores the results in
+#' predefined tables. This function's main job is to build a ROC object.
+#' Data can be provided as 'response', 'predictor', where the predictor is
+#' the numeric (or ordered) level of the evaluated signal, and the response encodes the observation class (control or case).
+
 #' @seealso \code{\link[pROC]{roc}} for R reference implementation.
 #' @param formula A symbolic description of model to be made.
 #' @param data An object of class FLTable.
+#' @slot  results cache list of results computed
+#' @slot votbl stores the table names of output ROC table.
+#' @method print FLROC
+#' @method plot FLROC
+#' @method auc  FLLinRegr
 #' @return \code{roc} returns an object of class \code{FLROC}
 #' @examples
 #' tbl <- FLTable("tblROCCurve", "ObsID")
 #' mod <- roc(tbl$ActualVal, tbl$ProbVal)
-#' This function's main job is to build a ROC object. Data can be provided as
-#' 'response, predictor', where the predictor is the numeric (or ordered) level
-#' of the evaluated signal, and the response encodes the observation
-#' class (control or case).
-#' @method print FLROC
-#' @method plot FLROC
-#' @method auc  FLLinRegr
 #' @export
 roc.FLVector <- function (response, predictor, ...)
 {
