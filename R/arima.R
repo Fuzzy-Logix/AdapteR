@@ -42,7 +42,7 @@ arima.FLVector<-function(object,
 				sigma2=ret[ret$oParamName=="SigmaSq",5],
 				call=match.call(),
 				loglik=ret[ret$oParamName=="Likelihood",5],
-				nobs=length(object),
+				nobs=length(object)-order[2],
 				series="object",
 				n.cond=order[1]+order[2])
 	class(rtobj)<-"FLArima"
