@@ -108,15 +108,14 @@ vtemp <- readline("Above: Examine the data before plotting \n ")
 ## Plot clusters on a world map
 medEconomicData$CountryName <- rownames(medEconomicData)
 
-attach(medEconomicData)
 if (!requireNamespace("plotly", quietly = TRUE)){
     install.packages("plotly")
 }
 require(plotly)
 
+attach(medEconomicData)
 colr <- c("grey","yellow","blue","green","brown","orange")
-p1 <- plot_ly(data=medEconomicData,
-              x= Inflation,
+p1 <- plot_ly(x= Inflation,
               y= GDP,
               type = 'scatter', mode = 'markers',
               text= paste('Country:',rownames(medEconomicData),
@@ -218,13 +217,6 @@ vtemp <- readline("Above: Effect of Inflation on clusters formed -- world heat m
 
 ################################## Survival Age Prediction Demo ################################
 ## getting the table name
-## change database to FLRev_4878 for rTree functionality
-voldDatabase <- getOption("ResultDatabaseFL")
-# sqlQuery(connection,"database FLRev_4878;")
-# sqlQuery(connection,"SET ROLE ALL;")
-
-# connection <- flConnect(odbcSource = "Gandalf",database = "FLRev_4878",platform="TD",pkg = "dbc")
-setCurrentDatabase("FLRev_4878")
 #### Data Preparation
 vtemp <- readline("Data Preparation: \n ")
 ## constructing a deep table for decision tree implementation
@@ -311,7 +303,6 @@ detach(l)
 #### Thank You ####
 ## clean up
 options(warn=oldWarn)
-setCurrentDatabase(voldDatabase)
 # demo("connecting")
 # sqlQuery(connection,paste0("database ",voldDatabase,";"))
 # sqlQuery(connection,"SET ROLE ALL;")

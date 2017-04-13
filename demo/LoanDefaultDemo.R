@@ -15,8 +15,6 @@
 if(!exists("connection")) {
     demo("connecting", package="AdapteR")
 }
-voldDatabase <- getOption("ResultDatabaseFL")
-setCurrentDatabase("FLRev_4878")
 #############################################################
 ## Create Train and Test DataSets from tblLoanData.
 vSampleDataTables <- suppressWarnings(SampleData(pTableName=getTestTableName("tblLoanData"),
@@ -103,6 +101,5 @@ vtemp <- readline("Above: Area under the Precision-Recall-Curve on Test dataset 
 plot(glm.roc, limit = 1000, main = "glm-roc")
 vtemp <- readline("Above: Plotting the Precision-Recall-Curve on Test dataset \n ")
 
-setCurrentDatabase(voldDatabase)
 ####### END #######
 #### Thank You ####
