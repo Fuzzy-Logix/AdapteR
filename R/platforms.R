@@ -363,6 +363,10 @@ FLStartSession <- function(connection,
     options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
     options(storedProcMappingsFL=storedProcMappingsFL)
 
+    ## Create platform Mappings
+    tryCatch(FLcreatePlatformsMapping(),
+            error=function(e)warning("Platform Mappings could not be generated \n "))
+
     cat("Session Started..\n")
 }
 
@@ -466,13 +470,13 @@ FLcreatePlatformsMapping <- function(definitions=c('def/platformStoredProcs.rfl'
     options(MatrixUDTMappingsFL=MatrixUDTMappings)
 }
 
-
 ## gk: todo document
 getMatrixUDTMapping <- function(query) 
     getOption("MatrixUDTMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
 ## return the name of systemTable based on platform
-getSystemTableMapping <- function(query,connection=getFLConnection()){
+getSystemTableMapping <- function(query,
+                                  connection=getFLConnection()){
     vlist <- getOption("storedProcMappingsFL")[[paste0("FLSystemTables.",getFLPlatform(connection=connection))]]
     argsMap <- vlist$argsPlatform
     return(names(argsMap)[argsMap==query])
