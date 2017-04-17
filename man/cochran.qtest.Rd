@@ -33,6 +33,7 @@ response variable and paired data.
 
 p.value.multcomp is NA in result
 }
+
 \examples{
 response <- c(0,1,1,0,0,1,0,1,1,1,1,1,0,0,1,1,0,1,0,1,1,0,0,1,0,1,1,0,0,1)
 fact <- gl(3,1,30,labels=LETTERS[1:3])
@@ -43,4 +44,3 @@ flt <- as.FLTable(Rdata,tableName="ARBaseTestTempTable")
 RVtestObject <- cochran.qtest(response~fact|block,data=flt)
 print(RVtestObject)
 }
-

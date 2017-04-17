@@ -80,11 +80,11 @@ if(FALSE){
 ## Tables not available in Hadoop
 ## FLRegrDataPrepMD is not available in Hadoop and Aster
 test_that("lm: multi dataset ",{
-    flMDObject <- FLTableMD(table="FL_DEMO.tblAutoMPGMD",
+    flMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),
                             group_id_colname="GroupID",
                             obs_id_colname="ObsID",group_id = c(2,4))
 
-    flMDObjectDeep <- FLTableMD(table="FL_DEMO.LinRegrMultiMD",
+    flMDObjectDeep <- FLTableMD(table=getTestTableName("LinRegrMultiMD"),
                                 group_id_colname="DatasetID",
                                 obs_id_colname="ObsID",
                                 var_id_colname="VarID",
@@ -127,9 +127,10 @@ test_that("lm: multi dataset ",{
 })
 
 ## Testing lm for non-continuous ObsIDs
-widetable  <- FLTable("FL_DEMO.tblAbaloneWide",
-                     "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
-object <- lm(Rings~Height+Diameter,widetable)
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"),
+                     "obsid",whereconditions=c("ObsID>10","ObsID<1001"))
+if(is.TDAster()) vformula <- rings~height+diameter else vformula <- Rings~Height+Diameter
+object <- lm(vformula,widetable)
 test_that("Check for dimensions of x Matrix ",{
         expect_equal(nrow(object$x),nrow(widetable))
         expect_equal(colnames(object$x),

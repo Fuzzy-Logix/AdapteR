@@ -91,7 +91,8 @@ FLgetDistMatrix <- function(pObj1,
 
     vtempResult <- createTable(pTableName=vDistTableName,
                                 pSelect=vsqlstr,
-                                temporary=temporary)
+                                temporary=temporary,
+                                pPrimaryKey="rowIdColumn")
 
     select <- new("FLSelectFrom",
                   connectionName = attr(getFLConnection(),"name"),
@@ -606,7 +607,7 @@ setMethod("mode",signature(x="FLIndexedValues"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
                                 functionName="FLModeUdt",
-                                outCol=c(vectorValueColumn="oMode"),
+                                outCol=c(vectorValueColumn=voutName),
                                 viewCols=c(pGroupID=1,
                                         pValue=getValueSQLName(x))))
     })
@@ -640,7 +641,7 @@ setMethod("mode",signature(x="FLTable"),
     function(x,na.rm=FALSE){
         return(getDescStatsUDT(object=x,
                                 functionName="FLModeUdt",
-                                outCol=c(vectorValueColumn="oMode"),
+                                outCol=c(vectorValueColumn=voutName),
                                 viewCols=c(pGroupID=1,
                                     pValue="cell_val_colname")))})
 

@@ -140,8 +140,7 @@ FLVarCluster.FLTable<-function(x,
 	deeptable <- getTableNameSlot(deepx)
 	if(whereClause!="") whereClause <- paste0("' ",whereClause," '")
 	else whereClause <- "NULL"
-    #browser()
-
+    
     if("TableOutput" %in% names(list(...)))
         vTableOutput <- list(...)[["TableOutput"]]
     else vTableOutput <- 1
@@ -157,6 +156,7 @@ FLVarCluster.FLTable<-function(x,
         MatrixType=matrixType,
         Contrib=contrib,
         TableOutput=vTableOutput,
+        Note="FLVarCluster from AdapteR",
         outputParameter=c(ResultTable="a")
         )
 	outputTable <- as.character(retobj[1,1])
@@ -248,6 +248,29 @@ FLVarCluster.FLTable.Hadoop <- function(x,
                         whereconditions=whereconditions,
                         TableOutput="")
 }
+
+#' @export
+FLVarCluster.FLTable.TDAster <- function(x,
+                                        contrib,
+                                        matrixType = "COVAR",
+                                        groupBy = "NULL",
+                                        excludeCols = as.character(c()),
+                                        classSpec = list(),
+                                        whereconditions = ""
+                                        ){
+    vOutTable <- gen_wide_table_name("VarClust")
+    FLVarCluster.FLTable(x=x,
+                        contrib=contrib,
+                        matrixType=matrixType,
+                        groupBy=groupBy,
+                        excludeCols=excludeCols,
+                        classSpec=classSpec,
+                        whereconditions=whereconditions,
+                        TableOutput=vOutTable)
+}
+
+#' @export
+FLVarCluster.FLTableDeep.TDAster <- FLVarCluster.FLTable.TDAster
 
 getFLVectorSQLFLVarCluster <- function(object,outputTable){
     UseMethod("getFLVectorSQLFLVarCluster",object)

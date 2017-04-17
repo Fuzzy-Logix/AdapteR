@@ -38,6 +38,7 @@ each cluster’s centroid to the center of the members of the cluster.
 If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
+
 \examples{
 widetable  <- FLTable("tblAbaloneWide", "ObsID")
 kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX")
@@ -53,4 +54,3 @@ plot(kmeansobjectnew)
 \seealso{
 \code{\link[stats]{kmeans}} for R reference function implementation.
 }
-

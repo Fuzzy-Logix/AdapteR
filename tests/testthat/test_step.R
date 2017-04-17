@@ -5,7 +5,7 @@ FLenv = as.FL(Renv)
 ## Since both the objects need to be dealt differently, objects have been initialized and 
 ## defined outside test_that function
 
-FLenv$widetable <- FLTable("tblAbaloneWide", "ObsID")
+FLenv$widetable <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 Renv$widetable<-as.data.frame(FLenv$widetable)
 
 ## Since FL and R environments have different case structure for column names
@@ -52,7 +52,7 @@ test_that("test for step", {
 
 ## step function does not work properly. throws an error
 test_that("test for step", {
-    flData <- FLTable("FL_DEMO.tblAbaloneWide", "ObsID")
+    flData <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
     rData<-as.data.frame(flData)
     colnames(rData)<-colnames(flData)
     scope <- list(lower=Diameter~Height+ShellWeight,upper=Diameter~Height+ShellWeight+ShuckedWeight)

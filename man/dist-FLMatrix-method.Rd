@@ -5,8 +5,8 @@
 \alias{dist,FLMatrix-method}
 \title{Distance Matrix Computation}
 \usage{
-\S4method{dist}{FLMatrix}(x, method = "euclidean", diag = TRUE,
-  upper = TRUE, p = 2)
+\S4method{dist}{FLMatrix}(x, method = "euclidean", diag = FALSE,
+  upper = FALSE, p = 2)
 }
 \description{
 Distance Matrix Computation
@@ -15,12 +15,12 @@ Distance Matrix Computation
 
 only manhattan and euclidean are supported currently.
 }
+
 \examples{
-flmatrix <- FLMatrix("FL_DEM.tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 dist(flmatrix)
 dist(flmatrix,diag=TRUE)
 dist(flmatrix,upper=TRUE)
 dist(flmatrix,diag=TRUE,upper=TRUE)
 dist(flmatrix,"manhattan",TRUE,TRUE)
 }
-

@@ -15,27 +15,41 @@ setMethod("chisq.test",signature(x="FLMatrix"),
 		
 			vrownames<-as.FLVector(vrownames)
 			vcolnames<-as.FLVector(vcolnames)
-		
 			pFuncName<-"FLChiSq"
-			vsqlstr   <-  constructAggregateSQL(pFuncName=pFuncName,
-            	                            	pFuncArgs=c("f.FLStatistic",
-                	                            	        "a.vectorValueColumn",
-                    	                            	    "b.vectorValueColumn",
-                        	                            	"c.rowIdColumn",
-                            	                        	"c.colIdColumn",
-                                	                    	"c.valueColumn"),
-                                    	    	pAddSelect=c(rowname="a.vectorValueColumn",
-                                        					 colname="b.vectorValueColumn",
-                                        					 stat="f.FLStatistic"),
-	                                        	pFrom=c(a=constructSelect(vrownames),
-    	                                    			b=constructSelect(vcolnames),
-        	                                			c=constructSelect(x),
-            	                                   		f="fzzlARHypTestStatsMap"),
-                	                        	pWhereConditions="f.FLFuncName='FLChiSq'",
-                    	                    	pGroupBy=c(rowname="a.vectorValueColumn",
-                        	                			   colname="b.vectorValueColumn",
-                            	            			   stat="f.FLStatistic"),
-                                	        	pOrderBy=c("a.vectorValueColumn","b.vectorValueColumn"))
+            vsqlstr <- constructHypoTestsScalarQuery(pFuncName = pFuncName,
+                                                pFuncArgs = c("a.vectorValueColumn",
+                                                            "b.vectorValueColumn",
+                                                            "c.rowIdColumn",
+                                                            "c.colIdColumn",
+                                                            "c.valueColumn"),
+                                                pStats=c("chi_sq","exp_val"),
+                                                pFrom=c(a=constructSelect(vrownames),
+                                                        b=constructSelect(vcolnames),
+                                                        c=constructSelect(x)),
+                                                pGroupBy=c(rowname="a.vectorValueColumn",
+                                                           colname="b.vectorValueColumn"),
+                                                pOrderBy=c("a.vectorValueColumn",
+                                                           "b.vectorValueColumn"))
+
+			# vsqlstr   <-  constructAggregateSQL(pFuncName=pFuncName,
+   #          	                            	pFuncArgs=c("f.FLStatistic",
+   #              	                            	        "a.vectorValueColumn",
+   #                  	                            	    "b.vectorValueColumn",
+   #                      	                            	"c.rowIdColumn",
+   #                          	                        	"c.colIdColumn",
+   #                              	                    	"c.valueColumn"),
+   #                                  	    	pAddSelect=c(rowname="a.vectorValueColumn",
+   #                                      					 colname="b.vectorValueColumn",
+   #                                      					 stat="f.FLStatistic"),
+	  #                                       	pFrom=c(a=constructSelect(vrownames),
+   #  	                                    			b=constructSelect(vcolnames),
+   #      	                                			c=constructSelect(x),
+   #          	                                   		f="fzzlARHypTestStatsMap"),
+   #              	                        	pWhereConditions="f.FLFuncName='FLChiSq'",
+   #                  	                    	pGroupBy=c(rowname="a.vectorValueColumn",
+   #                      	                			   colname="b.vectorValueColumn",
+   #                          	            			   stat="f.FLStatistic"),
+   #                              	        	pOrderBy=c("a.vectorValueColumn","b.vectorValueColumn"))
 			vres<-sqlQuery(connection,vsqlstr)
 			return(vres)}
 		else{
@@ -52,8 +66,9 @@ setMethod("chisq.test",signature(x="FLMatrix"),
 									GroupBy="MATRIX_ID",
 									TableOutput=1,
 									outputParameter=c(ResultTable="resTable"))
-			res<-list(p.value=res[1,4],
-					  statistic=res[1,3])
+            colnames(vres) <- tolower(colnames(vres))
+			res<-list(p.value=res$p_value[1],
+					  statistic=res$chisq[1])
 			class(res)<-"htest"
 			return(res)
 		}	

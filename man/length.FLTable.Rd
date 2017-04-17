@@ -16,4 +16,3 @@ number of observations or rows in input FLTable object.
 \description{
 computes the length of FLTable object.
 }
-

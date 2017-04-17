@@ -27,6 +27,7 @@ test_that("pam: kmedoids isolation, clusinfo, silinfo, idmed",{
         pam.clusinfo <- cl$clusinfo
         pam.idmed <- cl$id.med
     },Renv,FLenv,
+    check.attributes=FALSE,
     noexpectation=c("cl","property"))
 })
 

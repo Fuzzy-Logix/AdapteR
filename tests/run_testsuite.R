@@ -25,12 +25,12 @@ option_list = list(
                 action="store_true",
                 default="TRUE", 
                 help="drop AdapteR tables when starting the session [default= %default]",
-                type="logical"),
+                type="character"),
     make_option(c("-t", "--temporary"),
                 action="store_true",
                 default="FALSE", 
                 help="temporary session [default= %default]",
-                type="logical"),
+                type="character"),
     make_option(c("-A", "--AdapteR"),
                 default=".", 
                 help="if 'require' load installed AdapteR version, otherwise load from git repository provided [default= %default]",
@@ -79,6 +79,14 @@ if(opt$AdapteR=="require"){
     devtools::load_all(packagedir,export_all = FALSE)
 }
 
+if(opt$dropTables=="FALSE"){
+    vdrop=FALSE
+}else vdrop=TRUE
+
+if(opt$temporary=="TRUE"){
+    vtemp=TRUE
+}else vtemp=FALSE
+
 if(grepl("^jdbc",opt$host)){
     connection <-
         flConnect(
@@ -92,13 +100,18 @@ if(grepl("^jdbc",opt$host)){
             ## CAVE: fully qualified PATH required
             jdbc.jarsDir = opt$jarDir,
             debug=T,
-            drop=opt$dropTables,
+            drop=vdrop,
             verbose=TRUE,
-            temporary=opt$temporary)
+            temporary=vtemp,
+            pkg="dbc")
 } else {
     connection <- flConnect(odbcSource=opt$host,
-              database=opt$database,
-              platform=opt$platform)
+                          database=opt$database,
+                          platform=opt$platform,
+                          drop=vdrop,
+                          temporary=vtemp,
+                          pkg="dbc"
+                          )
 }
 
 setupls <- ls()

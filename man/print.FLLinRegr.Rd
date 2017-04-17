@@ -25,4 +25,3 @@ Print FLLinRegr Object
 \details{
 Printing of output from Linear Regression
 }
-

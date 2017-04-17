@@ -309,7 +309,8 @@ FLStartSession <- function(connection,
         "ResultByteIntVectorTableFL" = "tblByteIntVectorResult")
     vresultTables <- names(resultTables)
     if(!temporary)
-        resultTables <- paste0(database,".",resultTables)
+        resultTables <- getRemoteTableName(databaseName=database,
+                                            tableName=resultTables)
     else
         resultTables <- paste0(tablePrefix,resultTables)
     options(resultTablesFL=resultTables)
@@ -413,9 +414,10 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
     storedProcMappings$preArgs.Hadoop=""
 
     storedProcMappings$extraPars.TD=c()
-    storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
-                                                    "NULL",
-                                                    getOption("DSN")))
+    ##@phani: DSN made optional in Aster
+    #storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
+                                                    #"NULL",
+                                                    #getOption("DSN")))
     storedProcMappings$extraPars.Hadoop=c()
 
     storedProcMappings$withOutputPars.TD=TRUE
@@ -529,4 +531,17 @@ checkHypoSystemTableExists <- function(){
         t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
                         temporary=FALSE,drop=TRUE)
         
+}
+
+getPlatformResultNames <- function(pFunc,pResName){
+    vMap <- getStoredProcMapping(pFunc)
+    vArgsMap <- vMap$argsPlatform
+    vres <- vArgsMap[pResName]
+    return(vres)
+}
+
+ModifyHypoResultColnames <- function(pFunc,pObj){
+    colnames(pObj) <- getPlatformResultNames(pFunc,
+                                            colnames(pObj))
+    return(pObj)
 }

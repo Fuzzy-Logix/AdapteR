@@ -43,6 +43,7 @@ The number of output clusters depend on the contribution level specified.
 If classSpec is not specified, the categorical variables are excluded
 from analysis by default.
 }
+
 \examples{
 deeptable  <- FLTable("tblLogRegr", "ObsID","VarID","Num_Val")
 clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
@@ -51,4 +52,3 @@ print(clustervector)
 \seealso{
 \code{ClustOfVar} package for R reference implementation.
 }
-

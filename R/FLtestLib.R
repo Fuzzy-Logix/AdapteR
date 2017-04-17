@@ -251,7 +251,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                             pSelect=paste0(" SELECT a.serialval AS vectorIndexColumn, \n ",
                                 " CAST(FLSimUniform(a.serialval,-100,100) AS INT) AS vectorValueColumn \n ",
                                 " FROM fzzlserial a "),
-                            pTemporary=FALSE)
+                            pTemporary=FALSE,
+                            pPrimaryKey="vectorIndexColumn")
       }
       else{
         vtemp <- createTable(pTableName="ARTestCharVectorTable",
@@ -262,7 +263,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                                               "string1 \n ",
                                             " FROM tblstring ) AS b \n ",
                                         " WHERE FLMOD(a.serialval,5) + 1 = b.obsid "),
-                          pTemporary=FALSE)
+                          pTemporary=FALSE,
+                            pPrimaryKey="vectorIndexColumn")
         vtableName <- "ARTestCharVectorTable"
       }
       # options(FLTestVectorTable=TRUE)
@@ -347,7 +349,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                           " WHERE a.serialval < 1001 \n ",
                                           " AND b.serialval < 1001 "),
                            pTemporary=FALSE,
-                           pDrop=TRUE
+                           pDrop=TRUE,
+                           pPrimaryKey=c("rowIdColumn")
                            )
   else
       vtemp <- vtableName
@@ -373,8 +376,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
 #' @export
 initF.FLTable <- function(rows,cols,...)
 {
-  WideTable <- FLTable(c(flt=getRemoteTableName(tableName = paste0(getOption("TestDatabase"),
-                                                                    ".fzzlserial"),
+  WideTable <- FLTable(c(flt=getRemoteTableName(databaseName=getOption("TestDatabase"),
+                                                tableName = "fzzlserial",
                                                 temporaryTable=FALSE)),
                        "SERIALVAL",
                        whereconditions=paste0("SERIALVAL < ",rows+1))

@@ -28,9 +28,9 @@ All combinations of operands are possible just like in R and the result is an in
  division by 0 gives inf in R, but is not supported for 
 in-database objects
 }
+
 \examples{
 flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 Rvector <- 1:5
 ResultFLmatrix <- flmatrix \%\% Rvector
 }
-

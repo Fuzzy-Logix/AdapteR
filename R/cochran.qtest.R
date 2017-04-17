@@ -85,7 +85,10 @@ setMethod("cochran.qtest",
                         stop("columns specified in GroupBy not in data \n ")
                     vgrp <- paste0(vgroupCols,collapse=",")
                     if(!length(vgroupCols)>0)
-                        vgrp <- NULL
+                        vgrp <- "NULL"
+                    vwhere <- list(...)[["whereconditions"]]
+                    if(is.null(vwhere))
+                        vwhere <- "NULL"
 
                     ret <- sqlStoredProc(connection,
                                          "FLCochranQ",
@@ -93,19 +96,37 @@ setMethod("cochran.qtest",
                                          BlockColName= vBlockColname,
                                          GroupColName = vGroupColname,
                                          ValueColname = vValueColname,
-                                         WhereClause = list(...)[["whereconditions"]],
+                                         WhereClause = vwhere,
                                          GroupBy = vgrp,
                                          TableOutput = 1,
                                          outputParameter = c(ResultTable = 'a')
                                         )
-                    ret <- as.character(ret[1,1])
+                    colnames(ret) <- tolower(colnames(ret))
+                    VarID <- c("t_stat","p_value")
+                    if(!is.null(ret$resulttable)){
+                        vres <- sqlQuery(connection,
+                                            paste0("SELECT ",
+                                                        ifelse(length(setdiff(vgrp,"NULL"))>0,
+                                                            paste0("DENSE_RANK()OVER(ORDER BY ",
+                                                                    vgrp,")"),1)," AS groupID, \n ",
+                                                    paste0(VarID,collapse=",")," \n ",
+                                                   " FROM ",ret," \n ",
+                                                    " ORDER BY groupID"
+                                                )
+                                        )
+                    }
+                    else{
+                        vres <- arrange(ret,tolower(vgroupCols))
+                        vres <- cbind(groupid=1:nrow(vres),vres$t_stat,vres$p_value)
+                    }
+                    colnames(vres) <- c("groupid",VarID)
 
                     ## To calculate estimate component in result
                     vestimate <- sqlQuery(connection,
                                         paste0("SELECT ",
-                                                    ifelse(length(setdiff(vgrp,""))>0,
+                                                    ifelse(length(setdiff(vgrp,c("NULL","")))>0,
                                                         paste0("DENSE_RANK()OVER(ORDER BY ",
-                                                                vgrp,")"),1)," AS groupID, \n ",
+                                                                vgrp,")"),1)," AS groupid, \n ",
                                                     vGroupColname," AS statusVal, \n ",
                                                     "FLMean(",vValueColname,") AS estimate \n ",
                                                " FROM ",getTableNameSlot(data)," \n ",
@@ -114,31 +135,19 @@ setMethod("cochran.qtest",
                                             )
                                         )
 
-                    VarID <- c("T_Stat","P_Value")
-                    vres <- sqlQuery(connection,
-                                        paste0("SELECT ",
-                                                    ifelse(length(setdiff(vgrp,""))>0,
-                                                        paste0("DENSE_RANK()OVER(ORDER BY ",
-                                                                vgrp,")"),1)," AS groupID, \n ",
-                                                paste0(VarID,collapse=",")," \n ",
-                                               " FROM ",ret," \n ",
-                                                " ORDER BY groupID"
-                                            )
-                                    )
-                    colnames(vres) <- c("groupID",VarID)
                     vresList <- dlply(vestimate,"groupID",
                                     function(x){
                                         vest <- x[["estimate"]]
                                         names(vest) <- paste0("proba in group ",x[["statusVal"]])
                                         vest <- as.array(vest)
-                                        vstats <- vres[vres[,"groupID"]==unique(x[["groupID"]]),]
+                                        vstats <- vres[vres[,"groupID"]==unique(x[["groupid"]]),]
                                         vtemp <- list(method.test="Cochran's Q test",
                                                       data.name=vdata.name,
-                                                      statistic=c(Q=vstats[["T_Stat"]]),
+                                                      statistic=c(Q=vstats[["t_stat"]]),
                                                       parameter=c(df=length(vest)-1),
                                                       alternative="two.sided",
                                                       null.value=c("difference in probabilities"=0),
-                                                      p.value=vstats[["P_Value"]],
+                                                      p.value=vstats[["p_value"]],
                                                       estimate=vest,
                                                       alpha=alpha,
                                                       method.multcomp="Wilcoxon sign test",

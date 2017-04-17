@@ -35,7 +35,7 @@ test_that("F- Test: R example, DB Lytix is returning confidence intervall",{
 Renv <- new.env(parent = globalenv())
 str <- paste0("SELECT * FROM tblHypoTest WHERE testtype = 'tTest' AND Num_Val IS NOT NULL")
 result <- sqlQuery(connection, str)
-
+colnames(result) <- toupper(colnames(result))
 Renv$d <- result[result$GROUPID == 1, ]$NUM_VAL
 Renv$f <- result[result$GROUPID == 2, ]$NUM_VAL
 FLenv <- as.FL(Renv)

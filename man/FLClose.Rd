@@ -12,4 +12,3 @@ FLClose(connection)
 \description{
 Strongly recommended to run before quitting current R session
 }
-

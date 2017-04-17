@@ -190,7 +190,6 @@ sqlStoredProc.JDBCTDAster <- function(connection,
 sqlStoredProc.RODBC <- function(connection, query, 
                                 outputParameter,
                                 ...) {
-    ##browser()
     vlist <- constructStoredProcArgs(query=query,
                                      outputParameter=outputParameter,
                                      ...)
@@ -624,7 +623,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
                                       tableName)
 {
     ## shortcut in case of a results table -- setup during session start, assumed to not having been dropped
-    if(tableName %in% getOption("resultTablesFL")) return(TRUE)
+    # if(tableName %in% getOption("resultTablesFL")) return(TRUE)
     ## check if tableName has database
     if(grepl(".",tableName,fixed=TRUE)){
         vdb <- strsplit(tableName,".",fixed=TRUE)[[1]][1]
@@ -652,7 +651,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
                                         tableName," \n "),1)
         vtemp <- tryCatch(sqlQuery(getFLConnection(),
                         vsqlstr),error=function(e)FALSE)
-        if(is.data.frame(vtemp) && nrow(vtemp)==1)
+        if(is.data.frame(vtemp))
             return(TRUE)
         else return(FALSE)
     }
