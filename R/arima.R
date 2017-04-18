@@ -1,4 +1,25 @@
 #' @export
+NULL
+
+#' ARIMA Modelling of Time Series
+#' 
+#' Fit an ARIMA model to a univariate time series.
+#'
+#' Different definitions of ARMA models have different signs for the AR and/or MA coefficients. The definition used here has
+#' X[t] = a[1]X[t-1] +…+ a[p]X[t-p] + e[t] + b[1]e[t-1] +…+ b[q]e[t-q]
+#'
+#' @param object FLVector
+#' @param order A specification of the non-seasonal part of the ARIMA model: 
+#' the three integer components (p, d, q) are the AR order, the degree of differencing,
+#' and the MA order.
+#'
+#' @return An object of class "FLArima" containing the coefficient and intercept details.
+#' @examples
+#' x<-rnorm(1000)
+#' flv<-as.FLVector(x)
+#' flobj<-arima(object = flv, order=c(3,0,0))
+
+#' @export
 arima<-function(object,...){
 	UseMethod("arima",object)
 }

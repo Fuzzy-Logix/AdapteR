@@ -1,4 +1,27 @@
 #' @export
+NULL
+
+#' Forecasts for intermittent demand using Croston's method
+#' 
+#' Returns forecasts and other information for Croston's forecasts applied to object.
+#'
+#' Based on Croston's (1972) method for intermittent demand forecasting,
+#' also described in Shenstone and Hyndman (2005). Croston's method 
+#' involves using simple exponential smoothing (SES) on the non-zero elements of the time series
+#' and a separate application of SES to the times between non-zero elements of the time series.
+#' The smoothing parameters are denoted by alpha.
+#'
+#' @param object FLVector
+#' @param alpha Smoothing parameter. Default value = 0.5 .
+#' @param h Number of periods for forecasting.
+#'
+#' @return An object containing details of the fitted model and forecasted values.
+#' @examples
+#' x<-rnorm(1000)
+#' flv<-as.FLVector(x)
+#' flobj<-croston(object = flv, h=9)
+
+#' @export
 croston<-function(object,...){
 	UseMethod("croston",object)
 }
@@ -37,29 +60,23 @@ croston.FLVector<-function(object,
 						   UDTInputSubset=c(1,3))
 	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=query)
 	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2," order by 2"))
-	# coefFrame<- ret[ret$oParamType=="1",4:5]
-	# coefnames<-coefFrame[,1]
-	# coef<-coefFrame[,2]
-	# names(coef)<-coefnames
-	# rtobj<-list(coef=coef,
-	# 			ret=ret,
-	# 			sigma2=ret[ret$oParamName=="SigmaSq",5],
-	# 			call=match.call(),
-	# 			loglik=ret[ret$oParamName=="Likelihood",5],
-	# 			nobs=length(object)-order[2],
-	# 			series="object",
-	# 			n.cond=order[1]+order[2])
-	# class(rtobj)<-"FLcroston"
+	retv<-ret$oForecastValue
+	mean<-ts(data=tail(retv,n=h),start=length(object)+1)
+	fitted<-head(retv,n=length(object))
+	residuals<-object-fitted
+	ret<-list(mean=mean,
+			  fitted=fitted,
+			  x=object,
+			  residuals=residuals,
+			  method="Croston's method",
+			  series="object")
+	class(ret)<-"FLCroston"
 	return(ret)
 }
 
-print.FLcroston<-function(object){ #browser()
-	if(!class(object)=="FLcroston") stop("The object class should be FLcroston")
-	cat("\nCall:", deparse(object$call, width.cutoff = 75L), "", sep = "\n")
-	s.e.<-object$ret[object$ret$oParamType=="1",6]
-	m<-rbind(object$coef,s.e.)
-	cat("Coefficients:\n")
-	print(m)
-	cat(paste0("\nsigma^2 estimated as ",round(object$sigma2,digits=3),":  log likelihood = ",
-				round(object$loglik, digits=3)))
-}	
+print.FLCroston<-function(object){
+	df<-data.frame(object$mean)
+	colnames(df)<-"Point Forecast"
+	rownames(df)<-(length(object$x)+1):(length(object$x)+length(object$mean))
+	print(df)
+}
