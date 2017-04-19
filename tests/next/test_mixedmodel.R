@@ -6,7 +6,7 @@ fltbl  <- FLTable("tblMixedModel", "ObsID")
 Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
-## use in 
+## use in testthat.
 FLenv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
 Renv$mod <- lmer(yVal ~ FixVal + (1 | RanVal), data = rtbl, REML = FALSE)
  
@@ -19,6 +19,17 @@ test_that("AIC, LogLik:", {eval_expect_equal({
 verbose = TRUE,
 check.attributes = FALSE,
 expectations = c("vAkaike", "vLik"))
+})
+
+
+## dim, names etcc....
+test_that("AIC, LogLik:", {eval_dim_equal({
+    vAkaike <- AIC(mod)
+    
+},Renv,FLenv,
+verbose = TRUE,
+check.attributes = FALSE,
+expectation = c("vAkaike"))
 })
 
 ## predict
@@ -50,6 +61,8 @@ test_that("", {
 test_that("Coeff of Random Effect", {
     expect_equal(FLenv$mod$u,Renv$mod@u,tolerance = .001 )
 })
+
+
 
 
 ## dblytix Example:

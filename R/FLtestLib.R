@@ -136,6 +136,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               noexpectation=c(),
                               verbose=FALSE,
                               ...){
+    browser()
     if(runs>=1)
         e <- substitute(e)
     if(runs>1)
