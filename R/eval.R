@@ -1,5 +1,24 @@
 ## var <-lapply(ftocompare, function(i){paste0("FLexpect_equal(",i,"(rObject),",i,"(flObject))")})
 ## eval(parse(text = ))
+## example
+#'rm(list = setdiff(ls(),"connection"))
+#'FLenv <- new.env(parent = globalenv())
+#'Renv <- new.env(parent = globalenv())
+#'FLenv$vec <- 1:5
+#'Renv$vec <- 1:7
+#'
+#'
+#'
+#'test_that("AIC, LogLik:", {eval_dim_equal({
+#'    vect <- vec + 1
+#'    
+#'},Renv,FLenv,
+#'verbose = TRUE,
+#'check.attributes = FALSE,
+#'expectation = c("vec"),
+#'ftocompare =c ("length", "names"))
+#'})
+
 eval_dim_equal <- function(e, Renv, FLenv,
                            description=NULL,
                            expectation=c(),
