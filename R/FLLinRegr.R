@@ -1652,6 +1652,13 @@ prepareData.NULL <- prepareData.formula
     else stop("That's not a valid property \n ")
 }
 
+setMethod("names", signature("FLRobustRegr"), function(x) c("coefficients",
+                                                            "residuals",
+                                                            "fitted.values",
+                                                            "x",
+                                                            "y",
+                                                            "call" ))
+
 #' @export
 coefficients<-function(table){
 	UseMethod("coefficients",table)

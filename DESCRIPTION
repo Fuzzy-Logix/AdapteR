@@ -141,7 +141,6 @@ Collate:
     'cochran.qtest.R'
     'constructAbstractSQL.R'
     'crossprod.R'
-    'eval.R'
     'experiment_benchmarking.R'
     'friedman.test.R'
     'knnx.index.R'

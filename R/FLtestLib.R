@@ -5,6 +5,38 @@ NULL
 setGeneric("FLexpect_equal",
            function(object,expected,...)
                standardGeneric("FLexpect_equal"))
+
+setMethod("FLexpect_equal",
+          signature(object="ANY",expected="ANY"),
+          function(object,expected,...){
+              browser()
+              if(is.null(list(...)$vtest))
+                  vtest <- list(default = "value")
+              else
+                  vtest <- list(...)$vtest
+              if(is.FL(object))
+                  object <- as.R(object)
+              if(is.FL(expected))
+                  expected <- as.R(expected)
+              if(vtest$default == "value"){
+                  expect_equal(length(object), length(expected))}                 
+              else
+              {
+                  vcommon <- Reduce(intersect, list(names(object),names(expected)))
+                  if(is.null(vcommon)){
+                      expect_equal(length(object), length(expected))
+                  }
+                  else
+                      {
+                      vnexttest <- list(default = "value")
+                  for(n in vcommon){
+                      print(n)
+                      FLexpect_equal((object[[n]]),
+                                     (expected[[n]]),
+                                     vtest = vnexttest)}}
+                  }
+          })
+
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="ANY"),
           function(object,expected,...){
@@ -72,6 +104,7 @@ setMethod("FLexpect_equal",
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLVector"),
           function(object,expected,...){
+              browser()
             if(is.numeric(object) || is.integer(object) || is.vector(object)){
                 # object <- as.vector(object)
                 # return(testthat::expect_equal(object,as.R(expected),...))
@@ -92,16 +125,17 @@ setMethod("FLexpect_equal",
                                 expected,...)
           })
 
-setMethod("FLexpect_equal",
-          signature(object="ANY",expected="ANY"),
-          function(object,expected,...){
-            if(is.FL(object))
-            object <- as.R(object)
-            if(is.FL(expected))
-            expected <- as.R(expected)
-            testthat::expect_equal(object,
-                                     expected,...)
-          })
+
+#'FLexpect_equal <- function(object, expected, ...){
+#' if(list(...)$test$defaul = structure){
+#'  expect_equal(names(a), names(b))
+#' nexttest <- test
+#' if(!is.null(nexttest[[n]]))
+#'  nexttest$default <- test[[n]]
+#' for(n in names(a)){FLexpect_equal(a[[n]], b[[n]], test = nexttest)}
+#' }
+
+
 
 setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
           function(object,expected,...)
@@ -149,9 +183,8 @@ eval_expect_equal <- function(e, Renv, FLenv,
     vdiff <- diffnam(e, Renv, FLenv,
                      expectation=expectation,
                      noexpectation=noexpectation,
-                     verbose=verbose, ...)
-
-
+                     ...)
+    
     for(n in unique(vdiff$vnam)){
         rObject <- get(n,envir = Renv)
         flObject <- get(n,envir = FLenv)
@@ -166,7 +199,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
     ## TODO: store statistics in database
     ## TODO: cbind values set in expression
     return(data.frame(description  = description,
-                      r.Runtime    = vdiff$r.Runtime,,
+                      r.Runtime    = vdiff$r.Runtime,
                       fl.Runtime   = vdiff$fl.Runtime))
 }
 
@@ -214,6 +247,7 @@ diffnam <- function(e, Renv, FLenv,
 
 
 #' @export
+#' call recursively.
 eval_dim_equal <- function(e, Renv, FLenv,
                            description=NULL,
                            expectation=c(),
@@ -230,7 +264,7 @@ eval_dim_equal <- function(e, Renv, FLenv,
                      verbose=verbose, ...)
     ftocompare <- c(ftocompare, "length","names")
     var <-lapply(unique(ftocompare),
-                 function(i){paste0("compare(",i,"(rObject),",i,"(flObject))")})
+                 function(i){paste0("FLexpect_equal(",i,"(rObject),",i,"(flObject))")})
 
     
 
@@ -241,8 +275,7 @@ eval_dim_equal <- function(e, Renv, FLenv,
             cat(paste0("---------\n Testing for dimension: ",n,"\n R:\n"))
             str(rObject)
             cat(paste0(" FL:\n"))
-            str(flObject)
-            
+            str(flObject)           
         }
         lapply(unlist(var), function(i){
             print(i)
