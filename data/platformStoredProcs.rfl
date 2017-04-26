@@ -193,6 +193,9 @@ FLWWTest1S.TDAster(TableName,ObsIDColName,Sign,WhereClause,GroupBy) <- FLWWTest1
 FLWWTest2S.TD(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLWWTest2S(TableName=TableName,ValueColName=ValueColName,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLWWTest2S.TDAster(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy) <- FLWWTest2S(INPUT_TABLE=TableName,VALUE_COL=ValueColName,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
 
+FLPearsonChiSq.TD(InputTable,RowName,ColName,CountName,WhereClause,GroupBy,TableOutput) <- FLPearsonChiSq(InputTable=InputTable,RowName=RowName,ColName=ColName,CountName=CountName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLPearsonChiSq.TDAster(InputTable,RowName,ColName,CountName,WhereClause,GroupBy) <- FLPearsonChiSq(INPUT_TABLE=InputTable,ROW_COL=RowName,COLUMN_COL=ColName,COUNT_COL=CountName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
 FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TDAster(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)

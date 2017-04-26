@@ -230,15 +230,18 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       select <- new("FLSelectFrom",
                     connectionName = getFLConnectionName(), 
                     ##database = getOption("ResultDatabaseFL"), 
-                    table_name = paste0(getOption("TestDatabase"),".fzzlserial"),
+                    table_name = getRemoteTableName(databaseName=getOption("TestDatabase"),
+                                                    tableName="fzzlserial"),
                     variables = list(obs_id_colname="SERIALVAL"),
-                    whereconditions=paste0(getRemoteTableName(tableName = paste0(getOption("TestDatabase"),".fzzlserial"),
+                    whereconditions=paste0(getRemoteTableName(databaseName=getOption("TestDatabase"),
+                                                              tableName = "fzzlserial",
                                                               temporaryTable=FALSE),".SERIALVAL < ",n+1),
                     order = "")
       flv <- newFLVector(
                 select=select,
                 Dimnames=list(1:n,"RANDVAL"),
-                isDeep=FALSE)
+                isDeep=FALSE,
+                type="double")
     }
     # else if(is.null(getOption("FLTestVectorTable")) ||
     #         !getOption("FLTestVectorTable"))
@@ -277,7 +280,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
       flv <- newFLVector(
                   select=select,
                   Dimnames=list(1:n,"vectorValueColumn"),
-                  isDeep=FALSE)
+                  isDeep=FALSE,
+                  type="integer")
     }
   }
   else{

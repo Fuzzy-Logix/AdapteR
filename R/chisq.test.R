@@ -7,6 +7,7 @@ setMethod("chisq.test",signature(x="ANY"),
 			})
 setMethod("chisq.test",signature(x="FLMatrix"),
 	function(x,pear=0,...){
+        browser()
         checkHypoSystemTableExists()
 		if(!is.FLMatrix(x)) stop("Only FLMatrix objects are supported")
 			if(pear==0){
@@ -54,23 +55,33 @@ setMethod("chisq.test",signature(x="FLMatrix"),
 			return(vres)}
 		else{
 			pFuncName<-"FLPearsonChiSq"
-			pTableName<-getTableNameSlot(x)
+            x <- setAlias(x,"")
+            vWhereClause <- setdiff(getWhereConditionsSlot(x),"")
+            if(length(vWhereClause)==0)
+                vWhereClause <- "NULL"
+			pTableName <- getTableNameSlot(x)
 			## asana ticket-https://app.asana.com/0/150173007236461/182190129148838
-			vres<-	  sqlStoredProc(connection,
+			vres <-	sqlStoredProc(connection,
 								    pFuncName,
 									InputTable=pTableName,
 									RowName="rowIdColumn",
 									ColName="colIdColumn",
 									CountName="valueColumn",
-									WhereClause=NULL,
+									WhereClause=vWhereClause,
 									GroupBy="MATRIX_ID",
 									TableOutput=1,
 									outputParameter=c(ResultTable="resTable"))
             colnames(vres) <- tolower(colnames(vres))
-			res<-list(p.value=res$p_value[1],
-					  statistic=res$chisq[1])
-			class(res)<-"htest"
-			return(res)
+            if(!is.null(vres$resulttable)){
+                vres <- as.character(vres$resulttable)
+                ret <- sqlQuery(connection,
+                            paste0("SELECT chisq AS chisq,p_value as p_value \n ",
+                                    "FROM ",vres))
+            }else ret <- vres
+			vres<-list(p.value=ret$p_value[1],
+					  statistic=ret$chisq[1])
+			class(vres)<-"htest"
+			return(vres)
 		}	
 	}
 )

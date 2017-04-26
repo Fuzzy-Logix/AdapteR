@@ -1128,7 +1128,7 @@ getDescStatsUDTjoin <- function(object,
     pOutColnames <- as.list(pOutColnames)
     pFuncName <- vMap$funcNamePlatform
     
-    if(is.TD()){
+    if(is.TD() || is.TDAster()){
         pOutColnames[["vectorIndexColumn"]] <- "z.pObsID"
         sqlstr <- constructUDTSQL(pViewColnames=as.list(viewCols),
                               pFuncName=pFuncName,
@@ -1196,7 +1196,7 @@ selectRankMethod <- function(rankOrder,type){
                     FLPercRankUdt="perc")
         vfunction <- names(vtemp)[vtemp==type]
         if(length(vfunction)==0)
-        stop("type should be c(average,duplicate,perc) for FL objects \n ")
+            stop("type should be c(average,duplicate,perc) for FL objects \n ")
 
         vtemp <- c(oRank="duplicate",
                     oFracRank="average",
@@ -1213,7 +1213,7 @@ setMethod("rank",signature(x="FLVector"),
             rankOrder="A",
             ...){
         vtemp <- selectRankMethod(rankOrder=rankOrder,
-                        type=ties.method)
+                                type=ties.method)
         vfunction <- vtemp["vfunction"]
         voutcol <- vtemp["voutcol"]
         names(vfunction) <- NULL

@@ -1,5 +1,5 @@
                                         #Not in R .
-## Table does not exist in FL_TRAIN
+## Table does not exist in FL_TRAIN, Aster
 test_that("FLSqueezeSpace",{
     widetable  <- FLTable("tblstringID", "stringID")
     flv <- widetable[1:6,"string"]

@@ -51,7 +51,7 @@ setMethod("z.test",signature(x="FLVector"),
                                                                     "a.vectorValueColumn",
                                                                     tails),
                                                         pFrom=c(a=constructSelect(x)),
-                                                        pStats=c("p_value","z_stat"))
+                                                        pStats=c("P_VALUE","Z_STAT"))
                 # vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
                 #                                 pFuncArgs=c(test_val,
                 #                                             "a.vectorValueColumn",
@@ -81,7 +81,7 @@ setMethod("z.test",signature(x="FLVector"),
                                                                     "a.vectorValueColumn",
                                                                     tails),
                                                         pFrom=c(a=constructSelect(x)),
-                                                        pStats=c("p_value","z_stat"))
+                                                        pStats=c("P_VALUE","Z_STAT"))
 
             }
             vcall<-paste(all.vars(sys.call())[1])
@@ -112,7 +112,7 @@ setMethod("z.test",signature(x="FLVector"),
                                                                 "a.num_val",
                                                                 tails),
                                                     pFrom=c(a=vunionSelect),
-                                                    pStats=c("p_value","z_stat"))
+                                                    pStats=c("P_VALUE","Z_STAT"))
             }
 
             else {
@@ -136,7 +136,7 @@ setMethod("z.test",signature(x="FLVector"),
                                                                 "a.num_val",
                                                                 tails),
                                                     pFrom=c(a=vunionSelect),
-                                                    pStats=c("p_value","z_stat"))
+                                                    pStats=c("P_VALUE","Z_STAT"))
 
             }
             vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")

@@ -105,6 +105,8 @@ if(grepl("^jdbc",opt$host)){
             temporary=vtemp,
             pkg="dbc")
 } else {
+    browser()
+    options(debugSQL=TRUE)
     connection <- flConnect(odbcSource=opt$host,
                           database=opt$database,
                           platform=opt$platform,
