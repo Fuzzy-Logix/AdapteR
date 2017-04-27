@@ -33,7 +33,7 @@ arima.default  <- function (object,...){
 arima.FLVector<-function(object,
 						 order=c(1,0,0),...){ #browser()
 	if(!is.FLVector(object)) stop("The class of the input object should be FLVector")
-	if(any(order)<0) stop("The p, d and q values should be positive integers")
+	if(any(order<0)) stop("The p, d and q values should be positive integers")
 
 	t <- constructUnionSQL(pFrom = c(a = constructSelect(object)),
                            pSelect = list(a = c(GroupID = 1,
