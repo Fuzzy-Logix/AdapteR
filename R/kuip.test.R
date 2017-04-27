@@ -26,22 +26,31 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                          TableName = vviewName,
                          ValueColName = "Num_Val",
                          SampleIDColName = "GroupID",
-                         WhereClause = NULL,
-                         GroupBy = NULL,
+                         WhereClause = "NULL",
+                         GroupBy = "NULL",
                          TableOutput = 1,
                          outputParameter = c(OutTable = 'a')
-                         )
-    sqlstr <- paste0("SELECT q.TEST_STAT AS TStat,
+                        )
+    colnames(ret) <- tolower(colnames(ret))
+    if(!is.null(ret$resulttable)){
+        sqlstr <- paste0("SELECT q.TEST_STAT AS TEST_STAT,
                                        q.P_VALUE AS P_Value
                                FROM ",ret[1,1]," AS q")
-    res_1 <- sqlQuery(connection, sqlstr)
-    if(!class(res_1$P_Value) == "numeric")
-    {                    pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
+        res_1 <- sqlQuery(connection, sqlstr)
+    }
+    else res_1 <- ret
+    colnames(res_1) <- tolower(colnames(res_1))
+
+    if(!class(res_1$p_value) == "numeric")
+    {  
+        pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*",
+                            "",
+                            res_1$p_value))
     }
     else
-        pval <- res_1$P_Value
+        pval <- res_1$p_value
     
-    result <- list(statistics = c(Stat = res_1$TStat),
+    result <- list(statistics = c(Stat = res_1$test_stat),
                    p.value = pval,
                    method = "2-Sample Kuiper Test",
                    data.name = vcall                             

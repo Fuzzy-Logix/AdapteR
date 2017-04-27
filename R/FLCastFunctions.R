@@ -917,7 +917,7 @@ as.FLTable.data.frame <- function(object,
                                   temporary=getOption("temporaryFL")){
     
   if(missing(tableName))
-  tableName <- genRandVarName()
+  tableName <- gen_wide_table_name("a")
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
   stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
   if(uniqueIdColumn==0){
@@ -940,6 +940,11 @@ as.FLTable.data.frame <- function(object,
     else
         obsIdColname <- uniqueIdColumn
   }
+
+    ## If integers in obsIdColumn, cast it to INT
+    if(!is.integer(object[[obsIdColname]]) &&
+        all(object[[obsIdColname]]==as.integer(object[[obsIdColname]])))
+    object[[obsIdColname]] <- as.integer(object[[obsIdColname]])
 
     ## A copy of connection is needed as in Aster, if query fails
     ## connection becomes unusable until end of transaction block.

@@ -28,25 +28,33 @@ t.test.FLVector <- function(x,
                             conf.level =.95,
                             var.equal=FALSE,
                             alternative="two.sided",...)
-{       
-        checkHypoSystemTableExists()
+{
+        # checkHypoSystemTableExists()
         if(is.null(x)||!is.FLVector(x))
         stop("Only FLVector is supported")
 
         if(!tails %in% c("1","2")) stop("Please enter 1 or 2 as tails")
         df <- NULL
         if(length(y)==0){
-        sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
-                                        pFuncArgs = c("c.FLStatistic",
-                                                        mu,
-                                                      "a.vectorValueColumn",
-                                                       tails),
-                                        pAddSelect = c(stat="c.FLStatistic"),
+        # sqlstr <- constructAggregateSQL(pFuncName = "FLtTest1S",
+        #                                 pFuncArgs = c("c.FLStatistic",
+        #                                                 mu,
+        #                                               "a.vectorValueColumn",
+        #                                                tails),
+        #                                 pAddSelect = c(stat="c.FLStatistic"),
                                                                               
-                                        pFrom = c(a = constructSelect(x),
-                                                  c = "fzzlARHypTestStatsMap"),
-                                        pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
-                                        pGroupBy = "c.FLStatistic")
+        #                                 pFrom = c(a = constructSelect(x),
+        #                                           c = "fzzlARHypTestStatsMap"),
+        #                                 pWhereConditions = c("c.FLFuncName = 'FLtTest1S'"),
+        #                                 pGroupBy = "c.FLStatistic")
+        
+        sqlstr <- constructHypoTestsScalarQuery(pFuncName = "FLtTest1S",
+                                                pFuncArgs = c(mu,
+                                                              "a.vectorValueColumn",
+                                                              tails),
+                                                pFrom=c(a=constructSelect(x)),
+                                                pStats=c("p_value","t_stat"))
+
         vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
         estimate<-c("mean of x"=mean(x))
         method<-"One Sample t-test"
@@ -63,17 +71,25 @@ t.test.FLVector <- function(x,
                                               pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
                                                            b=c(groupID=2,num_val="b.vectorValueColumn")))
 
-            sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
-                                        pFuncArgs=c("c.FLStatistic",
-                                                     fquote(var),
-                                                    "a.groupID",
-                                                    "a.num_val",
-                                                    tails),
-                                        pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=vunionSelect,
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
-                                        pGroupBy="c.FLStatistic")
+            # sqlstr<-constructAggregateSQL(pFuncName="FLtTest2S",
+            #                             pFuncArgs=c("c.FLStatistic",
+            #                                          fquote(var),
+            #                                         "a.groupID",
+            #                                         "a.num_val",
+            #                                         tails),
+            #                             pAddSelect=c(stat="c.FLStatistic"),
+            #                             pFrom=c(a=vunionSelect,
+            #                                     c="fzzlARHypTestStatsMap"),
+            #                             pWhereConditions=c("c.FLFuncName='FLtTest2S'"),
+            #                             pGroupBy="c.FLStatistic")
+
+            sqlstr <- constructHypoTestsScalarQuery(pFuncName = "FLtTest2S",
+                                                pFuncArgs = c(fquote(var),
+                                                            "a.groupID",
+                                                            "a.num_val",
+                                                            tails),
+                                                pFrom=c(a=vunionSelect),
+                                                pStats=c("p_value","t_stat"))
             vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
             estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))
             }
@@ -85,9 +101,9 @@ t.test.FLVector <- function(x,
         df <- cint[3]
     cint<-cint[1:2]
     attr(cint,"conf.level") <- conf.level
-    res <- list(statistic =c(t = as.numeric(result[tolower(result[,"stat"])=="t_stat","outval"])),
+    res <- list(statistic =c(t = as.numeric(result$t_stat)),
                 parameter= c(df=df),
-                p.value=   c(as.vector(result[tolower(result[,"stat"])=="p_value","outval"])),
+                p.value=   c(as.vector(result$p_value)),
                 conf.int = cint,
                 estimate =estimate,
                 null.value=mu,

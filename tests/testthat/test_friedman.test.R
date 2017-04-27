@@ -50,6 +50,7 @@ test_that("Friedman Test on FLVectors: R example: checking Result Equality witho
     expectation=c("fit"))
 })
 
+##@phani: wrong results on Aster
 test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
     result = eval_expect_equal({
             fit <- friedman.test(x~w|t, data = wb)

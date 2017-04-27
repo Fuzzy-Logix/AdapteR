@@ -27,7 +27,7 @@ Input can only be with maximum dimension limitations of (550 x 550).
 }
 
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultList <- svd(flmatrix)
 resultList$d
 resultList$u

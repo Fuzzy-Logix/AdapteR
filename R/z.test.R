@@ -46,31 +46,42 @@ setMethod("z.test",signature(x="FLVector"),
             if(prob==0)
             {
                 pFuncName<-"FLzTest1S"
-                vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
-                                                pFuncArgs=c("c.FLStatistic",
-                                                            test_val,
-                                                            "a.vectorValueColumn",
-                                                            tails),
-                                                pAddSelect=c(stat="c.FLStatistic"),
-                                                pFrom=c(a=constructSelect(x),
-                                                        c="fzzlARHypTestStatsMap"),
-                                                pWhereConditions="c.FLFuncName='FLzTest1S'",
-                                                pGroupBy="c.FLStatistic")
+                vsqlstr <- constructHypoTestsScalarQuery(pFuncName = pFuncName,
+                                                        pFuncArgs = c(test_val,
+                                                                    "a.vectorValueColumn",
+                                                                    tails),
+                                                        pFrom=c(a=constructSelect(x)),
+                                                        pStats=c("P_VALUE","Z_STAT"))
+                # vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
+                #                                 pFuncArgs=c(test_val,
+                #                                             "a.vectorValueColumn",
+                #                                             tails),
+                #                                 pAddSelect=c(stat="c.FLStatistic"),
+                #                                 pFrom=c(a=constructSelect(x),
+                #                                         c="fzzlARHypTestStatsMap"),
+                #                                 pWhereConditions="c.FLFuncName='FLzTest1S'",
+                #                                 pGroupBy="c.FLStatistic")
 
          }
 
             else { 
                 pFuncName<-"FLzTest1P"
-                vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
-                                                pFuncArgs=c("c.FLStatistic",
-                                                            test_val,
-                                                            "a.vectorValueColumn",
-                                                                tails),
-                                                pAddSelect=c(stat="c.FLStatistic"),
-                                                pFrom=c(a=constructSelect(x),
-                                                        c="fzzlARHypTestStatsMap"),
-                                                pWhereConditions="c.FLFuncName='FLzTest1P'",
-                                                pGroupBy="c.FLStatistic")
+                # vsqlstr<- constructAggregateSQL(pFuncName=pFuncName,
+                #                                 pFuncArgs=c("c.FLStatistic",
+                #                                             test_val,
+                #                                             "a.vectorValueColumn",
+                #                                                 tails),
+                #                                 pAddSelect=c(stat="c.FLStatistic"),
+                #                                 pFrom=c(a=constructSelect(x),
+                #                                         c="fzzlARHypTestStatsMap"),
+                #                                 pWhereConditions="c.FLFuncName='FLzTest1P'",
+                #                                 pGroupBy="c.FLStatistic")
+                vsqlstr <- constructHypoTestsScalarQuery(pFuncName = pFuncName,
+                                                        pFuncArgs = c(test_val,
+                                                                    "a.vectorValueColumn",
+                                                                    tails),
+                                                        pFrom=c(a=constructSelect(x)),
+                                                        pStats=c("P_VALUE","Z_STAT"))
 
             }
             vcall<-paste(all.vars(sys.call())[1])
@@ -86,16 +97,22 @@ setMethod("z.test",signature(x="FLVector"),
             vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
                                               pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
                                                            b=c(groupID=2,num_val="b.vectorValueColumn")))
-            vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
-                                        pFuncArgs=c("c.FLStatistic",
-                                                    "a.groupID",
-                                                    "a.num_val",
-                                                    tails),
-                                        pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=vunionSelect,
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
-                                        pGroupBy="c.FLStatistic")
+            # vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
+            #                             pFuncArgs=c("c.FLStatistic",
+            #                                         "a.groupID",
+            #                                         "a.num_val",
+            #                                         tails),
+            #                             pAddSelect=c(stat="c.FLStatistic"),
+            #                             pFrom=c(a=vunionSelect,
+            #                                     c="fzzlARHypTestStatsMap"),
+            #                             pWhereConditions=c("c.FLFuncName='FLzTest2S'"),
+            #                             pGroupBy="c.FLStatistic")
+            vsqlstr <- constructHypoTestsScalarQuery(pFuncName = pFuncName,
+                                                    pFuncArgs = c("a.groupID",
+                                                                "a.num_val",
+                                                                tails),
+                                                    pFrom=c(a=vunionSelect),
+                                                    pStats=c("P_VALUE","Z_STAT"))
             }
 
             else {
@@ -104,16 +121,22 @@ setMethod("z.test",signature(x="FLVector"),
             vunionSelect <- constructUnionSQL(pFrom=c(a=constructSelect(x),b=constructSelect(y)),
                                               pSelect=list(a=c(groupID=1,num_val="a.vectorValueColumn"),
                                                            b=c(groupID=2,num_val="b.vectorValueColumn")))
-            vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
-                                        pFuncArgs=c("c.FLStatistic",
-                                                    "a.groupID",
-                                                    "a.num_val",
-                                                    tails),
-                                        pAddSelect=c(stat="c.FLStatistic"),
-                                        pFrom=c(a=vunionSelect,
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
-                                        pGroupBy="c.FLStatistic")
+            # vsqlstr<-constructAggregateSQL(pFuncName=pFuncName,
+            #                             pFuncArgs=c("c.FLStatistic",
+            #                                         "a.groupID",
+            #                                         "a.num_val",
+            #                                         tails),
+            #                             pAddSelect=c(stat="c.FLStatistic"),
+            #                             pFrom=c(a=vunionSelect,
+            #                                     c="fzzlARHypTestStatsMap"),
+            #                             pWhereConditions=c("c.FLFuncName='FLzTest2P'"),
+            #                             pGroupBy="c.FLStatistic")
+            vsqlstr <- constructHypoTestsScalarQuery(pFuncName = pFuncName,
+                                                    pFuncArgs = c("a.groupID",
+                                                                "a.num_val",
+                                                                tails),
+                                                    pFrom=c(a=vunionSelect),
+                                                    pStats=c("P_VALUE","Z_STAT"))
 
             }
             vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
@@ -126,8 +149,8 @@ setMethod("z.test",signature(x="FLVector"),
     colnames(vres) <- tolower(colnames(vres))
     cint<-cint(x,conf.level)
     attr(cint,"conf.level") <- conf.level
-    vresList<-list(statistic=c("Z stat"=vres[tolower(vres[,"stat"])=="z_stat","outval"]),
-                   p.value=c("p-value"=vres[tolower(vres[,"stat"])=="p_value","outval"]),
+    vresList<-list(statistic=c("Z stat"=vres$z_stat),
+                   p.value=c("p-value"=vres$p_value),
                    data.name=vcall,
                    alternative=alter,
                    estimate =estimate,

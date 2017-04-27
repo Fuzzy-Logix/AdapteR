@@ -612,7 +612,8 @@ silinfo.FLFKMeans <- function(object){
                                                 "' AND q.HypothesisID = 1  AND p.AnalysisID = '",
                                                 object@AnalysisID,"'AND p.HypothesisID = 1 \n ",
                                         " GROUP BY a.",obs_id_colname,", b.",
-                                                        obs_id_colname,", p.clusterid, q.clusterid "))
+                                                        obs_id_colname,", p.clusterid, q.clusterid "),
+                        pPrimaryKey=c("ObsIDX","ObsIDY"))
 		# u <- sqlSendUpdate(connection, paste0("INSERT INTO ",b,
 		# 								" SELECT ObsIDY, ObsIDX, ClusIDY, ClusIDX, Dist FROM ",b))
         u <- insertIntotbl(pTableName=b,

@@ -1,7 +1,7 @@
 Renv=new.env(globalenv())
 FLenv=as.FL(Renv)
 
-FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLenv$table<-FLTable(getTestTableName("tblDecisionTreeMulti"),"ObsID","VarID","Num_Val")
 Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 FLenv$newdata<-FLenv$table[1:150,]

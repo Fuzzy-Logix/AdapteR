@@ -392,7 +392,6 @@ step.FLTable <- function(object, scope, scale = 0,
      				trace = 1,
      				familytype="linear",
      				...){
-
 	if (!direction %in% c("forward","Fbackward","backward","UFbackward","sf"))
 	stop("direction must be in c(forward,Fbackward,backward,UFbackward)")
 	if(!is.list(scope) && !class(scope)=="formula")
@@ -510,7 +509,7 @@ lmGeneric <- function(formula,data,
                       direction="",
                       trace=1,
                       ...)
-{   ##browser()
+{
     if(inherits(data,"FLTable"))
         prepData <- prepareData(formula,data,
                                 callObject=callObject,
@@ -586,9 +585,9 @@ lmGeneric <- function(formula,data,
 										statstablename="fzzlLogRegrStats",
 										valcolnamescoretable="Y",
 										scoretablename="FLLogRegrScore")
-		vtemp <- pThreshold
-		pThreshold <- maxiter
-		maxiter <- vtemp
+		# vtemp <- pThreshold
+		# pThreshold <- maxiter
+		# maxiter <- vtemp
 	}
 	else if(familytype=="multinomial") vfcalls <- c(functionName="FLLogRegrMN",
 										infotableName="fzzlLogRegrMNInfo",
@@ -657,10 +656,15 @@ lmGeneric <- function(formula,data,
 					pThreshold=pThreshold)
 	if(direction==""){
 		vfuncName=functionName
-		if(familytype %in% "logisticwt")
-		vinputCols <- c(vinputCols,
-						EVENTWEIGHT=eventweight,
-						NONEVENTWEIGHT=noneventweight)
+		if(familytype %in% "logisticwt"){
+            vinputCols <- as.list(vinputCols)
+            vinputCols[["MaxIterations"]] <- NULL
+            vinputCols <- unlist(vinputCols)
+            vinputCols <- c(vinputCols,
+                            MaxIterations=maxiter,
+                            EVENTWEIGHT=eventweight,
+                            NONEVENTWEIGHT=noneventweight)
+        }
 	}
 	if(direction %in% c("backward","Fbackward","UFbackward")){
 		vfuncName <- paste0(functionName,"BW")
@@ -690,6 +694,12 @@ lmGeneric <- function(formula,data,
 						TOPN=topN,
 						HIGHESTPALLOW1=highestpAllow1)
 	}
+    if(direction %in% "sf"){
+        vfuncName <- paste0(functionName)
+        vinputCols <- c(vinputCols,
+                        MaxIterations=maxiter,
+                        pThreshold=pThreshold)
+    }
     
     ##for rlm defining psi and tuning constant:
     if(familytype %in% "robust")
@@ -756,7 +766,6 @@ lmGeneric <- function(formula,data,
         mod <- c(mod, ncomp = list(...)$nfactor, northo = list(...)$Northo)
     }
 
-    if(direction=="sf") vfuncName <-functionName
     vinputCols <- c(vinputCols,
                     Note=vnote)
 
@@ -778,30 +787,38 @@ lmGeneric <- function(formula,data,
         vmaxLevelID <- 1
     }
     else if(!direction %in% c("forward","sf") && familytype!="poisson" && !is.FLTableMD(data)){
-        vsqlstr <- paste0("SELECT MAX(ModelID) AS ModelID",
-                          ifelse(familytype=="multinomial",",MAX(LevelID) AS LevelID ",""),
+        vsqlstr <- paste0("SELECT MAX(ModelID) AS modelid",
+                          ifelse(familytype=="multinomial",",MAX(LevelID) AS levelid ",""),
                           " FROM ",coefftablename," WHERE AnalysisID=",fquote(AnalysisID))
         vtemp <- sqlQuery(getFLConnection(),vsqlstr)
-        vmaxModelID <- vtemp[["ModelID"]]
-        vmaxLevelID <- vtemp[["LevelID"]]
+        vmaxModelID <- vtemp[["modelid"]]
+        vmaxLevelID <- vtemp[["levelid"]]
     }
     
     if(trace>0 && !direction %in% c("","forward","sf"))
     {
+        # vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
+        #                   " FROM ",coefftablename," a,",statstablename," c \n",
+        #                   " WHERE NOT EXISTS(SELECT 1 FROM ",coefftablename," b ",
+        #                   " WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
+        #                   " AND a.coeffid = b.coeffid ",ifelse(!is.null(vmaxLevelID),
+        #                                                        " AND a.LevelID = b.LevelID ",""),")\n",
+        #                   " AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
+        #                   " AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
+        #                   ifelse(!is.null(vmaxLevelID),paste0(" AND a.LevelID = ",vmaxLevelID),""),
+        #                   " \n UNION ALL\n",
+        #                   " SELECT 0,a.* FROM ",statstablename," a \n",
+        #                   " WHERE a.AnalysisID=",fquote(AnalysisID),
+        #                   " AND a.ModelID=",vmaxModelID,"\n",
+        #                   " ORDER BY 3")
         vsqlstr <- paste0("SELECT a.coeffid,c.* \n",
-                          " FROM ",coefftablename," a,",statstablename," c \n",
-                          " WHERE NOT EXISTS(SELECT 1 FROM ",coefftablename," b ",
-                          " WHERE b.analysisid=a.analysisid AND b.modelid=a.modelid+1 \n",
-                          " AND a.coeffid = b.coeffid ",ifelse(!is.null(vmaxLevelID),
-                                                               " AND a.LevelID = b.LevelID ",""),")\n",
-                          " AND a.analysisid=",fquote(AnalysisID)," AND c.analysisid=a.analysisid \n",
-                          " AND a.modelid<>",vmaxModelID," AND c.modelid=a.modelid\n",
-                          ifelse(!is.null(vmaxLevelID),paste0(" AND a.LevelID = ",vmaxLevelID),""),
-                          " \n UNION ALL\n",
-                          " SELECT 0,a.* FROM ",statstablename," a \n",
-                          " WHERE a.AnalysisID=",fquote(AnalysisID),
-                          " AND a.ModelID=",vmaxModelID,"\n",
-                          " ORDER BY 3")
+                          " FROM (SELECT DISTINCT AnalysisID,modelid,coeffid from ",coefftablename,
+                                " WHERE analysisid=",fquote(AnalysisID)," \n EXCEPT \n ",
+                                " SELECT DISTINCT AnalysisID,modelid+1,coeffid from ",coefftablename,
+                                " WHERE analysisid=",fquote(AnalysisID)," \n ",
+                                ") a,",statstablename," c \n",
+                          " WHERE c.analysisid=a.analysisid \n"
+                          )
         d <- sqlQuery(getFLConnection(),vsqlstr)
         colnames(d)<-toupper(colnames(d))
         d[["ANALYSISID"]] <- NULL
@@ -839,7 +856,7 @@ lmGeneric <- function(formula,data,
     else if(direction %in% c("forward"))
     {
         if(familytype=="linear")
-            vsqlstr <- paste0("SELECT TOP 1 a.*,b.maxPValue \n",
+            vsqlstr <- limitRowsSQL(paste0("SELECT a.*,b.maxPValue \n",
                               " FROM ",statstablename," a,( \n",
                               " SELECT a.ModelID,",
                               " MAX(a.PValue) AS maxPValue \n",
@@ -849,13 +866,13 @@ lmGeneric <- function(formula,data,
                               " WHERE b.ModelID = a.ModelID \n",
                               " AND a.AnalysisID = ",fquote(AnalysisID),
                               " AND b.MaxPValue < 0.10 \n",
-                              " ORDER BY 3 DESC, 2;\n")
+                              " ORDER BY 3 DESC, 2 \n"),1)
         else if(familytype=="logistic")
-            vsqlstr <- paste0("SELECT TOP 1 a.*\n",
+            vsqlstr <- limitRowsSQL(paste0("SELECT a.*\n",
                               " FROM ",statstablename," a\n",
                               " WHERE a.AnalysisID = ",fquote(AnalysisID),
                               " AND a.HighestPValue < 0.10 \n",
-                              " ORDER BY 3 DESC, 2;\n")
+                              " ORDER BY 3 DESC, 2 \n"),1)
 
         d <- sqlQuery(getFLConnection(),vsqlstr)
         colnames(d) <- toupper(colnames(d))
@@ -1167,9 +1184,9 @@ prepareData.formula <- function(formula,data,
                                             i)
                 else if(is.logical(vrefVars[[i]]))
 					vtempList <- c(vtempList,
-									levels(sqlQuery(getFLConnection(),
+									levels(as.factor(sqlQuery(getFLConnection(),
 												paste0("SELECT DISTINCT(",i,
-												") FROM(",constructSelect(data),") a "))[[1]])[1])
+												") FROM(",constructSelect(data),") a "))[[1]]))[1])
 				else vtempList <- c(vtempList,as.character(vrefVars[[i]]))
 			}
 			names(vtempList) <- vrefVarNames
@@ -1407,6 +1424,8 @@ prepareData.lmGeneric <- prepareData.formula
 #' @export
 prepareData.NULL <- prepareData.formula
 
+#' @export
+prepareData.character <- prepareData.formula
 
 ## move to file lm.R
 #' @export
@@ -2393,6 +2412,19 @@ getFittedValuesLogRegrSQL.FLTable.Hadoop <- function(object,newdata,scoreTable){
                                     valueColumn=vfcalls["valcolnamescoretable"],
                                     FromTable=scoreTable)
 }
+
+getFittedValuesLogRegrSQL.FLTableDeep.Hadoop <- getFittedValuesLogRegrSQL.FLTable.Hadoop
+
+getFittedValuesLogRegrSQL.FLTable.TDAster <- function(object,newdata,scoreTable){
+    vobsid <- "obsid"
+    vfcalls <- object@vfcalls
+    getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
+                                    valueColumn=vfcalls["valcolnamescoretable"],
+                                    FromTable=scoreTable)
+}
+
+getFittedValuesLogRegrSQL.FLTableDeep.TDAster <- getFittedValuesLogRegrSQL.FLTable.TDAster
+
 getFittedValuesLogRegrSQL.default <- function(object,newdata,scoreTable){
     vobsid <- getObsIdSQLExpression(newdata)
     vfcalls <- object@vfcalls

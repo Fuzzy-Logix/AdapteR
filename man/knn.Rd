@@ -43,7 +43,7 @@ If classify flag is false, average of k neighbours is returned.
 }
 \examples{
 FLdeepTbl <- FLTable(getTestTableName("ARknnDevSmall"),"obsid","varid","num_val")
-FLknnOutput <- knn(FLdeepTbl,k=3,prob=TRUE)
+FLknnOutput <- knn(FLdeepTbl,FLdeepTbl,k=3,prob=TRUE)
 FLknnOutput
 attributes(FLknnOutput)$prob
 }

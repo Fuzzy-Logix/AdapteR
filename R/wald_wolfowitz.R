@@ -19,6 +19,7 @@ WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
     else{
         vviewName <- gen_view_name("ww1sTest")
         sqlstr <- paste0("SELECT t.vectorValueColumn AS Num_Val,
+                                        1 AS DatasetID,
                                         1 AS GroupID,
                                         t.vectorindexcolumn AS ObsID,
                                 CASE WHEN t.vectorValueColumn > ",threshold,"
@@ -35,16 +36,23 @@ WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
                              TableName = vviewName,
                              ObsIDColName = "ObsID",
                              Sign= "Sign",
-                             WhereClause = NULL ,
-                             GroupBy = NULL,
+                             WhereClause = "NULL" ,
+                             GroupBy = "DatasetID",
                              TableOutput = 1,
                              outputParameter = c(ResultTable = 'a')
                              )
-        sqlstr <- paste0("SELECT q.Z AS Z, q.P_Value AS P  FROM ",
-                         ret$ResultTable," AS q")
-        res_1 <- sqlQuery(connection , sqlstr)
-        result <- list(statistic = c(Z = res_1$Z),
-                       p.value = res_1$P,
+        colnames(ret) <- tolower(colnames(ret))
+
+        if(!is.null(ret$resulttable)){
+            sqlstr <- paste0("SELECT q.Z AS z, q.P_Value AS p_value  FROM ",
+                         ret$resulttable," AS q")
+            res_1 <- sqlQuery(connection , sqlstr)
+        }
+        else res_1 <- ret
+
+        
+        result <- list(statistic = c(Z = res_1$z),
+                       p.value = res_1$p_value,
                        data.name = as.character(vcall),
                        method = "Wald Wolfowitz test"
                        )
@@ -67,9 +75,11 @@ WaldWolftest2s <- function(vFLvector, vFLvector2)
 
     t <- constructUnionSQL(pFrom = c(a = constructSelect(vFLvector),
                                      b = constructSelect(vFLvector2)),
-                           pSelect = list(a = c(GroupID = 1,
+                           pSelect = list(a = c(DatasetID=1,
+                                                GroupID = 1,
                                                 Num_Val = "a.vectorValueColumn"),
-                                          b = c(GroupID = 2,
+                                          b = c(DatasetID=1,
+                                                GroupID = 2,
                                                 Num_Val = "b.vectorValueColumn"))
                            )
     view <- createView(vviewName, t)
@@ -78,17 +88,22 @@ WaldWolftest2s <- function(vFLvector, vFLvector2)
                          TableName = vviewName,
                          ValueColName = "Num_Val",
                          SampleIDColName = "GroupID",
-                         WhereClause = NULL,
-                         GroupBy = NULL,
+                         WhereClause = "NULL",
+                         GroupBy = "DatasetID",
                          TableOutput = 1,
                          outputParameter = c(ResultTable = 'a')
                          )
-    sqlstr <- paste0("SELECT r.Z AS Z,
-                             r.P_VALUE AS P_Value
-                     FROM ",ret$ResultTable," AS r")
-    res_1 <- sqlQuery(connection, sqlstr)
-    result <- list(statistic = c(statistic = res_1$Z),
-                   p.value = res_1$P_Value,
+    colnames(ret) <- tolower(colnames(ret))
+    if(!is.null(ret$resulttable)){
+        sqlstr <- paste0("SELECT r.Z AS z,
+                             r.P_VALUE AS p_value
+                     FROM ",ret$resulttable," AS r")
+        res_1 <- sqlQuery(connection, sqlstr)
+    }
+    else res_1 <- ret
+    
+    result <- list(statistic = c(statistic = res_1$z),
+                   p.value = res_1$p_value,
                    alternative = "two-sided",
                    method = "Two-sample Wald-Wolfowitz test",
                    data.name = dname                             

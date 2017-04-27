@@ -51,22 +51,25 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                                  TableName = vviewName,
                                  Val1ColName = "Num_Val1",
                                  Val2ColName = "Num_Val2",
-                                 WhereClause = NULL ,
-                                 GroupBy = NULL,
+                                 WhereClause = "NULL" ,
+                                 GroupBy = "DatasetID",
                                  TableOutput = 1,
                                  outputParameter = c(ResultTable = 'a'))
-            ##
-            sqlstr <- paste0( "SELECT q.W_STAT AS W,
-                                      q.P_VALUE AS p,
-                                      q.W_STAT_Neg AS W_Neg,
-                                      q.W_STAT_Posi AS W_Pos
-                           FROM ",ret$ResultTable," AS q")
-            result <-  sqlQuery(connection,sqlstr)
-            stats <- c(V = result$W_Pos)  
+            colnames(ret) <- tolower(colnames(ret))
+            if(!is.null(ret$resulttable)){
+                sqlstr <- paste0( "SELECT q.W_STAT AS w_stat,
+                                          q.P_VALUE AS p_value,
+                                          q.W_STAT_Neg AS w_stat_neg,
+                                          q.W_STAT_Posi AS w_stat_posi
+                               FROM ",ret$resulttable," AS q")
+                result <-  sqlQuery(connection,sqlstr)
+            }
+            else result <- ret
+            stats <- c(V = result$w_stat_posi)  
             ##
             res <- list(statistic = stats,
                         parameter = NULL,
-                        p.value = result$p,
+                        p.value = result$p_value,
                         null.value = c("location shift"=0),
                         alternative = "two.sided",
                         method = "Wilcoxon signed rank test",
@@ -81,9 +84,11 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
             vviewName <- gen_view_name("MWTest")
             t <- constructUnionSQL(pFrom = c(a = constructSelect(x),
                                              b = constructSelect(y)),
-                                   pSelect = list(a = c(GroupID = 1,
+                                   pSelect = list(a = c(DatasetID=1,
+                                                        GroupID = 1,
                                                         Num_Val = "a.vectorValueColumn"),
-                                                  b = c(GroupID = 2,
+                                                  b = c(DatasetID=1,
+                                                        GroupID = 2,
                                                         Num_Val = "b.vectorValueColumn")))
             q <- createView(vviewName,t)
             
@@ -94,19 +99,23 @@ wilcox.test.FLVector <- function(x,y = NULL,paired = TRUE, mu = 0,...)
                                  TableName = vviewName,
                                  ValColName = "Num_Val",
                                  GroupColName = "GroupID",
-                                 WhereClause = NULL ,
-                                 GroupBy = NULL,
+                                 WhereClause = "NULL" ,
+                                 GroupBy = "DatasetID",
                                  TableOutput = 1,
                                  outputParameter = c(ResultTable = 'a'))
 
-            sqlstr <- paste0("SELECT U_STAT AS W,
-                             P_VALUE AS P
-                     FROM ",ret$ResultTable)
-            result <- sqlQuery(connection, sqlstr)
-
-            res <- list(statistic = c(W = result$W),
+            colnames(ret) <- tolower(colnames(ret))
+            if(!is.null(ret$resulttable)){
+                sqlstr <- paste0("SELECT U_STAT AS u_stat, \n ",
+                                " P_VALUE AS p_value \n ",
+                                " FROM ",ret$resulttable)
+                result <- sqlQuery(connection, sqlstr)
+            }
+            else result <- ret
+            
+            res <- list(statistic = c(W = result$u_stat),
                         parameter = NULL,
-                        p.value = result$P,
+                        p.value = result$p_value,
                         null.value = c("location shift"=0),
                         alternative = "two.sided",
                         method = "Wilcoxon rank sum test",

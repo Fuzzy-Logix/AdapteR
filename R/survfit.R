@@ -72,7 +72,11 @@ FLsurvfit <- function(formula, data, weights,
             stop("columns specified in GroupBy not in data:Hint:check Case-Sensitivity \n ")
         vgrp <- paste0(vgroupCols,collapse=",")
         if(!length(vgroupCols)>0)
-            vgrp <- NULL
+            vgrp <- "NULL"
+
+        vwhereClause <- list(...)[["whereconditions"]]
+        if(is.null(vwhereClause))
+            vwhereClause <- "NULL"
 
         ret <- sqlStoredProc(connection,
                              "FLKaplanMeier",
@@ -80,13 +84,26 @@ FLsurvfit <- function(formula, data, weights,
                              TimeColName= vTimeVal,
                              StatusColName = vStatus,
                              Alpha = vAlpha,
-                             WhereClause = list(...)[["whereconditions"]],
+                             WhereClause = vwhereClause,
                              GroupBy = vgrp,
                              TableOutput = 1,
                              outputParameter = c(ResultTable = 'a')
                             )
-        ret <- as.character(ret[1,1])
+        colnames(ret) <- tolower(colnames(ret))
+        if("resulttable" %in% colnames(ret))
+            ret <- as.character(ret[1,1])
+        else{
+            ret <- as.FLTable(ret,uniqueIdColumn=1,
+                            temporary=TRUE,
+                            tableName="ARKaplanMeierResults",
+                            drop=TRUE)
+            ret <- "ARKaplanMeierResults"
+        }
 
+        if(vwhereClause=="NULL")
+            vwhereClause <- NULL
+        if(vgrp=="NULL")
+            vgrp <- NULL
         vgrpframe <- sqlQuery(connection,
                             paste0("SELECT DISTINCT ",
                                         ifelse(length(setdiff(vgrp,""))>0,
@@ -136,7 +153,10 @@ FLsurvfit <- function(formula, data, weights,
                             x = x[setdiff(names(x),"cnt")]
                             vresList <- list(
                                             n = vcnt,
-                                            time = fGenFLVector(vTimeVal,x,ObsID=1:vcnt),
+                                            time = fGenFLVector(ifelse(is.TDAster(),
+                                                                        "Time_Val",
+                                                                        vTimeVal),
+                                                                x,ObsID=1:vcnt),
                                             n.risk = fGenFLVector("NumAtRisk",x,ObsID=1:vcnt),
                                             n.event = fGenFLVector("NumEvents",x,ObsID=1:vcnt),
                                             n.censor = fGenFLVector("Censored",x,ObsID=1:vcnt),

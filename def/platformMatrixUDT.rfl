@@ -74,7 +74,7 @@ FLMatrixTrace.TDAster(MatrixID,MatrixTrace) <- FLMatrixTrace(matrix_id=matrix_id
 
 FLModeUdt.TD(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMode)
 FLModeUdt.Hadoop(oGroupID,oMode) <- FLPTFMode(vectorIdColumn=GroupID,vectorValueColumn=Value)
-FLModeUdt.TDAster(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=partition1,vectorValueColumn=oMode)
+FLModeUdt.TDAster(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=partition1,vectorValueColumn=mode)
 
 FLMedianUdt.TD(oGroupID,oMedian) <- FLMedianUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedian)
 FLMedianUdt.Hadoop(oGroupID,oMedian) <- FLPTFMedian(vectorIdColumn=GroupID,vectorValueColumn=MedianValue)

@@ -12,11 +12,13 @@ FLenv<-as.FL(Renv)
 test_that("test for pearson chi square on a table",{
 	r<-chisq.test(Renv$M)
 	fl<-chisq.test(FLenv$M,pear=1)
-	FLexpect_equal(as.numeric(r[["p.value"]]),as.numeric(fl[["p.value"]]))
+	FLexpect_equal(as.numeric(r[["p.value"]]),
+                    as.numeric(fl[["p.value"]]))
 	})
 
 test_that("test for pearson chi square on a matrix",{
 	r<-chisq.test(Renv$x)
 	fl<-chisq.test(FLenv$x,pear=1)
-	FLexpect_equal(as.numeric(r[["p.value"]]),as.numeric(fl[["p.value"]]))
+	FLexpect_equal(as.numeric(r[["p.value"]]),
+                as.numeric(fl[["p.value"]]))
 	})
