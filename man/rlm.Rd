@@ -24,4 +24,5 @@ flmod <- rlm(Weight~ Acceleration , data = widetbl)
 summary(flmod)
 coefficients(flmod)
 residuals(flmod)
+TO-DO: warning message for deeptable in model.
 }

@@ -29,7 +29,7 @@ obs and var ids
 resultList <- FLReshape(data="medEconomicData",
                         formula=CountryName ~ IndicatorCode,
                         value.var="TimeSeriesVal",
-                        subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Year=2010",
+                        subset="IndicatorCode in ('NY.GDP.MKTP.KD.ZG','FP.CPI.TOTL.ZG') and Years=2010",
                         outTable="tbl1",
                         drop=TRUE)
 }

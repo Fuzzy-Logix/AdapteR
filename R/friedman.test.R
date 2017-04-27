@@ -383,12 +383,6 @@ friedman.test.FLTable <- function(formula, data,
 #     }
 # }
 
-## ## S4 implementation because S3 not working for formula input case.
-## #' @export
-## setGeneric("friedman.test",
-##     function(y,
-##             ...)
-##         standardGeneric("friedman.test"))
 
 ## ## Not working: Environments related error.
 ## ## In the default R implementation, environments

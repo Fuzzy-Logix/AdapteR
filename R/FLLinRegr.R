@@ -942,7 +942,7 @@ prepareData.FLRegr <- function(formula, data, outDeepTableName="",
     dataCopy <- data
     vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=formula@RegrDataPrepSpecs,
                                                        values=list(...))
-    deepx <- FLRegrDataPrep(data,depCol=vRegrDataPrepSpecs$depCol,
+    deepx <- FLRegrDataPrep(data,depCol=formula@RegrDataPrepSpecs$depCol,
                             OutDeepTable=outDeepTableName,
                             OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
                             OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
@@ -1132,6 +1132,8 @@ prepareData.formula <- function(formula,data,
                               limitRowsSQL(paste0("SELECT * FROM (",
                                                   constructSelect(data),") a "),1))
         vtblInfo <- separateDBName(getTableNameSlot(data))
+        vColInfo <- c()
+        if(is.TD())
         vColInfo <- sqlQuery(getFLConnection(),
                             paste0("SELECT columnName FROM dbc.columns WHERE \n ",
                                     "columnType = 'CV' AND databaseName= ",
@@ -1228,8 +1230,7 @@ prepareData.formula <- function(formula,data,
                                 WhereClause=whereconditions,
                                 InAnalysisID="",
                                 fetchIDs=fetchIDs)
-
-        vRegrDataPrepSpecs <- list(outDeepTableName=outDeepTableName,
+            vRegrDataPrepSpecs <- list(
                                 outObsIDCol="obsid",
                                 outVarIDCol="varid",
                                 outValueCol="numval",
@@ -1961,15 +1962,9 @@ summary.FLLinRegr <- function(object,
 
 
 
-## Amal: If this generic gets defined here, predict doesn't work for rpart
-#' @export
-#predict<-function(object,newdata,...){
-#	UseMethod("predict",object)
-#}
-
 ## move to file lm.R
 ## Add deep statment, also problem can be of vobsid
-#' Use FLSUMPROD: usemethod dispatch, create new class.
+## Use FLSUMPROD: usemethod dispatch, create new class.
 #' @export
 predict.FLLinRegr <- function(object,
                               newdata=object@table,
@@ -2018,41 +2013,45 @@ predict.FLRobustRegr <- function(object,
 ## move to file lmGeneric.R
 #' @export
 predict.lmGeneric <- function(object,
-							newdata=object@table,
-							scoreTable="",
-                            type="response",...){ #browser()
-	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
-	newdata <- setAlias(newdata,"")
-	vinputTable <- getTableNameSlot(newdata)
+                              newdata=object@table,
+                              scoreTable="",
+                              type="response",...){ 
+    if(!is.FLTable(newdata) && class(newdata) != "FLpreparedData") stop("scoring allowed on FLTable only")
+    vfcalls <- object@vfcalls
+    if(class(newdata) == "FLpreparedData"){
+        newdata <- newdata$deepx
+    }
+    else{
+        newdata <- prepareData(object,newdata,outDeepTableName="", ...) }
 
-	if(scoreTable=="")
-	# scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
-	# 					gen_score_table_name(getTableNameSlot(object@table)))
+    newdata <- setAlias(newdata,"")
+
+    if(scoreTable=="")
+                                        # scoreTable <- paste0(getOption("ResultDatabaseFL"),".",
+                                        # 					gen_score_table_name(getTableNameSlot(object@table)))
 	scoreTable <- gen_score_table_name(getTableNameSlot(object@table))
-	# else if(!grep(".",scoreTable)) 
-	# 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
-	
-	vfcalls <- object@vfcalls
-    newdata <- prepareData(object,newdata,outDeepTableName="", ...)
-	
-	vtable <- getTableNameSlot(newdata)
-	vobsid <- getObsIdSQLExpression(newdata)
-	vvarid <- getVarIdSQLExpression(newdata)
-	vvalue <- getValueSQLExpression(newdata)
+                                        # else if(!grep(".",scoreTable)) 
+                                        # 		scoreTable <- paste0(getOption("ResultDatabaseFL"),".",scoreTable)
+    
+    vinputTable <- getTableNameSlot(newdata)
+    vtable <- getTableNameSlot(newdata)
+    vobsid <- getObsIdSQLExpression(newdata)
+    vvarid <- getVarIdSQLExpression(newdata)
+    vvalue <- getValueSQLExpression(newdata)
 
-	vinputCols <- list()
-	vinputCols <- c(vinputCols,
-					TableName=getTableNameSlot(newdata),
-					ObsIDCol=vobsid,
-					VarIDCol=vvarid,
-					ValCol=vvalue
-					)
-	if(!object@vfcalls["functionName"]=="FLPoissonRegr")
-	vinputCols <- c(vinputCols,
-					WhereClause="NULL")
-	vinputCols <- c(vinputCols,
-					RegrAnalysisID=object@AnalysisID,
-					ScoreTable=scoreTable)
+    vinputCols <- list()
+    vinputCols <- c(vinputCols,
+                    TableName=vtable,
+                    ObsIDCol=vobsid,
+                    VarIDCol=vvarid,
+                    ValCol=vvalue
+                    )
+    if(!object@vfcalls["functionName"]=="FLPoissonRegr")
+        vinputCols <- c(vinputCols,
+                        WhereClause="NULL")
+    vinputCols <- c(vinputCols,
+                    RegrAnalysisID=object@AnalysisID,
+                    ScoreTable=scoreTable)
 
 	if(!is.Hadoop())
 	vinputCols <- c(vinputCols,
@@ -2093,9 +2092,6 @@ predict.lmGeneric <- function(object,
 
 		return(flv)
 }
-
-## move to file lm.R
-NULL
 
 #' Print FLLinRegr Object
 #'
@@ -2211,11 +2207,11 @@ influence.FLLinRegr <- function(model,...){
 lm.influence <- function(model,do.coef=TRUE,...){
 	UseMethod("lm.influence",model)
 }
+
 #' @export
 lm.influence.default <- stats::lm.influence
-#' @export
 
-## move to file lm.R
+#' @export
 lm.influence.FLLinRegr <- function(model,do.coef=TRUE,...){
 	reqList <- list(residuals=as.vector(model$residuals),
 					coefficients=model$coefficients,
@@ -2378,7 +2374,7 @@ print.FLLinRegrMD <- summary.FLLinRegrMD
 }
 setDefaultsRegrDataPrepSpecs <- function(x,values){
     x <- as.list(x)
-    for(i in c("catToDummy","performNorm",
+    for(i in c("depCol", "catToDummy","performNorm",
                 "performVarReduc","minStdDev",
                 "maxCorrel","makeDataSparse",
                 "excludeCols","classSpec")){
@@ -2427,6 +2423,14 @@ getFittedValuesLogRegrSQL.FLTableDeep.TDAster <- getFittedValuesLogRegrSQL.FLTab
 
 getFittedValuesLogRegrSQL.default <- function(object,newdata,scoreTable){
     vobsid <- getObsIdSQLExpression(newdata)
+    vfcalls <- object@vfcalls
+    getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
+                                    valueColumn=vfcalls["valcolnamescoretable"],
+                                    FromTable=scoreTable)
+}
+
+getFittedValuesLogRegrSQL.FLpreparedData <- function(object,newdata,scoreTable){
+    vobsid <- newdata$deepx@select@variables$obs_id_colname
     vfcalls <- object@vfcalls
     getFLVectorTableFunctionQuerySQL(indexColumn=vobsid,
                                     valueColumn=vfcalls["valcolnamescoretable"],
@@ -2548,3 +2552,28 @@ getReferenceCategories <- function(data,pExcludeCols="",
     }
     return(classSpec)
 }
+
+setMethod("names",signature("FLLinRegr"),
+          function(x) c("coefficients",
+                        "residuals",
+                        "fitted.values",
+                        "FLCoeffStdErr",
+                        "FLCoeffTStat",
+                        "FLCoeffPValue",
+                        "FLCoeffNonZeroDensity",
+                        "FLCoeffCorrelWithRes",
+                        "s",
+                        "call",
+                        "FLLinRegrStats",
+                        "df.residual",
+                        "model",
+                        "x",
+                        "y",
+                        "qr",
+                        "rank",
+                        "terms",
+                        "xlevels",
+                        "assign",
+                        "formula",
+                        "anova"
+                        ))

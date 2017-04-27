@@ -922,8 +922,8 @@ as.FLTable.data.frame <- function(object,
   stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
   if(uniqueIdColumn==0){
     vrownames <- rownames(object)
-    if(!any(is.na(as.numeric(vrownames))))
-        vrownames <- as.numeric(vrownames)
+    if(!any(is.na(as.integer(vrownames))))
+        vrownames <- as.integer(vrownames)
     object <- base::cbind(ObsID=vrownames,object)
     obsIdColname <- "ObsID"
   }

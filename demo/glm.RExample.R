@@ -55,24 +55,26 @@ vtemp <- readline("Above: Head is supported to examine structure of data \n Pres
 ## prepare data in a sparse format for
 ## the fast in-database logistic regression
 ## algorithm exploiting sparseness.
-deepTableName <- "ARBaseglmRExampleDemoDeep"
-## Drop Deeptable if already exists
-## To demo Data Prep Step
-dropTable(deepTableName)
 
 
-if(!existsRemoteTable(tableName=deepTableName)){
-    FLdeepTable <- prepareData(formula         = var3 ~ var1 + var2 ,
-                               data            = FLwideTable,
-                               outDeepTableName= deepTableName,
-                               fetchIDs        = FALSE)
-} else {
+if(!exists("FLdeepTable")){
+    deepTableName <- "ARBaseglmRExampleDemoDeep"
+    ## Drop Deeptable if already exists
+    ## To demo Data Prep Step
+    dropTable(deepTableName)
+    if(!existsRemoteTable(tableName=deepTableName)){
+        FLdeepTable <- prepareData(formula         = var3 ~ var1 + var2 ,
+                                   data            = FLwideTable,
+                                   outDeepTableName= deepTableName,
+                                   fetchIDs        = FALSE)
+    } else {
     ## or you can use an already created deep table again:
-    FLdeepTable <- FLTable(deepTableName,
-                           obs_id_colname   = 'obsid',    
-                           var_id_colnames  = 'varid', 
-                           cell_val_colname = 'numval',
-                           fetchIDs = FALSE)
+        FLdeepTable <- FLTable(deepTableName,
+                               obs_id_colname   = 'obsid',    
+                               var_id_colnames  = 'varid', 
+                               cell_val_colname = 'numval',
+                               fetchIDs = FALSE)
+}
 }
 vtemp <- readline("Press <ENTER> to start in-database logistic regression. \n ")
 
@@ -85,6 +87,7 @@ vtemp <- readline("Press <ENTER> to start in-database logistic regression. \n ")
 ## then AdapteR is doing data prep for you automatically.
 ## The created deep table is accessible afterwards for
 ## further analyses.
+if(!exists("vresFL"))
 vresFL <- glm(var3 ~ var1 + var2, data=FLdeepTable, family = "binomial")
 
 summary(vresFL)
@@ -109,7 +112,7 @@ head(vresFL$fitted.values,display=TRUE)
 vtemp <- readline("Above: Examining the fitted values on same data \n ")
 
 ### Examine the plots
-plot(vresFL,method="FL")
+plot(vresFL,method="R")
 
 ####### END #######
 #### Thank You ####

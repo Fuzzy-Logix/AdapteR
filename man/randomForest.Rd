@@ -34,4 +34,3 @@ then averages them.
 flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 flobj<-randomForest(data = flt, formula = -1~., ntree=5)
 }
-

@@ -16,7 +16,6 @@
 #' S<-as.FLMatrix(s)
 #' mahalanobis(x,y,S)
 #' @export
-
 mahalanobis<-function(x,y,S,...){
 	UseMethod("mahalanobis",x)
 }

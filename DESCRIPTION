@@ -1,7 +1,7 @@
 Package: AdapteR
 Title: Converts R syntax to SQL to provide fast analytics using in-database C++
     library DB Lytix.
-Version: 2.5
+Version: 2.6
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -26,7 +26,7 @@ Description: drop 6 alpha! With Fuzzy Logix' DB Lytix(TM), advanced analytics
     will demonstrate how AdapteR can be used to build interactive analytics at scale
     with just a few lines of R code!
 Depends:
-    R (>= 3.1.0),
+    R (>= 3.3.1),
     methods,
     Matrix (>= 1.1-5)
 Imports:
@@ -55,7 +55,7 @@ Suggests:
     stringdist
 License: GPL-2
 LazyData: true
-Collate:
+Collate: 
     'FLconstructSQL.R'
     'platformMappings.R'
     'platforms.R'
@@ -100,6 +100,9 @@ Collate:
     'FLLDA.R'
     'FLLUDecomp.R'
     'FLLength.R'
+    'FLLinRegr.R.BASE.R'
+    'FLLinRegr.R.LOCAL.R'
+    'FLLinRegr.R.REMOTE.R'
     'FLLogRegr.R'
     'FLLogRegrMN.R'
     'FLMatrixArithmetic.R'

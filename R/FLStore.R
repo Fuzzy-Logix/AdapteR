@@ -266,7 +266,7 @@ store.FLTable <- function(object,pTableName=NULL,...)
   return(table)
 }
 
-# #' @export
+# 
 # store.character <- function(object,returnType,connection)
 # {
 #   if(toupper(returnType)=="MATRIX")

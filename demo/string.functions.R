@@ -82,6 +82,7 @@ if(any(grepl("Star Wars",FLVecObj))){
 vtemp<- readline("Above: Demonstrates support of expressions in AdapteR")
 
 run.FLStringDistShiny <- function (){
+    require(plyr)
     ## #########################################################
     ## Shiny web application Demo
     ##
@@ -109,6 +110,9 @@ run.FLStringDistShiny <- function (){
     }
     ##findName(FLTblObj,"Jim","Director")
     require(R.utils)
+    if (!requireNamespace("shiny", quietly = TRUE)){
+        install.packages("shiny")
+    }
     require(shiny)
     shinyApp(
         ui = fluidPage(

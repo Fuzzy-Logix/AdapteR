@@ -27,7 +27,7 @@ the proportion of the votes for the winning class are returned as attribute prob
 
 \item{classify}{logical if classification/regression is solved}
 
-\item{metric}{distance metric to be used. euclidean,manhattan supported.}
+\item{metric}{distance metric to be used. euclidean, manhattan supported.}
 }
 \value{
 FLVector of classifications of test set.

@@ -73,10 +73,6 @@ setMethod("lu", signature(object = "dgCMatrix"),
 setMethod("lu", signature(object = "FLMatrix"),
           function(object,...)
              lu.FLMatrix(object,...))
-# #' @export
-# lu<-function(object, ...){
-# 	UseMethod("lu",object)
-# }
 
 #' @export
 lu.default <- Matrix::lu

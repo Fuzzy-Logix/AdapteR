@@ -488,6 +488,7 @@ constructUnionSQL <- function(pFrom,
 
 ############################ DDLs ##########################################
 ## Set Database
+#' @export
 setCurrentDatabase <- function(pDBName){
     if(is.Hadoop())
         vsqlstr <- paste0("USE ",pDBName)

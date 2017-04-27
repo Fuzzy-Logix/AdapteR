@@ -269,7 +269,6 @@ NULL
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]
 #' @export
-
 `[.FLVector` <- function(object,pSet=1:length(object))
 {
   ##browser()
