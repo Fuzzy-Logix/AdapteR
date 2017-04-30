@@ -118,7 +118,6 @@ if (!requireNamespace("plotly", quietly = TRUE)){
 require(plotly)
 
 attach(medEconomicData)
->>>>>>> 6a7c8a74d9880f0089ce85f8cd18087706254e8f
 colr <- c("grey","yellow","blue","green","brown","orange")
 p1 <- plot_ly(x= Inflation,
               y= GDP,

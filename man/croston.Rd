@@ -31,4 +31,3 @@ x<-rnorm(1000)
 flv<-as.FLVector(x)
 flobj<-croston(object = flv, h=9)
 }
-

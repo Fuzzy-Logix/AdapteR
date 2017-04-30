@@ -634,5 +634,4 @@ plot.FLrtree<-function(object){ #browser()
 		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
->>>>>>> 6a7c8a74d9880f0089ce85f8cd18087706254e8f
 }

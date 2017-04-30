@@ -10,8 +10,8 @@ NULL
 ## dump("MatrixUDTMappingsFL",file="AdapteR/R/platformMappings.R",append=TRUE)
 ## FLcreatePlatformsMapping()
 
-options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
-options(storedProcMappingsFL=storedProcMappingsFL)
+# options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+# options(storedProcMappingsFL=storedProcMappingsFL)
 
 #' @export
 setClass("FLConnection",slots=list())

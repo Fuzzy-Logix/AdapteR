@@ -28,4 +28,3 @@ x<-rnorm(1000)
 flv<-as.FLVector(x)
 flobj<-arima(object = flv, order=c(3,0,0))
 }
-

@@ -38,4 +38,3 @@ x<-rnorm(1000)
 flv<-as.FLVector(x)
 flobj<-adf.test(object = flv, k=9)
 }
-

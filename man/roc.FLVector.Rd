@@ -29,4 +29,3 @@ head(fltbl)
 fltbl <- as.FLTable(fltbl)
 flmod <- roc(fltbl$res, fltbl$pred)
 }
-

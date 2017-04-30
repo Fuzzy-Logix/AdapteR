@@ -135,7 +135,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 }
 
 
-setMethod("names", signature("FLROC"), function(object) c("sensitivities","specificities",
+setMethod("names", signature("FLROC"), function(x) c("sensitivities","specificities",
                                                           "original.predictor","original.response",
                                                           "levels",
                                                           "controls","cases",
