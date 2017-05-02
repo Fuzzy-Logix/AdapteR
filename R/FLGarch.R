@@ -1,11 +1,19 @@
-
 #' @export
 setClass("FLGarch",
          slots = list(results = "list"))
 
 #' @export
-garch <- function (data=list(),degree, ...) {
+garch <- function (data=list(),order = c(1,1), ...) {
     UseMethod("garch", data)
+}
+
+#' @export
+garch.default<-function (object,order = c(1,1),...) {
+    if (!requireNamespace("tseries", quietly = TRUE)){
+        stop("tseries package needed for Augmented Dickey Fuller test. Please install it.",
+             call. = FALSE)
+    }
+    else return(tseries::garch(object,...))
 }
 
 
@@ -13,28 +21,90 @@ garch <- function (data=list(),degree, ...) {
 ##Example:
 #'rv <- sqlQuery(connection, "SELECT stockreturn FROM tblbac_return")
 #'flv <- as.FL(rv$stockreturn)
-#' garch(flv)
+#' flmod <- garch.FLVector(flv, order = c(1,1))
+#' ARCHqUDT Example.
+#' rv <- sqlQuery(connection, "SELECT stockprice  FROM tblbac")
+#' flv <- as.FL(rv$stockprice)
+#' flmod <- garch.FLVector(flv, order = c(0,1))
 #' @export
-garch.FLVector <- function(data,degree = 2, ...)
+garch.FLVector <- function(data,order = c(1,1),...)
 {
+    callObject <- match.call()
     if(!is.FLVector(data)){
         stop("only applicable on FLVector")
     }
     browser()
-    functionName <- "FLIGarchUdt"
+    if(is.null(list(...)[["ValueType"]]))
+        Valtype = "R"
+    else
+        Valtype = list(...)[["ValueType"]]
+    
+    if(order[1] == 0){
+        functionName <- "FLARCHqUDT"
+        q <- order[2]
+        vColname <- c(GroupID = 1,
+                      q = q,
+                      ValType = fquote(Valtype),
+                      Val = "vectorValuecolumn")
+        
+        vsubset <- c("GroupID","q","ValType","Val")}
+
+    if(order[1] >= 1){
+        functionName <- "FLGARCHpqUdt"
+        p <- order[1]
+        q <- order[2]
+        vColname <- c(GroupID = 1,
+                      q = q,
+                      p = p,
+                      ValType = fquote(Valtype),
+                      Val = "vectorValuecolumn")
+        vsubset <- c("GroupID","q","p","ValType","Val")
+    }
+    
     ##pArg <- c(pD = degree)
-    str <- constructUDTSQL(pViewColname = c(GroupID = 1,
-                                            q = 1,
-                                            p = 1,
-                                            Val = "vectorValuecolumn"),
+    str <- constructUDTSQL(pViewColname = vColname,
                          pFuncName = functionName,
                          pOutColnames = c("a.*"),
                          pSelect = constructSelect(data),
                          ##pArgs = pArg,
-                         pLocalOrderBy=c("GroupID", "val"), pNest = TRUE, pFromTableFlag = FALSE)
+                         pLocalOrderBy=c("GroupID", "val"),
+                         pNest = TRUE,
+                         pFromTableFlag = FALSE,
+                         UDTInputSubset = vsubset)
     vdf <- sqlQuery(connection, str)
-    return(vdf)
+    vdf <- vdf[, -1]
+        return(new("FLGarch",
+                   results=list(call=callObject,
+                                q = q,
+                                vout = vdf )))   
 }
+
+`$.FLGarch`<-function(object,property){
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+
+    voutput <- object@results$vout
+    if(property == "Alpha"){
+        return(voutput$oParmValue[voutput["oParmName"] == "Alpha1"])}
+    if(property == "Beta"){
+        return(voutput$oParmValue[voutput["oParmName"] == "Beta1"])}
+    if(property == "Gamma"){
+        return(voutput$oParmValue[voutput["oParmName"] == "Gamma"])}
+    if(property == "Omega"){
+        return(voutput$oParmValue[voutput["oParmName"] == "Omega"])}
+    if(property == "AIC"){
+        return(voutput$oParmValue[voutput["oParmName"] == "AIC"])}
+    if(property == "SBC"){
+        return(voutput$oParmValue[voutput["oParmName"] == "SBC"])}
+    if(property == "Variance"){
+        return(voutput$oParmValue[voutput["oParmName"] == "Variance"])}
+    if(property == "ConvCrit"){
+        return(voutput$oParmValue[voutput["oParmName"] == "ConvCrit"])}
+}
+ 
+
+
+
+
 
 
 #' @export
