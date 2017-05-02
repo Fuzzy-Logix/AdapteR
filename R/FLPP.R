@@ -2,7 +2,14 @@
 #' flv <- as.FL(vdf$Num_Val)
 #' rv <- vdf$Num_Val
 #' flmod <- PP.test(flv)
-#' 
+#' test case in test_FLdifference.
+
+
+#' @export
+setClass(
+    "FLPP",
+    slots=list(results = "list" ))
+
 
 
 #' @export
@@ -46,12 +53,12 @@ PP.test.FLTable<-function(object,
                           p.value=ret$Pval,
                           method="Phillips-Perron Unit Root Test",
                           data.name=dname),
-                     class  = "htest"
+                     class  = c("FLPP")
                      )    
     return(vreturn)   
 }
 
-`$.htest`<-function(object,property){
+`$.FLPP`<-function(object,property){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
     if(property == "statistic"){
@@ -63,3 +70,5 @@ PP.test.FLTable<-function(object,
     if(property == "p.value"){
         return(object$Pval)      
 } }
+ 
+

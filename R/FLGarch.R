@@ -1,3 +1,4 @@
+
 #' @export
 setClass("FLGarch",
          slots = list(results = "list"))
@@ -8,6 +9,7 @@ garch <- function (data=list(),degree, ...) {
 }
 
 
+## test case in test_FLdifference.
 ##Example:
 #'rv <- sqlQuery(connection, "SELECT stockreturn FROM tblbac_return")
 #'flv <- as.FL(rv$stockreturn)
@@ -40,11 +42,20 @@ regimeshift <- function (data=list(),regimes = 2, ...) {
     UseMethod("regimeshift", data)
 }
 
+## test case in test_FLdifference.
+#' @export
+#' \code{regimeshift} performs helps in identifying the parameters of the
+#' Gaussian distribution and the probability that a given observation has been
+#' drawn from a given distribution on FLVector objects.
 
-##Example:
+#' The DB Lytix function called is FLRegimeShiftUdt. 
+#' @param data An object of class FLVector.
+#' @param regimes Total number of Regimes.
+#' @return \code{regimeshift} returns a data.frame
+#' @examples
 #'vdf <-  sqlQuery(connection, "SELECT Num_Val FROM tblRegimeShift WHERE Groupid = 1 AND Obsid <500")
-#'flv <- as.FL(rv$Num_Val)
-#' regimeshift(flv)
+#'flv <- as.FL(vdf$Num_Val)
+#' flmod <- regimeshift(flv, regimes = 3)
 #' @export
 regimeshift.FLVector <- function(data,regimes = 2, ...)
 {
@@ -60,7 +71,10 @@ regimeshift.FLVector <- function(data,regimes = 2, ...)
                          pOutColnames = c("a.*"),
                          pSelect = constructSelect(data),
                          pArgs = pArg,
-                         pLocalOrderBy=c("GroupID"), pNest = TRUE, pFromTableFlag = FALSE)
+                         pLocalOrderBy=c("GroupID"),
+                         pNest = TRUE,
+                         pFromTableFlag = FALSE,
+                         UDTInputSubset = c("GroupID", "Val"))
     vdf <- sqlQuery(connection, str)
     vdf <- vdf[,2:length(vdf)]
     names(vdf) <- c("Regime", "Mean", "StdDev", "Prob")

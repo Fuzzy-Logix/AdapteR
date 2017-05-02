@@ -77,7 +77,6 @@ Collate:
     'FLDet.R'
     'FLDiag.R'
     'FLDims.R'
-    'FLEWMA.R'
     'FLEigen.R'
     'FLExpLog.R'
     'FLKMedoids.R'
