@@ -30,7 +30,7 @@ arima.default  <- function (object,...){
 }
 
 #' @export
-arima.FLVector<-function(object,
+arima.FLVector.TDAster<-function(object,
 						 order=c(1,0,0),...){ browser()
 	if(!is.FLVector(object)) stop("The class of the input object should be FLVector")
 	if(any(order<0)) stop("The p, d and q values should be positive integers")
@@ -43,9 +43,10 @@ arima.FLVector<-function(object,
                                                 d=order[2],
                                                 q=order[3])))
 	temp1 <- createTable(pTableName=gen_unique_table_name("arima"),
-                        pSelect=t,
-                        pPrimaryKey="GroupID")
+                         pSelect=t,
+                         pPrimaryKey="GroupID")
 	pSelect<-paste0("Select * from ",temp1)
+
 	query<-constructUDTSQL(pViewColnames=c(pgroupid="groupid",
                                            pobsid="obsid",
 						   				   pnum_val="num_val",
@@ -54,30 +55,109 @@ arima.FLVector<-function(object,
 						   				   q="q"),
 						   pSelect=pSelect,
 						   pOutColnames=c("a.*"),
-						   pFuncName="FLARIMAUdt",
+						   pFuncName="FLArimaUdt",
 						   pLocalOrderBy=c("pgroupid","pobsid"),
-                           pNest=TRUE)
-	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),
+                           pNest=TRUE,
+                           ...)
+
+    ## Platform Mapping
+    vMap <- getMatrixUDTMapping("FLArimaUdt")
+    pOutColnames <- vMap$argsPlatform
+
+
+    temp2 <- createTable(pTableName=gen_unique_table_name("temp"),
                         pSelect=query,
-                        pPrimaryKey="partition1")
-	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2," order by 2,3"))
-	coefFrame<- ret[ret$oParamType=="1",4:5]
-	coefnames<-coefFrame[,1]
-	coef<-coefFrame[,2]
-	names(coef)<-coefnames
-	rtobj<-list(coef=coef,
-				ret=ret,
-				sigma2=ret[ret$oParamName=="SigmaSq",5],
-				call=match.call(),
-				loglik=ret[ret$oParamName=="Likelihood",5],
-				nobs=length(object)-order[2],
-				series="object",
-				n.cond=order[1]+order[2])
-	class(rtobj)<-"FLArima"
-	return(rtobj)
+                        pPrimaryKey=pOutColnames["oGroupID"])
+    
+    ret <- sqlQuery(getFLConnection(),
+                    paste0("Select * from ",temp2," order by 2,3"))
+
+    coefFrame<- ret[ret[[pOutColnames["oParamType"]]]=="1",4:5]
+    coefnames<-coefFrame[,1]
+    coef<-coefFrame[,2]
+    names(coef)<-coefnames
+    rtobj<-list(coef=coef,
+                ret=ret,
+                sigma2=ret[ret[[pOutColnames["oParamName"]]]=="SigmaSq",5],
+                call=match.call(),
+                loglik=ret[ret[[pOutColnames["oParamName"]]]=="Likelihood",5],
+                nobs=length(object)-order[2],
+                series="object",
+                n.cond=order[1]+order[2]
+                )
+    class(rtobj)<-"FLArima"
+    return(rtobj)
 }
 
-print.FLArima<-function(object){ #browser()
+#' @export
+arima.FLVector.TD<-function(object,
+                            order=c(1,0,0),...){
+
+    return(arima.FLVector.TDAster(object=object,
+                                order=order,
+                                UDTInputSubset=c("pgroupid","pnum_val",
+                                                "p","d","q"),
+                                ...))
+    # if(!is.FLVector(object)) stop("The class of the input object should be FLVector")
+    # if(any(order<0)) stop("The p, d and q values should be positive integers")
+
+    # t <- constructUnionSQL(pFrom = c(a = constructSelect(object)),
+    #                        pSelect = list(a = c(groupid = 1,
+    #                                             obsid = "a.vectorIndexColumn",
+    #                                             num_val = "a.vectorValueColumn",
+    #                                             p=order[1],
+    #                                             d=order[2],
+    #                                             q=order[3])))
+    # temp1 <- createTable(pTableName=gen_unique_table_name("arima"),
+    #                     pSelect=t,
+    #                     pPrimaryKey="GroupID")
+    # pSelect<-paste0("Select * from ",temp1)
+    # query<-constructUDTSQL(pViewColnames=c(pgroupid="groupid",
+    #                                        pobsid="obsid",
+    #                                        pnum_val="num_val",
+    #                                        p="p",
+    #                                        d="d",
+    #                                        q="q"),
+    #                        pSelect=pSelect,
+    #                        pOutColnames=c("a.*"),
+    #                        pFuncName="FLARIMAUdt",
+    #                        pLocalOrderBy=c("pgroupid","pobsid"),
+    #                        pNest=TRUE,
+    #                        UDTInputSubset=c("pgroupid","pnum_val",
+    #                                         "p","d","q")
+    #                        )
+
+    # ## Platform Mapping
+    # vMap <- getMatrixUDTMapping("FLArimaUdt")
+    # pOutColnames <- vMap$argsPlatform
+
+
+    # temp2 <- createTable(pTableName=gen_unique_table_name("temp"),
+    #                     pSelect=query,
+    #                     pPrimaryKey=pOutColnames["oGroupID"])
+    
+    # ret <- sqlQuery(getFLConnection(),
+    #                 paste0("Select * from ",temp2," order by 2,3"))
+
+    # coefFrame<- ret[ret[[pOutColnames["oParamType"]]]=="1",4:5]
+    # coefnames<-coefFrame[,1]
+    # coef<-coefFrame[,2]
+    # names(coef)<-coefnames
+    # rtobj<-list(coef=coef,
+    #             ret=ret,
+    #             sigma2=ret[ret[[pOutColnames["oParamName"]]]=="SigmaSq",5],
+    #             call=match.call(),
+    #             loglik=ret[ret[[pOutColnames["oParamName"]]]=="Likelihood",5],
+    #             nobs=length(object)-order[2],
+    #             series="object",
+    #             n.cond=order[1]+order[2]
+    #             )
+    # class(rtobj)<-"FLArima"
+    # return(rtobj)
+}
+
+#' @export
+print.FLArima<-function(object){
 	if(!class(object)=="FLArima") stop("The object class should be FLArima")
 	cat("\nCall:", deparse(object$call, width.cutoff = 75L), "", sep = "\n")
 	s.e.<-object$ret[object$ret$oParamType=="1",6]
@@ -87,3 +167,4 @@ print.FLArima<-function(object){ #browser()
 	cat(paste0("\nsigma^2 estimated as ",round(object$sigma2,digits=3),":  log likelihood = ",
 				round(object$loglik, digits=3)))
 }	
+
