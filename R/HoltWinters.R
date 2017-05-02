@@ -54,10 +54,9 @@ HoltWinters.FLVector<-function(object,
 		pFuncName<-"FLExpSmooth1FactorUdt"
 	}
 	else {
-		if(!all(beta) && all(gamma)) beta<-0
 		pSelect<-paste0("Select GroupID, PeriodID, Num_Val, periodicity,
 						alpha, beta, gamma, forecastperiod from ",temp1)
-		 pViewColnames<-c(pGroupID="GroupID",
+		pViewColnames<-c(pGroupID="GroupID",
 						 pNum_Val="Num_Val",
 			 			 pPeriodicity="periodicity",
 						 pAlpha="alpha",
@@ -65,7 +64,7 @@ HoltWinters.FLVector<-function(object,
 						 pGamma="gamma",
 						 pNormal=normalization,
 						 pForecastPeriod=forecastperiod)
-		 pFuncName<-"FLHoltWintersUdt"
+		pFuncName<-"FLHoltWintersUdt"
 	}
 
 	query<-constructUDTSQL(pViewColnames=pViewColnames,
@@ -76,5 +75,15 @@ HoltWinters.FLVector<-function(object,
 						   pNest=TRUE)
 	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=query)
 	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2," order by 2"))
-	return(ret)
+	retobj<-list(fitted=ret,
+				 x=object,
+				 alpha=alpha,
+				 beta=beta,
+				 gamma=gamma,
+				 coefficients=NULL,
+				 seasonal="additive",
+				 SSE=NULL,
+				 call=match.call())
+	class(retobj)<-"HoltWinters"
+	return(retobj)
 }
