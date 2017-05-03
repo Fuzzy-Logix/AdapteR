@@ -59,9 +59,9 @@ croston.FLVector<-function(object,
 						   pLocalOrderBy=c("pGroupID","pPeriodID"),
 						   UDTInputSubset=c(1,3))
 	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=query)
-	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2," order by 2"))
-	retv<-ret$oForecastValue
-	mean<-ts(data=tail(retv,n=h),start=length(object)+1)
+	flt <- FLTable(temp2, "oPeriodID")
+	retv<-flt$oForecastValue
+	mean<-ts(data=as.vector(tail(retv,n=h)),start=length(object)+1)
 	fitted<-head(retv,n=length(object))
 	residuals<-object-fitted
 	ret<-list(mean=mean,
