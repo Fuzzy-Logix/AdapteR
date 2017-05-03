@@ -40,14 +40,12 @@ FLexpect_equal(flmod$Prob[2], 0.91578054, tolerance = .0001)
 
 ## tests case for FLEWMA.
 ## DBlytix Example.
-
-
-
 rv <- sqlQuery(connection, "SELECT NUM_VAL FROM tblTimeSeriesW1")
 flv <- as.FL(rv$NUM_VAL)
-flmod <- FLdiff(flv)
+flmod <- FLEWMA(flv)
 
 ## comparing Probablity with DBLytix.
 FLexpect_equal(length(flmod), 7)
 FLexpect_equal(flmod$NumObs, 2297)
 FLexpect_equal(flmod$Variance, 0.0002737248, tolerance = .0001)
+FLexpect_equal(names(flmod),c("NumObs","Lambda","Variance","LogL", "SBC", "AIC", "ConvCrit") )

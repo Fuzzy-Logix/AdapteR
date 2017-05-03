@@ -2,7 +2,14 @@
 #' flv <- as.FL(vdf$Num_Val)
 #' rv <- vdf$Num_Val
 #' flmod <- PP.test(flv)
-#' 
+#' test case in test_FLdifference.
+
+
+#' @export
+setClass(
+    "FLPP",
+    slots=list(results = "list" ))
+
 
 
 #' @export
@@ -20,7 +27,6 @@ PP.test.FLTable<-function(object,
                            trend=1,
                            lag = 1,
                            ...){
-    browser()
     ##if(!is.FLVector(object)) stop("The class of the object should be FLVector.")
     vinputcols<-list(TableName=getTableNameSlot(object),
                      ObsIDCol=object@select@variables$obs_id_colname,
@@ -47,20 +53,21 @@ PP.test.FLTable<-function(object,
                           p.value=ret$Pval,
                           method="Phillips-Perron Unit Root Test",
                           data.name=dname),
-                     class  = "htest"
+                     class  = c("FLPP")
                      )    
     return(vreturn)   
 }
 
-# `$.htest`<-function(object,property){
-#     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
-#     if(property == "statistic"){
-#         return(object$dft)}
-#     if(property == "method"){
-#         return("Phillips-Perron Unit Root Test")}
-#     if(property == "parameter"){
-#         return(0)}
-#     if(property == "p.value"){
-#         return(object$Pval)      
-# } }
+`$.FLPP`<-function(object,property){
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+
+    if(property == "statistic"){
+        return(object$dft)}
+    if(property == "method"){
+        return("Phillips-Perron Unit Root Test")}
+    if(property == "parameter"){
+        return(0)}
+    if(property == "p.value"){
+        return(object$Pval)      
+} }
