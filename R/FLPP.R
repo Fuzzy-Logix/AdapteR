@@ -1,37 +1,49 @@
+#' @export
+PP.test<-function(x,...){
+	UseMethod("PP.test",x)
+}
+
+#' @export
+PP.test.default<-function (x,...) {
+     return(stats::PP.test(x,...))
+}
+
+
+
+#' test case in test_FLdifference.
+#' 
+#' \code{PP.test} performs Phillips Perron for Stationarity on FLVector objects.
+#'
+#' The DB Lytix function called is FLPP. Stored procedure to perform Phillips Perron
+#' for Stationarity.Stationarity : A weak stationarity condition requires the
+#' first moment and the auto-covariance function of the time series to be
+#' finite and time invariant stores the results in data frame.
+#'
+#' @seealso \code{\link[stats]{PP.test}} for R reference implementation.
+
+#' @param data An object of class FLVector.
+#' @param trend Whether to include trend order or not.
+#' @param Lag Whether to use long or short order for lag of auto-correlation functions.
+#' @return \code{PP.test} returns a list of class htest
+#' @examples
 #' vdf <- sqlQuery(connection, "SELECT Num_Val FROM tblsensex")
 #' flv <- as.FL(vdf$Num_Val)
 #' rv <- vdf$Num_Val
 #' flmod <- PP.test(flv)
-#' test case in test_FLdifference.
-
-
 #' @export
-setClass(
-    "FLPP",
-    slots=list(results = "list" ))
-
-
-
-#' @export
-PP.test<-function(object,...){
-	UseMethod("PP.test",object)
-}
-
-#' @export
-PP.test.default<-function (object,...) {
-     return(PP.test(object,...))
-}
-
-#' @bexport
-PP.test.FLTable<-function(object,
+PP.test.FLVector<-function(x,
+                           data,
                            trend=1,
                            lag = 1,
                            ...){
-    browser()
+    ##browser()
     ##if(!is.FLVector(object)) stop("The class of the object should be FLVector.")
-    vinputcols<-list(TableName=getTableNameSlot(object),
-                     ObsIDCol=object@select@variables$obs_id_colname,
-                     ValueCol="NUM_VAL",
+    vviewname <- gen_view_name("pp.test")
+    vtbl <- createView(pViewName = vviewname,
+                       pSelect = constructSelect(x))
+    vinputcols<-list(TableName=vviewname,
+                     ObsIDCol="VectorindexColumn",
+                     ValueCol="VectorValueColumn",
                      Trend=trend,
                      Lag=lag)
     vfuncName<-"FLPP"
@@ -48,27 +60,12 @@ PP.test.FLTable<-function(object,
     names(statistic)<-"Dickey-Fuller"
     names(parameter)<-"Truncation lag parameter"
     vreturn <- structure(list(statistic = statistic,
-                          parameter=parameter,
-                          ##alternative="stationary",
-                          p.value=ret$Pval,
-                          method="Phillips-Perron Unit Root Test",
-                          data.name=dname),
-                     class  = c("FLPP")
-                     )    
+                              parameter=parameter,
+                              ##alternative="stationary",
+                              p.value=ret$Pval,
+                              method="Phillips-Perron Unit Root Test",
+                              data.name=dname),
+                         class  = c("htest")
+                         )    
     return(vreturn)   
 }
-
-`$.FLPP`<-function(object,property){
-    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
-
-    if(property == "statistic"){
-        return(object$dft)}
-    if(property == "method"){
-        return("Phillips-Perron Unit Root Test")}
-    if(property == "parameter"){
-        return(0)}
-    if(property == "p.value"){
-        return(object$Pval)      
-} }
- 
-

@@ -1,5 +1,4 @@
 ## test case in test_FLdifference.
-#' @export
 #' \code{FLdiff} performs difference operator on FLVector objects.
 #'
 #' The DB Lytix function called is FLDifferenceUdt. Performs Difference operator and 
@@ -12,7 +11,6 @@
 #'rv <- sqlQuery(connection, "SELECT NUM_VAL FROM tblTimeSeriesW1")
 #'flv <- as.FL(rv$NUM_VAL)
 #' FLdiff(flv)
-
 #' @export
 FLdiff <- function (data=list(),degree, ...) {
     UseMethod("FLdiff", data)
@@ -28,16 +26,16 @@ FLdiff.FLVector <- function(data,degree = 2, ...)
     functionName <- "FLDifferenceUdt"
     pArg <- c(pD = degree)
     str <- constructUDTSQL(pViewColname = c(GroupID = 1,
-                                          Val = "vectorValuecolumn"),
-                         pFuncName = functionName,
-                         pOutColnames = c("a.*"),
-                         pSelect = constructSelect(data),
-                         pArgs = pArg,
-                         pLocalOrderBy=c("GroupID", "val"),
-                         pNest = TRUE,
-                         pFromTableFlag = FALSE,
-                         UDTInputSubset = c("GroupID", "Val")
-                         )
+                                            Val = "vectorValuecolumn"),
+                           pFuncName = functionName,
+                           pOutColnames = c("a.*"),
+                           pSelect = constructSelect(data),
+                           pArgs = pArg,
+                           pLocalOrderBy=c("GroupID", "val"),
+                           pNest = TRUE,
+                           pFromTableFlag = FALSE,
+                           UDTInputSubset = c("GroupID", "Val")
+                           )
     tblfunqueryobj <- new("FLTableFunctionQuery",
                           connectionName = getFLConnectionName(),
                           variables = list(
@@ -46,7 +44,7 @@ FLdiff.FLVector <- function(data,degree = 2, ...)
                           whereconditions="",
                           order = "",
                           SQLquery=str)
-        val <- new("FLSimpleVector",
+    val <- new("FLSimpleVector",
                select = tblfunqueryobj,
                dimColumns = c("oPeriodID", "oDifference"),
                Dimnames = list(row = 1:length(data) ),
@@ -57,7 +55,6 @@ FLdiff.FLVector <- function(data,degree = 2, ...)
 }
 
 ## test case in test_FLdifference.
-#' @export
 #' \code{FLEWMA} performs Exponentially Weighted Moving Average on FLVector objects.
 #'
 #' The DB Lytix function called is FLEWMAUdt. Performs volatility based on most recent volatility and the most recent return (change) in a times series.
@@ -71,7 +68,6 @@ FLdiff.FLVector <- function(data,degree = 2, ...)
 #'rv <- sqlQuery(connection, "SELECT stockreturn FROM finstockreturns WHERE TICKERID =3")
 #'flv <- as.FL(rv$STOCKRETURN)
 #' FLEWMA(flv)
-
 #' @export
 FLEWMA <- function (data=list(),ValueType = "R", ...) {
     UseMethod("FLEWMA", data)

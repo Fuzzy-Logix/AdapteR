@@ -8,17 +8,6 @@ FLexpect_equal(length(flmod), nrow(flv))
 
 
 
-## tests case for FLPP.
-## DBlytix Example.
-
-Renv <- new.env(parent = globalenv())
-Renv$vdf <- sqlQuery(connection, "SELECT NUM_VAL FROM tblTimeSeriesW1")
-##Renv$vdf <- Renv$vdf$NUM_VAL
-FLenv <- as.FL(Renv)
-
-FLenv$fit <- PP.test(FLenv$vdf)
-Renv$fit <- PP.test(Renv$vdf)
-
 
 ## test case for FLRegimeshiftUdt.
 vdf <-  sqlQuery(connection, "SELECT Num_Val FROM tblRegimeShift WHERE Groupid = 1 AND Obsid <500")
@@ -46,6 +35,20 @@ flmod <- FLEWMA(flv)
 
 ## comparing Probablity with DBLytix.
 FLexpect_equal(length(flmod), 7)
-FLexpect_equal(flmod$NumObs, 2297)
-FLexpect_equal(flmod$Variance, 0.0002737248, tolerance = .0001)
+FLexpect_equal(flmod$NumObs,45 )
+FLexpect_equal(flmod$Variance, 0.26728, tolerance = .01)
 FLexpect_equal(names(flmod),c("NumObs","Lambda","Variance","LogL", "SBC", "AIC", "ConvCrit") )
+
+## tests case for FLPP.
+## DBlytix Example.
+
+Renv <- new.env(parent = globalenv())
+vdf <- sqlQuery(connection, "SELECT Num_Val FROM tblsensex")
+Renv$vdata <- vdf$Num_Val
+FLenv <- as.FL(Renv)
+
+eval_expect_equal({
+    fit <- PP.test(vdata)
+},Renv,FLenv,
+expectation = "fit",
+tolerance = 2)
