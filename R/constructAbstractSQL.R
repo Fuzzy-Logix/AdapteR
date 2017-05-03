@@ -163,6 +163,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
 
     else if(is.TDAster()){
+        pPartitionBy <- pPartitionBy
         if(!is.null(pViewColnames) && !is.null(vsubset))
             pViewColnames <- pViewColnames[vsubset]
         if("pExtraArgs" %in% names(list(...)))
@@ -170,12 +171,15 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
         else vExtraArgs <- NULL
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
-                            " ( ON ( ",vNestedSelect," ) ",
+                            " ( ON ( ",vNestedSelect," ) \n ",
                             " PARTITION BY ",paste0(pPartitionBy,
                                                     collapse=","),
-                            " TARGET (",paste0(fquote(tolower(setdiff(names(pViewColnames),
+                            " \n ORDER BY ",paste0(pPartitionBy,
+                                                    collapse=","),
+                            " \n TARGET (",paste0(fquote(tolower(setdiff(names(pViewColnames),
                                                         c(pPartitionBy,vExtraArgs$ArgRefNames)))),
-                                                collapse=","),")",
+                                                collapse=","),
+                                    ")",
                             ifelse(!is.null(vExtraArgs),
                                 paste0(vExtraArgs$ArgNames,
                                         "(",vExtraArgs$ArgValues,")",collapse=" \n "),

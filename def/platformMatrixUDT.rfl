@@ -108,3 +108,9 @@ FLRankUdt.Hadoop(oGroupID,oValue,oRank) <- FLPTFRank(vectorIdColumn=GroupID,outp
 
 FLArimaUdt.TD(oGroupID,oParamType,oParamID,oParamName,oParamValue,oParamStdErr) <- FLArimaUdt(oGroupID=oGroupID,oParamType=oParamType,oParamID=oParamID,oParamName=oParamName,oParamValue=oParamValue,oParamStdErr=oParamStdErr)
 FLArimaUdt.TDAster(oGroupID,oParamType,oParamID,oParamName,oParamValue,oParamStdErr) <- FLArimaUdt(oGroupID=partition1,oParamType=paramtype,oParamID=paramid,oParamName=paramname,oParamValue=paramvalue,oParamStdErr=paramstderr)
+
+FLCrostonsUdt.TD(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLCrostonsUdt(oGroupID=oGroupID,oPeriodID=oPeriodID,oActualValue=oActualValue,oForecastValue=oForecastValue)
+FLCrostonsUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLCrostonsUdt(oGroupID=partition1,oPeriodID=periodid,oActualValue=actualvalue,oForecastValue=forecastvalue)
+
+FLHoltWintersUdt.TD(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHoltWintersUdt(oGroupID=oGroupID,oPeriodID=oPeriodID,oActualValue=oActualValue,oForecastValue=oForecastValue)
+FLHoltWintersUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHoltWintersUdt(oGroupID=partition1,oPeriodID=periodid,oActualValue=actualvalue,oForecastValue=forecastedvalue)

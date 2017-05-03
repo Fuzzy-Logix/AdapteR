@@ -80,5 +80,7 @@ adf.test.FLVector<-function(object,
 				method="Augmented Dickey-Fuller Test",
 				data.name="object")
 	class(ret)<-"htest"
+
+    dropView(vtblname)
 	return(ret)
 }

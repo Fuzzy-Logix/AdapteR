@@ -35,39 +35,50 @@ croston.default  <- function (object,...){
     else return(forecast::croston(object,...))
 }
 
-#' @export
-croston.FLVector<-function(object,
+
+genFLCrostonUDT <-function(object,
 						   alpha=0.5,
-						   h=7,...){ 
-    browser()
+						   h=7,...){
 	if(!is.FLVector(object)) stop("The class of the input object should be FLVector")
 	if(alpha<0 || alpha>1) stop("The alpha value should be between 0 and 1")
 
 	t <- constructUnionSQL(pFrom = c(a = constructSelect(object)),
-                           pSelect = list(a = c(GroupID = 1,
-                           						PeriodID= "a.vectorIndexColumn",
-                                                Num_Val = "a.vectorValueColumn")))
+                           pSelect = list(a = c(groupid = 1,
+                           						periodid= "a.vectorIndexColumn",
+                                                num_val = "a.vectorValueColumn",
+                                                alpha=alpha,
+                                                forecastperiod=h)))
+
 	temp1 <- createTable(pTableName=gen_unique_table_name("croston"),
                         pSelect=t,
-                        pPrimaryKey="GroupID")
+                        pPrimaryKey="groupid")
+
 	pSelect<-paste0("Select * from ",temp1)
-	query<-constructUDTSQL(pViewColnames=c(pGroupID="GroupID",
-										   pPeriodID="PeriodID",
-						   				   pNum_Val="Num_Val"),
+
+	query<-constructUDTSQL(pViewColnames=c(pgroupid="groupid",
+										   pperiodid="periodid",
+						   				   pnum_val="num_val",
+                                           alpha="alpha",
+                                           forecastperiod="forecastperiod"),
 						   pSelect=pSelect,
-						   pArgs=c(alpha=alpha,
-						   		   forecastPeriod=h),
 						   pOutColnames=c("a.*"),
 						   pFuncName="FLCrostonsUdt",
-						   pLocalOrderBy=c("pGroupID","pPeriodID"),
-						   UDTInputSubset=c(1,3)
-                           )
+						   pLocalOrderBy=c("pgroupid","pperiodid"),
+                           pNest=TRUE,
+                           ...)
+
+    ## Platform Mapping
+    vMap <- getMatrixUDTMapping("FLCrostonsUdt")
+    pOutColnames <- vMap$argsPlatform
+
 	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),
-                        pSelect=query)
-	ret <- sqlQuery(getFLConnection(),
-                    paste0("Select * from ",temp2," order by 2"))
-	retv<-ret$oForecastValue
-	mean<-ts(data=tail(retv,n=h),
+                        pSelect=query,
+                        pPrimaryKey=pOutColnames["oGroupID"])
+
+	flt <- FLTable(temp2, pOutColnames["oPeriodID"])
+	retv<-flt[[pOutColnames["oForecastValue"]]]
+
+	mean<-ts(data=as.vector(tail(retv,n=h)),
             start=length(object)+1)
 	fitted<-head(retv,n=length(object))
 	residuals<-object-fitted
@@ -81,6 +92,32 @@ croston.FLVector<-function(object,
 	return(ret)
 }
 
+#' @export
+croston.FLVector.TDAster <-function(object,
+                                   alpha=0.5,
+                                   h=7,...){
+    return(genFLCrostonUDT(object=object,
+                        alpha=alpha,
+                        h=h,
+                        UDTInputSubset=c("pnum_val","alpha","forecastperiod"),
+                        ...))
+}
+
+#' @export
+croston.FLVector.TD <-function(object,
+                               alpha=0.5,
+                               h=7,...){
+    return(genFLCrostonUDT(object=object,
+                            alpha=alpha,
+                            h=h,
+                            UDTInputSubset=c("pgroupid",
+                                             "pnum_val",
+                                            "alpha",
+                                            "forecastperiod"),
+                            ...))
+}
+
+#' @export
 print.FLCroston<-function(object){
 	df<-data.frame(object$mean)
 	colnames(df)<-"Point Forecast"
