@@ -45,7 +45,6 @@ option_list = list(
                 type="character")
 )
 
-browser()
 opt_parser = OptionParser(option_list=option_list)
 opt = parse_args(opt_parser)
 
@@ -109,7 +108,6 @@ if(grepl("^jdbc",opt$host)){
             temporary=vtemp,
             pkg="dbc")
 } else {
-    browser()
     options(debugSQL=TRUE)
     connection <- flConnect(odbcSource=opt$host,
                           database=opt$database,

@@ -48,17 +48,27 @@ adf.test.FLVector<-function(object,
 						 	k=6,
 						 	trend=1,...){
 	if(!is.FLVector(object)) stop("The class of the object should be FLVector.")
-	vinputcols<-list(INPUT_TABLE=getTableNameSlot(object),
-					 OBSID="vectorIndexColumn",
-					 NUMVAL="vectorValueColumn",
-					 TREND=trend,
-					 LAG=k)
+    vtblname <- gen_wide_table_name("adf")
+    vtbl <- createView(vtblname,
+                    pSelect=constructSelect(object))
+    # vtbl <- createTable(vtblname,
+    #                     pSelect=constructSelect(object),
+    #                     pPrimaryKey="vectorIdColumn")
+
+	vinputcols<-list(TableName=vtblname,
+					 ObsIDCol="vectorIndexColumn",
+					 ValueCol="vectorValueColumn",
+					 Trend=trend,
+					 Lag=k,
+                     Note="adf.test from AdapteR")
 	vfuncName<-"FLADF"
 	AnalysisID<-sqlStoredProc(getFLConnection(),
 						  vfuncName,
 						  outputParameter=c(AnalysisID="a"),
 						  pInputParameters=vinputcols)
-	ret<-sqlQuery(getFLConnection(),paste0("select * from fzzlADFStats where AnalysisID = ", fquote(AnalysisID)))
+	ret<-sqlQuery(getFLConnection(),
+                paste0("select * from fzzlADFStats where AnalysisID = ", 
+                        fquote(AnalysisID)))
 	statistic<-ret[1,4]
 	parameter<-k	
 	names(statistic)<-"Dickey-Fuller"

@@ -33,7 +33,8 @@ PP.test.FLTable<-function(object,
                               vfuncName,
                               outputParameter=c(AnalysisID="a"),
                               pInputParameters=vinputcols)
-    ret<-sqlQuery(getFLConnection(),paste0("select coeff, stderr, PVal_ZTAlpha as Pval,Z_T_Alpha as dft from fzzlPPStats where AnalysisID = ", fquote(AnalysisID[1,1])))
+    ret<-sqlQuery(getFLConnection(),
+                paste0("select coeff, stderr, PVal_ZTAlpha as Pval,Z_T_Alpha as dft from fzzlPPStats where AnalysisID = ", fquote(AnalysisID[1,1])))
     ##statistic<-ret[1,4]
     ##parameter<-k
     statistic = ret$dft
@@ -51,15 +52,15 @@ PP.test.FLTable<-function(object,
     return(vreturn)   
 }
 
-`$.htest`<-function(object,property){
-    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+# `$.htest`<-function(object,property){
+#     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
-    if(property == "statistic"){
-        return(object$dft)}
-    if(property == "method"){
-        return("Phillips-Perron Unit Root Test")}
-    if(property == "parameter"){
-        return(0)}
-    if(property == "p.value"){
-        return(object$Pval)      
-} }
+#     if(property == "statistic"){
+#         return(object$dft)}
+#     if(property == "method"){
+#         return("Phillips-Perron Unit Root Test")}
+#     if(property == "parameter"){
+#         return(0)}
+#     if(property == "p.value"){
+#         return(object$Pval)      
+# } }

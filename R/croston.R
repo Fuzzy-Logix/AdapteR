@@ -38,7 +38,8 @@ croston.default  <- function (object,...){
 #' @export
 croston.FLVector<-function(object,
 						   alpha=0.5,
-						   h=7,...){ #browser()
+						   h=7,...){ 
+    browser()
 	if(!is.FLVector(object)) stop("The class of the input object should be FLVector")
 	if(alpha<0 || alpha>1) stop("The alpha value should be between 0 and 1")
 
@@ -46,7 +47,9 @@ croston.FLVector<-function(object,
                            pSelect = list(a = c(GroupID = 1,
                            						PeriodID= "a.vectorIndexColumn",
                                                 Num_Val = "a.vectorValueColumn")))
-	temp1 <- createTable(pTableName=gen_unique_table_name("croston"),pSelect=t)
+	temp1 <- createTable(pTableName=gen_unique_table_name("croston"),
+                        pSelect=t,
+                        pPrimaryKey="GroupID")
 	pSelect<-paste0("Select * from ",temp1)
 	query<-constructUDTSQL(pViewColnames=c(pGroupID="GroupID",
 										   pPeriodID="PeriodID",
@@ -57,11 +60,15 @@ croston.FLVector<-function(object,
 						   pOutColnames=c("a.*"),
 						   pFuncName="FLCrostonsUdt",
 						   pLocalOrderBy=c("pGroupID","pPeriodID"),
-						   UDTInputSubset=c(1,3))
-	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=query)
-	ret <- sqlQuery(getFLConnection(),paste0("Select * from ",temp2," order by 2"))
+						   UDTInputSubset=c(1,3)
+                           )
+	temp2 <- createTable(pTableName=gen_unique_table_name("temp"),
+                        pSelect=query)
+	ret <- sqlQuery(getFLConnection(),
+                    paste0("Select * from ",temp2," order by 2"))
 	retv<-ret$oForecastValue
-	mean<-ts(data=tail(retv,n=h),start=length(object)+1)
+	mean<-ts(data=tail(retv,n=h),
+            start=length(object)+1)
 	fitted<-head(retv,n=length(object))
 	residuals<-object-fitted
 	ret<-list(mean=mean,

@@ -53,7 +53,7 @@ t.test.FLVector <- function(x,
                                                               "a.vectorValueColumn",
                                                               tails),
                                                 pFrom=c(a=constructSelect(x)),
-                                                pStats=c("p_value","t_stat"))
+                                                pStats=c("P_VALUE","T_STAT"))
 
         vcall<-paste(all.vars(sys.call())[1],collapse=" and ")
         estimate<-c("mean of x"=mean(x))
@@ -89,7 +89,7 @@ t.test.FLVector <- function(x,
                                                             "a.num_val",
                                                             tails),
                                                 pFrom=c(a=vunionSelect),
-                                                pStats=c("p_value","t_stat"))
+                                                pStats=c("P_VALUE","T_STAT"))
             vcall<-paste(all.vars(sys.call())[1:2],collapse=" and ")
             estimate <-c("mean of x" = mean(x),"mean of y" = mean(y))
             }

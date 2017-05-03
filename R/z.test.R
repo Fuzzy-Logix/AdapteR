@@ -21,14 +21,10 @@ NULL
 #' z.test(fla,prob=1)
 #' z.test(fla,flb,prob=1)
 #' @export
-setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,conf.level=0.95,prob=0,...)
+setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,
+                            conf.level=0.95,prob=0,...)
                 standardGeneric("z.test"))
-setMethod("z.test",signature(x="ANY"),
-    function(x,y,...){
-        if (!requireNamespace("PASWR", quietly = TRUE)){
-                stop("PASWR package needed for z.test. Please install it.",
-                call. = FALSE)}
-        else return(PASWR::z.test(x,y,...))})
+
 setMethod("z.test",signature(x="FLVector"),
     function(x,
             y=NULL,
@@ -160,3 +156,10 @@ setMethod("z.test",signature(x="FLVector"),
     return(vresList)
     }
   )
+
+setMethod("z.test",signature(x="ANY"),
+    function(x,y,...){
+        if (!requireNamespace("PASWR", quietly = TRUE)){
+                stop("PASWR package needed for z.test. Please install it.",
+                call. = FALSE)}
+        else return(PASWR::z.test(x,y,...))})

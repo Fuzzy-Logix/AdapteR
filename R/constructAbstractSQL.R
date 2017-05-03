@@ -125,7 +125,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                                 ifelse(!is.null(vsubset),
                                     paste0("z.",names(pViewColnames[vsubset]),
                                         collapse=","),
-                                    paste0("z.",names(pViewColnames[vsubset]),
+                                    paste0("z.",names(pViewColnames),
                                         collapse=",")
                                     ),
                                 ifelse(length(setdiff(pArgs,""))>0,

@@ -18,7 +18,6 @@ garch.FLVector <- function(data,degree = 2, ...)
     if(!is.FLVector(data)){
         stop("only applicable on FLVector")
     }
-    browser()
     functionName <- "FLIGarchUdt"
     ##pArg <- c(pD = degree)
     str <- constructUDTSQL(pViewColname = c(GroupID = 1,
