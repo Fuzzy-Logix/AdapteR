@@ -199,6 +199,9 @@ FLPearsonChiSq.TDAster(InputTable,RowName,ColName,CountName,WhereClause,GroupBy)
 FLADF.TD(TableName,ObsIDCol,ValueCol,Trend,Lag) <- FLADF(TableName=TableName,ObsIDCol=ObsIDCol,ValueCol=ValueCol,Trend=Trend,Lag=Lag)
 FLADF.TDAster(TableName,ObsIDCol,ValueCol,Trend,Lag,Note) <- FLADF(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VALUE_COL=ValueCol,TREND=Trend,LAG=Lag,NOTE=Note)
 
+FLPP.TD(TableName,ObsIDCol,ValueCol,Trend,Lag) <- FLPP(TableName=TableName,ObsIDCol=ObsIDCol,ValueCol=ValueCol,Trend=Trend,Lag=Lag)
+FLPP.TDAster(TableName,ObsIDCol,ValueCol,Trend,Lag,Note) <- FLPP(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VALUE_COL=ValueCol,TREND=Trend,LAG=Lag,NOTE=Note)
+
 FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TDAster(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)

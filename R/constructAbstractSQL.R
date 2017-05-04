@@ -174,7 +174,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                             " ( ON ( ",vNestedSelect," ) \n ",
                             " PARTITION BY ",paste0(pPartitionBy,
                                                     collapse=","),
-                            " \n ORDER BY ",paste0(pPartitionBy,
+                            " \n ORDER BY ",paste0(pLocalOrderBy,
                                                     collapse=","),
                             " \n TARGET (",paste0(fquote(tolower(setdiff(names(pViewColnames),
                                                         c(pPartitionBy,vExtraArgs$ArgRefNames)))),
@@ -190,75 +190,6 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
             )
     }
 }
-
-## @phani: I think we need separate connection classes for
-## each platform.eg- JDBCAster
-# constructUDTSQL <- function(pConnection=getFLConnection(),
-#                             pViewColnames,
-#                             pFuncName,
-#                             pOutColnames,
-#                             pWhereConditions="",
-#                             pSelect,
-#                             pPartitionBy=names(pViewColnames)[1],
-#                             pLocalOrderBy=names(pViewColnames)[1],
-#                             pNest=FALSE,
-#                             ...){
-#     if(pNest){
-#         pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
-#         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-#                                 " FROM ( ",pSelect," ) a ")
-#     }
-#     else vNestedSelect <- pSelect
-#     if(is.TD()){
-#         return(paste0("WITH z( ",paste0(names(pViewColnames),
-#                                         collapse=",")," )",
-#                        " AS ( ",vNestedSelect," )",
-#                        " SELECT ",constructVariables(pOutColnames),
-#                        " FROM TABLE (",
-#                             pFuncName,"(",paste0("z.",names(pViewColnames),
-#                                         collapse=","),
-#                                     ")",
-#                             " HASH BY ",paste0("z.",pPartitionBy,
-#                                             collapse=","),
-#                             " LOCAL ORDER BY ",paste0("z.",pLocalOrderBy,
-#                                             collapse=","),
-#                             ") AS a ",
-#                         constructWhere(pWhereConditions)
-#                     )
-#                 )
-#     }
-#     ## if(names(getVariables(pObject))==pViewColnames)
-#     ## Then do not nest
-#    else if(is.Hadoop()){
-#         return(paste0("SELECT ",constructVariables(pOutColnames),
-#                       " FROM ",pFuncName,
-#                         " ( ON ( ",vNestedSelect," ) a ",
-#                         " PARTITION BY ",paste0(pPartitionBy,
-#                                             collapse=",")," ",
-#                         paste0("arg",1:length(pViewColnames),
-#                             "(",names(pViewColnames),")",
-#                             collapse=","),") a ",
-#                         constructWhere(pWhereConditions)
-#                     )
-#                 )
-#     }
-
-#     else if(is.TDAster()){
-#         return(paste0("SELECT ",constructVariables(pOutColnames),
-#                       " FROM ",pFuncName,
-#                             " ( ON ( ",vNestedSelect," ) ",
-#                             " PARTITION BY ",paste0(pPartitionBy,
-#                                                     collapse=","),
-#                             " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
-#                                                         pPartitionBy))),
-#                                                 collapse=",")
-#                             ,")) a ",
-#                         constructWhere(pWhereConditions)
-#                     )
-#                 )
-#     }
-# }
-
 
 ############################## Stored Procs ###########################
 constructStoredProcSQL <- function (pConnection,

@@ -2,14 +2,37 @@
 % Please edit documentation in R/FLGarch.R
 \name{garch.FLVector}
 \alias{garch.FLVector}
-\title{rv <- sqlQuery(connection, "SELECT stockreturn FROM tblbac_return")
-flv <- as.FL(rv$stockreturn)
-garch(flv)}
+\title{\code{garch} estimates the parameters of an univariate Generalized Auto Regressive Conditional Heteroskedasticity (GARCH) model
+The DB Lytix function called is FLGARCHpqUdt, FLARCHqUDT
+and FLIGarchUdt depending on paramters}
 \usage{
-\method{garch}{FLVector}(data, degree = 2, ...)
+\method{garch}{FLVector}(data, order = c(1, 1), type = "normal", ...)
+}
+\arguments{
+\item{data}{An object of class FLVector.}
+
+\item{p}{Total Number of ARCH terms INTEGER,.}
+
+\item{q}{Total  Number of GARCH terms.}
+
+\item{Valtype}{.}
+}
+\value{
+\code{garch} returns a data.frame
 }
 \description{
+\code{garch} estimates the parameters of an univariate Generalized Auto Regressive Conditional Heteroskedasticity (GARCH) model
+The DB Lytix function called is FLGARCHpqUdt, FLARCHqUDT
+and FLIGarchUdt depending on paramters
+}
+\examples{
+flt <- FLTable("tblbac_return", "ID")
+flmod <- garch(flt$stockreturn, order = c(1,1))
+ARCHqUDT Example.
+rv <- sqlQuery(connection, "SELECT stockprice  FROM tblbac")
+flv <- as.FL(rv$stockprice)
+flmod <- garch.FLVector(flv, order = c(0,1))
 rv <- sqlQuery(connection, "SELECT stockreturn FROM tblbac_return")
 flv <- as.FL(rv$stockreturn)
-garch(flv)
+flmod <- garch.FLVector(flv, order = c(1,1), type = "Integrated")
 }

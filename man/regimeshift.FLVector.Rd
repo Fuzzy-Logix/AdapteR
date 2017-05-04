@@ -2,14 +2,30 @@
 % Please edit documentation in R/FLGarch.R
 \name{regimeshift.FLVector}
 \alias{regimeshift.FLVector}
-\title{vdf <-  sqlQuery(connection, "SELECT Num_Val FROM tblRegimeShift WHERE Groupid = 1 AND Obsid <500")
-flv <- as.FL(rv$Num_Val)
-regimeshift(flv)}
+\title{\code{regimeshift} performs helps in identifying the parameters of the
+Gaussian distribution and the probability that a given observation has been
+drawn from a given distribution on FLVector objects.
+The DB Lytix function called is FLRegimeShiftUdt.}
 \usage{
 \method{regimeshift}{FLVector}(data, regimes = 2, ...)
 }
+\arguments{
+\item{data}{An object of class FLVector.}
+
+\item{regimes}{Total number of Regimes.}
+}
+\value{
+\code{regimeshift} returns a data.frame
+}
 \description{
+\code{regimeshift} performs helps in identifying the parameters of the
+Gaussian distribution and the probability that a given observation has been
+drawn from a given distribution on FLVector objects.
+The DB Lytix function called is FLRegimeShiftUdt.
+}
+\examples{
 vdf <-  sqlQuery(connection, "SELECT Num_Val FROM tblRegimeShift WHERE Groupid = 1 AND Obsid <500")
-flv <- as.FL(rv$Num_Val)
-regimeshift(flv)
+colnames(vdf) <- tolower(colnames(vdf))
+flv <- as.FL(vdf$num_val)
+flmod <- regimeshift(flv, regimes = 3)
 }

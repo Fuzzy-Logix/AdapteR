@@ -114,3 +114,6 @@ FLCrostonsUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLCrost
 
 FLHoltWintersUdt.TD(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHoltWintersUdt(oGroupID=oGroupID,oPeriodID=oPeriodID,oActualValue=oActualValue,oForecastValue=oForecastValue)
 FLHoltWintersUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHoltWintersUdt(oGroupID=partition1,oPeriodID=periodid,oActualValue=actualvalue,oForecastValue=forecastedvalue)
+
+FLGarch.TD(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=oGroupID,oParamName=oParmName,oParamValue=oParmValue)
+FLGarch.TDAster(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=partition1,oParamName=paramname,oParamValue=paramvalue)
