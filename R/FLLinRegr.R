@@ -1205,7 +1205,8 @@ prepareData.formula <- function(formula,data,
 		}
 		
 		# vexcludeCols <- paste0(unused_cols,collapse=",")
-        vexcludeCols <- paste0(unused_cols)
+        vexcludeCols <- setdiff(unused_cols,
+                                getObsIdSQLExpression(data))
     }
 	
 	vcallObject <- callObject

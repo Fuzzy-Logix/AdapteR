@@ -97,9 +97,9 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
             vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
                                     " FROM (",pSelect,")  a ")
         # if(!is.TDAster())
-        pSelect <- paste0("(",pSelect,")")
-        vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-                                " FROM ",pSelect," a ")
+        # pSelect <- paste0("(",pSelect,")")
+        # vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+        #                         " FROM ",pSelect," a ")
     }
     else vNestedSelect <- pSelect
 

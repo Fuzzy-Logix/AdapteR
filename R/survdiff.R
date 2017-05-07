@@ -63,7 +63,6 @@ setMethod("survdiff",
                 na.action=getOption("na.action"), 
                 rho = 0,
                 ...){
-                    browser()
                     rho <- rho[1]
                     vRhoMap <- c("0"="LogRank",
                                  "1"="PetoPrentice",
@@ -118,12 +117,11 @@ setMethod("survdiff",
                                          outputParameter = c(ResultTable = 'a')
                                         )
                     colnames(ret) <- tolower(colnames(ret))
-                    if(!is.null(ret$resulttable)){
-                        VarID <- c(vIndepVars,
+                    VarID <- c(vIndepVars,
                                 "Obs","NumEvents",
                                 "Expected","ChiSqApprox",
-                                "ChiSq","Prob"
-                               )
+                                "ChiSq","Prob")
+                    if(!is.null(ret$resulttable)){
                         vres <- sqlQuery(connection,
                                             paste0("SELECT ",
                                                         ifelse(length(setdiff(vgrp,""))>0,
@@ -135,6 +133,10 @@ setMethod("survdiff",
                                                     " ORDER BY groupID,",vIndepVars
                                                 )
                                         )
+                    }
+                    else{
+                        vres <- ret
+                        vres$test_type <- NULL
                     }
 
                     colnames(vres) <- c("groupID",VarID)

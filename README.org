@@ -225,7 +225,6 @@ Functions in these packages provide the reference implementations for AdapteR fu
   install.packages("mgcv")
   install.packages("moments")
   install.packages("stringdist")
-  install.packages("PASWR")
   install.packages("nortest")
   install.packages("DescTools")
   install.packages("RVAideMemoire")

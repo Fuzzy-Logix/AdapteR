@@ -119,7 +119,7 @@ predict.FLSVM <- function(object, newData = object@table){
     var <- getVariables(object@deeptable@select)
     tblname <- gen_unique_table_name("svmoutput")
     scrmethod <- toupper(substr(object@results$kernel, 1,1))
-    browser()
+    ##browser()
     ret <- sqlStoredProc(connection,
                          "FLSVMScore",
                          ModelTable = object@results$outtbl,

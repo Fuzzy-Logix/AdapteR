@@ -47,7 +47,7 @@ FLLUDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,
 FLLUDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLPTFMatrixLUDecomp(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_matrix=OutputValL,u_matrix=OutputValU,permut_matrix=OutputPermut)
 
 FLHessenbergDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputHVal,OutputPVal) <- FLPTFMatrixHessenbergDecomp(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,h_matrix=OutputHVal,p_matrix=OutputPVal)
-FLHessenbergDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValQ,OutputValR) <- FLHessenbergDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputHVal=OutputHVal,OutputPVal=OutputPVal)
+FLHessenbergDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputHVal,OutputPVal) <- FLHessenbergDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputHVal=OutputHVal,OutputPVal=OutputPVal)
 FLHessenbergDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputHVal,OutputPVal) <- FLHessenbergDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,h_val=OutputHVal,p_val=OutputPVal)
 
 FLJordanDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutPVal,OutJVal,OutPInvVal) <- FLJordanDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,p_val=OutPVal,j_val=OutJVal,pinv_val=OutPInvVal)
@@ -117,3 +117,6 @@ FLHoltWintersUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHo
 
 FLGarch.TD(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=oGroupID,oParamName=oParmName,oParamValue=oParmValue)
 FLGarch.TDAster(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=partition1,oParamName=paramname,oParamValue=paramvalue)
+
+FLDifferenceUdt.TD(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=oGroupID,vectorIndexColumn=oPeriodID,vectorValueColumn=oDifference)
+FLDifferenceUdt.TDAster(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=partition1,vectorIndexColumn=periodid,vectorValueColumn=difference)

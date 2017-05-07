@@ -19,7 +19,7 @@ The DB Lytix function called is FLDifferenceUdt. Performs Difference operator an
 stores the results in data frame.
 }
 \examples{
-rv <- sqlQuery(connection, "SELECT NUM_VAL FROM tblTimeSeriesW1")
-flv <- as.FL(rv$NUM_VAL)
+rv <- sqlQuery(connection, "SELECT NUM_VAL as num_val FROM tblTimeSeriesW1")
+flv <- as.FL(rv$num_val)
 FLdiff(flv)
 }

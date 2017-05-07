@@ -920,7 +920,7 @@ silinfo.FLKMedoids <- function(object){
                                                     object@temptables[["temptbl4"]]," b \n ",
                                             " WHERE a.VarID = b.VarID  \n and a.MedoidID = b.MedoidID \n ",
                                             " GROUP BY a.MedoidID,a.ObsID,b.ObsID"),
-                            pPrimaryKey=c("MedoidIDX","MedoidIDY"))
+                            pPrimaryKey=c("MedoidIDX"))
 			object@temptables <- c(object@temptables,list(temptbl3=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))

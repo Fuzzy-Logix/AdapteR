@@ -20,7 +20,7 @@ The DB Lytix function called is FLEWMAUdt. Performs volatility based on most rec
 stores the results in data frame.
 }
 \examples{
-rv <- sqlQuery(connection, "SELECT stockreturn FROM finstockreturns WHERE TICKERID =3")
-flv <- as.FL(rv$STOCKRETURN)
+rv <- sqlQuery(connection, "SELECT stockreturn as stockreturn FROM finstockreturns WHERE TICKERID =3")
+flv <- as.FL(rv$stockreturn)
 FLEWMA(flv)
 }

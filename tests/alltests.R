@@ -40,11 +40,11 @@ checkagain <- ".*"
 results <- list()
 
 
-results$testthat <- llply(
-    find_test_scripts("testthat"),
-    runMyTestFile,
-    ask=FALSE,
-    runonly=checkagain)
+# results$testthat <- llply(
+#     find_test_scripts("testthat"),
+#     runMyTestFile,
+#     ask=FALSE,
+#     runonly=checkagain)
 
 results$testsuite <- llply(
     find_test_scripts("testsuite"),
@@ -52,9 +52,9 @@ results$testsuite <- llply(
     ask=FALSE,
     runonly=checkagain)
 
-results$limitations <- llply(
-    find_test_scripts("limitations"),
-    runMyTestFile,
-    ask=FALSE,
-    runonly=checkagain)
+# results$limitations <- llply(
+#     find_test_scripts("limitations"),
+#     runMyTestFile,
+#     ask=FALSE,
+#     runonly=checkagain)
 

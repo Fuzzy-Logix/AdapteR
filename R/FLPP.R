@@ -60,7 +60,7 @@ PP.test.FLVector<-function(x,
     ##statistic<-ret[1,4]
     ##parameter<-k
     statistic = ret$z_t_alpha
-    parameter=2
+    parameter=NA
     pval <- ret$pval_ztalpha
     ret <- ret[,!colnames(ret)%in%c("z_t_alpha","pval_ztalpha","analysisid")]
     ret <- as.list(ret)
