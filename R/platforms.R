@@ -363,8 +363,8 @@ FLStartSession <- function(connection,
         })
     genSessionID()
 
-    options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
-    options(storedProcMappingsFL=storedProcMappingsFL)
+    # options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+    # options(storedProcMappingsFL=storedProcMappingsFL)
 
     ## Create platform Mappings
     tryCatch(FLcreatePlatformsMapping(),
@@ -421,8 +421,8 @@ getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste
 # }
 
 #' @export
-FLcreatePlatformsMapping <- function(definitions=c('def/platformStoredProcs.rfl',
-                                                    'def/platformMatrixUDT.rfl')){
+FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.rfl',
+                                                    'data/platformMatrixUDT.rfl')){
     defs <- readLines(system.file(definitions[1], package='AdapteR'),encoding="UTF-8")
 
     storedProcMappings <- lapply(defs,

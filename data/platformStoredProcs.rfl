@@ -163,7 +163,7 @@ FLFriedmanTest.TDAster(TableName,ValueColname,ObsIDColName,SampleIDColName,Where
 FLKaplanMeier.TD(TableName,TimeColName,StatusColName,Alpha,WhereClause,GroupBy,TableOutput) <- FLKaplanMeier(TableName=TableName,TimeColName=TimeColName,StatusColName=StatusColName,Alpha=Alpha,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLKaplanMeier.TDAster(TableName,TimeColName,StatusColName,Alpha,WhereClause,GroupBy) <- FLKaplanMeier(INPUT_TABLE=TableName,TIME_COL=TimeColName,STATUS_COL=StatusColName,ALPHA=Alpha,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
 
-FLKMHypoTest.TD(TableName,TimeColName,StatusColName,SampleIDColname,Alpha,WhereClause,GroupBy,TableOutput) <- FLKMHypoTest(TableName=TableName,TimeColName=TimeColName,StatusColName=StatusColName,Alpha=Alpha,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKMHypoTest.TD(TableName,TimeColName,StatusColName,SampleIDColname,Alpha,WhereClause,GroupBy,TableOutput) <- FLKMHypoTest(TableName=TableName,TimeColName=TimeColName,StatusColName=StatusColName,SampleIDColname=SampleIDColname,Alpha=Alpha,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLKMHypoTest.TDAster(TableName,TimeColName,StatusColName,SampleIDColname,Alpha,WhereClause,GroupBy) <- FLKMHypoTest(INPUT_TABLE=TableName,TIME_COL=TimeColName,STATUS_COL=StatusColName,SAMPLEID_COL=SampleIDColname,ALPHA=Alpha,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
 
 FLKSTest1s.TD(TestName,TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy,TableOutput) <- FLKSTest1s(TestName=TestName,TableName=TableName,ValueCol=ValueCol,Mean=Mean,StdDev=StdDev,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
@@ -195,6 +195,20 @@ FLWWTest2S.TDAster(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy) <
 
 FLPearsonChiSq.TD(InputTable,RowName,ColName,CountName,WhereClause,GroupBy,TableOutput) <- FLPearsonChiSq(InputTable=InputTable,RowName=RowName,ColName=ColName,CountName=CountName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLPearsonChiSq.TDAster(InputTable,RowName,ColName,CountName,WhereClause,GroupBy) <- FLPearsonChiSq(INPUT_TABLE=InputTable,ROW_COL=RowName,COLUMN_COL=ColName,COUNT_COL=CountName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLADF.TD(TableName,ObsIDCol,ValueCol,Trend,Lag) <- FLADF(TableName=TableName,ObsIDCol=ObsIDCol,ValueCol=ValueCol,Trend=Trend,Lag=Lag)
+FLADF.TDAster(TableName,ObsIDCol,ValueCol,Trend,Lag,Note) <- FLADF(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VALUE_COL=ValueCol,TREND=Trend,LAG=Lag,NOTE=Note)
+
+FLPP.TD(TableName,ObsIDCol,ValueCol,Trend,Lag) <- FLPP(TableName=TableName,ObsIDCol=ObsIDCol,ValueCol=ValueCol,Trend=Trend,Lag=Lag)
+FLPP.TDAster(TableName,ObsIDCol,ValueCol,Trend,Lag,Note) <- FLPP(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VALUE_COL=ValueCol,TREND=Trend,LAG=Lag,NOTE=Note)
+
+FLLinMixedModel.TD(TableName,ObsIDCol,VarIDCol,ValueCol,SpecID,MaxIter,Note) <- FLLinMixedModel(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,SpecID=SpecID,MaxIter=MaxIter,Note=Note)
+
+FLMixedModelUdtScore.TD(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVarCol,ScoreTable) <- FLMixedModelUdtScore(CoeffTable=CoeffTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,FixVarCol=FixVarCol,RanVarCol=RanVarCol,ScoreTable=ScoreTable)
+FLMixedModelUdtScore.TDAster(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVarCol,ScoreTable) <- FLMixedModelUdtScore(COEFF_TABLE=CoeffTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,FIX_VAR_COL=FixVarCol,RAN_VAR_COL=RanVarCol,SCORE_TABLE=ScoreTable)
+
+FLMixedModelIntUdtScore.TD(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVar1Col,RanVar2Col,ScoreTable) <- FLMixedModelIntUdtScore(CoeffTable=CoeffTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,FixVarCol=FixVarCol,RanVar1Col=RanVar1Col,RanVar2Col=RanVar2Col,ScoreTable=ScoreTable)
+FLMixedModelIntUdtScore.TDAster(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVar1Col,RanVar2Col,ScoreTable) <- FLMixedModelIntUdtScore(COEFF_TABLE=CoeffTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,FIX_VAR_COL=FixVarCol,RAN_VAR1_COL=RanVar1Col,RAN_VAR2_COL=RanVar2Col,SCORE_TABLE=ScoreTable)
 
 FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
