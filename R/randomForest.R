@@ -170,7 +170,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 	}
 	else if(type %in% "link"){
 		sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
-	    								   " add probability float, add logit float"))
+	    								   " add probability float, add logit float, add matrix_id int DEFAULT 1 NOT NULL"))
 	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
 	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
 	   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","logit"))
@@ -194,10 +194,10 @@ predict.FLRandomForest<-function(object,newdata=object$data,
     #               dims    = c(nrow(newdata),1),
     #               type       = "integer"
     #               )
-   	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
-   	                          ",vobsid," AS vectorIndexColumn,\n
-    	                         ",val,"*",x," AS vectorValueColumn\n",
-        	            " FROM ",scoreTable,"")
+   	# sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+   	#                           ",vobsid," AS vectorIndexColumn,\n
+    # 	                         ",val,"*",x," AS vectorValueColumn\n",
+    #     	            " FROM ",scoreTable,"")
    	tblfunqueryobj <- new("FLTableFunctionQuery",
     	                   connectionName = getFLConnectionName(),
                            variables = list(
@@ -270,6 +270,8 @@ summary.FLRandomForest<-function(object){ #browser()
 	# }
 	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",tablename))
 	comb<-combn(nrow(predclass),m=2)
+	if(nrow(predclass)<2) stop("The distinct predicted class for the dataset are less than 2. 
+						 Hence can't calculate Roc curves.")
 	retobj<-list()
 	if(!all(predclass) %in% c("0","1")){
 		for (t in 1:ncol(comb)) {
