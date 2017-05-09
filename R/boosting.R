@@ -65,7 +65,7 @@ boosting.FLTable<-function(data,
                       Leaf=ret$IsLeaf,
                       TreeID=ret$Iter,
                       Weight=ret$Weight)
-    weights<-unique(frame$Weight)
+    weights<-frame[frame$NodeID==1,"Weight"]
     ntrees<-unique(frame$TreeID)
     trees<-list()
     for(l in 1:length(ntrees)){
@@ -79,7 +79,7 @@ boosting.FLTable<-function(data,
                      ObservedClass=x$ObservedClass,
                      PredictedClass=x$PredictedClass,
                      PredictClassProb=x$PredictClassProb)
-    votes<-x$PredictClassProb*sum(weights)
+    votes<-x$PredictClassProb*length(ntrees)
     votes<-data.frame(ObsID=x$ObsID,
                       PredictedClass=x$PredictedClass,
                       Votes=votes)
