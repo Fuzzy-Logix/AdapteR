@@ -15,7 +15,7 @@
 #'
 #' @examples
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
-#' flobj<-bagging(flt, formula = -1~.,mfinal=mfinal)
+#' flobj<-bagging(flt, formula = -1~.,mfinal=5)
 #' @export
 bagging<-function(formula,data,...){
 	UseMethod("bagging",data)
@@ -29,7 +29,6 @@ bagging.default  <- function (formula,data=list(),...) {
     }
     else return(adabag::bagging(formula=formula,data=data,...))
 }
-
 
 #' @export
 bagging.FLTable<-function(data,
@@ -52,19 +51,20 @@ bagging.FLTable<-function(data,
 	sql<-paste0("SELECT * FROM fzzlDecisionTreeMNMD AS a 
 					WHERE AnalysisID = ",fquote(AnalysisID)," ORDER BY 2,4")
 	ret<-sqlQuery(getFLConnection(),sql)
+    colnames(ret) <- tolower(colnames(ret))
 	call<-match.call()	
-	frame<-data.frame(NodeID=ret$NodeID,
-					  n=ret$NodeSize,
-					  prob=ret$PredictClassProb,
-					  yval=ret$PredictClass,
-					  var=ret$SplitVarID,
-					  SplitVal=ret$SplitVal,
-					  leftson=ret$ChildNodeLeft,
-					  rightson=ret$ChildNodeRight,
-					  treelevel=ret$TreeLevel,
-					  parent=ret$ParentNodeID,
-					  Leaf=ret$IsLeaf,
-					  TreeID=ret$DatasetID)
+	frame<-data.frame(NodeID=ret$nodeid,
+					  n=ret$nodesize,
+					  prob=ret$predictclassprob,
+					  yval=ret$predictclass,
+					  var=ret$splitvarid,
+					  SplitVal=ret$splitval,
+					  leftson=ret$childnodeleft,
+					  rightson=ret$childnoderight,
+					  treelevel=ret$treelevel,
+					  parent=ret$parentnodeid,
+					  Leaf=ret$isleaf,
+					  TreeID=ret$datasetid)
 	ntrees<-unique(frame$TreeID)
 	trees<-list()
 	for(l in 1:length(ntrees)){
@@ -75,7 +75,8 @@ bagging.FLTable<-function(data,
 	votes<-sqlQuery(getFLConnection(),paste0("SELECT ObsID, ObservedClass, PredictedClass, NumOfVotes
 											 FROM fzzlBagDTPred WHERE AnalysisID = ",fquote(AnalysisID), 
 											"ORDER BY 1, 2, 3, 4"))
-	class<-votes$PredictedClass
+    colnames(votes) <- tolower(colnames(votes))
+	class<-votes$predictedclass
 	retobj<-list(trees=trees,
 				 call=call,
 				 formula=formula,
@@ -109,7 +110,7 @@ predict.FLbagging<-function(object,newdata=object$data,
 	if(scoreTable=="")
 	scoreTable <- gen_score_table_name("BaggingDTScore")
 	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$RegrDataPrepSpecs,
-                                                            values=list(...))
+                                                    values=list(...))
 	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
 								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
 	newdatatable <- deepx$table
@@ -122,10 +123,10 @@ predict.FLbagging<-function(object,newdata=object$data,
 	vinputcols<-list()
 	vinputcols <- c(vinputcols,
 					TableName=tablename,
-					ObsIDCol=vobsid,
-					VarIDCol=vvarid,
-					ValueCol=vvalue,
-					InAnalysisID=object$AnalysisID,
+					ObsIDColName=vobsid,
+					VarIDColName=vvarid,
+					ValueColName=vvalue,
+					AnalysisID=object$AnalysisID,
 					ScoreTable=scoreTable,
 					Note=genNote("RandomForestPrediction"))
 	vfuncName<-"FLBagDecisionTreeScore"
@@ -138,8 +139,11 @@ predict.FLbagging<-function(object,newdata=object$data,
     								   " add probability float, add matrix_id float"))
     sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
     		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",length(object$trees)))											
-    x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, PredictedClass from ",scoreTable))
-    m<-matrix(nrow = max(x$ObservedClass)-min(x$ObservedClass)+1, ncol=max(x$PredictedClass)-min(x$PredictedClass)+1)
+    x<-sqlQuery(getFLConnection(),paste0("select ObservedClass, \n ",
+                                                " PredictedClass from ",scoreTable))
+    colnames(x) <- c("ObservedClass","PredictedClass")
+    m<-matrix(nrow = max(x$ObservedClass)-min(x$ObservedClass)+1, 
+            ncol=max(x$PredictedClass)-min(x$PredictedClass)+1)
 	rownames(m)<-min(x$ObservedClass):max(x$ObservedClass)
 	colnames(m)<-min(x$PredictedClass):max(x$PredictedClass)
 	m[is.na(m)]<-0

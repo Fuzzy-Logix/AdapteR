@@ -151,6 +151,15 @@ FLMDA.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,Subclasses,Iterat
 FLBagDecisionTree.TD(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBagDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,NUMOFTREES=NUMOFTREES,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
 FLBagDecisionTree.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBagDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,NUM_TREES=NUMOFTREES,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
 
+FLBagDecisionTreeScore.TD(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBagDecisionTreeScore(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,AnalysisID=AnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLBagDecisionTreeScore.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBagDecisionTreeScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,ANALYSISID=AnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLBoostDecisionTree.TD(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBoostDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,NUMOFTREES=NUMOFTREES,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
+FLBoostDecisionTree.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBoostDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,MAX_ITER=NUMOFTREES,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
+
+FLBoostDecisionTreeScore.TD(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBoostDecisionTreeScore(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,AnalysisID=AnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLBoostDecisionTreeScore.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBoostDecisionTreeScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,ANALYSISID=AnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
 FLADTest.TD(TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy,TableOutput) <- FLADTest(TableName=TableName,ValueCol=ValueCol,Mean=Mean,StdDev=StdDev,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLADTest.TDAster(TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy) <- FLADTest(INPUT_TABLE=TableName,VALUE_COL=ValueCol,MEAN=Mean,STD_DEV=StdDev,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
 
