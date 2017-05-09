@@ -264,3 +264,15 @@ predict.FLSVM <- function(object, newData = object@table){
 }
 
 
+print.FLSVM <- function(object, ...){
+    cat("Call: \n\n")
+    print(object@results$call)
+    cat("Parameters:\n")
+    cat("SVM-Method: Sequential Minimal Optimization(SMO)\n")   
+    cat("SVM-kernel:",object@results$kernel,"\n")
+    cat("misclassifications: ",object$misclassifications,"\n")
+    cat("Lambda: ",object$lambda,"\n")
+    cat("degree: ",object$degree,"\n")
+}
+
+setMethod("show","FLSVM",function(object){print.FLSVM(object)})
