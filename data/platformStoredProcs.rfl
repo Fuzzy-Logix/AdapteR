@@ -105,7 +105,6 @@ FLVarCluster.TD(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Gro
 FLVarCluster.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput) <- FLVarCluster(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,Contrib=Contrib,TableOutput=TableOutput)
 FLVarCluster.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput,Note) <- FLVarCluster(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy,MATRIX_TYPE=MatrixType,CONTRIB=Contrib,OUTPUT_TABLE=TableOutput,NOTE=Note)
 
-
 FLOPLSRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,NumOfFactors,NumOfOrtho,Note) <- FLOPLSRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,NumOfFactors=NumOfFactors,NumOfOrtho=NumOfOrtho,Note=Note)
 FLOPLSRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,NumOfFactors,NumOfOrtho,Note) <- FLOPLSRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NUM_FACTORS=NumOfFactors,NUM_ORTHO_VECTORS=NumOfOrtho,NOTE=Note)
 

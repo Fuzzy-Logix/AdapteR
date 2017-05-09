@@ -53,6 +53,7 @@ boosting.FLTable<-function(data,
 					WHERE AnalysisID = ",fquote(AnalysisID),
                     " ORDER BY 2,4")
     ret<-sqlQuery(getFLConnection(),sql)
+
     colnames(ret) <- tolower(colnames(ret))
     frame<-data.frame(NodeID=ret$nodeid,
                       n=ret$nodesize,
@@ -67,7 +68,7 @@ boosting.FLTable<-function(data,
                       Leaf=ret$isleaf,
                       TreeID=ret$iter,
                       Weight=ret$weight)
-    weights<-unique(frame$Weight)
+    weights<-frame[frame$NodeID==1,"Weight"]
     ntrees<-unique(frame$TreeID)
     trees<-list()
     for(l in 1:length(ntrees)){
@@ -82,10 +83,11 @@ boosting.FLTable<-function(data,
                      ObservedClass=x$observedclass,
                      PredictedClass=x$predictedclass,
                      PredictClassProb=x$predictclassprob)
-    votes<-x$predictclassprob*sum(weights)
+    votes<-x$predictclassprob*length(ntrees)
     votes<-data.frame(ObsID=x$obsid,
                       PredictedClass=x$predictedclass,
                       Votes=votes)
+    
     retobj<-list(trees=trees,
                  call=call,
                  formula=formula,
