@@ -12,11 +12,11 @@ colnames(Renv$newdata)<-paste0("Col",1:ncol(Renv$newdata))
 mfinal<-5
 
 test_that("test for bagging on deeptables",{
-	flobj<-bagging(FLenv$table, formula = -1~.,mfinal=mfinal)
-	robj <- bagging(Col1~., data = Renv$table,mfinal=mfinal)
-	result1= expect_equal(mfinal,length(flobj$trees))
-	result2= expect_equal(as.integer(unique(Renv$table$Col1)),unique(flobj$class))
-	result3= expect_equal(as.numeric(rownames(FLenv$table)),as.numeric(rownames(flobj$votes)))
+  flobj<-bagging(FLenv$table, formula = -1~.,mfinal=mfinal)
+  robj <- bagging(Col1~., data = Renv$table,mfinal=mfinal)
+  result1= expect_equal(mfinal,length(flobj$trees))
+  result2= expect_equal(all(unique(flobj$class)) %in% c(1,2,3) , TRUE)
+  result3= expect_equal(as.numeric(rownames(FLenv$table)),as.numeric(rownames(flobj$votes)))
 })
 
 test_that("test for predict in bagging",{
