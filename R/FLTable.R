@@ -1044,14 +1044,16 @@ SampleData <- function(pTableName,
                          ...
                          ){
 
-    if(is.Hadoop())
+    # if(is.Hadoop())
+    #     vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
+    #                     " WHERE  RAND() < ",
+    #                     pTrainDataRatio," ")
+    # else
         vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
-                    " WHERE  RAND() < ",
-                      pTrainDataRatio," ")
-    else
-        vsqlstr <- paste0(" SELECT  a.* FROM ",pTableName," a ",
-                        " WHERE   FLSimUniform(RANDOM(1, 10000), 0, 1) < ",
-                          pTrainDataRatio," ")
+                        " WHERE   FLSimUniform(",
+                        getNativeRandFunction(pArg1=1,pArg2=10000),
+                        ", 0, 1) < ",pTrainDataRatio," ")
+
     vtemp <- createTable(pTableName=pTrainTableName,
                       pPrimaryKey=pObsIDColumn,
                       pTemporary=pTemporary,

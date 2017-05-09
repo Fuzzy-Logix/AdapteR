@@ -216,7 +216,7 @@ FLSystemTables.TDAster(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMa
 
 RANDOM.Hadoop() <- RAND(pArg2=pArg2)
 RANDOM.TD() <- RANDOM(pArg1=pArg1,pArg2=pArg2)
-
+RANDOM.TDAster() <- FLRandom(pArg1=pArg1,pArg2=pArg2)
 
 FLKSTest2sResults.TDAster(d_stat,d_stat_adj,p_value) <- FLKSTest2sResults(d_stat=d_stat,d_stat_adj=d_stat_adj,d_pvalue=p_value)
 FLKSTest2sResults.TD(d_stat,p_value) <- FLKSTest2sResults(d=d_stat,p_value=p_value)

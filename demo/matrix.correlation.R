@@ -111,8 +111,6 @@ vtemp <- readline("Note: The result is in the same format as the R results.")
 
 vtemp <- readline("Above: dimnames and index support")
 
-eqnRtn[, c("HPQ","MSFT")]
-
 vtemp <- readline("Above: Inspecting subsets of data in R is easy with matrix subsetting syntax")
 
 E <- eqnRtn[dec2006, randomstocks]

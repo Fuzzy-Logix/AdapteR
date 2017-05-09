@@ -46,7 +46,8 @@ if(!exists("connection") & exists("yourODBCSource")){
     connection <- flConnect(odbcSource = yourODBCSource,
                             database=yourFLDBName,
                             platform=yourPlatform,
-                            TestDatabase=yourDataDBName)
+                            TestDatabase=yourDataDBName,
+                            drop=FALSE)
 }
 
 ## If ODBC has failed we try to create a JDBC connection
@@ -70,7 +71,8 @@ if(!exists("connection")){
                     ##    terajdbc4.jar tdgssconfig.jar
                     ## CAVE: fully qualified PATH required
                     jdbc.jarsDir = yourJarDir,
-                    TestDatabase=yourDataDBName)
+                    TestDatabase=yourDataDBName,
+                    drop=FALSE)
     if(!exists("connection")) 
         stop("Please check your username and password\nand possibly set the variable \nyourPassword <- \"...\" for jdbc login!")
 }
@@ -80,7 +82,9 @@ if(!exists("connection")){
 ## ....Trying to Fetch a matrix from FL_TRAIN.tblmatrixmulti using sqlQuery......
 ## .......................#################..................
 
-sqlQuery(connection,paste0("SELECT * \n FROM ",getTestTableName("tblmatrixmulti")," a \n ",
+sqlQuery(connection,paste0("SELECT * \n FROM ",
+                            getTestTableName("tblmatrixmulti"),
+                            " a \n ",
                             "WHERE a.Matrix_ID=1 \n ",
                             "ORDER BY 1,2,3"))
 

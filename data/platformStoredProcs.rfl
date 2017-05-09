@@ -210,13 +210,16 @@ FLMixedModelUdtScore.TDAster(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,Ra
 FLMixedModelIntUdtScore.TD(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVar1Col,RanVar2Col,ScoreTable) <- FLMixedModelIntUdtScore(CoeffTable=CoeffTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,FixVarCol=FixVarCol,RanVar1Col=RanVar1Col,RanVar2Col=RanVar2Col,ScoreTable=ScoreTable)
 FLMixedModelIntUdtScore.TDAster(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVar1Col,RanVar2Col,ScoreTable) <- FLMixedModelIntUdtScore(COEFF_TABLE=CoeffTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,FIX_VAR_COL=FixVarCol,RAN_VAR1_COL=RanVar1Col,RAN_VAR2_COL=RanVar2Col,SCORE_TABLE=ScoreTable)
 
+FLSVMScore.TD(ModelTable,InTable,GroupIDCol,ObsIDCol,VarIDCol,NumValCol,ScoreMethod,ScoreTable) <- FLSVMScore(ModelTable=ModelTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=NumValCol,ScoreMethod=ScoreMethod,ScoreTable=ScoreTable)
+FLSVMScore.TDAster(ModelTable,InTable,GroupIDCol,ObsIDCol,VarIDCol,NumValCol,ScoreMethod,ScoreTable,Note) <- FLSVMScore(INPUT_MODEL_TABLE=ModelTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=NumValCol,SCORE_METHOD=ScoreMethod,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
 FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
 FLSystemTables.TDAster(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
 
 RANDOM.Hadoop() <- RAND(pArg2=pArg2)
 RANDOM.TD() <- RANDOM(pArg1=pArg1,pArg2=pArg2)
-
+RANDOM.TDAster() <- FLRandom(pArg1=pArg1,pArg2=pArg2)
 
 FLKSTest2sResults.TDAster(d_stat,d_stat_adj,p_value) <- FLKSTest2sResults(d_stat=d_stat,d_stat_adj=d_stat_adj,d_pvalue=p_value)
 FLKSTest2sResults.TD(d_stat,p_value) <- FLKSTest2sResults(d=d_stat,p_value=p_value)

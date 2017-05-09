@@ -903,11 +903,15 @@ selectDeviationMethod <- function(method){
 
     if(base::grepl("mean",method)){
         vfunction <- "FLMeanAbsDevUdt"
-        voutcol <- "oMeanAbsDev"
+        if(is.TDAster())
+            voutcol <- "meanabsdev"
+        else voutcol <- "oMeanAbsDev"
     }
     else {
         vfunction <- "FLMedianAbsDevUdt"
-        voutcol <- "oMedianAbsDev"
+        if(is.TDAster())
+            voutcol <- "medianabsdev"
+        else voutcol <- "oMedianAbsDev"
     }
     return(c(vfunction=vfunction,
             voutcol=voutcol))

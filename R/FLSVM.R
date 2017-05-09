@@ -79,25 +79,33 @@ svmGeneric <- function(formula,data,
 	assign(i,prepData[[i]])
     deeptable <- deepx@select@table_name
     functionName <- "FLSVMLinearUDT"
-    pArg <- c(cost)
+    pArg <- c(cost=cost)
     if(kernel == "polynomial") {
         functionName <- "FLSVMPolynomialUDT"
-        pArg <- c(pArg, degree)}
+        pArg <- c(pArg, degree=degree)}
     else if(kernel == "radial basis" ){
         functionName = "FLSVMGaussianUDT"
-        pArg <- c(pArg, sigma)
+        pArg <- c(pArg, sigma=sigma)
         kernel <- "Gaussian"
     }
     tblname <- gen_unique_table_name("svm")
-    t <- createTable(tblname, pSelect = constructUDTSQL(pViewColname = c(GroupID = 1,
-                                                                         ObsID = deepx@select@variables$obs_id_colname,
-                                                                         VarID = deepx@select@variables$var_id_colname,
-                                                                         Num_Val= deepx@select@variables$cell_val_colname),
-                                                        pFuncName = functionName,
-                                                        pOutColnames = c("a.*"),
-                                                        pSelect = deeptable,
-                                                        pArgs = pArg,
-                                                        pLocalOrderBy=c("GroupID", "ObsID", "VarID"), pNest = TRUE, pFromTableFlag = TRUE))
+
+    if(is.TDAster())
+        vgroupCol <- "partition1"
+    else vgroupCol <- "outputgroupid"
+    t <- createTable(tblname, 
+                    pSelect = constructUDTSQL(pViewColname = c(groupid = 1,
+                                                             obsid = deepx@select@variables$obs_id_colname,
+                                                             varid = deepx@select@variables$var_id_colname,
+                                                             num_val = deepx@select@variables$cell_val_colname,
+                                                             pArg),
+                                            pFuncName = functionName,
+                                            pOutColnames = c("a.*"),
+                                            pSelect = deeptable,
+                                            pLocalOrderBy=c("groupid", "obsid", "varid"), 
+                                            pNest = TRUE, 
+                                            pFromTableFlag = TRUE),
+                    pPrimaryKey=vgroupCol)
     
     return(new("FLSVM",
                formula=formula,
@@ -123,20 +131,21 @@ predict.FLSVM <- function(object, newData = object@table){
     ret <- sqlStoredProc(connection,
                          "FLSVMScore",
                          ModelTable = object@results$outtbl,
-                         TableName = object@deeptable@select@table_name,
-                         GroupIDCol = NULL,
+                         InTable = object@deeptable@select@table_name,
+                         GroupIDCol = "NULL",
                          ObsIDCol = var[[1]],
                          VarIDCol = var[[2]],
                          NumValCol = var[[3]],
                          ScoreMethod = scrmethod,
                          ScoreTable = tblname,
+                         Note="SVMScore from AdapteR",
                          "OutAnalysisID"
                          )
     val <- new("FLSimpleVector",
                select= new("FLSelectFrom",
                            table_name=tblname,
                            connectionName=getFLConnectionName(),
-                           variables=list(OBSID = var[[1]],pred = "PredYScoring" ),
+                           variables=list(obsid = var[[1]],pred = "predyscoring" ),
                            whereconditions="",
                            order=""),
                dimColumns = c(var[[1]], "pred"),
@@ -163,18 +172,20 @@ predict.FLSVM <- function(object, newData = object@table){
 #' @export
 `$.FLSVM`<-function(object,property){
                                         #parentObject <- deparse(substitute(object))
-    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),
+                            "(",fixed=T))[2],",",fixed=T))[1]
 
     if(is.null(object@results$votbl))
     {
-        quer <- paste0("SELECT TOP 1 * FROM ",object@results$outtbl," ")
+        quer <- limitRowsSQL(paste0("SELECT * FROM ",object@results$outtbl," "),1)
         dno <- sqlQuery(connection, quer)
+        colnames(dno) <- tolower(colnames(dno))
         object@results <- c(object@results,list(votbl = dno))
         assign(parentObject,object,envir=parent.frame())
     }
     if(property=="degree"){
         if(object@results$kernel == "polynomial")
-            return(object@results$votbl$DegreePoly)
+            return(object@results$votbl$degreepoly)
         else
             return("Not applicable for this kernel")     
     }
@@ -190,19 +201,19 @@ predict.FLSVM <- function(object, newData = object@table){
 
     if(property == "BValue"){
         if(any(c("polynomial", "gaussian") == object@results$kernel))
-            return(object@results$votbl$BValue)
+            return(object@results$votbl$bvalue)
         else   
             return("Not applicable for this kernel")          
     }
     if(property == "crbfConstant"){
         if(object@results$kernel == "gaussian")
-            return(object@results$votbl$crbfConstant)
+            return(object@results$votbl$crbfconstant)
         else
             return("Not applicable for this kernel")          
     }
 
     if(property == "misclassifications"){
-        return(object@results$votbl$NumOfMisclassifications)
+        return(object@results$votbl$numofmisclassifications)
     }
 
     if(property == "SV"){
@@ -215,7 +226,13 @@ predict.FLSVM <- function(object, newData = object@table){
             dim <- object@table@Dimnames[[2]][-length(object@table@Dimnames[[2]])]
             vdimnames <- list(object@table@Dimnames[[1]], dim)
             
-            quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",VarID," AS var_id_colname, b.PlaneWt*a.",Num_Val," AS cell_val_colname FROM ",object@deeptable@select@table_name," AS a, ",object@results$outtbl," AS b WHERE ",VarID," = planedimension AND  planedimension<> 0 AND ",VarID," <> 0 ")
+            quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",
+                                        VarID," AS var_id_colname, b.PlaneWt*a.",
+                                        Num_Val," AS cell_val_colname FROM ",
+                                        object@deeptable@select@table_name," AS a, ",
+                                        object@results$outtbl," AS b WHERE ",
+                                        VarID," = planedimension AND  planedimension<> 0 AND ",
+                                        VarID," <> 0 ")
 
             tblfunqueryobj <- new("FLTableFunctionQuery",
                                   connectionName = getFLConnectionName(),
