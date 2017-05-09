@@ -213,7 +213,9 @@ predict.FLSVM <- function(object, newData = object@table){
     }
 
     if(property == "misclassifications"){
-        return(object@results$votbl$numofmisclassifications)
+        vcolnames <- colnames(object@results$votbl)
+        vname <-  vcolnames[grepl("numofmisclass",vcolnames)]
+        return(as.vector(object@results$votbl[[vname]]))
     }
 
     if(property == "SV"){

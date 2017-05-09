@@ -4,10 +4,10 @@ FLenv <- new.env(parent = globalenv())
 FLenv$tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
 Renv <- as.R(FLenv)
 
-
+if(is.TDAster()) vformula <- dep~. else vformula <- DEP~.
 
 eval_expect_equal({
-    mod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
+    mod <- svm(vformula, data = tbl, fetchID = TRUE, kernel = "linear")
     },Renv,FLenv,
 noexpectation = "fit")
 
@@ -46,7 +46,7 @@ Renv <- as.R(FLenv)
 
 
 eval_expect_equal({
-    mod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+    mod <- svm(vformula, data = tbl, fetchID = TRUE, kernel = "polynomial")
     },Renv,FLenv,
 noexpectation = "fit")
 
