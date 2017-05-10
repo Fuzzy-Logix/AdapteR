@@ -65,8 +65,8 @@ flv <- widetable[1:10,"Species"]
 resultflvector <- stringdist("xyz",flv)
 resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)
 resultflvector <- stringdist("xyz",flv,method="hamming",vlength=4)
-resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
-resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")
+resultflvector <- stringdist(flv,flv,method="jw",p=1)
+resultflvector <- stringdist(c("xyz","poli"),flv,method="jw")
 }
 \seealso{
 \code{\link[stringdist]{stringdist}} for R function reference

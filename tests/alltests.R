@@ -39,16 +39,14 @@ runMyTestFile <- function(f, ask=FALSE, runonly=NULL, skip=NULL,...){
 checkagain <- ".*"
 results <- list()
 
-
-
-results$testsuite <- llply(
-    find_test_scripts("testsuite"),
+results$testthat <- llply(
+    find_test_scripts("testthat"),
     runMyTestFile,
     ask=FALSE,
     runonly=checkagain)
 
-results$testthat <- llply(
-    find_test_scripts("testthat"),
+results$testsuite <- llply(
+    find_test_scripts("testsuite"),
     runMyTestFile,
     ask=FALSE,
     runonly=checkagain)

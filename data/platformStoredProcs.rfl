@@ -133,7 +133,7 @@ FLRandomForest.TD(INPUT_TABLE,OBSID,VARID,VALUE,NTREES,NoOfVARS,MINOBS,MAXLEVEL,
 FLRandomForest.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NTREES,NoOfVARS,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLRandomForest(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,NUM_TREES=NTREES,NUM_VARS=NoOfVARS,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
 
 FLRandomForestScore.TD(TableName,ObsIDCol,VarIDCol,ValueCol,InAnalysisID,ScoreTable,Note) <- FLRandomForestScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,InAnalysisID=InAnalysisID,ScoreTable=ScoreTable,Note=Note)
-FLRandomForestScore.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,InAnalysisID,ScoreTable,Note) <- FLRandomForestScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,AnalysisID=InAnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+FLRandomForestScore.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,InAnalysisID,ScoreTable,Note) <- FLRandomForestScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,ANALYSISID=InAnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
 
 FLGAM.TD(TableName,ObsID,DepVar,OffsetVar,ParamsSpecID,DistType,MaxIterations,Note) <- FLGAM(TableName=TableName,ObsID=ObsID,DepVar=DepVar,OffsetVar=OffsetVar,ParamsSpecID=ParamsSpecID,DistType=DistType,MaxIterations=MaxIterations,Note=Note)
 FLGAM.TDAster(TableName,ObsID,DepVar,OffsetVar,ParamsSpecID,DistType,MaxIterations,Note) <- FLGAM(INPUT_TABLE=TableName,ObsID_COL=ObsID,DEPVAR_COL=DepVar,OFFSETVAR_COL=OffsetVar,PARAM_SPECID=ParamsSpecID,DIST_TYPE=DistType,MAX_ITER=MaxIterations,NOTE=Note)
