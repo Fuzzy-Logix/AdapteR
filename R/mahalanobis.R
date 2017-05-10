@@ -20,8 +20,10 @@ mahalanobis<-function(x,y,S,...){
 	UseMethod("mahalanobis",x)
 }
 
+#' @export
 mahalanobis.default<-stats::mahalanobis
 
+#' @export
 mahalanobis.FLVector<-function(x,y,S,...){
     ##browser()
 	#if(!class(x)||!class(y)=="FLVector") stop("Function only applies to numeric FLVectors of x and y")
@@ -46,14 +48,28 @@ mahalanobis.FLVector<-function(x,y,S,...){
                                         	pColID="c.colIdColumn",
                                         	pValue="CAST(c.valueColumn AS FLOAT)")))
 
-    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
-	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",pID="pID",pRowID="pRowID",pColID="pColID",pValue="pValue"),
+    p <- createTable(pTableName=gen_unique_table_name("temp"),
+                    pSelect=t,
+                    pTemporary=TRUE,
+                    pPrimaryKey="pGroupID")
+	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",
+                                            pID="pID",
+                                            pRowID="pRowID",
+                                            pColID="pColID",
+                                            pValue="pValue"),
 						   pSelect=paste0("Select * from ",p),
 						   pOutColnames="a.*",
 						   pFuncName="FLMahaDistUdt",
 						   pLocalOrderBy=c("pGroupID","pID"))
 	tName <- gen_unique_table_name("mahalanobis")
-    p <- createTable(tName,pSelect=query,pTemporary=TRUE)
+
+    if(is.TDAster())
+        vkey <- "partition1"
+    else vkey <- "pGroupID"
+    p <- createTable(tName,
+                    pSelect=query,
+                    pTemporary=TRUE,
+                    pPrimaryKey=vkey)
     a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
     val<-as.numeric(a[2])
 	return(val*val)
