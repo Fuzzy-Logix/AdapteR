@@ -42,6 +42,7 @@ test_that("typeof: FLTable and columns",{
     Renv,FLenv,check.attributes=FALSE)
 })
 
+if(is.TD())
 test_that("as.dta.frame: download (part) of a remote table",{
     ## A remote matrix is easily created by specifying
     ## table, row id, column id and value columns
@@ -52,6 +53,7 @@ test_that("as.dta.frame: download (part) of a remote table",{
 })
 
 
+if(is.TD())
 test_that("Selection of columns works with $ and with [,name]",{
     ## A remote matrix is easily created by specifying
     ## table, row id, column id and value columns

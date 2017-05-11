@@ -132,18 +132,19 @@ rpart.FLTable<-function(data,
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
 	ret<-sqlQuery(getFLConnection(),sql)
-	frame<-data.frame(NodeID=ret$NodeID,
-					  n=ret$NodeSize,
-					  prob=ret$PredictClassProb,
-					  yval=ret$PredictClass,
-					  var=ret$SplitVarID,
-					  SplitVal=ret$SplitVal,
-					  leftson=ret$ChildNodeLeft,
-					  rightson=ret$ChildNodeRight,
-					  dev=1:length(ret$NodeSize),
-					  treelevel=ret$TreeLevel,
-					  parent=ret$ParentNodeID,
-					  Leaf=ret$IsLeaf)
+    colnames(ret) <- tolower(colnames(ret))
+	frame<-data.frame(NodeID=ret$nodeid,
+					  n=ret$nodesize,
+					  prob=ret$predictclassprob,
+					  yval=ret$predictclass,
+					  var=ret$splitvarid,
+					  SplitVal=ret$splitval,
+					  leftson=ret$childnodeleft,
+					  rightson=ret$childnoderight,
+					  dev=1:length(ret$nodesize),
+					  treelevel=ret$treelevel,
+					  parent=ret$parentnodeid,
+					  Leaf=ret$isleaf)
 
 	frame$var[is.na(frame$var)]<-"<leaf>" 
 	retobj<- list(frame=frame,
@@ -510,6 +511,12 @@ rtree<-function(data,
 						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
+
+	# tName <- gen_unique_table_name("RegrTree")
+	# p <- createTable(tName,pSelect=query,pTemporary=TRUE)
+ #    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
+ #    return(a)
+    
 	tName <- getRemoteTableName(tableName="fzzlRegrTreeResults")
 	p <- insertIntotbl(tName,pSelect=query)
     ret<-sqlQuery(getFLConnection(),paste0("Select * from ",tName,"

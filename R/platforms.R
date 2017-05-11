@@ -10,8 +10,8 @@ NULL
 ## dump("MatrixUDTMappingsFL",file="AdapteR/R/platformMappings.R",append=TRUE)
 ## FLcreatePlatformsMapping()
 
-options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
-options(storedProcMappingsFL=storedProcMappingsFL)
+# options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+# options(storedProcMappingsFL=storedProcMappingsFL)
 
 #' @export
 setClass("FLConnection",slots=list())
@@ -164,7 +164,9 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             }
             Sys.sleep(1)
             require(RJDBC)
-            drv <- JDBC(driverClass)
+            tryCatch({
+                drv <- JDBC(driverClass)
+            }, error=function(e) stop("jdbc driver not found, please provide location by using argument jdbc.jarsDir"))
             st <- paste0(host)
             if(!is.null(database))
                 st <- paste0(st, "/",database[1], 
@@ -228,7 +230,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     ## store database where tests need to be run
     TestDatabase <- list(...)$TestDatabase
     if(is.null(TestDatabase)){
-        vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="mazdoo")
+        vmap <- c(TD="FL_TRAIN",TDAster="fl_release",Hadoop="mazdoo")
         TestDatabase <- vmap[platform]
     }
     else names(TestDatabase) <- platform
@@ -324,7 +326,8 @@ FLStartSession <- function(connection,
         "ResultByteIntVectorTableFL" = "tblByteIntVectorResult")
     vresultTables <- names(resultTables)
     if(!temporary)
-        resultTables <- paste0(database,".",resultTables)
+        resultTables <- getRemoteTableName(databaseName=database,
+                                            tableName=resultTables)
     else
         resultTables <- paste0(tablePrefix,resultTables)
     options(resultTablesFL=resultTables)
@@ -360,8 +363,8 @@ FLStartSession <- function(connection,
         })
     genSessionID()
 
-    options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
-    options(storedProcMappingsFL=storedProcMappingsFL)
+    # options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+    # options(storedProcMappingsFL=storedProcMappingsFL)
 
     ## Create platform Mappings
     tryCatch(FLcreatePlatformsMapping(),
@@ -418,8 +421,8 @@ getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste
 # }
 
 #' @export
-FLcreatePlatformsMapping <- function(definitions=c('def/platformStoredProcs.rfl',
-                                                    'def/platformMatrixUDT.rfl')){
+FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.rfl',
+                                                    'data/platformMatrixUDT.rfl')){
     defs <- readLines(system.file(definitions[1], package='AdapteR'),encoding="UTF-8")
 
     storedProcMappings <- lapply(defs,
@@ -437,9 +440,10 @@ FLcreatePlatformsMapping <- function(definitions=c('def/platformStoredProcs.rfl'
     storedProcMappings$preArgs.Hadoop=""
 
     storedProcMappings$extraPars.TD=c()
-    storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
-                                                    "NULL",
-                                                    getOption("DSN")))
+    ##@phani: DSN made optional in Aster
+    #storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
+                                                    #"NULL",
+                                                    #getOption("DSN")))
     storedProcMappings$extraPars.Hadoop=c()
 
     storedProcMappings$withOutputPars.TD=TRUE
@@ -575,4 +579,17 @@ checkHypoSystemTableExists <- function(){
         t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
                         temporary=FALSE,drop=TRUE)
         
+}
+
+getPlatformResultNames <- function(pFunc,pResName){
+    vMap <- getStoredProcMapping(pFunc)
+    vArgsMap <- vMap$argsPlatform
+    vres <- vArgsMap[pResName]
+    return(vres)
+}
+
+ModifyHypoResultColnames <- function(pFunc,pObj){
+    colnames(pObj) <- getPlatformResultNames(pFunc,
+                                            colnames(pObj))
+    return(pObj)
 }

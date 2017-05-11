@@ -202,11 +202,13 @@ setMethod("FLStringDist",
                              " FROM(",constructSelect(xsource),") AS a, \n (",
                                       constructSelect(targets),") AS b \n ",
                              ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
-                             " WHERE CAST((a.vectorIndexColumn MOD ",
-                                      vminlen,") AS INT) = ",
+                             " WHERE CAST((",getMODSQL(pColumn1="a.vectorIndexColumn",
+                                                       pColumn2=vminlen),
+                                            ") AS INT) = ",
                              ## "CAST(FLMOD(b.vectorIndexColumn,",
-                                    "CAST((b.vectorIndexColumn MOD ",
-                                    vminlen,") AS INT)")
+                                    "CAST((",getMODSQL(pColumn1="b.vectorIndexColumn",
+                                                        pColumn2=vminlen),
+                                            ") AS INT)")
                else
                sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn, \n ",
                               vmaxref,".vectorIndexColumn AS vectorIndexColumn, \n ",
@@ -216,11 +218,13 @@ setMethod("FLStringDist",
                              " FROM(",constructSelect(xsource),") AS a, \n (",
                                       constructSelect(targets),") AS b \n ",
                              ## " WHERE CAST(FLMOD(a.vectorIndexColumn,",
-                             " WHERE CAST((a.vectorIndexColumn MOD ",
-                                      vminlen,") AS INT) = ",
+                              " WHERE CAST((",getMODSQL(pColumn1="a.vectorIndexColumn",
+                                                       pColumn2=vminlen),
+                                            ") AS INT) = ",
                              ## "CAST(FLMOD(b.vectorIndexColumn,",
-                                    "CAST((b.vectorIndexColumn MOD ",
-                                    vminlen,") AS INT)")
+                                    "CAST((",getMODSQL(pColumn1="b.vectorIndexColumn",
+                                                        pColumn2=vminlen),
+                                            ") AS INT)")
                tblfunqueryobj <- new("FLTableFunctionQuery",
                       connectionName = getFLConnectionName(),
                       variables = list(
@@ -367,8 +371,8 @@ setMethod("FLStringDist",
 #' resultflvector <- stringdist("xyz",flv)
 #' resultflvector <- stringdist("xyz",flv,method="lv",caseFlag=1)
 #' resultflvector <- stringdist("xyz",flv,method="hamming",vlength=4)
-#' resultflmatrix <- stringdist(flv,flv,method="jw",p=1)
-#' resultflmatrix <- stringdist(c("xyz","poli"),flv,method="jw")
+#' resultflvector <- stringdist(flv,flv,method="jw",p=1)
+#' resultflvector <- stringdist(c("xyz","poli"),flv,method="jw")
 #' @export
 setGeneric("stringdist", function(a,b,
                                   method="osa",

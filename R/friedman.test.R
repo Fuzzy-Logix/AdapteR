@@ -222,7 +222,7 @@ friedman.test.FLTable <- function(formula, data,
                         stop("columns specified in GroupBy not in data \n ")
                     vgrp <- paste0(vgroupCols,collapse=",")
                     if(!length(vgroupCols)>0)
-                        vgrp <- NULL
+                        vgrp <- "NULL"
     
     ret <- sqlStoredProc(connection,
                          "FLFriedmanTest",
@@ -235,9 +235,11 @@ friedman.test.FLTable <- function(formula, data,
                          TableOutput = 1,
                          outputParameter = c(OutTable = 'a')
                          )
-    ret <- as.character(ret[1,1])
+    colnames(ret) <- tolower(colnames(ret))
+    if(!is.null(ret$resulttable)){
+        ret <- as.character(ret$resulttable)
+    }
 
-    ##browser()
     VarID <- c(statistic="TEST_STAT",
                p.value="Prob")
     vdf <- sqlQuery(connection,
@@ -245,21 +247,26 @@ friedman.test.FLTable <- function(formula, data,
                            vGroupColname,")-1 AS df \n ",
                            " FROM ",getTableNameSlot(data)," a \n ",
                            constructWhere(vWhereCond)," \n ",
-                           ifelse(length(setdiff(vgrp,""))>0,
+                           ifelse(length(setdiff(vgrp,c("","NULL")))>0,
                                   paste0("GROUP BY ",vgrp, " \n "),""),
-                           ifelse(length(setdiff(vgrp,""))>0,
+                           ifelse(length(setdiff(vgrp,c("","NULL")))>0,
                                   paste0("ORDER BY ",vgrp),"")
                            )
                     )
     vdf <- vdf[[1]]
-    vres <- sqlQuery(connection,
+
+    if(is.character(ret)){
+        vres <- sqlQuery(connection,
                      paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
                             "FROM ",ret," \n ",
-                            ifelse(length(setdiff(vgrp,""))>0,
+                            ifelse(length(setdiff(vgrp,c("NULL","")))>0,
                                    paste0("ORDER BY ",vgrp),"")))
+    }
+    else vres <- cbind(ret$test_stat,ret$p_value)
     
     vres <- cbind(groupID=1:nrow(vres),vres)
     colnames(vres) <- c("groupID",names(VarID))
+    vres <- as.data.frame(vres)
     
     vresList <- dlply(vres,"groupID",
                       function(x){

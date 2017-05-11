@@ -22,7 +22,6 @@ constructMatrixUDTSQL <- function(pObject,
                                   pdimnames=dimnames(pObject),
                                   pViewColnames=getVariables(pObject),
                                   ...){
-
     # ## Covers case when vector output is needed
     # if(pIncludeMID){
     #     pOutColnames[["MATRIX_ID"]]="'%insertIDhere%'"
@@ -97,8 +96,10 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
         else
             vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
                                     " FROM (",pSelect,")  a ")
-        
-            
+        # if(!is.TDAster())
+        # pSelect <- paste0("(",pSelect,")")
+        # vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
+        #                         " FROM ",pSelect," a ")
     }
     else vNestedSelect <- pSelect
 
@@ -122,7 +123,7 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
                        " FROM TABLE (",
                             pFuncName,"(",
                                 ifelse(!is.null(vsubset),
-                                    paste0("z.",names(pViewColnames)[vsubset],
+                                    paste0("z.",names(pViewColnames[vsubset]),
                                         collapse=","),
                                     paste0("z.",names(pViewColnames),
                                         collapse=",")
@@ -162,91 +163,33 @@ constructUDTSQL <- function(pConnection=getFLConnection(),
     }
 
     else if(is.TDAster()){
-        if(!is.null(pViewColnames))
+        pPartitionBy <- pPartitionBy
+        if(!is.null(pViewColnames) && !is.null(vsubset))
             pViewColnames <- pViewColnames[vsubset]
+        if("pExtraArgs" %in% names(list(...)))
+            vExtraArgs <- list(...)$pExtraArgs
+        else vExtraArgs <- NULL
         return(paste0("SELECT ",constructVariables(pOutColnames),
                       " FROM ",pFuncName,
-                            " ( ON ( ",vNestedSelect," ) ",
+                            " ( ON ( ",vNestedSelect," ) \n ",
                             " PARTITION BY ",paste0(pPartitionBy,
                                                     collapse=","),
-                            " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
-                                                        pPartitionBy))),
-                                                collapse=",")
-                            ,")) a ",
+                            " \n ORDER BY ",paste0(pLocalOrderBy,
+                                                    collapse=","),
+                            " \n TARGET (",paste0(fquote(tolower(setdiff(names(pViewColnames),
+                                                        c(pPartitionBy,vExtraArgs$ArgRefNames)))),
+                                                collapse=","),
+                                    ")",
+                            ifelse(!is.null(vExtraArgs),
+                                paste0(vExtraArgs$ArgNames,
+                                        "(",vExtraArgs$ArgValues,")",collapse=" \n "),
+                                ""),
+                            ") a ",
                         constructWhere(pWhereConditions)
                     )
-                )
+            )
     }
 }
-
-## @phani: I think we need separate connection classes for
-## each platform.eg- JDBCAster
-# constructUDTSQL <- function(pConnection=getFLConnection(),
-#                             pViewColnames,
-#                             pFuncName,
-#                             pOutColnames,
-#                             pWhereConditions="",
-#                             pSelect,
-#                             pPartitionBy=names(pViewColnames)[1],
-#                             pLocalOrderBy=names(pViewColnames)[1],
-#                             pNest=FALSE,
-#                             ...){
-#     if(pNest){
-#         pViewColnames <- as.list(changeAlias(pViewColnames,"",""))
-#         vNestedSelect <- paste0("SELECT ",constructVariables(pViewColnames),
-#                                 " FROM ( ",pSelect," ) a ")
-#     }
-#     else vNestedSelect <- pSelect
-#     if(is.TD()){
-#         return(paste0("WITH z( ",paste0(names(pViewColnames),
-#                                         collapse=",")," )",
-#                        " AS ( ",vNestedSelect," )",
-#                        " SELECT ",constructVariables(pOutColnames),
-#                        " FROM TABLE (",
-#                             pFuncName,"(",paste0("z.",names(pViewColnames),
-#                                         collapse=","),
-#                                     ")",
-#                             " HASH BY ",paste0("z.",pPartitionBy,
-#                                             collapse=","),
-#                             " LOCAL ORDER BY ",paste0("z.",pLocalOrderBy,
-#                                             collapse=","),
-#                             ") AS a ",
-#                         constructWhere(pWhereConditions)
-#                     )
-#                 )
-#     }
-#     ## if(names(getVariables(pObject))==pViewColnames)
-#     ## Then do not nest
-#    else if(is.Hadoop()){
-#         return(paste0("SELECT ",constructVariables(pOutColnames),
-#                       " FROM ",pFuncName,
-#                         " ( ON ( ",vNestedSelect," ) a ",
-#                         " PARTITION BY ",paste0(pPartitionBy,
-#                                             collapse=",")," ",
-#                         paste0("arg",1:length(pViewColnames),
-#                             "(",names(pViewColnames),")",
-#                             collapse=","),") a ",
-#                         constructWhere(pWhereConditions)
-#                     )
-#                 )
-#     }
-
-#     else if(is.TDAster()){
-#         return(paste0("SELECT ",constructVariables(pOutColnames),
-#                       " FROM ",pFuncName,
-#                             " ( ON ( ",vNestedSelect," ) ",
-#                             " PARTITION BY ",paste0(pPartitionBy,
-#                                                     collapse=","),
-#                             " TARGET (",paste0(fquote(setdiff(names(pViewColnames,
-#                                                         pPartitionBy))),
-#                                                 collapse=",")
-#                             ,")) a ",
-#                         constructWhere(pWhereConditions)
-#                     )
-#                 )
-#     }
-# }
-
 
 ############################## Stored Procs ###########################
 constructStoredProcSQL <- function (pConnection,
@@ -285,7 +228,6 @@ constructStoredProcSQL.default <- function(pConnection,
                                              pFuncName,
                                              pOutputParameter,
                                              ...){
-    ##browser()
     args <- list(...)
     if("pInputParams" %in% names(args))
         args <- args[["pInputParams"]]
@@ -417,13 +359,19 @@ constructScalarSQL <- function(pObject,
 
 ##################################### Aggregate SQL ###########################################
 constructAggregateSQL <- function(pFuncName,
-                                  pFuncArgs,
+                                  pFuncArgs=NULL,
                                   pAddSelect="",
                                   pFrom,
                                   pWhereConditions="",
                                   pGroupBy="",
-                                  pOrderBy=""){
+                                  pOrderBy="",
+                                  ...){
+
     vfunCall <- c(OutVal=paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
+    if("includeFuncCall" %in% names(list(...))){
+        if(!list(...)$includeFuncCall)
+            vfunCall <- c()
+    }
     vSelects <- c(vfunCall,pAddSelect)
     vSelects <- vSelects[vSelects!=""]
 
@@ -577,7 +525,8 @@ createTable <- function(pTableName,
     addSelectFromtbl <- function(psqlstr,
                                 pFromTableName,
                                 pWithData,
-                                pSelect){
+                                pSelect,
+                                pPrimaryKey=pPrimaryKey){
         if(is.null(pSelect)){
             pSelect <- paste0("SELECT * FROM ",pFromTableName)
             if(is.TDAster() || is.Hadoop())
@@ -591,8 +540,14 @@ createTable <- function(pTableName,
                         ifelse(pWithData,
                             " WITH DATA ",
                             " WITH NO DATA "))
-        else
-            psqlstr <- paste0(psqlstr," AS ",pSelect)
+        else if(is.TDAster()){
+            ##@phani: Multiple distributionKeys not supported in Aster!
+            psqlstr <- paste0(psqlstr,
+                            "DISTRIBUTE BY HASH(",
+                                pPrimaryKey[1],
+                                ") AS (",pSelect," )")
+        }
+        else psqlstr <- paste0(psqlstr," AS ",pSelect)
         
     }
     ### Temporary tables can be created only within a BEGIN-END
@@ -625,7 +580,9 @@ createTable <- function(pTableName,
     }
     else if(is.TDAster()){
         if(!is.null(pFromTableName) || !is.null(pSelect))
-        vsqlstr <- addSelectFromtbl(vsqlstr,pFromTableName,pWithData,pSelect)
+        vsqlstr <- addSelectFromtbl(vsqlstr,pFromTableName,
+                                    pWithData,pSelect,
+                                    pPrimaryKey)
         else{
             ## Add columns
             vsqlstr <- paste0(vsqlstr,addColNameType(pColNames,pColTypes))
@@ -865,3 +822,32 @@ limitRowsSQL <- function(pSelect,pRows){
     vlimitKeyword <- names(vlimitKeyword)[vlimitKeyword==getFLPlatform()]
     return(paste0(pSelect," ",vlimitKeyword, " ",pRows))
 }
+
+constructHypoTestsScalarQuery <- function(pFuncName,pFuncArgs,
+                                        pFrom,pStats=NULL,
+                                        ...){
+  if(is.null(pStats)){
+    vdf <- sqlQuery(connection,
+                    "select * from fzzlARHypTestStatsMap where FLFuncName=",fquote(pFuncName))
+    colnames(vdf) <- tolower(colnames(vdf))
+    vstats <- vdf[["flstatistic"]]
+  }
+  else vstats <- pStats
+  pAddSelect <- c()
+  if("pAddSelect" %in% names(list(...)))
+    pAddSelect <- list(...)$pAddSelect
+  pFuncArgs <- c("'stat'",pFuncArgs)
+  for(i in vstats){
+    pFuncArgs[1] <- fquote(i)
+    pAddSelect <- c(pAddSelect,paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
+  }
+  names(pAddSelect) <- vstats
+  sqlstr <- constructAggregateSQL(pFuncName = pFuncName,
+                                  pAddSelect = pAddSelect,
+                                  pFrom = pFrom,
+                                  includeFuncCall=FALSE,
+                                  ...)
+  return(sqlstr)
+}
+
+

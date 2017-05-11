@@ -121,6 +121,7 @@ NULL
                                                         newrownames))
             object@Dimnames <- list(newrownames,
                                    object@Dimnames[[2]])
+            object@dims[[1]] <- length(newrownames)
         }
     } else if(missing(rows)) { ## !missing(cols)
         ifelse(any(is.na(as.numeric(object@Dimnames[[1]]))),

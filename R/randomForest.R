@@ -65,35 +65,40 @@ randomForest.FLTable<-function(data,
     votesquery<-paste0("SELECT * FROM fzzlRandomForestPred 
 				   WHERE AnalysisID = ",fquote(AnalysisID), 
 				   "ORDER BY 1, 2, 3, 4, 5")
-	forestquery<-paste0("SELECT * FROM fzzlDecisionTreeMNMD WHERE AnalysisID = ",fquote(AnalysisID),
+	forestquery<-paste0("SELECT * FROM fzzlDecisionTreeMNMD WHERE AnalysisID = ",
+                        fquote(AnalysisID),
 						"ORDER BY 1, 2, 3, 4, 5")
 	votestable<-sqlQuery(getFLConnection(),votesquery)
+    colnames(votestable) <- tolower(colnames(votestable))
 	conmatrixtbl<-sqlQuery(getFLConnection(),conmatrixquery)
+    colnames(conmatrixtbl) <- tolower(colnames(conmatrixtbl))
 	foresttable<-sqlQuery(getFLConnection(),forestquery)
-	m<-matrix(nrow = max(conmatrixtbl$ObservedClass)-min(conmatrixtbl$ObservedClass)+1, ncol=max(conmatrixtbl$PredictedClass)-min(conmatrixtbl$PredictedClass)+1)
-	rownames(m)<-min(conmatrixtbl$ObservedClass):max(conmatrixtbl$ObservedClass)
-	colnames(m)<-min(conmatrixtbl$PredictedClass):max(conmatrixtbl$PredictedClass)
+    colnames(foresttable) <- tolower(colnames(foresttable))
+	m<-matrix(nrow = max(conmatrixtbl$observedclass)-min(conmatrixtbl$observedclass)+1, 
+            ncol=max(conmatrixtbl$predictedclass)-min(conmatrixtbl$predictedclass)+1)
+	rownames(m)<-min(conmatrixtbl$observedclass):max(conmatrixtbl$observedclass)
+	colnames(m)<-min(conmatrixtbl$predictedclass):max(conmatrixtbl$predictedclass)
 
-	for(i in 1:length(conmatrixtbl$ObservedClass)){
+	for(i in 1:length(conmatrixtbl$observedclass)){
   		j<-conmatrixtbl[i,2]
   		k<-conmatrixtbl[i,3]	
  		m[as.character(j),as.character(k)]<-conmatrixtbl[i,4]
 	}
 	m[is.na(m)]<-0
-	predicted<-votestable$PredictedClass
+	predicted<-votestable$predictedclass
 
-	frame<-data.frame(NodeID=foresttable$NodeID,
-					  n=foresttable$NodeSize,
-					  prob=foresttable$PredictClassProb,
-					  yval=foresttable$PredictClass,
-					  var=foresttable$SplitVarID,
-					  SplitVal=foresttable$SplitVal,
-					  leftson=foresttable$ChildNodeLeft,
-					  rightson=foresttable$ChildNodeRight,
-					  treelevel=foresttable$TreeLevel,
-					  parent=foresttable$ParentNodeID,
-					  Leaf=foresttable$IsLeaf,
-					  TreeID=foresttable$DatasetID)
+	frame<-data.frame(NodeID=foresttable$nodeid,
+					  n=foresttable$nodesize,
+					  prob=foresttable$predictclassprob,
+					  yval=foresttable$predictclass,
+					  var=foresttable$splitvarid,
+					  SplitVal=foresttable$splitval,
+					  leftson=foresttable$childnodeleft,
+					  rightson=foresttable$childnoderight,
+					  treelevel=foresttable$treelevel,
+					  parent=foresttable$parentnodeid,
+					  Leaf=foresttable$isleaf,
+					  TreeID=foresttable$datasetid)
 	ntrees<-unique(frame$TreeID)
 	trees<-list()
 	for(l in 1:length(ntrees)){
@@ -103,13 +108,13 @@ randomForest.FLTable<-function(data,
 
     retobj<-list(call=match.call(),
                  type="classification",
-                 votes=data.frame(ObsID=votestable$ObsID,
-                                  ObservedClass=votestable$ObservedClass,
-                                  PredictedClass=votestable$PredictedClass,
-                                  Votes=votestable$NumOfVotes),
-                 predicted=as.factor(structure(predicted,names=votestable$ObsID)),
+                 votes=data.frame(ObsID=votestable$obsid,
+                                  ObservedClass=votestable$observedclass,
+                                  PredictedClass=votestable$predictedclass,
+                                  Votes=votestable$numofvotes),
+                 predicted=as.factor(structure(predicted,names=votestable$obsid)),
                  confusion=m,
-                 classes=unique(conmatrixtbl$ObservedClass),
+                 classes=unique(conmatrixtbl$observedclass),
                  ntree=ntree,
                  mtry=mtry,
                  forest=trees,
@@ -170,7 +175,7 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 	}
 	else if(type %in% "link"){
 		sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
-	    								   " add probability float, add logit float"))
+	    								   " add probability float, add logit float, add matrix_id int DEFAULT 1 NOT NULL"))
 	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
 	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
 	   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","logit"))
@@ -194,10 +199,10 @@ predict.FLRandomForest<-function(object,newdata=object$data,
     #               dims    = c(nrow(newdata),1),
     #               type       = "integer"
     #               )
-   	sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
-   	                          ",vobsid," AS vectorIndexColumn,\n
-    	                         ",val,"*",x," AS vectorValueColumn\n",
-        	            " FROM ",scoreTable,"")
+   	# sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,\n
+   	#                           ",vobsid," AS vectorIndexColumn,\n
+    # 	                         ",val,"*",x," AS vectorValueColumn\n",
+    #     	            " FROM ",scoreTable,"")
    	tblfunqueryobj <- new("FLTableFunctionQuery",
     	                   connectionName = getFLConnectionName(),
                            variables = list(
@@ -268,19 +273,23 @@ summary.FLRandomForest<-function(object){ #browser()
 
 	# 	}
 	# }
-	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",tablename))
+	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",
+                        tablename))
 	comb<-combn(nrow(predclass),m=2)
+	if(nrow(predclass)<2) stop("The distinct predicted class for the dataset are less than 2. 
+						 Hence can't calculate Roc curves.")
 	retobj<-list()
 	if(!all(predclass) %in% c("0","1")){
 		for (t in 1:ncol(comb)) {
 			resv<-comb[,t]
 			temptable<-genRandVarName()
-			sqlstr<-paste0("Select ObsID as ObsID, 0 as Response, probability as Predictor from ",
+			sqlstr<-paste0("Select ObsID as obsid, 0 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[1]))		
 			vres<-createTable(pTableName=temptable,
 	                  	      pSelect=sqlstr,
 	                  	      pTemporary=TRUE,
-	                 	      pDrop=TRUE)
+	                 	      pDrop=TRUE,
+                              pPrimaryKey="obsid")
 			sqlstr2<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
 							tablename," Where PredictedClass = ",fquote(resv[2]))
 			insertIntotbl(pTableName=temptable,

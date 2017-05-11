@@ -25,6 +25,7 @@ test_that("eigen, option only.values",{
 ##Different signs for R and FL.
 ## Checking other properties
 ## different signs in FL and R output
+## does not run on Aster
 test_that("eigen values are correct:- det(A-vI)=0 ",{
     e4 <- eigen(FLenv$mat4)
     for(i in 1:length(e4$values))

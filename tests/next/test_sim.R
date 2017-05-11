@@ -72,7 +72,6 @@ setMethod('runif', signature(n='FLSimpleVector'),
 
 setMethod("sd",signature(x="FLSimpleVector"),
           function (x, na.rm = FALSE){
-    browser()
     x@select@variables[[1]] <- paste0('FLStdDev(',x@select@variables[[1]],')')
     names(n@select@variables)[[1]] <- n@dimColumns[[2]] <- 'r_sd'
     x@select@order <- character()

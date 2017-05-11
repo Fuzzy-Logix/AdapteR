@@ -604,7 +604,8 @@ isolation.FLKMedoids <- function(object){
                                                 " FROM  \n ",deeptablename," a, \n ",
                                                         "fzzlKMedoidsCluster b  \n ",
                                                 " WHERE a.",obs_id_colname,"=b.ObsID and  \n b.AnalysisID='",
-                                                        object@AnalysisID,"' "))
+                                                        object@AnalysisID,"' "),
+                            pPrimaryKey=c("ObsID","VarID"))
 			# t <- sqlSendUpdate(connection,paste0(" create table ",e,
 			# 					" as  \n (SELECT a.",obs_id_colname," AS ObsID, \n a.",var_id_colname,
 			# 						" AS VarID, \n a.",cell_val_colname," AS Num_Val, \n b.MedoidID  \n ",
@@ -633,7 +634,8 @@ isolation.FLKMedoids <- function(object){
                                             " FROM ",object@temptables[["temptbl4"]]," a, \n ",
                                                     object@temptables[["temptbl4"]]," b \n ", 
                                             " WHERE a.VarID = b.VarID and a.MedoidID = b.MedoidID \n ",
-                                            " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"))
+                                            " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"),
+                            pPrimaryKey=c("MedoidIDX","MedoidIDY"))
 			object@temptables <- c(object@temptables,list(temptbl1=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))
@@ -653,7 +655,8 @@ isolation.FLKMedoids <- function(object){
                                                 " FROM ",object@temptables[["temptbl4"]]," a, \n ",
                                                     object@temptables[["temptbl4"]]," b \n ",
                                                 " WHERE a.VarID = b.VarID and a.MedoidID <> b.MedoidID \n ",
-                                                " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"))
+                                                " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"),
+                            pPrimaryKey=c("MedoidIDX","MedoidIDY"))
 			object@temptables <- c(object@temptables,list(temptbl2=d))
 		}
 
@@ -752,7 +755,8 @@ clusinfo.FLKMedoids <- function(object){
                                                     " \n  AS Num_Val,b.MedoidID  \n ",
                                             "  FROM ",deeptablename," a, \n fzzlKMedoidsCluster b  \n ",
                                             " WHERE a.",obs_id_colname,"=b.ObsID and b.AnalysisID='",
-                                                        object@AnalysisID,"' "))
+                                                        object@AnalysisID,"' "),
+                            pPrimaryKey=c("ObsID","VarID"))
 			object@temptables <- c(object@temptables,list(temptbl4=e))
 		}
 		if(is.null(object@temptables[["temptbl1"]]))
@@ -774,7 +778,8 @@ clusinfo.FLKMedoids <- function(object){
                                                         object@temptables[["temptbl4"]]," b \n ",
                                                 " WHERE a.VarID = b.VarID and  \n ",
                                                         " a.MedoidID = b.MedoidID \n ",
-                                                " GROUP BY a.MedoidID,b.MedoidID,b.ObsID,a.ObsID"))
+                                                " GROUP BY a.MedoidID,b.MedoidID,b.ObsID,a.ObsID"),
+                            pPrimaryKey=c("MedoidIDX","MedoidIDY"))
 			object@temptables <- c(object@temptables,list(temptbl1=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))
@@ -794,7 +799,8 @@ clusinfo.FLKMedoids <- function(object){
                                             " FROM ",object@temptables[["temptbl4"]]," a, \n ",
                                                     object@temptables[["temptbl4"]]," b \n ",
                                             " WHERE a.VarID = b.VarID  \n and a.MedoidID <> b.MedoidID \n ",
-                                            " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"))
+                                            " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"),
+                            pPrimaryKey=c("MedoidIDX","MedoidIDY"))
 			object@temptables <- c(object@temptables,list(temptbl2=d))
 		}
 
@@ -894,7 +900,8 @@ silinfo.FLKMedoids <- function(object){
                                                     " \n  AS Num_Val,b.MedoidID  \n ",
                                             "  FROM ",deeptablename," a, \n fzzlKMedoidsCluster b  \n ",
                                             " WHERE a.",obs_id_colname,"=b.ObsID and b.AnalysisID='",
-                                                        object@AnalysisID,"' "))
+                                                        object@AnalysisID,"' "),
+                            pPrimaryKey=c("ObsID","VarID"))
 			object@temptables <- c(object@temptables,list(temptbl4=e))
 		}
 		if(is.null(object@temptables[["temptbl3"]]))
@@ -912,7 +919,8 @@ silinfo.FLKMedoids <- function(object){
                                             " FROM ",object@temptables[["temptbl4"]]," a, \n ",
                                                     object@temptables[["temptbl4"]]," b \n ",
                                             " WHERE a.VarID = b.VarID  \n and a.MedoidID = b.MedoidID \n ",
-                                            " GROUP BY a.MedoidID,a.ObsID,b.ObsID"))
+                                            " GROUP BY a.MedoidID,a.ObsID,b.ObsID"),
+                            pPrimaryKey=c("MedoidIDX"))
 			object@temptables <- c(object@temptables,list(temptbl3=c))
 		}
 		if(is.null(object@temptables[["temptbl2"]]))
@@ -932,7 +940,8 @@ silinfo.FLKMedoids <- function(object){
                                                 " FROM ",object@temptables[["temptbl4"]]," a, \n ",
                                                     object@temptables[["temptbl4"]]," b \n ",
                                                 " WHERE a.VarID = b.VarID and a.MedoidID <> b.MedoidID \n ",
-                                                " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"))
+                                                " GROUP BY a.MedoidID,b.MedoidID,a.ObsID,b.ObsID"),
+                            pPrimaryKey=c("MedoidIDX","MedoidIDY"))
 			object@temptables <- c(object@temptables,list(temptbl2=d))
 		}
 

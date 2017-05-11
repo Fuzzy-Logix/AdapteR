@@ -98,7 +98,11 @@ setMethod("survdiff",
                         stop("columns specified in GroupBy not in data \n ")
                     vgrp <- paste0(vgroupCols,collapse=",")
                     if(!length(vgroupCols)>0)
-                        vgrp <- NULL
+                        vgrp <- "NULL"
+
+                    vWhere <- list(...)[["whereconditions"]]
+                    if(is.null(vWhere))
+                        vWhere <- "NULL"
 
                     ret <- sqlStoredProc(connection,
                                          "FLKMHypoTest",
@@ -107,29 +111,34 @@ setMethod("survdiff",
                                          StatusColName = vStatus,
                                          SampleIDColname = vIndepVars,
                                          Alpha = vAlpha,
-                                         WhereClause = list(...)[["whereconditions"]],
+                                         WhereClause = vWhere,
                                          GroupBy = vgrp,
                                          TableOutput = 1,
                                          outputParameter = c(ResultTable = 'a')
                                         )
-                    ret <- as.character(ret[1,1])
-
+                    colnames(ret) <- tolower(colnames(ret))
                     VarID <- c(vIndepVars,
                                 "Obs","NumEvents",
                                 "Expected","ChiSqApprox",
-                                "ChiSq","Prob"
-                               )
-                    vres <- sqlQuery(connection,
-                                        paste0("SELECT ",
-                                                    ifelse(length(setdiff(vgrp,""))>0,
-                                                        paste0("DENSE_RANK()OVER(ORDER BY ",
-                                                                vgrp,")"),1)," AS groupID, \n ",
-                                                paste0(VarID,collapse=",")," \n ",
-                                               " FROM ",ret," \n ",
-                                               " WHERE TestType IN(",fquote(vRho),")",
-                                                " ORDER BY groupID,",vIndepVars
-                                            )
-                                    )
+                                "ChiSq","Prob")
+                    if(!is.null(ret$resulttable)){
+                        vres <- sqlQuery(connection,
+                                            paste0("SELECT ",
+                                                        ifelse(length(setdiff(vgrp,""))>0,
+                                                            paste0("DENSE_RANK()OVER(ORDER BY ",
+                                                                    vgrp,")"),1)," AS groupID, \n ",
+                                                    paste0(VarID,collapse=",")," \n ",
+                                                   " FROM ",ret," \n ",
+                                                   " WHERE TestType IN(",fquote(vRho),")",
+                                                    " ORDER BY groupID,",vIndepVars
+                                                )
+                                        )
+                    }
+                    else{
+                        vres <- ret
+                        vres$test_type <- NULL
+                    }
+
                     colnames(vres) <- c("groupID",VarID)
                     vresList <- dlply(vres,"groupID",
                                     function(x){

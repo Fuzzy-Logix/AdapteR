@@ -25,7 +25,7 @@ sqlQuery(connection,limitRowsSQL(paste0(
 vtemp <- readline("Table is wide and has obsid as unique index:")
 
 FLTblObj <- FLTable(table=getTestTableName("ActressLDist"),
-                    obs_id_colname="ObsID")
+                    obs_id_colname="obsid")
 
 vtemp <- readline("Above: FLTable object created for the table")
 
@@ -35,7 +35,7 @@ head(FLTblObj)
 vtemp <- readline("Above: Using head to preview data")
 
 ##******* Finding the top 5 Actress' names similar to 'Aleandro Formal' *******
-FLVecObj <- FLTblObj[,"Actress"]
+FLVecObj <- FLTblObj[,"actress"]
 
 vtemp <- readline("Above: Create a FLVector of Actress names by subsetting FLTable")
 
@@ -61,7 +61,7 @@ distFL <- stringdistmatrix(FLVecObj,c("Aleandro Formal","John Wayn"),method="dl"
 head(distFL)
 
 ##******* Finding the information about any 'Sherlock Holmes' movies **********
-FLVecObj <- FLTblObj[,"FilmTitle"]
+FLVecObj <- FLTblObj[,"filmtitle"]
 matching_index <- grep(pattern="Sherlock Holmes",
                        x=FLVecObj,
                        ignore.case=TRUE)
@@ -69,7 +69,7 @@ matching_index <- grep(pattern="Sherlock Holmes",
 FLVecObj[matching_index]
 
 ### Display Film and Lead Actors who played Sherlock Holmes
-FLTblObj[matching_index,c("FilmTitle","Actor")]
+FLTblObj[matching_index,c("filmtitle","actor")]
 
 vtemp <- readline("Above: Demonstrates pattern matching capabilities of AdapteR")
 
@@ -89,11 +89,11 @@ run.FLStringDistShiny <- function (){
     ## A search string can be inserted
     ## and results are shown after matching
     FLTblObj <- FLTable(table=getTestTableName("ActressLDist"),
-                        obs_id_colname="ObsID",
+                        obs_id_colname="obsid",
                         whereconditions = "Actor<>'' AND Actress<>'' AND Director<>'' AND FilmTitle<>''")
     findName <- function(FLTblObj,
                          text,
-                         columnName="Actor",
+                         columnName="actor",
                          method="lv",
                          N=10){
         ## Using Levenshtein distance measure to find top similarities
@@ -122,8 +122,8 @@ run.FLStringDistShiny <- function (){
                 column(3,
                        selectInput(
                            "columns", "Columns:",
-                           choices = c("Actor","Actress","Director","Filmtitle"),
-                           selected = "Actor",
+                           choices = c("actor","actress","director","filmtitle"),
+                           selected = "actor",
                            multiple = FALSE)),
                 column(3,
                        selectInput(

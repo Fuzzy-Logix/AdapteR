@@ -144,7 +144,8 @@ hkmeans.FLTable<-function(x,
 			    	    " AND a.Final_VarID IS NOT NULL ")
 		
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
-                                pSelect=sqlstr)
+                                pSelect=sqlstr,
+                                pPrimaryKey="VarID")
 	}
 	else if(class(x@select)=="FLTableFunctionQuery")
 	{

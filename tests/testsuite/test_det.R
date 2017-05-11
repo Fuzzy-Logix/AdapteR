@@ -4,7 +4,8 @@ Renv$mat2 =  matrix(1:4, ncol = 2)
 
 FLenv <- as.FL(Renv)
 
-
+##phani: Det of mat1 fails in Aster because
+## of no sparse matrix support in DBLytixAster
 test_that("Check for determinant function ",{
     result = eval_expect_equal({
         e2 <- det(mat1)

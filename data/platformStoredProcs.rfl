@@ -1,0 +1,234 @@
+FLRegrDataPrep.TDAster(InWideTable,ObsIDCol,DepCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,CatToDummy,PerformNorm,PerformVarReduc,MakeDataSparse,MinStdDev,MaxCorrel,TrainOrTest,ExcludeCols,ClassSpec,WhereClause,InAnalysisID) <- FLRegrDataPrep(INPUT_TABLE=InWideTable,OBSID_COL=ObsIDCol,DEP_VAR_COL=DepCol,OUTPUT_TABLE=OutDeepTable,OUTPUT_OBSID_COL=OutObsIDCol,OUTPUT_VARID_COL=OutVarIDCol,OUTPUT_VALUE_COL=OutValueCol,CAT_TO_DUMMY=CatToDummy,PERF_NORM=PerformNorm,PERF_VAR_REDUC=PerformVarReduc,MAKE_SPARSE=MakeDataSparse,MIN_STDDEV=MinStdDev,MAX_CORREL=MaxCorrel,TRAIN_OR_TEST=TrainOrTest,EXCLUDE_COLS=ExcludeCols,CLASS_SPEC=ClassSpec,WHERE_CLAUSE=WhereClause,ANALYSISID=InAnalysisID)
+FLRegrDataPrep.TD(InWideTable,ObsIDCol,DepCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,CatToDummy,PerformNorm,PerformVarReduc,MakeDataSparse,MinStdDev,MaxCorrel,TrainOrTest,ExcludeCols,ClassSpec,WhereClause,InAnalysisID) <- FLRegrDataPrep(InWideTable=InWideTable,ObsIDCol=ObsIDCol,DepCol=DepCol,OutDeepTable=OutDeepTable,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,CatToDummy=CatToDummy,PerformNorm=PerformNorm,PerformVarReduc=PerformVarReduc,MakeDataSparse=MakeDataSparse,MinStdDev=MinStdDev,MaxCorrel=MaxCorrel,TrainOrTest=TrainOrTest,ExcludeCols=ExcludeCols,ClassSpec=ClassSpec,WhereClause=WhereClause,InAnalysisID=InAnalysisID)
+FLTrainDataPrep.Hadoop(InWideTable,ObsIDCol,DepCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,CatToDummy,PerformNorm,PerformVarReduc,MakeDataSparse,MinStdDev,MaxCorrel,ExcludeCols,ClassSpec,WhereClause,InAnalysisID) <- FLTrainDataPrep(InWideTable=InWideTable,ObsIDCol=ObsIDCol,DepCol=DepCol,OutDeepTable=OutDeepTable,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,CatToDummy=CatToDummy,PerformNorm=PerformNorm,PerformVarReduc=PerformVarReduc,MakeDataSparse=MakeDataSparse,MinStdDev=MinStdDev,MaxCorrel=MaxCorrel,ExcludeCols=ExcludeCols,ClassSpec=ClassSpec,WhereClause=WhereClause,InAnalysisID=InAnalysisID)
+FLTestDataPrep.Hadoop(InWideTable,ObsIDCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,WhereClause,MakeDataSparse,InAnalysisID) <- FLTestDataPrep(InWideTable=InWideTable,ObsIDCol=ObsIDCol,OutDeepTable=OutDeepTable,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,WhereClause=WhereClause,MakeDataSparse=MakeDataSparse,InAnalysisID=InAnalysisID)
+
+FLRegrDataPrepMD.TD(InWideTable,GroupID,ObsIDCol,DepCol,OutDeepTable,OutGroupIDCol,OutObsIDCol,OutVarIDCol,OutValueCol,CatToDummy,PerformNorm,PerformVarReduc,MakeDataSparse,MinStdDev,MaxCorrel,TrainOrTest,ExcludeCols,ClassSpec,WhereClause,InAnalysisID) <- FLRegrDataPrepMD(InWideTable=InWideTable,GroupID=GroupID,ObsIDCol=ObsIDCol,DepCol=DepCol,OutDeepTable=OutDeepTable,OutGroupIDCol=OutGroupIDCol,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,CatToDummy=CatToDummy,PerformNorm=PerformNorm,PerformVarReduc=PerformVarReduc,MakeDataSparse=MakeDataSparse,MinStdDev=MinStdDev,MaxCorrel=MaxCorrel,TrainOrTest=TrainOrTest,ExcludeCols=ExcludeCols,ClassSpec=ClassSpec,WhereClause=WhereClause,InAnalysisID=InAnalysisID)
+FLRegrDataPrepMD.TDAster(InWideTable,GroupID,ObsIDCol,DepCol,OutDeepTable,OutGroupIDCol,OutObsIDCol,OutVarIDCol,OutValueCol,CatToDummy,PerformNorm,PerformVarReduc,MakeDataSparse,MinStdDev,MaxCorrel,TrainOrTest,ExcludeCols,ClassSpec,WhereClause,InAnalysisID) <- FLRegrDataPrepMD(InWideTable=InWideTable,GroupID=GroupID,ObsIDCol=ObsIDCol,DepCol=DepCol,OutDeepTable=OutDeepTable,OutGroupIDCol=OutGroupIDCol,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,CatToDummy=CatToDummy,PerformNorm=PerformNorm,PerformVarReduc=PerformVarReduc,MakeDataSparse=MakeDataSparse,MinStdDev=MinStdDev,MaxCorrel=MaxCorrel,TrainOrTest=TrainOrTest,ExcludeCols=ExcludeCols,ClassSpec=ClassSpec,WhereClause=WhereClause,InAnalysisID=InAnalysisID)
+
+FLWideToDeep.TDAster(InWideTable,ObsIDCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,ExcludeCols,ClassSpec,WhereClause) <- FLWideToDeep(INPUT_TABLE=InWideTable,OBSID_COL=ObsIDCol,OUTPUT_TABLE=OutDeepTable,OUTPUT_OBSID_COL=OutObsIDCol,OUTPUT_VARID_COL=OutVarIDCol,OUTPUT_VALUE_COL=OutValueCol,EXCLUDE_COLS=ExcludeCols,CLASS_SPEC=ClassSpec,WHERE_CLAUSE=WhereClause)
+FLWideToDeep.Hadoop(InWideTable,ObsIDCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,MakeDataSparse,ExcludeCols,ClassSpec,WhereClause) <- FLWideToDeep(InWideTable=InWideTable,ObsIDCol=ObsIDCol,OutDeepTable=OutDeepTable,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,MakeDataSparse=MakeDataSparse,ExcludeCols=ExcludeCols,ClassSpec=ClassSpec,WhereClause=WhereClause)
+FLWideToDeep.TD(InWideTable,ObsIDCol,OutDeepTable,OutObsIDCol,OutVarIDCol,OutValueCol,ExcludeCols,ClassSpec,WhereClause) <- FLWideToDeep(InWideTable=InWideTable,ObsIDCol=ObsIDCol,OutDeepTable=OutDeepTable,OutObsIDCol=OutObsIDCol,OutVarIDCol=OutVarIDCol,OutValueCol=OutValueCol,ExcludeCols=ExcludeCols,ClassSpec=ClassSpec,WhereClause=WhereClause)
+FLDeepToWide.TDAster(DeepTable,ObsIDCol,VarIDCol,ValueCol,MapTable,MapName,WideTable) <- FLDeepToWide(INPUT_TABLE=DeepTable,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,INPUT_MAP_TABLE=MapTable,MAP_NAME=MapName,OUTPUT_TABLE=WideTable)
+
+FLKMeans.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Clusters,Iterations,Hypothesis,Note) <- FLKMeans(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,WHERE_CLAUSE=WhereClause,CLUSTERS=Clusters,MAX_ITER=Iterations,HYPOTHESES=Hypothesis,NOTE=Note)
+FLKMeans.TD(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Clusters,Iterations,Hypothesis,Note) <- FLKMeans(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,Clusters=Clusters,Iterations=Iterations,Hypothesis=Hypothesis,Note=Note)
+FLKMeans.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Clusters,Iterations,Hypothesis,Note) <- FLKMeans(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,ClusterNumber=Clusters,MaxIteration=Iterations,Notes=Note)
+
+FLKMedoids.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Medoids,Iterations,DistTable,Note) <- FLKMedoids(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,WHERE_CLAUSE=WhereClause,MEDOIDS=Medoids,MAX_ITER=Iterations,INPUT_DIST_TABLE=DistTable,NOTE=Note)
+FLKMedoids.TD(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Medoids,Iterations,DistTable,Note) <- FLKMedoids(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,Medoids=Medoids,Iterations=Iterations,DistTable=DistTable,Note=Note)
+FLKMedoids.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Medoids,Iterations,DistTable,Note) <- FLKMedoids(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,Medoids=Medoids,Iterations=Iterations,DistTable=DistTable,Note=Note)
+
+FLFKMeans.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Clusters,Iterations,Fuzzy,Hypothesis,Note) <- FLFKMeans(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,CLUSTERS=Clusters,MAX_ITER=Iterations,FUZZINESS=Fuzzy,HYPOTHESES=Hypothesis,WHERE_CLAUSE=WhereClause,NOTE=Note)
+
+FLAggClustering.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,MethodID,MaxIterations,Note) <- FLAggClustering(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,WHERE_CLAUSE=WhereClause,METHOD_ID=MethodID,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLHKMeans.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Levels,Clusters,Iterations,Hypothesis,Note) <- FLHKMeans(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,LEVELS=Levels,CLUSTERS=Clusters,MAX_ITER=Iterations,HYPOTHESES=Hypothesis,WHERE_CLAUSE=WhereClause,NOTE=Note)
+FLHKMeans.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,Levels,Clusters,Iterations,Hypothesis,Note) <- FLKMeans(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,ClusterNumber=Clusters,MaxIteration=Iterations,Notes=Note)
+
+FLLinRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValueCol,Notes=Note)
+FLLinRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note)
+FLLinRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=Note)
+
+FLLinRegrMultiDataSet.TD(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrMultiDataSet(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note)
+FLLinRegrMultiDataSet.Hadoop(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrMultiDataSet(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Notes=Note)
+FLLinRegrMultiDataSet.TDAster(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrMultiDataSet(INPUT_TABLE=TableName,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=Note)
+
+FLLinRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLLinRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(ANALYSISID=RegrAnalysisID,INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,OUTPUT_TABLE=ScoreTable,WHERE_CLAUSE=WhereClause,NOTE=Note)
+FLLinRegrScore.Hadoop(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLinRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable)
+
+FLLinRegrBW.TD(TableName,ObsIDCol,VarIDCol,ValueCol,SPECID,HIGHESTPALLOW1,Note) <- FLLinRegrBW(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,SPECID=SPECID,HIGHESTPALLOW1=HIGHESTPALLOW1,Note=Note)
+FLLinRegrBW.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,SPECID,HIGHESTPALLOW1,Note) <- FLLinRegrBW(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED=HIGHESTPALLOW1,NOTE=Note)
+
+FLLinRegrFB.TD(TableName,ObsIDCol,VarIDCol,ValueCol,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,Note) <- FLLinRegrFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,SPECID=SPECID,HIGHESTPALLOW1=HIGHESTPALLOW1,HIGHESTPALLOW2=HIGHESTPALLOW2,Note=Note)
+FLLinRegrFB.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,Note) <- FLLinRegrFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED1=HIGHESTPALLOW1,HIGHEST_PVALUE_ALLOWED2=HIGHESTPALLOW2,NOTE=Note)
+
+FLLinRegrUFB.TD(TableName,ObsIDCol,VarIDCol,ValueCol,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,STEPWISEDECREASE    ,Note) <- FLLinRegrUFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,SpecID=SPECID,HighestpAllow1=HIGHESTPALLOW1,HighestpAllow2=HIGHESTPALLOW2,StepwiseDecrease=STEPWISEDECREASE,Note=Note)
+FLLinRegrUFB.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,STEPWISEDECREASE,Note) <- FLLinRegrUFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED1=HIGHESTPALLOW1,HIGHEST_PVALUE_ALLOWED2=HIGHESTPALLOW2,STEPWISE_DECREASE=STEPWISEDECREASE,NOTE=Note)
+
+FLLinRegrSF.TD(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrSF(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note)
+FLLinRegrSF.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,Note) <- FLLinRegrSF(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=Note)
+
+FLLinRegrSW.TD(TableName,ObsIDCol,VarIDCol,ValueCol,TOPN,HIGHESTPALLOW1,Note) <- FLLinRegrSW(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,TOPN=TOPN,HIGHESTPALLOW1=HIGHESTPALLOW1,Note=Note)
+FLLinRegrSW.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,TOPN,HIGHESTPALLOW1,Note) <- FLLinRegrSW(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,TOPN=TOPN,HIGHEST_PVALUE_ALLOWED=HIGHESTPALLOW1,NOTE=Note)
+
+FLLogRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Notes=Note)
+FLLogRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Note=Note)
+FLLogRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pThreshold,MaxIterations,Note) <- FLLogRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,THRESHOLD=pThreshold,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLLogRegrMultiDataSet.TD(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegrMultiDataSet(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Note=Note)
+FLLogRegrMultiDataSet.TDAster(TableName,GroupIDCol,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegrMultiDataSet(INPUT_TABLE=TableName,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,THRESHOLD=pThreshold,NOTE=Note)
+
+FLLogRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLogRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLLogRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLogRegrScore(ANALYSISID=RegrAnalysisID,INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,WHERE_CLAUSE=WhereClause,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+FLLogRegrScore.Hadoop(TableName,ObsIDCol,VarIDCol,ValCol,WhereClause,RegrAnalysisID,ScoreTable,Note) <- FLLogRegrScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValCol,WhereClause=WhereClause,RegrAnalysisID=RegrAnalysisID,ScoreTable=ScoreTable)
+
+FLLogRegrBW.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,SPECID,HIGHESTPALLOW1,Note) <- FLLogRegrBW(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,SPECID=SPECID,HIGHESTPALLOW1=HIGHESTPALLOW1,Note=Note)
+FLLogRegrBW.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,SPECID,HIGHESTPALLOW1,Note) <- FLLogRegrBW(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,THRESHOLD=pThreshold,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED=HIGHESTPALLOW1,NOTE=Note)
+
+FLLogRegrFB.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,Note) <- FLLogRegrFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,SPECID=SPECID,HIGHESTPALLOW1=HIGHESTPALLOW1,HIGHESTPALLOW2=HIGHESTPALLOW2,Note=Note)
+FLLogRegrFB.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,Note) <- FLLogRegrFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,THRESHOLD=pThreshold,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED1=HIGHESTPALLOW1,HIGHEST_PVALUE_ALLOWED2=HIGHESTPALLOW2,NOTE=Note)
+
+FLLogRegrUFB.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,STEPWISEDECREASE,Note) <- FLLogRegrUFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,SpecID=SPECID,HighestpAllow1=HIGHESTPALLOW1,HighestpAllow2=HIGHESTPALLOW2,StepwiseDecrease=STEPWISEDECREASE,Note=Note)
+FLLogRegrUFB.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,STEPWISEDECREASE,Note) <- FLLogRegrUFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,THRESHOLD=pThreshold,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED1=HIGHESTPALLOW1,HIGHEST_PVALUE_ALLOWED2=HIGHESTPALLOW2,STEPWISE_DECREASE=STEPWISEDECREASE,NOTE=Note)
+
+FLLogRegrSF.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegrSF(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,Note=Note)
+FLLogRegrSF.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,pThreshold,Note) <- FLLogRegrSF(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,FALSEPOS_CUTOFF=pThreshold,NOTE=Note)
+
+FLLogRegrSW.TD(TableName,ObsIDCol,VarIDCol,ValueCol,pThreshold,MaxIterations,TOPN,HIGHESTPALLOW1,Note) <- FLLogRegrSW(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,pThreshold=pThreshold,MaxIterations=MaxIterations,TOPN=TOPN,HIGHESTPALLOW1=HIGHESTPALLOW1,Note=Note)
+FLLogRegrSW.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pThreshold,MaxIterations,TOPN,HIGHESTPALLOW1,Note) <- FLLogRegrSW(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,FALSEPOSNEG_THRESHOLD=pThreshold,MAX_ITER=MaxIterations,TOPN=TOPN,HIGHEST_PVALUE_ALLOWED=HIGHESTPALLOW1,NOTE=Note)
+
+FLLogRegrWt.TD(TableName,ObsIDCol,VarIDCol,ValueCol,pThreshold,MaxIterations,EVENTWEIGHT,NONEVENTWEIGHT,Note) <- FLLogRegrWt(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,pThreshold=pThreshold,MaxIterations=MaxIterations,EVENTWEIGHT=EVENTWEIGHT,NONEVENTWEIGHT=NONEVENTWEIGHT,Note=Note)
+FLLogRegrWt.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pThreshold,MaxIterations,EVENTWEIGHT,NONEVENTWEIGHT,Note) <- FLLogRegrWt(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,FALSEPOS_CUTOFF=pThreshold,MAX_ITER=MaxIterations,EVENT_WT=EVENTWEIGHT,NONEVENT_WT=NONEVENTWEIGHT,NOTE=Note)
+
+FLLogRegrMN.TD(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,Note) <- FLLogRegrMN(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,pRefLevel=pRefLevel,MaxIterations=MaxIterations,Note=Note)
+FLLogRegrMN.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,Note) <- FLLogRegrMN(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,REF_LEVEL=pRefLevel,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLLogRegrMNBW.TD(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,SPECID,HIGHESTPALLOW1,Note) <- FLLogRegrMNBW(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,pThreshold=pThreshold,SPECID=SPECID,HIGHESTPALLOW1=HIGHESTPALLOW1,Note=Note)
+FLLogRegrMNBW.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,SPECID,HIGHESTPALLOW1,Note) <- FLLogRegrMNBW(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,REF_LEVEL=pRefLevel,MAX_ITER=MaxIterations,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED=HIGHESTPALLOW1,NOTE=Note)
+
+FLLogRegrMNFB.TD(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,Note) <- FLLogRegrMNFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,pRefLevel=pRefLevel,MaxIterations=MaxIterations,SPECID=SPECID,HIGHESTPALLOW1=HIGHESTPALLOW1,HIGHESTPALLOW2=HIGHESTPALLOW2,Note=Note)
+FLLogRegrMNFB.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,Note) <- FLLogRegrMNFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,REF_LEVEL=pRefLevel,MAX_ITER=MaxIterations,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED1=HIGHESTPALLOW1,HIGHEST_PVALUE_ALLOWED2=HIGHESTPALLOW2,NOTE=Note)
+
+FLLogRegrMNUFB.TD(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,STEPWISEDECREASE,Note) <- FLLogRegrMNUFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,pRefLevel=pRefLevel,MaxIterations=MaxIterations,SpecID=SPECID,HighestpAllow1=HIGHESTPALLOW1,HighestpAllow2=HIGHESTPALLOW2,StepwiseDecrease=STEPWISEDECREASE,Note=Note)
+FLLogRegrMNUFB.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,pRefLevel,MaxIterations,SPECID,HIGHESTPALLOW1,HIGHESTPALLOW2,STEPWISEDECREASE,Note) <- FLLogRegrMNUFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,REF_LEVEL=pRefLevel,MAX_ITER=MaxIterations,SPECID_COL=SPECID,HIGHEST_PVALUE_ALLOWED1=HIGHESTPALLOW1,HIGHEST_PVALUE_ALLOWED2=HIGHESTPALLOW2,STEPWISE_DECREASE=STEPWISEDECREASE,NOTE=Note)
+
+FLPoissonRegr.Hadoop(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,Note) <- FLPoissonRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,Note=Note)
+FLPoissonRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,Note) <- FLPoissonRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxIterations=MaxIterations,Note=Note)
+FLPoissonRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,MaxIterations,Note) <- FLPoissonRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLPoissonRegrScore.TD(TableName,ObsIDCol,VarIDCol,ValCol,RegrAnalysisID,ScoreTable,Note) <- FLPoissonRegrScore(TableName=TableName,ObsIDColName=ObsIDCol,VarIDColName=VarIDCol,ValueColName=ValCol,AnalysisID=RegrAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLPoissonRegrScore.TDAster(TableName,ObsIDCol,VarIDCol,ValCol,RegrAnalysisID,ScoreTable,Note) <- FLPoissonRegrScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValCol,ANALYSISID=RegrAnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLVarCluster.TD(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput) <- FLVarCluster(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,Contrib=Contrib,TableOutput=TableOutput)
+FLVarCluster.Hadoop(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput) <- FLVarCluster(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,Contrib=Contrib,TableOutput=TableOutput)
+FLVarCluster.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,WhereClause,GroupBy,MatrixType,Contrib,TableOutput,Note) <- FLVarCluster(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy,MATRIX_TYPE=MatrixType,CONTRIB=Contrib,OUTPUT_TABLE=TableOutput,NOTE=Note)
+
+FLOPLSRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,NumOfFactors,NumOfOrtho,Note) <- FLOPLSRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,NumOfFactors=NumOfFactors,NumOfOrtho=NumOfOrtho,Note=Note)
+FLOPLSRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,NumOfFactors,NumOfOrtho,Note) <- FLOPLSRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NUM_FACTORS=NumOfFactors,NUM_ORTHO_VECTORS=NumOfOrtho,NOTE=Note)
+
+FLPLSRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,NumOfFactors,Note) <- FLPLSRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,NumOfFactors=NumOfFactors,Note=Note)
+FLPLSRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,NumOfFactors,NumOfOrtho,Note) <- FLPLSRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NUM_FACTORS=NumOfFactors,NOTE=Note)
+
+FLRobustRegr.TD(TableName,ObsIDCol,VarIDCol,ValueCol,WeightFn,TuneConstant,MaxIterations,Note) <- FLRobustRegr(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,WeightFn=WeightFn,TuneConstant=TuneConstant,MaxIterations=MaxIterations,Note=Note)
+FLRobustRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WeightFn,TuneConstant,MaxIterations,Note) <- FLRobustRegr(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,WEIGHT_FUNCTION=WeightFn,TUNE_CONSTANT=TuneConstant,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLROCCurve.TD(InputTable,RecID,ActualColName,ProbColName,WhereClause,TableOutput) <- FLROCCurve(InputTable=InputTable,RecID=RecID,ActualColName=ActualColName,ProbColName=ProbColName,WhereClause=WhereClause,TableOutput=TableOutput)
+FLROCCurve.TDAster(InputTable,RecID,ActualColName,ProbColName,WhereClause) <- FLROCCurve(INPUT_TABLE=InputTable,OBSID_COL=RecID,ACTUALVAL_COL=ActualColName,PROBVAL_COL=ProbColName,WHERE_CLAUSE=WhereClause)
+
+FLCoxPH.TD(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,MAX_ITER,NOTE) <- FLCoxPH(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,MAX_ITER=MAX_ITER,NOTE=NOTE)
+FLCoxPH.TDAster(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,MAX_ITER,NOTE) <- FLCoxPH(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,MAX_ITER=MAX_ITER,NOTE=NOTE)
+
+FLCoxPHScore.TD(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,ANALYSISID,SCORE_TABLE,SURVIVAL_CURVE_TABLE,NOTE) <- FLCoxPHScore(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,ANALYSISID=ANALYSISID,SCORE_TABLE=SCORE_TABLE,SURVIVAL_CURVE_TABLE=SURVIVAL_CURVE_TABLE,NOTE=NOTE)
+FLCoxPHScore.TDAster(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,ANALYSISID,SCORE_TABLE,SURVIVAL_CURVE_TABLE,NOTE) <- FLCoxPHScore(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,ANALYSISID=ANALYSISID,SCORE_TABLE=SCORE_TABLE,SURVIVAL_CURVE_TABLE=SURVIVAL_CURVE_TABLE,NOTE=NOTE)
+
+FLDecisionTreeMN.TD(INPUT_TABLE,OBSID,VARID,VALUE,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLDecisionTreeMN(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
+FLDecisionTreeMN.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
+
+FLDecisionTreeMNScore.TD(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,ANALYSISID,OUTPUT_TABLE,NOTE) <- FLDecisionTreeMNScore(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,ANALYSISID=ANALYSISID,OUTPUT_TABLE=OUTPUT_TABLE,NOTE=NOTE)
+FLDecisionTreeMNScore.TDAster(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,ANALYSISID,OUTPUT_TABLE,NOTE) <- FLDecisionTreeScore(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,ANALYSISID=ANALYSISID,OUTPUT_TABLE=OUTPUT_TABLE,NOTE=NOTE)
+
+FLRandomForest.TD(INPUT_TABLE,OBSID,VARID,VALUE,NTREES,NoOfVARS,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLRandomForest(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,NTREES=NTREES,NoOfVARS=NoOfVARS,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
+FLRandomForest.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NTREES,NoOfVARS,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLRandomForest(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,NUM_TREES=NTREES,NUM_VARS=NoOfVARS,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
+
+FLRandomForestScore.TD(TableName,ObsIDCol,VarIDCol,ValueCol,InAnalysisID,ScoreTable,Note) <- FLRandomForestScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,InAnalysisID=InAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLRandomForestScore.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,InAnalysisID,ScoreTable,Note) <- FLRandomForestScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,ANALYSISID=InAnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLGAM.TD(TableName,ObsID,DepVar,OffsetVar,ParamsSpecID,DistType,MaxIterations,Note) <- FLGAM(TableName=TableName,ObsID=ObsID,DepVar=DepVar,OffsetVar=OffsetVar,ParamsSpecID=ParamsSpecID,DistType=DistType,MaxIterations=MaxIterations,Note=Note)
+FLGAM.TDAster(TableName,ObsID,DepVar,OffsetVar,ParamsSpecID,DistType,MaxIterations,Note) <- FLGAM(INPUT_TABLE=TableName,ObsID_COL=ObsID,DEPVAR_COL=DepVar,OFFSETVAR_COL=OffsetVar,PARAM_SPECID=ParamsSpecID,DIST_TYPE=DistType,MAX_ITER=MaxIterations,NOTE=Note)
+
+FLGAMScore.TD(ModelSpecID,InAnalysisID,InTableName,ObsIDCol,ScoreSpecID,TermID,ByVarVal,scoreTable,Note) <- FLGAMScore(ModelSpecID=ModelSpecID,InAnalysisID=InAnalysisID,InTableName=InTableName,ObsIDCol=ObsIDCol,ScoreSpecID=ScoreSpecID,TermID=TermID,ByVarVal=ByVarVal,scoreTable=scoreTable,Note=Note)
+FLGAMScore.TDAster(ModelSpecID,InAnalysisID,InTableName,ObsIDCol,ScoreSpecID,TermID,ByVarVal,scoreTable,Note) <- FLGAMScore(ANALYSISID=InAnalysisID,INPUT_TABLE=InTableName,OBSID_COL=ObsIDCol,MODEL_SPECID=ModelSpecID,SCORE_SPECID=ScoreSpecID,TERM_ID=TermID,BY_VAR_VAL=ByVarVal,OUTPUT_TABLE=scoreTable,NOTE=Note)
+
+FLLDA.TD(TableName,ObsIDCol,VarIDCol,ValueCol,NOTE) <- FLLDA(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,NOTE=NOTE)
+FLLDA.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,NOTE) <- FLLDA(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=NOTE)
+
+FLMDA.TD(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,Subclasses,Iterations,Initilization,Hypothesis,NOTE) <- FLMDA(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,WhereClause=WhereClause,Subclasses=Subclasses,Iterations=Iterations,Initilization=Initilization,Hypothesis=Hypothesis,NOTE=NOTE)
+FLMDA.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,Subclasses,Iterations,Initilization,Hypothesis,NOTE) <- FLMDA(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,WHERE_CLAUSE=WhereClause,SUBCLASSES=Subclasses,MAX_ITER=Iterations,INITIALIZATION=Initilization,HYPOTHESES=Hypothesis,NOTE=NOTE)
+
+FLBagDecisionTree.TD(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBagDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,NUMOFTREES=NUMOFTREES,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
+FLBagDecisionTree.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBagDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,NUM_TREES=NUMOFTREES,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
+
+FLBagDecisionTreeScore.TD(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBagDecisionTreeScore(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,AnalysisID=AnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLBagDecisionTreeScore.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBagDecisionTreeScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,ANALYSISID=AnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLBoostDecisionTree.TD(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBoostDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,NUMOFTREES=NUMOFTREES,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
+FLBoostDecisionTree.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBoostDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,MAX_ITER=NUMOFTREES,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
+
+FLBoostDecisionTreeScore.TD(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBoostDecisionTreeScore(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,AnalysisID=AnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLBoostDecisionTreeScore.TDAster(TableName,ObsIDColName,VarIDColName,ValueColName,AnalysisID,ScoreTable,Note) <- FLBoostDecisionTreeScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,ANALYSISID=AnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLADTest.TD(TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy,TableOutput) <- FLADTest(TableName=TableName,ValueCol=ValueCol,Mean=Mean,StdDev=StdDev,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLADTest.TDAster(TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy) <- FLADTest(INPUT_TABLE=TableName,VALUE_COL=ValueCol,MEAN=Mean,STD_DEV=StdDev,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLCochranQ.TD(TableName,BlockColName,GroupColName,ValueColname,WhereClause,GroupBy,TableOutput) <- FLCochranQ(TableName=TableName,BlockColName=BlockColName,GroupColName=GroupColName,ValueColname=ValueColname,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLCochranQ.TDAster(TableName,BlockColName,GroupColName,ValueColname,WhereClause,GroupBy) <- FLCochranQ(INPUT_TABLE=TableName,DATASETID_COL=GroupBy,BLOCK_COL=BlockColName,TREATMENT_COL=GroupColName,VALUE_COL=ValueColname,WHERE_CLAUSE=WhereClause)
+
+FLFriedmanTest.TD(TableName,ValueColname,ObsIDColName,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLFriedmanTest(TableName=TableName,ValueColname=ValueColname,ObsIDColName=ObsIDColName,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLFriedmanTest.TDAster(TableName,ValueColname,ObsIDColName,SampleIDColName,WhereClause,GroupBy) <- FLFriedmanTest(INPUT_TABLE=TableName,VALUE_COL=ValueColname,OBSID_COL=ObsIDColName,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLKaplanMeier.TD(TableName,TimeColName,StatusColName,Alpha,WhereClause,GroupBy,TableOutput) <- FLKaplanMeier(TableName=TableName,TimeColName=TimeColName,StatusColName=StatusColName,Alpha=Alpha,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKaplanMeier.TDAster(TableName,TimeColName,StatusColName,Alpha,WhereClause,GroupBy) <- FLKaplanMeier(INPUT_TABLE=TableName,TIME_COL=TimeColName,STATUS_COL=StatusColName,ALPHA=Alpha,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLKMHypoTest.TD(TableName,TimeColName,StatusColName,SampleIDColname,Alpha,WhereClause,GroupBy,TableOutput) <- FLKMHypoTest(TableName=TableName,TimeColName=TimeColName,StatusColName=StatusColName,SampleIDColname=SampleIDColname,Alpha=Alpha,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKMHypoTest.TDAster(TableName,TimeColName,StatusColName,SampleIDColname,Alpha,WhereClause,GroupBy) <- FLKMHypoTest(INPUT_TABLE=TableName,TIME_COL=TimeColName,STATUS_COL=StatusColName,SAMPLEID_COL=SampleIDColname,ALPHA=Alpha,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLKSTest1s.TD(TestName,TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy,TableOutput) <- FLKSTest1s(TestName=TestName,TableName=TableName,ValueCol=ValueCol,Mean=Mean,StdDev=StdDev,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKSTest1s.TDAster(TestName,TableName,ValueCol,Mean,StdDev,WhereClause,GroupBy) <- FLKSTest1s(TEST_TYPE=TestName,INPUT_TABLE=TableName,VALUE_COL=ValueCol,MEAN=Mean,STD_DEV=StdDev,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLKSTest2s.TD(TableName,ValueCol,GroupCol,WhereClause,GroupBy,TableOutput) <- FLKSTest2s(TableName=TableName,ValueCol=ValueCol,GroupCol=GroupCol,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKSTest2s.TDAster(TableName,ValueCol,GroupCol,WhereClause,GroupBy) <- FLKSTest2s(INPUT_TABLE=TableName,VALUE_COL=ValueCol,GROUP_COL=GroupCol,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLKuiperTest.TD(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLKuiperTest(TableName=TableName,ValueColName=ValueColName,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKuiperTest.TDAster(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy) <- FLKuiperTest(INPUT_TABLE=TableName,VALUE_COL=ValueColName,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLKWTest.TD(TableName,ValueColname,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLKWTest(TableName=TableName,ValueCol=ValueCol,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKWTest.TDAster(TableName,ValueColname,SampleIDColName,WhereClause,GroupBy) <- FLKWTest(INPUT_TABLE=TableName,VALUE_COL=ValueColname,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLWSRTest.TD(TableName,Val1ColName,Val2ColName,WhereClause,GroupBy,TableOutput) <- FLWSRTest(TableName=TableName,Val1ColName=Val1ColName,Val2ColName=Val2ColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLWSRTest.TDAster(TableName,Val1ColName,Val2ColName,WhereClause,GroupBy) <- FLWSRTest(INPUT_TABLE=TableName,VALUE1_COL=Val1ColName,VALUE2_COL=Val2ColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLMWTest.TD(TableName,ValColName,GroupColName,WhereClause,GroupBy,TableOutput) <- FLMWTest(TableName=TableName,ValColName=ValColName,GroupColName=GroupColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLMWTest.TDAster(TableName,ValColName,GroupColName,WhereClause,GroupBy) <- FLMWTest(INPUT_TABLE=TableName,VALUE_COL=ValColName,SAMPLEID_COL=GroupColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLSTTest.TD(InputTable,ValueColName,GroupColName,WhereClause,GroupBy,TableOutput) <- FLSTTest(InputTable=InputTable,ValueColName=ValueColName,GroupColName=GroupColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLSTTest.TDAster(InputTable,ValueColName,GroupColName,WhereClause,GroupBy) <- FLSTTest(INPUT_TABLE=TableName,VALUE_COL=ValColName,SAMPLEID_COL=GroupColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLWWTest1S.TD(TableName,ObsIDColName,Sign,WhereClause,GroupBy,TableOutput) <- FLWWTest1S(TableName=TableName,ObsIDColName=ObsIDColName,Sign=Sign,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLWWTest1S.TDAster(TableName,ObsIDColName,Sign,WhereClause,GroupBy) <- FLWWTest1S(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,SIGN_COL=Sign,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLWWTest2S.TD(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLWWTest2S(TableName=TableName,ValueColName=ValueColName,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLWWTest2S.TDAster(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy) <- FLWWTest2S(INPUT_TABLE=TableName,VALUE_COL=ValueColName,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLPearsonChiSq.TD(InputTable,RowName,ColName,CountName,WhereClause,GroupBy,TableOutput) <- FLPearsonChiSq(InputTable=InputTable,RowName=RowName,ColName=ColName,CountName=CountName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLPearsonChiSq.TDAster(InputTable,RowName,ColName,CountName,WhereClause,GroupBy) <- FLPearsonChiSq(INPUT_TABLE=InputTable,ROW_COL=RowName,COLUMN_COL=ColName,COUNT_COL=CountName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
+
+FLADF.TD(TableName,ObsIDCol,ValueCol,Trend,Lag) <- FLADF(TableName=TableName,ObsIDCol=ObsIDCol,ValueCol=ValueCol,Trend=Trend,Lag=Lag)
+FLADF.TDAster(TableName,ObsIDCol,ValueCol,Trend,Lag,Note) <- FLADF(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VALUE_COL=ValueCol,TREND=Trend,LAG=Lag,NOTE=Note)
+
+FLPP.TD(TableName,ObsIDCol,ValueCol,Trend,Lag) <- FLPP(TableName=TableName,ObsIDCol=ObsIDCol,ValueCol=ValueCol,Trend=Trend,Lag=Lag)
+FLPP.TDAster(TableName,ObsIDCol,ValueCol,Trend,Lag,Note) <- FLPP(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VALUE_COL=ValueCol,TREND=Trend,LAG=Lag,NOTE=Note)
+
+FLLinMixedModel.TD(TableName,ObsIDCol,VarIDCol,ValueCol,SpecID,MaxIter,Note) <- FLLinMixedModel(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,SpecID=SpecID,MaxIter=MaxIter,Note=Note)
+
+FLMixedModelUdtScore.TD(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVarCol,ScoreTable) <- FLMixedModelUdtScore(CoeffTable=CoeffTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,FixVarCol=FixVarCol,RanVarCol=RanVarCol,ScoreTable=ScoreTable)
+FLMixedModelUdtScore.TDAster(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVarCol,ScoreTable) <- FLMixedModelUdtScore(COEFF_TABLE=CoeffTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,FIX_VAR_COL=FixVarCol,RAN_VAR_COL=RanVarCol,SCORE_TABLE=ScoreTable)
+
+FLMixedModelIntUdtScore.TD(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVar1Col,RanVar2Col,ScoreTable) <- FLMixedModelIntUdtScore(CoeffTable=CoeffTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,FixVarCol=FixVarCol,RanVar1Col=RanVar1Col,RanVar2Col=RanVar2Col,ScoreTable=ScoreTable)
+FLMixedModelIntUdtScore.TDAster(CoeffTable,InTable,GroupIDCol,ObsIDCol,FixVarCol,RanVar1Col,RanVar2Col,ScoreTable) <- FLMixedModelIntUdtScore(COEFF_TABLE=CoeffTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,FIX_VAR_COL=FixVarCol,RAN_VAR1_COL=RanVar1Col,RAN_VAR2_COL=RanVar2Col,SCORE_TABLE=ScoreTable)
+
+FLSVMScore.TD(ModelTable,InTable,GroupIDCol,ObsIDCol,VarIDCol,NumValCol,ScoreMethod,ScoreTable) <- FLSVMScore(ModelTable=ModelTable,InTable=InTable,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=NumValCol,ScoreMethod=ScoreMethod,ScoreTable=ScoreTable)
+FLSVMScore.TDAster(ModelTable,InTable,GroupIDCol,ObsIDCol,VarIDCol,NumValCol,ScoreMethod,ScoreTable,Note) <- FLSVMScore(INPUT_MODEL_TABLE=ModelTable,INPUT_TABLE=InTable,GROUPID_COL=GroupIDCol,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=NumValCol,SCORE_METHOD=ScoreMethod,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
+FLSystemTables.Hadoop(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlDataPrepMap=fzzlRegrDataPrepMap)
+FLSystemTables.TD(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
+FLSystemTables.TDAster(fzzlRegrDataPrepMap) <- FLSystemTables(fzzlRegrDataPrepMap=fzzlRegrDataPrepMap)
+
+RANDOM.Hadoop() <- RAND(pArg2=pArg2)
+RANDOM.TD() <- RANDOM(pArg1=pArg1,pArg2=pArg2)
+RANDOM.TDAster() <- FLRandom(pArg1=pArg1,pArg2=pArg2)
+
+FLKSTest2sResults.TDAster(d_stat,d_stat_adj,p_value) <- FLKSTest2sResults(d_stat=d_stat,d_stat_adj=d_stat_adj,d_pvalue=p_value)
+FLKSTest2sResults.TD(d_stat,p_value) <- FLKSTest2sResults(d=d_stat,p_value=p_value)
+

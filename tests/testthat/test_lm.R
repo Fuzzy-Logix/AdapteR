@@ -128,8 +128,10 @@ test_that("lm: multi dataset ",{
 
 ## Testing lm for non-continuous ObsIDs
 widetable  <- FLTable(getTestTableName("tblAbaloneWide"),
-                     "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
-object <- lm(Rings~Height+Diameter,widetable)
+                    "obsid",whereconditions=c("ObsID>10","ObsID<1001"))
+if(is.TDAster()) vformula <- rings~height+diameter else vformula <- Rings~Height+Diameter
+object <- lm(vformula,widetable)
+
 test_that("Check for dimensions of x Matrix ",{
         expect_equal(nrow(object$x),nrow(widetable))
         expect_equal(colnames(object$x),

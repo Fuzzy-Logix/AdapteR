@@ -30,6 +30,8 @@ vtableName <- getTestTableName("medeconomicdataAmal")
 #### Data Preparation
 vtemp <- readline("Data Preparation: \n ")
 
+vtableName <- getTestTableName("ARmedEconomicData")
+
 ## Display subset of Table in database
 sqlQuery(getFLConnection(),
         limitRowsSQL(paste0("SELECT * FROM ",vtableName),5))
@@ -105,6 +107,8 @@ colnames(medEconomicData) <- vIndicatorMap[colnames(medEconomicData)]
 head(medEconomicData)
 dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
+require(plotly)
+
 ## Plot clusters on a world map
 medEconomicData$CountryName <- rownames(medEconomicData)
 

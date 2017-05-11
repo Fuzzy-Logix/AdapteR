@@ -100,7 +100,8 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     tbl <- createTable(pTableName = vvolName,
                        pWithData = TRUE,
                        pTemporary = TRUE,
-                       pSelect = vselect )
+                       pSelect = vselect,
+                       pPrimaryKey="OBSID" )
     vrw <- nrow(response)
     rnames <- rownames(response)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
@@ -113,7 +114,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
                          WhereClause =NULL ,
                          TableOutput = 1,
                          outputParameter = c(OutTable = 'a') 
-                         )
+                        )
     vclass <- "FLROC"
     quer <- paste0("SELECT COUNT(res) AS val FROM ",vvolName," GROUP BY res")
     df <- sqlQuery(connection, quer)
@@ -134,7 +135,7 @@ rocgeneric <- function(response, predictor,callobject,  ...)
 }
 
 
-setMethod("names", signature("FLROC"), function(object) c("sensitivities","specificities",
+setMethod("names", signature("FLROC"), function(x) c("sensitivities","specificities",
                                                           "original.predictor","original.response",
                                                           "levels",
                                                           "controls","cases",

@@ -4,13 +4,14 @@
 rm(list = setdiff(ls(),"connection"))
 
 FLenv = new.env(parent = globalenv())
-FLenv$tbl <- FLTable("tblROCCurve", "ObsID")
+FLenv$tbl <- FLTable(getTestTableName("tblROCCurve"), "ObsID")
+colnames(FLenv$tbl) <- tolower(colnames(FLenv$tbl))
 Renv = as.R(FLenv)
 
 test_that("ROC model.",{
     result = eval_expect_equal({
         mod <- roc(ActualVal~ProbVal, data = tbl)
-
+        #mod <- roc(tbl$actualval, tbl$probval)
     },Renv,FLenv,
     expectation = c("mod"),
     check.attributes=T,

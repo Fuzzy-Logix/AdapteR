@@ -46,22 +46,56 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         vcall <- paste(all.vars(sys.call())[1:2],collapse=" and ")
 
         ## Casting to BYTEINT
-        x <- as.FLByteInt(x)
-        y <- as.FLByteInt(y)
+        tryCatch(x <- as.FLByteInt(x),
+                error=function(e) 
+                warning("could not cast inputs to BYTEINT. Running as it is \n ")
+                )
+        tryCatch(y <- as.FLByteInt(y),
+                error=function(e) 
+                warning("could not cast inputs to BYTEINT. Running as it is \n ")
+                )
+
+        # vsqlstr <- constructAggregateSQL(pFuncName="FLMcNemarTest",
+        #                                 pFuncArgs=c("c.FLStatistic",
+        #                                             fquote(vcorrection),
+        #                                             "a.vectorValueColumn",
+        #                                             "b.vectorValueColumn"),
+        #                                 pAddSelect=c(stat="c.FLStatistic",
+        #                                             df="COUNT(DISTINCT a.vectorValueColumn)"),
+        #                                 pFrom=c(a=constructSelect(x),
+        #                                         b=constructSelect(y),
+        #                                         c="fzzlARHypTestStatsMap"),
+        #                                 pWhereConditions=c("a.vectorIndexColumn=b.vectorIndexColumn",
+        #                                                     "c.FLFuncName='FLMcNemarTest'"),
+        #                                 pGroupBy="c.FLStatistic")
+
+        vstats <- c("t_stat","chi_sq","binomial_exact")
+        pAddSelect <- c()
+        pFuncArgs <- c(fquote(vcorrection),
+                        "a.vectorValueColumn",
+                        "b.vectorValueColumn")
+        pFuncArgs <- c("'stat'",pFuncArgs)
+        for(i in vstats){
+            pFuncArgs[1] <- fquote(i)
+            pAddSelect <- c(pAddSelect,paste0("FLMcNemarTest(",paste0(pFuncArgs,collapse=","),")"))
+        }
+        names(pAddSelect) <- vstats
 
         vsqlstr <- constructAggregateSQL(pFuncName="FLMcNemarTest",
-                                        pFuncArgs=c("c.FLStatistic",
-                                                    fquote(vcorrection),
-                                                    "a.vectorValueColumn",
-                                                    "b.vectorValueColumn"),
-                                        pAddSelect=c(stat="c.FLStatistic",
+                                        pFuncArgs=pFuncArgs,
+                                        pAddSelect=c(pAddSelect,
                                                     df="COUNT(DISTINCT a.vectorValueColumn)"),
                                         pFrom=c(a=constructSelect(x),
-                                                b=constructSelect(y),
-                                                c="fzzlARHypTestStatsMap"),
-                                        pWhereConditions=c("a.vectorIndexColumn=b.vectorIndexColumn",
-                                                            "c.FLFuncName='FLMcNemarTest'"),
-                                        pGroupBy="c.FLStatistic")
+                                                b=constructSelect(y)),
+                                        includeFuncCall=FALSE,
+                                        pWhereConditions=c("a.vectorIndexColumn=b.vectorIndexColumn"))
+
+        # vsqlstr <- constructHypoTestsScalarQuery(pFuncName = "FLMcNemarTest",
+        #                                         pFuncArgs = c(fquote(vcorrection),
+        #                                                     "a.vectorValueColumn",
+        #                                                     "b.vectorValueColumn"),
+        #                                         pFrom=c(a=constructSelect(x)),
+        #                                         pStats=c("p_value","t_stat"))
 
         # vsqlstr <- paste0("SELECT FLMcNemarTest(c.FLStatistic,",fquote(vcorrection),
         #                                         ",a.vectorValueColumn,b.vectorValueColumn) AS val, \n ",
@@ -73,13 +107,16 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         #                   " WHERE a.vectorIndexColumn=b.vectorIndexColumn \n ",
         #                   " AND c.FLFuncName='FLMcNemarTest' ",
         #                   " GROUP BY c.FLStatistic ")
+
         vres <- sqlQuery(connection,vsqlstr)
+        colnames(vres) <- tolower(colnames(vres))
         r <- vres[["df"]][1]
-        vresList <- list(statistic=c("McNemar's chi-squared"=as.vector(vres[vres[,"stat"]=="T_STAT","OutVal"])),
+
+        vresList <- list(statistic=c("McNemar's chi-squared"=as.vector(vres$t_stat)),
                         parameter=c(df=r*(r-1)/2),
-                        p.value=as.vector(vres[vres[,"stat"]=="CHI_SQ","OutVal"]),
+                        p.value=as.vector(vres$chi_sq),
                         data.name=vcall,
-                        binomial_exact=c(binomial_exact = as.vector(vres[vres[,"stat"]=="BINOMIAL_EXACT","OutVal"])))
+                        binomial_exact=c(binomial_exact = as.vector(vres$binomial_exact)))
         class(vresList) <- "htest"
         return(vresList)
     })

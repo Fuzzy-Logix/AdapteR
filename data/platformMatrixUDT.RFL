@@ -1,0 +1,124 @@
+FLMatrixInvUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixInvUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,matrix_inv=OutputVal)
+FLMatrixInvUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixInvUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLMatrixInvUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixInverse(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,inverse_value=OutputVal)
+
+FLTridiagUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixTriDiag(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,tridiag_value=OutputVal)
+FLTridiagUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLTridiagUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLTridiagUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLTridiagUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,OutputVal=OutputVal)
+
+FLCholeskyDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixCholeskyDecomp(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,out_value=OutputVal)
+FLCholeskyDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLCholeskyDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLCholeskyDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLCholeskyDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,cell_val=OutputVal)
+
+FLMatrixDetUdt.Hadoop(OutputMatrixID,OutputDetVal) <- FLPTFMatrixDeterminant(matrix_id=OutputMatrixID,determinant_value=OutputDetVal)
+FLMatrixDetUdt.TD(OutputMatrixID,OutputDetVal) <- FLMatrixDetUdt(OutputMatrixID=OutputMatrixID,OutputDetVal=OutputDetVal)
+FLMatrixDetUdt.TDAster(OutputMatrixID,OutputDetVal) <- FLMatrixDetUdt(partition1=OutputMatrixID,outputdetvalue=OutputDetVal)
+
+FLEigenValueUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixEigenSystem(matrix_id=vectorIDColumn,row_id=vectorIndexColumn,eigenvalue=vectorValueColumn)
+FLEigenValueUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLEigenValueUdt(OutputMatrixID=vectorIDColumn,OutputRowNum=vectorIndexColumn,OutputVal=vectorValueColumn)
+FLEigenValueUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLEigenValueUdt(partition1=vectorIDColumn,row_id=vectorIndexColumn,outputval=vectorValueColumn)
+
+FLEigenVectorUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixEigenSystem(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,eigenvector=OutputVal)
+FLEigenVectorUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLEigenVectorUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLEigenVectorUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLEigenVectorUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,outputval=OutputVal)
+
+FLMatrixNormUdt.TD(OutputMatrixID,OutputNorm) <- FLMatrixNormUdt(OutputMatrixID=outputmatrixid,OutputNorm=outputnorm)
+FLMatrixNormUdt.Hadoop(OutputMatrixID,OutputNorm) <- FLPTFMatrixNorm(matrix_id=outputmatrixid,value=outputnorm)
+FLMatrixNormUdt.TDAster(OutputMatrixID,OutputNorm) <- FLMatrixNormUdt(partition1=outputmatrixid,norm=outputnorm)
+
+FLMatrixREFUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixREF(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,ref_value=OutputVal)
+FLMatrixREFUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixREFUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLMatrixREFUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixREFUdt(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,cell_val=OutputVal)
+
+FLMatrixRREFUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixRREF(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,rref_value=OutputVal)
+FLMatrixRREFUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixRREFUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLMatrixRREFUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixRREFUdt(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,cell_val=OutputVal)
+
+FLQRDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputValQ,OutputValR) <- FLPTFMatrixQRDecomp(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,q_matrix=OutputValQ,r_matrix=OutputValR)
+FLQRDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValQ,OutputValR) <- FLQRDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputValQ=OutputValQ,OutputValR=OutputValR)
+FLQRDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputValQ,OutputValR) <- FLQRDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,q_val=OutputValQ,r_val=OutputValR)
+
+FLSVDUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLPTFMatrixSVD(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_matrix=OutUVal,s_matrix=OutSVal,v_matrix=OutVVal)
+FLSVDUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutSVal=OutSVal,OutVVal=OutVVal)
+FLSVDUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_val=OutUVal,s_val=OutSVal,v_val=OutVVal)
+
+FLLUDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_val=OutputValL,u_val=OutputValU,permut=OutputPermut)
+FLLUDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputValL=OutputValL,OutputValU=OutputValU,OutputPermut=OutputPermut)
+FLLUDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLPTFMatrixLUDecomp(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_matrix=OutputValL,u_matrix=OutputValU,permut_matrix=OutputPermut)
+
+FLHessenbergDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputHVal,OutputPVal) <- FLPTFMatrixHessenbergDecomp(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,h_matrix=OutputHVal,p_matrix=OutputPVal)
+FLHessenbergDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputHVal,OutputPVal) <- FLHessenbergDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputHVal=OutputHVal,OutputPVal=OutputPVal)
+FLHessenbergDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputHVal,OutputPVal) <- FLHessenbergDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,h_val=OutputHVal,p_val=OutputPVal)
+
+FLJordanDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutPVal,OutJVal,OutPInvVal) <- FLJordanDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,p_val=OutPVal,j_val=OutJVal,pinv_val=OutPInvVal)
+FLJordanDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutPVal,OutJVal,OutPInvVal) <- FLJordanDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutPVal=OutPVal,OutJVal=OutJVal,OutPInvVal=OutPInvVal)
+
+FLMatrixRankUdt.Hadoop(OutputMatrixID,OutputMtxRank) <- FLPTFMatrixRank(matrix_id=OutputMatrixID,rank=outputmtxrank)
+FLMatrixRankUdt.TD(OutputMatrixID,OutputMtxRank) <- FLMatrixRankUdt(OutputMatrixID=OutputMatrixID,OutputMtxRank=outputmtxrank)
+FLMatrixRankUdt.TDAster(OutputMatrixID,OutputMtxRank) <- FLMatrixRankUdt(partition1=OutputMatrixID,outputmtxrank=outputmtxrank)
+
+FLMatrixPseudoInvUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixPseudoInvUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,cell_val=OutputVal)
+FLMatrixPseudoInvUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixPseudoInvUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLMatrixPseudoInvUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixPseudoInv(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,value=OutputVal)
+
+FLMatrixInvExclUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixInvExclUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,matrix_inv=OutputVal)
+FLMatrixInvExclUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLMatrixInvExclUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputVal=OutputVal)
+FLMatrixInvExclUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputVal) <- FLPTFMatrixInverseExcl(matrix_id=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,inverse_value=OutputVal)
+
+FLSVUdt.Hadoop(OutputMatrixID,OutputID,OutputSV) <- FLPTFMatrixSV(matrix_id=vectorIDColumn,output_id=vectorIndexColumn,singular_value=vectorValueColumn)
+FLSVUdt.TD(OutputMatrixID,OutputID,OutputSV) <- FLSVUdt(OutputMatrixID=vectorIDColumn,OutputID=vectorIndexColumn,OutputSV=vectorValueColumn)
+FLSVUdt.TDAster(OutputMatrixID,OutputID,OutputSV) <- FLSVUdt(partition1=vectorIDColumn,col_id=vectorIndexColumn,singularval=vectorValueColumn)
+
+FLMatrixTrace.Hadoop(MatrixID,MatrixTrace) <- FLPTFMatrixTrace(matrix_id=matrix_id,trace_value=trace_value)
+FLMatrixTrace.TDAster(MatrixID,MatrixTrace) <- FLMatrixTrace(matrix_id=matrix_id,matrixtrace=matrixtrace)
+
+FLModeUdt.TD(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMode)
+FLModeUdt.Hadoop(oGroupID,oMode) <- FLPTFMode(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLModeUdt.TDAster(oGroupID,oMode) <- FLModeUdt(vectorIdColumn=partition1,vectorValueColumn=mode)
+
+FLMedianUdt.TD(oGroupID,oMedian) <- FLMedianUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedian)
+FLMedianUdt.Hadoop(oGroupID,oMedian) <- FLPTFMedian(vectorIdColumn=GroupID,vectorValueColumn=MedianValue)
+FLMedianUdt.TDAster(oGroupID,oMedian) <- FLMedianUdt(vectorIdColumn=partition1,vectorValueColumn=median)
+
+FLPercUdt.TD(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=oGroupID,vectorValueColumn=oPercVal)
+FLPercUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPerc(vectorIdColumn=GroupID,vectorValueColumn=PercValue)
+FLPercUdt.TDAster(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=partition1,vectorValueColumn=opercval)
+
+FLPercentUdt.TD(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=oObsID,vectorValueColumn=oPercentVal)
+FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=GroupID,vectorValueColumn=PercValue)
+FLPercentUdt.TDAster(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=ObsID,vectorValueColumn=opercentValue)
+
+FLMeanAbsDevUdt.TD(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMeanAbsDev)
+FLMeanAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMeanAbsDev(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLMeanAbsDevUdt.TDAster(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=partition1,vectorValueColumn=meanabsdev)
+
+FLMedianAbsDevUdt.TD(oGroupID,oMedianAbsDev) <- FLMedianAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMedianAbsDev)
+FLMedianAbsDevUdt.Hadoop(oGroupID,oMeanAbsDev) <- FLPTFMedianAbsDev(vectorIdColumn=GroupID,vectorValueColumn=Value)
+FLMedianAbsDevUdt.TDAster(oGroupID,oMedianAbsDev) <- FLMedianAbsDevUdt(vectorIdColumn=partition1,vectorValueColumn=medianabsdev)
+
+FLFracRankUdt.TD(oGroupID,oValue,oFracRank) <- FLFracRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oFracRank)
+FLFracRankUdt.Hadoop(oGroupID,oValue,oFracRank) <- FLPTFFracRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=FracRank)
+FLFracRankUdt.TDAster(oGroupID,oValue,oFracRank) <- FLFracRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oFracRank)
+
+FLPercRankUdt.TD(oGroupID,oValue,oPercRank) <- FLPercRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oPercRank)
+FLPercRankUdt.Hadoop(oGroupID,oValue,oPercRank) <- FLPTFPercRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=PercRank)
+FLPercRankUdt.TDAster(oGroupID,oValue,oPercRank) <- FLPercRankUdt(vectorIdColumn=partition1,outputValueColumn=ovalue,vectorValueColumn=opercrank)
+
+FLRankUdt.TD(oGroupID,oValue,oRank) <- FLRankUdt(vectorIdColumn=oGroupID,outputValueColumn=oValue,vectorValueColumn=oRank)
+FLRankUdt.Hadoop(oGroupID,oValue,oRank) <- FLPTFRank(vectorIdColumn=GroupID,outputValueColumn=Value,vectorValueColumn=ValueRank)
+FLRankUdt.TD(oGroupID,oValue,oRank) <- FLRankUdt(vectorIdColumn=groupid,outputValueColumn=value,vectorValueColumn=rank)
+
+FLArimaUdt.TD(oGroupID,oParamType,oParamID,oParamName,oParamValue,oParamStdErr) <- FLArimaUdt(oGroupID=oGroupID,oParamType=oParamType,oParamID=oParamID,oParamName=oParamName,oParamValue=oParamValue,oParamStdErr=oParamStdErr)
+FLArimaUdt.TDAster(oGroupID,oParamType,oParamID,oParamName,oParamValue,oParamStdErr) <- FLArimaUdt(oGroupID=partition1,oParamType=paramtype,oParamID=paramid,oParamName=paramname,oParamValue=paramvalue,oParamStdErr=paramstderr)
+
+FLCrostonsUdt.TD(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLCrostonsUdt(oGroupID=oGroupID,oPeriodID=oPeriodID,oActualValue=oActualValue,oForecastValue=oForecastValue)
+FLCrostonsUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLCrostonsUdt(oGroupID=partition1,oPeriodID=periodid,oActualValue=actualvalue,oForecastValue=forecastvalue)
+
+FLHoltWintersUdt.TD(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHoltWintersUdt(oGroupID=oGroupID,oPeriodID=oPeriodID,oActualValue=oActualValue,oForecastValue=oForecastValue)
+FLHoltWintersUdt.TDAster(oGroupID,oPeriodID,oActualValue,oForecastValue) <- FLHoltWintersUdt(oGroupID=partition1,oPeriodID=periodid,oActualValue=actualvalue,oForecastValue=forecastedvalue)
+
+FLGarch.TD(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=oGroupID,oParamName=oParmName,oParamValue=oParmValue)
+FLGarch.TDAster(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=partition1,oParamName=paramname,oParamValue=paramvalue)
+
+FLDifferenceUdt.TD(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=oGroupID,vectorIndexColumn=oPeriodID,vectorValueColumn=oDifference)
+FLDifferenceUdt.TDAster(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=partition1,vectorIndexColumn=periodid,vectorValueColumn=difference)
