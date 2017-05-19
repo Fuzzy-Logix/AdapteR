@@ -1,7 +1,7 @@
 Package: AdapteR
 Title: Converts R syntax to SQL to provide fast analytics using in-database C++
     library DB Lytix.
-Version: 2.4
+Version: 2.6
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -11,22 +11,22 @@ Authors@R: c(
     person("Suryavamshig", "Iitr", email = "suryavamshig.iitr@gmail.com", role = c("ctb")),
     person("Mitul", "Mundra", email = "Mitul.Mundra@fuzzylogix.com", role = c("ctb")),
     person("Rohit", "Gupta", email = "Rohit.Gupta@fuzzylogix.com", role = c("ctb")))
-Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
-    dramatic improvements in performance by moving computation from client machines
-    into data warehouses and clusters where big data lives. As important as
-    performance and scalability is the way in which the end user interacts with
-    the analytics, and the R language has become most pervasive in this area.
-    R is remarkably expressive and flexible, allowing for fast prototyping and
-    evaluation, enabling agile analytics. Fuzzy Logix's new R package AdapteR
-    enables the R syntax to consume DB Lytix in-database analytics by generating
-    SQL transparently, and replacing R matrix and data frame data structures with
-    remote table objects. AdapteR uses R's class system and method override to
-    seamlessly leverage in-database analytics, without requiring complicated R
-    server installations or writing custom SQL. In this session, we will demonstrate
-    how AdapteR can be used to build interactive analytics at scale with just a few
-    lines of R code!
+Description: drop 6 alpha! With Fuzzy Logix' DB Lytix(TM), advanced analytics
+    can realize dramatic improvements in performance by moving computation from
+    client machines into data warehouses and clusters where big data lives. As
+    important as performance and scalability is the way in which the end user
+    interacts with the analytics, and the R language has become most pervasive
+    in this area. R is remarkably expressive and flexible, allowing for fast
+    prototyping and evaluation, enabling agile analytics. Fuzzy Logix's new R
+    package AdapteR enables the R syntax to consume DB Lytix in-database analytics
+    by generating SQL transparently, and replacing R matrix and data frame data
+    structures with remote table objects. AdapteR uses R's class system and method
+    override to seamlessly leverage in-database analytics, without requiring
+    complicated R server installations or writing custom SQL. In this session, we
+    will demonstrate how AdapteR can be used to build interactive analytics at scale
+    with just a few lines of R code!
 Depends:
-    R (>= 3.1.0),
+    R (>= 3.3.1),
     methods,
     Matrix (>= 1.1-5)
 Imports:
@@ -55,8 +55,9 @@ Suggests:
     stringdist
 License: GPL-2
 LazyData: true
-Collate:
+Collate: 
     'FLconstructSQL.R'
+    'platformMappings.R'
     'platforms.R'
     'FLMatrix.R'
     'FLADTest.R'
@@ -83,6 +84,7 @@ Collate:
     'FLFTest.R'
     'FLVector.R'
     'FLGAM.R'
+    'FLGarch.R'
     'FLGet.R'
     'FLGinv.R'
     'FLHClust.R'
@@ -95,6 +97,7 @@ Collate:
     'FLIs.R'
     'FLJordanDecomp.R'
     'FLKMeans.R'
+    'FLKNN.R'
     'FLLDA.R'
     'FLLUDecomp.R'
     'FLLength.R'
@@ -107,13 +110,18 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
+    'FLMixedModelUdt.R'
+    'FLMixedmodel.R'
     'FLPLSRegr.R'
+    'FLPP.R'
     'FLPrint.R'
     'FLQRDecomp.R'
+    'FLROC.R'
     'FLRankMatrix.R'
     'FLRbind.R'
     'FLSV.R'
     'FLSVDecomp.R'
+    'FLSVM.R'
     'FLScalarFunctions.R'
     'FLSolve.R'
     'FLSolveExcl.R'
@@ -124,8 +132,12 @@ Collate:
     'FLTranspose.R'
     'FLTriDiag.R'
     'FLVarCluster.R'
+    'FLdifference.R'
     'FLtestLib.R'
+    'HoltWinters.R'
     'SiegelTukeyTest.R'
+    'adf.test.R'
+    'arima.R'
     'bagging.R'
     'binom.test.R'
     'boosting.R'
@@ -134,16 +146,20 @@ Collate:
     'cochran.qtest.R'
     'constructAbstractSQL.R'
     'crossprod.R'
+    'croston.R'
     'experiment_benchmarking.R'
     'friedman.test.R'
+    'knnx.index.R'
     'kruskal.test.R'
     'ks.test.R'
     'kuip.test.R'
     'mahalanobis.R'
+    'matchit.R'
     'mcnemar.test.R'
     'randomForest.R'
     'rowcolOps.R'
     'rpart.R'
+    'subset.R'
     'survdiff.R'
     'survfit.R'
     't.test.R'
@@ -153,4 +169,4 @@ Collate:
     'wald_wolfowitz.R'
     'wilcox.test.R'
     'z.test.R'
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

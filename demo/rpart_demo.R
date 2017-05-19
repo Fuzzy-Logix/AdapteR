@@ -27,14 +27,12 @@ if(!exists("connection")) {
 ## Create a FLTable object for tblTwitterBuzz table
 ## Refer ?FLTable for help on creating FLTable Objects.
 ?FLTable
-FLdeepTable <- FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLdeepTable <- FLTable(getTestTableName("tblDecisionTreeMulti"),
+                        "ObsID","VarID","Num_Val")
 vtemp <- readline("Above: deep FLTable object created. \n ")
 
 str(FLdeepTable)
 vtemp <- readline("Above: str prints a summary of the table \n ")
-
-dim(FLdeepTable)
-vtemp <- readline("Above: the number of rows and columns of the table \n ")
 
 ## Using display=TRUE fetches and returns result as R object
 ## Recommended for Large objects
@@ -80,3 +78,12 @@ vtemp<-readline("Above: Examining the sample result obtained through predict fun
 #### Thank You ####
 ## clean up
 options(warn=oldWarn)
+
+
+
+## random forest
+
+rfobj<-randomForest(FLdeepTable, -1~., ntree=9)
+
+plot(rfobj)
+x<-predict(rfobj)

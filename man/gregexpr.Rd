@@ -36,6 +36,7 @@ Match \code{pattern} in each element of \code{text}
 
 row FLVectors are not supported currently.
 }
+
 \examples{
 widetable  <- FLTable("tblstringID", "stringID")
 flv <- widetable[1:6,"string"]
@@ -44,4 +45,3 @@ resultflvector <- gregexpr("A",flv)
 \seealso{
 \code{\link[base]{gregexpr}} for R function reference implementation.
 }
-

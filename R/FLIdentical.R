@@ -23,7 +23,6 @@ NULL
 #' Result <- identical(flmatrix,flmatrix)
 #' Result <- identical(Rvector,as.FLVector(Rvector,connection))
 #' @export
-
 identical <- function(pObj1,pObj2)
 {
 	UseMethod("identical", pObj1)
@@ -192,7 +191,6 @@ NULL
 #' Result <- flvector==flvector
 #' Result <- flvector==1:5
 #' @export
-
 "==" <- function(pObj1,pObj2)
 {
 	UseMethod("==", pObj1)

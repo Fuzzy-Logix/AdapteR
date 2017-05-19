@@ -1,3 +1,18 @@
+#' @include platformMappings.R
+NULL
+## platform mappings are to created during
+## build time:
+##
+## FLcreatePlatformsMapping()
+## storedProcMappingsFL <- getOption("storedProcMappingsFL")
+## dump("storedProcMappingsFL",file="AdapteR/R/platformMappings.R")
+## MatrixUDTMappingsFL <- getOption("MatrixUDTMappingsFL")
+## dump("MatrixUDTMappingsFL",file="AdapteR/R/platformMappings.R",append=TRUE)
+## FLcreatePlatformsMapping()
+
+# options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+# options(storedProcMappingsFL=storedProcMappingsFL)
+
 #' @export
 setClass("FLConnection",slots=list())
 
@@ -32,8 +47,12 @@ getFLConnectionName <- function(...) attr(getFLConnection(...),"name")
 
 ##' @export
 getFLPlatform <- function(connection=getFLConnection()) return(attr(connection,"platform"))
+
+##' @export
 is.TD         <- function(connection=getFLConnection()) getFLPlatform(connection)=="TD"
+##' @export
 is.TDAster    <- function(connection=getFLConnection()) getFLPlatform(connection)=="TDAster"
+##' @export
 is.Hadoop     <- function(connection=getFLConnection()) getFLPlatform(connection)=="Hadoop"
 
 ##' @export
@@ -98,6 +117,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
                       temporary=TRUE,
                       verbose=FALSE,
                       tablePrefix=NULL,
+                      pkg = "dbc",
                       ...){
     if(is.null(tablePrefix) & temporary)
         tablePrefix <- user
@@ -144,7 +164,9 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             }
             Sys.sleep(1)
             require(RJDBC)
-            drv <- JDBC(driverClass)
+            tryCatch({
+                drv <- JDBC(driverClass)
+            }, error=function(e) stop("jdbc driver not found, please provide location by using argument jdbc.jarsDir"))
             st <- paste0(host)
             if(!is.null(database))
                 st <- paste0(st, "/",database[1], 
@@ -174,9 +196,11 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
             stop("RODBC package needed for using ODBC connections. Please install it.",
                  call. = FALSE)
         }
-        tryCatch({
-            library(RODBC)
-            connection <- RODBC::odbcConnect(odbcSource)
+         tryCatch({
+            if(pkg %in% "dbi")
+                connection <- RODBCDBI::dbConnect(RODBCDBI::ODBC(), dsn = odbcSource)
+            else if (pkg %in% "dbc")
+                connection <- RODBC::odbcConnect(odbcSource)              
         },error=function(e)e)
     }
     if(is.null(connection))
@@ -206,7 +230,7 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     ## store database where tests need to be run
     TestDatabase <- list(...)$TestDatabase
     if(is.null(TestDatabase)){
-        vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="mazdoo")
+        vmap <- c(TD="FL_TRAIN",TDAster="fl_release",Hadoop="mazdoo")
         TestDatabase <- vmap[platform]
     }
     else names(TestDatabase) <- platform
@@ -302,7 +326,8 @@ FLStartSession <- function(connection,
         "ResultByteIntVectorTableFL" = "tblByteIntVectorResult")
     vresultTables <- names(resultTables)
     if(!temporary)
-        resultTables <- paste0(database,".",resultTables)
+        resultTables <- getRemoteTableName(databaseName=database,
+                                            tableName=resultTables)
     else
         resultTables <- paste0(tablePrefix,resultTables)
     options(resultTablesFL=resultTables)
@@ -338,7 +363,13 @@ FLStartSession <- function(connection,
         })
     genSessionID()
 
-    FLcreatePlatformsMapping()
+    # options(MatrixUDTMappingsFL=MatrixUDTMappingsFL)
+    # options(storedProcMappingsFL=storedProcMappingsFL)
+
+    ## Create platform Mappings
+    tryCatch(FLcreatePlatformsMapping(),
+            error=function(e)warning("Platform Mappings could not be generated \n "))
+
     cat("Session Started..\n")
 }
 
@@ -374,6 +405,7 @@ parsePlatformMapping <- function(definition){
 
 
 ## gk: todo document
+#' @export
 getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
 #' Function to generate platforms mappings for stored procs and UDTs from definitions file.
@@ -382,14 +414,16 @@ getStoredProcMapping <- function(query) getOption("storedProcMappingsFL")[[paste
 #' <TD_FNAME>.<PLATFORM>(<TD_ARGS>) <- <PLATFORM_FNAME>(<PLATFORM_ARGS>)
 #' The definitions file for UDTs has one definition per line
 #' <TD_FNAME>.<PLATFORM>(<TD_OUTPUTCOLS>) <- <PLATFORM_FNAME>(<PLATFORM_OUTPUTCOLS>)
-# FLcreatePlatformMatrixUDTMapping <- function(definitions='data/platformMatrixUDT.RFL'){
+# FLcreatePlatformMatrixUDTMapping <- function(definitions='def/platformMatrixUDT.rfl'){
 #     defs <- readLines(system.file(definitions, package='AdapteR'))
 
     
 # }
-FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL',
-                                                    'data/platformMatrixUDT.RFL')){
-    defs <- readLines(system.file(definitions[1], package='AdapteR'))
+
+#' @export
+FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.rfl',
+                                                    'data/platformMatrixUDT.rfl')){
+    defs <- readLines(system.file(definitions[1], package='AdapteR'),encoding="UTF-8")
 
     storedProcMappings <- lapply(defs,
                                 parsePlatformMapping)
@@ -406,9 +440,10 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
     storedProcMappings$preArgs.Hadoop=""
 
     storedProcMappings$extraPars.TD=c()
-    storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
-                                                    "NULL",
-                                                    getOption("DSN")))
+    ##@phani: DSN made optional in Aster
+    #storedProcMappings$extraPars.TDAster=c(DSN=ifelse(is.null(getOption("DSN")),
+                                                    #"NULL",
+                                                    #getOption("DSN")))
     storedProcMappings$extraPars.Hadoop=c()
 
     storedProcMappings$withOutputPars.TD=TRUE
@@ -424,12 +459,12 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
     storedProcMappings$includeWhere.TDAster=TRUE
     storedProcMappings$includeWhere.TD=TRUE
 
-
     storedProcMappings$valueMapping.TDAster <- list("NULL"="")
     storedProcMappings$valueMapping.Hadoop <- list("NULL"="")
 
     options(storedProcMappingsFL=storedProcMappings)
-    defs <- readLines(system.file(definitions[2], package='AdapteR'))
+
+    defs <- readLines(system.file(definitions[2], package='AdapteR'),encoding="UTF-8")
     
     MatrixUDTMappings <- lapply(defs,
                                 parsePlatformMapping)
@@ -439,13 +474,13 @@ FLcreatePlatformsMapping <- function(definitions=c('data/platformStoredProcs.RFL
     options(MatrixUDTMappingsFL=MatrixUDTMappings)
 }
 
-
 ## gk: todo document
 getMatrixUDTMapping <- function(query) 
     getOption("MatrixUDTMappingsFL")[[paste0(query,".",getFLPlatform(connection=connection))]]
 
 ## return the name of systemTable based on platform
-getSystemTableMapping <- function(query,connection=getFLConnection()){
+getSystemTableMapping <- function(query,
+                                  connection=getFLConnection()){
     vlist <- getOption("storedProcMappingsFL")[[paste0("FLSystemTables.",getFLPlatform(connection=connection))]]
     argsMap <- vlist$argsPlatform
     return(names(argsMap)[argsMap==query])
@@ -493,13 +528,15 @@ genCreateResulttbl <- function(tablename,
 #' Strongly recommended to run before quitting current R session
 #' @param connection ODBC/JDBC connection object
 #' @export
-FLClose <- function(connection)
+flClose <- function(connection=getFLConnection())
 {
    # if(length(getOption("FLTempTables"))>0)
    #      sapply(getOption("FLTempTables"),dropTable)
    #  if(length(getOption("FLTempViews"))>0)
    #      sapply(getOption("FLTempViews"),dropView)
-
+    if(inherits(connection,"FLConnection")){
+        connection <- connection$connection
+    }
     if(class(connection)=="RODBC")
         RODBC::odbcClose(connection)
     else
@@ -512,14 +549,47 @@ FLClose <- function(connection)
     options("FLSessionID"=c())
 }
 
-## Generate Mappings when package is loaded
-FLcreatePlatformsMapping()
+#' Close Session and Drop temp Tables
+#'
+#' Strongly recommended to run before quitting current R session
+#' @param connection ODBC/JDBC connection object
+#' @export
+FLClose <- function(connection=getFLConnection()){
+    warning("Deprecated, calling flClose(connection).")
+    flClose(connection)
+}
 
+## check if hypothesis tables exists
+#' @export
 checkHypoSystemTableExists <- function(){
     ## Create System table for HypothesisTesting Statistics Mapping
-    vdf <- read.csv(system.file('data/HypothesisTestsMapping.csv', package='AdapteR'))
+    vdf <- tryCatch(read.csv(system.file('def/HypothesisTestsMapping.rfl',package='AdapteR'),encoding="UTF-8"),
+                    error=function(e){
+                        suppressWarnings({data("HypothesisTestsMapping")
+                        vdf <- HypothesisTestsMapping
+                        require(plyr)
+                        vdf <- apply(vdf,1,function(x)strsplit(as.character(x),","))
+                        vdf <- ldply(vdf,function(vdf)vdf[[1]])
+                        colnames(vdf) <- c("X","rownames",
+                                           "FLFuncName","FLStatistic")
+                        rm(HypothesisTestsMapping,envir=.GlobalEnv)})
+                        return(vdf)
+                    })
     if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
         t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
                         temporary=FALSE,drop=TRUE)
         
+}
+
+getPlatformResultNames <- function(pFunc,pResName){
+    vMap <- getStoredProcMapping(pFunc)
+    vArgsMap <- vMap$argsPlatform
+    vres <- vArgsMap[pResName]
+    return(vres)
+}
+
+ModifyHypoResultColnames <- function(pFunc,pObj){
+    colnames(pObj) <- getPlatformResultNames(pFunc,
+                                            colnames(pObj))
+    return(pObj)
 }

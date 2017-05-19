@@ -25,8 +25,8 @@ into the product of a lower triangular matrix and its conjugate transpose.
 Input can only be a Hermitian, positive definite square matrix (n x n)
 with maximum dimension limitations of (1000 x 1000)
 }
+
 \examples{
 flmatrix<-FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- chol(flmatrix)
 }
-

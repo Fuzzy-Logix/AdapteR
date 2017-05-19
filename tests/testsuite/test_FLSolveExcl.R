@@ -12,6 +12,7 @@ test_that("FLSolveExcl", {
 
 
 ## Testing FLSolveExcl
+#The Following test fails on Aster. ApI difference from TD
 test_that("check FLSolveExcl",
 {
   M <- as.FLMatrix(matrix(rnorm(25),5))

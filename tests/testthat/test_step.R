@@ -4,8 +4,26 @@ FLenv = as.FL(Renv)
 
 ## Since both the objects need to be dealt differently, objects have been initialized and 
 ## defined outside test_that function
+if(!is.TDAster()){
+    Renv$vobsidCol <- "ObsID"
+    Renv$vscope <- list(lower=Diameter~Height,
+                upper=Diameter~Height+ShellWeight+ShuckedWeight)
+    Renv$scope <- list(lower=Diameter~Height+ShellWeight,
+                upper=Diameter~Height+ShellWeight+ShuckedWeight)
+}else{
+    Renv$vobsidCol <- "obsid"
+    Renv$vscope <- list(lower=diameter~height,
+                upper=diameter~height+shellweight+shuckedweight)
+    Renv$scope <- list(lower=diameter~height+shellweight,
+                upper=diameter~height+shellweight+shuckedweight)
+}
 
-FLenv$widetable <- FLTable("tblAbaloneWide", "ObsID")
+FLenv$vobsidCol <- Renv$vobsidCol
+FLenv$vscope <- Renv$vscope
+FLenv$scope <- Renv$scope
+
+
+FLenv$widetable <- FLTable(getTestTableName("tblAbaloneWide"), FLenv$vobsidCol)
 Renv$widetable<-as.data.frame(FLenv$widetable)
 
 ## Since FL and R environments have different case structure for column names
@@ -18,7 +36,8 @@ colnames(Renv$widetable)<-colnames(FLenv$widetable)
 
 test_that("test for step", {
   eval_expect_equal({
-    r<-step(widetable,scope = list(lower=Diameter~Height,upper=Diameter~Height+ShellWeight+ShuckedWeight), direction = "backward")
+    r<-step(widetable,scope = vscope, 
+                    direction = "backward")
   },Renv,FLenv)
 }
 )
@@ -52,14 +71,15 @@ test_that("test for step", {
 
 ## step function does not work properly. throws an error
 test_that("test for step", {
-    flData <- FLTable("FL_DEMO.tblAbaloneWide", "ObsID")
+    flData <- FLTable(getTestTableName("tblAbaloneWide"), Renv$vobsidCol)
     rData<-as.data.frame(flData)
     colnames(rData)<-colnames(flData)
-    scope <- list(lower=Diameter~Height+ShellWeight,upper=Diameter~Height+ShellWeight+ShuckedWeight)
-    r <- step(lm(scope$upper, data = rData), scope = scope, direction = "backward")
-    fl <- step(flData, scope = scope, direction = "backward")
+    
+    r <- step(lm(Renv$scope$upper, data = rData), scope = Renv$scope, direction = "backward")
+    fl <- step(flData, scope = Renv$scope, direction = "backward")
+    
     expect_equal(coef(r),coef(fl))
-    fl <- step(flData, scope = scope, direction = "forward")
+    fl <- step(flData, scope = Renv$scope, direction = "forward")
     expect_equal(coef(r),coef(fl))
     test_that("step: access results with $: https://app.asana.com/0/143316600934101/158092657328842",{
         expect_equal(r$coefficients,fl$coefficients)

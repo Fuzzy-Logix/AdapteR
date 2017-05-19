@@ -14,7 +14,7 @@ rpart(formula, data = list(), ...)
 \item{control}{A list of options that control details of the rpart algorithm.
 Minsplit: Minimum number of observations a node should have in order to be splitted.
 Maxdepth: The maximum depth to which the tree can go.
-cp: Complexity parameter}
+cp: Complexity parameter, 1-purity threshold in DB Lytix manual}
 }
 \value{
 An object of class "FLrpart" containing the tree structure details.
@@ -26,4 +26,3 @@ Fit a rpart model
 flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 flobj<-rpart(data = flt, formula = -1~.)
 }
-

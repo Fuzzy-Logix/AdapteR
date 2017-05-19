@@ -13,9 +13,11 @@ NULL
 #' @section Constraints:
 #' Input matrices, FLMatrices and data frames should have same number of rows.
 #' @return \code{cbind} returns a FLMatrix object which is the column-wise combination of input arguments.
+#' @method cbind FLMatrix
 #' @export
 cbind.FLMatrix<-function(object,...) FLbind(list(object,...),2)
 
+#' @method cbind FLMatrixBind
 #' @export
 cbind.FLMatrixBind <- cbind.FLMatrix
 

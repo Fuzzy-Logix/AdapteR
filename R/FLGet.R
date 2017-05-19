@@ -98,6 +98,10 @@ setMethod("getObsIdSQLExpression",signature(object="FLTableMD"),
       function(object){
         return(getIndexSQLExpression(object,2))
         })
+setMethod("getObsIdSQLExpression",signature(object="FLIndexedValues"),
+      function(object){
+        return(getIndexSQLExpression(object,1))
+        })
 setGeneric("getVarIdSQLExpression",function(object)
       standardGeneric("getVarIdSQLExpression"))
 setMethod("getVarIdSQLExpression",signature(object="FLTable"),
@@ -107,6 +111,10 @@ setMethod("getVarIdSQLExpression",signature(object="FLTable"),
 setMethod("getVarIdSQLExpression",signature(object="FLTableMD"),
       function(object){
         return(getIndexSQLExpression(object,3))
+        })
+setMethod("getVarIdSQLExpression",signature(object="FLIndexedValues"),
+      function(object){
+        return(getIndexSQLExpression(object,2))
         })
 
 setMethod("getValueSQLExpression",signature(object="FLTable"),
@@ -135,6 +143,10 @@ setMethod("getObsIdSQLName",signature(object="FLTable"),
       function(object){
         return(getIndexSQLName(object,1))
         })
+setMethod("getObsIdSQLName",signature(object="FLMatrix"),
+      function(object){
+        return(getIndexSQLName(object,1))
+        })
 setMethod("getObsIdSQLName",signature(object="FLTableMD"),
       function(object){
         return(getIndexSQLName(object,2))
@@ -142,6 +154,10 @@ setMethod("getObsIdSQLName",signature(object="FLTableMD"),
 setGeneric("getVarIdSQLName",function(object)
       standardGeneric("getVarIdSQLName"))
 setMethod("getVarIdSQLName",signature(object="FLTable"),
+      function(object){
+        return(getIndexSQLName(object,2))
+        })
+setMethod("getVarIdSQLName",signature(object="FLMatrix"),
       function(object){
         return(getIndexSQLName(object,2))
         })
@@ -582,7 +598,7 @@ getFLPlatformDataTypeMap <- function(pFLType){
     vnames <- names(pFLType)
     vtypeMap <- list(TD=c(INT="INT",BYTEINT="BYTEINT",
                         "VARCHAR(255)"="VARCHAR(255)",
-                        FLOAT="FLOAT"),
+                        FLOAT="FLOAT",BIGINT="BIGINT"),
                     TDAster=c(INT="INT",BYTEINT="BYTEA",
                         "VARCHAR(255)"="VARCHAR(255)",
                         FLOAT="FLOAT"),

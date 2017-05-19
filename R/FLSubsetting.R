@@ -89,6 +89,11 @@ NULL
     object <- populateDimnames(object)
     if(is.FLVector(rows)) rows <- as.vector(rows)
     if(is.FLVector(cols)) cols <- as.vector(cols)
+    ##@phani: todo: implement subsetting
+    ## based on in-database indices as arguments
+    if(is.FLMatrix(rows) || is.FLMatrix(cols)){
+        return(subsetFLIndices(object,rows,cols))
+    }
     if(is.numeric(rows))
         newrownames <- object@Dimnames[[1]][rows]
     else
@@ -99,8 +104,12 @@ NULL
     else
         newcolnames <- cols
 
-    if(any(is.na(newrownames)) || any(is.na(newcolnames)))
-    stop("index out of bounds")
+    if(!is.null(newrownames))
+        if(any(is.na(newrownames)))
+            stop("index out of bounds")
+    if(!is.null(newcolnames))
+        if(any(is.na(newcolnames)))
+            stop("index out of bounds")
     ##browser()
     if(missing(cols))
     {
@@ -112,6 +121,7 @@ NULL
                                                         newrownames))
             object@Dimnames <- list(newrownames,
                                    object@Dimnames[[2]])
+            object@dims[[1]] <- length(newrownames)
         }
     } else if(missing(rows)) { ## !missing(cols)
         ifelse(any(is.na(as.numeric(object@Dimnames[[1]]))),
@@ -259,7 +269,6 @@ NULL
 #' flvector <- FLVector[,"Diameter"]
 #' resultFLVector <- flvector[10:1]
 #' @export
-
 `[.FLVector` <- function(object,pSet=1:length(object))
 {
   ##browser()
@@ -700,4 +709,42 @@ as.FLSimpleVector.FLVector <- function(pObject,...){
                 dims    = length(pObject),
                 type       = pObject@type
                 ))
+}
+
+
+#' Creates FLVector from a column from a database table after applying WHERE conditions.
+#'
+#' @export
+#' @param data FLTable to select from
+#' @param column Column to select
+#' @param where additional where conditions for restriction
+FLVectorForColumnWhere <- function(data,column,where){
+    vwideTable <- getTableNameSlot(data)
+    sqlstr <- paste0("
+SELECT '%insertIDhere%' AS vectorIdColumn,
+       ROW_NUMBER() OVER(ORDER BY ",getIndexSQLExpression(data,1),") AS vectorIndexColumn,
+       flt.",column," AS vectorValueColumn 
+FROM ",vwideTable," flt",
+constructWhere(c(where(data),where))
+)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = attr(connection,"name"),
+                          variables=list(
+                              vectorIndexColumn="vectorIndexColumn",
+                              vectorValueColumn="vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
+    ## sqlQuery(connection,sqlstr)
+    a <- newFLVector(
+        select = tblfunqueryobj,
+        Dimnames = list(NULL,"vectorValueColumn"),
+        isDeep=FALSE,
+        type="double")
+    a@dims <- c(sqlQuery(connection,paste0("
+SELECT COUNT(",getIndexSQLExpression(data,1),") AS n
+FROM ",vwideTable," flt",
+constructWhere(c(where(data),where))
+))[1,1],1)
+    a
 }

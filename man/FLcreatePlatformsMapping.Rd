@@ -4,8 +4,8 @@
 \alias{FLcreatePlatformsMapping}
 \title{Function to generate platforms mappings for stored procs and UDTs from definitions file.}
 \usage{
-FLcreatePlatformsMapping(definitions = c("data/platformStoredProcs.RFL",
-  "data/platformMatrixUDT.RFL"))
+FLcreatePlatformsMapping(definitions = c("data/platformStoredProcs.rfl",
+  "data/platformMatrixUDT.rfl"))
 }
 \description{
 The definitions file has one definition per line
@@ -13,4 +13,3 @@ The definitions file has one definition per line
 The definitions file for UDTs has one definition per line
 <TD_FNAME>.<PLATFORM>(<TD_OUTPUTCOLS>) <- <PLATFORM_FNAME>(<PLATFORM_OUTPUTCOLS>)
 }
-

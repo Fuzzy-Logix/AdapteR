@@ -39,18 +39,31 @@ var.test.FLVector <- function(x, y, ratio = 1, alternative = "two.sided", conf.l
                                                     GroupID = 2,
                                                     Num_Val = "b.vectorValueColumn")))
         tName <- gen_unique_table_name("ftest")
-        p <- createTable(tName,pSelect=t)
+        p <- createTable(tName,
+                        pSelect=t,
+                        pPrimaryKey="DataSetID")
         vcall <- as.list(sys.call())
         dname <- paste0(vcall[[2]]," and ",vcall[[3]])
         ## gk: please use a generator function
         ## constructUDTSQL("DataSetID, GroupID, Num_Val", "FLFTestUdt", "*")
-        str <- paste0("WITH z(DataSetID, GroupID, Num_Val) AS
-                                 (SELECT q.* FROM ",p," AS q)
-SELECT a.* FROM TABLE (FLFTestUdt(z.DataSetID, '",vmapping[alternative],"', z.GroupID, z.Num_Val)
-HASH BY z.DataSetID
-LOCAL ORDER BY z.DataSetID)
-AS a;")
+        str <- constructUDTSQL(pViewColnames=c(DataSetID="DataSetID",
+                                                ftesttype=fquote(vmapping[alternative]),
+                                                GroupID="GroupID",
+                                                Num_Val="Num_Val"),
+                                pNest=TRUE,
+                                pSelect=paste0("SELECT * FROM ",p),
+                                pFuncName="FLFTestUdt",
+                                pOutColnames="a.*",
+                                pPartitionBy="DataSetID",
+                                pLocalOrderBy="DataSetID")
+#         str <- paste0("WITH z(DataSetID, GroupID, Num_Val) AS
+#                                  (SELECT q.* FROM ",p," AS q)
+# SELECT a.* FROM TABLE (FLFTestUdt(z.DataSetID, '",vmapping[alternative],"', z.GroupID, z.Num_Val)
+# HASH BY z.DataSetID
+# LOCAL ORDER BY z.DataSetID)
+# AS a;")
         ret <- as.data.frame(sqlQuery(connection, str))
+        colnames(ret) <- tolower(colnames(ret))
         V.x <- var(x)
         V.y <- var(y)
         DF.x<-length(x)-1
@@ -63,11 +76,11 @@ AS a;")
         CINT <- c(ESTIMATE / qf(1 - BETA, DF.x, DF.y),
                   ESTIMATE / qf(BETA, DF.x, DF.y))
         attr(CINT, "conf.level") <- conf.level
-        res <- list(statistics = c(F = ret$FStat),
-                    parameter = c("num df" = ret$DF1,"denom df" = ret$DF2),
-                    p.value = ret$P_Value,
+        res <- list(statistics = c(F = ret$fstat),
+                    parameter = c("num df" = ret$df1,"denom df" = ret$df2),
+                    p.value = ret$p_value,
                     conf.int = CINT,
-                    estimate = c("ratio of variances"=ret$FStat),
+                    estimate = c("ratio of variances"=ret$fstat),
                     null.value = c("ratio of variances"=1),
                     alternative = alternative,
                     method = "F test to compare two variances",

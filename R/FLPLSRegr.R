@@ -42,7 +42,6 @@ mvr.default <- function (formula,data=list(),...) {
 mvr.FLpreparedData <- function(formula, data, ncomp = 4,...)
 {
     vcallObject <- match.call()
-    data <- setAlias(data,"")
     return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
@@ -79,11 +78,7 @@ mvr.FLTableMD <- mvr.FLpreparedData
 #' flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
 #' cof <- coefficients(flmod)
 #' pred <- predict(flmod);res <- residuals(flmod) 
-
 #' @export
-
-
-
 opls <- function (formula,data=list(),...) {
 	UseMethod("opls", data)
 }
@@ -94,7 +89,6 @@ opls <- function (formula,data=list(),...) {
 opls.FLpreparedData <- function(formula, data, ncomp = 4,northo = 5, ...)
 {
     vcallObject <- match.call()
-    data <- setAlias(data,"")
     return(lmGeneric(formula=formula,
                      data=data,
                      callObject=vcallObject,
@@ -130,20 +124,21 @@ setClass(
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
     if(property=="Xmeans"){
-        str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS Xmeans
-                       FROM ",getTableNameSlot(object@deeptable)," a
-WHERE a.",getVariables(object@deeptable)$var_id_colname," > -1
-GROUP BY a.",getVariables(object@deeptable)$var_id_colname," ORDER BY a.",getVariables(object@deeptable)$var_id_colname," ")
+        str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS xmeans
+                       FROM ",getTableNameSlot(object@deeptable)," a \n ",
+                        " WHERE a.",getVariables(object@deeptable)$var_id_colname," > -1 \n ",
+                    " GROUP BY a.",getVariables(object@deeptable)$var_id_colname,
+                    " ORDER BY a.",getVariables(object@deeptable)$var_id_colname," ")
         mval <- sqlQuery(connection, str)
-        mval <- mval$Xmeans
+        mval <- mval$xmeans
         return(mval)
     }
     else if(property == "Ymeans"){
-        str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS Ymeans
-        FROM ",getTableNameSlot(object@deeptable)," a
-                           WHERE a.",getVariables(object@deeptable)$var_id_colname," = -1
-                           GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
-        mval <- sqlQuery(connection, str)
+        str <- paste0("SELECT FLmean(a.",getVariables(object@deeptable)$cell_val_colname,") AS ymeans \n ",
+                        " FROM ",getTableNameSlot(object@deeptable)," a \n ",
+                        " WHERE a.",getVariables(object@deeptable)$var_id_colname," = -1 \n ",
+                        " GROUP BY a.",getVariables(object@deeptable)$var_id_colname,"")
+        mval <- sqlQuery(connection, str)$ymeans
         return(as.numeric(mval))
     }
     else if(property == "methods")
@@ -261,12 +256,11 @@ coefficients<-function(table){
 coefficients.FLPLSRegr<-function(object){
     parentObject <- unlist(strsplit(unlist(strsplit(
         as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-    str <- paste0("SELECT *
-FROM ",object@vfcalls["coefftablename"],"
-WHERE AnalysisID = '",object@AnalysisID,"'
-ORDER BY 3, 2;")
+    str <- paste0("SELECT * FROM ",object@vfcalls["coefftablename"],
+                " WHERE AnalysisID = '",object@AnalysisID,"'ORDER BY 3, 2;")
     dtf <- sqlQuery(connection, str)
-    cof <- dtf$Beta[2:length(dtf$Beta)]
+    colnames(dtf) <- tolower(colnames(dtf))
+    cof <- dtf$beta[2:length(dtf$beta)]
     var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
     names(cof) <- var
     cof <- as.array(cof)
@@ -291,7 +285,6 @@ predict.FLPLSRegr <- function(object,
                                  getTableNameSlot(object@deeptable)," b
                          WHERE a.XVarID  = b.",VarID," AND a.AnalysisID = '",object@AnalysisID,"'
                          GROUP BY b.",ObsID,"")
-        dt <- sqlQuery(connection, str)
 
 	tblfunqueryobj <- new("FLTableFunctionQuery",
                               connectionName = getFLConnectionName(),
@@ -328,10 +321,11 @@ dfgeneric <- function(object, vcomp)
                        a.AnalysisID = '",object@AnalysisID,"'
                        ORDER BY 2,4")
     dtf <- sqlQuery(connection, str)
+    colnames(dtf) <- tolower(colnames(dtf))
     ncomp <- as.numeric(object@results$mod["ncomp"])
     df2 <- data.frame(
         lapply(1:ncomp, function(x){
-            dtf$NUM_VAL[dtf$FactorNumber == x]
+            dtf$num_val[dtf$factornumber == x]
         }))
     colnames(df2) <- paste0("Comp ",1:ncomp)
     return(df2)

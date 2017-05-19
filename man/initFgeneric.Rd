@@ -12,4 +12,3 @@ initFgeneric(specs = list(numberattribute = 5, featureattribute = TRUE, ...),
 initF.default helps to return a list of list.
 Can be used for comparing results of R and FL functions which require two objects.
 }
-

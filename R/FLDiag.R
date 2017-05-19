@@ -19,7 +19,6 @@ NULL
 #' flvectorDeep <- DeepTable[1:5,1]
 #' resultFLMatrix <- diag(flvectorDeep)
 #' @export
-
 diag<-function(x, ...)
 {
     UseMethod("diag", x)

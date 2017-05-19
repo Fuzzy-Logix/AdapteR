@@ -27,6 +27,5 @@ Fits the Bagging algorithm proposed by Breiman in
 }
 \examples{
 flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
-flobj<-bagging(flt, formula = -1~.,mfinal=mfinal)
+flobj<-bagging(flt, formula = -1~.,mfinal=5)
 }
-

@@ -10,26 +10,47 @@ NULL
 #' @param control A list of options that control details of the rpart algorithm.
 #' Minsplit: Minimum number of observations a node should have in order to be splitted.
 #' Maxdepth: The maximum depth to which the tree can go.
-#' cp: Complexity parameter
+#' cp: Complexity parameter, 1-purity threshold in DB Lytix manual
 #'
 #' @return An object of class "FLrpart" containing the tree structure details.
 #' @examples
 #' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 #' flobj<-rpart(data = flt, formula = -1~.)
 #' @export
-
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
 }
-rpart.default<-rpart::rpart
 
+#' @export
+rpart.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("rpart", quietly = TRUE)){
+        stop("rpart package needed for rpart. Please install it.",
+             call. = FALSE)
+    }
+    else return(rpart::rpart(formula,data,...))
+}
+
+#' @export
+rpart.FLpreparedData <- function(data,
+                                 formula,
+                                 control=c(minsplit=10,
+                                           maxdepth=5,
+                                           cp=0.05),
+                                 method="class",
+                                 ...){
+    rpart.FLTable(data=data$deepx, formula = formula,
+                  control=control, method=method,...)
+}
+    
+#' @export
 rpart.FLTable<-function(data,
 				  formula,
 				  control=c(minsplit=10,
 							maxdepth=5,
-                            cp=0.95),
+                            cp=0.05),
 				  method="class",
-				  ...){ #browser()
+				  ...){
+    ##browser()
 	mfinal<-list(...)$mfinal
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
@@ -73,9 +94,11 @@ rpart.FLTable<-function(data,
 				  		NUMOFTREES=mfinal,
 				  		MINOBS=control["minsplit"],
 				 	    MAXLEVEL=control["maxdepth"],
-				  		PURITY=control["cp"],
+				  		PURITY=1-control["cp"],
 				  		NOTE=vnote)
-		return(vinputcols)
+		return(list(vinputcols=vinputcols,
+					data=deepx,
+					vprepspecs=vprepspecs))
 	}
 	else if(!is.null(list(...)[["ntree"]])){
 		vinputcols<-list(INPUT_TABLE=deeptablename,
@@ -86,7 +109,7 @@ rpart.FLTable<-function(data,
 				 		 NoOfVARS=list(...)[["mtry"]],
 				 		 MINOBS=control["minsplit"],
 				  		 MAXLEVEL=control["maxdepth"],
-				 		 PURITY=control["cp"],
+				 		 PURITY=1-control["cp"],
 				 		 NOTE=vnote)
 	return(list(vinputcols=vinputcols,
 				data=deepx,
@@ -98,7 +121,7 @@ rpart.FLTable<-function(data,
 				  		  VALUE=vvalue,
 				  		  MINOBS=control["minsplit"],
 				  		  MAXLEVEL=control["maxdepth"],
-						  PURITY=control["cp"],
+						  PURITY=1-control["cp"],
 				  		  NOTE=vnote)
 	vfuncName<-"FLDecisionTreeMN"
 	retobj<-sqlStoredProc(getFLConnection(),
@@ -109,18 +132,19 @@ rpart.FLTable<-function(data,
 	AnalysisID<-as.character(retobj[1,1])
 	sql<-paste0("Select * from fzzlDecisionTreeMN where AnalysisID = ",fquote(AnalysisID)," Order by 1,2,3")
 	ret<-sqlQuery(getFLConnection(),sql)
-	frame<-data.frame(NodeID=ret$NodeID,
-					  n=ret$NodeSize,
-					  prob=ret$PredictClassProb,
-					  yval=ret$PredictClass,
-					  var=ret$SplitVarID,
-					  SplitVal=ret$SplitVal,
-					  leftson=ret$ChildNodeLeft,
-					  rightson=ret$ChildNodeRight,
-					  dev=1:length(ret$NodeSize),
-					  treelevel=ret$TreeLevel,
-					  parent=ret$ParentNodeID,
-					  Leaf=ret$IsLeaf)
+    colnames(ret) <- tolower(colnames(ret))
+	frame<-data.frame(NodeID=ret$nodeid,
+					  n=ret$nodesize,
+					  prob=ret$predictclassprob,
+					  yval=ret$predictclass,
+					  var=ret$splitvarid,
+					  SplitVal=ret$splitval,
+					  leftson=ret$childnodeleft,
+					  rightson=ret$childnoderight,
+					  dev=1:length(ret$nodesize),
+					  treelevel=ret$treelevel,
+					  parent=ret$parentnodeid,
+					  Leaf=ret$isleaf)
 
 	frame$var[is.na(frame$var)]<-"<leaf>" 
 	retobj<- list(frame=frame,
@@ -138,6 +162,7 @@ rpart.FLTable<-function(data,
 
 ## todo: implement $ operator for all names in a rpart S3 object
 
+#' @export
 summary.FLrpart<-function(x,...){
     ## todo: create a rpart S3 object xrpart (populate as much as possible)
     ## print(xrpart)
@@ -155,48 +180,83 @@ summary.FLrpart<-function(x,...){
 			cat("\n ",x$frame$var[i]," < ",x$frame$SplitVal[i])
 		}
 	}
-
+    cat("\n")
 }
 
+#' @export
 predict.FLrpart<-function(object,
 						  newdata=object$deeptable,
-						  scoreTable="",
-						  ...){
+                          scoreTable="",
+                          type = "response",
+                          ...){
 	if(!is.FLTable(newdata)) stop("Only allowed for FLTable")
 	newdata <- setAlias(newdata,"")
 	if(scoreTable=="")
 	scoreTable<-gen_score_table_name(getTableNameSlot(object$deeptable))
 
-	if(!isDeep(newdata)){
-		deepx<-FLRegrDataPrep(newdata,
-							  depCol=object$prepspecs$depCol,
-							  excludeCols=object$prepspecs$vexclude)
-		newdata<-deepx
-		newdata<-setAlias(newdata,"")
-	}
-	vtable <- getTableNameSlot(newdata)
-	vobsid <- getVariables(newdata)[["obs_id_colname"]]
-	vvarid <- getVariables(newdata)[["var_id_colname"]]
-	vvalue <- getVariables(newdata)[["cell_val_colname"]]
+    if(!isDeep(newdata)){
+        deepx<-FLRegrDataPrep(newdata,
+                              depCol=object$prepspecs$depCol,
+                              excludeCols=object$prepspecs$vexclude)
+        newdata<-deepx
+        newdata<-setAlias(newdata,"")
+    }
+    vtable <- getTableNameSlot(newdata)
+    vobsid <- getVariables(newdata)[["obs_id_colname"]]
+    vvarid <- getVariables(newdata)[["var_id_colname"]]
+    vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
-	vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
-					OBSID_COL=vobsid,
-					VARID_COL=vvarid,
-					VALUE_COL=vvalue,
-					ANALYSISID=object$AnalysisID,
-					OUTPUT_TABLE=scoreTable,
-					NOTE=genNote("Score"))
-	vfuncName<-"FLDecisionTreeMNScore"
-	AnalysisID<-sqlStoredProc(getFLConnection(),
-							  vfuncName,
-							  outputParameter=c(AnalysisID="a"),
-						 	  pInputParams=vinputcols)
-	AnalysisID <- checkSqlQueryOutput(AnalysisID)
-	query<-paste0("Select * from ",scoreTable," Order by 1")
-	result<-sqlQuery(getFLConnection(),query)
-	return(result)
+    vinputcols <- c(INPUT_TABLE=getTableNameSlot(newdata),
+                    OBSID_COL=vobsid,
+                    VARID_COL=vvarid,
+                    VALUE_COL=vvalue,
+                    ANALYSISID=object$AnalysisID,
+                    OUTPUT_TABLE=scoreTable,
+                    NOTE=genNote("Score"))
+    vfuncName<-"FLDecisionTreeMNScore"
+    AnalysisID<-sqlStoredProc(getFLConnection(),
+                              vfuncName,
+                              outputParameter=c(AnalysisID="a"),
+                              pInputParams=vinputcols)
+    AnalysisID <- checkSqlQueryOutput(AnalysisID)
+    #query<-paste0("Select * from ",scoreTable," Order by 1")
+    vval<-"PredictedClass"
+
+    if(type %in% "prob"){
+    	sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+   	   	warning("The probability values are only true for predicted class. The sum may not be 1.")
+   	   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","PredictClassProb"))
+    }
+
+    else if(type %in% "link"){
+    	sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add logit float"))
+    	sqlSendUpdate(getFLConnection(),paste0("update ",scoreTable," set logit = -ln(1/PredictClassProb - 1) where PredictClassProb<1"))
+    	vval<-"logit"
+    }
+    sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+					"ObsID"," AS vectorIndexColumn,",
+ 					vval," AS vectorValueColumn",
+	 				" FROM ",scoreTable)
+	
+	tblfunqueryobj <- new("FLTableFunctionQuery",
+	                        connectionName = getFLConnectionName(),
+	                        variables = list(
+				                obs_id_colname = "vectorIndexColumn",
+				                cell_val_colname = "vectorValueColumn"),
+	                        whereconditions="",
+	                        order = "",
+	                        SQLquery=sqlstr)
+
+	flv <- newFLVector(
+				select = tblfunqueryobj,
+				Dimnames = list(rownames(newdata),
+								"vectorValueColumn"),
+                dims = as.integer(c(newdata@dims[1],1)),
+				isDeep = FALSE)
+	return(flv)
 }
 
+#' @export
 print.FLrpart<-function(object){ #browser()
 	if(is.null(object$frame)) frame<-object
 	else frame <- object$frame
@@ -231,7 +291,7 @@ print.FLrpart<-function(object){ #browser()
  	# 	}
 	 # }
  	#browser()
- 	ylevel <- attr(x, "ylevels")
+ 	##ylevel <- attr(x, "ylevels")
 	node <- as.numeric(newframe$NodeID)
  	depth <- newframe$treelevel
  	spaces<-2
@@ -250,6 +310,7 @@ print.FLrpart<-function(object){ #browser()
   	cat(retobj, sep = "\n")
 }
 
+#' @export
 # `$.FLrpart` <- function(object,property){
 # 	return(slot(object,property))
 # }
@@ -295,6 +356,7 @@ popstack <- function(stack){
   return(list(stack=stack[-length(stack)],value=val))
 }
 
+#' @export
 plot.FLrpart<-function(x){ #browser()
 	# newframe<-preorderDataFrame(x$frame)
 	# curnode<-c()
@@ -332,44 +394,244 @@ plot.FLrpart<-function(x){ #browser()
  # 	#if(newframe$)
  # 	lines(parent, child)
  # 	#invisible(list(x = xcor, y = ycor))
- return(createcor(x$frame))
+ if(class(x)=="data.frame") return(createcor(x))
+ else return(createcor(x$frame))
  }
 
  createcor<-function(frame){#browser()
-  plot(2.5,2)
-  xcor<-c("2.5")
-  ycor<-c("2.5")
+  plot(2.5,2, axes=F, type="n", xlab="", ylab="")
+  xcor<-c(2.5)
+  ycor<-c(2.5)
   for(i in 1:nrow(frame)){
     if(frame$Leaf[i]==0){
       j<-frame$leftson[i]
       k<-frame$rightson[i]
       if(i==1) {
-        xcor[j]<-as.numeric(xcor[i])-0.5
-        xcor[k]<-as.numeric(xcor[i])+0.5
-        ycor[j]<-"2.25"
-        ycor[k]<-"2.25"
-        segments(as.numeric(xcor[1]),as.numeric(ycor[1]),mean(c(as.numeric(xcor[j]),as.numeric(xcor[k]))),mean(c(as.numeric(ycor[j]),as.numeric(ycor[k]))))
-        segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
-        var<-as.numeric(frame$var[1])
-        SplitVal<-as.numeric(frame$SplitVal[1])
-        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
+        xcor[j]<-xcor[i]-0.5
+        xcor[k]<-xcor[i]+0.5
+        ycor[j]<-2.25
+        ycor[k]<-2.25
+        segments(xcor[1],ycor[1],mean(c(xcor[j],xcor[k])),mean(c(ycor[j],ycor[k])))
+        segments(xcor[j],ycor[j],xcor[k],ycor[k])
+        var<-frame$var[1]
+        SplitVal<-frame$SplitVal[1]
+        text(xcor[i],ycor[j]+0.075,labels=paste0("v",var,"  <  ",round(SplitVal,digits=2)))
         }
       else{
-        xcor[j]<-as.numeric(xcor[i])-0.25/frame$treelevel[i]
-        xcor[k]<-as.numeric(xcor[i])+0.25/frame$treelevel[i]
-        ycor[j]<-2.5-as.numeric(frame$treelevel[j])*0.25
-        ycor[k]<-2.5-as.numeric(frame$treelevel[k])*0.25
-        pxcor<-as.numeric(xcor[i])
-        pycor<-as.numeric(ycor[i])
-        xmid<-as.numeric((as.numeric(xcor[j])+as.numeric(xcor[k]))/2)
-        ymid<-as.numeric((as.numeric(ycor[j])+as.numeric(ycor[k]))/2)
+        xcor[j]<-xcor[i]-0.25/frame$treelevel[i]
+        xcor[k]<-xcor[i]+0.25/frame$treelevel[i]
+        ycor[j]<-2.5-frame$treelevel[j]*0.25
+        ycor[k]<-2.5-frame$treelevel[k]*0.25
+        pxcor<-xcor[i]
+        pycor<-ycor[i]
+        xmid<-(xcor[j]+xcor[k])/2
+        ymid<-(ycor[j]+ycor[k])/2
         segments(pxcor,pycor,xmid,ymid)
-        segments(as.numeric(xcor[j]),as.numeric(ycor[j]),as.numeric(xcor[k]),as.numeric(ycor[k]))
-        var<-as.numeric(frame$var[i])
-        SplitVal<-as.numeric(frame$SplitVal[i])
-        text(as.numeric(xcor[i]),as.numeric(ycor[i]),labels=paste0(var,"  <  ",SplitVal))
+        segments(xcor[j],ycor[j],xcor[k],ycor[k])
+        var<-frame$var[i]
+        SplitVal<-frame$SplitVal[i]
+        text(xcor[i],ycor[j]+0.075,labels=paste0("v",var,"  <  ",round(SplitVal,digits=2)))
         }
   	}
-  	else segments(as.numeric(xcor[i]),as.numeric(ycor[i]),as.numeric(xcor[i]),2.5-(as.numeric(frame$treelevel[i])+1)*0.25)
+  	else{
+  		segments(xcor[i],ycor[i],xcor[i],2.5-(frame$treelevel[i]+1)*0.25)
+  		text(xcor[i],2.475-(frame$treelevel[i]+1)*0.25, labels= round(frame$yval[i],digits=2))
+		}  
   }
+}
+
+#' @export
+rtree<-function(data,
+				formula,
+				ntree=25,
+			    mtry=0.8,
+			    control=c(minsplit=10,
+							maxdepth=5,
+                            cp=0.05),
+			    sampsize=0.8,
+			    pSeed=500,
+			    pRandomForest=1,...){ #browser()
+	call<-match.call()
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(isDeep(data)){
+		deepx<-data
+		deepx<-setAlias(deepx,"")
+		deeptablename<-getTableNameSlot(data)
+		vprepspecs<-list()	
+	}
+	else{
+		if(!isDotFormula(formula)){
+			data <- setAlias(data,"")
+			vcolnames<-colnames(data)		
+			vexclude<-setdiff(vcolnames,all.vars(formula))
+			obs<-getVariables(data)[["obs_id_colname"]]
+			vexclude<-setdiff(vexclude,obs)
+			vexclude<-paste0(vexclude,collapse=",")
+		}
+		else{
+			vexclude<-NULL
+		}
+			depCol<-all.vars(formula)[1]
+			vprepspecs<-list(depCol,vexclude)
+			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
+			deepx<-deep
+			deepx<- setAlias(deepx,"")
+			deeptablename<-getTableNameSlot(deepx)
+	}
+	if(pRandomForest==0){
+		sampsize<-NULL
+		pSampleRateVars<-NULL
+		ntree<-NULL
+		pSeed<-NULL
+		mtry<-NULL
+	}
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(deepx)),
+                           pSelect=list(a=c(pGroupID=1,
+                           					pObsID="a.obs_id_colname",
+                           					pVarID="a.var_id_colname",
+                           					pValue="a.cell_val_colname")))
+    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
+    pSelect<-paste0("Select pGroupID, pObsID, pVarID, pValue from ",p)
+    AnalysisID<-genRandVarName()
+	query<-constructUDTSQL(pViewColnames=c(pGroupID="pGroupID",
+										   	pObsID="obs_id_colname",
+						   				   	pVarID="var_id_colname",
+						   				   	pNum_Val="cell_val_colname"),
+						   pArgs=list(pMaxLevel=control["maxdepth"],
+									pMinObs=control["minsplit"],
+	            					pMinSSEDiff=control["cp"],
+	            					pRandomForest=pRandomForest,
+	            					pSampleRateObs=sampsize,
+	            					pSampleRateVars=mtry,
+	            					pNumOfTrees=ntree,
+	            					pSeed=pSeed),
+						   pSelect=pSelect,
+						   pOutColnames=c(fquote(AnalysisID),"a.*"),
+						   pFuncName="FLRegrTreeUdt",
+						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
+
+	# tName <- gen_unique_table_name("RegrTree")
+	# p <- createTable(tName,pSelect=query,pTemporary=TRUE)
+ #    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
+ #    return(a)
+    
+	tName <- getRemoteTableName(tableName="fzzlRegrTreeResults")
+	p <- insertIntotbl(tName,pSelect=query)
+    ret<-sqlQuery(getFLConnection(),paste0("Select * from ",tName,"
+    								Where AnalysisID= ",fquote(AnalysisID),"
+                                           order by 2,3,4"))
+    frame<-data.frame(TreeID=ret$TreeID,
+    				  NodeID=ret$NodeID,
+					  n=ret$NumOfObs,
+					  yval=ret$PredVal,
+					  varID=ret$SplitVarID,
+					  Splitval=ret$SplitVal,
+					  Splitcond=ret$SplitCond,
+					  treelevel=ret$LEVEL,
+					  parent=ret$ParentNodeID,
+					  Leaf=ret$IsLeaf)
+    frame$leftson<-NA
+    frame$rightson<-NA
+    frame$var<-NA
+    frame$SplitVal<-NA
+    trees<-list()
+	for(t in 1:length(unique(frame$TreeID))){
+		framex<-subset(frame, TreeID==t)
+	    for (i in 1:nrow(framex)) {
+	    	if(framex$Splitcond[i]=="<"){
+	    		j<-framex$parent[i]
+	    		k<-framex$varID[i]
+	    		l<-framex$Splitval[i]
+	    		framex$leftson[j]<-i
+	    		framex$var[j]<-k
+	    		framex$SplitVal[j]<-l
+	    	}
+	    	else if(framex$Splitcond[i]==">="){
+	    		j<-framex$parent[i]
+	    		k<-framex$varID[i]
+	    		l<-framex$Splitval[i]
+	    		framex$rightson[j]<-i
+	    		framex$var[j]<-k
+	    		framex$SplitVal[j]<-l
+	    	}
+	    }
+	    framex$TreeID<-NULL
+	    framex$Splitcond<-NULL
+	    framex$varID<-NULL
+	    framex$Splitval<-NULL
+	    trees[[t]]<-framex
+	    class(trees[[t]])<-"FLrpart"
+	}
+    retobj<- list(forest=trees,
+			 	  control=control,
+			 	  where=ret$NodeID,
+				  call=call,
+				  deeptable=deepx,
+				  AnalysisID=AnalysisID,
+				  prepspecs=vprepspecs)
+    class(retobj)<-"FLrtree"
+    return(retobj)
+}
+
+#' @export
+predict.FLrtree<-function(object,
+						  newdata=object$deeptable,
+						  scoreTable="",...){ #browser()
+	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
+	newdata <- setAlias(newdata,"")
+	vinputTable <- getTableNameSlot(newdata)
+	if(scoreTable=="")
+	scoreTable <- gen_score_table_name("RegrTreeScore")
+	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$vprepspecs,
+                                                            values=list(...))
+	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
+	newdatatable <- deepx$table
+	newdatatable <- setAlias(newdatatable,"")
+	tablename<- getTableNameSlot(newdatatable)
+	t <- constructUnionSQL(pFrom=c(a=constructSelect(newdatatable)),
+                           pSelect=list(a=c(GroupID=1,
+                           					ObsID="a.obs_id_colname",
+                           					VarID="a.var_id_colname",
+                           					Num_Val="a.cell_val_colname")))
+    p <- createTable(pTableName=gen_unique_table_name("temp"),pSelect=t,pTemporary=TRUE)
+
+	vinputcols<-list()
+	vinputcols <- c(vinputcols,
+					InAnalysisID=object$AnalysisID,
+					TableName=p,
+					GroupID="GroupID",
+					ObsIDCol="ObsID",
+					VarIDCol="VarID",
+					ValueCol="Num_Val",
+					ScoreTable=scoreTable)
+	vfuncName<-"FLRegrTreeScore"
+	sqlStoredProc(getFLConnection(),
+								vfuncName,
+								pInputParams=vinputcols)
+	# sqlQuery(getFLConnection(),paste0("CALL FLRegrTreeScore(",fquote(object$AnalysisID),",",
+	# 					fquote(p),",
+	# 					'GroupID',
+	# 					'ObsID',
+	# 					'VarID',
+	# 					'Num_Val',",
+	# 					fquote(scoreTable),")"))
+	sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","TreeID","PredVal"))
+}
+
+#' @export
+plot.FLrtree<-function(object){ #browser()
+	if(!class(object)=="FLrtree") stop("The object class is not FLrtree")
+	ntree<-length(object$forest)
+	x<-ceiling(sqrt(ntree))
+	old.par <- par(mfrow=c(x,ceiling(ntree/x)),
+				   oma = c(0,0,0,0) + 0,
+          		   mar = c(0,0,0,0) + 0)
+	for(i in 1:ntree){
+		class(object$forest[[i]])<-"data.frame"
+		plot.FLrpart(object$forest[[i]])
+	}
 }

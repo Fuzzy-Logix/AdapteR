@@ -9,4 +9,3 @@ is.FLVector(object)
 \description{
 Check if the object is an FLVector object
 }
-

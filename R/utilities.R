@@ -109,6 +109,9 @@ sqlSendUpdate.RODBC <- function(connection,query,warn=FALSE,...){
     return(verrflag)
     #cat("DONE...\n")
 }
+sqlSendUpdate.ODBCConnection <- function(connection, query , warn = TRUE){
+    suppressWarnings(sqlQuery(connection, query))
+}
 
 #' @export
 constructStoredProcArgs <- function(query,
@@ -120,7 +123,11 @@ constructStoredProcArgs <- function(query,
     else if(length(args)==1 && is.list(args[[1]]))
         args <- args[[1]]
 
+    ## print("stored PROC Arguments:")
+    ## print(args)
     spMap <- getStoredProcMapping(query)
+    ## print("stored PROC Mapping:")
+    ## print(spMap)
     if(!is.null(spMap)){
         query <- spMap$funcNamePlatform
         if(length(spMap$argsPlatform)>0){
@@ -128,6 +135,8 @@ constructStoredProcArgs <- function(query,
             names(args) <- names(spMap$argsPlatform)
         }
     }
+    ## print("remapped stored PROC Arguments:")
+    ## print(args)
     return(list(args=args,
                 query=query))
 }
@@ -147,7 +156,7 @@ sqlStoredProc <- function(connection,
 #' @export
 sqlStoredProc.FLConnection <- function(connection,
                                         query,
-                                        outputParameter,
+                                        outputParameter=NULL,
                                         ...) {
     if((is.TDAster(connection=connection)||is.Hadoop(connection=connection)) && 
         class(getRConnection(connection))=="JDBCConnection")
@@ -187,10 +196,9 @@ sqlStoredProc.JDBCTDAster <- function(connection,
 sqlStoredProc.RODBC <- function(connection, query, 
                                 outputParameter,
                                 ...) {
-    ##browser()
     vlist <- constructStoredProcArgs(query=query,
-                                    outputParameter=outputParameter,
-                                    ...)
+                                     outputParameter=outputParameter,
+                                     ...)
     args <- vlist$args
     query <- vlist$query
     sqlstr <- do.call("constructStoredProcSQL",
@@ -201,11 +209,17 @@ sqlStoredProc.RODBC <- function(connection, query,
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }
+sqlStoredProc.ODBCConnection <- function(connection,
+                                         query,
+                                         outputParameter, ...)
+{
+    return(sqlStoredProc.RODBC(connection, query, outputParameter, ...))
+}
 
 #' @export
 sqlStoredProc.JDBCConnection <- function(connection, query, 
-                                         outputParameter,
-                                         ...) {
+                                         outputParameter=NULL,
+                                         ...) { #browser()
     ## http://developer.teradata.com/doc/connectivity/jdbc/reference/current/jdbcug_chapter_2.html
     ## Creating a CallableStatement object, representing
     ## a precompiled SQL statement and preparing the callable
@@ -325,6 +339,20 @@ sqlQuery.RODBC <- function(connection,query,AnalysisIDQuery=NULL, ...) {
             resd <- checkSqlQueryOutput(resd)
             return(resd)
     })
+}
+
+#' @export
+sqlQuery.ODBCConnection <- function(connection, query, ...){
+    resd <- DBI::dbGetQuery(connection,query )
+    if(is.null(resd)){
+        return(TRUE)
+    }
+    else
+        return(resd)
+}
+
+sqlQuery.NULL <- function(connection, query, ...){
+    stop("please connect to the database before using AdapteR")
 }
 
 ##' drop a table
@@ -605,7 +633,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
                                       tableName)
 {
     ## shortcut in case of a results table -- setup during session start, assumed to not having been dropped
-    if(tableName %in% getOption("resultTablesFL")) return(TRUE)
+    # if(tableName %in% getOption("resultTablesFL")) return(TRUE)
     ## check if tableName has database
     if(grepl(".",tableName,fixed=TRUE)){
         vdb <- strsplit(tableName,".",fixed=TRUE)[[1]][1]
@@ -633,7 +661,7 @@ checkRemoteTableExistence <- function(databaseName=getOption("ResultDatabaseFL")
                                         tableName," \n "),1)
         vtemp <- tryCatch(sqlQuery(getFLConnection(),
                         vsqlstr),error=function(e)FALSE)
-        if(is.data.frame(vtemp) && nrow(vtemp)==1)
+        if(is.data.frame(vtemp))
             return(TRUE)
         else return(FALSE)
     }

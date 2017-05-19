@@ -37,4 +37,3 @@ widetable  <- FLTable("tblAbaloneWide", "ObsID")
 deeptable <- FLTable("tblUSArrests","ObsID","VarID","Num_Val")
 names(widetable)
 }
-

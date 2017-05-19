@@ -141,14 +141,31 @@ friedman.test.formula <- function(formula, data,
                                   subset=TRUE,
                                   na.action=getOption("na.action"),
                                   ...){
+    ## browser()
     if(!is.FL(data)){
         return(stats:::friedman.test.formula(formula=formula,
                                              data=data,
                                              ## subset=quote(subset), 
                                              na.action=na.action,
                                              ...))
-    } else
-        UseMethod("friedman.test", data)
+    } else{
+        # UseMethod("friedman.test", data)
+        vFuncMap <- c("FLMatrix",
+                      "FLTable",
+                      "FLVector")
+        names(vFuncMap) <- tolower(vFuncMap)
+        vindex <- sapply(names(vFuncMap),
+                        function(x){
+                            grepl(x,tolower(class(data)))
+                        })
+        vFuncName <- vFuncMap[vindex]
+        vFuncName <- paste0("friedman.test.",vFuncName)
+        return(do.call(vFuncName,list(formula=formula,
+                                    data=data,
+                                    subset=subset,
+                                    na.action=na.action,
+                                    ...)))
+    }
 }
 
 #' @export
@@ -205,7 +222,7 @@ friedman.test.FLTable <- function(formula, data,
                         stop("columns specified in GroupBy not in data \n ")
                     vgrp <- paste0(vgroupCols,collapse=",")
                     if(!length(vgroupCols)>0)
-                        vgrp <- NULL
+                        vgrp <- "NULL"
     
     ret <- sqlStoredProc(connection,
                          "FLFriedmanTest",
@@ -218,9 +235,11 @@ friedman.test.FLTable <- function(formula, data,
                          TableOutput = 1,
                          outputParameter = c(OutTable = 'a')
                          )
-    ret <- as.character(ret[1,1])
+    colnames(ret) <- tolower(colnames(ret))
+    if(!is.null(ret$resulttable)){
+        ret <- as.character(ret$resulttable)
+    }
 
-    ##browser()
     VarID <- c(statistic="TEST_STAT",
                p.value="Prob")
     vdf <- sqlQuery(connection,
@@ -228,21 +247,26 @@ friedman.test.FLTable <- function(formula, data,
                            vGroupColname,")-1 AS df \n ",
                            " FROM ",getTableNameSlot(data)," a \n ",
                            constructWhere(vWhereCond)," \n ",
-                           ifelse(length(setdiff(vgrp,""))>0,
+                           ifelse(length(setdiff(vgrp,c("","NULL")))>0,
                                   paste0("GROUP BY ",vgrp, " \n "),""),
-                           ifelse(length(setdiff(vgrp,""))>0,
+                           ifelse(length(setdiff(vgrp,c("","NULL")))>0,
                                   paste0("ORDER BY ",vgrp),"")
                            )
                     )
     vdf <- vdf[[1]]
-    vres <- sqlQuery(connection,
+
+    if(is.character(ret)){
+        vres <- sqlQuery(connection,
                      paste0("SELECT ",paste0(VarID,collapse=",")," \n ",
                             "FROM ",ret," \n ",
-                            ifelse(length(setdiff(vgrp,""))>0,
+                            ifelse(length(setdiff(vgrp,c("NULL","")))>0,
                                    paste0("ORDER BY ",vgrp),"")))
+    }
+    else vres <- cbind(ret$test_stat,ret$p_value)
     
     vres <- cbind(groupID=1:nrow(vres),vres)
     colnames(vres) <- c("groupID",names(VarID))
+    vres <- as.data.frame(vres)
     
     vresList <- dlply(vres,"groupID",
                       function(x){
@@ -359,12 +383,6 @@ friedman.test.FLTable <- function(formula, data,
 #     }
 # }
 
-## ## S4 implementation because S3 not working for formula input case.
-## #' @export
-## setGeneric("friedman.test",
-##     function(y,
-##             ...)
-##         standardGeneric("friedman.test"))
 
 ## ## Not working: Environments related error.
 ## ## In the default R implementation, environments

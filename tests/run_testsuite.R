@@ -18,25 +18,25 @@ option_list = list(
                 help="password [default= %default]",
                 type="character"),
     make_option(c("-D", "--database"),
-                default="Fl_demo", 
+                default="FL_TRAIN", 
                 help="database [default= %default]",
                 type="character"),
     make_option(c("-c", "--dropTables"),
                 action="store_true",
                 default="TRUE", 
                 help="drop AdapteR tables when starting the session [default= %default]",
-                type="logical"),
+                type="character"),
     make_option(c("-t", "--temporary"),
                 action="store_true",
                 default="FALSE", 
                 help="temporary session [default= %default]",
-                type="logical"),
+                type="character"),
     make_option(c("-A", "--AdapteR"),
                 default=".", 
                 help="if 'require' load installed AdapteR version, otherwise load from git repository provided [default= %default]",
                 type="character"),
     make_option(c("-J", "--jarDir"),
-                default="/Users/gregor/fuzzylogix/Teradata/jdbc", 
+                default="~/SecuriSync/AdapteR 2015/Connectors/jdbc drivers/Teradata", 
                 help="directory with jar files to load [default= %default]",
                 type="character"),
     make_option(c("-P", "--platform"),
@@ -44,7 +44,6 @@ option_list = list(
                 help="TDAster,TD and Hadoop supported",
                 type="character")
 )
-
 
 opt_parser = OptionParser(option_list=option_list)
 opt = parse_args(opt_parser)
@@ -64,10 +63,14 @@ print(opt$directory)
 
 # cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 if(opt$AdapteR=="require"){
+    if(!grepl("^jdbc",opt$host))
+        library(RODBC)
     ##phani: do we need to set this?
     # setwd(basedir)
     require("AdapteR")
 } else {
+    if(!grepl("^jdbc",opt$host))
+        library(RODBC)
     ##phani: I think git pull should be done outside the sript
     ## As this might change my working branch
     # cat(paste0("running git pull\n"))
@@ -78,6 +81,14 @@ if(opt$AdapteR=="require"){
     devtools::document(packagedir)
     devtools::load_all(packagedir,export_all = FALSE)
 }
+
+if(opt$dropTables=="FALSE"){
+    vdrop=FALSE
+}else vdrop=TRUE
+
+if(opt$temporary=="TRUE"){
+    vtemp=TRUE
+}else vtemp=FALSE
 
 if(grepl("^jdbc",opt$host)){
     connection <-
@@ -92,15 +103,24 @@ if(grepl("^jdbc",opt$host)){
             ## CAVE: fully qualified PATH required
             jdbc.jarsDir = opt$jarDir,
             debug=T,
-            drop=opt$dropTables,
+            drop=vdrop,
             verbose=TRUE,
-            temporary=opt$temporary)
+            temporary=vtemp,
+            pkg="dbc")
 } else {
+    options(debugSQL=TRUE)
     connection <- flConnect(odbcSource=opt$host,
-              database=opt$database,
-              platform=opt$platform)
+                          database=opt$database,
+                          platform=opt$platform,
+                          drop=vdrop,
+                          temporary=vtemp,
+                          pkg="dbc"
+                          )
 }
 
+## check if connection is working:
+sqlQuery(connection,paste0("SELECT * FROM ",getTestTableName("tblmatrixmulti"),
+                            " WHERE matrix_id=1 "))
 setupls <- ls()
 setwd(paste0(packagedir,"/tests"))
 cat(paste0("Running tests from tests directory",getwd(),"\n"))

@@ -23,4 +23,3 @@ For an optical check, both matrices are printed.
 \author{
 Gregor Kappler <g.kappler@gmx.net>
 }
-

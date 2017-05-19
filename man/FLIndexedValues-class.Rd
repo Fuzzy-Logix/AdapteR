@@ -11,4 +11,3 @@ one (vectors), two (matrices) or several (arrays) index columns.
 \details{
 The name of the values column
 }
-

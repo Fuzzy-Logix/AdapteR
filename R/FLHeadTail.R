@@ -21,10 +21,10 @@ NULL
 #' @export
 head.FLTable <- function(x,n=6L,...){
     if("display" %in% names(list(...))){
-        vobsidcol <- changeAlias(getVariables(x)[["obs_id_colname"]],"","")
-        vsqlstr <- paste0("SELECT TOP ",n," a.* \n ",
+        vobsidcol <- changeAlias(getObsIdSQLName(x),"","")
+        vsqlstr <- limitRowsSQL(paste0("SELECT a.* \n ",
                            " FROM (",constructSelect(x),") a ",
-                           " ORDER BY a.",vobsidcol)
+                           " ORDER BY a.",vobsidcol),n)
         vres <- sqlQuery(getFLConnection(),vsqlstr)
         return(vres)
     }
@@ -60,9 +60,9 @@ return(tail.FLTable(x=x,n=n,...))
 #' @export
 head.FLVector <- function(x,n=6,...){
     if("display" %in% names(list(...))){
-        vsqlstr <- paste0("SELECT TOP ",n," a.vectorValueColumn \n ",
+        vsqlstr <- limitRowsSQL(paste0("SELECT a.vectorValueColumn \n ",
                            " FROM (",constructSelect(x),") a ",
-                           " ORDER BY a.vectorIndexColumn")
+                           " ORDER BY a.vectorIndexColumn"),n)
         vres <- sqlQuery(getFLConnection(),vsqlstr)[[1]]
         names(vres) <- names(x)[1:n]
         return(vres)
@@ -90,11 +90,11 @@ head.FLTableMD <- function(x,n=6,...){
     vgrpCol <- changeAlias(getVariables(x)[[1]],"","")
 
     sqlQuery(getFLConnection(),
-            paste0("SELECT * \n ",
+            paste0(limitRowsSQL(paste0("SELECT * \n ",
                     "FROM ",getTableNameSlot(x)," \n ",
                     "WHERE ",vgrpCol," IN(",
                             paste0(x@Dimnames[[3]],
                                 collapse=","),") \n ",
-                    " SAMPLE ",n," \n ",
-                    "ORDER BY ",vgrpCol))
+                    " ORDER BY ",vgrpCol),n)
+                    ))
 }

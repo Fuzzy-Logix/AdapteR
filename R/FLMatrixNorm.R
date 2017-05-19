@@ -52,7 +52,10 @@ FLMatrixNorm.FLMatrix<-function(object,NormMethod)
                                     pdimnames=dimnames(object),
                                     pNest=TRUE,
                                     pViewColnames=pViewColnames,
-                                    pReturnQuery=TRUE
+                                    pReturnQuery=TRUE,
+                                    pExtraArgs=list(ArgNames=c("METHOD"),
+                                                    ArgValues=NormMethod,
+                                                    ArgRefNames="NormMethod")
                                     )
 	sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 

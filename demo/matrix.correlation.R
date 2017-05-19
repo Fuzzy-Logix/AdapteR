@@ -111,8 +111,6 @@ vtemp <- readline("Note: The result is in the same format as the R results.")
 
 vtemp <- readline("Above: dimnames and index support")
 
-eqnRtn[, c("HPQ","MSFT")]
-
 vtemp <- readline("Above: Inspecting subsets of data in R is easy with matrix subsetting syntax")
 
 E <- eqnRtn[dec2006, randomstocks]
@@ -127,6 +125,9 @@ vtemp <- readline("Data is fetched on demand only, e.g. when printing")
 ############################################################
 ## And of course you can now use
 ## thousands of R packages to operate on DB Lytix results,
+if (!requireNamespace("gplots", quietly = TRUE)){
+    install.packages("gplots")
+}
 require(gplots)
 ## install.packages("gplots")
 
@@ -191,8 +192,13 @@ run.FLCorrelationShiny <- function (){
                   cexCol = 1, srtCol=90,
                   cexRow = 1)
     }
-
+    if (!requireNamespace("R.utils", quietly = TRUE)){
+        install.packages("R.utils")
+    }
     require(R.utils)
+    if (!requireNamespace("shiny", quietly = TRUE)){
+        install.packages("shiny")
+    }
     require(shiny)
     shinyApp(
         ui = fluidPage(

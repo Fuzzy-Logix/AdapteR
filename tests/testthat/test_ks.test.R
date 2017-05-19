@@ -17,6 +17,7 @@ test_that("Kolmogorov-Smirnov Test 2S, exact=FALSE",{
 
 sqlstr <- paste0("SELECT * FROM tblKSTest")
 mt <- sqlQuery(connection, sqlstr)
+colnames(mt) <- toupper(colnames(mt))
 Renv = new.env(parent = globalenv())
 Renv$m <- mt$NUM_VAL[mt$GROUPID == 1]
 Renv$n <- mt$NUM_VAL[mt$GROUPID == 2]

@@ -67,17 +67,20 @@ setMethod("ks.test",signature(x="FLVector"),
                                    outputParameter = c(OutTable = 'a')
                                    )
              # dname <- as.list(sys.call(sys.parent()))[[2]]
-              sqlstr <- paste0("SELECT q.D_STAT AS D,
-                                       q.D_PValue AS P_Value
-                               FROM ",ret$OutTable," AS q")
-              res_1 <- sqlQuery(connection, sqlstr)
-              
-              if(! class(res_1$P_Value) == "numeric")
-                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
+             if(!is.null(ret$outtable)){
+                sqlstr <- paste0("SELECT q.D_STAT AS D_STAT,
+                                       q.D_PValue AS D_PValue \n ",
+                                 " FROM ",ret$outtable," AS q")
+                res_1 <- sqlQuery(connection, sqlstr)
+             }
+             else res_1 <- ret
+              colnames(res_1) <- tolower(colnames(res_1))
+              if(! class(res_1$d_pvalue) == "numeric")
+                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$d_pvalue))
               else
-                  pval <- res_1$P_Value
+                  pval <- res_1$d_pvalue
 
-              result <- list(statistic = c(D = res_1$D),
+              result <- list(statistic = c(D = res_1$d_stat),
                              p.value = pval,
                              alternative = "two-sided",
                              method = "One-sample Kolmogorov-Smirnov test",
@@ -114,25 +117,31 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                                    TableName = vviewName,
                                    ValueCol = "Num_Val",
                                    GroupCol = "GroupID", 
-                                   WhereClause = NULL,
-                                   GroupBy = NULL,
+                                   WhereClause = "NULL",
+                                   GroupBy = "NULL",
                                    TableOutput = 1,
                                    outputParameter = c(OutTable = 'a')
                                    )
               vcall <- as.list(sys.call(sys.parent()))
 #              dname <- paste0(vcall[2]," and ",vcall[3])
-              sqlstr <- paste0("SELECT q.D_STAT AS D,
+            colnames(ret) <- tolower(colnames(ret))
+            if(!is.null(ret$outtable)){
+                sqlstr <- paste0("SELECT q.D_STAT AS D,
                                        q.P_Value AS P_Value
-                               FROM ",ret$OutTable," AS q")
-              res_1 <- sqlQuery(connection, sqlstr)
+                               FROM ",ret$outtable," AS q")
+                res_1 <- sqlQuery(connection, sqlstr)
+            }
+            else res_1 <- ret
+              colnames(res_1) <- tolower(colnames(res_1))
 
-              if(!class(res_1$P_Value) == "numeric")
-                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$P_Value))
+              res_1 <- ModifyHypoResultColnames("FLKSTest2sResults",res_1)
+              if(!class(res_1$p_value) == "numeric")
+                  pval <- as.numeric(gsub("^[[:space:]]*[[:punct:]]*[[:space:]]*","",res_1$p_value))
               else
-                  pval <- res_1$P_Value
+                  pval <- res_1$p_value
 
               
-              result <- list(statistic = c(D = res_1$D),
+              result <- list(statistic = c(D = res_1$d_stat),
                              p.value = pval,
                              alternative = "two-sided",
                              method = "Two-sample Kolmogorov-Smirnov test",

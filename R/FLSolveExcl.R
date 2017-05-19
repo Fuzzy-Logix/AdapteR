@@ -16,9 +16,8 @@ NULL
 #' after excluding given dimension.
 #' @examples
 #' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
-#' resultFLMatrix <- solveExcl(flmatrix,3)
+#' resultFLMatrix <- FLSolveExcl(flmatrix,3)
 #' @export
-
 FLSolveExcl <- function (x,ExclIdx,...){
 	UseMethod("FLSolveExcl", x)
 }
@@ -61,7 +60,10 @@ FLSolveExcl.FLMatrix<-function(object,ExclIdx,...)
                                     pdimnames=dimnames(object),
                                     pNest=TRUE,
                                     pViewColnames=pViewColnames,
-                                    pReturnQuery=TRUE
+                                    pReturnQuery=TRUE,
+                                    pExtraArgs=list(ArgNames=c("EXCL"),
+                                                    ArgValues=ExclIdx,
+                                                    ArgRefNames="ExclIdx")
                                     )
     # sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
 

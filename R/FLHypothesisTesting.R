@@ -43,13 +43,15 @@ createHypoView <- function(q,r,pViewName)
     vminLength <- length(q)
     
     sqlstr0 <- paste0("CREATE VIEW ",pViewName," AS
-                           SELECT b.vectorindexcolumn AS ObsID,
+                           SELECT 1 AS DatasetID,
+                                  b.vectorindexcolumn AS ObsID,
                                   a.vectorValueColumn AS Num_Val1,
                                   b.vectorvalueColumn AS Num_Val2
                            FROM (",constructSelect(q),") a, (",constructSelect(r),") b
                            WHERE a.vectorindexcolumn = b.vectorindexcolumn
                            UNION ALL
-                           SELECT b.vectorindexcolumn AS ObsID,
+                           SELECT 1 AS DatasetID,
+                                  b.vectorindexcolumn AS ObsID,
                                   NULL AS Num_Val1,
                                   b.vectorValueColumn AS Num_Val2 
                            FROM (",constructSelect(r),") b 

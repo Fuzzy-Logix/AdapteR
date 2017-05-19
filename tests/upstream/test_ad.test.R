@@ -1,5 +1,5 @@
+##Anderson-Darling Test:Test Case 1
 
-                                        #Anderson-Darling Test:Test Case 1
 Renv = new.env(parent = globalenv())
 set.seed(200)
 Renv$a <- rnorm(100, mean = 5, sd = 3)
@@ -11,7 +11,7 @@ test_that("Anderson-Darling Test: nortest package example", {
     },Renv,FLenv,
     expectation = "res",
     check.attributes = T,
-    tolerance = .0001,
+    tolerance = .01,
     verbose = T
     )
     })

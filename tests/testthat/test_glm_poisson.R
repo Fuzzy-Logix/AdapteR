@@ -3,7 +3,7 @@ FLenv <- as.FL(Renv)
 Renv$dataf<- data.frame(var1 = rnorm(200),
                         var2 = rnorm(200), 
                         var3 = sample( c(0, 10), 200, replace = TRUE),
-                        offset=1)
+                        offsetColumn=1)
 FLenv$dataf <- as.FLTable(Renv$dataf,temporary=F)
 
 test_that("glm: execution for poisson ",{
