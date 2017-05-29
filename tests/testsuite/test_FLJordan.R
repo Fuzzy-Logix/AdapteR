@@ -10,11 +10,6 @@ test_that("FLJordan(flm): FLJordan(flm)$P %*% diag(FLJordan(flm)$J) %*% FLJordan
 
 
 ############################
-# init tests
-
-
-
-############################
 ## DBLytix Example
 test_that("Testing if basic DBLytix FLJordanDecompUdt-FLJordan Example runs from AdapteR",{
 	flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"),5,
