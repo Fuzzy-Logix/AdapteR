@@ -31,3 +31,7 @@ of (1000 x 1000).
 flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
 resultFLMatrix <- solve(flmatrix)
 }
+\seealso{
+\code{\link[Matrix]{solve}} for R function reference
+implementation.
+}
