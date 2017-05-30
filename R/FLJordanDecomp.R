@@ -9,6 +9,7 @@ NULL
 #' @param ... any additional arguments
 #' @section Constraints:
 #' Input can only be square matrix with maximum dimension limitations of (700 x 700).
+#' If the input matrix have repeated eigenvalues, then FLJordan function may give incorrect results.
 #' @return \code{FLJordan} returns a list of two components:
 #'       \item{J}{FLVector representing J vector obtained from Jordan decomposition}
 #'       \item{P}{FLMatrix representing P matrix obtained from Jordan decomposition}
@@ -19,6 +20,8 @@ NULL
 #' resultList$J
 #' resultList$P
 #' resultList$PInv
+#' @seealso Refer to \code{\link{FLMatrix}}, \code{\link{FLVector}} to know more about 
+#' FLMatrix and FLVector.
 #' @export
 FLJordan<-function(object, ...){
 	UseMethod("FLJordan",object)
@@ -89,4 +92,10 @@ FLJordan.FLMatrix<-function(object,...)
 				 P = PMatrix,
 				 PInv = PInvMatrix)
 	result
+}
+
+#' @export
+FLJordan.FLMatrix.Hadoop<-function(object,...)
+{
+	stop("This function does not exist in Hadoop")
 }
