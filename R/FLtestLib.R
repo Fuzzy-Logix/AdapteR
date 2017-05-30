@@ -135,6 +135,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               verbose=FALSE,
+                              platforms=c("TD","TDAster","Hadoop"),
                               ...){
     if(runs>=1)
         e <- substitute(e)
@@ -145,6 +146,12 @@ eval_expect_equal <- function(e, Renv, FLenv,
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
+
+    ## check platform specific info if any in the description 
+    ## and run on those platforms only.
+    if(!(getFLPlatform() %in% platforms))
+        return()
+
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     re <- tryCatch({
@@ -670,3 +677,4 @@ initF.matrix <- initF.FLMatrix
 dropFLTestTable <- function(){
     dropTable(pTableName="ARBaseTestTempTable")
 }
+

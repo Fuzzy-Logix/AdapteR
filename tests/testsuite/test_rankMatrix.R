@@ -24,16 +24,18 @@ test_that("rankMatrix on sparseMatrix",{
         test1 <- rankMatrix(mat1)
     },Renv,FLenv,
     expectation="test1",
-    check.attributes=FALSE)
+    check.attributes=FALSE,
+    platforms="TD")
 })
 
 ## Fails in both TD and Hadoop
-test_that("rankMatrix: tol argument",{
+test_that("rankMatrix tol argument",{
     result = eval_expect_equal({
         test2 = rankMatrix(mat2,tol =1e-20)
     },Renv,FLenv,
     expectation="test2",
-    check.attributes=FALSE)
+    check.attributes=FALSE,
+    platforms="Hadoop")
 })
 
 
