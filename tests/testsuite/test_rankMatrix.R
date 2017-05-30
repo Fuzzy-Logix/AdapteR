@@ -35,7 +35,7 @@ test_that("rankMatrix tol argument",{
     },Renv,FLenv,
     expectation="test2",
     check.attributes=FALSE,
-    platforms="Hadoop")
+    platforms="TDAster")
 })
 
 
