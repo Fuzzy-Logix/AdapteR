@@ -8,19 +8,66 @@ setClass(
                  ) )
 
 #' tbl <- FLTable("tblwinetrain", obs_id_colname = "OBSID")
-#' flmod <- Nnet(Wine_Type~.,data=tbl, hidden = c(10, 5))
-#' flmod <- Nnet(Wine_Type~ Alcohol + Ash,data=tbl)
 #' rtbl <- as.R(tbl)
 #' rtbl <- rtbl[, -c(1)]
 #' n <- names(rtbl)
 #' f <- as.formula(paste("Wine_Type ~", paste(n[!n %in% "Wine_Type"], collapse = " + ")))
-#' flmod <- Nnet(f, data = tbl, hidden = c(10, 5))
-#' library(neuralnet)
+#' For 1 layer.
+#' flmod <- neuralnet(f, data = tbl, hidden = c(5), layers = 1)
+#' rmod <- neuralnet(f, data = rtbl, hidden = c( 5))
+#' For 2 layer 
+#' flmod <-neuralnet(f, data = tbl, hidden = c(10,5))
 #' rmod <- neuralnet(f, data = rtbl, hidden = c(10, 5))
 
+#' library(neuralnet)
+#' flmod <- neuralnet(Wine_Type~.,data=tbl, hidden = c(10, 5))
+#' flmod <- neuralnet(Wine_Type~ Alcohol + Ash,data=tbl)
+#' rmod <- neuralnet(Wine_Type~ Alcohol + Ash,data=rtbl, hidden = c(5,5))
+#'
+#' R Example:
+#' library(MASS)
+#' rdata <- Boston
+#' n <- names(rdata)
+#' f <- as.formula(paste("medv ~", paste(n[!n %in% "medv"], collapse = " + ")))
+#' maxs <- apply(rdata, 2, max)
+#' mins <- apply(rdata, 2, min)
+#' rdata <- as.data.frame(scale(rdata, center = mins, scale = maxs - mins))
+#' fltbl <- as.FL(rdata)
+#' rmod <- neuralnet(f,data=rdata,hidden=c(5,3),linear.output=T)
+#' flmod <- neuralnet(f, data = fltbl, hidden = c(5,3))
+#' R example 2:
+#' set.seed(100)
+#' traininginput <-  as.data.frame(runif(50, min=0, max=100))
+#' trainingoutput <- sqrt(traininginput)
+#' rtbl <- cbind(traininginput,trainingoutput)
+#' colnames(rtbl) <- c("InputCol","OutputCol")
+#' fltbl <- as.FL(rtbl)
+#' rmod <- neuralnet(Output~Input,data=rdata,hidden=c(10),linear.output=T)
+#' flmod <- neuralnet(Output~Input,data=rdata,hidden=c(10),linear.output=T)
+
+
+
+
+
+
+neuralnet <- function (formula,data=list(),...) {
+    UseMethod("neuralnet", data)
+}
+
 #' @export
-Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
-{    vcallObject <- match.call()
+neuralnet.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("neuralnet", quietly = TRUE)){
+        stop("neuralnet package needed for neuralnet. Please install it.",
+             call. = FALSE)
+    }
+    else return(neuralnet::neuralnet(formula=formula,data=data,...))
+}
+
+
+#' @export
+neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 2,learningrate = .2,epoch = 500, ...)
+{browser()
+    vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("nnetdeep")
     vdeeptbl <- data
     if(!isDeep(data))
@@ -31,8 +78,10 @@ Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
                               makeDataSparse  = 1,
                               performVarReduc = 0,
                               minStdDev       = .01,
+                              perfromNorm = 1,     
                               maxCorrel       = .8,
-                              fetchIDs        = FALSE)
+                              fetchIDs        = FALSE
+                              )
         vdeeptbl <- FLdeep$deepx
     }
     vmap <- FLdeep$vmapping[FLdeep$vmapping != 0]
@@ -54,11 +103,21 @@ Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
         n1 <- n2 <- hidden
     }
 
-    varg <- c(NeuronCountOne = n1,
-              NeuronCountTwo = n2,
-              LearningRate= .2,
-              MaxEpochs = 500,
+    varg <- c(NeuronCountOne = n1)
+
+    
+    if(layers ==1){
+        n2 <- NULL
+        varg <- c(varg,NeuronCountTwo = list(NULL))                  
+    }
+    else
+        varg <- c(varg,NeuronCountTwo = n2)    
+        
+    varg <- c(varg,
+              LearningRate= learningrate,
+              MaxEpochs = epoch,
               IsSigmoid =1 )
+
 
 
     t <- createTable(outtblname, 
@@ -77,7 +136,7 @@ Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
                results=list(call=vcallObject,
                             deeptbl = vdeeptbl,
                             vspec = outtblname,
-                            vneurons = list(l1 =n1,l2 = n2 ),
+                            vneurons = list(layers = layers, l1 =n1,l2 = n2 ),
                             vvars = names(vmap)
                             )))   
 }
@@ -92,17 +151,35 @@ Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
     if(property=="weights"){
-        vstr <- paste0("select LayerID,Weight from ",object@results$vspec," order by LayerID, TargetNeuronID,NeuronID")
+        vstr <- paste0("select LayerID,Weight from ",object@results$vspec," order by LayerID, TargetNeuronID,isBias DESC ,NeuronID")
         rdf <- sqlQuery(connection, vstr)
 
         n1 <- object@results$vneuron$l1
         n2 <- object@results$vneuron$l2
-        vin = ((nrow(rdf) - 1 - 2*n2 - n1*n2)/n1) - 1
+        if(!is.null(n2))
+        {vin = ((nrow(rdf) - 1 - 2*n2 - n1*n2)/n1) - 1
+            suppressWarnings(
+                weights <- list(list(layer1 =  matrix(rdf$Weight[rdf$LayerID ==1],
+                                                      nrow = vin+1,
+                                                      ncol = n1),
+                                     layer2 = matrix(rdf$Weight[rdf$LayerID ==2],
+                                                     nrow = n1+1,
+                                                     ncol =n2 ),
+                                     layer3 =matrix(rdf$Weight[rdf$LayerID ==3],
+                                                    nrow = n2 +1,
+                                                    ncol = 1) )))}
+        else
+        {
+            vin <- (nrow(rdf) - 1 - 2*n1)/n1
+            suppressWarnings(
+                weights <- list(list(layer1 =  matrix(rdf$Weight[rdf$LayerID ==1],
+                                                      nrow = vin+1,
+                                                      ncol = n1),
+                                     layer2 = matrix(rdf$Weight[rdf$LayerID ==2],
+                                                     nrow = n1+1,
+                                                     ncol =1 ) ))) }                
 
-        weights <- list(layer1 =  matrix(rdf$Weight[rdf$LayerID ==1], nrow = vin+1, ncol = n1),
-                        layer2 = matrix(rdf$Weight[rdf$LayerID ==2], nrow = n1+1, ncol =n2 ),
-                        layer3 =matrix(rdf$Weight[rdf$LayerID ==1], nrow = n2 +1, ncol = 1) )
-        
+            
         return(weights) }
 
     if(property == "call"){
@@ -123,7 +200,6 @@ Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
     }
 
     if(property == "result.matrix"){
-        browser()
         vstr <- paste0("select Weight from ",object@results$vspec," order by LayerID, TargetNeuronID,NeuronID")
         rdf <- sqlQuery(connection, vstr)
         vrow <- nrow(rdf) + 3
@@ -172,7 +248,6 @@ predict.FLNnet <- function(object,newdata = object@table, ...){
 ## act.fact, startweights, generalized.weights, net.result, data.
 ## model.list for labelling of data, result.matrix
 plot.FLNnet <- function(object, ...){
-    browser()
     reqList <- structure(
         list(call = object$call,
              weights = object$weights,
