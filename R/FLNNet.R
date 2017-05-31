@@ -8,23 +8,34 @@ setClass(
                  ) )
 
 #' tbl <- FLTable("tblwinetrain", obs_id_colname = "OBSID")
+#' flmod <- Nnet(Wine_Type~.,data=tbl, hidden = c(10, 5))
+#' flmod <- Nnet(Wine_Type~ Alcohol + Ash,data=tbl)
+#' rtbl <- as.R(tbl)
+#' rtbl <- rtbl[, -c(1)]
+#' n <- names(rtbl)
+#' f <- as.formula(paste("Wine_Type ~", paste(n[!n %in% "Wine_Type"], collapse = " + ")))
+#' flmod <- Nnet(f, data = tbl, hidden = c(10, 5))
+#' library(neuralnet)
+#' rmod <- neuralnet(f, data = rtbl, hidden = c(10, 5))
+
 #' @export
-Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
-{
-    browser()
-    vcallObject <- match.call()
+Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,hidden = 5,...)
+{    vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("nnetdeep")
+    vdeeptbl <- data
     if(!isDeep(data))
-        {
-    FLdeep <- prepareData(formula         = formula ,
-                          data            = data,
-                          outDeepTable    = deeptblname,
-                          makeDataSparse  = 1,
-                          performVarReduc = 0,
-                          minStdDev       = .01,
-                          maxCorrel       = .8,
-                          fetchIDs        = FALSE)}
-    vmap <- FLdeep$vmapping
+    {
+        FLdeep <- prepareData(formula         = formula ,
+                              data            = data,
+                              outDeepTable    = deeptblname,
+                              makeDataSparse  = 1,
+                              performVarReduc = 0,
+                              minStdDev       = .01,
+                              maxCorrel       = .8,
+                              fetchIDs        = FALSE)
+        vdeeptbl <- FLdeep$deepx
+    }
+    vmap <- FLdeep$vmapping[FLdeep$vmapping != 0]
     outtblname <- gen_unique_table_name("nnetout")
     
     data <- setAlias(data,"")
@@ -34,32 +45,140 @@ Nnet <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
                 ObsID = FLdeep$deepx@select@variables$obs_id_colname,
                 VarID = FLdeep$deepx@select@variables$var_id_colname,
                 Num_Val= FLdeep$deepx@select@variables$cell_val_colname )
+    n1 <- n2 <- 5
+    if(length(hidden) == 2){
+        n1 <- hidden[1]
+        n2 <- hidden[2]
+    }
+    else if(hidden == 1){
+        n1 <- n2 <- hidden
+    }
 
-    varg <- c(NeuronCountOne = 10,
-              NeuronCountTwo = 5,
+    varg <- c(NeuronCountOne = n1,
+              NeuronCountTwo = n2,
               LearningRate= .2,
               MaxEpochs = 500,
               IsSigmoid =1 )
 
 
     t <- createTable(outtblname, 
-                    pSelect =  constructUDTSQL(pViewColnames = cnames,
-                                             pFuncName = functionName,
-                                             pOutColnames = c("a.*"),
-                                             pSelect = FLdeep$deepx@select@table_name,
-                                             pLocalOrderBy=c("GroupID", "ObsID", "VarID"), 
-                                             pNest = TRUE, 
-                                             pFromTableFlag = TRUE,
-                                             pArg = varg))
-    vstr <- paste0("SELECT TOP 5 * FROM ",outtblname,"")
-    sqlQuery(connection, vstr)
-                   ## pPrimaryKey=vprimaryKey)
+                     pSelect =  constructUDTSQL(pViewColnames = cnames,
+                                                pFuncName = functionName,
+                                                pOutColnames = c("a.*"),
+                                                pSelect = FLdeep$deepx@select@table_name,
+                                                pLocalOrderBy=c("GroupID", "ObsID", "VarID"), 
+                                                pNest = TRUE, 
+                                                pFromTableFlag = TRUE,
+                                                pArg = varg))
     return(new("FLNnet",
                formula=formula,
                scoreTable="",
                table=data,
                results=list(call=vcallObject,
-                            deeptbl = FLdeep$deepx,
-                            vspec = outtblname)))   
+                            deeptbl = vdeeptbl,
+                            vspec = outtblname,
+                            vneurons = list(l1 =n1,l2 = n2 ),
+                            vvars = names(vmap)
+                            )))   
 }
 
+
+
+
+
+#' @export
+`$.FLNnet`<-function(object,property){
+                                        #parentObject <- deparse(substitute(object))
+    parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
+
+    if(property=="weights"){
+        vstr <- paste0("select LayerID,Weight from ",object@results$vspec," order by LayerID, TargetNeuronID,NeuronID")
+        rdf <- sqlQuery(connection, vstr)
+
+        n1 <- object@results$vneuron$l1
+        n2 <- object@results$vneuron$l2
+        vin = ((nrow(rdf) - 1 - 2*n2 - n1*n2)/n1) - 1
+
+        weights <- list(layer1 =  matrix(rdf$Weight[rdf$LayerID ==1], nrow = vin+1, ncol = n1),
+                        layer2 = matrix(rdf$Weight[rdf$LayerID ==2], nrow = n1+1, ncol =n2 ),
+                        layer3 =matrix(rdf$Weight[rdf$LayerID ==1], nrow = n2 +1, ncol = 1) )
+        
+        return(weights) }
+
+    if(property == "call"){
+        return(object@results$call) }
+
+    if(property == "cost"){
+        vstr <- paste0("select distinct(Cost) AS Cost from ",object@results$vspec,"")
+        rdf <- sqlQuery(connection, vstr)
+        return(rdf$Cost) }
+
+    if(property == "model.list"){
+        return(list(response = object@results$vvars[1],
+                    variables = object@results$vvars[2:length(object@results$vvars)]))
+    }
+
+    if(property == "linear.output"){
+        return(TRUE)
+    }
+
+    if(property == "result.matrix"){
+        browser()
+        vstr <- paste0("select Weight from ",object@results$vspec," order by LayerID, TargetNeuronID,NeuronID")
+        rdf <- sqlQuery(connection, vstr)
+        vrow <- nrow(rdf) + 3
+        vreq <- c(1, .05, 500,rdf$Weight)
+        vreq <- matrix(vreq,nrow = vrow, ncol = 1)
+        rownames(vreq) <- c("error", "reached.threshold", "steps", 1:nrow(rdf))
+        return(vreq)
+
+    }
+
+      
+}
+
+predict.FLNnet <- function(object,newdata = object@table, ...){
+    var <- getVariables(object@results$deeptbl)
+    tblname <- gen_unique_table_name("neuralscore")
+    ret <- sqlStoredProc(connection,"FLNNetUdtScore",
+                         ModelTable = object@results$vspec,
+                         InTable = getTableNameSlot(object@results$deeptbl),
+                         GroupIDCol = NULL,
+                         ObsIDCol = var[[1]],
+                         VarIDCol = var[[2]],
+                         NumValCol = var[[3]],
+                         ScoreTable = tblname,
+                         outputParameter = c(OutTable = 'a')                            
+                         )
+    vstr <- paste0("select OBS_ID as ObsID, Actual as res from ",tblname,"")
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = getFLConnectionName(),
+                          variables = list(
+                              obs_id_colname = "ObsID",
+                              cell_val_colname = "res"),
+                          whereconditions="",
+                          order = "ObsID",
+                          SQLquery=vstr)
+    flv <- new("FLSimpleVector",
+               select = tblfunqueryobj,
+               dimColumns = c("ObsID","res"),
+               Dimnames = list(rownames(newdata)),
+               dims = as.integer(newdata@dims[1]),
+               type = "integer")
+
+    return(flv) }
+
+## set at NULL:- covariate, call, response, err.fact,
+## act.fact, startweights, generalized.weights, net.result, data.
+## model.list for labelling of data, result.matrix
+plot.FLNnet <- function(object, ...){
+    browser()
+    reqList <- structure(
+        list(call = object$call,
+             weights = object$weights,
+             model.list = object$model.list,
+             result.matrix = object$result.matrix
+             ),
+        class="nn")
+    return(plot(reqList,...))
+}
