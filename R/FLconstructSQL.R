@@ -1038,7 +1038,12 @@ setMethod("getTableNameSlot",
           signature(object = "FLTable"),
           function(object) getTableNameSlot(object@select))
 
-isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep") | inherits(x,"FLMatrix")
+isDeep <- function(x){
+    return(inherits(x,"FLTableDeep") 
+        | inherits(x,"FLTableMDDeep") 
+        | inherits(x,"FLMatrix")
+        | (inherits(x,"FLVector") && x@isDeep))
+}
 
 
 

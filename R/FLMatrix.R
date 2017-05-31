@@ -192,8 +192,7 @@ restrictFLMatrix <-
 ##' @param map_table name of the mapping table if already exists
 ##' @return the FLMatrix object, with slot dimnames re set 
 #' @export
-FLamendDimnames <- function(flm,map_table) {
-    ##browser()
+FLamendDimnames <- function(flm,map_table,sparse=TRUE) {
     checkNames <- function(colnames, addIndex=FALSE){
         if(is.numeric(colnames) && colnames==1:length(colnames))
             colnames <- c()
@@ -240,12 +239,28 @@ FLamendDimnames <- function(flm,map_table) {
                constructWhere(
                    constraintsSQL(flm@select)),
                "\nORDER BY 1")
-    vrownames <- sqlQuery(connection,selectUnique("rowIdColumn"))
-    vcolnames <- sqlQuery(connection,selectUnique("colIdColumn"))
-    if(length(rownames)==0)
+
+    if(sparse){
+        if(all(flm@dims==0)){
+            vquery <- paste0("SELECT MAX(",
+                           flm@select@variables[["rowIdColumn"]],
+                           ") as v1,MAX(",
+                           flm@select@variables[["colIdColumn"]],
+                           ") as v2 \n",
+                           "FROM  ",tableAndAlias(flm@select),
+                           constructWhere(
+                               constraintsSQL(flm@select)))
+            vdims <- sqlQuery(connection,vquery)
+            flm@dims <- c(vdims$v1,vdims$v2)
+        }
+    }
+    else{
+        vrownames <- sqlQuery(connection,selectUnique("rowIdColumn"))
+        vcolnames <- sqlQuery(connection,selectUnique("colIdColumn"))
+        if(length(rownames)==0)
         rownames <- sort(vrownames$v)
-    if(length(colnames)==0)
-        colnames <- sort(vcolnames$v)
+        if(length(colnames)==0)
+            colnames <- sort(vcolnames$v)
 
         vstringdimnames <- lapply(list(rownames,colnames),
                                   function(x){
@@ -255,8 +270,9 @@ FLamendDimnames <- function(flm,map_table) {
                                   })
         rownames <- vstringdimnames[[1]]
         colnames <- vstringdimnames[[2]]
-    if(all(flm@dims==0))
-        flm@dims <- as.integer(c(length(rownames),length(colnames)))
+        if(all(flm@dims==0))
+            flm@dims <- as.integer(c(length(rownames),length(colnames)))
+    }
     
     dimnames <- flm@Dimnames <- list(checkNames(rownames),
                                      checkNames(colnames))
@@ -341,7 +357,8 @@ FLMatrix <- function(table_name,
                      whereconditions=c(""),
                      map_table=NULL,
                      connection=getFLConnection(),
-                     type="double"){
+                     type="double",
+                     sparse=TRUE){
   ## If alias already exists, change it to flt.
     if(length(names(table_name))>0)
     oldalias <- names(table_name)[1]
@@ -416,7 +433,7 @@ FLMatrix <- function(table_name,
                   Dimnames = dimnames,
                   type=type)
     
-    RESULT <- FLamendDimnames(RESULT,map_table)
+    RESULT <- FLamendDimnames(RESULT,map_table,sparse=sparse)
 
     RESULT <- restrictFLMatrix(RESULT,
                                whereconditions,

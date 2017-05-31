@@ -21,3 +21,12 @@ test_that("check result for M_Remainder",
   FLexpect_equal((V1%%M2),V1R%%M2R,check.attributes=FALSE)
   FLexpect_equal((P1$FL%%M2),P1$R%%M2R,check.attributes=FALSE)
 })
+
+
+## Matrix Multiplication with dimnames
+test_that("Matrix Multiplication with dimnames",{
+  FLMatrixObj <- FLMatrix(getTestTableName("tblmatrixMulti"),5,
+                          "matrix_id","row_id","col_id")
+  FLMatrixObj2 <- as.FL(matrix(rnorm(25),5,dimnames=list(1:5,letters[1:5])))
+  ResultRMatrixObj <- as.matrix(FLMatrixObj %*% FLMatrixObj2)
+  })

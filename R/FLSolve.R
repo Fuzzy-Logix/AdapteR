@@ -6,6 +6,8 @@ NULL
 #' \code{solve} computes the inverse for FLMatrix objects.
 #'
 #' The wrapper overloads solve and implicitly calls FLMatrixInvUdt.
+#' @seealso \code{\link[Matrix]{solve}} for R function reference
+#' implementation.
 #' @param x is of class FLMatrix
 #' @param ... any additional arguments
 #' @section Constraints:
