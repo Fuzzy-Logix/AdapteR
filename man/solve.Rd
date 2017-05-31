@@ -28,10 +28,14 @@ of (1000 x 1000).
 }
 
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 2,"MATRIX_ID","ROW_ID",
+                     "COL_ID","CELL_VAL",dims= c(3,3))
 resultFLMatrix <- solve(flmatrix)
+
+##for two arguments a,b solve(a,b) function solve ax=b equation
+resultFLMatrix <- solve(flmatrix,flmatrix)
 }
 \seealso{
-\code{\link[Matrix]{solve}} for R function reference
+\code{\link[Matrix]{solve}} for corresponding R function reference
 implementation.
 }

@@ -254,6 +254,9 @@ eval_expect_equal <- function(e, Renv, FLenv,
 #' @export
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,...)
 {
+  if(!is.null(list(...)[["platforms"]]))
+    if(!(tolower(getFLPlatform()) %in% tolower(list(...)[["platforms"]])))
+      return()
   I <- initF(...)
    FLexpect_equal(FLcomputationF(I$FL),
                  RcomputationF(I$R),
