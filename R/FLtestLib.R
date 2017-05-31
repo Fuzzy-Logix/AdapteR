@@ -8,6 +8,9 @@ setGeneric("FLexpect_equal",
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="ANY"),
           function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
             if(is.RSparseMatrix(expected))
             expected <- matrix(expected,dim(expected))
             if(class(expected)=="dist")
@@ -19,12 +22,22 @@ setMethod("FLexpect_equal",
           })
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="FLMatrix"),
-          function(object,expected,...)
-              testthat::expect_equal(as.matrix(object),
-                                     as.matrix(expected),...))
+          function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.matrix(object),
+                                     as.matrix(expected),...)
+          })
+
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
           function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
             if(is.RSparseMatrix(object))
             object <- matrix(object,dim(object))
             if(class(object)=="dist")
@@ -34,26 +47,51 @@ setMethod("FLexpect_equal",
             testthat::expect_equal(object,
                                      as.matrix(expected),...)
           })
+
 setMethod("FLexpect_equal",
           signature(object="FLSimpleVector",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     expected,...))
+          function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                     expected,...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     expected,...))
+          function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                    expected,...)
+            })
+
 setMethod("FLexpect_equal",
           signature(object="FLSkalarAggregate",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     expected,...))
+          function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                     expected,...)
+        })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="FLVector"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     as.vector(expected),...))
+          function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                    as.vector(expected),...)
+        })
 setMethod("FLexpect_equal",signature(object="list",expected="list"),
           function(object,expected,...)
               llply(names(object),
@@ -95,6 +133,11 @@ setMethod("FLexpect_equal",
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
           function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
             if(is.FL(object))
             object <- as.R(object)
             if(is.FL(expected))
@@ -104,9 +147,14 @@ setMethod("FLexpect_equal",
           })
 
 setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.data.frame(object),
-                                     as.data.frame(expected),...))
+          function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.data.frame(object),
+                                     as.data.frame(expected),...)
+        })
 
 
 ##' Evaluates the expression e in an R and an FL environment, tests assignment for equality.
@@ -149,7 +197,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
 
     ## check platform specific info if any in the description 
     ## and run on those platforms only.
-    if(!(getFLPlatform() %in% platforms))
+    if(!(tolower(getFLPlatform()) %in% tolower(platforms)))
         return()
 
     oldNames <- ls(envir = Renv)
