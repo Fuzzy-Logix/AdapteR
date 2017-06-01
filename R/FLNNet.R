@@ -42,8 +42,8 @@ setClass(
 #' rtbl <- cbind(traininginput,trainingoutput)
 #' colnames(rtbl) <- c("InputCol","OutputCol")
 #' fltbl <- as.FL(rtbl)
-#' rmod <- neuralnet(Output~Input,data=rdata,hidden=c(10),linear.output=T)
-#' flmod <- neuralnet(Output~Input,data=rdata,hidden=c(10),linear.output=T)
+#' rmod <- neuralnet(OutputCol~InputCol,data=rtbl,hidden=c(10),linear.output=T)
+#' flmod <- neuralnet(OutputCol~InputCol,data=fltbl,hidden=c(10), IsSigmoid = 0, layers = 1)
 
 
 
@@ -65,8 +65,8 @@ neuralnet.default <- function (formula,data=list(),...) {
 
 
 #' @export
-neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 2,learningrate = .2,epoch = 500, ...)
-{browser()
+neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 2,learningrate = .2,epoch = 500,IsSigmoid = 1, ...)
+{##browser()
     vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("nnetdeep")
     vdeeptbl <- data
@@ -99,7 +99,7 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
         n1 <- hidden[1]
         n2 <- hidden[2]
     }
-    else if(hidden == 1){
+    else if(length(hidden) == 1){
         n1 <- n2 <- hidden
     }
 
@@ -116,7 +116,7 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
     varg <- c(varg,
               LearningRate= learningrate,
               MaxEpochs = epoch,
-              IsSigmoid =1 )
+              IsSigmoid = IsSigmoid)
 
 
 
