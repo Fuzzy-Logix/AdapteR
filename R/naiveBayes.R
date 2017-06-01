@@ -53,11 +53,11 @@ naiveBayes.FLTable <- function(object,formula,laplace=0,...){
 				 call=match.call(),
 				 formula=formula,
 				 AnalysisID=AnalysisID)
-	class(retobj)<-"naiveBayes"
+	class(retobj)<-"FLnaiveBayes"
 	return(retobj)
 }
 
-predict.naiveBayes<-function(object,newdata,scoreTable="",...){
+predict.FLnaiveBayes<-function(object,newdata,scoreTable="",...){
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	if(scoreTable=="")
 	scoreTable <- gen_score_table_name("NaiveBayes")
@@ -81,6 +81,11 @@ predict.naiveBayes<-function(object,newdata,scoreTable="",...){
 								vfuncName,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
-	ret<-sqlQuery(getFLConnection(),paste0("Select * from ",scoreTable))
-	return(ret)
+	# sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
+	# 				"ObsID"," AS vectorIndexColumn,",
+ # 					vval," AS vectorValueColumn",
+	#  				" FROM ",scoreTable)
+	sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable,
+									" add matrix_id int default 1 not null"))
+	return(FLMatrix(scoreTable,1,"matrix_id","ObsID","ClassValue","Prob"))
 }
