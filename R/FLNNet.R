@@ -7,6 +7,49 @@ setClass(
                  table = "FLTable"
                  ) )
 
+
+
+
+
+
+neuralnet <- function (formula,data=list(),...) {
+    UseMethod("neuralnet", data)
+}
+#' @export
+neuralnet.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("neuralnet", quietly = TRUE)){
+        stop("neuralnet package needed for neuralnet. Please install it.",
+             call. = FALSE)
+    }
+    else return(neuralnet::neuralnet(formula=formula,data=data,...))
+}
+
+
+
+#' \code{neuralnet} performs Neural Network on FLTable objects.
+#' The DB Lytix function called is FLNNetUDT. Artificial neural networks are a family
+#' of statistical learning algorithms inspired by biological neural networks
+#' and are used to estimate or approximate transformations that depend on a
+#' large number of inputs. Thesetransformation are then used to model the output.
+#' In DB Lytix, neural network is implemented as a user-defined table function which takes
+#' the input in deep format, the topography of the network along with some
+#' hyper-parameters to calculate the neuron connection weights using the
+#' back-propagation algorithm.
+#' @seealso \code{\link[neuralnet]{neuralnet}} for R reference implementation.
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable.
+#' @param hidden  Number of neurons in the hidden layer
+#' @param layers Number of layers of Neural Net model as of now at Max 2 are alloed.
+#' @param Learningrate  A symbolic description of model to be fitted
+#' @param isSigmoid Used to select execution mode: Regression or Classification
+#' @param epoch Maximum number of iterations
+
+#' @slot results cache list of results computed
+#' @slot table Input data object
+#' @method plot FLNnet
+#' @method predict FLNnet
+#' @return \code{neuralnet} returns an object of class \code{FLNnet}
+#' @examples
 #' tbl <- FLTable("tblwinetrain", obs_id_colname = "OBSID")
 #' rtbl <- as.R(tbl)
 #' rtbl <- rtbl[, -c(1)]
@@ -44,26 +87,6 @@ setClass(
 #' fltbl <- as.FL(rtbl)
 #' rmod <- neuralnet(OutputCol~InputCol,data=rtbl,hidden=c(10),linear.output=T)
 #' flmod <- neuralnet(OutputCol~InputCol,data=fltbl,hidden=c(10), IsSigmoid = 0, layers = 1)
-
-
-
-
-
-
-neuralnet <- function (formula,data=list(),...) {
-    UseMethod("neuralnet", data)
-}
-
-#' @export
-neuralnet.default <- function (formula,data=list(),...) {
-    if (!requireNamespace("neuralnet", quietly = TRUE)){
-        stop("neuralnet package needed for neuralnet. Please install it.",
-             call. = FALSE)
-    }
-    else return(neuralnet::neuralnet(formula=formula,data=data,...))
-}
-
-
 #' @export
 neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 2,learningrate = .2,epoch = 500,IsSigmoid = 1, ...)
 {##browser()
