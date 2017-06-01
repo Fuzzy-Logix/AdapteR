@@ -10,17 +10,13 @@ Renv$tbl <- Renv$tbl[, -c(1)]
 n <- names(Renv$tbl)
 f <- as.formula(paste("Wine_Type ~", paste(n[!n %in% "Wine_Type"], collapse = " + ")))
 
-FLenv$mod <- neuralnet(f, data = FLenv$tbl, hidden = c(5), layers = )
+FLenv$mod <- neuralnet(f, data = FLenv$tbl, hidden = c(5), layers = 1)
 Renv$mod <- neuralnet(f, data = Renv$tbl, hidden = c( 5))
 
 
 ## Comparison of Weights: 
-test_that("Comparison of Weights:",{result <- eval_expect_equal({
-    weight <- mod$weights
-  },Renv,FLenv,
-expectations=c("weight"),
-check.attributes=FALSE,
-verboose = TRUE)})
+test_that("Comparison of Weights:",{expect_equal(FLenv$mod$weights,
+                                                 Renv$mod$weights )})
 
 
 ## Prediction, Residuals, fitted.values: 
@@ -28,6 +24,14 @@ test_that("Comparison of model.list, cost:",{result <- eval_expect_equal({
     modlist <- mod$model.list
   },Renv,FLenv,
 expectation=c("modlist"),
+check.attributes=FALSE,
+verboose = TRUE)})
+
+## Comparison of Weights: 
+test_that("Comparison of response:",{result <- eval_expect_equal({
+    pred <- predict(mod)
+  },Renv,FLenv,
+expectations=c("pred"),
 check.attributes=FALSE,
 verboose = TRUE)})
 
@@ -44,12 +48,9 @@ Renv$mod <- neuralnet(f, data = Renv$tbl, hidden = c(10, 5))
 
 
 ## Comparison of Weights: 
-test_that("Comparison of Weights:",{result <- eval_expect_equal({
-    weight <- mod$weights
-  },Renv,FLenv,
-expectations=c("weight"),
-check.attributes=FALSE,
-verboose = TRUE)})
+test_that("Comparison of Weights:",{expect_equal(FLenv$mod$weights,
+                                                 Renv$mod$weights )})
+
 
 
 ## Prediction, Residuals, fitted.values: 
@@ -57,6 +58,14 @@ test_that("Comparison of model.list, cost:",{result <- eval_expect_equal({
     modlist <- mod$model.list
   },Renv,FLenv,
 expectation=c("modlist"),
+check.attributes=FALSE,
+verboose = TRUE)})
+
+## Comparison of Weights: 
+test_that("Comparison of response:",{result <- eval_expect_equal({
+    pred <- predict(mod)
+  },Renv,FLenv,
+expectations=c("pred"),
 check.attributes=FALSE,
 verboose = TRUE)})
 
@@ -76,25 +85,30 @@ trainingoutput <- sqrt(traininginput)
 Renv$tbl <- cbind(traininginput,trainingoutput)
 colnames(Renv$tbl) <- c("InputCol","OutputCol")
 FLenv <- as.FL(Renv)
+
+##
 Renv$mod <- neuralnet(OutputCol~InputCol,data=Renv$tbl,hidden=c(10),linear.output=T)
 FLenv$mod <- neuralnet(OutputCol~InputCol,data=FLenv$tbl,hidden=c(10), IsSigmoid = 0, layers = 1)
 
 
 
 ## Comparison of Weights: 
-test_that("Comparison of Weights:",{result <- eval_expect_equal({
-    weight <- mod$weights
-  },Renv,FLenv,
-expectations=c("weight"),
-check.attributes=FALSE,
-verboose = TRUE)})
-
+test_that("Comparison of Weights:",{expect_equal(FLenv$mod$weights,
+                                                 Renv$mod$weights )})
 
 ## Prediction, Residuals, fitted.values: 
 test_that("Comparison of model.list, cost:",{result <- eval_expect_equal({
     modlist <- mod$model.list
   },Renv,FLenv,
 expectation=c("modlist"),
+check.attributes=FALSE,
+verboose = TRUE)})
+
+## Comparison of Response: 
+test_that("Comparison of response:",{result <- eval_expect_equal({
+    pred <- predict(mod)
+  },Renv,FLenv,
+expectations=c("pred"),
 check.attributes=FALSE,
 verboose = TRUE)})
 
