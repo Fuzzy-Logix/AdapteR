@@ -51,9 +51,7 @@ Renv$mod <- neuralnet(f, data = Renv$tbl, hidden = c(10, 5))
 test_that("Comparison of Weights:",{expect_equal(FLenv$mod$weights,
                                                  Renv$mod$weights )})
 
-
-
-## Prediction, Residuals, fitted.values: 
+ 
 test_that("Comparison of model.list, cost:",{result <- eval_expect_equal({
     modlist <- mod$model.list
   },Renv,FLenv,
