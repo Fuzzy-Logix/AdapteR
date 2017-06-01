@@ -37,6 +37,7 @@ test_that("Testing if basic DBLytix FLMatrixInvUdt-solve Example runs from Adapt
 							"cell_val",
 							dims= c(5,5))
 	ResultFLMatrixObj <- solve(FLMatrixObj)
+	
 })
 
 

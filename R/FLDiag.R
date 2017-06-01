@@ -13,11 +13,13 @@ NULL
 #' @return If x is a FLMatrix then diag(x) returns the diagonal of x as FLVector object.
 #'   If x is FLVector, the value is a diagonal square FLMatrix with diagonal elements as given in FLVector.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+#'                      "ROW_ID","COL_ID","CELL_VAL", dims= c(5,5))
 #' resultFLVector <- diag(flmatrix)
-#' DeepTable <- FLTable("tblUSArrests","ObsID")
-#' flvectorDeep <- DeepTable[1:5,1]
+#' WideTable <- FLTable(getTestTableName("tblUSArrests"),"ObsID","VarId","Num_Val")
+#' flvectorDeep <- WideTable[1:5,1]
 #' resultFLMatrix <- diag(flvectorDeep)
+#' @seealso \code{\link[base]{diag}} for corresponding R function reference.
 #' @export
 diag<-function(x, ...)
 {
