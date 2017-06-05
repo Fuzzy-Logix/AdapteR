@@ -32,3 +32,18 @@ test_that("Check for determinant function ",{
         e3 <- det(mat2)
     }, Renv,FLenv,platforms=c("TDAster"))
 })
+
+
+################################
+Renv = new.env(parent = globalenv())
+Renv$mat1 <- matrix(rnorm(16),4,4)
+FLenv <- as.FL(Renv)
+
+##mohak: test case fails because determinant in
+## AdapteR giving opposite sign to that in R.
+test_that("Check for determinant function",{
+    result = eval_expect_equal({
+        e <- det(mat1)
+        }, Renv,FLenv,
+            expectation= c("e"))
+    })

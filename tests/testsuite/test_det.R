@@ -14,3 +14,6 @@ test_that("Check for determinant function ",{
     	expectation= c("e2","e3"),
     	platforms=c("TD","Hadoop"))
 })
+
+
+
