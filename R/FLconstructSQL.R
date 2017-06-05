@@ -1049,6 +1049,15 @@ isDeep <- function(x){
 
 #' Recieves the result of a "show table ..." SQL query as a character string.
 #' 
+
 #' @export
-showTable <- function(x)
-    gsub("\r","\n",sqlQuery(connection, paste0("show table ",getTableNameSlot(x)))[1,1],fixed=T)
+showTable <- function(x, ...){
+    if(is.TD()){
+        if(is.FLTable(x))
+            x <- getTableNameSlot(x)[[1]]
+        
+        gsub("\r","\n",sqlQuery(connection, paste0("show table ",x)))
+    }
+    else{
+        stop("Only supported for Teradata as of now")
+    }}
