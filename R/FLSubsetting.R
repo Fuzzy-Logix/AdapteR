@@ -201,9 +201,7 @@ NULL
                          variables = list(),
                          whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
                                            paste0("nameflt.DIM_ID=1"),
-                                           paste0("nameflt.NAME = CAST(",
-                                                  getVariables(object)[[vobsidcolumn]],
-                                                  " AS VARCHAR(255))")),
+                                           paste0("nameflt.NAME = ",castToVARCHAR(object,vobsidcolumn))),
                          order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
 
@@ -334,9 +332,8 @@ NULL
                              table_name = getTableNameSlot(pSet),
                              variables = list(),
                              whereconditions=c(constraintsSQL(pSet),
-                                               paste0(nameValueColumn," = CAST(",
-                                                      getVariables(object)[[vobsidcolumn]],
-                                                      " AS VARCHAR(255))")),
+                                               paste0(nameValueColumn," = ",
+                                                      castToVARCHAR(object,vobsidcolumn))),
                              order = "")
             object@select@variables[[vobsidcolumn]]<- nameIndexColumn
             newrownames <- rownames(pSet)
@@ -374,9 +371,8 @@ NULL
                            variables = list(),
                            whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
                                              paste0("nameflt.DIM_ID=1"),
-                                             paste0("nameflt.NAME = CAST(",
-                                                    getVariables(object)[[vobsidcolumn]],
-                                                    " AS VARCHAR(255))")),
+                                             paste0("nameflt.NAME = ",
+                                                castToVARCHAR(object,vobsidcolumn))),
                            order = "")
           object@Dimnames[[1]] <- 1
           object@mapSelect <- mapselect
@@ -473,9 +469,8 @@ NULL
                          variables = list(),
                          whereconditions=c(paste0("nameflt.MATRIX_ID=",MID),
                                            paste0("nameflt.DIM_ID=1"),
-                                           paste0("nameflt.NAME = CAST(",
-                                                  getVariables(object)[[vobsidcolumn]],
-                                                  " AS VARCHAR(255))")),
+                                           paste0("nameflt.NAME = ",
+                                            castToVARCHAR(object,vobsidcolumn))),
                          order = "")
         object@select@variables[[vobsidcolumn]] <- "nameflt.Num_ID"
       }
@@ -747,3 +742,14 @@ constructWhere(c(where(data),where))
 ))[1,1],1)
     a
 }
+
+
+castToVARCHAR <- function(pObject,pObsIdColumn){
+    if(is.TDAster()){
+        return(paste0(" CAST(",getVariables(pObject)[[pObsIdColumn]],
+                    " AS VARCHAR(255)) "))
+    }
+    else return(paste0(" CAST(",getVariables(pObject)[[pObsIdColumn]],
+                    " AS FLOAT) "))
+}
+

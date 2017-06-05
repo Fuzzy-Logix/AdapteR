@@ -291,9 +291,10 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     table_name = getRemoteTableName(databaseName=getOption("TestDatabase"),
                                                     tableName="fzzlserial"),
                     variables = list(obs_id_colname="SERIALVAL"),
-                    whereconditions=paste0(getRemoteTableName(databaseName=getOption("TestDatabase"),
-                                                              tableName = "fzzlserial",
-                                                              temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    # whereconditions=paste0(getRemoteTableName(databaseName=getOption("TestDatabase"),
+                    #                                           tableName = "fzzlserial",
+                    #                                           temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    whereconditions=paste0("SERIALVAL < ",n+1),
                     order = "")
       flv <- newFLVector(
                 select=select,
