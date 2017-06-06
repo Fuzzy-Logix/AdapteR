@@ -236,7 +236,7 @@ NULL
       vtype1 <- vtype[vvaluecolumn]
       if(is.null(vtype1))
         vtype1 <- vtype[1]
-      names(vtype1) <- NULL
+      # names(vtype1) <- NULL
       vres@type <- vtype1
       return(vres)
     }

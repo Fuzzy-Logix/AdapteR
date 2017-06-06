@@ -37,7 +37,7 @@ setMethod("typeof",signature(x="FLIndexedValues"),
 setMethod("typeof",signature(x="FLVector"),
       function(x){
         vtype <- x@type
-        if(is.na(vtype)){
+        if(any(is.na(vtype))){
             warning("type is NA, lost -- setting to double")
             vtype <- "double"
         }
