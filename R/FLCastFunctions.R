@@ -926,8 +926,8 @@ as.FLTable.data.frame <- function(object,
         vrownames <- as.integer(1:nrow(object))
     if(!any(is.na(as.integer(vrownames))))
         vrownames <- as.integer(vrownames)
-    object <- base::cbind(ObsID=vrownames,object)
-    obsIdColname <- "ObsID"
+    object <- base::cbind(obsid=vrownames,object)
+    obsIdColname <- "obsid"
   }
   else if(is.numeric(uniqueIdColumn)){
     uniqueIdColumn <- as.integer(uniqueIdColumn)
