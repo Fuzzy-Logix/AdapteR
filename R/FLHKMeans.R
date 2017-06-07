@@ -68,14 +68,15 @@ setClass(
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID",
+#'						 whereconditions = "ObsID< 101")
 #' hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX")
 #' print(hkmeansobject)
 #' plot(hkmeansobject)
-#' One can specify ClassSpec and transform categorical variables 
-#' before clustering. This increases the number of variables in the plot
-#' because categorical variable is split into binary numerical variables.
-#' The clusters may not be well-defined as is observed in the case below:-
+#' #One can specify ClassSpec and transform categorical variables 
+#' #before clustering. This increases the number of variables in the plot
+#' #because categorical variable is split into binary numerical variables.
+#' #The clusters may not be well-defined as is observed in the case below:-
 #' hkmeansobjectnew <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' plot(hkmeansobjectnew)
 #' @export
@@ -350,6 +351,8 @@ cluster.FLHKMeans<-function(object)
 }
 
 ## move to file FLHKMeans.R
+
+
 centers.FLHKMeans<-function(object)
 {
 	if(!is.null(object@results[["centers"]]))

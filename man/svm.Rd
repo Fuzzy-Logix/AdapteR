@@ -2,16 +2,50 @@
 % Please edit documentation in R/FLSVM.R
 \name{svm}
 \alias{svm}
-\title{library(e1071)
-Linear Kernel
-tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
-flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
-predict(flmod)}
+\title{Support Vector Machines}
 \usage{
 svm(formula, data = list(), ...)
 }
+\arguments{
+\item{formula}{a symbolic description of the model to be fit.}
+
+\item{data}{an FLTable wide or deep containing the variables in the model.}
+
+\item{kernel}{the kernel used in training and predicting.}
+
+\item{cost}{cost of constraints violation}
+
+\item{degree}{parameter needed for kernel of type polynomial.}
+}
+\value{
+\code{svm} returns a FLSVM class object which replicates equivalent R output
+from \code{svm} in e1071 package.
+}
 \description{
-polynomial Kernel
-tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
-flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+\code{svm} is used to train a support vector machine. It can be used to 
+carry out general regression and classification.
+}
+\details{
+The wrapper overloads svm and implicitly calls DB-Lytix svm function.
+}
+\section{Constraints}{
+
+All values in FLtable should be numeric, maximum number of observations in 
+the dataset can be 2000 and maximum number of independent columns can be 500.
+The class variable is binary, with value either -1 or 1 only.
+}
+
+\examples{
+#Linear Kernel
+FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"), "OBSID", whereconditions= "OBSID>307")
+FLmodel <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
+predict(flmod)
+
+#polynomial Kernel
+FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
+FLmodel <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+
+#Gaussian Kernel
+FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
+FLmodel <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "Gaussian")
 }
