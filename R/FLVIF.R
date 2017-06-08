@@ -26,9 +26,13 @@ setClass(
 #' createTable(pTableName = "tbllinvif", pSelect = "select * from tbllinregr where obsid <400")
 #' fltbl <- FLTable(table = "tbllinvif",obs_id_colname = "OBSID",var_id_colname = "VARID", cell_val_colname = "NUM_VAL" )
 #' flmod <- vif.FLTable(data = fltbl)
+#' @export
+vif <- function (formula,data=list(),...) {
+    UseMethod("vif", data)
+}
 
 
-vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",...)
+vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",threshold = c(1.5,10),...)
 {
     ##browser()
     vcallObject <- match.call()
@@ -65,17 +69,23 @@ vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",...)
     if(method == "bw"){
         functionName = "FLVIFBW"
         cnames <- c(cnames,
-                    VIFThreshold = 5
+                    VIFThreshold = threshold[1]
                     )
     vstat <- "fzzlVIFBWStats"}
 
     if(method == "fb"){
         functionName = "FLVIFFB"
-        cnames <- c(cnames,
-                    VIFThreshold1 = 10,
-                    VIFThreshold2 = 5
+        if(length(threshold) == 2)
+            cnames <- c(cnames,
+                    VIFThreshold1 = threshold[2],
+                    VIFThreshold2 = threshold[1]
                     )
-    vstat <- "fzzlVIFBWStats"}
+        else
+            cnames <- c(cnames,
+                        VIFThreshold1 = 10,
+                        VIFThreshold2 = 5
+                        )
+        vstat <- "fzzlVIFBWStats"}
     ##    vmap <- FLdeep$vmapping[FLdeep$vmapping != 0]
     cnames <- c(cnames,
                 notes = paste0("",functionName,"imp"))
