@@ -128,7 +128,8 @@ svmGeneric <- function(formula,data,
                                             pLocalOrderBy=c("groupid", "obsid", "varid"), 
                                             pNest = TRUE, 
                                             pFromTableFlag = TRUE),
-                    pPrimaryKey=vgroupCol)
+                    pPrimaryKey=vgroupCol,
+                    pTemporary=FALSE)
     
     return(new("FLSVM",
                formula=formula,
@@ -147,35 +148,56 @@ svmGeneric <- function(formula,data,
 ## use FLsimpleVector
 #' @export
 predict.FLSVM <- function(object, newData = object@table){
-    var <- getVariables(object@deeptable@select)
+    pvar <- getVariables(object@deeptable@select)
     tblname <- gen_unique_table_name("svmoutput")
     scrmethod <- toupper(substr(object@results$kernel, 1,1))
-    ##browser()
+
     ret <- sqlStoredProc(connection,
                          "FLSVMScore",
                          ModelTable = object@results$outtbl,
                          InTable = object@deeptable@select@table_name,
                          GroupIDCol = "NULL",
-                         ObsIDCol = var[[1]],
-                         VarIDCol = var[[2]],
-                         NumValCol = var[[3]],
+                         ObsIDCol = pvar[[1]],
+                         VarIDCol = pvar[[2]],
+                         NumValCol = pvar[[3]],
                          ScoreMethod = scrmethod,
                          ScoreTable = tblname,
                          Note="SVMScore from AdapteR",
-                         "OutAnalysisID"
+                         outputParameter=c(AnalysisID="a")
                          )
-    val <- new("FLSimpleVector",
-               select= new("FLSelectFrom",
-                           table_name=tblname,
-                           connectionName=getFLConnectionName(),
-                           variables=list(obsid = var[[1]],pred = "predyscoring" ),
-                           whereconditions="",
-                           order=""),
-               dimColumns = c(var[[1]], "pred"),
-               Dimnames = list(1:nrow(object@deeptable)),
-               dims    = as.integer(c(nrow(object@deeptable), 1)),
-               type       = "double"
-               )
+
+    sqlstr <- paste0("SELECT '%insertIDHere%' AS vectorIdColumn, \n ",
+                            "obsid AS vectorIndexColumn, \n ",
+                            "predyscoring as vectorValueColumn \n ",
+                    " FROM ",tblname)
+
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = attr(connection,"name"),
+                          variables = list(
+                              obs_id_colname = "vectorIndexColumn",
+                              cell_val_colname = "vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
+    val <- newFLVector(
+               select = tblfunqueryobj,
+               Dimnames = list(rownames(newData),"vectorValueColumn"),
+               isDeep = FALSE,
+               type="double")
+
+    # val <- new("FLSimpleVector",
+    #            select= new("FLSelectFrom",
+    #                        table_name=tblname,
+    #                        connectionName=getFLConnectionName(),
+    #                        variables=list(obsid = pvar[[1]],pred = "predyscoring" ),
+    #                        whereconditions="",
+    #                        order=""),
+    #            dimColumns = c(pvar[[1]], "pred"),
+    #            Dimnames = list(1:nrow(object@deeptable)),
+    #            dims    = as.integer(c(nrow(object@deeptable), 1)),
+    #            type       = "double"
+    #            )
+    return(val)
 
     ##    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
     ##                                    ",fquote(object@deeptable@select@table_name),",
