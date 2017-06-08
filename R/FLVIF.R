@@ -30,7 +30,7 @@ setClass(
 
 vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",...)
 {
-    browser()
+    ##browser()
     vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("vif")
     vdeeptbl <- data
@@ -106,9 +106,23 @@ vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",...)
     if(property == "vif")
     {
         ##browser()
-        vstr <- paste0("select VARID as predictors, VIF as vif from ",object@results$stattbl," WHERE AnalysisID = ",fquote(object@results$vspec)," order by Varid ")
-        sqlQuery(connection, vstr)
+        vstr <- paste0("select VARID as predictors, VIF as vif from ",object@results$stattbl," WHERE AnalysisID = ",fquote(object@results$vspec)," order by vif, Varid ")
+        vdf <- sqlQuery(connection, vstr)
+        return(vdf)
+    }
+
+    if(property == "model.matrix"){
+        return(NULL)
+    }
+
+    
+    if(property == "select"){
+        vthershold <- 3
+        vstr <- paste0("select VARID as predictors from ",object@results$stattbl," WHERE AnalysisID = ",fquote(object@results$vspec)," and vif<4 order by predictors ")
+        vdf <- sqlQuery(connection, vstr)
+
         
+        return(vdf$predictors)
     }
 
     }
