@@ -110,8 +110,11 @@ lu.FLMatrix<-function(object,...)
 	            pInput=list(object),
 	            pOperator="lu")
 
-	tempResultTable <- createTable(pTableName=gen_unique_table_name("LU"),
-                                   pSelect=sqlstr)
+    tempResultTable <- cacheDecompResults(pFuncName="FLLUDecompUdt",
+                                          pQuery=sqlstr)
+
+	# tempResultTable <- createTable(pTableName=gen_unique_table_name("LU"),
+ #                                   pSelect=sqlstr)
 
 	# calculating LU matrix
 
@@ -132,9 +135,19 @@ lu.FLMatrix<-function(object,...)
 				   		" AND OutputValU IS NOT NULL ")
 
     ##@Phani: insert into select with union all not working in hadoop
+    vtblName <- gen_unique_table_name("LU")
+    vLUTable <- createTable(pTableName=vtblName,
+                           pColNames=c("MATRIX_ID","rowIdColumn",
+                                        "colIdColumn","valueColumn"),
+                           pColTypes=c(rep("INT",3),rep("FLOAT",1)),
+                           pPrimaryKey=c("MATRIX_ID","rowIdColumn",
+                                        "colIdColumn")
+                            )
 
-    vLUTable <- createTable(pTableName=gen_unique_table_name("LU"),
+    vLUTable <- insertIntotbl(pTableName=vtblName,
                             pSelect=sqlstrLU)
+    
+    vLUTable <- vtblName
 
     flm <- FLMatrix(
             connection = getFLConnection(object),

@@ -352,6 +352,10 @@ sqlQuery.ODBCConnection <- function(connection, query, ...){
         return(resd)
 }
 
+sqlQuery.NULL <- function(connection, query, ...){
+    stop("please connect to the database before using AdapteR")
+}
+
 ##' drop a table
 ##' 
 ##' @param object FLTable object 

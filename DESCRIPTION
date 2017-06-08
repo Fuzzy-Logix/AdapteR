@@ -2,6 +2,7 @@ Package: AdapteR
 Title: Converts R syntax to SQL to provide fast analytics using in-database C++
     library DB Lytix.
 Version: 2.4.3
+Version: 2.5
 Authors@R: c(
     person("Gregor", "Kappler", email = "gregor.kappler@fuzzylogix.com", role = c("aut","cre")),
     person("Phani", "Srikar", email = "phani.srikar@fuzzylogix.com", role = c("aut")),
@@ -11,7 +12,7 @@ Authors@R: c(
     person("Suryavamshig", "Iitr", email = "suryavamshig.iitr@gmail.com", role = c("ctb")),
     person("Mitul", "Mundra", email = "Mitul.Mundra@fuzzylogix.com", role = c("ctb")),
     person("Rohit", "Gupta", email = "Rohit.Gupta@fuzzylogix.com", role = c("ctb")))
-Description: With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
+Description: drop 6 alpha! With Fuzzy Logix' DB Lytix(TM), advanced analytics can realize
     dramatic improvements in performance by moving computation from client machines
     into data warehouses and clusters where big data lives. As important as
     performance and scalability is the way in which the end user interacts with

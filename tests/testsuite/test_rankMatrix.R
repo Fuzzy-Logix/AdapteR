@@ -9,14 +9,23 @@ n <- 250000; p <- 33; nnz <- 1000
 
 FLenv <- as.FL(Renv)
 
-test_that("rankMatrix",{
+
+# Testing rankMatrix
+test_that("check rankMatrix result",{
+    expect_eval_equal(initF.FLMatrix,
+                      AdapteR::rankMatrix,
+                      Matrix::rankMatrix,
+                      n=5)
+})
+
+##phani: sparseMatrices not working on Aster
+test_that("rankMatrix on sparseMatrix",{
     result = eval_expect_equal({
         test1 <- rankMatrix(mat1)
     },Renv,FLenv,
     expectation="test1",
     check.attributes=FALSE)
 })
-
 
 ## Fails in both TD and Hadoop
 test_that("rankMatrix: tol argument",{
@@ -25,16 +34,6 @@ test_that("rankMatrix: tol argument",{
     },Renv,FLenv,
     expectation="test2",
     check.attributes=FALSE)
-})
-
-
-
-# Testing rankMatrix
-test_that("check rankMatrix result",{
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::rankMatrix,
-                      Matrix::rankMatrix,
-                      n=5)
 })
 
 
