@@ -124,10 +124,11 @@ svmGeneric <- function(formula,data,
 ## use FLsimpleVector
 #' @export
 predict.FLSVM <- function(object, newData = object@table){
-    var <- getVariables(object@deeptable@select)
+    ##browser()
+    pvar <- getVariables(object@deeptable@select)
     tblname <- gen_unique_table_name("svmoutput")
     scrmethod <- toupper(substr(object@results$kernel, 1,1))
-    ##browser()
+
     ret <- sqlStoredProc(connection,
                          "FLSVMScore",
                          ModelTable = object@results$outtbl,
@@ -139,8 +140,9 @@ predict.FLSVM <- function(object, newData = object@table){
                          ScoreMethod = scrmethod,
                          ScoreTable = tblname,
                          Note="SVMScore from AdapteR",
-                         "OutAnalysisID"
+                         outputParameter=c(AnalysisID="a")
                          )
+
     val <- new("FLSimpleVector",
                select= new("FLSelectFrom",
                            table_name=tblname,
@@ -153,6 +155,7 @@ predict.FLSVM <- function(object, newData = object@table){
                dims    = as.integer(c(nrow(object@deeptable), 1)),
                type       = "double"
                )
+    return(val)
 
     ##    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
     ##                                    ",fquote(object@deeptable@select@table_name),",

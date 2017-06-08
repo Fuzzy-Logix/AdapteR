@@ -4,6 +4,7 @@ FLenv <- new.env(parent = globalenv())
 FLenv$tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
 Renv <- as.R(FLenv)
 
+
 if(is.TDAster()) vformula <- dep~. else vformula <- DEP~.
 
 eval_expect_equal({
@@ -22,7 +23,7 @@ test_that("confusion, counts:", {eval_expect_equal({
 },Renv,FLenv,
 verbose = TRUE,
 check.attributes = FALSE,
-expectation = c("deg", "cost"))
+expectations = c("deg", "cost"))
 })
 
 
