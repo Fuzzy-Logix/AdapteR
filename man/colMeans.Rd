@@ -18,6 +18,10 @@ colMeans(object, ...)
 \code{colMeans} computes the column-wise average of FLMatrix objects.
 }
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+                                       "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 resultFLVector <- colMeans(flmatrix)
+}
+\seealso{
+\code{\link[Matrix]{colMeans}} for corresponding R function reference
 }

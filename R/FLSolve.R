@@ -6,7 +6,7 @@ NULL
 #' \code{solve} computes the inverse for FLMatrix objects.
 #'
 #' The wrapper overloads solve and implicitly calls FLMatrixInvUdt.
-#' @seealso \code{\link[Matrix]{solve}} for R function reference
+#' @seealso \code{\link[Matrix]{solve}} for corresponding R function reference
 #' implementation.
 #' @param x is of class FLMatrix
 #' @param ... any additional arguments
@@ -16,8 +16,12 @@ NULL
 #' @return \code{solve} returns a FLMatrix object which is the inverse of input FLMatrix object
 #' and replicates the equivalent R output.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 2,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 2,"MATRIX_ID","ROW_ID",
+#'                      "COL_ID","CELL_VAL",dims= c(3,3))
 #' resultFLMatrix <- solve(flmatrix)
+#' 
+#' ##for two arguments a,b solve(a,b) function solve ax=b equation
+#' resultFLMatrix <- solve(flmatrix,flmatrix)
 #' @export
 solve <- function (a,b=NULL, ...){
 	UseMethod("solve", a)

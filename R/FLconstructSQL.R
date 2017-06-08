@@ -1038,12 +1038,26 @@ setMethod("getTableNameSlot",
           signature(object = "FLTable"),
           function(object) getTableNameSlot(object@select))
 
-isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep") | inherits(x,"FLMatrix")
+isDeep <- function(x){
+    return(inherits(x,"FLTableDeep") 
+        | inherits(x,"FLTableMDDeep") 
+        | inherits(x,"FLMatrix")
+        | (inherits(x,"FLVector") && x@isDeep))
+}
 
 
 
 #' Recieves the result of a "show table ..." SQL query as a character string.
 #' 
+
 #' @export
-showTable <- function(x)
-    gsub("\r","\n",sqlQuery(connection, paste0("show table ",getTableNameSlot(x)))[1,1],fixed=T)
+showTable <- function(x, ...){
+    if(is.TD()){
+        if(is.FLTable(x))
+            x <- getTableNameSlot(x)[[1]]
+        
+        gsub("\r","\n",sqlQuery(connection, paste0("show table ",x)))
+    }
+    else{
+        stop("Only supported for Teradata as of now")
+    }}

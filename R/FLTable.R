@@ -107,6 +107,14 @@ FLTable <- function(table,
         if(is.TD())
             vobsid <- changeAlias(obs_id_colname,"","")
         else vobsid <- tolower(changeAlias(obs_id_colname,"",""))
+
+        ## get type from first row fetched
+        if(missing(type)){
+            type <- c()
+            for(i in 1:ncol(R))
+                type <- c(type,typeof(R[[i]]))
+        }
+
         if(!vobsid %in% cols)
           stop(paste0(vobsid,
                       " not a column in table.Please check case Sensitivity \n "))

@@ -12,8 +12,10 @@ NULL
 #' @return \code{t} returns a FLMatrix object which is the transpose of input FLMatrix object
 #' and replicates the equivalent R output.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID",
+#' 						"COL_ID","CELL_VAL",dims= c(5,5))
 #' resultFLMatrix <- t(flmatrix)
+#' @seealso \code{\link[base]{t}} for corresponding R function reference
 #' @export
 t<-function(object, ...){
 	UseMethod("t", object)

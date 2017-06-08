@@ -13,8 +13,10 @@ NULL
 #' @return \code{det} returns determinant as a R vector
 #' which replicates the equivalent R vector output.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",connection)
-#' resultFLvector <- det(flmatrix)
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID",
+#' "COL_ID","CELL_VAL", dims= c(5,5))
+#' resultFLDetValue <- det(flmatrix)
+#' @seealso \code{\link[base]{det}} for corresponding R function reference.
 #' @export
 det <- function (object, ...){
   UseMethod("det", object)

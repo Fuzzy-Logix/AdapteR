@@ -658,7 +658,6 @@ plot.FLHKMeans <- function(object,...)
 #' @export
 fitted.FLHKMeans <- function(object,method="centers",...){
 	AnalysisID <- object@AnalysisID
-	
 	if(!method %in% c("centers","classes"))
 	stop(" method in fitted for kmeans should be c(centers,classes) \n ")
 	if(method == "classes")
@@ -690,8 +689,8 @@ fitted.FLHKMeans <- function(object,method="centers",...){
 
   	centersmatrix <- newFLMatrix(
 			            select= tblfunqueryobj,
-			            dims=as.integer(c(nrow(object@deeptable)),
-			            	ncol(object@deeptable)),
+			            dims=as.integer(c(nrow(object@deeptable),
+			            	            ncol(object@deeptable))),
 			            Dimnames=list(object$cluster,
 			            			object@deeptable@Dimnames[[2]]))
   	return(centersmatrix)

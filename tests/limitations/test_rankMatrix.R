@@ -12,14 +12,28 @@ Renv$largeSparseM = sparseMatrix(i = sample.int(n, nnz, replace=TRUE),
 
 FLenv <- as.FL(Renv)
 
-test_that("rankMatrix: attributes of retval",{
+### rank calculation of Non full rank matrices fails
+test_that("rankMatrix: check working on non full rank matrices, https://app.asana.com/0/136555696724838/349878748634798",{
     result = eval_expect_equal({
         test1 <- rankMatrix(mat1)
     },Renv,FLenv,
     expectation="test1",
-    check.attributes=TRUE)
+    check.attributes=TRUE,
+    platforms=c("TDAster","Hadoop"))
 })
 
+### Hilbert matrices fail on some platforms
+test_that("rankMatrix tol argument",{
+    result = eval_expect_equal({
+        test2 = rankMatrix(mat2,tol =1e-20)
+    },Renv,FLenv,
+    expectation="test2",
+    check.attributes=FALSE,
+    platforms=c("TD","Hadoop"))
+})
+
+
+#### Not important....
 test_that("rankMatrix: different methods, https://app.asana.com/0/143316600934101/144942913968279",{
     result = eval_expect_equal({
         test6 = rankMatrix(mat3,method = "qr")

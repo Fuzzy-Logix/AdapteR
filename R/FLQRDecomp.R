@@ -341,7 +341,9 @@ cacheDecompResults <- function(pFuncName,pQuery){
     tempResultTable <- createTable(pTableName=vtblName,
                                     pColNames=vOutColnames,
                                     pColTypes=c(rep("INT",3),rep("FLOAT",vlen)),
-                                    pPrimaryKey=c("OutputMatrixID","OutputRowNum","OutputColNum")
+                                    pPrimaryKey=c("OutputMatrixID",
+                                                "OutputRowNum",
+                                                "OutputColNum")
                                     )
 
     tempResultTable <- insertIntotbl(pTableName=vtblName,

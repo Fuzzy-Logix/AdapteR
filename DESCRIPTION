@@ -112,6 +112,7 @@ Collate:
     'FLMatrixRREF.R'
     'FLMixedModelUdt.R'
     'FLMixedmodel.R'
+    'FLNNet.R'
     'FLPLSRegr.R'
     'FLPP.R'
     'FLPrint.R'

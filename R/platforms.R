@@ -370,6 +370,9 @@ FLStartSession <- function(connection,
     tryCatch(FLcreatePlatformsMapping(),
             error=function(e)warning("Platform Mappings could not be generated \n "))
 
+    ## Load Iris table if not exists
+    vtemp <- loadIris()
+
     cat("Session Started..\n")
 }
 
@@ -593,3 +596,14 @@ ModifyHypoResultColnames <- function(pFunc,pObj){
                                             colnames(pObj))
     return(pObj)
 }
+
+loadIris <- function(){
+  viris <- iris
+  colnames(viris) <- tolower(colnames(viris))
+  if(!checkRemoteTableExistence(tableName="iris"))
+  flt <- as.FLTable(viris,tableName="iris",temporary=FALSE)
+  return(NULL)
+}
+
+
+
