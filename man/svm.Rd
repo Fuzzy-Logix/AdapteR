@@ -38,14 +38,16 @@ The class variable is binary, with value either -1 or 1 only.
 \examples{
 #Linear Kernel
 FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"), "OBSID", whereconditions= "OBSID>307")
-FLmodel <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
-predict(flmod)
+FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "linear")
+predict(FLmodel)
 
 #polynomial Kernel
 FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
-FLmodel <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "polynomial")
+predict(FLmodel)
 
 #Gaussian Kernel
 FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
-FLmodel <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "Gaussian")
+FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "Gaussian")
+predict(FLmodel)
 }
