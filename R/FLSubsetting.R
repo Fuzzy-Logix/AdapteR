@@ -80,7 +80,6 @@ NULL
 #' @export
 `[.FLTable`<-function(object,rows=1,cols=1,drop=TRUE)
 {
-    ##browser()
     vtype <- typeof(object)
     if(class(object@select)=="FLTableFunctionQuery")
       object <- store(object)

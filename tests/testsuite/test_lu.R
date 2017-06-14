@@ -13,14 +13,16 @@ FLenv$luresult <- expand(lu(FLenv$x))
 test_that("LU on dense square matrix running",
           eval_expect_equal({
             result1 <- lu(x)
-          },Renv,FLenv,check.attributes=FALSE))
+          },Renv,FLenv,
+          check.attributes=FALSE))
 
 ## fails in R environment.. 
 ## R's default cross-prod not implemented for p-matrix
 ## so testing only for FLenv
 test_that("Check PM=LU ",{
-  FLexpect_equal((FLenv$luresult$P %*% FLenv$x)
-                ,(FLenv$luresult$L %*% FLenv$luresult$U))
+  FLexpect_equal((FLenv$luresult$P %*% FLenv$x),
+                (FLenv$luresult$L %*% FLenv$luresult$U),
+                tol=0.0001)
 })
 
 test_that("Check L,U triangulairty ",{
