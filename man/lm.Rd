@@ -68,7 +68,7 @@ have to fetch data
 }
 
 \examples{
-widetable  <- FLTable("tblAbaloneWide", "ObsID")
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 lmfit <- lm(Rings~Height+Diameter,widetable)
 lmfit$coefficients
 lmfit$fitted.values
@@ -77,7 +77,7 @@ mu <- predict(lmfit,newdata=widetable)
 deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
 lmfit <- lm(NULL,deeptable)
 summary(lmfit)
-flMDObject <- FLTableMD(table="tblAutoMPGMD",
+flMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),
                       group_id_colname="GroupID",
                       obs_id_colname="ObsID",group_id = c(2,4))
 vformula <- MPG~HorsePower+Displacement+Weight+Acceleration

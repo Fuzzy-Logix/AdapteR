@@ -184,16 +184,16 @@ rlm.FLTableMD <- rlm.FLpreparedData
 #' have to fetch data
 #' @return \code{lm} returns an object of class \code{FLLinRegr}
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 #' lmfit <- lm(Rings~Height+Diameter,widetable)
 #' lmfit$coefficients
 #' lmfit$fitted.values
 #' plot(lmfit)
 #' mu <- predict(lmfit,newdata=widetable)
-#' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable(getTestTableName("myLinRegrSmall"),"ObsID","VarID","Num_Val")
 #' lmfit <- lm(NULL,deeptable)
 #' summary(lmfit)
-#' flMDObject <- FLTableMD(table="tblAutoMPGMD",
+#' flMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",group_id = c(2,4))
 #' vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
