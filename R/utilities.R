@@ -275,6 +275,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
         .jcall(cStmt,"V","registerOutParameter",ai,a) ## Error Hadoop:- method registerOutParameter with signature (II)V not found 
         ai <- ai+1L
     }
+
     ## Making a procedure call
     exR <- .jcall(cStmt,"I","executeUpdate")
     argOffset <- length(args)

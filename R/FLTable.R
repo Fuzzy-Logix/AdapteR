@@ -118,6 +118,7 @@ FLTable <- function(table,
         if(!vobsid %in% cols)
           stop(paste0(vobsid,
                       " not a column in table.Please check case Sensitivity \n "))
+        else cols <- setdiff(cols,vobsid)
         
         if(!is.null(list(...)[["ObsID"]])){
           rows <- list(...)[["ObsID"]]
