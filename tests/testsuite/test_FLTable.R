@@ -63,3 +63,42 @@ test_that("Selection of columns works with $ and with [,name]",{
                  as.vector(head(DfilmF[,"Actor"])))
 })
 
+########################
+#### test cases of FLRegrDataPrep
+
+test_that("check FLRegrDataPrep output deeptable dimensions",{
+    FLiris <- FLTable(getTestTableName("iris"),"obsid")
+    irisDeep <- FLRegrDataPrep(FLiris, "petallength")
+    #column size of irisDeep increases by 1 because of conversion
+    #of categorical variable to dummy variable.
+    FLexpect_equal(irisDeep@dims, dim(FLiris) + c(0,1), platforms= c("TD", "Hadoop"))
+    #check cateogorical variable are correctly converted to dummy variable.
+    v= c(-1)
+    for(i in 0:(irisDeep@dims[2]-2)){
+        v<- c(v, i)  
+    }
+    FLexpect_equal(colnames(irisDeep),v, platforms= c("TD", "Hadoop"))
+})
+
+test_that("check ExcludeCols parameter of FLRegrDataPrep",{
+    widetable  <- FLTable(getTestTableName("tblAutoMPG"),
+                         "ObsID", whereconditions= "ObsID <101")
+    deeptable <- FLRegrDataPrep(widetable,"MPG", ExcludeCols= "CarName")
+    #dimension of widetable and deeptable will be same
+    #Because categorical variable "CarName" is excluded from conversion.
+    FLexpect_equal(deeptable@dims, dim(widetable), platforms= c("TD", "Hadoop"))
+})
+
+#### Running examples from the DBlytix Manual
+test_that("check examples from DBLytix manual: FLRegrDataPrep runs",{
+    widetable  <- FLTable(getTestTableName("tblAutoMPG"),
+                         "ObsID", whereconditions= "ObsID <101")
+    deeptable <- FLRegrDataPrep(widetable,"MPG")
+    analysisID <- deeptable@wideToDeepAnalysisID 
+    deeptableR <- as.R(deeptable)
+
+    widetableTest <- FLTable(getTestTableName("tblAutoMPGWideTest"),
+                             "ObsID", whereconditions= "ObsID <101")
+    deeptableTest <- FLRegrDataPrep(widetableTest, TrainOrTest= 1, InAnalysisID= analysisID)
+    deeptableTestR <- as.R(deeptableTest)
+})
