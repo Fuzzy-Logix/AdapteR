@@ -11,7 +11,10 @@ svm(formula, data = list(), ...)
 
 \item{data}{an FLTable wide or deep containing the variables in the model.}
 
-\item{kernel}{the kernel used in training and predicting.}
+\item{kernel}{the kernel used in training and predicting, different kernel types are: \cr
+linear: u'*v \cr
+polynomial: (gamma*u'*v + coef0)^degree \cr
+radial basis: exp(-gamma*|u-v|^2) \cr}
 
 \item{cost}{cost of constraints violation}
 
@@ -22,15 +25,15 @@ svm(formula, data = list(), ...)
 from \code{svm} in e1071 package.
 }
 \description{
-\code{svm} is used to train a support vector machine. It can be used to 
-carry out general regression and classification.
+\code{svm} is used to train a support vector machine. It can be used to
+carry out general classification.
 }
 \details{
 The wrapper overloads svm and implicitly calls DB-Lytix svm function.
 }
 \section{Constraints}{
 
-All values in FLtable should be numeric, maximum number of observations in 
+All values in FLtable should be numeric, maximum number of observations in
 the dataset can be 2000 and maximum number of independent columns can be 500.
 The class variable is binary, with value either -1 or 1 only.
 }
@@ -39,15 +42,15 @@ The class variable is binary, with value either -1 or 1 only.
 #Linear Kernel
 FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"), "OBSID", whereconditions= "OBSID>307")
 FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "linear")
-predict(FLmodel)
+FLPredict <- predict(FLmodel)
 
 #polynomial Kernel
 FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
 FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "polynomial")
-predict(FLmodel)
+FLPredict <- predict(FLmodel)
 
 #Gaussian Kernel
 FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
-FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "Gaussian")
-predict(FLmodel)
+FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "radial basis")
+FLPredict <- predict(FLmodel)
 }
