@@ -206,6 +206,7 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
     constructStoredProcSQL(getRConnection(pConnection),
                            pFuncName,pOutputParameter,...)
 }
+
 constructStoredProcSQL.JDBCConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
@@ -224,6 +225,7 @@ constructStoredProcSQL.JDBCConnection <- function(pConnection,
                           pars))
     gsub("'\\?'","?",result)
 }
+
 constructStoredProcSQL.default <- function(pConnection,
                                              pFuncName,
                                              pOutputParameter,

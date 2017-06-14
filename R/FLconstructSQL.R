@@ -356,6 +356,9 @@ setMethod("getIndexSQLName",
 setMethod("getIndexSQLName",
           signature(object = "FLIndexedValues"),
           function(object,margin=1) object@dimColumns[[margin]])
+setMethod("getIndexSQLName",
+          signature(object = "FLTableDeep"),
+          function(object,margin=1:2) object@dimColumns[margin])
 
 #' @export
 setGeneric("setIndexSQLName", function(object,margin,value) {
