@@ -4,39 +4,39 @@ setClass(
     slots = list(results = "list",
                  table = "FLTable"
                  ) )
-##https://beckmw.wordpress.com/2013/02/05/collinearity-and-stepwise-vif-selection/
 
-
-#' @export
-#' fltbl <- FLTable(table = "tbllinregr", obs_id_colname="OBSID", var_id_colnames="VARID", "NUM_VAL")
-#' flmod <- vif.FLTable(data = fltbl)
-#' flmod <- vif.FLTable(data = fltbl, method = "fb")
-#' flmod <- vif.FLTable(data = fltbl, method = "bw")
-#' vtblname <- gen_wide_table_name("vif")
-#' vtbl <- createView(vtblname, pSelect="select * from tbllinregr where obsid<200")
-#' vstr <- paste0("create view ",vtblname," as select * from tbllinregr where obsid<201")
-#' sqlSendUpdate(connection, vstr)
-#' fltbl <- FLTable(table = vtblname, obs_id_colname="OBSID", var_id_colnames="VARID", "NUM_VAL")
-#' flmod <- vif.FLTable(data = fltbl)
-#' flmod <- vif.FLTable(data = fltbl, method = "bw")
-#' flmod <- vif.FLTable(data = fltbl,method = "fb")
-#' methods = vif:- "normal",FLVIFMultiDataSet: groupid
-#' FLVIFBW:vifthreshold, FLVIFBWMultiDataSet: GroupIDCol, vifthreshold
-#' FLVIFFB: thresh1, thresh2, FLVIFFBMultiDataSet:groupidcol, thresh1,thresh2.
-#' method = "bw", "fb"
-#'dropTable("tbllinvif")
-#' createTable(pTableName = "tbllinvif", pSelect = "select * from tbllinregr where obsid <400")
-#' fltbl <- FLTable(table = "tbllinvif",obs_id_colname = "OBSID",var_id_colname = "VARID", cell_val_colname = "NUM_VAL" )
-#' flmod <- vif.FLTable(data = fltbl)
-#'
-#' fltbl <- FLTableMD(table = "tblLogRegrMulti",group_id_colname="DATASETID",obs_id_colname="ObsID",var_id_colname="VarID",cell_val_colname="Num_Val")
-#'
-#' 
 #' @export
 vif <- function (formula,data=list(),...) {
     UseMethod("vif", data)
 }
 
+
+#' \code{vif} performs VIF on FLTable and FLTableMD objects.
+#' The DB Lytix function which can be called are  c(FLVIF,FLVIFBW,FLVIFFB,FLVIFMultiDataSet,FLVIFBWMultiDataSet,FLVIFFBMultiDataSet).
+#' Performs variance inflation factor analysis on data to identify
+#' redundant variables in a dataset. The square root of the variance inflation factor
+#' tells you how much larger the standard error is, compared with what it would be if
+#' that variable were uncorrelated with the other predictor variables in the model.
+#' 
+#' @seealso \code{\link[vif]{vif}} for R reference implementation.
+#' @param formula A symbolic description of model variables for which vif is to be calculated.
+#' @param data An object of class FLTable or FLTableMD.
+#' @param method  three methods are Available 'normal' for VIF , 'bw' for backward selections on independent variable and 'fw' for fast backward selections on independent variables 
+#' @param threshold  One variable is dropped at a time till all of the VIF values in the
+#' model are below the VIFThresholdNumber.
+
+#' @slot results cache list of results computed
+#' @slot table Input data object
+#' @return \code{vif} returns an object of class \code{FLVIF}
+#' @examples
+#' fltbl <- FLTable(table = "tbllinregr", obs_id_colname="OBSID", var_id_colnames="VARID", "NUM_VAL")
+#' flmod <- vif.FLTable(data = fltbl)
+#' flmod <- vif.FLTable(data = fltbl, method = "fb")
+#' flmod <- vif.FLTable(data = fltbl, method = "bw")
+#' For Multi-Dataset:
+#' fltbl <- FLTableMD(table = "tblLogRegrMulti",group_id_colname="DATASETID",obs_id_colname="ObsID",var_id_colname="VarID",cell_val_colname="Num_Val")
+#' flmod <- vif(data= fltbl, method = "bw", threshold = 5)
+#' @export
 vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",threshold = c(2,10),...)
 {
     vcallObject <- match.call()
