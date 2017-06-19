@@ -63,6 +63,30 @@ test_that("Selection of columns works with $ and with [,name]",{
                  as.vector(head(DfilmF[,"Actor"])))
 })
 
+#######################
+#### test cases of wideToDeep
+test_that("check examples from DB-Lytix manual runs:: FLWideToDeep",{
+    widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID", , whereconditions= "obsID< 101")
+    deeptable <- wideToDeep(widetable, ExcludeCols= "Sex", classSpec= "DummyCat(D)")
+    RDeepTable <- as.R(deeptable)
+
+    ## check dimension of deeptable obtained
+    # from deeptable obsID col removed(-1), sex col removed(-1) and 2 cols of DummyCat added.
+    FLexpect_equal(deeptable@dims, dim(widetable))
+    })
+
+########################
+###### test case of deepToWide
+test_that("check dimension of wideTable generated",{
+    deeptable  <- FLTable(getTestTableName("tblUSArrests"), "ObsID","VarID","Num_Val")
+    resultList <- deepToWide(deeptable)
+    widetable <- resultList$table
+
+    ## check dimension of widetable
+    # obs_id_colname added to widetable
+    FLexpect_equal(dim(widetable), dim(deeptable)+c(0,1))
+    })
+
 ########################
 #### test cases of FLRegrDataPrep
 

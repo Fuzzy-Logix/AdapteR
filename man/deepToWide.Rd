@@ -27,7 +27,7 @@ The DB Lytix function called is FLWideToDeep.Stored Procedure that transforms th
 data in a deep table format to a wide table format.
 }
 \examples{
-deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
+deeptable  <- FLTable(getTestTableName("tblUSArrests"), "ObsID","VarID","Num_Val")
 resultList <- deepToWide(deeptable)
 widetable <- resultList$table
 analysisID <- resultList$AnalysisID

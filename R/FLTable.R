@@ -350,8 +350,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 #' deeptable <- wideToDeep(widetable)
+#' analysisID <- deeptable@wideToDeepAnalysisID
+#' 
+#' ## columns may be excluded from deeptable using excludeCols
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID", , whereconditions= "obsID< 101")
+#' deeptable <- wideToDeep(widetable, ExcludeCols= "Sex")
 #' analysisID <- deeptable@wideToDeepAnalysisID
 #' @export
 wideToDeep <- function(object,...)
@@ -432,7 +437,7 @@ wideToDeep.FLTable.Hadoop <- function(object,
 #' @return \code{deepToWide} returns a list containing components 
 #' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable(getTestTableName("tblUSArrests"), "ObsID","VarID","Num_Val")
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
