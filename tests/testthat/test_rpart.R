@@ -1,13 +1,19 @@
 Renv=new.env(globalenv())
 FLenv=as.FL(Renv)
 
-FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLenv$table<-FLTable(getTestTableName("tblDecisionTreeMulti"),"ObsID","VarID","Num_Val")
 Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 FLenv$newdata<-FLenv$table[1:150,]
 colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
 
 print(methods("rpart"))
+
+### test cases doesn't runs on aster
+## error when rpart() is called
+### Error: SQL-MR function FLDECISIONTREE requires argument clause: DSN 
+## asana ticket: https://app.asana.com/0/136555696724838/370919505534322
+
 
 test_that("test for decision tree on deep tables",{
   flobj<-rpart(FLenv$table, formula = -1~.)

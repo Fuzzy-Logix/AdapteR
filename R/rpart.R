@@ -14,8 +14,15 @@ NULL
 #'
 #' @return An object of class "FLrpart" containing the tree structure details.
 #' @examples
-#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flt<-FLTable(getTestTableName("tblDecisionTreeMulti"),
+#' 				"ObsID","VarID","Num_Val")
 #' flobj<-rpart(data = flt, formula = -1~.)
+#' summary(flobj)
+#' newdata <- flt[1:50,1:4]
+#' pred <- predict(flobj, newdata)
+#' print(flobj)
+#' plot(flobj)
+#' @seealso \code{\link[rpart]{rpart}} for corresponding R function reference.
 #' @export
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)

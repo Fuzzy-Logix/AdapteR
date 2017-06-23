@@ -14,8 +14,13 @@
 #' and the number of votes in bag corresponding to every ObsID.
 #'
 #' @examples
-#' flt<-FLTable("tblBoostDT","ObsID","VarID","Num_Val")
-#' flobj<-boosting(flt, formula = -1~.,mfinal=10)
+#' flt <- FLTable(getTestTableName("tblBoostDT"),
+#'              "ObsID","VarID","Num_Val")
+#' flobj <- boosting(flt, formula = -1~.,mfinal=10)
+#' pred <- predict(flobj, newdata= flt[1:200, 1:18])
+#' pred$confusion
+#' pred$class
+#' @seealso \code{\link[adabag]{boosting}} for corresponding R function reference.
 #' @export
 boosting<-function(formula,data,...){
 	UseMethod("boosting",data)

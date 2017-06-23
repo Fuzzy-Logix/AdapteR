@@ -1,7 +1,11 @@
+##Test cases doesn't runs on Aster
+## Asana Ticket: https://app.asana.com/0/136555696724838/370919505534321
+
 Renv=new.env(globalenv())
 FLenv=as.FL(Renv)
 
-FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLenv$table<-FLTable(getTestTableName("tblDecisionTreeMulti"),
+                      "ObsID","VarID","Num_Val")
 Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
