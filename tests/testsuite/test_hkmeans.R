@@ -1,3 +1,5 @@
+## Test Cases doesn't runs on Aster
+## Asana Ticket: https://app.asana.com/0/136555696724838/371726752253556
 library(testthat)
 FLenv <- new.env(parent = globalenv())
 
@@ -30,12 +32,7 @@ test_that("check HKMeans output dimensions ",{
 ####################
 ## DBLytix Example
 test_that("Testing if basic DBLytix FLHKMeansUdt-hkmeans Example runs from AdapteR",{
-    FLMatrixObj <- FLMatrix(getTestTableName("tblmatrixmulti"),5,
-                            "matrix_id",
-                            "row_id",
-                            "col_id",
-                            "cell_val",
-                            dims= c(5,5))
-    ResultFLMatrixObj <- solve(FLMatrixObj)
-    
+    flt <- FLTable(getTestTableName("tblUSArrests"), 
+                    "ObsID", "VarID", "Num_Val")
+    hkmeansobj <- hkmeans(flt, 2, 2, 20, 2)
 })

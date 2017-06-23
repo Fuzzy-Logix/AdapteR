@@ -36,19 +36,28 @@ setClass(
 #' from \code{svm} in e1071 package.
 #' @examples
 #' #Linear Kernel
-#' FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"), "OBSID", whereconditions= "OBSID>307")
-#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "linear")
+#' FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"),
+#'                   "OBSID", whereconditions= "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE,
+#'                 kernel = "linear")
 #' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
 #'
 #' #polynomial Kernel
-#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
-#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "polynomial")
+#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
+#'                  "OBSID", whereconditions = "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
+#'                kernel = "polynomial")
 #' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
 #'
 #' #Gaussian Kernel
-#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), "OBSID", whereconditions = "OBSID>307")
-#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, kernel = "radial basis")
+#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
+#'                  "OBSID", whereconditions = "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
+#'                kernel = "radial basis")
 #' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
 #' @export
 svm <- function (formula,data=list(),...) {
     UseMethod("svm", data)
