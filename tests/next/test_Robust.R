@@ -10,7 +10,8 @@ library(MASS)
 Renv <- new.env(parent = globalenv())
 FLenv <- as.FL(Renv)
 
-deeptbl  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
+
+deeptbl  <- FLTable(getTestTableName("tblRobustRegr"), "ObsID","VarID", "Num_Val")
 FLenv$DAT <- deeptbl
 
 ## varmapping(deeptbl) <- c("a","i","var")

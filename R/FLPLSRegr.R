@@ -74,7 +74,7 @@ mvr.FLTableMD <- mvr.FLpreparedData
 #' @param northo Number of orthogonal vectors.
 #' @return \code{opls} returns an object of class \code{FLPLSRegr}
 #' @examples
-#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
 #' flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
 #' cof <- coefficients(flmod)
 #' pred <- predict(flmod);res <- residuals(flmod) 

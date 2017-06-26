@@ -74,7 +74,7 @@ lmfit$coefficients
 lmfit$fitted.values
 plot(lmfit)
 mu <- predict(lmfit,newdata=widetable)
-deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
+deeptable <- FLTable(getTestTableName("myLinRegrSmall"),"ObsID","VarID","Num_Val")
 lmfit <- lm(NULL,deeptable)
 summary(lmfit)
 flMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),

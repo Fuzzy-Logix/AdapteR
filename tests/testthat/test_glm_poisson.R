@@ -18,6 +18,17 @@ test_that("glm: execution for poisson ",{
 }) 
 
 
+test_that("glm: predict ",{
+  result = eval_expect_equal({
+    predict_glmobj <- predict(glmobj, type = "response")
+  },Renv,FLenv,
+  expectation = "predict_glmobj",
+  noexpectation = "glmobj",
+  check.attributes=F,
+  tolerance = .000001
+  )
+}) 
+
 ## Below cases fail in Hadoop:-
 ## No FLPoissonRegrScore function in Hadoop!
 test_that("glm: equality of coefficients, residuals, fitted.values, df.residual for poisson",{
