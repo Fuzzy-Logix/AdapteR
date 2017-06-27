@@ -26,6 +26,13 @@ Fits the AdaBoost.M1 (Freund and Schapire, 1996) and SAMME (Zhu et al., 2009)
 algorithms using classification trees as single classifiers.
 }
 \examples{
-flt<-FLTable("tblBoostDT","ObsID","VarID","Num_Val")
-flobj<-boosting(flt, formula = -1~.,mfinal=10)
+flt <- FLTable(getTestTableName("tblBoostDT"),
+             "ObsID","VarID","Num_Val")
+flobj <- boosting(flt, formula = -1~.,mfinal=10)
+pred <- predict(flobj, newdata= flt[1:200, 1:18])
+pred$confusion
+pred$class
+}
+\seealso{
+\code{\link[adabag]{boosting}} for corresponding R function reference.
 }

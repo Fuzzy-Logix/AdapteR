@@ -1,7 +1,11 @@
+## Test Cases will not run on Aster
+## Asana Ticket: https://app.asana.com/0/136555696724838/371726752253556
+
 Renv=new.env(globalenv())
 FLenv=as.FL(Renv)
 
-FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLenv$table<-FLTable(getTestTableName("tblDecisionTreeMulti"),
+                      "ObsID","VarID","Num_Val")
 Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
@@ -20,7 +24,7 @@ test_that("test for boosting on deeptables",{
   result4= expect_equal(flobj$prob$PredictClassProb,(flobj$votes$Votes)/mfinal)
 })
 
-## @amal: this test fails due to an issue in subsetting FLTable
+
 test_that("test for prediction in boostingDTs",{
   flobj<-boosting(FLenv$table, formula = -1~.,mfinal=mfinal)
   robj <- boosting(Col1~., data = Renv$table,mfinal=mfinal)

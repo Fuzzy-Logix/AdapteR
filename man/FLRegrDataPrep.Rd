@@ -7,7 +7,7 @@
 FLRegrDataPrep(object, depCol = "NULL", ...)
 }
 \arguments{
-\item{object}{FLTable object}
+\item{object}{FLTable object or FLTableMD (if input table has multiple datasets or groups).}
 
 \item{DepCol}{Name of the column in the wide table which represents the dependent variable}
 
@@ -61,7 +61,17 @@ stored procedure FLRegrDataPrep facilitates the conversion of contents stored in
 deep tables and also prepares the data for regression analysis.
 }
 \examples{
-widetable  <- FLTable("tblAbaloneWide", "ObsID")
+# Case: when widetable is of class FLTable.
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), 
+                     "ObsID", whereconditions= "ObsID <101")
 deeptable <- FLRegrDataPrep(widetable,"Diameter")
-analysisID <- deeptable@wideToDeepAnalysisID
+analysisID <- deeptable@wideToDeepAnalysisID 
+
+# Case: when widetable is of class FLTableMD.
+widetableMD <- FLTableMD(getTestTableName("tblAutoMPGMD"),
+                     group_id_colname="GroupID",
+                     obs_id_colname="ObsID",
+                    group_id = c(2,4))
+deeptableMD <- FLRegrDataPrep(widetableMD,"Acceleration")
+analysisID <- deeptableMD@wideToDeepAnalysisID
 }

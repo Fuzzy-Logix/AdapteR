@@ -71,8 +71,8 @@ FLTableMD <- function(table,
     {
         if(!fetchIDs) {
             warning("todo: implement fetcching of IDs in MD deep case")
-            ## gk @ phani:  this needs serious optimization!
-            ##browser()
+            ## phani:  Assuming continuous varids are generated from RegrDataPrep
+            ## browser()
             rows <- NULL
             cols <- NULL
             vgrp <- NULL
@@ -88,8 +88,8 @@ FLTableMD <- function(table,
                 vgrp <- unique(vdims[["grpid"]])
             cols<-dlply(vdims,"grpid",
                         function(x){
-                c(vdims[["minid"]],vdims[["maxid"]])
-            })
+                            c(vdims[["minid"]],vdims[["maxid"]])
+                        })
             names(cols)<-as.character(vgrp)
         } else {
                                         #browser()
@@ -131,6 +131,7 @@ FLTableMD <- function(table,
                 else return(x[["obsid"]])
             })
             attributes(rows)<-NULL
+
                                         # cols <- gsub("^ +| +$","",cols)
                                         # rows <- gsub("^ +| +$","",rows)
 
@@ -147,6 +148,10 @@ FLTableMD <- function(table,
                                         # if(is.character(rows) || is.character(cols))
                                         #     stop("obsIDs and varIDs cannot be characters \n ")
         }
+
+        nrows <- llply(rows,length)
+        ncols <- llply(cols,length)
+
         select <- new("FLSelectFrom",
                       connectionName = attr(connection,"name"), 
                       table_name = table, 
@@ -160,12 +165,13 @@ FLTableMD <- function(table,
         T <- newFLTableMD( 
                  select = select,
                  Dimnames = list(rows,cols,vgrp),
-                 dims = as.integer(c(length(rows),length(cols),length(vgrp))),
+                 dims = c(nrows,ncols,length(vgrp)),
                  isDeep = TRUE,
                  dimColumns=c("group_id_colname","obs_id_colname",
                               "var_id_colname","cell_val_colname"),
-            ...
+                ...
                 )
+
         # new("FLTableMD",
         #     select = select,
         #     Dimnames = list(rows,cols,vgrp),
@@ -173,23 +179,23 @@ FLTableMD <- function(table,
     }
     else
     {
-        #browser()
+        ## browser()
         R <- sqlQuery(connection,
                       limitRowsSQL(paste0("select * from ",tableAndAlias(table)),1))
         cols <- names(R)
 
         if(!is.null(list(...)[["ObsID"]])){
           rows <- list(...)[["ObsID"]]
-          nrow <- length(rows)
+          nrows <- llply(rows,length)
         }
         else if(fetchIDs) {
-          rows <- sort(sqlQuery(connection,
-                            paste0("SELECT DISTINCT(",
-                                        obs_id_colname,") as varid
-                                    FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))[[1]])
-          rows <- cleanNames(rows)
-          nrow <- length(rows)
+          # rows <- sort(sqlQuery(connection,
+          #                   paste0("SELECT DISTINCT(",
+          #                               obs_id_colname,") as varid
+          #                           FROM ",tableAndAlias(table),
+          #                           " ",constructWhere(whereconditions)))[[1]])
+          # rows <- cleanNames(rows)
+          # nrow <- length(rows)
           vdims <- sqlQuery(connection,
                             paste0("SELECT DISTINCT ",group_id_colname," AS grpid, \n ",
                                    obs_id_colname," AS obsid \n ",
@@ -203,6 +209,8 @@ FLTableMD <- function(table,
               else return(x[["obsid"]])
           })
           attributes(rows)<-NULL
+          nrows <- llply(rows,length)
+
           if(length(vgrp)==0)
               vgrp <- unique(vdims[["grpid"]])
             nMD <- length(vgrp)
@@ -213,7 +221,7 @@ FLTableMD <- function(table,
                                            count(DISTINCT ",group_id_colname,") as ngroups
                                     FROM ",tableAndAlias(table),
                                    " ",constructWhere(whereconditions)))
-            nrow <- vdims$nrows
+            nrows <- vdims$nrows
             nMD <- vdims$ngroups
             vgrp <- NULL
         }
@@ -224,7 +232,7 @@ FLTableMD <- function(table,
         if(length(setdiff(var_id_colnames,cols)))
             stop(paste0("columns do not exist: "))
 
-        ncol <- length(var_id_colnames)
+        ncols <- length(var_id_colnames)
 
         mydimnames <- list(rows,var_id_colnames)
 
@@ -241,7 +249,7 @@ FLTableMD <- function(table,
         T <- newFLTableMD( 
                  select = select,
                  Dimnames = list(rows,cols,vgrp),
-                 dims = as.integer(c(nrow,ncol,nMD)),
+                 dims = list(nrows,ncols,nMD),
             isDeep = FALSE,
             ...
             ##type=type ## todo

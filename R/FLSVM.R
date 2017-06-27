@@ -14,15 +14,50 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-#' library(e1071)
-#' Linear Kernel
-#' tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
-#' flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
-#' predict(flmod)
+#' Support Vector Machines
 #'
-#' polynomial Kernel
-#'tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
-#'flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+#' \code{svm} is used to train a support vector machine. It can be used to
+#' carry out general classification.
+#'
+#' The wrapper overloads svm and implicitly calls DB-Lytix svm function.
+#' @param formula a symbolic description of the model to be fit.
+#' @param data an FLTable wide or deep containing the variables in the model.
+#' @param kernel the kernel used in training and predicting, different kernel types are: \cr
+#' linear: u'*v \cr
+#' polynomial: (gamma*u'*v + coef0)^degree \cr
+#' radial basis: exp(-gamma*|u-v|^2) \cr
+#' @param cost cost of constraints violation
+#' @param degree parameter needed for kernel of type polynomial.
+#' @section Constraints:
+#' All values in FLtable should be numeric, maximum number of observations in
+#' the dataset can be 2000 and maximum number of independent columns can be 500.
+#' The class variable is binary, with value either -1 or 1 only.
+#' @return \code{svm} returns a FLSVM class object which replicates equivalent R output
+#' from \code{svm} in e1071 package.
+#' @examples
+#' #Linear Kernel
+#' FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"),
+#'                   "OBSID", whereconditions= "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE,
+#'                 kernel = "linear")
+#' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
+#'
+#' #polynomial Kernel
+#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
+#'                  "OBSID", whereconditions = "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
+#'                kernel = "polynomial")
+#' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
+#'
+#' #Gaussian Kernel
+#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
+#'                  "OBSID", whereconditions = "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
+#'                kernel = "radial basis")
+#' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
 #' @export
 svm <- function (formula,data=list(),...) {
     UseMethod("svm", data)
@@ -67,14 +102,13 @@ svmGeneric <- function(formula,data,
                        ...)
 
 {
-##    browser()
     prepData <- prepareData.lmGeneric(formula,data,
                                       callObject=callObject,
                                       familytype=familytype,
                                       performNorm=1,
                                       cost = 1,
                                       ...)
-    
+
     for(i in names(prepData))
 	assign(i,prepData[[i]])
     deeptable <- deepx@select@table_name
@@ -93,7 +127,7 @@ svmGeneric <- function(formula,data,
     if(is.TDAster())
         vgroupCol <- "partition1"
     else vgroupCol <- "outputgroupid"
-    t <- createTable(tblname, 
+    t <- createTable(tblname,
                     pSelect = constructUDTSQL(pViewColname = c(groupid = 1,
                                                              obsid = deepx@select@variables$obs_id_colname,
                                                              varid = deepx@select@variables$var_id_colname,
@@ -102,12 +136,12 @@ svmGeneric <- function(formula,data,
                                             pFuncName = functionName,
                                             pOutColnames = c("a.*"),
                                             pSelect = deeptable,
-                                            pLocalOrderBy=c("groupid", "obsid", "varid"), 
-                                            pNest = TRUE, 
+                                            pLocalOrderBy=c("groupid", "obsid", "varid"),
+                                            pNest = TRUE,
                                             pFromTableFlag = TRUE),
                     pPrimaryKey=vgroupCol,
                     pTemporary=FALSE)
-    
+
     return(new("FLSVM",
                formula=formula,
                table=data,
@@ -119,12 +153,13 @@ svmGeneric <- function(formula,data,
                mapTable=mapTable,
                scoreTable="",
                offset=as.character(offset),
-               RegrDataPrepSpecs=RegrDataPrepSpecs))   
+               RegrDataPrepSpecs=RegrDataPrepSpecs))
 }
 
 ## use FLsimpleVector
 #' @export
 predict.FLSVM <- function(object, newData = object@table){
+  #browser()
     pvar <- getVariables(object@deeptable@select)
     tblname <- gen_unique_table_name("svmoutput")
     scrmethod <- toupper(substr(object@results$kernel, 1,1))
@@ -182,10 +217,10 @@ predict.FLSVM <- function(object, newData = object@table){
     ##                                    ",fquote(var[[1]])," ,
     ##                                    ",fquote(var[[2]])," ,
     ##                                    ",fquote(var[[3]])," ,
-    ##                                    ",fquote(scrmethod),",  
+    ##                                    ",fquote(scrmethod),",
     ##                                    ",fquote(tblname),",
     ##                                     OutAnalysisID);")
-    
+
     ##    print(sqlQuery(connection, qer))
     ##    str <- paste0("SELECT TOP 5 * FROM ",tblname)
     ##    return(sqlQuery(connection, str) )
@@ -209,7 +244,7 @@ predict.FLSVM <- function(object, newData = object@table){
         if(object@results$kernel == "polynomial")
             return(object@results$votbl$degreepoly)
         else
-            return("Not applicable for this kernel")     
+            return("Not applicable for this kernel")
     }
     if(property == "cost"){
         return(object@results$varg[1]) }
@@ -224,14 +259,14 @@ predict.FLSVM <- function(object, newData = object@table){
     if(property == "BValue"){
         if(any(c("polynomial", "gaussian") == object@results$kernel))
             return(object@results$votbl$bvalue)
-        else   
-            return("Not applicable for this kernel")          
+        else
+            return("Not applicable for this kernel")
     }
     if(property == "crbfConstant"){
         if(object@results$kernel == "gaussian")
             return(object@results$votbl$crbfconstant)
         else
-            return("Not applicable for this kernel")          
+            return("Not applicable for this kernel")
     }
 
     if(property == "misclassifications"){
@@ -249,7 +284,7 @@ predict.FLSVM <- function(object, newData = object@table){
             Num_Val <- getVariables(object@deeptable)$cell_val_colname
             dim <- object@table@Dimnames[[2]][-length(object@table@Dimnames[[2]])]
             vdimnames <- list(object@table@Dimnames[[1]], dim)
-            
+
             quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",
                                         VarID," AS var_id_colname, b.PlaneWt*a.",
                                         Num_Val," AS cell_val_colname FROM ",
@@ -268,14 +303,14 @@ predict.FLSVM <- function(object, newData = object@table){
                                   order = "",
                                   SQLquery=quer)
 
-            T <- newFLTable( 
+            T <- newFLTable(
                 select = tblfunqueryobj,
                 Dimnames = vdimnames,
                 dims = c(nrow(object@table), ncol(object@table)-1),
                 isDeep = TRUE,
                 type=object@table@type,
                 dimColumns=c("obs_id_colname","var_id_colname", "cell_val_colname"))
-            
+
             return(T)
         }
         else
@@ -292,7 +327,7 @@ print.FLSVM <- function(object, ...){
     cat("Call: \n\n")
     print(object@results$call)
     cat("Parameters:\n")
-    cat("SVM-Method: Sequential Minimal Optimization(SMO)\n")   
+    cat("SVM-Method: Sequential Minimal Optimization(SMO)\n")
     cat("SVM-kernel:",object@results$kernel,"\n")
     cat("misclassifications: ",object$misclassifications,"\n")
     cat("Lambda: ",object$lambda,"\n")

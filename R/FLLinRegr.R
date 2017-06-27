@@ -1175,13 +1175,20 @@ prepareData.formula <- function(formula,data,
 			}
 		}
 		if(length(vfactorCols)>0){
-			vrefVars <- sqlQuery(getFLConnection(),
-							paste0("SELECT ",
-								paste0("MIN(",names(vfactorCols),
-									") AS ",names(vfactorCols),
-									collapse=","),
-								" FROM (",constructSelect(data),") a "),
+			if(is.ODBC())
+                vrefVars <- sqlQuery(getFLConnection(),
+                            paste0("SELECT ",
+                                paste0("MIN(",names(vfactorCols),
+                                    ") AS ",names(vfactorCols),
+                                    collapse=","),
+                                " FROM (",constructSelect(data),") a "),
                             as.is=TRUE)
+            else vrefVars <- sqlQuery(getFLConnection(),
+                            paste0("SELECT ",
+                                paste0("MIN(",names(vfactorCols),
+                                    ") AS ",names(vfactorCols),
+                                    collapse=","),
+                                " FROM (",constructSelect(data),") a "))
 			vtempList <- list()
             vrefVarNames <- names(vrefVars)
 			for(i in colnames(vrefVars)){
@@ -2532,6 +2539,7 @@ getReferenceCategories <- function(data,pExcludeCols="",
         }
     }
     if(length(vfactorCols)>0){
+        if(is.ODBC())
         vrefVars <- sqlQuery(getFLConnection(),
                         paste0("SELECT ",
                             paste0("MIN(",names(vfactorCols),
@@ -2539,6 +2547,12 @@ getReferenceCategories <- function(data,pExcludeCols="",
                                 collapse=","),
                             " FROM (",constructSelect(data),") a "),
                             as.is=TRUE)
+        else vrefVars <- sqlQuery(getFLConnection(),
+                        paste0("SELECT ",
+                            paste0("MIN(",names(vfactorCols),
+                                ") AS ",names(vfactorCols),
+                                collapse=","),
+                            " FROM (",constructSelect(data),") a "))
         vtempList <- list()
         vrefVarNames <- names(vrefVars)
         for(i in colnames(vrefVars)){

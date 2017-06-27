@@ -26,6 +26,13 @@ Fits the Bagging algorithm proposed by Breiman in
 1996 using classification trees as single classifiers.
 }
 \examples{
-flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+flt<-FLTable(getTestTableName("tblDecisionTreeMulti"),
+			"ObsID","VarID","Num_Val")
 flobj<-bagging(flt, formula = -1~.,mfinal=5)
+pred <- predict(flobj, flt[1:4])
+pred$confusion
+pred$class
+}
+\seealso{
+\code{\link[adabag]{bagging}} for corresponding R function reference.
 }

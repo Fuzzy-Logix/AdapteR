@@ -241,6 +241,13 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
+
+    ## Common Test TableName for permanent tables created in TestSuite
+    if(is.null(user))
+        vtemptbl <- paste0("ARBaseTestTempTable",sample(1:100,1))
+    else vtemptbl <- paste0("ARBaseTestTempTable",user)
+
+    options("TestTempTableName" = vtemptbl)
     FLStartSession(connection=connection,database=database,temporary = temporary,tablePrefix=tablePrefix,...)
     return(connection)
 }

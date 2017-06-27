@@ -698,3 +698,11 @@ separateDBName <- function(vtableName){
 removeAlias <- function(pName){
     return(changeAlias(pName,"",""))
 }
+
+hasWhereClause <- function(pObject){
+    return(length(setdiff(constructWhere(pObject),""))>0)
+}
+
+hasSQLSelect <- function(pObject){
+    return(inherits(pObject@select,"FLTableFunctionQuery"))
+}
