@@ -1720,7 +1720,7 @@ coefficients.lmGeneric <-function(object,
         ## by FLLinRegr, fetch them.
                                         #browser()
                                         # vmapping <- NULL
-        vID <- object@results$mod["nID"]
+        vID <- object@results$mod[["nID"]]
         vfcalls <- object@vfcalls
         vcoeffnames <- NULL
         vmodelnames <- NULL
@@ -1734,7 +1734,7 @@ coefficients.lmGeneric <-function(object,
                                                   paste0(" AND ModelID=",object@results[["modelID"]]),""),
                                            " ORDER BY ",vID))
         else{
-                                        #browser()
+                                        browser()
             vcoeffframe <- sqlQuery(getFLConnection(),
                                     paste0("SELECT a.*,b.* \n",
                                            " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap")," AS a, \n ",
@@ -1785,7 +1785,7 @@ coefficients.lmGeneric <-function(object,
         }
 
         colnames(coeffVector) <- toupper(colnames(coeffVector))
-        coeffVector1 <- coeffVector[[object@results$mod["nCoeffEstim"]]]
+        coeffVector1 <- coeffVector[[object@results$mod[["nCoeffEstim"]]]]
                                         # vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
         if(!is.null(vcoeffnames)){
             if(!pIntercept)
