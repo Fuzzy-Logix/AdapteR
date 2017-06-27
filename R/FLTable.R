@@ -29,6 +29,9 @@ FLTable <- function(table,
                     connection=getFLConnection(),
                     type="double",
                     fetchIDs=TRUE,
+                    dims=0,
+                    sparse=TRUE,
+                    dimnames=NULL,
                     ...)
 {
     ## If alias already exists, change it to flt.
@@ -43,28 +46,43 @@ FLTable <- function(table,
                                    c(getTablename(table),
                                      oldalias))
     names(table) <- "flt"
+
+    fetchFLag <- TRUE
+
+    if(!sparse && dims){
+        nrow <- dims[1]
+        ncol <- dims[2]
+        fetchFLag <- FALSE
+    }
+
     if(length(var_id_colnames) && length(cell_val_colname))
 	{
-        cols <- cleanNames(sort(sqlQuery(connection,
+        if(fetchFLag){
+            cols <- cleanNames(sort(sqlQuery(connection,
                                          paste0("SELECT DISTINCT(",
                                                 var_id_colnames,") as VarID FROM ",tableAndAlias(table),
                                                 " ",constructWhere(whereconditions)))[[1]]))
-        ncol <- length(cols)
-        if(!is.null(list(...)[["ObsID"]]))
-          rows <- list(...)[["ObsID"]]
-        else if(fetchIDs) {
-          rows <- sort(sqlQuery(connection,
-                         paste0("SELECT DISTINCT(",
-                                obs_id_colname,") as VarID FROM ",tableAndAlias(table),
-                          " ",constructWhere(whereconditions)))[[1]])
-          rows <- cleanNames(rows)
-          nrow <- length(rows)
-        } else {
-            rows <- NULL
-            nrow <- sqlQuery(connection,
-                            paste0("SELECT count(DISTINCT(",obs_id_colname,")) as N
-                                    FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))[[1]]
+            ncol <- length(cols)
+            if(!is.null(list(...)[["ObsID"]]))
+              rows <- list(...)[["ObsID"]]
+            else if(fetchIDs) {
+              rows <- sort(sqlQuery(connection,
+                             paste0("SELECT DISTINCT(",
+                                    obs_id_colname,") as VarID FROM ",tableAndAlias(table),
+                              " ",constructWhere(whereconditions)))[[1]])
+              rows <- cleanNames(rows)
+              nrow <- length(rows)
+            } else {
+                rows <- NULL
+                nrow <- sqlQuery(connection,
+                                paste0("SELECT count(DISTINCT(",obs_id_colname,")) as N
+                                        FROM ",tableAndAlias(table),
+                                        " ",constructWhere(whereconditions)))[[1]]
+            }
+        }
+        else{
+            rows <- dimnames[[1]]
+            cols <- dimnames[[2]]
         }
 
 
@@ -120,27 +138,32 @@ FLTable <- function(table,
                       " not a column in table.Please check case Sensitivity \n "))
         else cols <- setdiff(cols,vobsid)
         
-        if(!is.null(list(...)[["ObsID"]])){
-          rows <- list(...)[["ObsID"]]
-          nrow <- length(rows)
+        if(fetchFLag){
+            if(!is.null(list(...)[["ObsID"]])){
+                rows <- list(...)[["ObsID"]]
+                nrow <- length(rows)
+            }
+            else if(fetchIDs) {
+                rows <- sort(sqlQuery(connection,
+                                paste0("SELECT DISTINCT(",
+                                            obs_id_colname,") as VarID
+                                        FROM ",tableAndAlias(table),
+                                        " ",constructWhere(whereconditions)))[[1]])
+                rows <- cleanNames(rows)
+                nrow <- length(rows)
+            } else {
+                rows <- NULL
+                nrow <- sqlQuery(connection,
+                                paste0("SELECT count(DISTINCT ",obs_id_colname,") as N
+                                        FROM ",tableAndAlias(table),
+                                        " ",constructWhere(whereconditions)))[[1]]
+            }
         }
-        else if(fetchIDs) {
-          rows <- sort(sqlQuery(connection,
-                            paste0("SELECT DISTINCT(",
-                                        obs_id_colname,") as VarID
-                                    FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))[[1]])
-          rows <- cleanNames(rows)
-          nrow <- length(rows)
-        } else {
-            rows <- NULL
-            nrow <- sqlQuery(connection,
-                            paste0("SELECT count(DISTINCT ",obs_id_colname,") as N
-                                    FROM ",tableAndAlias(table),
-                                    " ",constructWhere(whereconditions)))[[1]]
+        else{
+            rows <- dimnames[[1]]
         }
-        cols <- cleanNames(cols)
         
+        cols <- cleanNames(cols)
         if(length(var_id_colnames)==0)
             var_id_colnames <- cols
         if(length(setdiff(var_id_colnames,cols)))
@@ -458,7 +481,6 @@ setMethod("deepToWide",
                     outWideTableName="",
                     Analysisid = "")
           {
-            #browser()
             if(!isDeep(object)) return(list(table=object))
             connection <- getFLConnection(object)
               object <- setAlias(object,"")
@@ -493,23 +515,29 @@ setMethod("deepToWide",
               #deeptable <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
               # sqlstr <- paste0("CREATE VIEW ",outWideTableDatabase,".",deeptable," AS ",constructSelect(object))
               # sqlSendUpdate(connection,sqlstr)
-              deeptable <- createView(pViewName=gen_view_name(getTableNameSlot(object)),
-                        pSelect=constructSelect(object))
-              select <- new("FLSelectFrom",
-                        connectionName = attr(connection,"name"), 
-                        table_name = deeptable, 
-                        variables = list(
-                                obs_id_colname = "obs_id_colname",
-                                var_id_colname = "var_id_colname",
-                                cell_val_colname = "cell_val_colname"),
-                        whereconditions="",
-                        order = "")
 
-              object <- newFLTable(
+              ## Only needed if there is a whereClause or FLTableFunctionQuery
+            if(hasWhereClause(object) || hasSQLSelect(object)){
+                deeptable <- createView(pViewName=gen_view_name(getTableNameSlot(object)),
+                                        pSelect=constructSelect(object))
+
+                select <- new("FLSelectFrom",
+                            connectionName = attr(connection,"name"), 
+                            table_name = deeptable, 
+                            variables = list(
+                                    obs_id_colname = "obs_id_colname",
+                                    var_id_colname = "var_id_colname",
+                                    cell_val_colname = "cell_val_colname"),
+                            whereconditions="",
+                            order = "")
+
+                object <- newFLTable(
                             select = select,
                             dims = dim(object),
                             Dimnames = object@Dimnames,
                             isDeep = TRUE)
+            }
+              
             # if(class(object@select)=="FLTableFunctionQuery" || length(whereconditions)>0)
             # object <- store(object)
 
@@ -517,14 +545,19 @@ setMethod("deepToWide",
             outWideTableName <- gen_wide_table_name(getTableNameSlot(object))
             #outWideTableName <- paste0(sample(letters[1:26],1),round(as.numeric(Sys.time())))
 
+            vidxnames <- c(getObsIdSQLExpression(object),
+                            getVarIdSQLExpression(object),
+                            getValueSQLExpression(object))
+            vidxnames <- changeAlias(vidxnames,"","")
+
             message <- sqlStoredProc(
                               connection,
                               "FLDeepToWide",
                               outputParameter=c(Message="Message"),
                               DeepTable=getTableNameSlot(object),
-                              ObsIDCol="obs_id_colname",
-                              VarIDCol="var_id_colname",
-                              ValueCol="cell_val_colname",
+                              ObsIDCol=vidxnames[1],
+                              VarIDCol=vidxnames[2],
+                              ValueCol=vidxnames[3],
                               MapTable=mapTable,
                               MapName=mapName,
                               WideTable=outWideTableName)
@@ -545,7 +578,10 @@ setMethod("deepToWide",
 
             table <- FLTable(
                            outWideTableName,
-                           "obs_id_colname"
+                           vidxnames[1],
+                           sparse=FALSE,
+                           dims=dim(object),
+                           dimnames=list(rownames(object),NULL)
                           )
             return(list(table=table,
                         message = as.character(message[1,1])))

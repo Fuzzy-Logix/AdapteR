@@ -238,7 +238,7 @@ store.FLTable <- function(object,pTableName=NULL,...)
   #                 vSqlStr)
   
   ## If tablename has database name
-  vtemp <- separateDBName(vtableName)
+  vtemp <- separateDBName(table_name)
   vtableName <- vtemp["vtableName"]
   vdatabase <- vtemp["vdatabase"]
 

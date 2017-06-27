@@ -1129,7 +1129,7 @@ setGeneric("populateDimnames",
 setMethod("populateDimnames",
     signature(x="ANY"),
     function(x,...){
-        if(!length(rownames(x))>0)
+        if(!length(x@Dimnames[[1]])>0)
             x@Dimnames[[1]] <- 1:(x@dims[1])
         if(isDeep(x))
             x@Dimnames[[2]] <- 1:(x@dims[2])
