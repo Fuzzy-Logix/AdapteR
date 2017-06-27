@@ -12,7 +12,8 @@ vif <- function (formula,data=list(),...) {
 
 
 #' \code{vif} performs VIF on FLTable and FLTableMD objects.
-#' The DB Lytix function which can be called are  c(FLVIF,FLVIFBW,FLVIFFB,FLVIFMultiDataSet,FLVIFBWMultiDataSet,FLVIFFBMultiDataSet).
+#' The DB Lytix function which can be called are
+#' c(FLVIF,FLVIFBW,FLVIFFB,FLVIFMultiDataSet,FLVIFBWMultiDataSet,FLVIFFBMultiDataSet).
 #' Performs variance inflation factor analysis on data to identify
 #' redundant variables in a dataset. The square root of the variance inflation factor
 #' tells you how much larger the standard error is, compared with what it would be if
