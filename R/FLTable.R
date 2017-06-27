@@ -374,8 +374,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 #' deeptable <- wideToDeep(widetable)
+#' analysisID <- deeptable@wideToDeepAnalysisID
+#' 
+#' ## columns may be excluded from deeptable using excludeCols
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID", , whereconditions= "obsID< 101")
+#' deeptable <- wideToDeep(widetable, ExcludeCols= "Sex")
 #' analysisID <- deeptable@wideToDeepAnalysisID
 #' @export
 wideToDeep <- function(object,...)
@@ -456,7 +461,7 @@ wideToDeep.FLTable.Hadoop <- function(object,
 #' @return \code{deepToWide} returns a list containing components 
 #' \code{table} which is the FLTable referencing the wide table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' deeptable  <- FLTable("tblUSArrests", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable(getTestTableName("tblUSArrests"), "ObsID","VarID","Num_Val")
 #' resultList <- deepToWide(deeptable)
 #' widetable <- resultList$table
 #' analysisID <- resultList$AnalysisID
@@ -597,7 +602,7 @@ setMethod("deepToWide",
 #' stored procedure FLRegrDataPrep facilitates the conversion of contents stored in wide tables or views to
 #' deep tables and also prepares the data for regression analysis.
 #'
-#' @param object FLTable object
+#' @param object FLTable object or FLTableMD (if input table has multiple datasets or groups).
 #' @param DepCol Name of the column in the wide table which represents the dependent variable
 #' @param catToDummy Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.
 #' @param performNorm Perform standardization of data. Standardization is done if the value of this parameter is 1.
@@ -625,9 +630,19 @@ setMethod("deepToWide",
 #' @param outValueCol name to give to the value column of the output deep table
 #' @return \code{FLRegrDataPrep} returns a FLTableDeep referencing the deep table, the original table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' # Case: when widetable is of class FLTable.
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), 
+#'                      "ObsID", whereconditions= "ObsID <101")
 #' deeptable <- FLRegrDataPrep(widetable,"Diameter")
-#' analysisID <- deeptable@wideToDeepAnalysisID
+#' analysisID <- deeptable@wideToDeepAnalysisID 
+#' 
+#' # Case: when widetable is of class FLTableMD.
+#' widetableMD <- FLTableMD(getTestTableName("tblAutoMPGMD"),
+#'                      group_id_colname="GroupID",
+#'                      obs_id_colname="ObsID",
+#'                     group_id = c(2,4))
+#' deeptableMD <- FLRegrDataPrep(widetableMD,"Acceleration")
+#' analysisID <- deeptableMD@wideToDeepAnalysisID
 #' @export
 setGeneric("FLRegrDataPrep", function(object,
                                   depCol="NULL",

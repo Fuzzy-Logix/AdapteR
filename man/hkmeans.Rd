@@ -32,8 +32,8 @@ using \code{object$mapping} if input is wide table.
 \code{hkmeans} performs Hierarchial k-means clustering on FLTable objects.
 }
 \details{
-The DB Lytix function called is FLHKMeans.Hierarchical K-Means clusters the training data.  
-The relationship of observations to clusters has hard edges. It re-clusters the training data in 
+The DB Lytix function called is FLHKMeans.Hierarchical K-Means clusters the training data.
+The relationship of observations to clusters has hard edges. It re-clusters the training data in
 each cluster until the desired hierarchical level is reached.
 }
 \section{Constraints}{
@@ -43,14 +43,20 @@ from analysis by default.
 }
 
 \examples{
-widetable  <- FLTable("tblAbaloneWide", "ObsID")
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID",
+					 whereconditions = "ObsID< 101")
 hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX")
+hkmeansobject$cluster
+hkmeansobject$size
+hkmeansobject$withinss
+hkmeansobject$totss
+hkmeansobject$betweenss
 print(hkmeansobject)
 plot(hkmeansobject)
-One can specify ClassSpec and transform categorical variables 
-before clustering. This increases the number of variables in the plot
-because categorical variable is split into binary numerical variables.
-The clusters may not be well-defined as is observed in the case below:-
+#One can specify ClassSpec and transform categorical variables
+#before clustering. This increases the number of variables in the plot
+#because categorical variable is split into binary numerical variables.
+#The clusters may not be well-defined as is observed in the case below:-
 hkmeansobjectnew <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 plot(hkmeansobjectnew)
 }

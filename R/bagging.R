@@ -14,8 +14,13 @@
 #' and the number of votes in bag corresponding to every ObsID.
 #'
 #' @examples
-#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flt<-FLTable(getTestTableName("tblDecisionTreeMulti"),
+#'				"ObsID","VarID","Num_Val")
 #' flobj<-bagging(flt, formula = -1~.,mfinal=5)
+#' pred <- predict(flobj, flt[1:4])
+#' pred$confusion
+#' pred$class
+#' @seealso \code{\link[adabag]{bagging}} for corresponding R function reference.
 #' @export
 bagging<-function(formula,data,...){
 	UseMethod("bagging",data)

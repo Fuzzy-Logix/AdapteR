@@ -1,3 +1,5 @@
+### testcases doesn't runs on Aster because function flrandomforest does not exist.
+### Asana Ticket: https://app.asana.com/0/136555696724838/371749207625403
 Renv=new.env(globalenv())
 FLenv=as.FL(Renv)
 
@@ -29,7 +31,7 @@ test_that("test for predict in randomForest",{
   result3 = expect_equal(nrow(flobj3), nrow(FLenv$newdata))
   result3 = expect_equal(ncol(flobj2),length(unique(as.vector(flobj1))))
   result4 = expect_equal(ncol(flobj3),length(unique(as.vector(flobj1))))
-  result5 = expect_equal(length(flobj4), nrow(FLenv$newdata))
+  result5 = expect_equal(nrow(flobj4), nrow(FLenv$newdata))
 })
 
 test_that("test for summary in randomForest",{
