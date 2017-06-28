@@ -14,22 +14,32 @@ eval_expect_equal({
 noexpectation = "fit")
 
 
-## Means, coefficients & scores:
+## Means, coefficients:
 test_that("Means and coefficients:", {eval_expect_equal({
     ymn <- fit$Ymeans
     xmn <- fit$Xmeans
-    yscr <- fit$Yscores
-    xscr <- fit$scores
     cof <- coefficients(fit)
     
 },Renv,FLenv,
 verbose = TRUE,
 check.attributes = FALSE,
-expectations = c("xscr", "yscr", "ymn", "xmn"))
+expectations = c("ymn", "xmn"))
+})
+
+## Scores: (Do not match)
+test_that("Scores:", {eval_expect_equal({
+    yscr <- fit$Yscores
+    xscr <- fit$scores
+    names(xscr) <- NULL
+},Renv,FLenv,
+verbose = TRUE,
+check.attributes = FALSE,
+expectations = c("xscr", "yscr"))
 })
 
 
-## loadings , ...
+
+## loadings , ...(Do not match)
 test_that("loadings:", {result <- eval_expect_equal({
     yload <- fit$Yloadings
     lwt <- fit$loading.weights
@@ -42,15 +52,21 @@ check.atributes = FALSE)
 })
 
 
-## predict, residuals ....
+## predict, residuals .... (Do not match)
 test_that("predict, residuals",{
 	Renv$pred <- unname(predict(Renv$fit))
 	Renv$res <- unname(residuals(Renv$fit)[,,5]) 
 	FLenv$pred <- predict(FLenv$fit)
 	FLenv$res <- residuals(FLenv$fit)
 
-	#FLexpect_equal(Renv$pred, FLenv$pred)
-	#FLexpect_equal(Renv$res, FLenv$res)
+	FLexpect_equal(Renv$pred, FLenv$pred)
+	FLexpect_equal(Renv$res, FLenv$res)
 })
 
-
+deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
+## opls function
+test_that("opls function", {
+    flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
+    cof <- coefficients(flmod)
+    pred <- predict(flmod);res <- residuals(flmod) 
+})
