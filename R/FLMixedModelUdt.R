@@ -54,7 +54,6 @@ mixUDT <- function (formula,data=list(),...) {
     UseMethod("mixUDT", data)
 }
 
-
 #' @export
 mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
 {
@@ -171,7 +170,7 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
             return(c(df$cr1,df$cr2)) } }
 
     if(property == "u"){
-        quer <- paste0("SELECT CoeffEst as cf, CoeffID cid FROM ",
+        quer <- paste0("SELECT CoeffEst as Cf, CoeffID cid FROM ",
                         object@results$outtbl,
                         " WHERE coeffName LIKE 'RANDOM%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
@@ -201,7 +200,7 @@ predict.FLMixUDT <- function(object,
                           scoreTable = "")
 {
     parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
     scoretbl <- gen_unique_table_name("mixedscore")
     vinputcols <- list(CoeffTable  = object@results$outtbl,
                        InTable = newdata@select@table_name,

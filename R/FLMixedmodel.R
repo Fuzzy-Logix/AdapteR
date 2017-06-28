@@ -30,8 +30,9 @@
 #' @examples
 #' ## One Random Effect.
 #' fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
-#' flmod <- lmer.FLTable(yVal ~ FixVal + (1 | RanVal), data = fltbl)
+#' flmod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
 #' flpred <- predict(flmod)
+#' @export
 lmer <- function (formula,data=list(),...) {
     UseMethod("lmer", data)
 }
