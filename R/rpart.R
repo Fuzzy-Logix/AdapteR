@@ -55,32 +55,7 @@ rpart.FLTable<-function(data,
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
-	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(isDeep(data)){
-		deepx<-data
-		deepx<-setAlias(deepx,"")
-		deeptablename<-getTableNameSlot(data)
-		vprepspecs<-list()	
-	}
-	else{
-		if(!isDotFormula(formula)){
-			data <- setAlias(data,"")
-			vcolnames<-colnames(data)		
-			vexclude<-setdiff(vcolnames,all.vars(formula))
-			obs<-getVariables(data)[["obs_id_colname"]]
-			vexclude<-setdiff(vexclude,obs)
-			vexclude<-paste0(vexclude,collapse=",")
-		}
-		else{
-			vexclude<-NULL
-		}
-			depCol<-all.vars(formula)[1]
-			vprepspecs<-list(depCol,vexclude)
-			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
-			deepx<-deep
-			deepx<- setAlias(deepx,"")
-			deeptablename<-getTableNameSlot(deepx)
-	}
+	deepx<-tableformat(object,formula)
 	vobsid <- getVariables(deepx)[["obs_id_colname"]]
 	vvarid <- getVariables(deepx)[["var_id_colname"]]
 	vvalue <- getVariables(deepx)[["cell_val_colname"]]
@@ -454,32 +429,7 @@ rtree<-function(data,
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
-	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(isDeep(data)){
-		deepx<-data
-		deepx<-setAlias(deepx,"")
-		deeptablename<-getTableNameSlot(data)
-		vprepspecs<-list()	
-	}
-	else{
-		if(!isDotFormula(formula)){
-			data <- setAlias(data,"")
-			vcolnames<-colnames(data)		
-			vexclude<-setdiff(vcolnames,all.vars(formula))
-			obs<-getVariables(data)[["obs_id_colname"]]
-			vexclude<-setdiff(vexclude,obs)
-			vexclude<-paste0(vexclude,collapse=",")
-		}
-		else{
-			vexclude<-NULL
-		}
-			depCol<-all.vars(formula)[1]
-			vprepspecs<-list(depCol,vexclude)
-			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
-			deepx<-deep
-			deepx<- setAlias(deepx,"")
-			deeptablename<-getTableNameSlot(deepx)
-	}
+	deepx<-tableformat(object,formula)
 	if(pRandomForest==0){
 		sampsize<-NULL
 		pSampleRateVars<-NULL
@@ -634,4 +584,36 @@ plot.FLrtree<-function(object){ #browser()
 		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
+}
+
+tableformat <- function(object,formula,...){
+	#browser()
+	data<-object
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(isDeep(data)){
+		deepx<-data
+		deepx<-setAlias(deepx,"")
+		deeptablename<-getTableNameSlot(data)
+		vprepspecs<-list()	
+	}
+	else{
+		if(!isDotFormula(formula)){
+			data <- setAlias(data,"")
+			vcolnames<-colnames(data)		
+			vexclude<-setdiff(vcolnames,all.vars(formula))
+			obs<-getVariables(data)[["obs_id_colname"]]
+			vexclude<-setdiff(vexclude,obs)
+			vexclude<-paste0(vexclude,collapse=",")
+		}
+		else{
+			vexclude<-NULL
+		}
+		depCol<-all.vars(formula)[1]
+		vprepspecs<-list(depCol,vexclude)
+		deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
+		deepx<-deep
+		deepx<- setAlias(deepx,"")
+		deeptablename<-getTableNameSlot(deepx)
+	}
+	return(deepx)	
 }
