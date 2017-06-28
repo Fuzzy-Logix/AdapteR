@@ -42,6 +42,9 @@ FLSVDUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal
 FLSVDUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutSVal=OutSVal,OutVVal=OutVVal)
 FLSVDUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_val=OutUVal,s_val=OutSVal,v_val=OutVVal)
 
+FLSchurDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutQVal) <- FLSchurDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutQVal=OutQVal)
+
+
 FLLUDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_val=OutputValL,u_val=OutputValU,permut=OutputPermut)
 FLLUDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputValL=OutputValL,OutputValU=OutputValU,OutputPermut=OutputPermut)
 FLLUDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLPTFMatrixLUDecomp(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_matrix=OutputValL,u_matrix=OutputValU,permut_matrix=OutputPermut)
