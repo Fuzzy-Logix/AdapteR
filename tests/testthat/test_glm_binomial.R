@@ -8,9 +8,7 @@ Renv$data2 <- data.frame(var1 = rep(0:5, 2),
                          var2 = (c(1, 4, 9, 13, 18, 20, 0, 2, 6, 10, 12, 16))/20,
                          var3 = factor(rep(c("M", "F"), c(6, 6))))
 
-FLenv$dataf <- as.FLTable(Renv$dataf,temporary=F)
-FLenv$data2 <- as.FLTable(Renv$data2,temporary=F)
-
+FLenv$dataf <- as.FLTable(Renv$dataf,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 
 test_that("glm: execution for binomial ",{
   result = eval_expect_equal({
@@ -25,6 +23,7 @@ test_that("glm: execution for binomial ",{
   )
 }) 
 
+FLenv$data2 <- as.FLTable(Renv$data2,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 
 test_that("glm: execution for categorical variables",{
   result = eval_expect_equal({

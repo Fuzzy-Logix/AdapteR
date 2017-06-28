@@ -4,7 +4,7 @@ Renv$dataf<- data.frame(var1 = rnorm(200),
                         var2 = rnorm(200), 
                         var3 = sample( c(0, 10), 200, replace = TRUE),
                         offsetColumn=1)
-FLenv$dataf <- as.FLTable(Renv$dataf,temporary=F)
+FLenv$dataf <- as.FLTable(Renv$dataf,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({
