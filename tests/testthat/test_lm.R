@@ -14,9 +14,9 @@ data <- as.data.frame(cbind(x, y))
 
 FLenv = as.FL(Renv)
 Renv$dataframe <- dataframe
-FLenv$dataframe <- as.FLTable(dataframe,temporary=F, drop = TRUE)
+FLenv$dataframe <- as.FLTable(dataframe,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 Renv$data <- data
-FLenv$data <- as.FLTable(data,temporary=F, drop = TRUE)
+
 
 test_that("lm: execution",{
     result = eval_expect_equal({
@@ -74,7 +74,7 @@ test_that("lm: summary.lm https://app.asana.com/0/143316600934101/15694819281845
   noexpectation = "lmSum")
 })
 
-
+FLenv$data <- as.FLTable(data,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 test_that("lm: prediction",{
   result = eval_expect_equal({
     lmobj <- lm(y ~ x,data=data)
