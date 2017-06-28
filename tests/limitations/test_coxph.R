@@ -1,12 +1,14 @@
 Renv = new.env(parent = globalenv())
 #fit <- coxph(Surv(time, status) ~ age + sex, lung1) 
-
+FLenv = as.FL(Renv)
 
 Renv$lung1 <- survival::lung
 names(Renv$lung1) <- c("inst", "thetime", "status", "age", "sex", "ph.ecog", "ph.karno", 
 "pat.karno", "meal.cal", "wt.loss")
 Renv$lung1$status <- Renv$lung1$status - 1
-FLenv = as.FL(Renv)
+#FLenv <- new.env(parent = globalenv())
+FLenv$lung1 <- as.FLTable(Renv$lung1, tableName= getOption("TestTempTableName"),
+                         temporary= FALSE, drop= TRUE)
 
 # options(debugSQL = FALSE)
 
@@ -41,14 +43,9 @@ test_that("cox: equality of  nevent, n, waldscore, means attributes https://app.
 
 
 test_that("cox: equality of loglik https://app.asana.com/0/136555696724838/163682320948854 ",{
-    result = eval_expect_equal({
-        loglik <- coxobj$loglik
-    },Renv,FLenv,
-    expectation=c("loglik"),
-    noexpectation = "coxobj",
-    tolerance = .000001,
-    verbose = T
-    )
+    FLloglik <- c(FLenv$coxobj$loglik[1,1], FLenv$coxobj$loglik[1,2])
+    Rloglik <- Renv$coxobj$loglik
+    result= expect_equal(FLloglik, Rloglik, tolerance= 0.0001)
 })
 
 
