@@ -1734,7 +1734,7 @@ coefficients.lmGeneric <-function(object,
                                                   paste0(" AND ModelID=",object@results[["modelID"]]),""),
                                            " ORDER BY ",vID))
         else{
-                                        browser()
+                                        #browser()
             vcoeffframe <- sqlQuery(getFLConnection(),
                                     paste0("SELECT a.*,b.* \n",
                                            " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap")," AS a, \n ",
