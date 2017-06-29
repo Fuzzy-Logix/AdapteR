@@ -887,6 +887,61 @@ FLTestDataPrep.FLTable.Hadoop <- function(object,
                                 useBoolean=TRUE))
 }
 
+
+FLTestDataPrep.FLTableMD.TD <- function(object,
+                                    DepCol,
+                                    inputParams,
+                                    fetchIDs=TRUE){
+    if(!"OutGroupIDCol" %in% names(inputParams))
+        inputParams[["OutGroupIDCol"]] <- "group_id_colname"
+    requiredParams <- list(InWideTable=getTableNameSlot(object),
+                          GroupID=getVariables(object)[["group_id_colname"]],
+                          ObsIDCol=getVariables(object)[["obs_id_colname"]],
+                          DepCol=DepCol,
+                          OutDeepTable=gen_deep_table_name(getTableNameSlot(object)),
+                          OutGroupIDCol="group_id_colname",
+                          OutObsIDCol="obs_id_colname",
+                          OutVarIDCol="var_id_colname",
+                          OutValueCol="cell_val_colname",
+                          CatToDummy=0,
+                          PerformNorm=0,
+                          PerformVarReduc=0,
+                          MakeDataSparse=1,
+                          MinStdDev=0.0,
+                          MaxCorrel=0.0,
+                          ExcludeCols="",
+                          ClassSpec=list(),
+                          WhereClause="",
+                          InAnalysisID=""
+                          )
+    inputParams <- setDefaultInputParams(requiredParams=requiredParams,
+                                        inputParams=inputParams)
+    return(FLGenericRegrDataPrep(object=object,
+                                DepCol=DepCol,
+                                inputParams=inputParams,
+                                fetchIDs=fetchIDs,
+                                TrainOrTest=1,
+                                funcName="FLRegrDataPrepMD",
+                                MDFlag=TRUE))
+}
+
+FLTestDataPrep.FLTableMD.Hadoop <- function(object,
+                                           DepCol,
+                                           inputParams,
+                                           fetchIDs=TRUE){
+    stop("currently not supported \n ")
+    # inputParams[["TrainOrTest"]] <- NULL
+    # return(FLGenericRegrDataPrep(object=object,
+    #                             DepCol=DepCol,
+    #                             inputParams=inputParams,
+    #                             fetchIDs=fetchIDs,
+    #                             TrainOrTest=0,
+    #                             funcName="FLTrainDataPrepMD",
+    #                             MDFlag=TRUE))
+}
+
+FLTestDataPrep.FLTableMD.TDAster <- FLTestDataPrep.FLTableMD.Hadoop
+
 ## improve: remove assign and get and use lists
 checkInputParamsRegrDataPrep <- function(object,
                                         DepCol,

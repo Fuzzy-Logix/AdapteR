@@ -19,7 +19,6 @@ Schur.default<-Matrix::Schur
 ## TO-DO : Add dims so as to remove extra data fetching.
 #' @export
 Schur.FLMatrix<-function(object,...){
-    browser()
     vcallObject <- match.call()
     sqlstr <- constructMatrixUDTSQL(pObject=object,
                                     pFuncName="FLSchurDecompUdt",

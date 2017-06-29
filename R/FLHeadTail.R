@@ -85,16 +85,65 @@ tail.FLVector <- function(x,n=6,...){
     return(x[(nrx-n+1):nrx])
 }
 
+## display=TRUE always for FLTableMD
+## as return object is a data.frame
 #' @export
-head.FLTableMD <- function(x,n=6,...){
-    vgrpCol <- changeAlias(getVariables(x)[[1]],"","")
+head.FLTableMD <- function(x,n=6,...)
+    return(headTailFLTableMD(x=x,n=n,...))
 
-    sqlQuery(getFLConnection(),
-            paste0(limitRowsSQL(paste0("SELECT * \n ",
-                    "FROM ",getTableNameSlot(x)," \n ",
-                    "WHERE ",vgrpCol," IN(",
-                            paste0(x@Dimnames[[3]],
-                                collapse=","),") \n ",
-                    " ORDER BY ",vgrpCol),n)
-                    ))
+
+#' @export
+tail.FLTableMD <- function(x,n=6,...)
+    return(headTailFLTableMD(x=x,n=n,head=FALSE,...))
+
+
+headTailFLTableMD <- function(x,n=6,head=TRUE,...){
+    vobsIDCol <- toupper(changeAlias(getObsIdSQLName(x),"",""))
+    vgrpIDCol <- toupper(changeAlias(getGroupIdSQLName(x),"",""))
+
+    vsqlstr <- paste0("SELECT a.* FROM \n ",
+                    "( SELECT b.*, ",
+                        " DENSE_RANK() OVER(PARTITION BY ",vgrpIDCol,
+                                            " ORDER BY ", vobsIDCol,
+                                            ifelse(head,""," DESC "),
+                                            ") AS cRank \n ",
+                        "FROM(",constructSelect(x),") b \n ",
+                    ") a WHERE a.cRank <= ",n,
+                    "\n ORDER BY ",vgrpIDCol,",",vobsIDCol)
+    vFetchedFrame <- sqlQuery(getFLConnection(),vsqlstr)
+    vFetchedFrame[["cRank"]] <- NULL
+    colnames(vFetchedFrame) <- toupper(colnames(vFetchedFrame))
+
+    if(!isDeep(x)){
+        y <- dlply(vFetchedFrame,vgrpIDCol,
+                    function(y){
+                        y
+                    })
+    }
+    else{
+        # browser()
+        vvarIDCol <- toupper(changeAlias(getVarIdSQLName(x),"",""))
+        vvalueCol <- toupper(changeAlias(getValueSQLName(x),"",""))
+        y <- dlply(vFetchedFrame,vgrpIDCol,
+                    function(y){
+                        y <- reshape2::dcast(y, paste0(vobsIDCol,"+",vgrpIDCol,
+                                                       " ~ ",
+                                                        vvarIDCol),
+                                            value.var = vvalueCol)
+                        y
+                    })
+    }
+
+    y <- llply(y,function(z){
+                vgrpid <- unique(z[[vgrpIDCol]])[1]
+                z[[vgrpIDCol]] <- NULL
+                ifelse(head,vrownames <- head(rownames(x)[[vgrpid]],n),
+                            vrownames <- tail(rownames(x)[[vgrpid]],n))
+                i <- charmatch(vrownames,z[[vobsIDCol]],nomatch=0)
+                z <- z[i,]
+                z[[vobsIDCol]] <- NULL
+                rownames(z) <- vrownames
+                z
+            })
+    y
 }

@@ -735,6 +735,41 @@ setMethod("constructSelect", signature(object = "FLVector"),
               return(constructSelect(select))
           })
 
+
+setMethod("constructSelect", signature(object = "FLTableMD"),
+          function(object,...) {
+    if(class(object@select)=="FLTableFunctionQuery") 
+    return(constructSelect(object@select))
+    # browser()
+    vobsIDCol <- changeAlias(getObsIdSQLExpression(object),"","")
+    vgrpIDCol <- changeAlias(getGroupIdSQLExpression(object),"","")
+    if(!isDeep(object))
+    {
+        variables <- getVariables(object)
+        # ifelse(is.null(variables$obs_id_colname),
+        #     vobsIDCol <- variables["vectorIndexColumn"],
+        #     vobsIDCol <- variables["obs_id_colname"])
+        
+        colnames <- c(vgrpIDCol,vobsIDCol,
+                      setdiff(colnames(object),
+                              c(vobsIDCol,vgrpIDCol)))
+        newColnames <- renameDuplicates(colnames)
+        colnames <- appendTableName(colnames,
+                      names(getTableNameSlot(object))[1])
+        
+        variables <- as.list(colnames)
+        names(variables) <- c("group_id_colname",
+                              "obs_id_colname",
+                              newColnames[-1:-2])
+    }
+    else
+    {
+        variables <- getVariables(object)
+    }
+    object@select@variables <- variables
+    return(constructSelect(object@select))
+})
+
 constructVariables <- function(variables){
   #browser()
     if(!is.null(names(variables)))

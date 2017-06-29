@@ -164,6 +164,16 @@ as.data.frame.FLMatrix <- function(x,...)
   return(as.data.frame(temp_m))
 }
 
+#' @export
+as.data.frame.FLTableMD <- function(x,head=TRUE,...){
+    if(head)
+        n <- 6
+    else{
+        n <- max(unlist(dim(x)[[2]]))
+    }
+    return(head(x=x,n=n,...))
+}
+
 ##############################################################################################################
 #' Converts in-database objects to a matrix in R
 #' 
