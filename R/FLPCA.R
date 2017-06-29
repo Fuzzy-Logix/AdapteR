@@ -6,7 +6,27 @@ setClass(
                results="list"
                ))
 
-
+#' \code{prcomp} Performs principal component analysis on a FLTable.
+#' The function internally computes either the correlation matrix or the
+#' covariance matrix and performs eigenvalue decomposition.
+#' The DB Lytix function which is called id FLPCA.
+#' @seealso \code{\link[stats]{prcomp}} for R reference implementation.
+#' @param formula A symbolic description of model variables for which PCA is to be computed.
+#' @param data An object of class FLTable.
+#' @param matrixtype Indicates whether a correlation matrix or a covariance matrix
+#' should be used for Eigen value decomposition.Allowed values are "CORREL" and "COVAR".
+#' @slot results cache list of results computed.
+#' @slot deeptbl Input data object in deep format.
+#' @slot otbl output table name.
+#' @return \code{prcomp} returns an object of class \code{FLPCA}
+#' @examples
+#' fltbl <- FLTable("tblLogRegrMulti","OBSID", "VARID", "NUM_VAL")
+#' flmod <- prcomp.FLTable(data = fltbl, matrixtype = "COVAR",where = "")
+#' rtbl <- iris
+#' rtbl$Species <- as.numeric(rtbl$Species)
+#' fliris <- as.FL(rtbl)
+#' flirispca <- prcomp(Species~., data = fliris)
+#' @export
 prcomp <- function (formula,data=list(),...) {
     UseMethod("prcomp", data)
 }
@@ -28,12 +48,6 @@ prcomp.FLTable <- function(formula, data,matrixtype = "COVAR" ,where = "",...)
                       ...))
 }
 
-#' fltbl <- FLTable("tblLogRegrMulti","OBSID", "VARID", "NUM_VAL")
-#' flmod <- prcomp.FLTable(data = fltbl, matrixtype = "COVAR",where = "")
-#' rtbl <- iris
-#' rtbl$Species <- as.numeric(rtbl$Species)
-#' fliris <- as.FL(rtbl)
-#' flirispca <- prcomp(Species~., data = fliris)
 #' TO-DO:- support without formula.
 #' @export
 pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
@@ -89,12 +103,7 @@ pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
                deeptbl = vdeeptbl,
                otbl = vAnalysisID,
                results = list(ncol = vcol,
-                              call = vcallObject)))      
-    
-##vstr <- paste0("select EIGENVEC FROM ",vAnalysisID," order by OutputRowNum, OutputColNum")
-##    vdf <- sqlQuery(connection, "")
-##
-}
+                              call = vcallObject)))      }
 
 
 ## move to file lm.R
@@ -116,7 +125,7 @@ pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
     }
 
     if(property == "sdev"){
-        vstr <- paste0( "select EIGENVAL as val FROM A288948_PCA WHERE OutputRowNum =  OutputColNum ORDER BY EIGENVAL DESC")
+        vstr <- paste0( "select EIGENVAL as val FROM ",object@otbl," WHERE OutputRowNum =  OutputColNum ORDER BY EIGENVAL DESC")
         vdf <- sqlQuery(connection,vstr)
         return(vdf$val^.5)
     }

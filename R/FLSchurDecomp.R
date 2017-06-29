@@ -1,5 +1,3 @@
-#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
-#' resultList <- Schur(flmatrix)
 #' 
 #' @export
 setClass("FLSchur",
@@ -7,6 +5,20 @@ setClass("FLSchur",
                       call = "call",
                       results = "list"
                       ))
+## TO-DO : Add dims so as to remove extra data fetching.
+#' \code{Schur} Calculates the Schur decomposition of a square matrix (n x n) with real eigenvalues.
+#' @seealso \code{\link[Matrix]{Schur}} for R reference implementation.
+#' @param Objectis of class FLMatrix.
+
+#' @slot results cache list of results computed.
+#' @slot data Input data object.
+#' @slot call call of the function.
+#' @return \code{Schur} returns a list of two components:
+#'       \item{Q}{an Orthogonal FLMatrix}
+#'       \item{T}{an Upper Triangle FLMatrix.}
+#' @examples
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' resultList <- Schur(flmatrix)
 #' @export
 Schur<-function(object, ...){
     UseMethod("Schur",object)
@@ -16,7 +28,6 @@ Schur<-function(object, ...){
 Schur.default<-Matrix::Schur
 
 
-## TO-DO : Add dims so as to remove extra data fetching.
 #' @export
 Schur.FLMatrix<-function(object,...){
     vcallObject <- match.call()
@@ -66,14 +77,14 @@ Schur.FLMatrix<-function(object,...){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
     if(property == "T"){
-        return(object$T)
+        return(object@results$T)
     }
 
     if(property == "Q"){
-        return(object$Q)
+        return(object@results$Q)
     }
     if(property == "call"){
-        return(object$call)
+        return(object@call)
     }}
 
 #' @export
