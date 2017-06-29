@@ -1,6 +1,6 @@
 Renv = new.env(parent = globalenv())
 FLenv = as.FL(Renv)
-Renv$v <- c("two.sided", "less", "greater")
+v <- c("two.sided", "less", "greater")
 Renv$a <- 682
 FLenv <- as.FL(Renv)
 
