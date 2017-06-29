@@ -329,3 +329,13 @@ print.FLSVM <- function(object, ...){
 }
 
 setMethod("show","FLSVM",function(object){print.FLSVM(object)})
+
+#' @export
+setMethod("names", signature("FLSVM"), function(x) c("BValue",
+                                                      "SV",
+                                                      "misclassifications",
+                                                      "crbfConstant",
+                                                      "lambda",
+                                                      "cost",
+                                                      "degree",
+                                                      "call" ))

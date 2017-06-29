@@ -411,6 +411,14 @@ pam.FLTable <- function(x,
 	else stop(property," is not a valid property")
 }
 
+#' @export
+setMethod("names", signature("FLKMedoids"), function(x) c("isolation", "clusinfo",
+                                                          "silinfo", "diss", "call",
+                                                          "data", "mapping", "objective",
+                                                          "clustering", "id.med",
+                                                          "medoids" ))
+
+
 ## move to file FLKMedoids.R
 clustering.FLKMedoids <- function(object)
 {

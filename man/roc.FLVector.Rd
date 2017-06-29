@@ -2,30 +2,37 @@
 % Please edit documentation in R/FLROC.R
 \name{roc.FLVector}
 \alias{roc.FLVector}
-\title{tbl <- FLTable("tblROCCurve", "ObsID")
-mod <- roc(tbl$ActualVal, tbl$ProbVal)
-Example 2:
-data(aSAH)
-fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-fltbl$res <- as.numeric(fltbl$res)
-fltbl$res <- fltbl$res - 1
-fltbl <- fltbl[-55, ]
-head(fltbl)
-fltbl <- as.FLTable(fltbl)
-flmod <- roc(fltbl$res, fltbl$pred)}
+\title{ROC.
+\code{roc} performs ROC  on FLvectors and FLTable objects.}
 \usage{
-\method{roc}{FLVector}(response, predictor, ...)
+\method{print}{FLROC}(response, predictor, ...)
+}
+\arguments{
+\item{formula}{A symbolic description of model to be made.}
+
+\item{data}{An object of class FLTable.}
+}
+\value{
+\code{roc} returns an object of class \code{FLROC}
 }
 \description{
+The DB Lytix function called is FLROC. Performs ROC and stores the results in
+predefined tables. This function's main job is to build a ROC object.
+Data can be provided as 'response', 'predictor', where the predictor is
+the numeric (or ordered) level of the evaluated signal, and the response encodes the observation class (control or case).
+}
+\section{Slots}{
+
+\describe{
+\item{\code{results}}{cache list of results computed}
+
+\item{\code{votbl}}{stores the table names of output ROC table.}
+}}
+
+\examples{
 tbl <- FLTable("tblROCCurve", "ObsID")
 mod <- roc(tbl$ActualVal, tbl$ProbVal)
-Example 2:
-data(aSAH)
-fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-fltbl$res <- as.numeric(fltbl$res)
-fltbl$res <- fltbl$res - 1
-fltbl <- fltbl[-55, ]
-head(fltbl)
-fltbl <- as.FLTable(fltbl)
-flmod <- roc(fltbl$res, fltbl$pred)
+}
+\seealso{
+\code{\link[pROC]{roc}} for R reference implementation.
 }
