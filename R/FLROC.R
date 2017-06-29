@@ -75,7 +75,6 @@ roc.FLVector <- function (response, predictor, ...)
 #' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
 #' @export
 roc.FLTable <- function(formula,data,... ){
-    browser()
     vcallObject <- match.call()
     var <- all.vars(formula)
     pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
@@ -356,8 +355,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             cases = object$cases,
-             controls = object$controls,
+##             cases = object$cases,
+##             controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec,

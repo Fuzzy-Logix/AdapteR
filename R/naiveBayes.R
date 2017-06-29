@@ -39,7 +39,6 @@ naiveBayes.default <- function (formula,data=list(),...) {
 #' flmod <- naiveBayes.FLTable(formula = Survived~., data = fltbl)
 #' @export
 naiveBayes.FLTable <- function(formula,data,laplace=0,...){
-    browser()
     vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("naiveb")
     vdeeptbl <- data

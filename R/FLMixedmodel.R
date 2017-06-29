@@ -170,7 +170,8 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
     }   
 }
 
-setMethod("names", signature("FLMix"), function(x) {c("AIC","logLik",
+
+setMethod("names", signature("FLMix"), function(object) {c("AIC","logLik",
                                                           "CovarErr","CovarRandom",
                                                           "u",
                                                           "fixedcoef" )})

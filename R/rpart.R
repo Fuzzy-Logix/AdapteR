@@ -437,6 +437,7 @@ rtree<-function(data,
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
 	deepx<-tableformat(object,formula)
+
 	if(pRandomForest==0){
 		sampsize<-NULL
 		pSampleRateVars<-NULL
@@ -468,7 +469,6 @@ rtree<-function(data,
 						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
-
 	# tName <- gen_unique_table_name("RegrTree")
 	# p <- createTable(tName,pSelect=query,pTemporary=TRUE)
  #    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
@@ -622,5 +622,5 @@ tableformat <- function(object,formula,...){
 		deepx<- setAlias(deepx,"")
 		deeptablename<-getTableNameSlot(deepx)
 	}
-	return(deepx)	
+	return(deepx)
 }
