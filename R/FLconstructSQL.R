@@ -1090,12 +1090,16 @@ isDeep <- function(x){
 
 #' @export
 showTable <- function(x, ...){
-    if(is.TD()){
-        if(is.FLTable(x))
-            x <- getTableNameSlot(x)[[1]]
-        
-        gsub("\r","\n",sqlQuery(connection, paste0("show table ",x)))
+    vplat <- getFLPlatform(getFLConnection())[[1]]
+    if(!any(names(vmap) == vplat)){
+       stop("Not supported for the platform you are currently using")}
+   
+    if(is.FLTable(x))
+        x <- getTableNameSlot(x)[[1]]
+    if(is.data.frame(x)){
+        stop("only supported for table in database")
     }
-    else{
-        stop("Only supported for Teradata as of now")
-    }}
+    vmap <- c("TD" = "show table ", "Hadoop" = "DESCRIBE ")
+    
+    cat(gsub("\r","\n",sqlQuery(connection, paste0(vmap[[vplat]]," ",x))), fill = TRUE)
+    }
