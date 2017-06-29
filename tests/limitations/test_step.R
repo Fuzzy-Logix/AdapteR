@@ -42,7 +42,7 @@ test_that("Check for step function with different direction",{
 
 ## Multinomial 
 ## Asana Ticket : https://app.asana.com/0/136555696724838/371749207621403/f
-FLenv$var2 <- FLTable(getTestTableName("tblLogRegr"),"ObsID","VarID","Num_Val", whereconditions=c("ObsID = temp","VarID<5"))
+FLenv$var2 <- FLTable(getTestTableName("tblLogRegr"),"ObsID","VarID","Num_Val", whereconditions=c("ObsID < 5000","VarID<5"))
 
 test_that("Check for step--multinomial",{
 
