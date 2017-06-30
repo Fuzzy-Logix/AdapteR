@@ -10,7 +10,7 @@ test_that("test for FLzTest1S",{
   rz<-PASWR::z.test(a,sigma.x=sd(a),mu=mu)
   flz<-z.test(as.FLVector(a),test_val = mu)
   FLexpect_equal(as.numeric(rz[["p.value"]]),as.numeric(flz[["p.value"]]),tolerance=1e-5)
-  FLexpect_equal(as.numeric(rz[["statistic"]]),as.numeric(flz[["statistic"]]))
+  FLexpect_equal(as.numeric(rz[["statistic"]]),as.numeric(flz[["statistic"]]),tolerance=1e-5)
 })
 
 test_that("test for FLzTest1P",{
