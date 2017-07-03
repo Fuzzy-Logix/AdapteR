@@ -13,6 +13,7 @@ setClass("FLWOE",
 #' @param n number of ID's for which information is to be calculated.
 #' fltbl <- FLTable(table = "tblinfoval", obs_id_colname="BinID")
 #' flmod <- woe.FLTable(event = "Events", nonevents = "NonEvents", data = fltbl,n = 5)
+#' TO-DO: find examples and R implementation.
 #' @export
 woe <- function (events,nonevents,n = 2, data=list(),...) {
     UseMethod("woe", data)
@@ -28,11 +29,11 @@ woe.FLTable <- function(events,nonevents,n = 2, data, ...)
     ##    browser()
     vcallObject <- match.call()
     vtbl <- data@select@table_name
-    vfun <- "FLWOE"  
+    vfun <- "FLWOE"    
     vquery <- paste0("SELECT b.SerialVal AS BinID, FLWOE(a.BinID, a.",events,", a.",nonevents,", b.SerialVal) AS WOE FROM ",vtbl," a, fzzlSerial b WHERE b.SerialVal <= ",n," GROUP BY b.SerialVal ORDER BY 1;")
     vclass <- "FLWOE"
     vdf <- sqlQuery(connection, vquery)
-    print(vdf)
+    ##print(vdf)
     return(new(vclass,
                table = data,
                results = list(otable = vdf))) }
