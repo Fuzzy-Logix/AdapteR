@@ -8,12 +8,17 @@ NULL
 #'The Anderson-Darling test is an EDF omnibus test for the composite hypothesis of normality. The Anderson-Darling test is the recommended EDF test by Stephens (1986). Compared to the Cramer-von Mises test (as second choice) it gives more weight to the tails of the distribution.
 #' 
 #' @param x: a FLVector of data values.
+#' @param mean: specifies mean for the normal distribution.
+#' @param sd: specifies standard deviation for the normal distribution.
 #' 
 #' @examples
 #' set.seed(200)
 #' a <- as.FL(rnorm(100, mean = 5, sd = 3))
 #' res <- ad.test(a)
 #'
+#' data <- FLTable(table = getTestTableName("tblADTest"), obs_id_colname="ObsID",whereconditions="datasetid=1")
+#' val <- data$NUM_VAL
+#' res <- ad.test(val, mean = 1,sd = 10)
 #' @export
 setGeneric("ad.test",function(x, ...)
     standardGeneric("ad.test"))
