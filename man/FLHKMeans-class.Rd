@@ -39,7 +39,7 @@ during widetable to deeptable conversion.}
 
 \item{\code{results}}{A list of all fetched components}
 
-\item{\code{deeptable}}{A character vector containing a deeptable(either conversion from a 
+\item{\code{deeptable}}{A character vector containing a deeptable(either conversion from a
 widetable or input deeptable)}
 
 \item{\code{nstart}}{the initial number of random sets (nstart > 0)}
