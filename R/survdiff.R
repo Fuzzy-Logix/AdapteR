@@ -163,19 +163,19 @@ setMethod("survdiff",
                     return(vresList)
 })
 
-setMethod("survdiff",
-        signature(formula="formula", 
-                  data="FLTableMD"),
-        function(formula, data,
-                subset=TRUE, 
-                na.action=getOption("na.action"), 
-                rho = 0,
-                ...){
-                    class(data) <- "FLTable"
-                    return(survdiff(formula=formula,
-                                    data=data,
-                                    subset=subset,
-                                    na.action=na.action,
-                                    rho=rho,
-                                    ...))
-                    })
+# setMethod("survdiff",
+#         signature(formula="formula", 
+#                   data="FLTableMD"),
+#         function(formula, data,
+#                 subset=TRUE, 
+#                 na.action=getOption("na.action"), 
+#                 rho = 0,
+#                 ...){
+#                     class(data) <- "FLTable"
+#                     return(survdiff(formula=formula,
+#                                     data=data,
+#                                     subset=subset,
+#                                     na.action=na.action,
+#                                     rho=rho,
+#                                     ...))
+#                     })
