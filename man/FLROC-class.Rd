@@ -3,29 +3,7 @@
 \docType{class}
 \name{FLROC-class}
 \alias{FLROC-class}
-\title{tbl <- FLTable("tblROCCurve", "ObsID")
-mod <- roc(tbl$ActualVal, tbl$ProbVal)
-Example 2:
-data(aSAH)
-fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-fltbl$res <- as.numeric(fltbl$res)
-fltbl$res <- fltbl$res - 1
-fltbl <- fltbl[-55, ]
-head(fltbl)
-fltbl <- as.FLTable(fltbl)
-flmod <- roc(fltbl$res, fltbl$pred)
-An S4 class to represent output from ROC on in-database Objects}
+\title{An S4 class to represent output from ROC on in-database Objects}
 \description{
-tbl <- FLTable("tblROCCurve", "ObsID")
-mod <- roc(tbl$ActualVal, tbl$ProbVal)
-Example 2:
-data(aSAH)
-fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-fltbl$res <- as.numeric(fltbl$res)
-fltbl$res <- fltbl$res - 1
-fltbl <- fltbl[-55, ]
-head(fltbl)
-fltbl <- as.FLTable(fltbl)
-flmod <- roc(fltbl$res, fltbl$pred)
 An S4 class to represent output from ROC on in-database Objects
 }
