@@ -11,16 +11,13 @@ Renv$data <- data.frame(response=Renv$response,
 ## Explicitly assigning in FLenv so that same table is re-used
 FLenv$data <- as.FLTable(Renv$data,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 
-## Results dont match for p.value
-## FL does not have p.value.multcomp
-test_that("cochran-Q Test on FLTable: R example: checking Result Equality without p.value:",{
+## Results dont match for p.value and FL does not have p.value.multcomp
+test_that("cochran-Q Test on FLTable: R example ",{
     result = eval_expect_equal({
         fit <- cochran.qtest(response~fact|block,data=data)
-        estimate <- fit$estimate
-        alpha <- fit$alpha
-        statistic <- fit$statistic
+        pValue <- fit$p.value
     },Renv,FLenv,
-    expectation=c("estimate", "alpha", "statistic"),
+    expectation=c("estimate"),
     noexpectation=c("fit"))
 })
 

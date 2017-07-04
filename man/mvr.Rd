@@ -24,7 +24,7 @@ The DB Lytix function called is FLPLSRegr. Performs PLS Regression and
 stores the results in predefined tables.
 }
 \examples{
-deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
 flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
 predict(flmod); residuals(flmod);plot(flmod)
 cof <-coefficients(flmod)

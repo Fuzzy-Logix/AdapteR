@@ -8,6 +8,10 @@ ad.test(x, ...)
 }
 \arguments{
 \item{x:}{a FLVector of data values.}
+
+\item{mean:}{specifies mean for the normal distribution.}
+
+\item{sd:}{specifies standard deviation for the normal distribution.}
 }
 \description{
 Performs the Anderson-Darling test for the composite hypothesis of normality, see e.g. Thode (2002, Sec. 5.1.4).
@@ -18,4 +22,10 @@ set.seed(200)
 a <- as.FL(rnorm(100, mean = 5, sd = 3))
 res <- ad.test(a)
 
+data <- FLTable(table = getTestTableName("tblADTest"), obs_id_colname="ObsID",whereconditions="datasetid=1")
+val <- data$NUM_VAL
+res <- ad.test(val, mean = 1,sd = 10)
+}
+\seealso{
+\code{\link[nortest]{ad.test}} for R reference implementation.
 }

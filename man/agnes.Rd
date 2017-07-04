@@ -80,7 +80,7 @@ before clustering. This increases the number of variables in the plot
 because categorical variable is split into binary numerical variables.
 The clusters may not be well-defined as is observed in the case below
 
-widetable  <- FLTable( "iris", "rownames")
+widetable  <- FLTable( "iris", "obsid")
 agnesobjectnew <- agnes(widetable,maxit=500,classSpec=list("Species(setosa)"))
 The below plot throws warnings!
 plot(agnesobjectnew)

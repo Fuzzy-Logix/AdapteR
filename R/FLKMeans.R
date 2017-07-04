@@ -26,7 +26,7 @@ NULL
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID", whereconditions = "ObsID < 500")
 #' kmeansobject <- kmeans(widetable,3,20,1,"Rings,SEX")
 #' print(kmeansobject)
 #' plot(kmeansobject)
