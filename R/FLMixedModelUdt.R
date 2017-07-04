@@ -26,7 +26,6 @@ setClass(
 #' FLMixedModelUdt and FLMixedModelIntUdt estimates the coefficients and covariance
 #' matrix of the mixed model via expectation maximization method.
 #'
-#' @seealso \code{\link[lme4]{lmer}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable.
 #' @slot results cache list of results computed
