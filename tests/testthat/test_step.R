@@ -22,26 +22,71 @@ FLenv$vobsidCol <- Renv$vobsidCol
 FLenv$vscope <- Renv$vscope
 FLenv$scope <- Renv$scope
 
-
-FLenv$widetable <- FLTable(getTestTableName("tblAbaloneWide"), FLenv$vobsidCol)
-Renv$widetable<-as.data.frame(FLenv$widetable)
+## Since both the objects need to be dealt differently, objects have been initialized and 
+## defined outside test_that function
 
 ## Since FL and R environments have different case structure for column names
-colnames(Renv$widetable)<-colnames(FLenv$widetable)
+## step function does not work properly. throws an error
+flData <- FLTable(getTestTableName("tblAbaloneWide"), Renv$vobsidCol)
+rData<-as.data.frame(flData)
+colnames(rData)<-colnames(flData)
+
+test_that("test for step(direction = backward) -- lm", {
+        
+    r <- step(lm(Renv$scope$upper, data = rData), scope = Renv$scope, direction = "backward")
+    fl <- step(flData, scope = Renv$scope, direction = "backward")
+
+    expect_equal(coef(r),coef(fl))
+    expect_equal(r$coefficients,fl$coefficients)
+    expect_equal(r[["coefficients"]],
+                 fl[["coefficients"]])
+})
+
+## In a session with AdapteR loaded, R example does not run successfully.
+## Asana Ticket : https://app.asana.com/0/136555696724838/369564725158537/f
+test_that("test for step(direction = forward) -- lm", {
+        
+    r <- step(lm(Renv$scope$lower, data = rData), scope = Renv$scope, direction = "forward")
+    fl <- step(flData, scope = FLenv$scope, direction = "forward")
+
+    expect_equal(coef(r),coef(fl))
+})
+
+FLenv$var2 <- FLTable(getTestTableName("tblLogRegr"),"ObsID","VarID","Num_Val", whereconditions=c("ObsID = temp","VarID<5"))
+
+test_that("Check for step--glm",{
+
+          s1 <- step(FLenv$var2, scope=list(lower=c("2")), 
+                    direction = "UFbackward",
+                    familytype = "logistic")
+          pred1 <-  predict(s1, type = "response")
+          s2 <- step(FLenv$var2, scope=list(), 
+                    direction = "forward",
+                    familytype="logistic")
+          pred2 <-  predict(s2, type = "response")
+
+})
+
+
+
+#FLenv$widetable <- FLTable(getTestTableName("tblAbaloneWide"), FLenv$vobsidCol)
+#Renv$widetable<-as.data.frame(FLenv$widetable)
+
+## Since FL and R environments have different case structure for column names
+#colnames(Renv$widetable)<-colnames(FLenv$widetable)
 
 ## step function does not work properly. throws an error
 ## asana ticket- https://app.asana.com/0/143316600934101/158092657328842
 
 ##options(debugSQL = T)
 
-test_that("test for step", {
-  eval_expect_equal({
-    r<-step(widetable,scope = vscope, 
-                    direction = "backward")
-  },Renv,FLenv)
-}
-)
-
+#test_that("test for step", {
+#  eval_expect_equal({
+#    r<-step(widetable,scope = vscope, 
+#            direction = "backward")
+#  },Renv,FLenv)
+#}
+#)
 
 # sqlQuery(connection,"CALL  FLRegrDataPrep('FL_DEMO.tblAbaloneWide', 
 #  'ObsID', 
@@ -61,29 +106,3 @@ test_that("test for step", {
 #          NULL, 
 #          NULL, 
 #          NULL,AnalysisID)")
-
-
-## Since both the objects need to be dealt differently, objects have been initialized and 
-## defined outside test_that function
-
-
-## Since FL and R environments have different case structure for column names
-
-## step function does not work properly. throws an error
-test_that("test for step", {
-    flData <- FLTable(getTestTableName("tblAbaloneWide"), Renv$vobsidCol)
-    rData<-as.data.frame(flData)
-    colnames(rData)<-colnames(flData)
-    
-    r <- step(lm(Renv$scope$upper, data = rData), scope = Renv$scope, direction = "backward")
-    fl <- step(flData, scope = Renv$scope, direction = "backward")
-    
-    expect_equal(coef(r),coef(fl))
-    fl <- step(flData, scope = Renv$scope, direction = "forward")
-    expect_equal(coef(r),coef(fl))
-    test_that("step: access results with $: https://app.asana.com/0/143316600934101/158092657328842",{
-        expect_equal(r$coefficients,fl$coefficients)
-        expect_equal(r[["coefficients"]],
-                    fl[["coefficients"]])
-    })
-})

@@ -10,7 +10,8 @@ library(MASS)
 Renv <- new.env(parent = globalenv())
 FLenv <- as.FL(Renv)
 
-deeptbl  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
+
+deeptbl  <- FLTable(getTestTableName("tblRobustRegr"), "ObsID","VarID", "Num_Val")
 FLenv$DAT <- deeptbl
 
 ## varmapping(deeptbl) <- c("a","i","var")
@@ -58,7 +59,8 @@ test_that("Summary for rlm and print:",{result <- eval_expect_equal({
     print(fitS)
 },Renv,FLenv,
 verbose = TRUE,
-expectation = c("fitS"))})
+expectation = c("fitS"))
+})
 
 
 
@@ -85,6 +87,7 @@ eval_expect_equal({
 },Renv,FLenv,
 expectation=c("pred","res"),
 check.attributes=FALSE,
+tolerance = 0.1,
 verbose = TRUE)
 
 ##Prediction, Residuals
@@ -101,4 +104,5 @@ eval_expect_equal({
 },Renv,FLenv,
 expectation=c("fitC"),
 check.attributes=FALSE,
+tolerance = 0.1,
 verboose = TRUE)

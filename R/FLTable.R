@@ -132,11 +132,15 @@ FLTable <- function(table,
             for(i in 1:ncol(R))
                 type <- c(type,typeof(R[[i]]))
         }
+        names(type) <- cols
 
         if(!vobsid %in% cols)
           stop(paste0(vobsid,
                       " not a column in table.Please check case Sensitivity \n "))
-        else cols <- setdiff(cols,vobsid)
+        else{
+          cols <- setdiff(cols,vobsid)
+          type <- type[names(type)!=vobsid]
+        }
         
         if(fetchFLag){
             if(!is.null(list(...)[["ObsID"]])){

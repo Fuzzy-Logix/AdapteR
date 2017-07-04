@@ -74,7 +74,7 @@ have to fetch data
 }
 
 \examples{
-deeptable <- FLTable("tblLogRegr","ObsID","VarID","Num_Val",
+deeptable <- FLTable(getTestTableName("tblLogRegr"),"ObsID","VarID","Num_Val",
                whereconditions="ObsID<7001")
 glmfit <- glm(NULL,data=deeptable)
 coef(glmfit)
@@ -89,9 +89,9 @@ widetable  <- FLTable("siemenswidetoday1", "ObsID")
 poissonfit <- glm(event ~ meanTemp, family=poisson, data=widetable,offset="age")
 summary(poissonfit)
 plot(poissonfit)
-predData <- FLTable("preddata1","ObsID")
+predData <- FLTable(getTestTableName("preddata1"),"ObsID")
 mu <- predict(poissonfit,newdata=predData)
-deeptable <- FLTable("tblLogRegrMN10000","ObsID","VarID","Num_Val",
+deeptable <- FLTable(getTestTableName("tblLogRegrMN10000"),"ObsID","VarID","Num_Val",
              whereconditions="ObsID<7001")
 glmfit <- glm(NULL,data=deeptable,family="multinomial")
 glmfit$coefficients
@@ -99,4 +99,7 @@ glmfit$FLLogRegrStats
 glmfit$FLCoeffStdErr
 summary(glmfit)
 print(glmfit)
+}
+\seealso{
+\code{\link[stats]{glm}} for R reference implementation.
 }

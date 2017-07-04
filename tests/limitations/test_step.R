@@ -1,6 +1,4 @@
 Renv = new.env(parent = globalenv())
-
-
 Renv$var1 =  swiss
 FLenv = as.FL(Renv)
 
@@ -40,3 +38,20 @@ test_that("Check for step function with different direction",{
                    },Renv,FLenv)
           print(result)
     })
+
+
+## Multinomial 
+## Asana Ticket : https://app.asana.com/0/136555696724838/371749207621403/f
+FLenv$var2 <- FLTable(getTestTableName("tblLogRegr"),"ObsID","VarID","Num_Val", whereconditions=c("ObsID < 5000","VarID<5"))
+
+test_that("Check for step--multinomial",{
+
+          s3 <- step(FLenv$var2, scope=list(upper=c("-1","0","1","2","3")),
+                    direction = "backward", 
+                    familytype="multinomial",pRefLevel=1)
+          pred3 <-  predict(s3, type = "response")
+          s4 <- step(FLenv$var2, scope=list(upper=c("1","2","3"),lower=c("2")), 
+                    direction = "Fbackward",
+                    familytype="multinomial",pRefLevel=1)
+          pred4 <-  predict(s4, type = "response")
+})

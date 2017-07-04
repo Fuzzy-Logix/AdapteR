@@ -6,7 +6,9 @@
 \usage{
 FLTableMD(table, group_id_colname, obs_id_colname,
   var_id_colnames = character(0), cell_val_colname = character(0),
-  connection = getFLConnection(), group_id = c(), fetchIDs = TRUE, ...)
+  whereconditions = character(0), connection = getFLConnection(),
+  dims = list(0, 0, 0), sparse = TRUE, dimnames = list(list(NULL),
+  list(NULL), list(NULL)), ...)
 }
 \arguments{
 \item{table}{name of the table}
@@ -17,12 +19,12 @@ FLTableMD(table, group_id_colname, obs_id_colname,
 
 \item{cell_val_colname}{column name where cell values are stored if \code{FLTableMD} is deep}
 
-\item{group_id}{vector of dataset IDs'to be considered.
-Default is all those contained in the table}
-
 \item{database}{name of the database}
 
 \item{var_id_colname}{column name where variable id's are stored if \code{FLTableMD} is deep}
+
+\item{group_id}{vector of dataset IDs'to be considered.
+Default is all those contained in the table}
 }
 \value{
 \code{FLTableMD} returns an object of class FLTableMD mapped to a table
@@ -39,8 +41,7 @@ which operate parallelly on all the datasets
 \examples{
 widetableMD <- FLTableMD(table="tblAutoMPGMD",
                       group_id_colname="GroupID",
-                      obs_id_colname="ObsID",
-                      group_id = c(2,4))
+                      obs_id_colname="ObsID")
 deeptableMD <- FLTableMD(table="LinRegrMultiMD",
                       group_id_colname="DatasetID",
                       obs_id_colname="ObsID",

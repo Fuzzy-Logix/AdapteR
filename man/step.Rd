@@ -92,18 +92,22 @@ have to fetch data
 }
 
 \examples{
-widetable  <- FLTable("tblAbaloneWide", "ObsID")
-s <- step(widetable,scope=list(lower=Rings~Height+Diameter),direction = "UFbackward")
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
+s <- step(widetable,
+			 scope=list(lower=Rings~Height+Diameter),
+	     direction = "UFbackward")
 plot(s)
 s$coefficients
 s <- step(widetable,
 			scope=list(lower=Rings~Height+Diameter,
- 					upper=Rings~Height+Diameter+Sex+Num_Length),
+ 				   upper=Rings~Height+Diameter+Sex+Num_Length),
 			direction = "UFbackward")
 plot(s)
 s$coefficients
-s <- step(widetable,scope=list(lower=Rings~Num_Length),
-			direction = "UFbackward",performNorm=1,performVarReduc=1,maxCorrel=0.6)
+s <- step(widetable,
+		scope=list(lower=Rings~Num_Length),
+			direction = "UFbackward",
+		performNorm=1,performVarReduc=1,maxCorrel=0.6)
 plot(s)
 s$coefficients
 s <- step(widetable,
@@ -126,7 +130,7 @@ s <- step(widetable,
  		direction = "forward")
 plot(s)
 s$coefficients
-deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
+deeptable <- FLTable(getTestTableName("myLinRegrSmall"),"ObsID","VarID","Num_Val")
 s <- step(deeptable,
 			scope=list(upper=c("-1","0","1")),
  		direction = "backward")
@@ -139,7 +143,7 @@ s <- step(deeptable,
 s <- step(deeptable,
 			scope=list(),
  		direction = "forward")
-deeptable1 <- FLTable("tblLogRegr",
+deeptable1 <- FLTable(getTestTableName("tblLogRegr"),
 					"ObsID","VarID","Num_Val",
                   whereconditions=c("ObsID < 7001","VarID<5"))
 s <- step(deeptable1,
@@ -156,7 +160,7 @@ s <- step(deeptable1,
 s <- step(deeptable1,
 			scope=list(upper=c("1","2","3"),lower=c("2")),
  		direction = "Fbackward",familytype="multinomial",pRefLevel=1)
-deeptable2 <- FLTable("tblLogRegrMN10000",
+deeptable2 <- FLTable(getTestTableName("tblLogRegrMN10000"),
 					"ObsID","VarID","Num_Val",
                   whereconditions=c("ObsID < 7001","VarID<5"))
 s <- step(deeptable2,
