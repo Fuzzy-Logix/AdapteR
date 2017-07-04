@@ -45,9 +45,12 @@ setClass(
 #' Plotting is not available. The result Set may not include all
 #' results and methods as in mgcv::gam.
 #' @return \code{gam} returns \code{FLGAM} object
+#' @seealso \code{\link[mgcv]{gam}} for corresponding R function reference
 #' @examples
-#' widetable <- FLTable("tblGAMSimData","ObsID")
-#' myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)+s(x2Val,x1Val)
+#' widetable <- FLTable(getTestTableName("tblGAMSimData"),
+#'						"ObsID")
+#' myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,
+#'				m=3,k=5)+s(x2Val,x1Val)
 #' gamobject <- gam(myformula,data=widetable,offset="x2Val")
 #' predictedValues <- predict(gamobject,widetable)
 #' gamobject$coefficients
@@ -120,7 +123,6 @@ gam.FLTable <- function(formula,family=stats::poisson,
 						data,offset=NULL,
 						maxiter=500,...)
 {
-	#browser()
 	require("mgcv")
 	data <- setAlias(data,"")
 	if(is.character(family) && base::toupper(family)!="POISSON")
@@ -495,6 +497,16 @@ gam.FLTable <- function(formula,family=stats::poisson,
 	}
 	else stop(property," is not a valid property\n")
 }
+
+#' @export
+setMethod("names", signature("FLGAM"), function(x) c("knots","FLCoeffStdErr",
+                                                     "coefficients","fitted.levels",
+                                                     "linear.predictors", "resdiduals",
+                                                     "FLCoeffPValue", "FLCoeffChiSq",
+                                                     "pred.formula", "prior.weights",
+                                                     "var.summary", "y", "offset",
+                                                     "converged", "deviance", "sig2","assign","df.residual", "pterms", "nsdf", "edf", "scale.estimated", "family","df.null", "model", "min.edf" ))
+
 
 #' @export
 coefficients.FLGAM <- function(object)

@@ -142,6 +142,7 @@ svmGeneric <- function(formula,data,
                     pPrimaryKey=vgroupCol,
                     pTemporary=FALSE)
 
+    vfcalls <- c(functionName = functionName)
     return(new("FLSVM",
                formula=formula,
                table=data,
@@ -153,35 +154,55 @@ svmGeneric <- function(formula,data,
                mapTable=mapTable,
                scoreTable="",
                offset=as.character(offset),
-               RegrDataPrepSpecs=RegrDataPrepSpecs))
+               RegrDataPrepSpecs=RegrDataPrepSpecs,
+               wideToDeepAnalysisID = prepData[["wideToDeepAnalysisID"]],
+               vfcalls = vfcalls))
 }
 
 ## use FLsimpleVector
 #' @export
-predict.FLSVM <- function(object, newData = object@table){
-  #browser()
-    pvar <- getVariables(object@deeptable@select)
-    tblname <- gen_unique_table_name("svmoutput")
-    scrmethod <- toupper(substr(object@results$kernel, 1,1))
+predict.FLSVM <- function(object, newdata = object@deeptable, scoreTable = "", ...){
+    if(!is.FLTable(newdata) && class(newdata) != "FLpreparedData") 
+        stop("scoring allowed on FLTable only")
+    if(class(newdata) == "FLpreparedData"){
+        newdata <- newdata$deepx
+    }
+    else if(newdata@select@table_name == object@deeptable@select@table_name ||
+            newdata@select@table_name == object@table@select@table_name){
+        newdata <- object@deeptable
+        rname <- rownames(object@table)
+    }
+    else{
+        newdata <- prepareData(object,newdata,outDeepTableName="", ...)
+        rnames <- rownames(newdata)
+    }
 
-    ret <- sqlStoredProc(connection,
-                         "FLSVMScore",
-                         ModelTable = object@results$outtbl,
-                         InTable = object@deeptable@select@table_name,
-                         GroupIDCol = "NULL",
-                         ObsIDCol = pvar[[1]],
-                         VarIDCol = pvar[[2]],
-                         NumValCol = pvar[[3]],
-                         ScoreMethod = scrmethod,
-                         ScoreTable = tblname,
-                         Note="SVMScore from AdapteR",
-                         outputParameter=c(AnalysisID="a")
-                         )
+    newdata <- setAlias(newdata,"")
 
+    if(scoreTable == ""){
+        
+        pvar <- getVariables(newdata)
+        scoreTable <- gen_unique_table_name("svmoutput")
+        scrmethod <- toupper(substr(object@results$kernel, 1,1))
+
+        ret <- sqlStoredProc(connection,
+                             "FLSVMScore",
+                             ModelTable = object@results$outtbl,
+                             InTable = getTableNameSlot(newdata),
+                             GroupIDCol = "NULL",
+                             ObsIDCol = pvar[[1]],
+                             VarIDCol = pvar[[2]],
+                             NumValCol = pvar[[3]],
+                             ScoreMethod = scrmethod,
+                             ScoreTable = scoreTable,
+ ##                            Note="SVMScore from AdapteR",
+                             outputParameter=c(AnalysisID="a")
+                             )
+    }
     sqlstr <- paste0("SELECT '%insertIDHere%' AS vectorIdColumn, \n ",
-                            "obsid AS vectorIndexColumn, \n ",
-                            "predyscoring as vectorValueColumn \n ",
-                    " FROM ",tblname)
+                     "obsid AS vectorIndexColumn, \n ",
+                     "predyscoring as vectorValueColumn \n ",
+                     " FROM ",scoreTable)
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
                           connectionName = attr(connection,"name"),
@@ -192,38 +213,11 @@ predict.FLSVM <- function(object, newData = object@table){
                           order = "",
                           SQLquery=sqlstr)
     val <- newFLVector(
-               select = tblfunqueryobj,
-               Dimnames = list(rownames(newData),"vectorValueColumn"),
-               isDeep = FALSE,
-               type="double")
-
-    # val <- new("FLSimpleVector",
-    #            select= new("FLSelectFrom",
-    #                        table_name=tblname,
-    #                        connectionName=getFLConnectionName(),
-    #                        variables=list(obsid = pvar[[1]],pred = "predyscoring" ),
-    #                        whereconditions="",
-    #                        order=""),
-    #            dimColumns = c(pvar[[1]], "pred"),
-    #            Dimnames = list(1:nrow(object@deeptable)),
-    #            dims    = as.integer(c(nrow(object@deeptable), 1)),
-    #            type       = "double"
-    #            )
+        select = tblfunqueryobj,
+        Dimnames = list(rname,"vectorValueColumn"),
+        isDeep = FALSE,
+        type="double")
     return(val)
-
-    ##    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
-    ##                                    ",fquote(object@deeptable@select@table_name),",
-    ##                                    NULL,
-    ##                                    ",fquote(var[[1]])," ,
-    ##                                    ",fquote(var[[2]])," ,
-    ##                                    ",fquote(var[[3]])," ,
-    ##                                    ",fquote(scrmethod),",
-    ##                                    ",fquote(tblname),",
-    ##                                     OutAnalysisID);")
-
-    ##    print(sqlQuery(connection, qer))
-    ##    str <- paste0("SELECT TOP 5 * FROM ",tblname)
-    ##    return(sqlQuery(connection, str) )
 }
 
 #' @export
@@ -335,3 +329,13 @@ print.FLSVM <- function(object, ...){
 }
 
 setMethod("show","FLSVM",function(object){print.FLSVM(object)})
+
+#' @export
+setMethod("names", signature("FLSVM"), function(x) c("BValue",
+                                                      "SV",
+                                                      "misclassifications",
+                                                      "crbfConstant",
+                                                      "lambda",
+                                                      "cost",
+                                                      "degree",
+                                                      "call" ))

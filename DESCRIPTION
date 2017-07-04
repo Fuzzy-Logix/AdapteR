@@ -55,7 +55,7 @@ Suggests:
     stringdist
 License: GPL-2
 LazyData: true
-Collate: 
+Collate:
     'FLconstructSQL.R'
     'platformMappings.R'
     'platforms.R'
@@ -110,9 +110,16 @@ Collate:
     'FLMatrixNorm.R'
     'FLMatrixREF.R'
     'FLMatrixRREF.R'
+<<<<<<< HEAD
     'FLMixedModelUdt.R'
     'FLMixedmodel.R'
     'FLNNet.R'
+    'FLPCA.R'
+=======
+    'FLMixed.R'
+    'FLMixedModelUdt.R'
+    'FLMixedmodel.R'
+>>>>>>> 1dd8f5f2fe2269e9973d2b5027be052ad9d9c5fa
     'FLPLSRegr.R'
     'FLPP.R'
     'FLPrint.R'
@@ -124,6 +131,7 @@ Collate:
     'FLSVDecomp.R'
     'FLSVM.R'
     'FLScalarFunctions.R'
+    'FLSchurDecomp.R'
     'FLSolve.R'
     'FLSolveExcl.R'
     'FLStringFunctions.R'
@@ -132,6 +140,7 @@ Collate:
     'FLTrace.R'
     'FLTranspose.R'
     'FLTriDiag.R'
+    'FLVIF.R'
     'FLVarCluster.R'
     'FLdifference.R'
     'FLtestLib.R'
@@ -157,6 +166,7 @@ Collate:
     'mahalanobis.R'
     'matchit.R'
     'mcnemar.test.R'
+    'naiveBayes.R'
     'randomForest.R'
     'rowcolOps.R'
     'rpart.R'

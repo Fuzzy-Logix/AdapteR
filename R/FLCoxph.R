@@ -69,24 +69,30 @@ setClass(
 #' coefficients,plot,print,summary methods are available for fitted object.
 #' @return \code{coxph} returns a \code{FLCoxPH} object
 #' @examples
-#' widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
+#' widetable  <- FLTable(getTestTableName("siemenswideARDemoCoxPH"),
+#'						 "ObsID")
 #' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-#' predData <- FLTable("preddatatoday","ObsID")
+#' predData <- FLTable(getTestTableName("preddatatoday"),"ObsID")
 #' resultList <- predict(fitT,newdata=predData)
 #' resultList[[1]]
 #' resultList[[2]]
 #' summary(fitT)
 #' plot(fitT)
-#' deeptable <- FLTable("siemensdeepARDemoCoxPH","obs_id_colname",
-#'                      "var_id_colname","cell_val_colname")
+#'
+#' deeptable <- FLTable(getTestTableName("siemensdeepARDemoCoxPH"),
+#'						"obs_id_colname", 
+#'						"var_id_colname",
+#'						"cell_val_colname")
 #' fitT <- coxph("",deeptable)
 #' fitT$coefficients
 #' summary(fitT)
 #' plot(fitT)
+#'
 ## Failed due to numeric overflow in FLCoxPH
-#fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
+# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
 # fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
 # fitT <- coxph(Surv(age,event)~meanTemp,widetable)
+#' @seealso \code{\link[survival]{coxph}} for corresponding R function reference
 #' @export
 coxph <- function (formula,data=list(),...) {
 	UseMethod("coxph", data)
@@ -151,8 +157,8 @@ coxph.FLTable <- function(formula,data, ...)
 				wideToDeepAnalysisID=wideToDeepAnalysisID,
 				table=deep$vdata,
 				results=list(call=vcallObject,
-                            mod=list(nID="coeffid",
-                            nCoeffEstim ="coeffvalue")),
+                            mod=list(nID="CoeffID",
+                            nCoeffEstim ="COEFFVALUE")),
 				deeptable=deepx,
 				mapTable=deep$mapTable,
 				scoreTable="",

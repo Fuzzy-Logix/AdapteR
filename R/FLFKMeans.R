@@ -100,15 +100,20 @@ setClass(
 #' from \code{fanny} in cluster package.The mapping table can be viewed
 #' using \code{object$mapping} if input is wide table.
 #' @examples
-#' widetable  <- FLTable("iris", "rownames")
-#' fkmeansobject <- fanny(widetable,2,memb.exp=2)
-#' print(fkmeansobject)
-#' plot(fkmeansobject)
-#' One can specify ClassSpec and transform categorical variables 
-#' before clustering. This increases the number of variables in the plot
-#' because categorical variable is split into binary numerical variables.
-#' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable("iris", "rownames")
+#' widetable  <- FLTable(getTestTableName("iris"), 
+#'						"obsid")
+#' fannyobject <- fanny(widetable,2,memb.exp=2)
+#' fannyobject$clustering
+#' fannyobject$coeff
+#' print(fannyobject)
+#' plot(fannyobject)
+#' 
+#' ##One can specify ClassSpec and transform categorical variables 
+#' ##before clustering. This increases the number of variables in the plot
+#' ##because categorical variable is split into binary numerical variables.
+#' 
+#' ##The clusters may not be well-defined as is observed in the case below:-
+#' widetable  <- FLTable(getTestTableName("iris"), "obsid")
 #' fannyobjectnew <- fanny(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(fannyobjectnew)
 #' @export
@@ -337,7 +342,7 @@ fanny.FLTable <- function(x,
 		assign(parentObject,object,envir=parent.frame())
 		return(objectivevector)
 	}
-	else if(property=="convergence")
+	else if(property== "convergence")
 	{
 		convergencevector <- convergence.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
@@ -375,6 +380,16 @@ fanny.FLTable <- function(x,
 	}
 	else stop(property," is not a valid property")
 }
+
+
+
+
+#' @export
+setMethod("names", signature("FLFKMeans"), function(x) c("mapping","data","call",
+                                                         "diss","silinfo","convergence",
+                                                         "objective","k.crisp","clustering",
+                                                         "coeff","memb.exp","membership" ))
+
 
 ## move to file FLFKMeans.R
 clustering.FLFKMeans <- function(object)

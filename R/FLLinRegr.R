@@ -1685,6 +1685,24 @@ prepareData.character <- prepareData.formula
     else stop("That's not a valid property \n ")
 }
 
+setMethod("names", signature("FLRobustRegr"), function(x) c("coefficients",
+                                                            "residuals",
+                                                            "fitted.values",
+                                                            "x",
+                                                            "y",
+                                                            "call" ))
+
+#' @export
+setMethod("names", signature("FLLinRegr"), function(x) c("anova", "formula", "assign",
+                                                          "xlevels","y","x","model",
+                                                          "df.residual","FLLinRegrStats",
+                                                          "call","s","FLCoeffCorrelWithRes"
+                                                         ,"FLCoeffNonZeroDensity",
+                                                          "FLCoeffPValue","FLCoeffTStat",
+                                                          "FLCoeffStdErr","fitted.values",
+                                                          "residuals","coefficients" ))
+
+
 #' @export
 coefficients<-function(table){
 	UseMethod("coefficients",table)
@@ -1725,7 +1743,7 @@ coefficients.lmGeneric <-function(object,
         ## by FLLinRegr, fetch them.
                                         #browser()
                                         # vmapping <- NULL
-        vID <- object@results$mod["nID"]
+        vID <- object@results$mod[["nID"]]
         vfcalls <- object@vfcalls
         vcoeffnames <- NULL
         vmodelnames <- NULL
@@ -1790,7 +1808,7 @@ coefficients.lmGeneric <-function(object,
         }
 
         colnames(coeffVector) <- toupper(colnames(coeffVector))
-        coeffVector1 <- coeffVector[[object@results$mod["nCoeffEstim"]]]
+        coeffVector1 <- coeffVector[[object@results$mod[["nCoeffEstim"]]]]
                                         # vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
         if(!is.null(vcoeffnames)){
             if(!pIntercept)
