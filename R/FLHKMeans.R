@@ -317,11 +317,14 @@ hkmeans.FLTable<-function(x,
 	else stop(property," is not a valid property")
 }
 
+
+
 #' @export
-setMethod("names", signature("FLHKMeans"), function(x) c("mapping", "size", "withinss",
-                                                         "totss", "betweenss",
-                                                         "tot.withinss", "centers",
-                                                         "cluster", "size" ))
+setMethod("names", signature("FLFKMeans"), 
+    function(x) c("mapping", "size", "withinss",
+                 "totss", "betweenss",
+                 "tot.withinss", "centers",
+                 "cluster", "size" ))
 
 ## move to file FLHKMeans.R
 cluster.FLHKMeans<-function(object)

@@ -1,3 +1,4 @@
+NULL
 ## http://people.inf.elte.hu/kiss/11dwhdm/roc.pdf
 #' Build a ROC Curve
 #' 
@@ -51,13 +52,33 @@ roc.default <- function (response, predictor,...) {
 
 
 
-#' @export
+#' An S4 class to represent output from ROC on in-database Objects
 setClass(
     "FLROC",
     contains="FLRegr",
     slots=list(otbl="character"))
 
 
+#' ROC.
+#' \code{roc} performs ROC  on FLvectors and FLTable objects.
+#'
+#' The DB Lytix function called is FLROC. Performs ROC and stores the results in
+#' predefined tables. This function's main job is to build a ROC object.
+#' Data can be provided as 'response', 'predictor', where the predictor is
+#' the numeric (or ordered) level of the evaluated signal, and the response encodes the observation class (control or case).
+
+#' @seealso \code{\link[pROC]{roc}} for R reference implementation.
+#' @param formula A symbolic description of model to be made.
+#' @param data An object of class FLTable.
+#' @slot  results cache list of results computed
+#' @slot votbl stores the table names of output ROC table.
+#' @method print FLROC
+#' @method plot FLROC
+#' @method auc  FLLinRegr
+#' @return \code{roc} returns an object of class \code{FLROC}
+#' @examples
+#' tbl <- FLTable("tblROCCurve", "ObsID")
+#' mod <- roc(tbl$ActualVal, tbl$ProbVal)
 #' @export
 roc.FLVector <- function (response, predictor, ...)
 {
@@ -75,7 +96,6 @@ roc.FLVector <- function (response, predictor, ...)
 #' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
 #' @export
 roc.FLTable <- function(formula,data,... ){
-    browser()
     vcallObject <- match.call()
     var <- all.vars(formula)
     pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
@@ -356,8 +376,8 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
 
     reqList <- structure(
         list(call = object$call,
-             cases = object$cases,
-             controls = object$controls,
+##             cases = object$cases,
+##             controls = object$controls,
              percent = object$percent,
              sensitivities =sen,
              specificities = spec,

@@ -19,8 +19,7 @@ test_that("Comparison of Weights:",{expect_equal(FLenv$mod$weights,
                                                  Renv$mod$weights )})
 
 
-## Prediction, Residuals, fitted.values: 
-test_that("Comparison of model.list, cost:",{result <- eval_expect_equal({
+test_that("Comparison of model.list:",{result <- eval_expect_equal({
     modlist <- mod$model.list
   },Renv,FLenv,
 expectation=c("modlist"),

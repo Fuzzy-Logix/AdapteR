@@ -1680,6 +1680,24 @@ prepareData.character <- prepareData.formula
     else stop("That's not a valid property \n ")
 }
 
+setMethod("names", signature("FLRobustRegr"), function(x) c("coefficients",
+                                                            "residuals",
+                                                            "fitted.values",
+                                                            "x",
+                                                            "y",
+                                                            "call" ))
+
+#' @export
+setMethod("names", signature("FLLinRegr"), function(x) c("anova", "formula", "assign",
+                                                          "xlevels","y","x","model",
+                                                          "df.residual","FLLinRegrStats",
+                                                          "call","s","FLCoeffCorrelWithRes"
+                                                         ,"FLCoeffNonZeroDensity",
+                                                          "FLCoeffPValue","FLCoeffTStat",
+                                                          "FLCoeffStdErr","fitted.values",
+                                                          "residuals","coefficients" ))
+
+
 #' @export
 coefficients<-function(table){
 	UseMethod("coefficients",table)

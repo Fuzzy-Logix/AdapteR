@@ -342,7 +342,7 @@ fanny.FLTable <- function(x,
 		assign(parentObject,object,envir=parent.frame())
 		return(objectivevector)
 	}
-	else if(property=="convergence")
+	else if(property== "convergence")
 	{
 		convergencevector <- convergence.FLFKMeans(object)
 		assign(parentObject,object,envir=parent.frame())
@@ -380,6 +380,16 @@ fanny.FLTable <- function(x,
 	}
 	else stop(property," is not a valid property")
 }
+
+
+
+
+#' @export
+setMethod("names", signature("FLFKMeans"), function(x) c("mapping","data","call",
+                                                         "diss","silinfo","convergence",
+                                                         "objective","k.crisp","clustering",
+                                                         "coeff","memb.exp","membership" ))
+
 
 ## move to file FLFKMeans.R
 clustering.FLFKMeans <- function(object)
