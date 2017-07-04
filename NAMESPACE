@@ -26,10 +26,7 @@ S3method("$",FLLogRegr)
 S3method("$",FLLogRegrMN)
 S3method("$",FLMix)
 S3method("$",FLMixUDT)
-<<<<<<< HEAD
 S3method("$",FLNnet)
-=======
->>>>>>> 1dd8f5f2fe2269e9973d2b5027be052ad9d9c5fa
 S3method("$",FLPLSRegr)
 S3method("$",FLROC)
 S3method("$",FLSVM)
@@ -390,18 +387,15 @@ S3method(lm,default)
 S3method(lm,influence.FLLinRegr)
 S3method(lm,influence.FLLogRegr)
 S3method(lm,influence.default)
-<<<<<<< HEAD
 S3method(lmer,default)
 S3method(logLik,FLMix)
 S3method(logLik,FLMixUDT)
 S3method(mahalanobis,FLVector)
 S3method(mahalanobis,default)
-=======
 S3method(lmer,FLTable)
 S3method(lmer,default)
 S3method(logLik,FLMix)
 S3method(logLik,FLMixUDT)
->>>>>>> 1dd8f5f2fe2269e9973d2b5027be052ad9d9c5fa
 S3method(mda,FLTable)
 S3method(mda,FLTableMD)
 S3method(mda,FLpreparedData)
@@ -432,10 +426,7 @@ S3method(plot,FLLinRegr)
 S3method(plot,FLLogRegr)
 S3method(plot,FLMix)
 S3method(plot,FLMixUDT)
-<<<<<<< HEAD
 S3method(plot,FLNnet)
-=======
->>>>>>> 1dd8f5f2fe2269e9973d2b5027be052ad9d9c5fa
 S3method(plot,FLPLSRegr)
 S3method(plot,FLROC)
 S3method(plot,FLRandomForest)
@@ -994,10 +985,7 @@ export(summary.FLLinRegrMD)
 export(summary.FLLinRegrSF)
 export(summary.FLLogRegr)
 export(summary.FLLogRegrMN)
-<<<<<<< HEAD
 export(summary.FLRandomForest)
-=======
->>>>>>> 1dd8f5f2fe2269e9973d2b5027be052ad9d9c5fa
 export(summary.FLSurvfit)
 export(summary.FLrpart)
 export(survdiff)
@@ -1047,10 +1035,7 @@ exportClasses(FLMatrix.TD)
 exportClasses(FLMatrix.TDAster)
 exportClasses(FLMix)
 exportClasses(FLMixUDT)
-<<<<<<< HEAD
 exportClasses(FLNnet)
-=======
->>>>>>> 1dd8f5f2fe2269e9973d2b5027be052ad9d9c5fa
 exportClasses(FLPLSRegr)
 exportClasses(FLRegr)
 exportClasses(FLRobustRegr)
