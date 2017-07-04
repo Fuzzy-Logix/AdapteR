@@ -10,7 +10,7 @@ NULL
 #' @param x: a FLVector of data values.
 #' @param mean: specifies mean for the normal distribution.
 #' @param sd: specifies standard deviation for the normal distribution.
-#' 
+#' @seealso \code{\link[nortest]{ad.test}} for R reference implementation.
 #' @examples
 #' set.seed(200)
 #' a <- as.FL(rnorm(100, mean = 5, sd = 3))
