@@ -15,7 +15,17 @@ NULL
 #' flx<-as.FLVector(rnorm(100))
 #' fly<-as.FLVector(rnorm(100))
 #' z.test(flx)
-#' z.test(flx,fly)
+#'     ## Two- sided one sample z-test.
+#'     ## mean for 'x' is zero. The alternative hypothesis states 
+#'     ## that it is either greater or less than zero.
+#'
+#' z.test(flx,fly,2)
+#'     ## Two- sided two sample z-test.
+#'     ## The null hypothesis is that the population mean for 'x'
+#'     ## less that for 'y' is 2. 
+#'     ## The alternative hypothesis is that this difference is not 2.
+#'
+#' ## z- test for population proportion.
 #' fla<-as.FLVector(sample(c(0,1),replace=T,size=100))
 #' flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
 #' z.test(fla,prob=1)
