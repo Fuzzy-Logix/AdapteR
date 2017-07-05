@@ -182,7 +182,7 @@ FLKSTest2s.TDAster(TableName,ValueCol,GroupCol,WhereClause,GroupBy) <- FLKSTest2
 FLKuiperTest.TD(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLKuiperTest(TableName=TableName,ValueColName=ValueColName,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLKuiperTest.TDAster(TableName,ValueColName,SampleIDColName,WhereClause,GroupBy) <- FLKuiperTest(INPUT_TABLE=TableName,VALUE_COL=ValueColName,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
 
-FLKWTest.TD(TableName,ValueColname,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLKWTest(TableName=TableName,ValueCol=ValueCol,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
+FLKWTest.TD(TableName,ValueColname,SampleIDColName,WhereClause,GroupBy,TableOutput) <- FLKWTest(TableName=TableName,ValueColname=ValueColname,SampleIDColName=SampleIDColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)
 FLKWTest.TDAster(TableName,ValueColname,SampleIDColName,WhereClause,GroupBy) <- FLKWTest(INPUT_TABLE=TableName,VALUE_COL=ValueColname,SAMPLEID_COL=SampleIDColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy)
 
 FLWSRTest.TD(TableName,Val1ColName,Val2ColName,WhereClause,GroupBy,TableOutput) <- FLWSRTest(TableName=TableName,Val1ColName=Val1ColName,Val2ColName=Val2ColName,WhereClause=WhereClause,GroupBy=GroupBy,TableOutput=TableOutput)

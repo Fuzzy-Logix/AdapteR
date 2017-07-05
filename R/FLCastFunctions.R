@@ -28,7 +28,6 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 #' @export
 as.vector.FLVector <- function(object,mode="any")
 {
-    #browser()
     vprev1 <- getOption("stringsAsFactors")
     vprev2 <- getOption("warn")
     options(stringsAsFactors=FALSE)
@@ -107,7 +106,6 @@ as.data.frame.FLTable <- function(x, ...){
 as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-    ##browser()
 
    tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
@@ -795,7 +793,8 @@ as.FLVector.vector <- function(object,connection=getFLConnection())
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
-                whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
+                # whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
+                whereconditions=paste0("flt.vectorIdColumn = ",VID),
                 order = "")
 
   return(newFLVector(
