@@ -34,8 +34,8 @@ via the expectations.
 
 \examples{
 ## One Random Effect.
-fltbl  <- FLTable("tblMixedModel", "ObsID")
-flmod <- lmer.FLTable(yVal ~ FixVal + (1 | RanVal), data = fltbl)
+fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
+flmod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
 flpred <- predict(flmod)
 }
 \seealso{
