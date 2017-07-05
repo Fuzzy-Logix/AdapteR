@@ -13,7 +13,28 @@ kuip.test(vFLvector1, vFLvector2)
 }
 \value{
 A list with class "htest".
+
+A list with class "htest" outputting the corresponding test Stat and P Values.
 }
 \description{
 Kuiper test is similar to two-sample Kolmogorov-Smirnov test. Compare to two-sample Kolmogorov-Smirnov test, Kuiper test is as sensitive in the tails as at the median and invariant under cyclic transformations of the independent variable.
+}
+\examples{
+## running on random FLvector
+flx<-as.FLVector(rnorm(100))
+fly<-as.FLVector(rnorm(100))
+kuip.test(flx, fly)
+
+## running on in-Database FLVector
+fltbl1 <- FLTable(getTestTableName("tblKuiperTest"),
+                   "obsid", 
+                  whereconditions = "groupid=1
+                   and datasetid=1")
+fltbl2 <- FLTable(getTestTableName("tblKuiperTest"),
+                   "obsid", 
+                  whereconditions = "groupid=2
+                   and datasetid=1")
+flx <- fltbl1$num_val
+fly <- fltbl2$num_val
+kuip.test(flx, fly)
 }

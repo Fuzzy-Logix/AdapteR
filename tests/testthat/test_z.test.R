@@ -14,10 +14,13 @@ test_that("test for FLzTest1S",{
 })
 
 test_that("test for FLzTest1P",{
-  rz<-PASWR::z.test(b,sigma.x=sd(b),mu=mu)
-  flz<-z.test(as.FLVector(b),test_val = mu)
-  FLexpect_equal(as.numeric(rz[["p.value"]]),as.numeric(flz[["p.value"]]),tolerance=1e-5)
-  FLexpect_equal(as.numeric(rz[["statistic"]]),as.numeric(flz[["statistic"]]))
+  flt <- FLTable(getTestTableName("tblzTest"),
+                  "obsid", 
+                  whereconditions= "groupid=1")
+  flx <- flt$NUM_VAL
+  flz <- z.test(flx, prob= 1, test_val= 0.45)
+  FLexpect_equal(as.numeric(flz$p.value), 0.0004, tolerance= 1e-3)
+  FLexpect_equal(as.numeric(flz$statistic), 3.5176, tolerance= 1e-3)
 })
 
 test_that("test for FLzTest2S",{
@@ -28,9 +31,16 @@ test_that("test for FLzTest2S",{
 })
 
 test_that("test for FLzTest2P",{
-  rz<-PASWR::z.test(b,d,sigma.x=sd(b),sigma.y=sd(d))
-  flz<-z.test(as.FLVector(b),as.FLVector(d))
-  FLexpect_equal(as.numeric(rz[["p.value"]]),as.numeric(flz[["p.value"]]),tolerance=1e-5)
-  FLexpect_equal(as.numeric(rz[["statistic"]]),as.numeric(flz[["statistic"]]))
+  flt1 <- FLTable(getTestTableName("tblzTest"),
+                  "obsid", 
+                   whereconditions= "groupid=1")
+  flt2 <- FLTable(getTestTableName("tblzTest"),
+                  "obsid", 
+                  whereconditions= "groupid=2")
+  flx <- flt1$NUM_VAL
+  fly <- flt2$NUM_VAL
+  flz <- z.test(flx, fly, prob= 1)
+  FLexpect_equal(as.numeric(flz[["p.value"]]),0.06176, tolerance= 1e-3)
+  FLexpect_equal(as.numeric(flz[["statistic"]]),1.8680, tolerance= 1e-3)
 })
 

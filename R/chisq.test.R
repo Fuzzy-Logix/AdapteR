@@ -1,12 +1,27 @@
 
+ NULL
+        
+ #' Chi-square and Pearson Chi-square Test
+ #'
+ #' Produces the expected and the chi-square value for each cell in the contingency
+ #' table.
+ #'
+ #' @param x FLMatrix
+ #' @param pear The values is 1 if wanna perform pearson chi-square test. Otherwise, 
+ #' by default it's 0 and perform chi- square test.
+ #' @return A list with class "htest" outputting the corresponding expected and P Values.
+ #' @export
 setGeneric("chisq.test",function(x,...)
 				standardGeneric("chisq.test"))
+
 setMethod("chisq.test",signature(x="ANY"),
 		function(x,...){
 			return(stats::chisq.test(x,...))
 			})
+
 setMethod("chisq.test",signature(x="FLMatrix"),
 	function(x,pear=0,...){
+        #browser()
         checkHypoSystemTableExists()
 		if(!is.FLMatrix(x)) stop("Only FLMatrix objects are supported")
 			if(pear==0){
