@@ -77,6 +77,6 @@ print(result2)
 result3 <- friedman.test(x~w|t, data = FLTableObj)
 print(result3)
 fltMD <- FLTableMD("tblFriedmanTest","datasetid","obsid","groupid","num_val")
-result4 <- friedman.test(x~w|t, data = fltMD)
+result4 <- friedman.test(data = fltMD)
 print(result4)
 }
