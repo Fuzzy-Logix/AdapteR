@@ -46,7 +46,7 @@ from analysis by default.
 
 \examples{
 deeptable  <- FLTable(getTestTableName("tblLogRegr"), "ObsID","VarID",
-                      "Num_Val", whereconditions= "ObsID<101")                        
+                      "Num_Val", whereconditions= "ObsID<101")
 clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 print(clustervector)
 }

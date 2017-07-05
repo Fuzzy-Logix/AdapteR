@@ -2,7 +2,7 @@
 % Please edit documentation in R/chisq.test.R
 \name{chisq.test}
 \alias{chisq.test}
-\title{Chi-squared Test}
+\title{Chi-square and Pearson Chi-square Test}
 \usage{
 chisq.test(x, ...)
 }
@@ -20,22 +20,13 @@ Produces the expected and the chi-square value for each cell in the contingency
 table.
 }
 \examples{
-flx<-as.FLVector(rnorm(100))
-fly<-as.FLVector(rnorm(100))
-z.test(flx)
-    ## Two- sided one sample z-test.
-    ## mean for 'x' is zero. The alternative hypothesis states 
-    ## that it is either greater or less than zero.
-
-z.test(flx,fly,2)
-    ## Two- sided two sample z-test.
-    ## The null hypothesis is that the population mean for 'x'
-    ## less that for 'y' is 2. 
-    ## The alternative hypothesis is that this difference is not 2.
-
-## z- test for population proportion.
-fla<-as.FLVector(sample(c(0,1),replace=T,size=100))
-flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
-z.test(fla,prob=1)
-z.test(fla,flb,prob=1)
+mat <- rbind(c(762, 327, 468), c(484, 239, 477))
+dimnames(mat) <- list(gender = c("F", "M"),
+                   party = c("Democrat","Independent", "Republican"))
+FLmat <- as.FL(mat)
+chisq.test(FLmat)  
+      ## by default pear=0 
+      ## performs chi-square test
+chisq.test(FLmat,pear=1) 
+       ## Pearson chi- square test
 }
