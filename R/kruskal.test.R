@@ -39,6 +39,8 @@ NULL
 #' @export
 #' @method kruskal.test FLVector
 kruskal.test.FLVector <- function(x,g,...){
+    if(is.factor(g))
+        g <- as.numeric(g)
     if(!is.FLVector(g) && is.numeric(g))
         g <- as.FLVector(g)
     if(!is.FLVector(g))
