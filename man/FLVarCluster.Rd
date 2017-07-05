@@ -45,10 +45,11 @@ from analysis by default.
 }
 
 \examples{
-deeptable  <- FLTable("tblLogRegr", "ObsID","VarID","Num_Val")
+deeptable  <- FLTable(getTestTableName("tblLogRegr"), "ObsID","VarID",
+                      "Num_Val", whereconditions= "ObsID<101")                        
 clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 print(clustervector)
 }
 \seealso{
-\code{ClustOfVar} package for R reference implementation.
+\code{\link[ClustOfVar]{ClustOfVar}} package for R reference implementation.
 }

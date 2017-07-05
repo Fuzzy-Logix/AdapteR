@@ -55,7 +55,7 @@ Suggests:
     stringdist
 License: GPL-2
 LazyData: true
-Collate:
+Collate: 
     'FLconstructSQL.R'
     'platformMappings.R'
     'platforms.R'

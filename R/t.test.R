@@ -20,7 +20,20 @@ NULL
 #' t.test(flx,fly)
 #' t.test(flx,fly,var.equal=F)
 #' @export
-#' @method t.test FLVector
+t.test <- function( x,
+                    y=NULL,
+                    mu = 0,
+                    tails=2,
+                    conf.level =.95,
+                    var.equal=FALSE,
+                    alternative="two.sided",...){
+    UseMethod("t.test")
+}
+
+#' @export
+t.test.default <- stats::t.test
+
+#' @export
 t.test.FLVector <- function(x,
                             y=NULL,
                             mu = 0,
