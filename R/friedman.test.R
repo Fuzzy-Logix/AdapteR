@@ -127,9 +127,9 @@ friedman.test.FLMatrix <- function(y,...){
                         var_id_colname="colIdColumn",
                         cell_val_colname="valueColumn")
     result <- friedman.test(valueColumn~colIdColumn|rowIdColumn,
-                              data=vtable,
-                              data.name=DNAME,
-                              ...)
+                            data=vtable,
+                            data.name=DNAME,
+                            ...)
     dropView(vtemp)
     return(result)
 }
@@ -211,18 +211,21 @@ friedman.test.FLTable <- function(formula, data,
                                         gsub("'%insertIDhere%'",1,
                                             constructSelect(subset))),") a ) ")
     }
-    vWhereCond <- c(vWhereCond,list(...)[["whereconditions"]])
+    vWhereCond <- c(vWhereCond,
+                    list(...)[["whereconditions"]],
+                    getWhereConditionsSlot(data))
 
     
                                         # vgroupCols <- unique(c(vobsIDCol,list(...)[["GroupBy"]]))
     vgroupCols <- unique(c(getVariables(data)[["group_id_colname"]],
                            list(...)[["GroupBy"]]))
-                    if(is.wideFLTable(data) &&
-                        any(!setdiff(vgroupCols,vobsIDCol) %in% colnames(data)))
-                        stop("columns specified in GroupBy not in data \n ")
-                    vgrp <- paste0(vgroupCols,collapse=",")
-                    if(!length(vgroupCols)>0)
-                        vgrp <- "NULL"
+
+    if(is.wideFLTable(data) &&
+        any(!setdiff(vgroupCols,vobsIDCol) %in% colnames(data)))
+        stop("columns specified in GroupBy not in data \n ")
+    vgrp <- paste0(vgroupCols,collapse=",")
+    if(!length(vgroupCols)>0)
+        vgrp <- "NULL"
     
     ret <- sqlStoredProc(connection,
                          "FLFriedmanTest",
