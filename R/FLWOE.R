@@ -2,7 +2,6 @@
 setClass("FLWOE",
          slots = list(table = "FLTable",
                       results = "list") )
-
 #' @export
 setClass("FLInfoVal",
          slots = list(table = "FLTable",
@@ -17,8 +16,7 @@ setClass("FLInfoVal",
 #' @param nonevents Non-Events or element of bad distribution.
 #' @param n number of ID's for which information is to be calculated.
 #' fltbl <- FLTable(table = "tblinfoval", obs_id_colname="BinID")
-#' flmod <- woe.FLTable(event = "vEvents", nonevents = "vNonEvents", data = fltbl,n = 4)
-#' TO-DO: find examples and R implementation.
+#' flmod <- InfoVal.FLTable(event = "Events", nonevents = "NonEvents", data = fltbl,n = 4)
 #' @export
 woe <- function (events,nonevents,n = 2, data=list(),...) {
     UseMethod("woe", data)
@@ -44,6 +42,20 @@ woe.FLTable <- function(events,nonevents,n = 2, data, ...)
                table = data,
                results = list(otable = vdf))) }
 
+
+#' \code{InfoVal} Performs  on FLTable objects.It is an aggregate function which
+#' which measures the information value of a data set. Information value is a
+#' concept used for variable selection during model building. This analysis can be used
+#' assess the overall predictive power of the variables being considered.
+#' @param data An object of class FLTable.
+#' @param events  Events or element of good distribution.
+#' @param nonevents Non-Events or element of bad distribution.
+#' @param n number of ID's for which information is to be calculated.
+#' fltbl <- FLTable(table = "tblinfoval", obs_id_colname="BinID")
+#' flmod <- InfoVal(event = "Events", nonevents = "NonEvents", data = fltbl,n = 4)
+#' @export
+InfoVal <- function (events,nonevents,n = 2, data=list(),...) {
+    UseMethod("InfoVal", data) }
 
 #' @export
 InfoVal.FLTable <- function(events,nonevents,n = 2, data, ...)
@@ -99,25 +111,9 @@ setMethod("show", signature("FLInfoVal"), function(object) { print.FLInfoVal(obj
 
 
 
-vdf <- data.frame(BinID = 1:4, vEvents =c(206,357,776,183) , vNonEvents = c(4615,9909,32150,12605))
-fltbl <- as.FL(vdf)
 
 
 
 
-
-
-"SELECT b.SerialVal AS BinID, FLWOE(a.BinID, a.vEvents, a.vNonEvents, b.SerialVal) AS WOE FROM ARBaseaW1499339697 a, fzzlSerial b WHERE b.SerialVal <= 4 GROUP BY b.SerialVal ORDER BY 1;"
-
-
-
-
-sqlQuery(connection, "SELECT b.SerialVal AS BinID,
-FLWOE(a.BinID, a.vEvents, a.vNonEvents, b.SerialVal) AS WOE
-FROM ARBaseaW1499339697 a,
-fzzlSerial b
-WHERE b.SerialVal <= 4
-GROUP BY b.SerialVal
-ORDER BY 1;")
 
 
