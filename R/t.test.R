@@ -20,15 +20,19 @@ NULL
 #' t.test(flx,fly)
 #' t.test(flx,fly,var.equal=F)
 #' @export
-#' @method t.test FLVector
-t.test.FLVector <- function(x,
-                            y=NULL,
-                            mu = 0,
-                            tails=2,
-                            conf.level =.95,
-                            var.equal=FALSE,
-                            alternative="two.sided",...)
-{
+setGeneric("t.test",function(x,y=NULL,mu=0,tails=2,
+                            conf.level=0.95,var.equal=FALSE,
+                            alternative= "two.sided",...)
+                standardGeneric("t.test"))
+
+setMethod("t.test",signature(x="FLVector"),
+    function(x,
+            y=NULL,
+            mu = 0,
+            tails=2,
+            conf.level =.95,
+            var.equal=FALSE,
+            alternative="two.sided",...){
         # checkHypoSystemTableExists()
         if(is.null(x)||!is.FLVector(x))
         stop("Only FLVector is supported")
@@ -112,5 +116,12 @@ t.test.FLVector <- function(x,
                 data.name = vcall)                
     class(res) <- "htest"
     return(res)
-}
+    }
+)
 
+setMethod("t.test",signature(x="ANY"),
+    function(x,y,...){
+        if (!requireNamespace("stats", quietly = TRUE)){
+                stop("stats package needed for t.test. Please install it.",
+                call. = FALSE)}
+        else return(stats::t.test(x,y,...))})

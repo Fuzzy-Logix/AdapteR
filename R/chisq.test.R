@@ -1,12 +1,36 @@
+NULL
 
+#' Chi-square and Pearson Chi-square Test
+#'
+#' Produces the expected and the chi-square value for each cell in the contingency
+#' table.
+#'
+#' @param x FLMatrix
+#' @param pear The values is 1 if wanna perform pearson chi-square test. Otherwise, 
+#' by default it's 0 and perform chi- square test.
+#' @return A list with class "htest" outputting the corresponding expected and P Values.
+#' @examples
+#' mat <- rbind(c(762, 327, 468), c(484, 239, 477))
+#' dimnames(mat) <- list(gender = c("F", "M"),
+#'                    party = c("Democrat","Independent", "Republican"))
+#' FLmat <- as.FL(mat)
+#' chisq.test(FLmat)  
+#'       ## by default pear=0 
+#'       ## performs chi-square test
+#' chisq.test(FLmat,pear=1) 
+#'        ## performs Pearson chi- square test
+#' @export
 setGeneric("chisq.test",function(x,...)
 				standardGeneric("chisq.test"))
+
 setMethod("chisq.test",signature(x="ANY"),
 		function(x,...){
 			return(stats::chisq.test(x,...))
 			})
+
 setMethod("chisq.test",signature(x="FLMatrix"),
 	function(x,pear=0,...){
+        #browser()
         checkHypoSystemTableExists()
 		if(!is.FLMatrix(x)) stop("Only FLMatrix objects are supported")
 			if(pear==0){

@@ -28,7 +28,9 @@ NULL
 #' ## z- test for population proportion.
 #' fla<-as.FLVector(sample(c(0,1),replace=T,size=100))
 #' flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
-#' z.test(fla,prob=1)
+#'  ##test_val= 0.4 implies that null hypothesis is
+#'  ##population proportion is 0.4
+#' z.test(fla,prob=1, test_val= 0.4)
 #' z.test(fla,flb,prob=1)
 #' @export
 setGeneric("z.test",function(x,y=NULL,test_val=0,tails=2,
