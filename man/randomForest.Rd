@@ -33,4 +33,11 @@ then averages them.
 \examples{
 flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
 flobj<-randomForest(data = flt, formula = -1~., ntree=5)
+print(flobj)
+pred <- predict(flobj, newdata= flt[1:100,])
+pred
+plot(flobj)
+}
+\seealso{
+\code{\link[randomForest]{randomForest}} for corresponding R function reference.
 }

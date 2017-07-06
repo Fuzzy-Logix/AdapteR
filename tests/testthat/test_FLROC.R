@@ -8,6 +8,8 @@ FLenv$tbl <- FLTable(getTestTableName("tblROCCurve"), "ObsID")
 colnames(FLenv$tbl) <- tolower(colnames(FLenv$tbl))
 Renv = as.R(FLenv)
 
+## Test case fails because mod is not created in Renv
+## Asana Ticket: 
 test_that("ROC model.",{
     result = eval_expect_equal({
         mod <- roc(ActualVal~ProbVal, data = tbl)
@@ -20,24 +22,27 @@ test_that("ROC model.",{
 })
 
 ## area, controls:
-test_that("$ Operators for ROC model:-", {eval_expect_equal({
+test_that("$ Operators for ROC model:-", {
+  result = eval_expect_equal({
     area <- mod$auc
 ##    controls <- mod$controls
-    
-},Renv,FLenv,
-verbose = TRUE,
-check.attributes = FALSE,
-expectations = c("area", "controls"))
+  },Renv,FLenv,
+  verbose = TRUE,
+  check.attributes = FALSE,
+  expectations = c("area", "controls")
+  )
 })
 
 ## specificities, sensitivities:
-test_that("$ Operators for ROC model:-", {eval_expect_equal({
+test_that("$ Operators for ROC model:-", {
+  eval_expect_equal({
     spec <- mod$specificities
     sen <- mod$sensitivities
-},Renv,FLenv,
-verbose = TRUE,
-check.attributes = FALSE,
-expectations = c("sen", "spec"))
+  },Renv,FLenv,
+  verbose = TRUE,
+  check.attributes = FALSE,
+  expectations = c("sen", "spec")
+  )
 })
 
 ## Example2: from pROC package
@@ -62,39 +67,26 @@ test_that("ROC model.",{
 
 
 ## area, controls:
-test_that("$ Operators for ROC model:-", {eval_expect_equal({
+test_that("$ Operators for ROC model:-", {
+  eval_expect_equal({
     area <- mod$auc
-##    controls <- mod$controls
-    
-},Renv,FLenv,
-verbose = TRUE,
-check.attributes = FALSE,
-expectations = c("area", "controls"))
+##    controls <- mod$controls   
+  },Renv,FLenv,
+  verbose = TRUE,
+  check.attributes = FALSE,
+  expectations = c("area", "controls")
+  )
 })
 
 ## specificities, sensitivities:
-test_that("$ Operators for ROC model:-", {eval_expect_equal({
+test_that("$ Operators for ROC model:-", {
+  eval_expect_equal({
     spec <- mod$specificities
     sen <- mod$sensitivities
-},Renv,FLenv,
-verbose = TRUE,
-check.attributes = FALSE,
-expectations = c("sen", "spec"))
+  },Renv,FLenv,
+  verbose = TRUE,
+  check.attributes = FALSE,
+  expectations = c("sen", "spec")
+  )
 })
 
-
-
-## failing dt score
-vSampleDataTables <- suppressWarnings(SampleData(pTableName="ARcreditcard",
-                                  pObsIDColumn="ObsID",
-                                  pTrainTableName="ARcreditcardTrain",
-                                  pTestTableName="ARcreditcardTest",
-                                  pTrainDataRatio=0.7,
-                                  pTemporary=FALSE,
-                                  pDrop=TRUE))
-vTrainTableName <- vSampleDataTables["TrainTableName"]
-vTestTableName <- vSampleDataTables["TestTableName"]
-FLtbl <- FLTable(vTrainTableName,"ObsID",fetchIDs=FALSE)
-rf.model <- randomForest.FLTable(Classvar ~ ., data = FLtbl, minsplit = 15, cp = .9999, maxdepth = 7)
-rf.predict <- predict(rf.model,type = "prob")
-val <- sqlQuery(connection, "select Count(*) FROM ARcreditCardTrain")

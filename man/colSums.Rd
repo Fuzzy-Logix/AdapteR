@@ -16,6 +16,10 @@ colSums(object, ...)
 \code{colSums} computes the column-wise sums of FLMatrix objects.
 }
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+                                       "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 resultFLVector <- colSums(flmatrix)
+}
+\seealso{
+\code{\link[Matrix]{colSums}} for corresponding R function reference
 }

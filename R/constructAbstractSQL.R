@@ -206,6 +206,7 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
     constructStoredProcSQL(getRConnection(pConnection),
                            pFuncName,pOutputParameter,...)
 }
+
 constructStoredProcSQL.JDBCConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
@@ -224,6 +225,7 @@ constructStoredProcSQL.JDBCConnection <- function(pConnection,
                           pars))
     gsub("'\\?'","?",result)
 }
+
 constructStoredProcSQL.default <- function(pConnection,
                                              pFuncName,
                                              pOutputParameter,
@@ -365,11 +367,10 @@ constructAggregateSQL <- function(pFuncName,
                                   pWhereConditions="",
                                   pGroupBy="",
                                   pOrderBy="",
-                                  ...){
+                                  includeFuncCall=FALSE){
 
     vfunCall <- c(OutVal=paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
-    if("includeFuncCall" %in% names(list(...))){
-        if(!list(...)$includeFuncCall)
+    if(!includeFuncCall){
             vfunCall <- c()
     }
     vSelects <- c(vfunCall,pAddSelect)
@@ -841,12 +842,11 @@ constructHypoTestsScalarQuery <- function(pFuncName,pFuncArgs,
     pFuncArgs[1] <- fquote(i)
     pAddSelect <- c(pAddSelect,paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
   }
-  names(pAddSelect) <- vstats
-  sqlstr <- constructAggregateSQL(pFuncName = pFuncName,
-                                  pAddSelect = pAddSelect,
-                                  pFrom = pFrom,
-                                  includeFuncCall=FALSE,
-                                  ...)
+  names(pAddSelect) <- setdiff(c(names(pAddSelect),vstats),"")
+  vinputsList <- list(...)
+  for(i in c("pFuncName","pAddSelect","pFrom"))
+    vinputsList[[i]] <- eval(parse(text=i))
+  sqlstr <- do.call("constructAggregateSQL",vinputsList)
   return(sqlstr)
 }
 

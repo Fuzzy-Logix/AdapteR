@@ -25,6 +25,10 @@ of (1000 x 1000).
 }
 
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",connection)
-resultFLvector <- det(flmatrix)
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID",
+"COL_ID","CELL_VAL", dims= c(5,5))
+resultFLDetValue <- det(flmatrix)
+}
+\seealso{
+\code{\link[base]{det}} for corresponding R function reference.
 }

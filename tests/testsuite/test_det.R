@@ -10,5 +10,10 @@ test_that("Check for determinant function ",{
     result = eval_expect_equal({
         e2 <- det(mat1)
         e3 <- det(mat2)
-    }, Renv,FLenv)
+    }, 	Renv,FLenv,
+    	expectation= c("e2","e3"),
+    	platforms=c("TD","Hadoop"))
 })
+
+
+

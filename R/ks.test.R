@@ -5,18 +5,25 @@ NULL
 #'
 #' Perform a one- or two-sample Kolmogorov-Smirnov test.
 #' @param x a FLVector of data values.
-#' @param y either a FLVector of data values, or a character string naming a cumulative distribution function or 
+#' @param y either a FLVector of data values, or a character string naming a cumulative distribution function or
 #' an actual cumulative distribution function such as pnorm. Only continuous CDFs are valid.
-#' @section Constraints: As of now only supports normal disctribution, alternative and exact isn't supported for FL objects 
+#' @section Constraints: As of now only supports normal disctribution, alternative and exact isn't supported for FL objects
 #' @return A list with class "htest".
 #' @examples
-#' set.seed(100)                                       
+#' set.seed(100)
 #' p <- as.FLVector(rnorm(50))
 #' q <- as.FLVector(runif(30))
+#' ks.test(p, y= "NORMAL" , mean=0, sd=1)
+#'          ## One sample K-S test.
 #' res <- ks.test(p, q)
-#' If y is a FLVector, a two-sample test of the null hypothesis that x and y were drawn from the same continuous distribution is performed.
-#' Alternatively, y can be a character string naming a continuous (cumulative) distribution function, or such a function. 
-#' In this case, a one-sample test is carried out of the null that the distribution function which generated x is distribution y with parameters.
+#'          ## Two sample K-S Test.
+#'
+#' #If y is a FLVector, a two-sample test of the null hypothesis that x and y were drawn from the 
+#' #same continuous distribution is performed. Alternatively, y can be a character string naming 
+#' #a continuous (cumulative) distribution function, or such a function. In this case, a one-sample 
+#' #test is carried out of the null that the distribution function which generated x is distribution
+#' #y with parameters.
+#' @seealso \code{\link[stats]{ks.test}} for corresponding R function reference.
 #' @export
 setGeneric("ks.test",function(x,y=NULL,mean = NULL, sd = NULL, ...,
                               alternative="two.sided",
@@ -60,13 +67,14 @@ setMethod("ks.test",signature(x="FLVector"),
                                    TableName = vviewName,
                                    ValueCol = "Num_Val",
                                    Mean = mean,
-                                   StdDev = sd, 
+                                   StdDev = sd,
                                    WhereClause = NULL,
                                    GroupBy = NULL,
                                    TableOutput = 1,
                                    outputParameter = c(OutTable = 'a')
                                    )
              # dname <- as.list(sys.call(sys.parent()))[[2]]
+              colnames(ret) <- tolower(colnames(ret))
              if(!is.null(ret$outtable)){
                 sqlstr <- paste0("SELECT q.D_STAT AS D_STAT,
                                        q.D_PValue AS D_PValue \n ",
@@ -87,7 +95,7 @@ setMethod("ks.test",signature(x="FLVector"),
                              data.name = as.character(dname))
               class(result) <- "htest"
               dropView(vviewName)
-              return(result)              
+              return(result)
           }
           )
 
@@ -116,7 +124,7 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
                                    "FLKSTest2s",
                                    TableName = vviewName,
                                    ValueCol = "Num_Val",
-                                   GroupCol = "GroupID", 
+                                   GroupCol = "GroupID",
                                    WhereClause = "NULL",
                                    GroupBy = "NULL",
                                    TableOutput = 1,
@@ -140,16 +148,16 @@ setMethod("ks.test",signature(x="FLVector", y = "FLVector"),
               else
                   pval <- res_1$p_value
 
-              
+
               result <- list(statistic = c(D = res_1$d_stat),
                              p.value = pval,
                              alternative = "two-sided",
                              method = "Two-sample Kolmogorov-Smirnov test",
-                             data.name = dname                             
+                             data.name = dname
                              )
               class(result) <- "htest"
               dropView(vviewName)
-              return(result)            
+              return(result)
           }
           )
 

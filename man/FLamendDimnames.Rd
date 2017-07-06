@@ -4,7 +4,7 @@
 \alias{FLamendDimnames}
 \title{Amends dimension names to a matrix if a mapping exists.}
 \usage{
-FLamendDimnames(flm, map_table)
+FLamendDimnames(flm, map_table, sparse = TRUE)
 }
 \arguments{
 \item{flm}{FLMatrix}

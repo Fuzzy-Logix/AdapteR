@@ -23,6 +23,7 @@ FLJordan(object, ...)
 \section{Constraints}{
 
 Input can only be square matrix with maximum dimension limitations of (700 x 700).
+If the input matrix have repeated eigenvalues, then FLJordan function may give incorrect results.
 }
 
 \examples{
@@ -31,4 +32,8 @@ resultList <- FLJordan(flmatrix)
 resultList$J
 resultList$P
 resultList$PInv
+}
+\seealso{
+Refer to \code{\link{FLMatrix}}, \code{\link{FLVector}} to know more about 
+FLMatrix and FLVector.
 }

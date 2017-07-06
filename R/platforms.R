@@ -241,6 +241,13 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
+
+    ## Common Test TableName for permanent tables created in TestSuite
+    if(is.null(user))
+        vtemptbl <- paste0("ARBaseTestTempTable",sample(1:100,1))
+    else vtemptbl <- paste0("ARBaseTestTempTable",user)
+
+    options("TestTempTableName" = vtemptbl)
     FLStartSession(connection=connection,database=database,temporary = temporary,tablePrefix=tablePrefix,...)
     return(connection)
 }
@@ -369,6 +376,9 @@ FLStartSession <- function(connection,
     ## Create platform Mappings
     tryCatch(FLcreatePlatformsMapping(),
             error=function(e)warning("Platform Mappings could not be generated \n "))
+
+    ## Load Iris table if not exists
+    vtemp <- loadIris()
 
     cat("Session Started..\n")
 }
@@ -593,3 +603,14 @@ ModifyHypoResultColnames <- function(pFunc,pObj){
                                             colnames(pObj))
     return(pObj)
 }
+
+loadIris <- function(){
+  viris <- iris
+  colnames(viris) <- tolower(colnames(viris))
+  if(!checkRemoteTableExistence(tableName="iris"))
+  flt <- as.FLTable(viris,tableName="iris",temporary=FALSE)
+  return(NULL)
+}
+
+
+

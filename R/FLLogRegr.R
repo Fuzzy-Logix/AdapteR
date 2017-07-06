@@ -31,6 +31,7 @@ setClass(
 #'
 #' \code{glm} performs logistic and poisson regression on FLTable objects.
 #'
+#' @seealso \code{\link[stats]{glm}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param family Can be one of poisson,binomial,logisticwt or multinomial characters.
 #' Can be family functions like stats::poisson wherever possible.
@@ -76,7 +77,7 @@ setClass(
 #' @return \code{glm} returns \code{FLLogRegrMN} object for
 #' \code{multinomial} family and \code{FLLogRegr} otherwise
 #' @examples
-#' deeptable <- FLTable("tblLogRegr","ObsID","VarID","Num_Val",
+#' deeptable <- FLTable(getTestTableName("tblLogRegr"),"ObsID","VarID","Num_Val",
 #'                whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable)
 #' coef(glmfit)
@@ -91,9 +92,9 @@ setClass(
 #' poissonfit <- glm(event ~ meanTemp, family=poisson, data=widetable,offset="age")
 #' summary(poissonfit)
 #' plot(poissonfit)
-#' predData <- FLTable("preddata1","ObsID")
+#' predData <- FLTable(getTestTableName("preddata1"),"ObsID")
 #' mu <- predict(poissonfit,newdata=predData)
-#' deeptable <- FLTable("tblLogRegrMN10000","ObsID","VarID","Num_Val",
+#' deeptable <- FLTable(getTestTableName("tblLogRegrMN10000"),"ObsID","VarID","Num_Val",
 #'              whereconditions="ObsID<7001")
 #' glmfit <- glm(NULL,data=deeptable,family="multinomial")
 #' glmfit$coefficients
@@ -211,6 +212,17 @@ glm.FLTable <- function(formula,
 	}
 	else stop("That's not a valid property")
 }
+
+
+
+#' @export
+setMethod("names", signature("FLLogRegr"), function(x) c("linear.predictors",
+                                                          "df.residual", "FLLogRegrStats",
+                                                          "FLCoeffChiSq","coefficients",
+                                                          "residuals", "fitted.values",
+                                                          "FLCoeffStdErr", "FLCoeffPValue",
+                                                          "call","model","x", "y","qr",
+                                                          "rank","xlevels","terms","assign" ))
 
 #' @export
 coefficients.FLLogRegr<-function(object){

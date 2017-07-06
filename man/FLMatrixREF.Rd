@@ -23,6 +23,7 @@ Input can only be a square FLMatrix with maximum dimension limitations of (1000 
 }
 
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+                      "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 resultFLMatrix <- FLMatrixREF(flmatrix)
 }

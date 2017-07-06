@@ -356,6 +356,9 @@ setMethod("getIndexSQLName",
 setMethod("getIndexSQLName",
           signature(object = "FLIndexedValues"),
           function(object,margin=1) object@dimColumns[[margin]])
+setMethod("getIndexSQLName",
+          signature(object = "FLTableDeep"),
+          function(object,margin=1:2) object@dimColumns[margin])
 
 #' @export
 setGeneric("setIndexSQLName", function(object,margin,value) {
@@ -732,6 +735,41 @@ setMethod("constructSelect", signature(object = "FLVector"),
               return(constructSelect(select))
           })
 
+
+setMethod("constructSelect", signature(object = "FLTableMD"),
+          function(object,...) {
+    if(class(object@select)=="FLTableFunctionQuery") 
+    return(constructSelect(object@select))
+    # browser()
+    vobsIDCol <- changeAlias(getObsIdSQLExpression(object),"","")
+    vgrpIDCol <- changeAlias(getGroupIdSQLExpression(object),"","")
+    if(!isDeep(object))
+    {
+        variables <- getVariables(object)
+        # ifelse(is.null(variables$obs_id_colname),
+        #     vobsIDCol <- variables["vectorIndexColumn"],
+        #     vobsIDCol <- variables["obs_id_colname"])
+        
+        colnames <- c(vgrpIDCol,vobsIDCol,
+                      setdiff(colnames(object),
+                              c(vobsIDCol,vgrpIDCol)))
+        newColnames <- renameDuplicates(colnames)
+        colnames <- appendTableName(colnames,
+                      names(getTableNameSlot(object))[1])
+        
+        variables <- as.list(colnames)
+        names(variables) <- c("group_id_colname",
+                              "obs_id_colname",
+                              newColnames[-1:-2])
+    }
+    else
+    {
+        variables <- getVariables(object)
+    }
+    object@select@variables <- variables
+    return(constructSelect(object@select))
+})
+
 constructVariables <- function(variables){
   #browser()
     if(!is.null(names(variables)))
@@ -1038,12 +1076,30 @@ setMethod("getTableNameSlot",
           signature(object = "FLTable"),
           function(object) getTableNameSlot(object@select))
 
-isDeep <- function(x) inherits(x,"FLTableDeep") | inherits(x,"FLTableMDDeep") | inherits(x,"FLMatrix")
+isDeep <- function(x){
+    return(inherits(x,"FLTableDeep") 
+        | inherits(x,"FLTableMDDeep") 
+        | inherits(x,"FLMatrix")
+        | (inherits(x,"FLVector") && x@isDeep))
+}
 
 
 
 #' Recieves the result of a "show table ..." SQL query as a character string.
 #' 
+
 #' @export
-showTable <- function(x)
-    gsub("\r","\n",sqlQuery(connection, paste0("show table ",getTableNameSlot(x)))[1,1],fixed=T)
+showTable <- function(x, ...){
+    vplat <- getFLPlatform(getFLConnection())[[1]]
+    if(!any(names(vmap) == vplat)){
+       stop("Not supported for the platform you are currently using")}
+   
+    if(is.FLTable(x))
+        x <- getTableNameSlot(x)[[1]]
+    if(is.data.frame(x)){
+        stop("only supported for table in database")
+    }
+    vmap <- c("TD" = "show table ", "Hadoop" = "DESCRIBE ")
+    
+    cat(gsub("\r","\n",sqlQuery(connection, paste0(vmap[[vplat]]," ",x))), fill = TRUE)
+    }

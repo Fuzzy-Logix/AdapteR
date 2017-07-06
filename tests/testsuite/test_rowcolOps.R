@@ -11,24 +11,28 @@ FLenv <- as.FL(Renv)
 test_that("colSums",{
     eval_expect_equal({
         cols<-colSums(M)
-    }, Renv, FLenv)
+    }, Renv, FLenv,
+        expectation= c("cols"))
 })
 
 test_that("rowSums",{
     eval_expect_equal({
         rows<-rowSums(M)
-    }, Renv, FLenv)
+    }, Renv, FLenv,
+        expectation= c("rows"))
 })
 
 test_that("colMeans",{
     eval_expect_equal({
         colm<-colMeans(M)
-    }, Renv, FLenv)
+    }, Renv, FLenv,
+        expectation= c("colm"))
 })
 
 test_that("Check4 for rowMeans function",{
     eval_expect_equal({
         rowm<-rowMeans(M)
-    }, Renv, FLenv)
+    }, Renv, FLenv,
+        expectation= c("rowm"))
 })
 

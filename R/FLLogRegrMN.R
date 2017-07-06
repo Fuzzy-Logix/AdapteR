@@ -52,6 +52,19 @@ setClass(
         stop("That's not a valid property")
 }
 
+
+
+
+#' @export
+setMethod("names", signature("FLLogRegrMN"), function(x) c("call","model","x",
+                                                          "y","qr","rank","xlevels",
+                                                          "terms","assign", "FLLogRegrStats"
+                                                         ,"df.residual", "coefficients",
+                                                          "FLCoeffStdErr", "FLCoeffPValue",
+                                                          "FLCoeffChiSq" ))
+
+
+
 #' @export
 coefficients.FLLogRegrMN <- function(object){
 	if(!is.null(object@results[["coefficients"]]))

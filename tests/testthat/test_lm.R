@@ -7,9 +7,16 @@ groupb = rep(0:1,each = 10)
 weight <- c(ctl, trt)
 dataframe = data.frame(weight = weight,groupf =groupf,groupb =groupb)
 rownames(dataframe) <- 1:nrow(dataframe)
+
+x <- rnorm(15)
+y <- x + rnorm(15)
+data <- as.data.frame(cbind(x, y))
+
 FLenv = as.FL(Renv)
 Renv$dataframe <- dataframe
-FLenv$dataframe <- as.FLTable(dataframe,temporary=F)
+FLenv$dataframe <- as.FLTable(dataframe,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+Renv$data <- data
+
 
 test_that("lm: execution",{
     result = eval_expect_equal({
@@ -65,6 +72,17 @@ test_that("lm: summary.lm https://app.asana.com/0/143316600934101/15694819281845
     lmSum <- summary(lmobj)
   },Renv,FLenv,
   noexpectation = "lmSum")
+})
+
+FLenv$data <- as.FLTable(data,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+test_that("lm: prediction",{
+  result = eval_expect_equal({
+    lmobj <- lm(y ~ x,data=data)
+    result <- predict(lmobj)
+  },Renv,FLenv,
+  expectation="result",
+  noexpectation = "lmobj",
+  check.attributes=F)
 })
 
 ## Check for plot function of Linear Regression.
@@ -128,7 +146,7 @@ test_that("lm: multi dataset ",{
 
 ## Testing lm for non-continuous ObsIDs
 widetable  <- FLTable(getTestTableName("tblAbaloneWide"),
-                    "obsid",whereconditions=c("ObsID>10","ObsID<1001"))
+                    "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
 if(is.TDAster()) vformula <- rings~height+diameter else vformula <- Rings~Height+Diameter
 object <- lm(vformula,widetable)
 
@@ -143,6 +161,7 @@ test_that("Check for dimensions of x Matrix ",{
                      c("Rings","Height","Diameter")
                     )
 })
+
 
 test_that("Check for dimensions of x Matrix ",{
     deeptable <- FLTable(getTestTableName("myLinRegrSmall"),

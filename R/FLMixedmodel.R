@@ -3,6 +3,36 @@
 ## http://www.bodowinter.com/tutorial/bw_LME_tutorial1.pdf
 ##http://www.bodowinter.com/tutorial/bw_LME_tutorial2.pdf 
 
+#' Fit Linear Mixed-Effects Models
+#'
+#' \code{lmer} performs mixed model  on FLTable objects.
+#'
+#' The DB Lytix function called is FLLinMixedModel. The mixed model extends the linear
+#' model by allowing correlation and heterogeneous variances in the
+#' covariance matrix of the residuals. Fit a linear mixed-effects model (LMM) to data,
+#' FLLinMixedModel estimates the coefficients and covariance matrix of the mixed model
+#' via the expectations.
+#'
+#' @seealso \code{\link[lme4]{lmer}} for R reference implementation.
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable.
+#' @slot results cache list of results computed
+#' @slot table Input data object
+#' @method residuals FLMix 
+#' @method plot FLMix
+#' @method summary FLMix
+#' @method predict FLMix
+#' @method print FLMix
+#' @method coefficients FLMix
+#' @method AIC FLMix
+#' @method logLik FLMix
+#' @return \code{lmer} returns an object of class \code{FLMix}
+#' @examples
+#' ## One Random Effect.
+#' fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
+#' flmod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
+#' flpred <- predict(flmod)
+#' @export
 lmer <- function (formula,data=list(),...) {
     UseMethod("lmer", data)
 }
@@ -27,31 +57,7 @@ setClass(
                  ) )
 
 
-#' \code{lmer} performs mixed model  on FLTable objects.
-#' The DB Lytix function called is FLLinMixedModel. The mixed model extends the linear
-#' model by allowing correlation and heterogeneous variances in the
-#' covariance matrix of the residuals. Fit a linear mixed-effects model (LMM) to data,
-#' FLLinMixedModel estimates the coefficients and covariance matrix of the mixed model
-#' via the expectations.
-#' @seealso \code{\link[lme4]{lmer}} for R reference implementation.
-#' @param formula A symbolic description of model to be fitted
-#' @param data An object of class FLTable.
-#' @slot results cache list of results computed
-#' @slot table Input data object
-#' @method residuals FLMix 
-#' @method plot FLMix
-#' @method summary FLMix
-#' @method predict FLMix
-#' @method print FLMix
-#' @method coefficients FLMix
-#' @method AIC FLMix
-#' @method logLik FLMix
-#' @return \code{lmer} returns an object of class \code{FLMix}
-#' @examples
-#' ## One Random Effect.
-#' fltbl  <- FLTable("tblMixedModel", "ObsID")
-#' flmod <- lmer.FLTable(yVal ~ FixVal + (1 | RanVal), data = fltbl)
-#' flpred <- predict(flmod)
+
 #' @export
 lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
 {
@@ -170,7 +176,8 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
     }   
 }
 
-setMethod("names", signature("FLMix"), function(x) {c("AIC","logLik",
+
+setMethod("names", signature("FLMix"), function(object) {c("AIC","logLik",
                                                           "CovarErr","CovarRandom",
                                                           "u",
                                                           "fixedcoef" )})

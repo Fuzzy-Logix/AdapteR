@@ -14,15 +14,50 @@ setClass(
     slots=list(offset="character",
                vfcalls="character"))
 
-#' library(e1071)
-#' Linear Kernel
-#' tbl  <- FLTable("tblSVMLinSepMultiDim", "OBSID", whereconditions= "OBSID>307")
-#' flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "linear")
-#' predict(flmod)
+#' Support Vector Machines
 #'
-#' polynomial Kernel
-#'tbl <- FLTable("tblSVMDense", "OBSID", whereconditions = "OBSID>307")
-#'flmod <- svm(DEP~., data = tbl, fetchID = TRUE, kernel = "polynomial")
+#' \code{svm} is used to train a support vector machine. It can be used to
+#' carry out general classification.
+#'
+#' The wrapper overloads svm and implicitly calls DB-Lytix svm function.
+#' @param formula a symbolic description of the model to be fit.
+#' @param data an FLTable wide or deep containing the variables in the model.
+#' @param kernel the kernel used in training and predicting, different kernel types are: \cr
+#' linear: u'*v \cr
+#' polynomial: (gamma*u'*v + coef0)^degree \cr
+#' radial basis: exp(-gamma*|u-v|^2) \cr
+#' @param cost cost of constraints violation
+#' @param degree parameter needed for kernel of type polynomial.
+#' @section Constraints:
+#' All values in FLtable should be numeric, maximum number of observations in
+#' the dataset can be 2000 and maximum number of independent columns can be 500.
+#' The class variable is binary, with value either -1 or 1 only.
+#' @return \code{svm} returns a FLSVM class object which replicates equivalent R output
+#' from \code{svm} in e1071 package.
+#' @examples
+#' #Linear Kernel
+#' FLtbl  <- FLTable(getTestTableName("tblSVMLinSepMultiDim"),
+#'                   "OBSID", whereconditions= "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE,
+#'                 kernel = "linear")
+#' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
+#'
+#' #polynomial Kernel
+#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
+#'                  "OBSID", whereconditions = "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
+#'                kernel = "polynomial")
+#' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
+#'
+#' #Gaussian Kernel
+#' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
+#'                  "OBSID", whereconditions = "OBSID>307")
+#' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
+#'                kernel = "radial basis")
+#' FLPredict <- predict(FLmodel)
+#' print(FLmodel)
 #' @export
 svm <- function (formula,data=list(),...) {
     UseMethod("svm", data)
@@ -67,14 +102,13 @@ svmGeneric <- function(formula,data,
                        ...)
 
 {
-##    browser()
     prepData <- prepareData.lmGeneric(formula,data,
                                       callObject=callObject,
                                       familytype=familytype,
                                       performNorm=1,
                                       cost = 1,
                                       ...)
-    
+
     for(i in names(prepData))
 	assign(i,prepData[[i]])
     deeptable <- deepx@select@table_name
@@ -93,7 +127,7 @@ svmGeneric <- function(formula,data,
     if(is.TDAster())
         vgroupCol <- "partition1"
     else vgroupCol <- "outputgroupid"
-    t <- createTable(tblname, 
+    t <- createTable(tblname,
                     pSelect = constructUDTSQL(pViewColname = c(groupid = 1,
                                                              obsid = deepx@select@variables$obs_id_colname,
                                                              varid = deepx@select@variables$var_id_colname,
@@ -102,11 +136,13 @@ svmGeneric <- function(formula,data,
                                             pFuncName = functionName,
                                             pOutColnames = c("a.*"),
                                             pSelect = deeptable,
-                                            pLocalOrderBy=c("groupid", "obsid", "varid"), 
-                                            pNest = TRUE, 
+                                            pLocalOrderBy=c("groupid", "obsid", "varid"),
+                                            pNest = TRUE,
                                             pFromTableFlag = TRUE),
-                    pPrimaryKey=vgroupCol)
-    
+                    pPrimaryKey=vgroupCol,
+                    pTemporary=FALSE)
+
+    vfcalls <- c(functionName = functionName)
     return(new("FLSVM",
                formula=formula,
                table=data,
@@ -118,55 +154,70 @@ svmGeneric <- function(formula,data,
                mapTable=mapTable,
                scoreTable="",
                offset=as.character(offset),
-               RegrDataPrepSpecs=RegrDataPrepSpecs))   
+               RegrDataPrepSpecs=RegrDataPrepSpecs,
+               wideToDeepAnalysisID = prepData[["wideToDeepAnalysisID"]],
+               vfcalls = vfcalls))
 }
 
 ## use FLsimpleVector
 #' @export
-predict.FLSVM <- function(object, newData = object@table){
-    var <- getVariables(object@deeptable@select)
-    tblname <- gen_unique_table_name("svmoutput")
-    scrmethod <- toupper(substr(object@results$kernel, 1,1))
-    ##browser()
-    ret <- sqlStoredProc(connection,
-                         "FLSVMScore",
-                         ModelTable = object@results$outtbl,
-                         InTable = object@deeptable@select@table_name,
-                         GroupIDCol = "NULL",
-                         ObsIDCol = var[[1]],
-                         VarIDCol = var[[2]],
-                         NumValCol = var[[3]],
-                         ScoreMethod = scrmethod,
-                         ScoreTable = tblname,
-                         Note="SVMScore from AdapteR",
-                         "OutAnalysisID"
-                         )
-    val <- new("FLSimpleVector",
-               select= new("FLSelectFrom",
-                           table_name=tblname,
-                           connectionName=getFLConnectionName(),
-                           variables=list(obsid = var[[1]],pred = "predyscoring" ),
-                           whereconditions="",
-                           order=""),
-               dimColumns = c(var[[1]], "pred"),
-               Dimnames = list(1:nrow(object@deeptable)),
-               dims    = as.integer(c(nrow(object@deeptable), 1)),
-               type       = "double"
-               )
+predict.FLSVM <- function(object, newdata = object@deeptable, scoreTable = "", ...){
+    if(!is.FLTable(newdata) && class(newdata) != "FLpreparedData") 
+        stop("scoring allowed on FLTable only")
+    if(class(newdata) == "FLpreparedData"){
+        newdata <- newdata$deepx
+    }
+    else if(newdata@select@table_name == object@deeptable@select@table_name ||
+            newdata@select@table_name == object@table@select@table_name){
+        newdata <- object@deeptable
+        rname <- rownames(object@table)
+    }
+    else{
+        newdata <- prepareData(object,newdata,outDeepTableName="", ...)
+        rnames <- rownames(newdata)
+    }
 
-    ##    qer <- paste0("CALL FLSVMScore(",fquote(object@results$outtbl),",
-    ##                                    ",fquote(object@deeptable@select@table_name),",
-    ##                                    NULL,
-    ##                                    ",fquote(var[[1]])," ,
-    ##                                    ",fquote(var[[2]])," ,
-    ##                                    ",fquote(var[[3]])," ,
-    ##                                    ",fquote(scrmethod),",  
-    ##                                    ",fquote(tblname),",
-    ##                                     OutAnalysisID);")
-    
-    ##    print(sqlQuery(connection, qer))
-    ##    str <- paste0("SELECT TOP 5 * FROM ",tblname)
-    ##    return(sqlQuery(connection, str) )
+    newdata <- setAlias(newdata,"")
+
+    if(scoreTable == ""){
+        
+        pvar <- getVariables(newdata)
+        scoreTable <- gen_unique_table_name("svmoutput")
+        scrmethod <- toupper(substr(object@results$kernel, 1,1))
+
+        ret <- sqlStoredProc(connection,
+                             "FLSVMScore",
+                             ModelTable = object@results$outtbl,
+                             InTable = getTableNameSlot(newdata),
+                             GroupIDCol = "NULL",
+                             ObsIDCol = pvar[[1]],
+                             VarIDCol = pvar[[2]],
+                             NumValCol = pvar[[3]],
+                             ScoreMethod = scrmethod,
+                             ScoreTable = scoreTable,
+ ##                            Note="SVMScore from AdapteR",
+                             outputParameter=c(AnalysisID="a")
+                             )
+    }
+    sqlstr <- paste0("SELECT '%insertIDHere%' AS vectorIdColumn, \n ",
+                     "obsid AS vectorIndexColumn, \n ",
+                     "predyscoring as vectorValueColumn \n ",
+                     " FROM ",scoreTable)
+
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                          connectionName = attr(connection,"name"),
+                          variables = list(
+                              obs_id_colname = "vectorIndexColumn",
+                              cell_val_colname = "vectorValueColumn"),
+                          whereconditions="",
+                          order = "",
+                          SQLquery=sqlstr)
+    val <- newFLVector(
+        select = tblfunqueryobj,
+        Dimnames = list(rname,"vectorValueColumn"),
+        isDeep = FALSE,
+        type="double")
+    return(val)
 }
 
 #' @export
@@ -187,7 +238,7 @@ predict.FLSVM <- function(object, newData = object@table){
         if(object@results$kernel == "polynomial")
             return(object@results$votbl$degreepoly)
         else
-            return("Not applicable for this kernel")     
+            return("Not applicable for this kernel")
     }
     if(property == "cost"){
         return(object@results$varg[1]) }
@@ -202,14 +253,14 @@ predict.FLSVM <- function(object, newData = object@table){
     if(property == "BValue"){
         if(any(c("polynomial", "gaussian") == object@results$kernel))
             return(object@results$votbl$bvalue)
-        else   
-            return("Not applicable for this kernel")          
+        else
+            return("Not applicable for this kernel")
     }
     if(property == "crbfConstant"){
         if(object@results$kernel == "gaussian")
             return(object@results$votbl$crbfconstant)
         else
-            return("Not applicable for this kernel")          
+            return("Not applicable for this kernel")
     }
 
     if(property == "misclassifications"){
@@ -227,7 +278,7 @@ predict.FLSVM <- function(object, newData = object@table){
             Num_Val <- getVariables(object@deeptable)$cell_val_colname
             dim <- object@table@Dimnames[[2]][-length(object@table@Dimnames[[2]])]
             vdimnames <- list(object@table@Dimnames[[1]], dim)
-            
+
             quer <- paste0("SELECT a.",ObsID," AS obs_id_colname, a.",
                                         VarID," AS var_id_colname, b.PlaneWt*a.",
                                         Num_Val," AS cell_val_colname FROM ",
@@ -246,14 +297,14 @@ predict.FLSVM <- function(object, newData = object@table){
                                   order = "",
                                   SQLquery=quer)
 
-            T <- newFLTable( 
+            T <- newFLTable(
                 select = tblfunqueryobj,
                 Dimnames = vdimnames,
                 dims = c(nrow(object@table), ncol(object@table)-1),
                 isDeep = TRUE,
                 type=object@table@type,
                 dimColumns=c("obs_id_colname","var_id_colname", "cell_val_colname"))
-            
+
             return(T)
         }
         else
@@ -270,7 +321,7 @@ print.FLSVM <- function(object, ...){
     cat("Call: \n\n")
     print(object@results$call)
     cat("Parameters:\n")
-    cat("SVM-Method: Sequential Minimal Optimization(SMO)\n")   
+    cat("SVM-Method: Sequential Minimal Optimization(SMO)\n")
     cat("SVM-kernel:",object@results$kernel,"\n")
     cat("misclassifications: ",object$misclassifications,"\n")
     cat("Lambda: ",object$lambda,"\n")
@@ -278,3 +329,13 @@ print.FLSVM <- function(object, ...){
 }
 
 setMethod("show","FLSVM",function(object){print.FLSVM(object)})
+
+#' @export
+setMethod("names", signature("FLSVM"), function(x) c("BValue",
+                                                      "SV",
+                                                      "misclassifications",
+                                                      "crbfConstant",
+                                                      "lambda",
+                                                      "cost",
+                                                      "degree",
+                                                      "call" ))

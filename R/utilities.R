@@ -275,6 +275,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
         .jcall(cStmt,"V","registerOutParameter",ai,a) ## Error Hadoop:- method registerOutParameter with signature (II)V not found 
         ai <- ai+1L
     }
+
     ## Making a procedure call
     exR <- .jcall(cStmt,"I","executeUpdate")
     argOffset <- length(args)
@@ -696,4 +697,12 @@ separateDBName <- function(vtableName){
 
 removeAlias <- function(pName){
     return(changeAlias(pName,"",""))
+}
+
+hasWhereClause <- function(pObject){
+    return(length(setdiff(constructWhere(pObject),""))>0)
+}
+
+hasSQLSelect <- function(pObject){
+    return(inherits(pObject@select,"FLTableFunctionQuery"))
 }

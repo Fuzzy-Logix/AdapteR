@@ -24,7 +24,10 @@ Input can only be with maximum dimension limitations of (500 x 500).
 }
 
 \examples{
-connection <- flConnect(odbcSource="Gandalf")
-flmatrix <- FLMatrix("tblMatrixMulti", 1,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 1,"MATRIX_ID",
+                     "ROW_ID","COL_ID","CELL_VAL",dims= c(2,3))
 resultFLMatrix <- ginv(flmatrix)
+}
+\seealso{
+\code{\link[MASS]{ginv}} for corresponding R function reference
 }

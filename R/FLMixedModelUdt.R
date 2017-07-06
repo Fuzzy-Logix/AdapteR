@@ -15,19 +15,17 @@ setClass(
 
 
 ## TODO :- implement storage in results slot.
-
-#' @export
-mixUDT <- function (formula,data=list(),...) {
-    UseMethod("mixUDT", data)
-}
-
-#' \code{mixudt} performs mixed model  on FLTable objects.
+#' Mixed Model
+#'
+#' \code{mixUDT} performs mixed model on FLTable objects.
+#'
 #' The DB Lytix function called is FLMixedModelUdt or FLMixedModelIntUdt.
 #' The mixed model extends the linear model by allowing correlation and
 #' heterogeneous variances in the covariance matrix of the residuals.
 #' Fita a linear mixed-effects model (LMM) to data,
 #' FLMixedModelUdt and FLMixedModelIntUdt estimates the coefficients and covariance
 #' matrix of the mixed model via expectation maximization method.
+#'
 #' @seealso \code{\link[lme4]{lmer}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable.
@@ -44,13 +42,18 @@ mixUDT <- function (formula,data=list(),...) {
 #' @return \code{lmer} returns an object of class \code{FLMixUDT}
 #' @examples
 #' One Random Effect.
-#' fltbl  <- FLTable("tblMixedModel", "ObsID")
+#' fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
 #' flmod <- mixUDT(yVal ~ FixVal + (1 | RanVal), data = fltbl, pIntercept = 1)
 #' flpred <- predict(flmod)
 #' 2 Random Effects.
-#' tbl  <- FLTable("tblMixedModelInt", "ObsID")
+#' tbl  <- FLTable(getTestTableName("tblMixedModelInt"), "ObsID")
 #' flmod <- mixUDT(yVal ~ FixVal + (1 |   RanVal1) + (1 | RanVal2 ), tbl)
 #' flpred <- predict(flmod)
+#' @export
+mixUDT <- function (formula,data=list(),...) {
+    UseMethod("mixUDT", data)
+}
+
 #' @export
 mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
 {
@@ -167,7 +170,7 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
             return(c(df$cr1,df$cr2)) } }
 
     if(property == "u"){
-        quer <- paste0("SELECT CoeffEst as cf, CoeffID cid FROM ",
+        quer <- paste0("SELECT CoeffEst as Cf, CoeffID cid FROM ",
                         object@results$outtbl,
                         " WHERE coeffName LIKE 'RANDOM%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
@@ -197,7 +200,7 @@ predict.FLMixUDT <- function(object,
                           scoreTable = "")
 {
     parentObject <- unlist(strsplit(unlist(strsplit(
-		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+    as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
     scoretbl <- gen_unique_table_name("mixedscore")
     vinputcols <- list(CoeffTable  = object@results$outtbl,
                        InTable = newdata@select@table_name,

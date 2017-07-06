@@ -13,7 +13,7 @@ NULL
 #' @param ncomp Number of components for performing pls & opls
 #' @return \code{mvr} returns an object of class \code{FLPLSRegr}
 #' @examples
-#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
 #' flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
 #' predict(flmod); residuals(flmod);plot(flmod)
 #' cof <-coefficients(flmod)
@@ -66,15 +66,13 @@ mvr.FLTableMD <- mvr.FLpreparedData
 #'
 #' The DB Lytix function called is FLOPLSRegr. Performs OPLS Regression and 
 #' stores the results in predefined tables.
-#'
-#' @seealso \code{\link[stats]{opls}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable or FLTableMD.
 #' @param ncomp Number of components for performing pls & opls.
 #' @param northo Number of orthogonal vectors.
 #' @return \code{opls} returns an object of class \code{FLPLSRegr}
 #' @examples
-#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
 #' flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
 #' cof <- coefficients(flmod)
 #' pred <- predict(flmod);res <- residuals(flmod) 
@@ -245,6 +243,14 @@ setClass(
     }    
 }
 
+
+
+#' @export
+setMethod("names", signature("FLPLSRegr"), function(x) c("y","rsquare","Yloadings",
+                                                     "WeightYN","loading.weights",
+                                                     "loadings","scores","Yscores",
+                                                     "coefficients","fitted.values",
+                                                     "methods","Ymeans","Xmeans"))
 
 
 #' @export

@@ -24,13 +24,16 @@ test_that("testing the example written in FLMatrixREF",{
                         "MATRIX_ID",
                         "ROW_ID",
                         "COL_ID",
-                        "CELL_VAL")
+                        "CELL_VAL",
+                        dims= c(5,5))
   resultFLMatrix <- FLMatrixREF(flmatrix)
+  resultMatrix <- as.matrix(resultFLMatrix)
 })
 
 
 ## Testing FLMatrixREF
 test_that("check FLMatrixREF",
 {
-    FLMatrixREF(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
+    resultFLMatrix <- FLMatrixREF(initF.FLMatrix(n=5,isSquare=TRUE)$FL)
+    resultMatrix <- as.matrix(resultFLMatrix)
 })

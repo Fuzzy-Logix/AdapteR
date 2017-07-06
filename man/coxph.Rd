@@ -65,18 +65,26 @@ coefficients,plot,print,summary methods are available for fitted object.
 }
 
 \examples{
-widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
+widetable  <- FLTable(getTestTableName("siemenswideARDemoCoxPH"),
+					 "ObsID")
 fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-predData <- FLTable("preddatatoday","ObsID")
+predData <- FLTable(getTestTableName("preddatatoday"),"ObsID")
 resultList <- predict(fitT,newdata=predData)
 resultList[[1]]
 resultList[[2]]
 summary(fitT)
 plot(fitT)
-deeptable <- FLTable("siemensdeepARDemoCoxPH","obs_id_colname",
-                     "var_id_colname","cell_val_colname")
+
+deeptable <- FLTable(getTestTableName("siemensdeepARDemoCoxPH"),
+					"obs_id_colname", 
+					"var_id_colname",
+					"cell_val_colname")
 fitT <- coxph("",deeptable)
 fitT$coefficients
 summary(fitT)
 plot(fitT)
+
+}
+\seealso{
+\code{\link[survival]{coxph}} for corresponding R function reference
 }

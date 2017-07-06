@@ -14,8 +14,15 @@ NULL
 #'
 #' @return An object of class "FLrpart" containing the tree structure details.
 #' @examples
-#' flt<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+#' flt<-FLTable(getTestTableName("tblDecisionTreeMulti"),
+#' 				"ObsID","VarID","Num_Val")
 #' flobj<-rpart(data = flt, formula = -1~.)
+#' summary(flobj)
+#' newdata <- flt[1:50,1:4]
+#' pred <- predict(flobj, newdata)
+#' print(flobj)
+#' plot(flobj)
+#' @seealso \code{\link[rpart]{rpart}} for corresponding R function reference.
 #' @export
 rpart <- function (formula,data=list(),...) {
 	UseMethod("rpart", data)
@@ -55,32 +62,7 @@ rpart.FLTable<-function(data,
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
-	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(isDeep(data)){
-		deepx<-data
-		deepx<-setAlias(deepx,"")
-		deeptablename<-getTableNameSlot(data)
-		vprepspecs<-list()	
-	}
-	else{
-		if(!isDotFormula(formula)){
-			data <- setAlias(data,"")
-			vcolnames<-colnames(data)		
-			vexclude<-setdiff(vcolnames,all.vars(formula))
-			obs<-getVariables(data)[["obs_id_colname"]]
-			vexclude<-setdiff(vexclude,obs)
-			vexclude<-paste0(vexclude,collapse=",")
-		}
-		else{
-			vexclude<-NULL
-		}
-			depCol<-all.vars(formula)[1]
-			vprepspecs<-list(depCol,vexclude)
-			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
-			deepx<-deep
-			deepx<- setAlias(deepx,"")
-			deeptablename<-getTableNameSlot(deepx)
-	}
+	deepx<-tableformat(object,formula)
 	vobsid <- getVariables(deepx)[["obs_id_colname"]]
 	vvarid <- getVariables(deepx)[["var_id_colname"]]
 	vvalue <- getVariables(deepx)[["cell_val_colname"]]
@@ -454,32 +436,8 @@ rtree<-function(data,
 	call<-match.call()
 	if(!class(formula)=="formula") stop("Please enter a valid formula")
 	if(control["cp"]>1 || control["cp"]<0) stop("cp should be between 0 and 1")
-	if(!class(formula)=="formula") stop("Please enter a valid formula")
-	if(isDeep(data)){
-		deepx<-data
-		deepx<-setAlias(deepx,"")
-		deeptablename<-getTableNameSlot(data)
-		vprepspecs<-list()	
-	}
-	else{
-		if(!isDotFormula(formula)){
-			data <- setAlias(data,"")
-			vcolnames<-colnames(data)		
-			vexclude<-setdiff(vcolnames,all.vars(formula))
-			obs<-getVariables(data)[["obs_id_colname"]]
-			vexclude<-setdiff(vexclude,obs)
-			vexclude<-paste0(vexclude,collapse=",")
-		}
-		else{
-			vexclude<-NULL
-		}
-			depCol<-all.vars(formula)[1]
-			vprepspecs<-list(depCol,vexclude)
-			deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
-			deepx<-deep
-			deepx<- setAlias(deepx,"")
-			deeptablename<-getTableNameSlot(deepx)
-	}
+	deepx<-tableformat(object,formula)
+
 	if(pRandomForest==0){
 		sampsize<-NULL
 		pSampleRateVars<-NULL
@@ -511,7 +469,6 @@ rtree<-function(data,
 						   pOutColnames=c(fquote(AnalysisID),"a.*"),
 						   pFuncName="FLRegrTreeUdt",
 						   pLocalOrderBy=c("pGroupID","pObsID","pVarID"))
-
 	# tName <- gen_unique_table_name("RegrTree")
 	# p <- createTable(tName,pSelect=query,pTemporary=TRUE)
  #    a<-sqlQuery(getFLConnection(),paste0("Select * from ",p))
@@ -634,4 +591,36 @@ plot.FLrtree<-function(object){ #browser()
 		class(object$forest[[i]])<-"data.frame"
 		plot.FLrpart(object$forest[[i]])
 	}
+}
+
+tableformat <- function(object,formula,...){
+	#browser()
+	data<-object
+	if(!class(formula)=="formula") stop("Please enter a valid formula")
+	if(isDeep(data)){
+		deepx<-data
+		deepx<-setAlias(deepx,"")
+		deeptablename<-getTableNameSlot(data)
+		vprepspecs<-list()	
+	}
+	else{
+		if(!isDotFormula(formula)){
+			data <- setAlias(data,"")
+			vcolnames<-colnames(data)		
+			vexclude<-setdiff(vcolnames,all.vars(formula))
+			obs<-getVariables(data)[["obs_id_colname"]]
+			vexclude<-setdiff(vexclude,obs)
+			vexclude<-paste0(vexclude,collapse=",")
+		}
+		else{
+			vexclude<-NULL
+		}
+		depCol<-all.vars(formula)[1]
+		vprepspecs<-list(depCol,vexclude)
+		deep<-FLRegrDataPrep(data,depCol=depCol,ExcludeCols=vexclude)
+		deepx<-deep
+		deepx<- setAlias(deepx,"")
+		deeptablename<-getTableNameSlot(deepx)
+	}
+	return(deepx)
 }

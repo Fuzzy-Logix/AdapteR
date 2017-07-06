@@ -367,6 +367,13 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
 
 }
 
+#' @export
+setMethod("names", signature("FLLDA"), function(x) c("scaling", "coefficients", "N",
+                                                     "call", "counts", "means",
+                                                     "lev","xlevels","prior",
+                                                     "confusion","weights" ))
+
+
 
 
 coefficients.FLLDA <- function(object)

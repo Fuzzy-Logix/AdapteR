@@ -2,7 +2,6 @@
 NULL
 
 #' Converts FLMatrix object to vector in R
-#' @method as.vector FLMatrix
 #' @export
 as.vector.FLMatrix <- function(object,mode="any")
 {
@@ -11,7 +10,6 @@ as.vector.FLMatrix <- function(object,mode="any")
 }
 
 #' Converts FLSkalarAggregate object to vector in R
-#' @method as.vector FLSkalarAggregate
 #' @export
 as.vector.FLSkalarAggregate <- function(object,mode="any")
 {
@@ -19,7 +17,6 @@ as.vector.FLSkalarAggregate <- function(object,mode="any")
                                   list(Rfun=object@func,FLfun="")))
 }
 
-#' @method as.vector FLMatrixBind
 #' @export
 as.vector.FLMatrixBind <- function(object,mode="any")
 {
@@ -28,11 +25,9 @@ as.vector.FLMatrixBind <- function(object,mode="any")
 }
 
 #' Converts FLVector object to vector in R
-#' @method as.vector FLVector
 #' @export
 as.vector.FLVector <- function(object,mode="any")
 {
-    #browser()
     vprev1 <- getOption("stringsAsFactors")
     vprev2 <- getOption("warn")
     options(stringsAsFactors=FALSE)
@@ -74,7 +69,6 @@ as.data.frame <- function(x, ...)
 	UseMethod("as.data.frame",x)
 }
 
-#' @method as.data.frame FLTable
 #' @export
 as.data.frame.FLTable <- function(x, ...){
     sqlstr <- constructSelect(x)
@@ -108,12 +102,10 @@ as.data.frame.FLTable <- function(x, ...){
     return(D)
 }
 
-#' @method as.data.frame FLVector
 #' @export
 as.data.frame.FLVector <- function(x, ...){
     sqlstr <- constructSelect(x)
     sqlstr <- gsub("'%insertIDhere%'",1,sqlstr)
-    ##browser()
 
    tryCatch(D <- sqlQuery(getFLConnection(x),sqlstr),
       error=function(e){stop(e)})
@@ -156,12 +148,21 @@ as.data.frame.FLVector <- function(x, ...){
     return(D)
 }
 
-#' @method as.data.frame FLMatrix
 #' @export
 as.data.frame.FLMatrix <- function(x,...)
 {
   temp_m <- as.matrix(x)
   return(as.data.frame(temp_m))
+}
+
+#' @export
+as.data.frame.FLTableMD <- function(x,head=TRUE,...){
+    if(head)
+        n <- 6
+    else{
+        n <- max(unlist(dim(x)[[2]]))
+    }
+    return(head(x=x,n=n,...))
 }
 
 ##############################################################################################################
@@ -176,21 +177,15 @@ as.matrix <- function(x, ...)
 	UseMethod("as.matrix",x)
 }
 
-#' @method as.matrix data.frame
 #' @export
 as.matrix.data.frame <- base::as.matrix.data.frame
-
-#' @method as.matrix integer
 #' @export
 as.matrix.integer <- base::as.matrix.default
-
-#' @method as.matrix numeric
 #' @export
 as.matrix.numeric <- base::as.matrix.default
 
 
 #' Converts input FLMatrix object to matrix in R
-#' @method as.matrix sparseMatrix
 #' @export
 as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
     if(sparse)
@@ -207,7 +202,6 @@ as.matrix.sparseMatrix <- function(object,sparse=FALSE) {
 }
 
 ## #' Converts input FLMatrix object to matrix in R
-#' @method as.matrix FLMatrix
 #' @export
 as.matrix.FLMatrix <- function(object,sparse=FALSE) {
     m <- as.sparseMatrix(object)
@@ -224,13 +218,11 @@ as.matrix.FLMatrix <- function(object,sparse=FALSE) {
                 dimnames=dn)
 }
 
-#' @method as.matrix FLMatrixBind
 #' @export
 as.matrix.FLMatrixBind <- as.matrix.FLMatrix
 
 
 #' Converts FLVector object to a matrix in R
-#' @method as.matrix FLVector
 #' @export
 as.matrix.FLVector <- function(obj)
 {
@@ -238,7 +230,6 @@ as.matrix.FLVector <- function(obj)
 	return(as.matrix(Rvector))
 }
 
-#' @method as.matrix FLTable
 #' @export
 as.matrix.FLTable <- function(x,...)
 {
@@ -248,6 +239,7 @@ as.matrix.FLTable <- function(x,...)
 
 
 ###############################################################################################################
+
 #' @export
 as.FLMatrix.Matrix <- function(object,sparse=TRUE,connection=NULL,...) {
     if(!is.logical(sparse)) stop("sparse must be logical")
@@ -451,18 +443,18 @@ setMethod("as.R","environment", function(flobject) as.REnvironment(flobject))
 setMethod("as.R","FLVector", function(flobject) as.vector(flobject))
 
 #' @export
-setGeneric("as.FL", function(object) standardGeneric("as.FL"))
-setMethod("as.FL","numeric", function(object) as.FLVector(object))
-setMethod("as.FL","complex", function(object) stop("complex numbers not currently supported."))
-setMethod("as.FL","character", function(object) as.FLVector(object))
-setMethod("as.FL","vector", function(object) as.FLVector(object))
-setMethod("as.FL","matrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dpoMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dsCMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dgCMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","dgeMatrix", function(object) as.FLMatrix(object))
-setMethod("as.FL","data.frame", function(object) as.FLTable(object))
-setMethod("as.FL","environment", function(object) as.FLEnvironment(object))
+setGeneric("as.FL", function(object,...) standardGeneric("as.FL"))
+setMethod("as.FL","numeric", function(object,...) as.FLVector(object,...))
+setMethod("as.FL","complex", function(object,...) stop("complex numbers not currently supported."))
+setMethod("as.FL","character", function(object,...) as.FLVector(object,...))
+setMethod("as.FL","vector", function(object,...) as.FLVector(object,...))
+setMethod("as.FL","matrix", function(object,...) as.FLMatrix(object,...))
+setMethod("as.FL","dpoMatrix", function(object,...) as.FLMatrix(object,...))
+setMethod("as.FL","dsCMatrix", function(object,...) as.FLMatrix(object,...))
+setMethod("as.FL","dgCMatrix", function(object,...) as.FLMatrix(object,...))
+setMethod("as.FL","dgeMatrix", function(object,...) as.FLMatrix(object,...))
+setMethod("as.FL","data.frame", function(object,...) as.FLTable(object,...))
+setMethod("as.FL","environment", function(object,...) as.FLEnvironment(object,...))
 
 as.REnvironment<-function(FLenv){
   Renv<-new.env()
@@ -486,7 +478,6 @@ as.FLEnvironment <- function(Renv){
 as.sparseMatrix <- function(object)
     UseMethod("as.sparseMatrix")
 
-#' @method as.sparseMatrix FLMatrix
 #' @export
 as.sparseMatrix.FLMatrix <- function(object) {
     sqlstr <- gsub("'%insertIDhere%'",1,constructSelect(object, joinNames=FALSE))
@@ -555,8 +546,6 @@ as.sparseMatrix.FLMatrix <- function(object) {
                         dimnames = dn)
   return(m)
 }
-
-#' @method as.sparseMatrix FLMatrix.TDAster
 #' @export
 as.sparseMatrix.FLMatrix.TDAster <- function(object){
     object <- setValueSQLName(object,tolower(getValueSQLName(object)))
@@ -565,10 +554,8 @@ as.sparseMatrix.FLMatrix.TDAster <- function(object){
                             value=tolower(getIndexSQLName(object,margin=1:2)))
     as.sparseMatrix.FLMatrix(object)
 }
-#' @method as.sparseMatrix FLMatrix.Hadoop
 #' @export
 as.sparseMatrix.FLMatrix.Hadoop <- as.sparseMatrix.FLMatrix.TDAster
-
 #' @export
 as.FLMatrix.FLVector <- function(object,sparse=TRUE,
                 rows=length(object),cols=1,connection=NULL)
@@ -806,6 +793,7 @@ as.FLVector.vector <- function(object,connection=getFLConnection())
                 table_name = c(flt=tablename),
                 variables = list(
                         obs_id_colname = "flt.vectorIndexColumn"),
+                # whereconditions=paste0(tablename,".vectorIdColumn = ",VID),
                 whereconditions=paste0("flt.vectorIdColumn = ",VID),
                 order = "")
 
@@ -922,10 +910,12 @@ as.FLTable.data.frame <- function(object,
   stop("please provide primary key of the table as rownames when uniqueIdColumn=0")
   if(uniqueIdColumn==0){
     vrownames <- rownames(object)
+    if(is.null(vrownames))
+        vrownames <- as.integer(1:nrow(object))
     if(!any(is.na(as.integer(vrownames))))
         vrownames <- as.integer(vrownames)
-    object <- base::cbind(ObsID=vrownames,object)
-    obsIdColname <- "ObsID"
+    object <- base::cbind(obsid=vrownames,object)
+    obsIdColname <- "obsid"
   }
   else if(is.numeric(uniqueIdColumn)){
     uniqueIdColumn <- as.integer(uniqueIdColumn)
@@ -1127,7 +1117,7 @@ setGeneric("populateDimnames",
 setMethod("populateDimnames",
     signature(x="ANY"),
     function(x,...){
-        if(!length(rownames(x))>0)
+        if(!length(x@Dimnames[[1]])>0)
             x@Dimnames[[1]] <- 1:(x@dims[1])
         if(isDeep(x))
             x@Dimnames[[2]] <- 1:(x@dims[2])

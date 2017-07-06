@@ -44,3 +44,6 @@ flt <- as.FLTable(Rdata,tableName="ARBaseTestTempTable")
 RVtestObject <- cochran.qtest(response~fact|block,data=flt)
 print(RVtestObject)
 }
+\seealso{
+\code{\link[stats]{var.test}} for R reference implementation.
+}

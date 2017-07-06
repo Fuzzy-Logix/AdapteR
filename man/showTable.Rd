@@ -4,7 +4,7 @@
 \alias{showTable}
 \title{Recieves the result of a "show table ..." SQL query as a character string.}
 \usage{
-showTable(x)
+showTable(x, ...)
 }
 \description{
 Recieves the result of a "show table ..." SQL query as a character string.

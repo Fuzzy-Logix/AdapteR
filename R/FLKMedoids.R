@@ -122,7 +122,7 @@ setClass(
 #' before clustering. This increases the number of variables in the plot
 #' because categorical variable is split into binary numerical variables.
 #' The clusters may not be well-defined as is observed in the case below:-
-#' widetable  <- FLTable("iris", "rownames")
+#' widetable  <- FLTable("iris", "obsid")
 #' pamobjectnew <- pam(widetable,3,classSpec=list("Species(setosa)"))
 #' plot(pamobjectnew)
 #' @export
@@ -184,8 +184,7 @@ pam.FLTable <- function(x,
 						do.swap = "logical",
 						keep.diss = "logical",
 						keep.data = "logical",
-						pamonce = "logical",
-						distTable = "character"
+						pamonce = "logical"
 					)
 
 	classList <- list(x = "FLTable")
@@ -272,8 +271,23 @@ pam.FLTable <- function(x,
 
 	if(diss)
 	{
-		if(distTable=="") 
-		stop("Since diss=TRUE, provide distTable input in the form of database.table")
+		if(is.character(distTable) && distTable=="")
+		stop(paste0("Since diss=TRUE, provide distTable input name in the form of database.table \n ",
+                    " OR a deepTable or a FLMatrix "))
+        else if(is.FLMatrix(distTable) || 
+            (is.FLTable(distTable) && isDeep(distTable))){
+            vidxnames <- c(getIndexSQLName(distTable,margin=1:2),
+                           getValueSQLName(distTable))
+            names(vidxnames) <- c("obsidx","obsidy","dist")
+            vtbl <- paste0(getTableNameSlot(distTable),"dist")
+            vsel <- paste0("SELECT ",paste0(vidxnames, " AS ", names(vidxnames),
+                                            collapse=" , "),
+                            " FROM (",constructSelect(distTable)," ) a ")
+            vtbl <- createTable(pTableName=vtbl,
+                                pSelect=vsel,
+                                pPrimaryKey=c("obsidx","obsidy"))
+            distTable <- vtbl
+        }
 		distTableCopy <- distTable
 	}
 	else distTableCopy <- "NULL"
@@ -396,6 +410,14 @@ pam.FLTable <- function(x,
 	}
 	else stop(property," is not a valid property")
 }
+
+#' @export
+setMethod("names", signature("FLKMedoids"), function(x) c("isolation", "clusinfo",
+                                                          "silinfo", "diss", "call",
+                                                          "data", "mapping", "objective",
+                                                          "clustering", "id.med",
+                                                          "medoids" ))
+
 
 ## move to file FLKMedoids.R
 clustering.FLKMedoids <- function(object)

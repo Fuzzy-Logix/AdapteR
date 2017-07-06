@@ -18,6 +18,10 @@ rowSums(object, ...)
 \code{rowSums} computes the row-wise sums of FLMatrix objects.
 }
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+                                       "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 resultFLVector <- rowSums(flmatrix)
+}
+\seealso{
+\code{\link[Matrix]{rowSums}} for corresponding R function reference
 }
