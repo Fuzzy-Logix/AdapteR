@@ -273,6 +273,9 @@ FLVarCluster.FLTable.TDAster <- function(x,
 #' @export
 FLVarCluster.FLTableDeep.TDAster <- FLVarCluster.FLTable.TDAster
 
+#' @export
+FLVarCluster.FLTableDeep.Hadoop <- FLVarCluster.FLTable.Hadoop
+
 getFLVectorSQLFLVarCluster <- function(object,outputTable){
     UseMethod("getFLVectorSQLFLVarCluster",object)
 }
@@ -281,6 +284,9 @@ getFLVectorSQLFLVarCluster.FLTable.Hadoop <- function(object,outputTable){
                                     valueColumn="clusterid",
                                     FromTable=outputTable)
 }
+
+getFLVectorSQLFLVarCluster.FLTableDeep.Hadoop <- getFLVectorSQLFLVarCluster.FLTable.Hadoop
+
 getFLVectorSQLFLVarCluster.default <- function(object,outputTable){
     getFLVectorTableFunctionQuerySQL(indexColumn=getVarIdSQLExpression(object),
                                     valueColumn="clusterid",
