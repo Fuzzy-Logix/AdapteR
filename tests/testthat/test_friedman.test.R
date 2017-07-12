@@ -76,3 +76,19 @@ test_that("Friedman Test on FLTable: R example: checking Result Equality without
 ##     expectation=c("fit"))
 ## })
 
+fltMD <- FLTableMD("tblFriedmanTest","datasetid","obsid","groupid","num_val")
+
+data1 <- FLTable("tblFriedmanTest","obsid","groupid","num_val", "datasetid = 1")
+data2 <- FLTable("tblFriedmanTest", "obsid","groupid","num_val", "datasetid = 2")
+d1 <- as.matrix(data1)
+d2 <- as.matrix(data2)
+
+test_that("Friedman Test : DBLytix Example",{
+    res <- friedman.test(data = fltMD)
+    R_res1 <- friedman.test(d1)
+    R_res2 <- friedman.test(d2)
+    expect_equal(res[[1]]$statistic, R_res1$statistic)
+    expect_equal(res[[1]]$p.value, R_res1$p.value)
+    expect_equal(res[[2]]$statistic, R_res2$statistic)
+    expect_equal(res[[2]]$p.value, R_res2$p.value)
+})

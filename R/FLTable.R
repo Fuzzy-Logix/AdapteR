@@ -63,15 +63,17 @@ FLTable <- function(table,
                                                 var_id_colnames,") as VarID FROM ",tableAndAlias(table),
                                                 " ",constructWhere(whereconditions)))[[1]]))
             ncol <- length(cols)
+            nrow <- NULL
             if(!is.null(list(...)[["ObsID"]]))
               rows <- list(...)[["ObsID"]]
+            else if(!is.null(dimnames[[1]]))
+              rows <- dimnames[[1]]
             else if(fetchIDs) {
               rows <- sort(sqlQuery(connection,
                              paste0("SELECT DISTINCT(",
                                     obs_id_colname,") as VarID FROM ",tableAndAlias(table),
                               " ",constructWhere(whereconditions)))[[1]])
               rows <- cleanNames(rows)
-              nrow <- length(rows)
             } else {
                 rows <- NULL
                 nrow <- sqlQuery(connection,
@@ -79,6 +81,8 @@ FLTable <- function(table,
                                         FROM ",tableAndAlias(table),
                                         " ",constructWhere(whereconditions)))[[1]]
             }
+            if(is.null(nrow))
+              nrow <- length(rows)
         }
         else{
             rows <- dimnames[[1]]
@@ -1120,7 +1124,7 @@ FLGenericRegrDataPrep <- function(object,
                             outputParameter=c(AnalysisID="AnalysisID"),
                             pInputParams=inputParams
                             )
-        
+  
     dataprepID <- as.vector(retobj[1,1])
     
     updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
@@ -1143,7 +1147,8 @@ FLGenericRegrDataPrep <- function(object,
                          cell_val_colname=inputParams[["OutValueCol"]],
                          fetchIDs=fetchIDs,
                          wideToDeepAnalysisID=dataprepID,
-                         wideTable=object
+                         wideTable=object,
+                         dimnames=dimnames(object)
                          )
 
     table@mapSelect <- getMappingFLTable(dataprepID)@select
