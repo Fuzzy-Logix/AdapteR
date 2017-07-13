@@ -25,7 +25,7 @@ setClass(
 #' @param kernel the kernel used in training and predicting, different kernel types are: \cr
 #' linear: u'*v \cr
 #' polynomial: (gamma*u'*v + coef0)^degree \cr
-#' radial basis: exp(-gamma*|u-v|^2) \cr
+#' radial : exp(-gamma*|u-v|^2) \cr
 #' @param cost cost of constraints violation
 #' @param degree parameter needed for kernel of type polynomial.
 #' @section Constraints:
@@ -55,7 +55,7 @@ setClass(
 #' FLtbl <- FLTable(getTestTableName("tblSVMDense"), 
 #'                  "OBSID", whereconditions = "OBSID>307")
 #' FLmodel <- svm(DEP~., data = FLtbl, fetchID = TRUE, 
-#'                kernel = "radial basis")
+#'                kernel = "radial")
 #' FLPredict <- predict(FLmodel)
 #' print(FLmodel)
 #' @export
@@ -117,7 +117,7 @@ svmGeneric <- function(formula,data,
     if(kernel == "polynomial") {
         functionName <- "FLSVMPolynomialUDT"
         pArg <- c(pArg, degree=degree)}
-    else if(kernel == "radial basis" ){
+    else if(kernel == "radial" ){
         functionName = "FLSVMGaussianUDT"
         pArg <- c(pArg, sigma=sigma)
         kernel <- "Gaussian"
