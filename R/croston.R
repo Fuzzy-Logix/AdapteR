@@ -17,9 +17,13 @@ NULL
 #'
 #' @return An object containing details of the fitted model and forecasted values.
 #' @examples
+#' set.seed(100)
 #' x<-rnorm(1000)
+#' x <- x[x>0]
 #' flv<-as.FLVector(x)
-#' flobj<-croston(object = flv, h=9)
+#' flobj<-croston(object = flv, h=9, alpha = .1)
+#' robj<-croston(object = x, h=9,alpha = .1)
+
 
 #' @export
 croston<-function(object,...){
