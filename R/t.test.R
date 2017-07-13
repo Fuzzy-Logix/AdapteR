@@ -20,15 +20,23 @@ NULL
 #' t.test(flx,fly)
 #' t.test(flx,fly,var.equal=F)
 #' @export
-#' @method t.test FLVector
-t.test.FLVector <- function(x,
-                            y=NULL,
-                            mu = 0,
-                            tails=2,
-                            conf.level =.95,
-                            var.equal=FALSE,
-                            alternative="two.sided",...)
-{
+setGeneric("t.test",function(x, y = NULL,
+                           alternative = c("two.sided"),
+                           mu = 0, paired = FALSE, var.equal = FALSE,
+                           conf.level = 0.95,tails=2,...)
+    standardGeneric("t.test"))
+
+# setGeneric("t.test",function(x,y=NULL,mu=0,tails=2,
+#                             conf.level=0.95,var.equal=FALSE,
+#                             alternative= "two.sided",...)
+#                 standardGeneric("t.test"))
+
+setMethod("t.test",signature(x="FLVector"),
+    function(x, y = NULL,
+            alternative = c("two.sided"),
+            mu = 0, paired = FALSE, var.equal = FALSE,
+            conf.level = 0.95,
+            tails=2,...){
         # checkHypoSystemTableExists()
         if(is.null(x)||!is.FLVector(x))
         stop("Only FLVector is supported")
@@ -112,5 +120,38 @@ t.test.FLVector <- function(x,
                 data.name = vcall)                
     class(res) <- "htest"
     return(res)
-}
+    }
+)
+
+setMethod("t.test",signature(x="ANY"),
+    function(x, y = NULL,
+           alternative = c("two.sided"),
+           mu = 0, paired = FALSE, var.equal = FALSE,
+           conf.level = 0.95,
+           tails=2,
+           ...){
+        if (!requireNamespace("stats", quietly = TRUE)){
+                stop("stats package needed for t.test. Please install it.",
+                call. = FALSE)}
+        else return(stats::t.test(x=x,y=y,alternative=alternative,
+                                mu=mu,paired=paired,var.equal=var.equal,
+                                conf.level=conf.level,...))
+    })
+
+setMethod("t.test",signature(x="formula"),
+    function(x,y,...){
+        if (!requireNamespace("stats", quietly = TRUE)){
+                stop("stats package needed for t.test. Please install it.",
+                call. = FALSE)}
+        else{
+            vlist <- list(...)
+            if(!is.null(vlist[["formula"]]))
+                x <- vlist[["formula"]]
+            if(!is.null(vlist[["data"]]))
+                y <- vlist[["data"]]
+            AliasFunction <- function(formula,data,x,y,...)
+                return(stats::t.test(formula=x,data=y,...))
+            return(AliasFunction(x=x,y=y,...))
+        }
+    })
 

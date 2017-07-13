@@ -43,6 +43,3 @@ tbl  <- FLTable(getTestTableName("tblMixedModelInt"), "ObsID")
 flmod <- mixUDT(yVal ~ FixVal + (1 |   RanVal1) + (1 | RanVal2 ), tbl)
 flpred <- predict(flmod)
 }
-\seealso{
-\code{\link[lme4]{lmer}} for R reference implementation.
-}

@@ -1,3 +1,22 @@
+NULL
+
+
+#' Siegel-Tukey Test For Equality In Variability.
+#' 
+#' Non-parametric Siegel-Tukey test for equality in variability. The null 
+#' hypothesis is that the variability of x is equal between two groups. A 
+#' rejection of the null hypothesis indicates that variability differs 
+#' between the two groups. SiegelTukeyRank returns the ranks,
+#' calculated after Siegel Tukey logic.
+#' @param x: FLVector of data values
+#' @param y: FLVector of data values
+#'
+#' @return A list with class "htest".
+#' @seealso \code{\link[DescTools]{SiegelTukeyTest}} for R reference implementation.
+#' @examples
+#' x <- as.FLVector(rnorm(50))
+#' y <- as.FLVector(rnorm(30))
+#' SiegelTukeyTest(x, y)
 #' @export
 setGeneric("SiegelTukeyTest",function(x,y,alternative="two.sided",conf.level=0.95,...)
                 standardGeneric("SiegelTukeyTest"))

@@ -11,7 +11,7 @@ NULL
 #' reduction in order to cluster a given set of input variables into a smaller representative set.
 #' The number of output clusters depend on the contribution level specified.
 #'
-#' @seealso \code{ClustOfVar} package for R reference implementation.
+#' @seealso \code{\link[ClustOfVar]{ClustOfVar}} package for R reference implementation.
 #'
 #' @param x an object of class FLTable, wide or deep
 #' @param contrib Level of contribution expected in the
@@ -30,7 +30,8 @@ NULL
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @examples
-#' deeptable  <- FLTable("tblLogRegr", "ObsID","VarID","Num_Val")
+#' deeptable  <- FLTable(getTestTableName("tblLogRegr"), "ObsID","VarID",
+#'                       "Num_Val", whereconditions= "ObsID<101")
 #' clustervector <- FLVarCluster(deeptable,0.75,"COVAR",whereconditions=" VarID>0 ")
 #' print(clustervector)
 #' @export
@@ -272,6 +273,9 @@ FLVarCluster.FLTable.TDAster <- function(x,
 #' @export
 FLVarCluster.FLTableDeep.TDAster <- FLVarCluster.FLTable.TDAster
 
+#' @export
+FLVarCluster.FLTableDeep.Hadoop <- FLVarCluster.FLTable.Hadoop
+
 getFLVectorSQLFLVarCluster <- function(object,outputTable){
     UseMethod("getFLVectorSQLFLVarCluster",object)
 }
@@ -280,6 +284,9 @@ getFLVectorSQLFLVarCluster.FLTable.Hadoop <- function(object,outputTable){
                                     valueColumn="clusterid",
                                     FromTable=outputTable)
 }
+
+getFLVectorSQLFLVarCluster.FLTableDeep.Hadoop <- getFLVectorSQLFLVarCluster.FLTable.Hadoop
+
 getFLVectorSQLFLVarCluster.default <- function(object,outputTable){
     getFLVectorTableFunctionQuerySQL(indexColumn=getVarIdSQLExpression(object),
                                     valueColumn="clusterid",

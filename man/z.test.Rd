@@ -40,6 +40,8 @@ z.test(flx,fly,2)
 ## z- test for population proportion.
 fla<-as.FLVector(sample(c(0,1),replace=T,size=100))
 flb<-as.FLVector(sample(c(0,1),replace=T,size=100))
-z.test(fla,prob=1)
+ ##test_val= 0.4 implies that null hypothesis is
+ ##population proportion is 0.4
+z.test(fla,prob=1, test_val= 0.4)
 z.test(fla,flb,prob=1)
 }

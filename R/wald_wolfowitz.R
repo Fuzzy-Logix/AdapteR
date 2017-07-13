@@ -1,17 +1,21 @@
 
-#' Performs the Wald-Wolfowitz runs test of randomness for continuous data.
+#' Performs the Wald-Wolfowitz one sample test of randomness for continuous data.
+#'
 #' @param x a FLVector containing the observations.
 #' @param threshold the cut-point to transform the data into a dichotomous vector.
 #' @section Constraints: alternative, plot, pvalue isnt't currently supported for FL objects.
-#' @return A list with class "htest".
+#' @return A list with class "htest" outputting the corresponding WW statistic and P Values.
 #' @examples
-#' WaldWolfowitz test 1s:
+#' ## WaldWolfowitz test 1s:
 #' data(sweetpotato)
 #' yield <- as.FLVector(sweetpotato$yield)
 #' WaldWolftest1s(yield)
-#' 
-#' Data is transformed into a dichotomous vector according as each values is above or below a given threshold. Values equal to the level are removed from the sample.
-#' The default threshold value used in applications is the sample median which give us the special case of this test with n1 = n2, the runs test above and below the median.
+#'      ## Data is transformed into a dichotomous vector according as each values 
+#'      ## is above or below a given threshold. Values equal to the level are 
+#'      ## removed from the sample.
+#'      ## The default threshold value used in applications is the sample median 
+#'      ## which give us the special case of this test with n1 = n2, the runs test 
+#'      ## above and below the median.
 #' @export
 WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
     if(!is.FLVector(vFLvector))
@@ -65,7 +69,23 @@ WaldWolftest1s  <- function(vFLvector,threshold = median(vFLvector)) {
 
 
 
-
+#' Performs the Wald-Wolfowitz two sample test.
+#'
+#' @param x a FLVector containing the observations.
+#' @param y a FLVector containing the observations.
+#' @return A list with class "htest" outputting the corresponding WW statistic and P Values.
+#' @examples
+#' tbl1 <- FLTable(getTestTableName("tblWW2SMulti"),
+#'                 "obsid",
+#'                  whereconditions= "datasetid=1 and groupid=1")
+#' tbl2 <- FLTable(getTestTableName("tblWW2SMulti"),
+#'                 "obsid",
+#'                  whereconditions= "datasetid=1 and groupid=2")
+#' v1 <- tbl1$num_val
+#' v2 <- tbl2$num_val
+#' result <- WaldWolftest2s(v1,v2)
+#' result$statistic
+#' result$p.value
 #' @export
 WaldWolftest2s <- function(vFLvector, vFLvector2)
 {
