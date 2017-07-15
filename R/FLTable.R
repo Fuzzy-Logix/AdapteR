@@ -372,13 +372,13 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' FLWideToDeep does not require dependent variable or intercept, thus it creates deep tables without them.
 #'
 #' @param object FLTable object
-#' @param excludeCols character vector specifying columns to be excluded from conversion
-#' @param classSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
-#' @param whereconditions character vector giving where conditions if any to reference the wide table
-#' @param outDeepTableName name to be given to the output deep table, possibly with database
-#' @param outObsIDCol name to give to the primary key column name of the output deep table
-#' @param outVarIDCol name to give to the varibales name column of the output deep table
-#' @param outValueCol name to give to the value column of the output deep table
+#' @param ExcludeCols character vector specifying columns to be excluded from conversion
+#' @param ClassSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
+#' @param WhereClause character vector giving where conditions if any to reference the wide table
+#' @param OutDeepTable name to be given to the output deep table, possibly with database
+#' @param OutObsIDCol name to give to the primary key column name of the output deep table
+#' @param OutVarIDCol name to give to the varibales name column of the output deep table
+#' @param OutValueCol name to give to the value column of the output deep table
 #' @return \code{wideToDeep} returns a list containing components 
 #' \code{table} which is the FLTable referencing the deep table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
@@ -386,7 +386,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
 #' deeptable <- wideToDeep(widetable)
 #' analysisID <- deeptable@wideToDeepAnalysisID
 #' 
-#' ## columns may be excluded from deeptable using excludeCols
+#' ## columns may be excluded from deeptable using ExcludeCols
 #' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID", , whereconditions= "obsID< 101")
 #' deeptable <- wideToDeep(widetable, ExcludeCols= "Sex")
 #' analysisID <- deeptable@wideToDeepAnalysisID
@@ -612,30 +612,30 @@ setMethod("deepToWide",
 #'
 #' @param object FLTable object or FLTableMD (if input table has multiple datasets or groups).
 #' @param DepCol Name of the column in the wide table which represents the dependent variable
-#' @param catToDummy Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.
-#' @param performNorm Perform standardization of data. Standardization is done if the value of this parameter is 1.
-#' @param performVarReduc Perform variable reduction.Elimination means that the corresponding column is not transformed from the
+#' @param CatToDummy Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.
+#' @param PerformNorm Perform standardization of data. Standardization is done if the value of this parameter is 1.
+#' @param PerformVarReduc Perform variable reduction.Elimination means that the corresponding column is not transformed from the
 #' wide format to the deep format. Variables with standard deviation below the specified threshold are eliminated.
 #' Similarly, if a pair of columns has correlation above the specified threshold, one of the columns is not transformed.
-#' @param makeDataSparse Make data sparse i.e., only store non-zero values in the deep table for the independent variables. The
+#' @param MakeDataSparse Make data sparse i.e., only store non-zero values in the deep table for the independent variables. The
 #' column values for those observations that are zero are not stored in the deep table. However, for the
 #' dependent variable and the intercept, zero values are stored in the deep table. 
-#' @param minStdDev Minimum acceptable standard deviation for elimination of variables. Any variable that has a
+#' @param MinStdDev Minimum acceptable standard deviation for elimination of variables. Any variable that has a
 #' standard deviation below this threshold is eliminated. This parameter is only consequential if the parameter PerformVarReduc = 1.
-#' @param maxCorrel Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
+#' @param MaxCorrel Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
 #' absolute value of the correlation exceeds this threshold, one of the columns is not transformed. Again, this parameter is 
 #' only consequential if the parameter PerformVarReduc = 1.
 #' @param TrainOrTest if  0 => Create training data set; if 1 => Create test data set using the transformation
 #' that has already been done for a prior training data set.
-#' @param inAnalysisID provided in case we want to re-run the transformation of a training data set or run the
+#' @param InAnalysisID provided in case we want to re-run the transformation of a training data set or run the
 #' transformation of a testing data set else this value is NULL.
-#' @param excludeCols character vector specifying columns to be excluded from conversion
-#' @param classSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
-#' @param whereconditions character vector giving where conditions if any to reference the wide table
-#' @param outDeepTableName name to be given to the output deep table, possibly including database
-#' @param outObsIDCol name to give to the primary key column name of the output deep table
-#' @param outVarIDCol name to give to the varibales name column of the output deep table
-#' @param outValueCol name to give to the value column of the output deep table
+#' @param ExcludeCols character vector specifying columns to be excluded from conversion
+#' @param ClassSpec list representing Class specification which identifies then value of the categorical variable to be used a reference
+#' @param WhereClause character vector giving where conditions if any to reference the wide table
+#' @param OutDeepTable name to be given to the output deep table, possibly including database
+#' @param OutObsIDCol name to give to the primary key column name of the output deep table
+#' @param OutVarIDCol name to give to the varibales name column of the output deep table
+#' @param OutValueCol name to give to the value column of the output deep table
 #' @return \code{FLRegrDataPrep} returns a FLTableDeep referencing the deep table, the original table and \code{AnalysisID} giving the AnalysisID of conversion
 #' @examples
 #' # Case: when widetable is of class FLTable.
@@ -654,19 +654,19 @@ setMethod("deepToWide",
 #' @export
 setGeneric("FLRegrDataPrep", function(object,
                                   depCol="NULL",
-                                  # outDeepTableName,
+                                  # OutDeepTable,
                                   # outObsIDCol,
                                   # outVarIDCol,
                                   # outValueCol,
-                                  # catToDummy,
-                                  # performNorm,
+                                  # CatToDummy,
+                                  # PerformNorm,
                                   # performVarReduc,
                                   # makeDataSparse,
                                   # minStdDev,
                                   # maxCorrel,
                                   # TrainOrTest,
-                                  # excludeCols,
-                                  # classSpec,
+                                  # ExcludeCols,
+                                  # ClassSpec,
                                   # whereconditions,
                                   # inAnalysisID,
                                   # outGroupIDCol,
@@ -702,10 +702,10 @@ setMethod("FLRegrDataPrep",
 
 
 FLTrainTestDataPrep <- function(object,
-                                    DepCol,
-                                    inputParams,
-                                    TrainOrTest,
-                                    fetchIDs=FALSE){
+                                DepCol,
+                                inputParams,
+                                TrainOrTest,
+                                fetchIDs=FALSE){
     requiredParams <- list(InWideTable=getTableNameSlot(object),
                           ObsIDCol=getVariables(object)[["obs_id_colname"]],
                           DepCol=DepCol,
@@ -1129,19 +1129,20 @@ FLGenericRegrDataPrep <- function(object,
     
     updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
 
-    if(MDFlag)
-        table <- FLTableMD(table=deeptablename,
-                           group_id_colname=inputParams[["OutGroupIDCol"]],
-                           obs_id_colname=inputParams[["OutObsIDCol"]],
-                           var_id_colname=inputParams[["OutVarIDCol"]],
-                           cell_val_colname=inputParams[["OutValueCol"]],
-                           group_id=object@Dimnames[[3]],
-                           fetchIDs=fetchIDs,
-                           wideToDeepAnalysisID=dataprepID,
-                           wideTable=object
-                           )
-    else
-        table <- FLTable(table=deeptablename,
+    if(MDFlag){
+      table <- FLTableMD(table=deeptablename,
+                         group_id_colname=inputParams[["OutGroupIDCol"]],
+                         obs_id_colname=inputParams[["OutObsIDCol"]],
+                         var_id_colname=inputParams[["OutVarIDCol"]],
+                         cell_val_colname=inputParams[["OutValueCol"]],
+                         group_id=object@Dimnames[[1]][[1]],
+                         wideToDeepAnalysisID=dataprepID,
+                         wideTable=object
+                         )
+      table@mapSelect <- getMappingFLTable(dataprepID,MDFlag=1)@select
+    }
+    else{
+      table <- FLTable(table=deeptablename,
                          obs_id_colname=inputParams[["OutObsIDCol"]],
                          var_id_colname=inputParams[["OutVarIDCol"]],
                          cell_val_colname=inputParams[["OutValueCol"]],
@@ -1150,8 +1151,8 @@ FLGenericRegrDataPrep <- function(object,
                          wideTable=object,
                          dimnames=dimnames(object)
                          )
-
-    table@mapSelect <- getMappingFLTable(dataprepID)@select
+      table@mapSelect <- getMappingFLTable(dataprepID)@select
+    }
     return(table)
 }
 
@@ -1356,13 +1357,14 @@ FLReshape <- function(data,formula,
 }
 
 
-getMappingFLTable <- function(pAnalysisID){
+getMappingFLTable <- function(pAnalysisID,MDFlag=0){
 
     vWhereConds <- c("flt.final_varid is not null",
                     paste0("flt.Analysisid=",fquote(pAnalysisID)))
     vdims <- sqlQuery(getFLConnection(),
                     paste0("SELECT COUNT(*) FROM ",
-                        getSystemTableMapping("fzzlRegrDataPrepMap")," flt \n ",
+                        ifelse(MDFlag, "fzzlRegrDataPrepMDMap",
+                              getSystemTableMapping("fzzlRegrDataPrepMap"))," flt \n ",
                         constructWhere(vWhereConds)))[1,1]
     new("FLSimpleWideTable",
         select=new("FLSelectFrom",

@@ -137,12 +137,13 @@ headTailFLTableMD <- function(x,n=6,head=TRUE,...){
     y <- llply(y,function(z){
                 vgrpid <- unique(z[[vgrpIDCol]])[1]
                 z[[vgrpIDCol]] <- NULL
-                ifelse(head,vrownames <- head(rownames(x)[[vgrpid]],n),
-                            vrownames <- tail(rownames(x)[[vgrpid]],n))
+                ifelse(head,vrownames <- head(rownames(x)[[as.character(vgrpid)]],n),
+                            vrownames <- tail(rownames(x)[[as.character(vgrpid)]],n))
                 i <- charmatch(vrownames,z[[vobsIDCol]],nomatch=0)
                 z <- z[i,]
                 z[[vobsIDCol]] <- NULL
                 rownames(z) <- vrownames
+                z[is.na(z)] <- 0
                 z
             })
     y

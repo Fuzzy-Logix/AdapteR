@@ -17,7 +17,7 @@ test_that("test for FLzTest1P",{
   flt <- FLTable(getTestTableName("tblzTest"),
         "obsid", 
         whereconditions= "groupid=1")
-  flx <- flt$NUM_VAL
+  flx <- flt[[2]]
   flz <- z.test(flx, prob= 1, test_val= 0.45)
   FLexpect_equal(as.numeric(flz$p.value), 0.0004, tolerance= 1e-3)
   FLexpect_equal(as.numeric(flz$statistic), 3.5176, tolerance= 1e-3)

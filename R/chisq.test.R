@@ -54,8 +54,8 @@ setMethod("chisq.test",signature(x="FLMatrix"),
                                                            colname="b.vectorValueColumn",
                                                            "a.vectorIndexColumn",
                                                            "b.vectorIndexColumn"),
-                                                pOrderBy=c("a.vectorIndexColumn",
-                                                           "b.vectorIndexColumn"),
+                                                # pOrderBy=c("a.vectorIndexColumn",
+                                                #            "b.vectorIndexColumn"),
                                                 pAddSelect=c(rowIdColumn="a.vectorValueColumn",
                                                             colIdColumn="b.vectorValueColumn")
                                                 )

@@ -70,6 +70,7 @@ setMethod("mcnemar.test",signature(x="FLVector"),
         #                                 pGroupBy="c.FLStatistic")
 
         vstats <- c("t_stat","chi_sq","binomial_exact")
+        vstats <- toupper(vstats)
         pAddSelect <- c()
         pFuncArgs <- c(fquote(vcorrection),
                         "a.vectorValueColumn",
