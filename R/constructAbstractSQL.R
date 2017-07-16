@@ -632,9 +632,19 @@ createTable <- function(pTableName,
     vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
     if(!all(vres))
         stop("table could not be created \n ")
-    updateMetaTable(pTableName=pTableName,
-                    pType="wideTable",
-                    ...)
+
+    if(!pTemporary | !getOption("temporaryFL")){
+        if("pNote" %in% names(list(...)))
+            pNote <- list(...)[["pNote"]]
+        else pNote <- "NotSpecified"
+        if("pPermanent" %in% names(list(...)))
+            pPermanent <- list(...)[["pPermanent"]]
+        else pPermanent <- 1
+        updateMetaTable(pTableName=pTableName,
+                        pType="wideTable",
+                        pNote=pNote,
+                        pPermanent=pPermanent)
+    }
     return(pTableName)
 }
 
@@ -679,10 +689,14 @@ createView <- function(pViewName,
         }
         else stop("View could not be created \n ")
     }
-    if(pStore)
-    updateMetaTable(pTableName=pViewName,
-                    pType="view",
-                    ...)
+    if(pStore){
+        if("pNote" %in% names(list(...)))
+            pNote <- list(...)[["pNote"]]
+        else pNote <- "NotSpecified"
+        updateMetaTable(pTableName=pViewName,
+                        pType="view",
+                        pNote=pNote)
+    }
 
     return(pViewName) ## previously res was returned
 }
@@ -786,14 +800,11 @@ insertIntotbl <- function(pTableName,
 updateMetaTable <- function(pTableName,
                             pElementID=NULL,
                             pType="NA",
-                            ...){
+                            pNote="NotSpecified",
+                            pPermanent=as.integer(!getOption("temporaryFL"))){
     vtemp <- separateDBName(pTableName)
     vdatabase <- vtemp["vdatabase"]
     pTableName <- vtemp["vtableName"]
-
-    if("pNote" %in% names(list(...)))
-        pNote <- list(...)$pNote
-    else pNote <- "NotSpecified"
 
     if(is.null(pElementID))
         pElementID <- -1
@@ -802,7 +813,8 @@ updateMetaTable <- function(pTableName,
                   pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
-                            "ObjType","UserComments"),
+                            "ObjType","PermanentFLag",
+                            "UserComments"),
                   pValues=list(as.character(as.POSIXlt(Sys.time(),tz="GMT")),
                             as.character(Sys.Date()),
                             ifelse(is.null(getOption("FLUsername")),
@@ -811,8 +823,9 @@ updateMetaTable <- function(pTableName,
                             pTableName,
                             as.integer(pElementID),
                             as.character(pType),
+                            as.integer(pPermanent),
                             pNote
-                        ))
+                ))
 }
 
 #' @export

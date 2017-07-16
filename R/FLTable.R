@@ -1127,7 +1127,7 @@ FLGenericRegrDataPrep <- function(object,
   
     dataprepID <- as.vector(retobj[1,1])
     
-    updateMetaTable(pTableName=deeptablename, pType="deepTableMD")
+    updateMetaTable(pTableName=deeptablename, pType="deepTable")
 
     if(MDFlag){
       table <- FLTableMD(table=deeptablename,
