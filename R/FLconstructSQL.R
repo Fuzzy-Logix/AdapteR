@@ -464,7 +464,7 @@ setClass("FLTableMD",
          slots = list(
              wideTable = "ANY",
              wideToDeepAnalysisID = "character",
-             group_id= "numeric"
+             group_id= "ANY"
          ),
          prototype = prototype(type="double",
                                 dimColumns=c("group_id_colname","obs_id_colname"),

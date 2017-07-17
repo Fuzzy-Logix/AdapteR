@@ -316,6 +316,6 @@ setMethod("show","FLMix",function(object){print.FLMix(object)})
 
 
 #' @export
-summary <- function(object, ...){
+summary.FLMix <- function(object, ...){
     return(print(object))
 }
