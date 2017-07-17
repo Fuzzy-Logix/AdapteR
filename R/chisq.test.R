@@ -8,7 +8,7 @@ NULL
 #' @param x FLMatrix
 #' @param pear The values is 1 if wanna perform pearson chi-square test. Otherwise, 
 #' by default it's 0 and perform chi- square test.
-#' @return A list with class "htest" outputting the corresponding expected and P Values.
+#' @return A list with class "htest" outputting the corresponding expected and chi- square values.
 #' @examples
 #' mat <- rbind(c(762, 327, 468), c(484, 239, 477))
 #' dimnames(mat) <- list(gender = c("F", "M"),
