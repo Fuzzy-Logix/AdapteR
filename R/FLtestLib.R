@@ -314,7 +314,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                                 " CAST(FLSimUniform(a.serialval,-100,100) AS INT) AS vectorValueColumn \n ",
                                 " FROM fzzlserial a "),
                             pTemporary=FALSE,
-                            pPrimaryKey="vectorIndexColumn")
+                            pPrimaryKey="vectorIndexColumn",
+                            pPermanent=1)
       }
       else{
         vtemp <- createTable(pTableName="ARTestCharVectorTable",
@@ -326,7 +327,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                                             " FROM tblstring ) AS b \n ",
                                         " WHERE FLMOD(a.serialval,5) + 1 = b.obsid "),
                           pTemporary=FALSE,
-                            pPrimaryKey="vectorIndexColumn")
+                          pPrimaryKey="vectorIndexColumn",
+                          pPermanent=1)
         vtableName <- "ARTestCharVectorTable"
       }
       # options(FLTestVectorTable=TRUE)
@@ -413,7 +415,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                           " AND b.serialval < 1001 "),
                            pTemporary=FALSE,
                            pDrop=TRUE,
-                           pPrimaryKey=c("rowIdColumn")
+                           pPrimaryKey=c("rowIdColumn"),
+                           pPermanent=1
                            )
   else
       vtemp <- vtableName

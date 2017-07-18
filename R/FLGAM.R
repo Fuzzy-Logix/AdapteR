@@ -563,6 +563,10 @@ fitted.values.FLGAM <- function(object)
 }
 
 #' @export
+fitted.FLGAM <- fitted.values.FLGAM
+
+
+#' @export
 residuals.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["residuals"]]))
@@ -1061,7 +1065,8 @@ checkByVarName <- function(vByVarName,vcolnames)
 	vByVarName <- "NULL"
 	else
 	{
-		vByVarName <- base::strsplit(vByVarName,"\"")[[1]][2]
+		# vByVarName <- base::strsplit(vByVarName,"\"")[[1]][2]
+		vByVarName <- base::strsplit(vByVarName,"\"")[[1]]
 		if(!(vByVarName %in% vcolnames))
 		{
 			cat("byVarName given by 'by' must be in colnames of input wide table.Setting to NULL")

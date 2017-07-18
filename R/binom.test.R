@@ -25,7 +25,7 @@ NULL
 #' ResulthtestObject <- binom.test(flv,100,p=0.65,"LT")
 #' @export
 setGeneric("binom.test",function(x, n, p = 0.5,
-                                alternative = c("two.sided", "less","greater"),
+                                alternative = c("two.sided", "less","greater","LT","GT","EXACT"),
                                 conf.level = 0.95)
                         standardGeneric("binom.test"))
 
@@ -39,11 +39,12 @@ setMethod("binom.test",signature(x="FLAbstractColumn"),
                     p,fquote(alternative)),collapse=","),
             ")"))
 })
+
 setMethod("binom.test",signature(x="FLVector"),
     function(x,
             n,
             p = 0.5,
-            alternative = c("two.sided", "less","greater"),
+            alternative = c("two.sided", "less","greater","LT","GT","EXACT"),
             conf.level = 0.95){
         DNAME <- deparse(substitute(x))
         DNAME <- paste(DNAME, "and", deparse(substitute(n)))

@@ -228,7 +228,11 @@ setMethod("names", signature("FLLogRegr"), function(x) c("linear.predictors",
 coefficients.FLLogRegr<-function(object){
 	parentObject <- unlist(strsplit(unlist(strsplit(
 		as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-	coeffVector <- coefficients.lmGeneric(object,
+
+	if(is.FLTableMD(object@table))
+        coeffVector <- coefficients.FLLinRegrMD(object)
+    else
+		coeffVector <- coefficients.lmGeneric(object,
 							FLCoeffStats=c(FLCoeffStdErr="STDERR",
 							FLCoeffPValue="PVALUE",
 							FLCoeffChiSq="CHISQ"))
@@ -333,3 +337,55 @@ lm.influence.FLLogRegr <- function(model,do.coef=TRUE,...){
 	return(vresult)
 }
 
+#' @export
+summary.FLLogRegrMD <- function(object){
+	vcoeffList <- object$coefficients
+	coeffframe <- object@results[["coeffframe"]]
+	if(is.null(object@results[["statsframe"]]))
+		statsframe <- sqlQuery(getFLConnection(),
+						paste0("SELECT * FROM ",object@vfcalls["statstablename"],
+								" WHERE AnalysisID=",fquote(object@AnalysisID),
+								" ORDER BY MODELID "))
+	else statsframe <- object@results[["statsframe"]]
+	colnames(statsframe) <- toupper(colnames(statsframe))
+	vresList <- lapply(unlist(object@deeptable@Dimnames[[1]]),
+					function(x){
+						vtemp <- coeffframe[coeffframe[,"MODELID"]==x,]
+						vrownames <- vtemp[["COEFFNAMES"]]
+						vtemp <- vtemp[,c("COEFFVALUE","STDERR","CHISQ","PVALUE")]
+						vcoeffmat <- as.matrix(vtemp)
+						rownames(vcoeffmat) <- vrownames
+						colnames(vcoeffmat) <- c("Estimate","Std.Err","chi-sq",
+												"p-value")
+						vtemp <- statsframe[statsframe[,"MODELID"]==x,]
+						vsummaryList <- list(coeffframe=vcoeffmat,
+											statsframe=vtemp,
+											call=object$call)
+						class(vsummaryList) <- "summary.FLLogRegrMD"
+						return(vsummaryList)
+						})
+	names(vresList) <- paste0("Model",unlist(object@deeptable@Dimnames[[1]]))
+	parentObject <- unlist(strsplit(unlist(strsplit(as.character
+							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
+	object@results[["statsframe"]] <- statsframe
+	assign(parentObject,object,envir=parent.frame())
+	return(vresList)
+}
+
+#' @export
+print.summary.FLLogRegrMD <- function(object){
+	ret <- object$statsframe
+	cat("Call:\n")
+	cat(paste0(object$call),"\n")
+	cat("\n\nCoefficients:\n")
+	print(object$coeffframe)
+	cat("\n---\n")
+	colnames(ret) <- tolower(colnames(ret))
+	ret$analysisid <- NULL
+	ret$modelid <- NULL
+	cat("FLLogRegr Stats table :: \n ")
+	print(ret)
+}
+
+#' @export
+print.FLLogRegrMD <- summary.FLLogRegrMD

@@ -48,6 +48,8 @@ FLTableMD <- function(table,
 {
     # vgrp <- group_id
     vgrp <- dimnames[[1]][[1]]
+    if("group_id" %in% names(list(...)))
+      vgrp <- list(...)[["group_id"]]
     if(length(vgrp)>0)
         vgrp <- sort(vgrp)
 
@@ -160,7 +162,7 @@ FLTableMD <- function(table,
 
         attributes(cols)<-NULL
         names(cols)<-as.character(vgrp)
-        
+        names(rows)<-as.character(vgrp)
         dimnames <- list(list(vgrp),rows,cols)
         dims <- llply(dimnames,function(x)sapply(x,length))
         ## Assumption: Varid's are continuous in deepTableMD
@@ -269,6 +271,7 @@ FLTableMD <- function(table,
         if(length(cols)==1)
             cols <- rep(cols,length(vgrp))
 
+        names(rows) <- as.character(vgrp)
         dimnames <- list(list(vgrp),rows,cols)
         dims <- llply(dimnames,function(x)sapply(x,length))
 

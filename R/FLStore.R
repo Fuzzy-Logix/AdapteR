@@ -116,8 +116,7 @@ store.FLMatrix <- function(object,pTableName=NULL,...)
         ## Store MetaInfo if permanent Storage
         updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
                       pElementID=MID,
-                      pType="Matrix",
-                      ...)
+                      pType="Matrix")
       }
       if(class(object@select)=="FLSelectFrom")
         object@select@variables[["MATRIX_ID"]] <- MID1
@@ -187,8 +186,7 @@ store.FLVector <- function(object,pTableName=NULL,...)
     ## Store MetaInfo if permanent Storage
     updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
                   pElementID=VID,
-                  pType="vector",
-                  ...)
+                  pType="vector")
   }
 
   insertIntotbl(pTableName=vtableName1,
@@ -244,8 +242,7 @@ store.FLTable <- function(object,pTableName=NULL,...)
 
   ## Store MetaInfo if permanent Storage
   updateMetaTable(pTableName=getRemoteTableName(vdatabase,vtableName),
-                  pType=ifelse(isDeep(object),"deepTable","wideTable"),
-                  ...)
+                  pType=ifelse(isDeep(object),"deepTable","wideTable"))
 
   if(isDeep(object))
   table <- FLTable(

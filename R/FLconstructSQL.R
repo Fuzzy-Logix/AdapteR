@@ -463,10 +463,12 @@ setClass("FLTableMD",
          contains="FLTable",
          slots = list(
              wideTable = "ANY",
-             wideToDeepAnalysisID = "character"
+             wideToDeepAnalysisID = "character",
+             group_id= "ANY"
          ),
          prototype = prototype(type="double",
-                                dimColumns=c("group_id_colname","obs_id_colname"))
+                                dimColumns=c("group_id_colname","obs_id_colname"),
+                                group_id=c())
         )
 
 setClass("FLTableMD.Hadoop", contains = "FLTableMD")

@@ -63,3 +63,19 @@ test_that("cox linear.predictors  https://app.asana.com/0/136555696724838/163682
 })
 
 #summary, plot??
+
+## DBLytix manual example
+fldata <- FLTable(getTestTableName("tblcoxph_wide"),"ObsID")
+rdata <- as.R(fldata)
+fldata@Dimnames[[2]] <- tolower(fldata@Dimnames[[2]])
+colnames(rdata) <- tolower(colnames(rdata))
+vformula <- Surv(time_val,status) ~ sex + ivdrug + tx
+rcoxobj <- coxph(vformula, rdata)
+flcoxobj <- coxph(vformula,fldata)
+test_that("FLCoxPH: equality of coefficients https://app.asana.com/0/136555696724838/163682320948854 ",{
+    expect_equal(coef(rcoxobj),coef(flcoxobj))
+})
+
+
+
+

@@ -1033,7 +1033,8 @@ prepareData.formula <- function(formula,data,
 		## Meaning same varIDs
 		if(is.FLTableMD(data)){
 			if(!length(unique(vallVars))==1)
-				stop("Datasets should have same columns \n ")
+				# stop("Datasets should have same columns \n ")
+				vallVars <- colnames(data)[[1]]
 			else vallVars <- vallVars[[1]][1]:vallVars[[1]][2]
 		}
 		formula <- genDeepFormula(vallVars)
@@ -1917,6 +1918,7 @@ model.FLLinRegr <- function(object,...)
 	}
 }
 
+#' @export
 summary.FLRobustRegr <- function(object, ...){
     str <- paste0("SELECT a.StdDev, a.T_Val FROM ",object@vfcalls["coefftablename"]," a
                            WHERE a.AnalysisID = ",fquote(object@AnalysisID),"
@@ -2270,7 +2272,7 @@ coefficients.FLLinRegrMD <- function(object){
 			coeffVector <- sqlQuery(getFLConnection(),
 								paste0("SELECT * FROM ",object@vfcalls["coefftablename"],
 										" where AnalysisID=",fquote(object@AnalysisID),
-										" AND ModelID IN(",paste0(object@deeptable@Dimnames[[3]],collapse=","),
+										" AND ModelID IN(",paste0(unlist(object@deeptable@Dimnames[[1]]),collapse=","),
 										") ORDER BY ModelID,CoeffID"))
             colnames(coeffVector) <- toupper(colnames(coeffVector))
 			vcoeffnames <- as.vector(apply(coeffVector,1,
@@ -2290,7 +2292,7 @@ coefficients.FLLinRegrMD <- function(object){
 											"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
 											"\n AND a.groupID = b.modelID ",
 											"\n AND b.ModelID IN(",
-												paste0(object@deeptable@Dimnames[[3]],
+												paste0(unlist(object@deeptable@Dimnames[[1]]),
 													collapse=","),
 											")\n ORDER BY ModelID,CoeffID"))
 			colnames(vcoeffframe) <- toupper(colnames(vcoeffframe))
@@ -2326,7 +2328,7 @@ coefficients.FLLinRegrMD <- function(object){
 								names(vcoeff) <- x[["COEFFNAMES"]]
 								return(vcoeff)
 								})
-		names(vcoeffList) <- paste0("Model",object@deeptable@Dimnames[[3]])
+		names(vcoeffList) <- paste0("Model",unlist(object@deeptable@Dimnames[[1]]))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character
 							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		object@results[["coefficients"]] <- vcoeffList
@@ -2347,7 +2349,7 @@ summary.FLLinRegrMD <- function(object){
 								" ORDER BY MODELID "))
 	else statsframe <- object@results[["statsframe"]]
 	colnames(statsframe) <- toupper(colnames(statsframe))
-	vresList <- lapply(object@deeptable@Dimnames[[3]],
+	vresList <- lapply(unlist(object@deeptable@Dimnames[[1]]),
 					function(x){
 						vtemp <- coeffframe[coeffframe[,"MODELID"]==x,]
 						vrownames <- vtemp[["COEFFNAMES"]]
@@ -2363,7 +2365,7 @@ summary.FLLinRegrMD <- function(object){
 						class(vsummaryList) <- "summary.FLLinRegrMD"
 						return(vsummaryList)
 						})
-	names(vresList) <- paste0("Model",object@deeptable@Dimnames[[3]])
+	names(vresList) <- paste0("Model",unlist(object@deeptable@Dimnames[[1]]))
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character
 							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	object@results[["statsframe"]] <- statsframe
@@ -2530,7 +2532,7 @@ coefficients.FLLinRegrSF<-function(object){
 getReferenceCategories <- function(data,pExcludeCols="",
                                     classSpec=list(),
                                     ...){
-    ##browser()
+    ## browser()
     vcolnames <- colnames(data)
     unused_cols <- c(pExcludeCols,
                     getObsIdSQLExpression(data),

@@ -338,6 +338,6 @@ setMethod("show","FLMixUDT",function(object){print.FLMixUDT(object)})
 
 
 #' @export
-summary <- function(object, ...){
+summary.FLMixUDT <- function(object, ...){
     return(print(object))
 }
