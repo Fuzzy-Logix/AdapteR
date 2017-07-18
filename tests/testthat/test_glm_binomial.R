@@ -59,5 +59,28 @@ test_that("glm: equality of coefficients, residuals, fitted.values, df.residual 
   )
 })
 
+## MD Testing
+test_that("glm: multi dataset",{
+    flMDObjectDeep <- FLTableMD(table=getTestTableName("tblLogRegrMulti"),
+                            group_id_colname="DATASETID",
+                            obs_id_colname="OBSID",
+                            var_id_colname="VARID",
+                            cell_val_colname="NUM_VAL")
+
+    fit <- glm(NULL,
+                data = flMDObjectDeep)
+    coeffList <- coef(fit)
+    summaryList <- summary(fit)
+    test_that("Check for dimensions of coefficients and summary for DeepTable ",{
+        expect_equal(names(coeffList),
+                     paste0("Model",unlist(flMDObjectDeep@Dimnames[[1]])))
+        expect_equal(names(coeffList),
+                     names(summaryList))
+        expect_equal(sapply(coeffList,length),
+                    sapply(colnames(flMDObjectDeep),length)-1,
+                    check.names=FALSE)  ## remove -1
+    })
+})
+
 
 
