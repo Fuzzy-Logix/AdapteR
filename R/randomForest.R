@@ -125,31 +125,34 @@ randomForest.FLTable<-function(data,
                  forest=trees,
                  data=x$data,
                  AnalysisID=AnalysisID,
-                 RegrDataPrepSpecs=x$vprepspecs)
+                 RegrDataPrepSpecs=x$vprepspecs,
+                 deeptable=x$deeptable)
     class(retobj)<-"FLRandomForest"
     return(retobj)
 }
 
 #' @export
-predict.FLRandomForest<-function(object,newdata=object$data,
+predict.FLRandomForest<-function(object,newdata=object$deeptable,
 								 scoreTable="",
                                  type="response",...){
     
 	if(!is.FLTable(newdata)) stop("scoring allowed on FLTable only")
 	newdata <- setAlias(newdata,"")
-	vinputTable <- getTableNameSlot(newdata)
 	if(scoreTable=="")
-	scoreTable <- gen_score_table_name("RandomForestScore")
+	scoreTable <- gen_score_table_name("rforest")
 	vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=object$RegrDataPrepSpecs,
                                                             values=list(...))
-	deepx <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
+
+	if(!isDeep(newdata)){
+		newdata <- FLRegrDataPrep(newdata,depCol=vRegrDataPrepSpecs$depCol,
 								ExcludeCols=vRegrDataPrepSpecs$excludeCols)
-	newdatatable <- deepx$table
-	newdatatable <- setAlias(newdatatable,"")
-	tablename<- getTableNameSlot(newdatatable)
-	vobsid <- getVariables(newdatatable)[["obs_id_colname"]]
-	vvarid <- getVariables(newdatatable)[["var_id_colname"]]
-	vvalue <- getVariables(newdatatable)[["cell_val_colname"]]
+	}
+	
+	newdata <- setAlias(newdata,"")
+	tablename<- getTableNameSlot(newdata)
+	vobsid <- getVariables(newdata)[["obs_id_colname"]]
+	vvarid <- getVariables(newdata)[["var_id_colname"]]
+	vvalue <- getVariables(newdata)[["cell_val_colname"]]
 
 	vinputcols<-list()
 	vinputcols <- c(vinputcols,
@@ -166,24 +169,107 @@ predict.FLRandomForest<-function(object,newdata=object$data,
 								outputParameter=c(AnalysisID="a"),
 								pInputParams=vinputcols)
 	vval<-"PredictedClass"
+	vUniquePreClasses <- sqlQuery(connection,
+								paste0("SELECT DISTINCT predictedclass FROM ",scoreTable," ORDER BY predictedclass")
+								)[[1]]
+
+	vFLMatrixFLag <- FALSE
 	if(type %in% "prob"){
-    sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
-    								   " add probability float, add matrix_id float"))
-    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
-    		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
-    warning("The probability values are only true for predicted class. The sum may not be 1.")
-	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","probability"))
+		vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n",
+						 			vobsid," AS rowIdColumn, \n ",
+						 			"DENSE_RANK() OVER(ORDER BY predictedclass) AS colIdColumn, \n ",
+						 			"NumOfVotes * 1.0 /",object$ntree, " AS valueColumn \n ",
+						 " FROM ",scoreTable)
+		vFLMatrixFLag <- TRUE
+	    # sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
+	    # 								   " add probability float, add matrix_id float"))
+	    # sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
+	    # 		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
+	 #    warning("The probability values are only true for predicted class. The sum may not be 1.")
+	 #    tblfunqueryobj <- new("FLTableFunctionQuery",
+	 #                          connectionName = attr(connection,"name"),
+	 #                          variables=list(
+	 #                              Matrix_ID="MATRIX_ID",
+	 #                              rowIdColumn="rowIdColumn",
+	 #                              colIdColumn="colIdColumn",
+	 #                              valueColumn="valueColumn"),
+	 #                          whereconditions="",
+	 #                          order = "",
+	 #                          SQLquery=vsqlstr)
+		# flm <- newFLMatrix(
+	 #                   select= tblfunqueryobj,
+	 #                   dims=c(nrow(newdata),length(vUniquePreClasses)),
+	 #                   Dimnames=list(NULL,vUniquePreClasses),
+	 #                   dimColumns=c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn"),
+	 #                   type="double")
+		# return(flm)
 	}
 	else if(type %in% "votes"){
-		sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
-		return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"))
+		vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n",
+						 			vobsid," AS rowIdColumn, \n ",
+						 			"DENSE_RANK() OVER(ORDER BY predictedclass) AS colIdColumn, \n ",
+						 			"NumOfVotes AS valueColumn \n ",
+						 " FROM ",scoreTable)
+		vFLMatrixFLag <- TRUE
+	    # sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
+	    # 								   " add probability float, add matrix_id float"))
+	    # sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable,
+	    # 		" set matrix_id = 1, probability = NumOfVotes * 1.0 /",object$ntree))
+	 #    warning("The probability values are only true for predicted class. The sum may not be 1.")
+	 #    tblfunqueryobj <- new("FLTableFunctionQuery",
+	 #                          connectionName = attr(connection,"name"),
+	 #                          variables=list(
+	 #                              Matrix_ID="MATRIX_ID",
+	 #                              rowIdColumn="rowIdColumn",
+	 #                              colIdColumn="colIdColumn",
+	 #                              valueColumn="valueColumn"),
+	 #                          whereconditions="",
+	 #                          order = "",
+	 #                          SQLquery=vsqlstr)
+		# flm <- newFLMatrix(
+	 #                   select= tblfunqueryobj,
+	 #                   dims=c(nrow(newdata),length(vUniquePreClasses)),
+	 #                   Dimnames=list(NULL,vUniquePreClasses),
+	 #                   dimColumns=c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn"),
+	 #                   type="double")
+		# return(flm)
+		# sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable," add matrix_id int DEFAULT 1 NOT NULL"))
+		# return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","NumOfVotes"))
 	}
 	else if(type %in% "link"){
-		sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
-	    								   " add probability float, add logit float, add matrix_id int DEFAULT 1 NOT NULL"))
-	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
-	    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
-	   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","logit"))
+		vsqlstr <- paste0("SELECT '%insertIDhere%' AS MATRIX_ID, \n",
+						 			vobsid," AS rowIdColumn, \n ",
+						 			"DENSE_RANK() OVER(ORDER BY predictedclass) AS colIdColumn, \n ",
+						 			" -log((1/(NumOfVotes * 1.0 /",object$ntree,")) - 1) AS valueColumn \n ",
+						 " FROM ",scoreTable)
+		vFLMatrixFLag <- TRUE
+
+		# sqlSendUpdate(getFLConnection(), paste0("alter table ",scoreTable,
+	 #    								   " add probability float, add logit float, add matrix_id int DEFAULT 1 NOT NULL"))
+	 #    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set probability = NumOfVotes * 1.0 /",object$ntree))
+	 #    sqlSendUpdate(getFLConnection(), paste0("update ",scoreTable," set logit = -log((1/probability) - 1) where probability<1"))
+	 #   	return(FLMatrix(scoreTable,1,"matrix_id",vobsid,"PredictedClass","logit"))
+	}
+
+	if(vFLMatrixFLag){
+		warning("The probability values are only true for predicted class. The sum may not be 1.")
+	    tblfunqueryobj <- new("FLTableFunctionQuery",
+	                          connectionName = attr(connection,"name"),
+	                          variables=list(
+	                              Matrix_ID="MATRIX_ID",
+	                              rowIdColumn="rowIdColumn",
+	                              colIdColumn="colIdColumn",
+	                              valueColumn="valueColumn"),
+	                          whereconditions="",
+	                          order = "",
+	                          SQLquery=vsqlstr)
+		flm <- newFLMatrix(
+	                   select= tblfunqueryobj,
+	                   dims=c(nrow(newdata),length(vUniquePreClasses)),
+	                   Dimnames=list(NULL,vUniquePreClasses),
+	                   dimColumns=c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn"),
+	                   type="double")
+		return(flm)
 	}
 	sqlstr <- paste0(" SELECT '%insertIDhere%' AS vectorIdColumn,",
 					"ObsID"," AS vectorIndexColumn,",
@@ -258,10 +344,10 @@ plot.FLRandomForest<-function(object){ #browser()
 }	
 
 #' @export
-summary.FLRandomForest<-function(object){ #browser()
+summary.FLRandomForest<-function(object){
 	if(!class(object)=="FLRandomForest") stop("The object class is not FLRandomForest")
 	x<-predict(object,type="prob")
-	tablename<-x@select@table_name
+	# tablename<-x@select@table_name
 	# tabler<-as.data.frame(tablex)
 	# ret<-list()
 	# if(!all(tabler$PredictedClass) %in% c("0","1")){
@@ -278,36 +364,41 @@ summary.FLRandomForest<-function(object){ #browser()
 
 	# 	}
 	# }
-	predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",
-                        tablename))
-	comb<-combn(nrow(predclass),m=2)
-	if(nrow(predclass)<2) stop("The distinct predicted class for the dataset are less than 2. 
+	# predclass<-sqlQuery(getFLConnection(),paste0("select distinct(PredictedClass) from ",
+ #                        tablename))
+	predclass <- 1:ncol(x)
+	vactualPredclass <- sort(colnames(x))
+	# comb<-combn(nrow(predclass),m=2)
+	comb<-combn(predclass,m=2)
+	if(length(predclass)<2) stop("The distinct predicted class for the dataset are less than 2. 
 						 Hence can't calculate Roc curves.")
 	retobj<-list()
-	if(!all(predclass) %in% c("0","1")){
+	# if(!all(predclass) %in% c("0","1")){
+	if(TRUE){
 		for (t in 1:ncol(comb)) {
 			resv<-comb[,t]
 			temptable<-genRandVarName()
-			sqlstr<-paste0("Select ObsID as obsid, 0 as Response, probability as Predictor from ",
-							tablename," Where PredictedClass = ",fquote(resv[1]))		
+			sqlstr<-paste0("Select a.rowIdColumn as obsid, DENSE_RANK() OVER(ORDER BY a.colIdColumn)-1 as response, a.valueColumn as predictor \n ",
+							" FROM (",constructSelect(x),") a \n ",
+							" Where a.colIdColumn IN( ",fquote(resv[1]),",",fquote(resv[2]),")")		
 			vres<-createTable(pTableName=temptable,
 	                  	      pSelect=sqlstr,
 	                  	      pTemporary=TRUE,
-	                 	      pDrop=TRUE,
                               pPrimaryKey="obsid")
-			sqlstr2<-paste0("Select ObsID as ObsID, 1 as Response, probability as Predictor from ",
-							tablename," Where PredictedClass = ",fquote(resv[2]))
-			insertIntotbl(pTableName=temptable,
-						  pSelect=sqlstr2)
-			flt<-FLTable(temptable,"ObsID")
-			eval(parse(text= paste0("retobj$roc",resv[1],resv[2],
-									"<-roc(flt,formula = Response~Predictor)")))
+			# sqlstr2<-paste0("Select ObsID as obsid, 1 as response, probability as predictor from ",
+			# 				tablename," Where PredictedClass = ",fquote(resv[2]))
+			# insertIntotbl(pTableName=temptable,
+			# 			  pSelect=sqlstr2)
+			flt<-FLTable(temptable,"obsid",dims=c(nrow(x),3),dimnames=list(rownames(x),c("obsid","response","predictor")))
+			eval(parse(text= paste0("retobj$roc",vactualPredclass[resv[1]],vactualPredclass[resv[2]],
+									"<-roc(flt,formula = response~predictor)")))
 		}
 	}
-	else {
-		tablex<-FLTable(tablename,"ObsID")
-		retobj$roc<-roc(tablex$PredictedClass,tablex$probability)
-	}
+	# else {
+
+	# 	tablex<-FLTable(tablename,"obsid")
+	# 	retobj$roc<-roc(tablex$PredictedClass,tablex$probability)
+	# }
 	retobj$confusion=object$confusion
 	return(retobj)
 }

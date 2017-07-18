@@ -238,7 +238,7 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
 
 predict.FLNnet <- function(object,newdata = object@table, ...){
     var <- getVariables(object@results$deeptbl)
-    tblname <- gen_unique_table_name("neuralscore")
+    tblname <- gen_score_table_name("neuralscore")
     ret <- sqlStoredProc(connection,"FLNNetUdtScore",
                          ModelTable = object@results$vspec,
                          InTable = getTableNameSlot(object@results$deeptbl),

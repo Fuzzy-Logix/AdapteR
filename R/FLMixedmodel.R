@@ -193,7 +193,7 @@ predict.FLMix <- function(object,
         as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
     if(!any(names(object@results) == "pred"))
 {
-    scoretbl <- gen_unique_table_name("mixedscore")
+    scoretbl <- gen_score_table_name("mixed")
     vinputcols <- list(InTable = newdata@select@table_name,
                        ObsIDCol = newdata@select@variables$obs_id_colname,
                        VarIDCol = newdata@select@variables$var_id_colname,

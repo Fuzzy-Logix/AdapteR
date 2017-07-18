@@ -449,8 +449,10 @@ trim <- function( x ) {
 }
 
 gen_score_table_name <- function(TableName){
-    return(FLGenTableName(pTableName=TableName,
-                        pCode="S"))
+    vtbl <- FLGenTableName(pTableName=TableName,
+                        pCode="S")
+    updateMetaTable(pTableName=vtbl, pType="widetable")
+    return(vtbl)
 }
 
 gen_wide_table_name <- function(TableName){

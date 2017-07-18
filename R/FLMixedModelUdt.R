@@ -200,7 +200,7 @@ predict.FLMixUDT <- function(object,
 {
     parentObject <- unlist(strsplit(unlist(strsplit(
     as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
-    scoretbl <- gen_unique_table_name("mixedscore")
+    scoretbl <- gen_score_table_name("mixed")
     vinputcols <- list(CoeffTable  = object@results$outtbl,
                        InTable = newdata@select@table_name,
                        GroupIDCol = "NULL",
