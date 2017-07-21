@@ -1,4 +1,4 @@
-rm(list = setdiff(ls(),"connection"))
+# rm(list = setdiff(ls(),"connection"))
 ## implement as.R for FLSimpleVector.
 ## using 1 Random Effects.
 FLenv <- new.env(parent = globalenv())
@@ -23,9 +23,9 @@ test_that("", {
 
 
 ## for 2 Random Effect:
-FLenv <- new.env(parent = globalenv())
+# FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable("tblMixedModelInt", "ObsID")
-Renv <- as.R(FLenv)
+# Renv <- as.R(FLenv)
 rtbl <- as.R(fltbl)
 
 FLenv$mod <- mixUDT(yVal ~ FixVal + (1 |   RanVal1) + (1 | RanVal2 ), fltbl)

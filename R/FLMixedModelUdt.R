@@ -57,7 +57,9 @@ mixUDT <- function (formula,data=list(),...) {
 mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
 {
     vcallObject <- match.call()
-    vform <- as.character(vcallObject)[2]
+    # vform <- as.character(vcallObject)[2]
+    vform <- as.character(formula)
+    vform <- paste0(vform[2],vform[1],vform[3])
     vreg <- gsub(pattern = "[\\|\\)]", replacement = "", x = regmatches(vform, gregexpr("\\|.*?\\)", vform))[[1]])
     Rvar <- gsub("[[:space:]]", "", vreg)
     Dvar <- gsub(pattern = " ", replacement = "", x = gsub(x = vform, pattern = "~.*", replacement = ""))
@@ -125,9 +127,10 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
                                         Rvar = Rvar ),
                             vdf = vdf,
                             vin  = vin,
-                            vfun = vfun),
+                            vfun = vfun,
+                            vformula=vform),
                scoreTable=""
-               ))   
+               ))
 }
 
 
@@ -169,18 +172,23 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
             return(c(df$cr1,df$cr2)) } }
 
     if(property == "u"){
-        quer <- paste0("SELECT CoeffEst as Cf, CoeffID cid FROM ",
+        quer <- paste0("SELECT CoeffEst as Cf, CoeffID cid, coeffname as cname FROM ",
                         object@results$outtbl,
                         " WHERE coeffName LIKE 'RANDOM%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
-        return(df$Cf)}
+        vres <- df$cf
+        names(vres) <- df$cname
+        return(vres)
+      }
 
     if(property == "fixedcoef"){
-        quer <- paste0("SELECT CoeffEst as cf, CoeffID as cid FROM ",
+        quer <- paste0("SELECT CoeffEst as cf, CoeffID as cid, coeffname as cname FROM ",
                     object@results$outtbl,
                     " WHERE coeffName LIKE 'FIXED%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
-        return(df$cf)
+        vres <- df$cf
+        names(vres) <- df$cname
+        return(vres)
     }   
 }
 
@@ -235,10 +243,10 @@ predict.FLMixUDT <- function(object,
                             table_name = scoretbl,
                             connectionName = getFLConnectionName(),
                             variables = list(ObsID = object@table@select@variables$obs_id_colname,
-                                             pred = "PredictedVal"),
+                                             pred = "predictedval"),
                             whereconditions = "",
                             order = ""),
-               dimColumns = c("ObsID", "pred"),
+               dimColumns = c("obsid", "pred"),
                Dimnames = list(row = newdata@Dimnames[[1]]),
                dims = as.integer(nrow(newdata)),
                type = "integer"
@@ -265,19 +273,21 @@ residuals.FLMixUDT <- function(object,newdata = object@table, ...){
     flpred <- predict(object)
     tbl <- object@table@select@table_name
     vob <- object@table@select@variables$obs_id_colname
-    str <- paste0("SELECT (a.pred -b.",object@results$pArgs$Dvar,") AS res , a.",vob," AS ObsID FROM (",constructSelect(flpred),") AS a , ",tbl," AS b WHERE a.",vob," = b.",vob," ")
+    str <- paste0("SELECT (a.pred -b.",object@results$pArgs$Dvar,") AS res , a.",vob,
+                  " AS obsid FROM (",constructSelect(flpred),") AS a , ",
+                  tbl," AS b WHERE a.",vob," = b.",vob," ")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
                           connectionName = getFLConnectionName(),
                           variables = list(
-                              obs_id_colname = "ObsID",
+                              obs_id_colname = "obsid",
                               cell_val_colname = "res"),
                           whereconditions="",
                           order = "",
                           SQLquery=str)
     val <- new("FLSimpleVector",
                select = tblfunqueryobj,
-               dimColumns = c("ObsID", "res"),
+               dimColumns = c("obsid", "res"),
                Dimnames = list(row = newdata@Dimnames[[1]]),
                dims = as.integer(nrow(newdata)),
                type = "integer"
@@ -297,7 +307,8 @@ plot.FLMixUDT <- function(object,limit = 1000, ...){
     vpred <- predict(object)
     p <- min(limit,vpred@dims)/(vpred@dims)
     
- str1 <- paste0("SELECT  b.pred AS pred, a.res AS res FROM (",constructSelect(vpred),") AS b, (",constructSelect(vres),") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+ str1 <- paste0("SELECT  b.pred AS pred, a.res AS res FROM (",constructSelect(vpred),") AS b, (",
+          constructSelect(vres),") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
    df <- sqlQuery(connection, str1)
     return(plot(df$pred, df$res))}
 
@@ -310,7 +321,7 @@ print.FLMixUDT <- function(object, ...)
 {
     cat("Linear mixed model fit by Expectation Maximization method \n\n")
     cat("Formula: ")
-    print(object@results$call[[2]])
+    print(object@results$vformula)
     cat("Data: \n")
     val <- c("AIC" = object$AIC, "logLik" = object$logLik, "CovErr" = object$CovErr, "df.residual" = (object@results$vdf$vobs -1))
     print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
