@@ -15,8 +15,8 @@ setClass("FLInfoVal",
 #' @param events  Events or element of good distribution.
 #' @param nonevents Non-Events or element of bad distribution.
 #' @param n number of ID's for which information is to be calculated.
-#' fltbl <- FLTable(table = "tblinfoval", obs_id_colname="BinID")
-#' flmod <- InfoVal.FLTable(event = "Events", nonevents = "NonEvents", data = fltbl,n = 4)
+#' fltbl <- FLTable(table = getTestTableName("tblinfoval"), obs_id_colname="BinID")
+#' flmod <- woe(event = "Events", nonevents = "NonEvents", data = fltbl,n = 4)
 #' @export
 woe <- function (events,nonevents,n = 2, data=list(),...) {
     UseMethod("woe", data)
@@ -33,7 +33,8 @@ woe.FLTable <- function(events,nonevents,n = 2, data, ...)
     vcallObject <- match.call()
     vtbl <- data@select@table_name
     vfun <- "FLWOE"
-    vstr <- vQuery(vtbl, events, nonevents,n, vfun)
+    vbinid <- getObsIdSQLName(data)
+    vstr <- vQuery(data, vtbl, vbinid ,events, nonevents,n, vfun,...)
 
     vclass <- "FLWOE"
     vdf <- sqlQuery(connection, vstr)
@@ -41,6 +42,12 @@ woe.FLTable <- function(events,nonevents,n = 2, data, ...)
     return(new(vclass,
                table = data,
                results = list(otable = vdf))) }
+
+#' @export
+woe.FLTable.TDAster <- function(events,nonevents,n = 2, data, ...){
+    return(woe.FLTable(events=events,nonevents=nonevents,
+                            n=n,data=data,UDT=TRUE,...))
+}
 
 
 #' \code{InfoVal} Performs  on FLTable objects.It is an aggregate function which
@@ -51,7 +58,7 @@ woe.FLTable <- function(events,nonevents,n = 2, data, ...)
 #' @param events  Events or element of good distribution.
 #' @param nonevents Non-Events or element of bad distribution.
 #' @param n number of ID's for which information is to be calculated.
-#' fltbl <- FLTable(table = "tblinfoval", obs_id_colname="BinID")
+#' fltbl <- FLTable(table = getTestTableName("tblinfoval"), obs_id_colname="BinID")
 #' flmod <- InfoVal(event = "Events", nonevents = "NonEvents", data = fltbl,n = 4)
 #' @export
 InfoVal <- function (events,nonevents,n = 2, data=list(),...) {
@@ -63,28 +70,55 @@ InfoVal.FLTable <- function(events,nonevents,n = 2, data, ...)
     ##    browser()
     vcallObject <- match.call()
     vtbl <- data@select@table_name
+    vbinid <- getObsIdSQLName(data)
     vfun <- "FLInfoVal"
-    vstr <- vQuery(vtbl, events, nonevents,n, vfun)
+    vstr <- vQuery(data, vtbl, vbinid, events, nonevents,n, vfun,...)
     vclass <- "FLInfoVal"
     vdf <- sqlQuery(connection, vstr)
     ##print(vdf)
     return(new(vclass,
                table = data,
-               results = list(otable = vdf))) }
+               results = list(otable = vdf)))
+}
+
+#' @export
+InfoVal.FLTable.TDAster <- function(events,nonevents,n = 2, data, ...){
+    return(InfoVal.FLTable(events=events,nonevents=nonevents,
+                            n=n,data=data,UDT=TRUE,...))
+}
 
 
 
-vQuery <- function(table_name,events,nonevents,n,fName = "FLWOE",...){
+vQuery <- function(data, table_name,binid, events,nonevents,n,
+                    fName = "FLWOE",UDT=FALSE,...){
     if(fName == "FLWOE"){
         var <- "b.SerialVal"
-        varname <- "WOE"
+        varname <- "woe"
     }
     else{
         var <- "b.SerialVal - 1"
-        varname <- "InfoVal"
+        varname <- "infoval"
     }
     
-    vquery <- paste0("SELECT ",var," AS BinID, ",fName,"(a.BinID, a.",events,", a.",nonevents,", ",var,") AS ",varname," FROM ",table_name," a, fzzlSerial b WHERE b.SerialVal <= ",n," GROUP BY b.SerialVal ORDER BY 1;")
+    if(!UDT)
+        vquery <- paste0("SELECT ",var," AS BinID, ",fName,"(a.",binid,", a.",events,", a.",nonevents,", ",var,") AS ",
+                        varname," FROM (",constructSelect(data),") a, fzzlSerial b WHERE b.SerialVal <= ",n," GROUP BY b.SerialVal ORDER BY 1;")
+    else {
+        if(fName == "FLWOE")
+        vquery <- paste0("SELECT a.Partition1 AS BinID, a.",varname," AS ",varname,
+                         " \n FROM ",fName,"Udt(ON(SELECT a.",binid," AS binid,a.",events," AS events ,a.",nonevents," AS nonevents,",var," AS serialval ",
+                                                    " \n FROM (",constructSelect(data),") a, fzzlSerial b \n ",
+                                                " WHERE b.SerialVal <= ",n,") PARTITION BY serialval \n ",
+                                    " TARGET('binid', 'events', 'nonevents', 'serialval')) AS a \n ",
+                        " ORDER BY 1;")
+        else if(fName == "FLInfoVal")
+        vquery <- paste0("SELECT a.Partition1 AS BinID, a.",varname," AS ",varname,
+                         " \n FROM ",fName,"Udt(ON(SELECT ",var," AS outputbinid ,a.",binid," AS binid,a.",events," AS events ,a.",nonevents," AS nonevents,",var," AS reqbinid ",
+                                                    " \n FROM (",constructSelect(data),") a, fzzlSerial b \n ",
+                                                " WHERE b.SerialVal <= ",n,") PARTITION BY outputbinid \n ",
+                                    " TARGET('binid', 'events', 'nonevents', 'reqbinid')) AS a \n ",
+                        " ORDER BY 1;")
+    }
     return(vquery)
 }
 
