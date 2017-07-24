@@ -115,6 +115,7 @@ FLRobustRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WeightFn,TuneConstant,
 
 FLROCCurve.TD(InputTable,RecID,ActualColName,ProbColName,WhereClause,TableOutput) <- FLROCCurve(InputTable=InputTable,RecID=RecID,ActualColName=ActualColName,ProbColName=ProbColName,WhereClause=WhereClause,TableOutput=TableOutput)
 FLROCCurve.TDAster(InputTable,RecID,ActualColName,ProbColName,WhereClause) <- FLROCCurve(INPUT_TABLE=InputTable,OBSID_COL=RecID,ACTUALVAL_COL=ActualColName,PROBVAL_COL=ProbColName,WHERE_CLAUSE=WhereClause)
+FLROCCurve.Hadoop(InputTable,RecID,ActualColName,ProbColName,WhereClause,TableOutput,ResultTable) <- FLROCCurve(InputTable=InputTable,ObsIDCol=RecID,ActualColName=ActualColName,ProbColName=ProbColName,WhereClause=WhereClause,OutputIndicator=TableOutput,ResultTable=ResultTable)
 
 FLCoxPH.TD(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,MAX_ITER,NOTE) <- FLCoxPH(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,MAX_ITER=MAX_ITER,NOTE=NOTE)
 FLCoxPH.TDAster(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,MAX_ITER,NOTE) <- FLCoxPH(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,MAX_ITER=MAX_ITER,NOTE=NOTE)

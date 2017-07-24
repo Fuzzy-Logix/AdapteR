@@ -1,6 +1,9 @@
 ## ROC Test:
 ## Test Case for failing dt Score
 ## implementing roc for FLTable.
+## Hadoop Error : https://fuzzyl.atlassian.net/browse/FHD-80
+## Asana : default R call broken 
+## https://app.asana.com/0/136555696724838/391468186430292/f
 rm(list = setdiff(ls(),"connection"))
 
 FLenv = new.env(parent = globalenv())
