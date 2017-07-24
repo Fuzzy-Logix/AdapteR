@@ -10,25 +10,31 @@ parms<-runif(num.vars,-10,10)
 y<-rand.vars %*% matrix(parms) + rnorm(num.obs,sd=20)
 
 Renv <- new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
 Renv$tbl<-data.frame(y,rand.vars)
 
-FLenv <- as.FL(Renv)
+# FLenv <- as.FL(Renv)
+FLenv$tbl <- as.FLTable(Renv$tbl,tableName = getOption("TestTempTableName"),temporary=FALSE,drop=TRUE)
 ## formula 
 vform <- as.formula(paste0("y~ ",paste0(names(FLenv$tbl)[3:length(names(FLenv$tbl))], collapse = "+")))
 #' VIF values for independent variable.
 flmod <- vif(vform,data = FLenv$tbl)
-FLexpect_equal(nrow(flmod$vif),num.vars)
-FLexpect_equal(flmod$vif$vif[1:5],c(27.73,
-                                   36.89,
-                                   12.56,
-                                   50.73,
-                                   8.35),
-               tolerance = .01)
+rvif <- vif(lm(vform,data = Renv$tbl))
+for(i in names(rvif)){
+  FLexpect_equal(flvif[i],rvif[i],tolerance=0.0001)
+}
+# FLexpect_equal(flmod$vif,rvif)
+# FLexpect_equal(flmod$vif[1:5],c(27.73,
+#                                    36.89,
+#                                    12.56,
+#                                    50.73,
+#                                    8.35),
+#                tolerance = .01)
 
 
 ## for backward with threshold = 5
 flmod <- vif(vform,data = FLenv$tbl, method = "bw", threshold  = 5)
 
-FLexpect_equal(nrow(flmod$vif),65)
+FLexpect_equal(length(flmod$vif),11)
 FLexpect_equal(length(flmod$select),11)
 FLexpect_equal(flmod$select,c(1, 2,  3,  4,  5,  9, 10, 11, 13, 14, 15))
