@@ -33,7 +33,98 @@ setClass(
 #' @param MinRsq Terminating condition for multivariate regression step based on change in Rsq upon addition of new basis functions.
 #' @return \code{fda} returns an object of class \code{FLLDA}
 #' @examples
-#' #'deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
+#'deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
+#' flmod <- fda(a~., data = deeptbl)
+#' predict(flmod); cof <-coefficients(flmod);confusion(flmod)
+#' Performs flexible discriminant analysis and stores the results in predefined tables. It
+#' involves the use of multivariate adaptive regression splines for obtaining a basis
+#' transformation of the independent variables and performing the multivariate
+#' non-parametric regression step in the Flexible Discriminant Analysis procedure.
+#'
+#' couldnt be implemented: plot, values, precent.explained
+#' (lack of data of discriminant space).
+#' @export
+fda <- function (formula,data=list(),...) {
+    UseMethod("fda", data)
+}
+
+#' @export
+fda.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("mda", quietly = TRUE)){
+        stop("mda package needed for mda. Please install it.",
+             call. = FALSE)
+    }
+    else return(mda::fda(formula=formula,data=data,...))
+}
+
+#' @export
+fda.FLpreparedData <- function(formula, data,MaxMARS = 11, MinRsq = .001 ,...)
+{
+    vcallObject <- match.call()
+    data <- setAlias(data,"")
+    return(ldaGeneric(formula=formula,
+                      data=data,
+                      callObject=vcallObject,
+                      MaxMARS = MaxMARS,
+                      MinRsq = MinRsq,
+                      familytype="Flex",
+                      ...))
+}
+
+#' @export
+fda.FLTable <- fda.FLpreparedData
+
+
+#' @export
+fda.FLTableDeep <- fda.FLpreparedData
+
+#' @export
+fda.FLTableMD <- fda.FLpreparedData
+
+#' Linear discriminant analysis.
+#' 
+#' \code{lda} performs Linear discriminant analysis on FLTable objects.
+#' The DB Lytix function called is FLLDA. Performs Linear discriminant analysis and 
+#' stores the results in predefined tables.
+#'
+#' @seealso \code{\link[stats]{lda}} for R reference implementation.
+#' @param formula A formula of the form groups ~ x1 + x2 + ... That is, the response is the grouping factor and the right hand side specifies the (non-factor) discriminators.
+NULL
+##https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
+##http://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
+##https://www.analyticsvidhya.com/blog/2015/09/naive-bayes-explained/
+
+#' An S4 class to represent output from Discriminant Analysis on in-database Objects
+#'
+#' @slot offset column name used as offset
+#' @method coefficients FLLDA.
+#' @method residuals FLLDA. 
+#' @method influence FLLDA. 
+#' @method lm.influence FLLDA. 
+#' @method plot FLLDA. 
+#' @method predict FLLDA. 
+#' @export
+setClass(
+    "FLLDA",
+    contains="FLRegr",
+    slots=list(offset="character",
+               vfcalls="character"))
+
+#' Flexible Discriminant Analysis
+#' 
+#' \code{fda} performs Flexible Discriminant Analysis on FLTable objects.
+#' library(mda)
+#'
+#' The DB Lytix function called is FLFlexDiscriminant. Performs Flexible Discriminant Analysis and stores the results in predefined tables.
+#' @seealso \code{\link[stats]{fda}} for R reference implementation.
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable or FLTableMD.
+#' @param MaxMARSMaximum number of basis functions to be used for multivariate nonparametric
+#' regression step where multivariate adaptive regression splines is used.
+#' @param MinRsq Terminating condition for multivariate regression step based on change in Rsq upon addition of new basis functions.
+#' @return \code{fda} returns an object of class \code{FLLDA}
+#' @examples
+#'deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
 #' flmod <- fda(a~., data = deeptbl)
 #' predict(flmod); cof <-coefficients(flmod);confusion(flmod)
 #' Performs flexible discriminant analysis and stores the results in predefined tables. It
@@ -140,7 +231,7 @@ lda.FLTableMD <- lda.FLpreparedData
 #' @return \code{mda} returns an object of class \code{FLLDA}
 #' @examples
 #' deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
-#' flmod <- mda(a~., data = deeptbl)
+#' flmod <- mda(formula = a~.,data = deeptbl)
 #' predict(flmod); flmod$N
 #' cof <-coefficients(flmod)
 #' FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
@@ -198,7 +289,6 @@ ldaGeneric <- function(formula,data,
                        ...)
     
 {
-    
     prepData <- prepareData.lmGeneric(formula,data,
                                       callObject=callObject,
                                       familytype=familytype,
@@ -264,11 +354,14 @@ ldaGeneric <- function(formula,data,
 
 #' @export
 `$.FLLDA`<-function(object,property){
+
                                         #parentObject <- deparse(substitute(object))
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     var <- getVariables(object@deeptable)
 
     if(property=="scaling"){
+        if(object@results$familytype == "lda"){
+            
         str <- paste0("SELECT VarID, CanID, Num_Val FROM fzzlLDACanCoeff WHERE AnalysisID = ",fquote(object@AnalysisID)," AND CanType = 'Within-Class Can Struct' ORDER BY VarID, CanID ")
         df <- sqlQuery(connection ,str)
         nvar <- length(unique(df$CANID))
@@ -277,7 +370,11 @@ ldaGeneric <- function(formula,data,
         }), ncol = nvar)
         dtf <- as.matrix.data.frame(dtf)
         colnames(dtf) <- paste0("LD",1:nvar)
-        return(dtf)
+        return(dtf)}
+        else
+        {
+            vstr <- paste0("scaling is only supported by LDA as of now")
+            return(vstr)}
     }
     else if (property=="coefficients"){
         cof <- coefficients(object)
@@ -349,7 +446,7 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
     }
     else if(property == "weights")
     {
-        
+
         if(object@results$familytype == "Mixed"){
             dl <- list()
             str <- paste0("SELECT ClassID, COUNT(DISTINCT(ObsID)) FROM fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' GROUP BY ClassID")
@@ -389,19 +486,23 @@ coefficients.FLLDA <- function(object)
         colnames(dtf) <- paste0("LD",1:nvar)  
         return(dtf)}
     else
-    {
-        vID <- object@AnalysisID
-        str <- paste0("SELECT * FROM fzzlFDARegrCoeffs WHERE AnalysisID = '",vID,"' ORDER BY 2,3 ")
-        df <- sqlQuery(connection, str)
-        nvar <- 2
-        dtf <- data.frame(lapply(1:nvar, function(x){
-            df$CoeffEst[df$DepVarID == x]
-        }))
-        dtf <- as.matrix.data.frame(dtf)
-        colnames(dtf) <- 1:nvar
-        rownames(dtf) <- 1:length(dtf[,1])
-        return(dtf)   
-    }
+        if (object@results$familytype %in% "Flex")
+        {
+            vID <- object@AnalysisID
+            str <- paste0("SELECT * FROM fzzlFDARegrCoeffs WHERE AnalysisID = '",vID,"' ORDER BY 2,3 ")
+            df <- sqlQuery(connection, str)
+            nvar <- 2
+            dtf <- data.frame(lapply(1:nvar, function(x){
+                df$CoeffEst[df$DepVarID == x]
+            }))
+            dtf <- as.matrix.data.frame(dtf)
+            colnames(dtf) <- 1:nvar
+            rownames(dtf) <- 1:length(dtf[,1])
+            return(dtf)   
+        }
+    else
+    {vstr <- paste0("only computes for LDA or mixed as of now")
+        return(vstr)}
     
 }
 ##posterior probablity:https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
@@ -479,7 +580,7 @@ wtfun <- function(object, nrow, ncol, nclass){
                                          valueColumn="valueColumn"),
                           whereconditions="",
                           order = "",
-                          SQLquery=paste0("SELECT hypothesisid as matrix_id,row_number()over(partition by Subclassid order by obsid ) as rowIdColumn,Subclassid as colIdColumn,weight as valueColumn from fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' AND ClassID = ",nclass," AND HypothesisID = 1"))
+                          SQLquery=paste0("SELECT hypothesisid as matrix_id,row_number()over(partition by Subclassid order by obsid ) as rowIdColumn,Subclassid as colIdColumn,weight as valueColumn from fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' AND ClassID = ",nclass," AND HypothesisID = 5"))
 
     flm <- newFLMatrix(
         select= tblfunqueryobj,
