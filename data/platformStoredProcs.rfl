@@ -115,6 +115,7 @@ FLRobustRegr.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WeightFn,TuneConstant,
 
 FLROCCurve.TD(InputTable,RecID,ActualColName,ProbColName,WhereClause,TableOutput) <- FLROCCurve(InputTable=InputTable,RecID=RecID,ActualColName=ActualColName,ProbColName=ProbColName,WhereClause=WhereClause,TableOutput=TableOutput)
 FLROCCurve.TDAster(InputTable,RecID,ActualColName,ProbColName,WhereClause) <- FLROCCurve(INPUT_TABLE=InputTable,OBSID_COL=RecID,ACTUALVAL_COL=ActualColName,PROBVAL_COL=ProbColName,WHERE_CLAUSE=WhereClause)
+FLROCCurve.Hadoop(InputTable,RecID,ActualColName,ProbColName,WhereClause,TableOutput,ResultTable) <- FLROCCurve(InputTable=InputTable,ObsIDCol=RecID,ActualColName=ActualColName,ProbColName=ProbColName,WhereClause=WhereClause,OutputIndicator=TableOutput,ResultTable=ResultTable)
 
 FLCoxPH.TD(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,MAX_ITER,NOTE) <- FLCoxPH(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,MAX_ITER=MAX_ITER,NOTE=NOTE)
 FLCoxPH.TDAster(INPUT_TABLE,OBSID_COL,VARID_COL,VALUE_COL,MAX_ITER,NOTE) <- FLCoxPH(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID_COL,VARID_COL=VARID_COL,VALUE_COL=VALUE_COL,MAX_ITER=MAX_ITER,NOTE=NOTE)
@@ -231,3 +232,21 @@ RANDOM.TDAster() <- FLRandom(pArg1=pArg1,pArg2=pArg2)
 FLKSTest2sResults.TDAster(d_stat,d_stat_adj,p_value) <- FLKSTest2sResults(d_stat=d_stat,d_stat_adj=d_stat_adj,d_pvalue=p_value)
 FLKSTest2sResults.TD(d_stat,p_value) <- FLKSTest2sResults(d=d_stat,p_value=p_value)
 
+FLVIF.TD(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note) <- FLVIF(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=notes)
+FLVIF.TDAster(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note) <- FLVIF(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=notes)
+FLVIF.Hadoop(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note) <- FLVIF(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=notes)
+
+FLVIFBW.TD(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold=VIFThreshold,Note=Note) <- FLVIFBW(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold=VIFThreshold,Note=notes)
+FLVIFBW.TDAster(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold=VIFThreshold,Note=Note) <- FLVIFBW(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,VIF_THRESHOLD=VIFThreshold,NOTE=notes)
+
+FLVIFFB.TD(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=Note) <- FLVIFFB(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=notes)
+FLVIFFB.TDAster(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold=VIFThreshold,Note=Note) <- FLVIFFB(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,VIF_THRESHOLD1=VIFThreshold1,VIF_THRESHOLD2=VIFThreshold2,NOTE=notes)
+
+FLVIFMultiDataSet.TD(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note) <- FLVIFMultiDataSet(TableName=TableName,GroupIDCol=GroupID,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=ValueCol,Note=notes)
+FLVIFMultiDataSet.TDAster(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,Note=Note) <- FLVIFMultiDataSet(INPUT_TABLE=TableName,DATASETID_COL=GroupID,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,NOTE=notes)
+
+FLVIFBWMultiDataSet.TD(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold=VIFThreshold,Note=Note) <- FLVIFBWMultiDataSet(TableName=TableName,GroupIDCol=GroupID,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=ValueCol,VIFThreshold=VIFThreshold,Note=notes)
+FLVIFBWMultiDataSet.TDAster(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold=VIFThreshold,Note=Note) <- FLVIFBWMultiDataSet(INPUT_TABLE=TableName,DATASETID_COL=GroupID,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,VIF_THRESHOLD=VIFThreshold,NOTE=notes)
+
+FLVIFFBMultiDataSet.TD(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=Note) <- FLVIFFBMultiDataSet(TableName=TableName,GroupIDCol=GroupID,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=notes)
+FLVIFBWMultiDataSet.TDAster(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=Note) <- FLVIFFBMultiDataSet(INPUT_TABLE=TableName,DATASETID_COL=GroupID,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,VIF_THRESHOLD1=VIFThreshold1,VIF_THRESHOLD2=VIFThreshold2,NOTE=notes)

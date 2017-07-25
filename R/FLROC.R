@@ -21,20 +21,8 @@ NULL
 #' plot(mod)
 #' auc(mod)
 #' mod$levels
-#'
-#' Example 2:
-#' data(aSAH)
-#' fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-#' fltbl$res <- as.numeric(fltbl$res)
-#' fltbl$res <- fltbl$res - 1
-#' fltbl <- fltbl[-55, ]
-#' head(fltbl)
-#' fltbl <- as.FLTable(fltbl)
-#' flmod <- roc(fltbl$res, fltbl$pred)
-#' plot(flmod)
-#' summary(flmod)
 #' 
-#' roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
+#' roctbl <- FLTable(getTestTableName("tblROCcurve"), obs_id_colname = "ObsID")
 #' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
 #' @export
 roc <- function (formula,data=list(),...) {
@@ -96,21 +84,32 @@ roc.FLVector <- function (response, predictor, ...)
 #' rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
 #' @export
 roc.FLTable <- function(formula,data,... ){
+  ## https://fuzzyl.atlassian.net/browse/FHD-80
     vcallObject <- match.call()
     var <- all.vars(formula)
     pId <- gsub("flt.","" ,data@select@variables$obs_id_colname)
 
     tname <- getTableNameSlot(data)[[1]]
+    otbl <- gen_wide_table_name("roc")
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
                          InputTable = tname,
                          RecID = pId,
                          ActualColName = var[1],
                          ProbColName = var[2],
-                         WhereClause =NULL ,
-                         TableOutput = 1,
-                         outputParameter = c(OutTable = 'a')
+                         WhereClause = "NULL" ,
+                         TableOutput = as.integer(1),
+                         outputParameter = c(OutTable = 'a'),
+                         ResultTable=otbl
                          )
+
+    if(is.TD())
+    otbl <- as.character(ret[[1]])
+
+    if(is.TDAster()){
+      vtemp <- as.FLTable(ret,tableName=otbl,uniqueIdColumn=1,batchSize=30)
+    }
+
     rnames <- rownames(data)
     cnames <- colnames(data)
     vrw <- nrow(data)
@@ -119,7 +118,7 @@ roc.FLTable <- function(formula,data,... ){
     df <- sqlQuery(connection, quer)
 
     return(new(vclass,
-               otbl = as.character(ret[[1]]),
+               otbl = otbl,
                results = list(call = vcallObject,
                               itable = tname,
                               Dimnames = list(row = rnames, col = cnames),
@@ -151,22 +150,32 @@ rocgeneric <- function(response, predictor,callobject,  ...)
     vrw <- nrow(response)
     rnames <- rownames(response)
     cnames <- c("ObsID", colnames(response), colnames(predictor))
+    otbl <- gen_wide_table_name("roc")
     ret <- sqlStoredProc(connection,
                          "FLROCCurve",
                          InputTable = vvolName,
                          RecID = "ObsID",
                          ActualColName = "res",
                          ProbColName = "pred",
-                         WhereClause =NULL ,
-                         TableOutput = 1,
-                         outputParameter = c(OutTable = 'a')
+                         WhereClause = "NULL" ,
+                         TableOutput = as.integer(1),
+                         outputParameter = c(OutTable = 'a'),
+                         ResultTable=otbl
                         )
+
+    if(is.TD())
+    otbl <- as.character(ret[[1]])
+    
+    if(is.TDAster()){
+      vtemp <- as.FLTable(ret,tableName=otbl,uniqueIdColumn=1,batchSize=30)
+    }
+
     vclass <- "FLROC"
     quer <- paste0("SELECT COUNT(res) AS val FROM ",vvolName," GROUP BY res")
     df <- sqlQuery(connection, quer)
 
     return(new(vclass,
-               otbl = as.character(ret[[1]]),
+               otbl = otbl,
                results = list(call = callobject,
                               itable = vvolName,
                               Dimnames = list(row = rnames, col = cnames),
@@ -363,12 +372,22 @@ as.roc <- function(object,limit = 1000, auc=TRUE,method = 1, ... ){
     {
         vfrom1 <- gsub("ORDER BY FPR DESC", "", constructSelect(object$specificities))
         vfrom2 <- gsub("ORDER BY TPR","", constructSelect(object$sensitivities) )
-        str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+
+        if(!is.Hadoop())
+        str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",
+                      vfrom2,") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(",getNativeRandFunction(pArg1=1,pArg2=10000),", 0.0, 1.0) < ",p," ")
+        else str1 <- paste0("SELECT  b.spec AS spec, a.sen AS sen FROM (",vfrom1,") AS b, (",
+                      vfrom2,") AS a, fzzlserial c WHERE a.ObSID = b.ObsID AND a.ObSID=c.serialval AND RAND(c.serialval) < ",p)
     } else {
         val <- object@results$vals
         neg <-1/val[[1]]
         pos <- 1/val[[2]]
-        str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl," WHERE FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ORDER BY sen ASC")
+
+        if(!is.Hadoop())
+        str1 <- paste0("SELECT  TruePositives*",pos," AS sen , 1-(TRUENegatives*",neg,") AS spec FROM ",object@otbl,
+                    " WHERE FLSimUniform(",getNativeRandFunction(pArg1=1,pArg2=10000),", 0.0, 1.0) < ",p," ORDER BY sen ASC")
+        else str1 <- paste0("SELECT  a.TruePositives*",pos," AS sen , 1-(a.TRUENegatives*",neg,") AS spec FROM ",object@otbl,
+                    " a, fzzlserial b WHERE a.ObSID=c.serialval AND RAND(c.serialval) < ",p, " ORDER BY sen ASC")
     }
     df <- sqlQuery(connection, str1)
     sen <- sort(as.numeric(df$sen), decreasing = TRUE)

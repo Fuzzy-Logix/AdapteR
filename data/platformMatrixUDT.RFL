@@ -88,7 +88,7 @@ FLPercUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPerc(vectorIdColumn=GroupID,vectorVa
 FLPercUdt.TDAster(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=partition1,vectorValueColumn=opercval)
 
 FLPercentUdt.TD(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=oObsID,vectorValueColumn=oPercentVal)
-FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=GroupID,vectorValueColumn=PercValue)
+FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=groupid,vectorValueColumn=percentvalue)
 FLPercentUdt.TDAster(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=ObsID,vectorValueColumn=opercentValue)
 
 FLMeanAbsDevUdt.TD(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMeanAbsDev)

@@ -95,14 +95,14 @@ setClass(
 #' residuals(flmod)
 #' flmod$fitted.values
 #' summary(flmod)
-#' still to work on plot(q)
+#' @Section COnstraints:
+#' plot method not supported
 #' Example for widetable:
 #' widetbl <- FLTable(getTestTableName("tblautompg"), "ObsID")
 #' flmod <- rlm(Weight~ Acceleration , data = widetbl)
 #' summary(flmod)
 #' coefficients(flmod)
 #' residuals(flmod)
-#' TO-DO: warning message for deeptable in model.
 #' @export
 rlm <- function (formula,data=list(),psi, ...) {
 	UseMethod("rlm", data)
@@ -132,6 +132,9 @@ rlm.FLTable <- rlm.FLpreparedData
 ## move to file rlm.R
 #' @export
 rlm.FLTableMD <- rlm.FLpreparedData
+
+#' @export
+rlm.FLTableDeep <- rlm.FLpreparedData
 
 
 
@@ -712,7 +715,7 @@ lmGeneric <- function(formula,data,
         
         weightfn = "huber"
         if(list(...)$psi == "psi.bisquare" )
-        {weightfn <- "bisquare";print("check 2")}
+        {weightfn <- "bisquare"}
         else if(list(...)$psi == "psi.hampel")
             print("dont compute rlm for hampel function currently computing it for huber")
         else if(list(...)$psi %in% c("cauchy", "fair","logistic", "talwar", "andrews", "welsch")

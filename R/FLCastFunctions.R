@@ -903,7 +903,6 @@ as.FLTable.data.frame <- function(object,
                                   drop=TRUE,
                                   batchSize=10000,
                                   temporary=getOption("temporaryFL")){
-    
   if(missing(tableName))
   tableName <- gen_wide_table_name("a")
   if(uniqueIdColumn==0 && is.null(rownames(object)) || length(rownames(object))==0)
@@ -914,6 +913,10 @@ as.FLTable.data.frame <- function(object,
         vrownames <- as.integer(1:nrow(object))
     if(!any(is.na(as.integer(vrownames))))
         vrownames <- as.integer(vrownames)
+    else{
+      warning("rownames are non-integers to be used as uniqueIdColumn. using continuous integers \n ")
+      vrownames <- as.integer(1:nrow(object))
+    }
     object <- base::cbind(obsid=vrownames,object)
     obsIdColname <- "obsid"
   }

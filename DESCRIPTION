@@ -136,6 +136,7 @@ Collate:
     'FLTriDiag.R'
     'FLVIF.R'
     'FLVarCluster.R'
+    'FLWOE.R'
     'FLdifference.R'
     'FLtestLib.R'
     'HoltWinters.R'

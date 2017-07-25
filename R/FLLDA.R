@@ -513,7 +513,7 @@ predict.FLLDA <- function(object){
     if(object@results$familytype %in% "Flex")
     {
         vinputcols <- list()
-        tblname <- gen_unique_table_name("flexscore")
+        tblname <- gen_score_table_name("flexscore")
         
         ret <- sqlStoredProc(connection,"FLFlexDiscriminantScore",
                              TableName = getTableNameSlot(object@deeptable),

@@ -6,8 +6,10 @@ setClass(
                  ) )
 
 #' @export
-vif <- function (formula,data=list(),...) {
-    UseMethod("vif", data)
+vif <- function (formula=NULL,data=list(),...) {
+    if((!is.formula(formula) && !is.null(formula)) || !is.FL(data))
+        return(car::vif(formula,data=data,...))
+    else UseMethod("vif", data)
 }
 
 
@@ -32,11 +34,13 @@ vif <- function (formula,data=list(),...) {
 #' @examples
 #' fltbl <- FLTable(table = "tbllinregr", obs_id_colname="OBSID", var_id_colnames="VARID", "NUM_VAL")
 #' flmod <- vif.FLTable(data = fltbl)
+#' flmod$vif
 #' flmod <- vif.FLTable(data = fltbl, method = "fb")
 #' flmod <- vif.FLTable(data = fltbl, method = "bw")
 #' For Multi-Dataset:
 #' fltbl <- FLTableMD(table = "tblLogRegrMulti",group_id_colname="DATASETID",obs_id_colname="ObsID",var_id_colname="VarID",cell_val_colname="Num_Val")
 #' flmod <- vif(data= fltbl, method = "bw", threshold = 5)
+#' flmod$vif
 #' @export
 vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",threshold = c(2,10),...)
 {
@@ -73,23 +77,44 @@ vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",threshol
                               )
         vdeeptbl <- FLdeep$deepx
         cnames <- c(TableName =  FLdeep$deepx@select@table_name[[1]])
-        if(is.FLTableMD(data))
+
+        vmapping <- list("1"=FLdeep$vmapping)
+        if(is.FLTableMD(data)){
             cnames <- c(cnames,
                         GroupID = FLdeep$deepx@select@variables$group_id_colname)
-        else
-            cnames <- c(cnames,
-                        ObsIDCol = FLdeep$deepx@select@variables$obs_id_colname,
-                        VarIDCol = FLdeep$deepx@select@variables$var_id_colname,
-                        ValueCol= FLdeep$deepx@select@variables$cell_val_colname) }
+        }
+        cnames <- c(cnames,
+                    ObsIDCol = FLdeep$deepx@select@variables$obs_id_colname,
+                    VarIDCol = FLdeep$deepx@select@variables$var_id_colname,
+                    ValueCol= FLdeep$deepx@select@variables$cell_val_colname) 
+    }
     else
     { cnames <- c(TableName =  data@select@table_name[[1]])
-        if(is.FLTableMD(data))
+        if(is.FLTableMD(data)){
             cnames <- c(cnames,
                         GroupID =gsub("flt.", "", data@select@variables$group_id_colname) )
+            vmapping <- lapply(colnames(data),
+                                function(x){
+                                    x <- setdiff(x,c(0,-1))
+                                    vmap <- x
+                                    names(vmap) <- paste0("var",x)
+                                    vmap
+                                    })
+        }
+        else{
+            vmapping <- lapply(list("1"=colnames(data)),
+                            function(x){
+                                x <- setdiff(x,c(0,-1))
+                                vmap <- x
+                                names(vmap) <- paste0("var",x)
+                                vmap
+                                })
+        }
         cnames <- c(cnames,
                     ObsIDCol = gsub("flt.", "",data@select@variables$obs_id_colname),
                     VarIDCol = gsub("flt.", "",data@select@variables$var_id_colname),
-                    ValueCol= gsub("flt.", "",data@select@variables$cell_val_colname)) }
+                    ValueCol= gsub("flt.", "",data@select@variables$cell_val_colname))
+    }
 
     vstat <- "fzzlvifstats"
     data <- setAlias(data,"")
@@ -134,7 +159,9 @@ vif.FLTable <- function(formula, data, fetchID = TRUE,method = "normal",threshol
                             deeptbl = vdeeptbl,
                             vspec = vAnalysisID,
                             stattbl = vstat,
-                            method = method )))   
+                            method = method,
+                            vmapping = vmapping,
+                            viter = NULL ))) 
 }
 
 
@@ -151,15 +178,38 @@ vif.FLTableMD <- vif.FLTable
 
     if(object@results$method != "normal" && is.null(object@results$viter)){
         vstr <- paste0("select max(iteration) as viter from ",object@results$stattbl," WHERE ANalysisID = ",fquote(object@results$vspec))
-        vdf <- sqlQuery(connection,vstr)
-        object@results <- c(object@results,list(viter = vdf$viter))
-        assign(parentObject,object,envir=parent.frame()) }  
+        if(is.null(object@results[["viter"]])){
+            vdf <- sqlQuery(connection,vstr)
+            object@results[["viter"]] <- vdf$viter
+            # object@results <- c(object@results,list(viter = vdf$viter))
+        }
+    }
 
     if(property == "vif")
     {
-        vstr <- paste0("select VARID as predictors, VIF as vif from ",object@results$stattbl," WHERE AnalysisID = ",fquote(object@results$vspec)," order by predictors, VIF")
+        if(!is.null(object@results[["vif"]]))
+            return(object@results[["vif"]])
+        vstr <- paste0("select datasetid as datasetid, VARID as predictors, VIF as vif from ",object@results$stattbl,
+                    " WHERE AnalysisID = ",fquote(object@results$vspec),
+                    ifelse(!is.null(object@results$viter),paste0(" AND iteration = ",object@results$viter),""),
+                    " order by datasetid, varid, VIF")
         vdf <- sqlQuery(connection, vstr)
-        return(vdf)
+        vres <- dlply(vdf,"datasetid",
+                    function(x){
+                        vvif <- x$vif
+                        vdatasetid <- as.character(unique(x$datasetid))
+                        vmap <- object@results[["vmapping"]][[vdatasetid]]
+                        if(!is.null(vmap))
+                            vnames <- names(vmap)[match(x$predictors,vmap)]
+                        else vnames <- NULL
+                        names(vvif) <- vnames
+                        return(vvif)
+                    })
+        if(length(vres)==1)
+            vres <- vres[[1]]
+        object@results[["vif"]] <- vres
+        assign(parentObject,object,envir=parent.frame())
+        return(vres)
     }
 
     if(property == "model.matrix"){
@@ -178,7 +228,8 @@ vif.FLTableMD <- vif.FLTable
             vthreshold <- paste0(" and vif<5")
         else
             vthreshold <- paste0(" and iteration = ",object@results$viter,"")
-        vstr <- paste0("select VARID as predictors from ",object@results$stattbl," WHERE AnalysisID = ",fquote(object@results$vspec),"",vthreshold,"order by predictors ")
+        vstr <- paste0("select VARID as predictors from ",object@results$stattbl,
+                        " WHERE AnalysisID = ",fquote(object@results$vspec),"",vthreshold,"order by predictors ")
         vdf <- sqlQuery(connection, vstr)       
         return(vdf$predictors)
     }

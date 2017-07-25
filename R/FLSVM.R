@@ -182,7 +182,7 @@ predict.FLSVM <- function(object, newdata = object@deeptable, scoreTable = "", .
     if(scoreTable == ""){
         
         pvar <- getVariables(newdata)
-        scoreTable <- gen_unique_table_name("svmoutput")
+        scoreTable <- gen_score_table_name("svm")
         scrmethod <- toupper(substr(object@results$kernel, 1,1))
 
         ret <- sqlStoredProc(connection,
