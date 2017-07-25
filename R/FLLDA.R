@@ -434,7 +434,7 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
         {
             str <- paste0("SELECT * FROM fzzlFDAConfusionMtx WHERE AnalysisID = '",object@AnalysisID,"'ORDER BY PredictedClass, ActualClass ")
             dtf <- sqlQuery(connection, str)
-            var <- as.integer(max(object$lev))
+            var <- max(as.integer(object$lev))
             df <- as.data.frame(lapply(1:var, function(x){
                 dtf$Num_Val[dtf$ActualClass == x]
             }), ncol = var)
