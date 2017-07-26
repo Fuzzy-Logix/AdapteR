@@ -35,14 +35,16 @@
 #' @examples
 #' ## One Random Effect.
 #' fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
-#' flmod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
+#' colnames(fltbl) <- tolower(colnames(fltbl))
+#' flmod <- lmer(yval ~ fixval + (1 | ranval), data = fltbl)
 #' flpred <- predict(flmod)
 #' ## One Categorical Fixed Effect and Two Random Effects.
 #' fltbl  <- FLTable(getTestTableName("tblMixedModelInt"), "ObsID")
-#' flmod <- lmer(yVal ~ FixVal + (1 | RanVal1) + (1 | RanVal2 ), fltbl, categoricalFixedEffect=TRUE)
+#' colnames(fltbl) <- tolower(colnames(fltbl))
+#' flmod <- lmer(yval ~ fixval + (1 | ranval1) + (1 | ranval2 ), fltbl, categoricalFixedEffect=TRUE)
 #' flpred <- predict(flmod)
 #' ## One Categorical Fixed Effect and One Random Effect.
-#' flmod <- lmer(yVal ~ FixVal + (1 | RanVal1), data = fltbl, categoricalFixedEffect=TRUE)
+#' flmod <- lmer(yval ~ fixval + (1 | ranval1), data = fltbl, categoricalFixedEffect=TRUE)
 #' flpred <- predict(flmod)
 #' @export
 lmer <- function (formula,data=list(),...) {

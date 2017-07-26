@@ -369,9 +369,11 @@ summary.FLRandomForest<-function(object){
 	predclass <- 1:ncol(x)
 	vactualPredclass <- sort(colnames(x))
 	# comb<-combn(nrow(predclass),m=2)
-	comb<-combn(predclass,m=2)
 	if(length(predclass)<2) stop("The distinct predicted class for the dataset are less than 2. 
-						 Hence can't calculate Roc curves.")
+						 Hence can't calculate Roc curves. \n  .... Summary not supported ... ")
+	
+	comb<-combn(predclass,m=2)
+	
 	retobj<-list()
 	# if(!all(predclass) %in% c("0","1")){
 	if(TRUE){

@@ -1,4 +1,5 @@
 # DB-Lytix Example.
+## https://fuzzyl.atlassian.net/browse/TDFL-835
 Renv <- new.env(parent = globalenv())
 FLenv <- as.FL(Renv)
 deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
@@ -23,7 +24,7 @@ test_that("Means and coefficients:", {eval_expect_equal({
 },Renv,FLenv,
 verbose = TRUE,
 check.attributes = FALSE,
-expectations = c("ymn", "xmn"))
+expectation = c("ymn", "xmn"))
 })
 
 ## Scores: (Do not match)
@@ -34,7 +35,7 @@ test_that("Scores:", {eval_expect_equal({
 },Renv,FLenv,
 verbose = TRUE,
 check.attributes = FALSE,
-expectations = c("xscr", "yscr"))
+expectation = c("xscr", "yscr"))
 })
 
 
@@ -47,7 +48,7 @@ test_that("loadings:", {result <- eval_expect_equal({
    
 },Renv,FLenv,
 verbose = TRUE,
-expectations = c("yload", "lwt", "load"),
+expectation = c("yload", "lwt", "load"),
 check.atributes = FALSE)
 })
 
@@ -65,7 +66,7 @@ test_that("predict, residuals",{
 
 deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
 ## opls function
-test_that("opls function", {
+test_that("opls function: coef, predict, residuals method work: ", {
     flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
     cof <- coefficients(flmod)
     pred <- predict(flmod);res <- residuals(flmod) 

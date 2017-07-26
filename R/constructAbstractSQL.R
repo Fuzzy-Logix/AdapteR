@@ -768,7 +768,33 @@ insertIntotbl <- function(pTableName,
             # vsqlstr <- paste0(apply(pValues,1,
             #                 function(x)
             #                     paste0(vsqlstr,"(",paste0(fquote(x),collapse=","),")")),collapse = ";")
-        else if(!is.TD()){
+        else if(is.TDAster()){
+            vappend <- paste0(apply(pValues,1,
+                                function(x){
+                                  paste0("(",
+                                      paste0(sapply(x,
+                                            function(y){
+                                                if(is.logical(y)||
+                                                  is.factor(y)) 
+                                                    y <- as.character(y)
+                                                suppressWarnings(if(!is.na(as.numeric(y)))
+                                                                 y <- as.numeric(y))
+                                                if((is.character(y) && !grepl("'",y))
+                                                    || is.null(y)){
+                                                    if(y=="NULL" || is.null(y)){
+                                                        return("NULL")
+                                                    }
+                                                    else return(fquote(y))
+                                                }
+                                                else return(y)}),
+                                        collapse = ","),")")}),
+                            collapse = ",")
+            # vappend <- paste0(apply(pValues,1,
+            #                 function(x)
+            #                     paste0("(",paste0(fquote(x),collapse=","),")")),collapse = ",")
+            vsqlstr <- paste0(vsqlstr,vappend)
+        }
+        else if(is.Hadoop()){
             vappend <- paste0(apply(pValues,1,
                                 function(x){
                                   paste0("(",

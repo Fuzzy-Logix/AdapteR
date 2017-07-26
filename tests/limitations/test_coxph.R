@@ -1,3 +1,6 @@
+## https://app.asana.com/0/136555696724838/163682320948854
+## https://fuzzyl.atlassian.net/browse/TDFL-832
+
 Renv = new.env(parent = globalenv())
 #fit <- coxph(Surv(time, status) ~ age + sex, lung1) 
 FLenv = as.FL(Renv)
@@ -63,6 +66,8 @@ test_that("cox linear.predictors  https://app.asana.com/0/136555696724838/163682
 })
 
 #summary, plot??
+## https://app.asana.com/0/136555696724838/163682320948854
+## https://fuzzyl.atlassian.net/browse/TDFL-832
 
 ## DBLytix manual example
 fldata <- FLTable(getTestTableName("tblcoxph_wide"),"ObsID")

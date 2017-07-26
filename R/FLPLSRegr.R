@@ -31,7 +31,7 @@ mvr <- function (formula,data=list(),...) {
 #' @export
 mvr.default <- function (formula,data=list(),...) {
     if (!requireNamespace("pls", quietly = TRUE)){
-        stop("mvr package needed for mvr. Please install it.",
+        stop("pls package needed for mvr. Please install it.",
              call. = FALSE)
     }
     else return(pls::mvr(formula=formula,data=data,...))
@@ -59,6 +59,8 @@ mvr.FLTable <- mvr.FLpreparedData
 #' @export
 mvr.FLTableMD <- mvr.FLpreparedData
 
+#' @export
+mvr.FLTableDeep <- mvr.FLpreparedData
 
 #'OPLS Regression.
 #'
@@ -105,6 +107,8 @@ opls.FLTable <- opls.FLpreparedData
 #' @export
 opls.FLTableMD <- opls.FLpreparedData
 
+#' @export
+opls.FLTableDeep <- opls.FLpreparedData
 
 #' @export
 setClass(
@@ -253,10 +257,10 @@ setMethod("names", signature("FLPLSRegr"), function(x) c("y","rsquare","Yloading
                                                      "methods","Ymeans","Xmeans"))
 
 
-#' @export
-coefficients<-function(table){
-	UseMethod("coefficients",table)
-}
+# #' @export
+# coefficients<-function(table){
+# 	UseMethod("coefficients",table)
+# }
 
 #' @export
 coefficients.FLPLSRegr<-function(object){
@@ -266,13 +270,11 @@ coefficients.FLPLSRegr<-function(object){
                 " WHERE AnalysisID = '",object@AnalysisID,"'ORDER BY 3, 2;")
     dtf <- sqlQuery(connection, str)
     colnames(dtf) <- tolower(colnames(dtf))
-    cof <- dtf$beta[2:length(dtf$beta)]
+    cof <- dtf$beta[1:length(dtf$beta)]
     var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
     if(length(cof)>length(var))
-        names(cof)[1:length(var)] <- var
-    else
-        names(cof)[1:length(cof)] <- var[1:length(cof)]
-    
+        var <- c("Intercept",var)
+    names(cof) <- var
     cof <- as.array(cof)
     assign(parentObject,object,envir=parent.frame())
     return(cof)   

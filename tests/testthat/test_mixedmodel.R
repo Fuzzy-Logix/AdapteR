@@ -1,9 +1,10 @@
 ## Results do not match with R's lmer.
 ## Please have a look at the file with the same name in limitations folder
 
-rm(list = setdiff(ls(),"connection"))
+# rm(list = setdiff(ls(),"connection"))
 ## implement as.R for FLSimpleVector.
 ## using 1 Random Effects.
+
 FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
 

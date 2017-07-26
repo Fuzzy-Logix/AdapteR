@@ -125,3 +125,11 @@ FLGarch.TDAster(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=partition1,
 
 FLDifferenceUdt.TD(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=oGroupID,vectorIndexColumn=oPeriodID,vectorValueColumn=oDifference)
 FLDifferenceUdt.TDAster(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=partition1,vectorIndexColumn=periodid,vectorValueColumn=difference)
+
+FLMixedModelUdt.TD() <- FLMixedModelUdt()
+FLMixedModelUdt.TDAster() <- FLMixedModelUdt()
+FLMixedModelUdt.Hadoop() <- FLPTFMixedModel()
+
+FLMixedModelIntUdt.TD() <- FLMixedModelIntUdt()
+FLMixedModelIntUdt.TDAster() <- FLMixedModelIntUdt()
+FLMixedModelIntUdt.Hadoop() <- FLPTFMixedModelInt()

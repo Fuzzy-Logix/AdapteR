@@ -495,9 +495,9 @@ predict.FLCoxPH <-function(object,
 
 	vScore <- flv
 	sqlstr <- paste0(limitRowsSQL(paste0("SELECT * from ",
-								survivalCurveTable),100),
-								" ORDER BY 1")
+								survivalCurveTable),100))
 	vSurvival <- sqlQuery(getFLConnection(),sqlstr)
+	vSurvival <- vSurvival[order(vSurvival[[1]]),]
 	return(list(score=vScore,
 				survival=vSurvival))
 }

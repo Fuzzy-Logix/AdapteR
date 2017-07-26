@@ -92,11 +92,27 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
                     )
     }
     
+    ## Get platform specific funcName
+    vMap <- getMatrixUDTMapping(functionName)
+    functionName <- vMap$funcNamePlatform
+
     vprimaryKey <- "groupid"
     if(inherits(data,"FLTable.TDAster"))
         vprimaryKey <- "partition1"
 
     tblname <- gen_unique_table_name("mixlin")
+    if(is.Hadoop())
+    t <- createTable(tblname, 
+                    pSelect =  constructUDTSQL(pViewColnames = cnames,
+                                             pFuncName = functionName,
+                                             pOutColnames = c("a.*"),
+                                             pSelect = data@select@table_name[[1]],
+                                             pLocalOrderBy=c("GroupID"), 
+                                             pNest = TRUE, 
+                                             pFromTableFlag = TRUE),
+                    pPrimaryKey=vprimaryKey,
+                    pTemporary=FALSE)
+    else
     t <- createTable(tblname, 
                     pSelect =  constructUDTSQL(pViewColnames = cnames,
                                              pFuncName = functionName,
@@ -112,7 +128,7 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
     vdf <- sqlQuery(connection, vdf)
     if(vinterceptExist == 1)
     { vin <- paste0("SELECT CoeffEst as coeff, TStat as tstat FROM ",
-                    tblname," WHERE CoeffName LIKE '%INTERCEPT%'") 
+                    tblname," WHERE CoeffName LIKE '%Intercept%'") 
         vin <- sqlQuery(connection, vin)}
     else
         vin <- NULL
@@ -172,9 +188,9 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
             return(c(df$cr1,df$cr2)) } }
 
     if(property == "u"){
-        quer <- paste0("SELECT CoeffEst as Cf, CoeffID cid, coeffname as cname FROM ",
+        quer <- paste0("SELECT CoeffEst as cf, CoeffID cid, coeffname as cname FROM ",
                         object@results$outtbl,
-                        " WHERE coeffName LIKE 'RANDOM%' ORDER BY coeffID ")
+                        " WHERE coeffName LIKE 'Random%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
         vres <- df$cf
         names(vres) <- df$cname
@@ -184,7 +200,7 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
     if(property == "fixedcoef"){
         quer <- paste0("SELECT CoeffEst as cf, CoeffID as cid, coeffname as cname FROM ",
                     object@results$outtbl,
-                    " WHERE coeffName LIKE 'FIXED%' ORDER BY coeffID ")
+                    " WHERE coeffName LIKE 'Fixed%' ORDER BY coeffID ")
         df <- sqlQuery(connection, quer)
         vres <- df$cf
         names(vres) <- df$cname

@@ -1,11 +1,12 @@
-rm(list = setdiff(ls(),"connection"))
+# rm(list = setdiff(ls(),"connection"))
 ## implement as.R for FLSimpleVector.
 ## using 1 Random Effects.
 FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
+colnames(fltbl) <- tolower(colnames(fltbl))
 
 ## use in 
-FLenv$mod <- mixUDT(yVal ~ FixVal + (1 | RanVal), data = fltbl)
+FLenv$mod <- lmer(yval ~ fixval + (1 | ranval), data = fltbl,categoricalFixedEffect=TRUE)
 
 
 ## AIC, Log-Likehhood
@@ -21,16 +22,16 @@ test_that("Covar Random", {
 
 ## fixedcoef and u
 test_that("comparing length of fixed coef and u", {
-	expect_equal(1 + length(FLenv$mod$fixedcoef),length(unique(as.vector(fltbl[,"FixVal"]))))
-	expect_equal(length(FLenv$mod$u),length(unique(as.vector(fltbl[,"RanVal"]))))
+	expect_equal(1 + length(FLenv$mod$fixedcoef),length(unique(as.vector(fltbl[,"fixval"]))))
+	expect_equal(length(FLenv$mod$u),length(unique(as.vector(fltbl[,"ranval"]))))
 })
 
 
 ## for 2 Random Effect:
 FLenv <- new.env(parent = globalenv())
 fltbl  <- FLTable(getTestTableName("tblMixedModelInt"), "ObsID")
-
-FLenv$mod <- mixUDT(yVal ~ FixVal + (1 |   RanVal1) + (1 | RanVal2 ), fltbl)
+colnames(fltbl) <- tolower(colnames(fltbl))
+FLenv$mod <- lmer(yval ~ fixval + (1 |   ranval1) + (1 | ranval2 ), fltbl,categoricalFixedEffect=TRUE)
 
 ## AIC, Log-Likehhood
 test_that("AIC, LogLik:", {expect_equal(FLenv$mod$logLik,38.6181,tolerance = .001 )
