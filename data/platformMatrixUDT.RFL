@@ -43,7 +43,7 @@ FLSVDUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <-
 FLSVDUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_val=OutUVal,s_val=OutSVal,v_val=OutVVal)
 
 FLSchurDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutQVal) <- FLSchurDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutQVal=OutQVal)
-
+FLSchurDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutQVal) <- FLSchurDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_val=OutUVal,q_val=OutQVal)
 
 FLLUDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_val=OutputValL,u_val=OutputValU,permut=OutputPermut)
 FLLUDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputValL=OutputValL,OutputValU=OutputValU,OutputPermut=OutputPermut)
@@ -133,3 +133,7 @@ FLMixedModelUdt.Hadoop() <- FLPTFMixedModel()
 FLMixedModelIntUdt.TD() <- FLMixedModelIntUdt()
 FLMixedModelIntUdt.TDAster() <- FLMixedModelIntUdt()
 FLMixedModelIntUdt.Hadoop() <- FLPTFMixedModelInt()
+
+FLNNetUdt.TD() <- FLNNetUdt()
+FLNNetUdt.TDAster() <- FLNeuralNetworkUdt()
+

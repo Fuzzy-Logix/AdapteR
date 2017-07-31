@@ -540,7 +540,8 @@ genCreateResulttbl <- function(tablename,
 #' @param connection ODBC/JDBC connection object
 #' @export
 flClose <- function(connection=getFLConnection(),
-                    retainPermanentTables=TRUE)
+                    retainPermanentTables=TRUE,
+                    username=getOption("FLUsername"))
 {
     options(flag1=0)
     options(flag1=0)
@@ -548,7 +549,8 @@ flClose <- function(connection=getFLConnection(),
     #options("FLTempTables"=c())
     #options("FLTempViews"=c())
     options("FLSessionID"=c())
-    cleanDatabase(pRetainPermanent=retainPermanentTables)
+    cleanDatabase(pRetainPermanent=retainPermanentTables,
+                pUser=username)
     # if(length(getOption("FLTempTables"))>0)
     #      sapply(getOption("FLTempTables"),dropTable)
     #  if(length(getOption("FLTempViews"))>0)
@@ -568,9 +570,11 @@ flClose <- function(connection=getFLConnection(),
 #' @param connection ODBC/JDBC connection object
 #' @export
 FLClose <- function(connection=getFLConnection(),
-                    retainPermanentTables=TRUE){
+                    retainPermanentTables=TRUE,
+                    username=getOption("FLUsername")){
     warning("Deprecated, calling flClose(connection).")
-    flClose(connection,retainPermanentTables=retainPermanentTables)
+    flClose(connection,retainPermanentTables=retainPermanentTables,
+            username=username)
 }
 
 ## check if hypothesis tables exists
@@ -617,8 +621,13 @@ loadIris <- function(){
 }
 
 
-cleanDatabase <- function(pRetainPermanent=TRUE){
+cleanDatabase <- function(pRetainPermanent=TRUE,pUser=getOption("FLUsername")){
+    if(is.null(pUser) || tolower(pUser) =="all")
     vdf <- sqlQuery(connection,"select * from fzzlAdapteRTablesInfo order by 1 ")
+    else vdf <- sqlQuery(connection,
+                        paste0("select * from fzzlAdapteRTablesInfo ",
+                                " where username = ",fquote(pUser),
+                                " order by 1 "))
     colnames(vdf) <- tolower(colnames(vdf))
     vquery <- apply(vdf,1,function(x){
                         if(is.na(x["permanentflag"]) | !pRetainPermanent | !as.integer(x["permanentflag"])){

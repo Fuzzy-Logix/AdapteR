@@ -89,7 +89,7 @@ neuralnet.default <- function (formula,data=list(),...) {
 #' flmod <- neuralnet(OutputCol~InputCol,data=fltbl,hidden=c(10), IsSigmoid = 0, layers = 1)
 #' @export
 neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 2,learningrate = .2,epoch = 500,IsSigmoid = 1, ...)
-{##browser()
+{
     vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("nnetdeep")
     vdeeptbl <- data
@@ -111,7 +111,10 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
     outtblname <- gen_unique_table_name("nnetout")
     
     data <- setAlias(data,"")
+
     functionName <- "FLNNetUdt"
+    vMap <- getMatrixUDTMapping(functionName)
+    functionName <- vMap$funcNamePlatform
     
     cnames <- c(GroupID = 1,
                 ObsID = FLdeep$deepx@select@variables$obs_id_colname,
@@ -131,10 +134,15 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
     
     if(layers ==1){
         n2 <- NULL
-        varg <- c(varg,NeuronCountTwo = list(NULL))                  
+        if(is.TDAster())
+            varg <- c(layerstructure=fquote(as.character(varg)))
+        else varg <- c(varg,NeuronCountTwo = list(NULL))        
     }
-    else
-        varg <- c(varg,NeuronCountTwo = n2)    
+    else{
+        if(is.TDAster())
+            varg <- c(layerstructure=fquote(as.character(paste0(n1,",",n2))))
+        else varg <- c(varg,NeuronCountTwo = n2) 
+    }   
         
     varg <- c(varg,
               LearningRate= learningrate,
@@ -142,16 +150,28 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
               IsSigmoid = IsSigmoid)
 
 
-
-    t <- createTable(outtblname, 
+    if(is.TDAster()){
+        cnames <- c(cnames,varg)
+        t <- createTable(outtblname, 
                      pSelect =  constructUDTSQL(pViewColnames = cnames,
                                                 pFuncName = functionName,
                                                 pOutColnames = c("a.*"),
                                                 pSelect = FLdeep$deepx@select@table_name,
                                                 pLocalOrderBy=c("GroupID", "ObsID", "VarID"), 
                                                 pNest = TRUE, 
-                                                pFromTableFlag = TRUE,
-                                                pArg = varg))
+                                                pFromTableFlag = TRUE),
+                     pPrimaryKey="partition1")
+    }
+    else 
+        t <- createTable(outtblname, 
+                         pSelect =  constructUDTSQL(pViewColnames = cnames,
+                                                    pFuncName = functionName,
+                                                    pOutColnames = c("a.*"),
+                                                    pSelect = FLdeep$deepx@select@table_name,
+                                                    pLocalOrderBy=c("GroupID", "ObsID", "VarID"), 
+                                                    pNest = TRUE, 
+                                                    pFromTableFlag = TRUE,
+                                                    pArg = varg))
     return(new("FLNnet",
                formula=formula,
                scoreTable="",
@@ -239,7 +259,12 @@ neuralnet.FLTable <- function(formula, data, fetchID = TRUE,hidden = 5,layers = 
 predict.FLNnet <- function(object,newdata = object@table, ...){
     var <- getVariables(object@results$deeptbl)
     tblname <- gen_score_table_name("neuralscore")
-    ret <- sqlStoredProc(connection,"FLNNetUdtScore",
+
+    functionName <- "FLNNetUdtScore"
+    vMap <- getMatrixUDTMapping(functionName)
+    functionName <- vMap$funcNamePlatform
+
+    ret <- sqlStoredProc(connection,functionName,
                          ModelTable = object@results$vspec,
                          InTable = getTableNameSlot(object@results$deeptbl),
                          GroupIDCol = NULL,

@@ -187,6 +187,8 @@ sqlStoredProc.JDBCTDAster <- function(connection,
                    gsub(" +","    ", sqlstr),"\n"))
     }
 
+    if("returnQuery" %in% names(list(...)) && list(...)[["returnQuery"]])
+        return(sqlstr)
     class(connection) <- "JDBCConnection"
     retobj <- DBI::dbGetQuery(connection,sqlstr)
     return(retobj)
@@ -206,6 +208,8 @@ sqlStoredProc.RODBC <- function(connection, query,
                                   pFuncName=query,
                                   pOutputParameter=outputParameter),
                              args))
+    if("returnQuery" %in% names(list(...)) && list(...)[["returnQuery"]])
+        return(sqlstr)
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }

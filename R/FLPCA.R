@@ -20,11 +20,11 @@ setClass(
 #' @slot otbl output table name.
 #' @return \code{prcomp} returns an object of class \code{FLPCA}
 #' @examples
-#' fltbl <- FLTable("tblLogRegrMulti","OBSID", "VARID", "NUM_VAL")
-#' flmod <- prcomp.FLTable(data = fltbl, matrixtype = "COVAR",where = "")
+#' fltbl <- FLTable(getTestTableName("tblLogRegrMulti"),"OBSID", "VARID", "NUM_VAL")
+#' flmod <- prcomp(data = fltbl, matrixtype = "COVAR",where = "")
 #' rtbl <- iris
 #' rtbl$Species <- as.numeric(rtbl$Species)
-#' fliris <- as.FL(rtbl)
+#' fliris <- as.FLTable(rtbl,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 #' flirispca <- prcomp(Species~., data = fliris)
 #' @export
 prcomp <- function (formula,data=list(),...) {
@@ -35,7 +35,7 @@ prcomp <- function (formula,data=list(),...) {
 prcomp.default <- stats::prcomp
 
 #' @export
-prcomp.FLTable <- function(formula, data,matrixtype = "COVAR" ,where = "",...)
+prcomp.FLTable <- function(formula, data,matrixtype = "COVAR" ,where = "NULL",...)
 {
     vcallObject <- match.call()
     data <- setAlias(data,"")
@@ -50,7 +50,7 @@ prcomp.FLTable <- function(formula, data,matrixtype = "COVAR" ,where = "",...)
 
 #' TO-DO:- support without formula.
 #' @export
-pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
+pcageneric <- function(formula, data, matrixtype = "COVAR",where = "NULL" ,...){
     vcallObject <- match.call()
     deeptblname <- gen_unique_table_name("pca")
     vdeeptbl <- data
@@ -82,28 +82,67 @@ pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
                    ObsIDColName = vObsIDColName,
                    VarIDColName = vVarIDColName,
                    ValueColName = vValueColName,
-                   WhereClaue = where,
-                   GroupBy = NULL,
+                   WhereClause = where,
+                   GroupBy = "NULL",
                    MatrixType = matrixtype,
                    TableOutput = 1)
 
-    functionName <- "FLPCA"
-    ret <- sqlStoredProc(connection,
+    voutTable <- gen_wide_table_name("PCA")
+
+    if(is.Hadoop()){
+      vmap <- c("COVAR"=FALSE,"CORREL"=TRUE)
+      cnames[["MatrixType"]] <- vmap[cnames[["MatrixType"]]]
+      cnames[["ResultTable"]] <- voutTable
+      functionName <- "FLPCA"
+      ret <- sqlStoredProc(connection,
+                           functionName,
+                           pInputParams = cnames,
+                           outputParameter = c(OutTable = 'a')
+                           )
+    }
+    else if(is.TDAster()){
+      functionName <- "FLPCA"
+      sqlstr <- sqlStoredProc(connection,
                          functionName,
                          pInputParams = cnames,
-                         outputParameter = c(OutTable = 'a')
+                         outputParameter = c(OutTable = 'a'),
+                         returnQuery=TRUE
                          )
-    vAnalysisID <- as.character(ret[[1]])
-    vstr <- paste0("select count(distinct(OutputColNum))  as val FROM ",vAnalysisID," ")
+      vtbl <- createTable(voutTable,pSelect=sqlstr,pPrimaryKey="outputrownum")
+    }
+    else{
+      functionName <- "FLPCA"
+      ret <- sqlStoredProc(connection,
+                           functionName,
+                           pInputParams = cnames,
+                           outputParameter = c(OutTable = 'a')
+                           )
+      voutTable <- as.character(ret[[1]])
+    }
+
+    voutCols <- list(OutputRowNum="OutputRowNum",
+                    OutputColNum="OutputColNum",
+                    Covar="Covar",
+                    EIGENVEC="EIGENVEC",
+                    EIGENVAL="EIGENVAL")
+    if(is.Hadoop())
+      voutCols <- list(OutputRowNum="row_id",
+                    OutputColNum="col_id",
+                    Covar="value",
+                    EIGENVEC="eigenvector",
+                    EIGENVAL="eigenvalue")
+
+    vstr <- paste0("select count(distinct(",voutCols[["OutputColNum"]],"))  as val FROM ",voutTable," ")
     vdf <- sqlQuery(connection, vstr)
     vcol <- vdf$val
     vclass <- "FLPCA"
 
     return(new(vclass,
                deeptbl = vdeeptbl,
-               otbl = vAnalysisID,
+               otbl = voutTable,
                results = list(ncol = vcol,
-                              call = vcallObject)))      }
+                              call = vcallObject,
+                              voutCols=voutCols)))      }
 
 
 ## move to file lm.R
@@ -113,10 +152,12 @@ pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
 
     if(property == "rotation"){
-        vstr <- paste0("select EIGENVEC FROM ",object@otbl," order by OutputRowNum, OutputColNum")
+        vstr <- paste0("select ",object@results[["voutCols"]][["EIGENVEC"]],
+                      " as eigenvec FROM ",object@otbl,
+                      " order by ",object@results[["voutCols"]][["OutputRowNum"]],",",object@results[["voutCols"]][["OutputColNum"]])
         vdf  <- sqlQuery(connection, vstr)
         
-        vmatrix <- matrix(vdf$EIGENVEC, ncol = object@results$ncol,byrow = TRUE)
+        vmatrix <- matrix(vdf$eigenvec, ncol = object@results$ncol,byrow = TRUE)
         colnames(vmatrix) <- paste0("PC",1:object@results$ncol)
         return(vmatrix) }
 
@@ -125,7 +166,10 @@ pcageneric <- function(formula, data, matrixtype = "COVAR",where = "" ,...){
     }
 
     if(property == "sdev"){
-        vstr <- paste0( "select EIGENVAL as val FROM ",object@otbl," WHERE OutputRowNum =  OutputColNum ORDER BY EIGENVAL DESC")
+        vstr <- paste0( "select ",object@results[["voutCols"]][["EIGENVAL"]],
+                      "  as val FROM ",object@otbl,
+                      " WHERE ",object@results[["voutCols"]][["OutputRowNum"]]," =  ",object@results[["voutCols"]][["OutputColNum"]],
+                      " ORDER BY ",object@results[["voutCols"]][["EIGENVAL"]]," DESC")
         vdf <- sqlQuery(connection,vstr)
         return(vdf$val^.5)
     }
@@ -143,6 +187,11 @@ setMethod("names", signature("FLPCA"), function(x) c("call","x","rotation", "sde
 
 #' @export
 print.FLPCA <- function(object){
+  print(summary(object))
+}
+
+#' @export
+summary.FLPCA <- function(object){
 
     return(list("Standard Deviation" = object$sdev,
              "rotation" = object$rotation))
