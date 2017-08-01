@@ -100,18 +100,20 @@ matchit <- function(formula, data, method = "nearest", distance = "logit",
     ##
     ## create a table for Matchit
     ## browser()
+    vtreatment <- all.vars(formula)[1]
     e <- gen_unique_table_name("matchit")
     Y <- setAlias(data,"a")
     sql <- paste0("
 SELECT ", getIndexSQLExpression(Y,1)," obsid,
-       a.TREATMENT exposure,
+       CAST(a.",vtreatment," AS INT) exposure,
        b.vectorValueColumn prob
 FROM (",constructSelect(Y),") a,
      (",constructSelect(scores),") b
 WHERE a.obsid=b.vectorIndexColumn
 ")
     createTable(pTableName=e, pSelect=sql,
-                pPrimaryKey="obsid",pWithData = TRUE)
+                pPrimaryKey="obsid",pWithData = TRUE,
+                pTemporary=FALSE)
     ## obsid <- getIndexSQLExpression(Y,1)
     ## sel@select@table_name <- c(sel@select@table_name,getTableNameSlot(Y))
     ## sel@select@variables <- c(sel@select@variables,
@@ -121,7 +123,8 @@ WHERE a.obsid=b.vectorIndexColumn
     ## cat(constructSelect(sel))
     ## createTable(pTableName=e, pSelect=constructSelect(sel),
     ##             pPrimaryKey=getIndexSQLName(sel,1),pWithData = TRUE)
-
+    
+    voutTable <- gen_wide_table_name("MatchIt")
     TIME$matchit <- system.time({
         ret <- sqlStoredProc(connection,
                              "FLMatchIt",
@@ -130,11 +133,15 @@ WHERE a.obsid=b.vectorIndexColumn
                              TreatmentColName = "exposure",
                              PropScoreCol = "prob", ## getValueSQLName(sel),
                              MatchOrderCol = "prob", ## getValueSQLName(sel), 
-                             TableOutput = 1,
+                             TableOutput = as.integer(1),
+                             OutTable=voutTable,
                              outputParameter = c(OutTable = 'a')
                              )
     })
-    discarded <- FLSimpleVector(as.character(ret$OutTable),"obsid","obsid")
+
+    if(is.TD())
+        voutTable <- as.character(ret$OutTable[1])
+    discarded <- FLSimpleVector(voutTable,"obsid","obsid")
     whereClause <- function(fordat=data){
         unsel <- setAlias(discarded, "adpaterSel")
         unsel@select@order <- ""
