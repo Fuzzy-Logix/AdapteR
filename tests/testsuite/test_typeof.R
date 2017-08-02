@@ -17,7 +17,7 @@ test_that("typeof: matrix, vector and expressions",
   # expect_equal(typeof(M2>M2),"logical")
   # expect_equal(typeof(as.R(M2>M2)),"logical")
   P1 <- initF.FLVector(n=10,isRowVec=TRUE)
-  expect_equal(typeof(P1$FL),"double")
+  expect_equal(typeof(P1$FL)[[1]],"double")
 
   expect_equal(typeof(P1$FL*P1$FL),"double")
   expect_equal(typeof(V1*M2*P1$FL*M1$FL),"double")
@@ -32,7 +32,7 @@ test_that("typeof: matrix, vector and expressions",
         )
 
   V2 <- widetable[1:6,"string"]
-  expect_equal(typeof(V2),"character")
+  expect_equal(typeof(V2)[[1]],"character")
   expect_equal(typeof(FLIsHex(V2)),"logical")
   expect_equal(typeof(regexpr("A",V2)),"integer")
   expect_equal(typeof(gsub("A","X",V2)),"character")
@@ -47,6 +47,6 @@ test_that("typeof: FLTable fzzlSerial, subsetting vector",
                 whereconditions = "SERIALVAL<100")
   flv1 <- flt[1:8,"RANDVAL"]
   flv <- flt[1:10,"RANDVAL"]
-  expect_equal(typeof(flv1),"double")
-  expect_equal(typeof(flv),"double")
+  expect_equal(typeof(flv1)[[1]],"double")
+  expect_equal(typeof(flv)[[1]],"double")
 })
