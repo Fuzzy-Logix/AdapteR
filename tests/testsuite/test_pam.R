@@ -14,11 +14,14 @@ FLenv <- as.FL(Renv)
 test_that("Kmedoids: dimensions of results match",{
   eval_expect_equal({
       pamx <- pam(x,4)
-      medoids <- pamx$medoids
+      medoids <- as.data.frame(pamx$medoids)
+      attributes(medoids)$row.names <- NULL
+      attributes(medoids)$names <- NULL
       id.med <- pamx$id.med
       clust <- pamx$clustering
       isolate <- pamx$isolation
-      clusinfo <- pamx$clusinfo
+      clusinfo <- as.data.frame(pamx$clusinfo)
+      names(clusinfo) <- NULL
   },Renv,FLenv,
   expectation=c("medoids","id.med",
                 "clust","isolate","clusinfo"),

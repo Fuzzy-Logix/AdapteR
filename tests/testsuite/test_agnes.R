@@ -24,12 +24,12 @@ test_that("agnes components merge order for average method ",{
   },Renv,FLenv,
   expectation=c("o","h","m"),
   noexpectation=c("agn1"),
-  platforms = c("TD", "Hadoop")
+  platforms = c("TD", "Hadoop"),
+  tolerance = .00001
   )
   FLexpect_equal(dim(FLenv$agn1$diss),
                 c(nrow(FLenv$x),nrow(FLenv$x)))
 })
-
 ##
 test_that("agnes components dimensions for average method ",{
   eval_expect_equal({
