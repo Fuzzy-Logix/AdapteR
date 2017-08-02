@@ -58,7 +58,7 @@ test_that("Selection of columns works with $ and with [,name]",{
     ## A remote matrix is easily created by specifying
     ## table, row id, column id and value columns
     DfilmF <- FLTable(table        = "FL_DEMO.actressldist",
-                      obs_id_colname    = "ObsID")
+                      obs_id_colname    = "obsid")
     expect_equal(as.vector(head(DfilmF$Actor)),
                  as.vector(head(DfilmF[,"Actor"])))
 })
@@ -72,7 +72,7 @@ test_that("check examples from DB-Lytix manual runs:: FLWideToDeep",{
 
     ## check dimension of deeptable obtained
     # from deeptable obsID col removed(-1), sex col removed(-1) and 2 cols of DummyCat added.
-    FLexpect_equal(deeptable@dims, dim(widetable))
+    FLexpect_equal(deeptable@dims, dim(widetable)+c(0,1))
     })
 
 ########################
@@ -83,15 +83,14 @@ test_that("check dimension of wideTable generated",{
     widetable <- resultList$table
 
     ## check dimension of widetable
-    # obs_id_colname added to widetable
-    FLexpect_equal(dim(widetable), dim(deeptable)+c(0,1))
+    FLexpect_equal(dim(widetable), dim(deeptable))
     })
 
 ########################
 #### test cases of FLRegrDataPrep
 
 test_that("check FLRegrDataPrep output deeptable dimensions",{
-    FLiris <- FLTable(getTestTableName("iris"),"obsid")
+    FLiris <- FLTable("iris","obsid")
     irisDeep <- FLRegrDataPrep(FLiris, "petallength")
     #column size of irisDeep increases by 1 because of conversion
     #of categorical variable to dummy variable.
@@ -107,7 +106,8 @@ test_that("check FLRegrDataPrep output deeptable dimensions",{
 test_that("check ExcludeCols parameter of FLRegrDataPrep",{
     widetable  <- FLTable(getTestTableName("tblAutoMPG"),
                          "ObsID", whereconditions= "ObsID <101")
-    deeptable <- FLRegrDataPrep(widetable,"MPG", ExcludeCols= "CarName")
+    colnames(widetable) <- tolower(colnames(widetable))
+    deeptable <- FLRegrDataPrep(widetable,"mpg", ExcludeCols= "carname")
     #dimension of widetable and deeptable will be same
     #Because categorical variable "CarName" is excluded from conversion.
     FLexpect_equal(deeptable@dims, dim(widetable), platforms= c("TD", "Hadoop"))
@@ -117,7 +117,8 @@ test_that("check ExcludeCols parameter of FLRegrDataPrep",{
 test_that("check examples from DBLytix manual: FLRegrDataPrep runs",{
     widetable  <- FLTable(getTestTableName("tblAutoMPG"),
                          "ObsID", whereconditions= "ObsID <101")
-    deeptable <- FLRegrDataPrep(widetable,"MPG")
+    colnames(widetable) <- tolower(colnames(widetable))
+    deeptable <- FLRegrDataPrep(widetable,"mpg")
     analysisID <- deeptable@wideToDeepAnalysisID 
     deeptableR <- as.R(deeptable)
 

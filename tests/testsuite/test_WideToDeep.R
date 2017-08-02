@@ -4,12 +4,12 @@ table2<-FLTable(table= getTestTableName("tblAutoMpg"),
 
 if(!getFLPlatform()=="Hadoop"){
     table3<-FLTable(table= getTestTableName("tblUSArrests"),
-                    obs_id_colname = "OBSID",
+                    obs_id_colname = "ObsID",
                     var_id_colname = "VarID",
                     cell_val_colname ="Num_Val")
 } else {
     table3<-FLTable(table= getTestTableName("tblUSArrests"),
-                    obs_id_colname = "OBSID",
+                    obs_id_colname = "ObsID",
                     var_id_colname = "DimID",
                     cell_val_colname ="Value")
 }
@@ -28,7 +28,9 @@ test_that("check if wide to deep works",{
     expect_true(!checkRemoteTableExistence(tableName=getTableNameSlot(deep)))
 })
 
-test_that("check if deep to wide works",{
+## No DeepToWide On Hadoop
+if(!is.Hadoop()){
+  test_that("check if deep to wide works",{
     wide <- deepToWide(object = table3,
                  whereconditions="",
                  mapTable="",
@@ -39,3 +41,4 @@ test_that("check if deep to wide works",{
     dbDrop(wide$table)
     expect_true(!checkRemoteTableExistence(tableName=getTableNameSlot(wide$table)))
 })
+}

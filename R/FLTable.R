@@ -312,7 +312,7 @@ setMethod("show","FLTable",function(object) print(as.data.frame(object)))
         # if(is.na(types[name])){
         #     dropCol <- TRUE ## gk @ phani:  in this case a drop is actually not required, but it works with drop...
         # } else 
-        if(typeof(value)!=types[name])
+        if(is.na(types[name]) || typeof(value)!=types[name])
             dropCol <- TRUE
         if(dropCol){
         vtemp <- sqlSendUpdate(getFLConnection(),

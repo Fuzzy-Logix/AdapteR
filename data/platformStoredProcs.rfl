@@ -147,6 +147,12 @@ FLLDA.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,NOTE) <- FLLDA(INPUT_TABLE=Ta
 FLMDA.TD(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,Subclasses,Iterations,Initilization,Hypothesis,NOTE) <- FLMDA(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,WhereClause=WhereClause,Subclasses=Subclasses,Iterations=Iterations,Initilization=Initilization,Hypothesis=Hypothesis,NOTE=NOTE)
 FLMDA.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,Subclasses,Iterations,Initilization,Hypothesis,NOTE) <- FLMDA(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,WHERE_CLAUSE=WhereClause,SUBCLASSES=Subclasses,MAX_ITER=Iterations,INITIALIZATION=Initilization,HYPOTHESES=Hypothesis,NOTE=NOTE)
 
+FLFlexDiscriminant.TD(TableName,ObsIDCol,VarIDCol,ValueCol,MaxBasisMARS,MinDeltaRsqMARS,NOTE) <- FLFlexDiscriminant(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,MaxBasisMARS=MaxBasisMARS,MinDeltaRsqMARS=MinDeltaRsqMARS,NOTE=NOTE)
+FLFlexDiscriminant.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,MaxBasisMARS,MinDeltaRsqMARS,NOTE) <- FLFlexDiscriminant(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,MAX_BASIS_MARS=MaxBasisMARS,MIN_DELTA_RSQ_MARS=MinDeltaRsqMARS,NOTE=NOTE)
+
+FLFlexDiscriminantScore.TD(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,InAnalysisID,ScoreTable,Note) <- FLFlexDiscriminantScore(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,WhereClause=WhereClause,InAnalysisID=InAnalysisID,ScoreTable=ScoreTable,Note=Note)
+FLFlexDiscriminantScore.TDAster(TableName,ObsIDCol,VarIDCol,ValueCol,WhereClause,InAnalysisID,ScoreTable,Note) <- FLFlexDiscriminantScore(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,WHERE_CLAUSE=WhereClause,ANALYSISID=InAnalysisID,OUTPUT_TABLE=ScoreTable,NOTE=Note)
+
 FLBagDecisionTree.TD(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBagDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID=OBSID,VARID=VARID,VALUE=VALUE,NUMOFTREES=NUMOFTREES,MINOBS=MINOBS,MAXLEVEL=MAXLEVEL,PURITY=PURITY,NOTE=NOTE)
 FLBagDecisionTree.TDAster(INPUT_TABLE,OBSID,VARID,VALUE,NUMOFTREES,MINOBS,MAXLEVEL,PURITY,NOTE) <- FLBagDecisionTree(INPUT_TABLE=INPUT_TABLE,OBSID_COL=OBSID,VARID_COL=VARID,VALUE_COL=VALUE,NUM_TREES=NUMOFTREES,MIN_PARENT_OBS=MINOBS,MAX_LEVEL=MAXLEVEL,PURITY_THRESHOLD=PURITY,NOTE=NOTE)
 
@@ -252,3 +258,22 @@ FLVIFBWMultiDataSet.TDAster(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=O
 
 FLVIFFBMultiDataSet.TD(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=Note) <- FLVIFFBMultiDataSet(TableName=TableName,GroupIDCol=GroupID,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,NumValCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=notes)
 FLVIFBWMultiDataSet.TDAster(TableName=TableName,GroupIDCol=GroupIDCol,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,VIFThreshold1=VIFThreshold1,VIFThreshold2=VIFThreshold2,Note=Note) <- FLVIFFBMultiDataSet(INPUT_TABLE=TableName,DATASETID_COL=GroupID,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,VIF_THRESHOLD1=VIFThreshold1,VIF_THRESHOLD2=VIFThreshold2,NOTE=notes)
+
+FLNNetUdtScore.TD() <- FLNNetUdtScore()
+FLNNetUdtScore.TDAster() <- FLNeuralNetworkUdtScore()
+
+FLNaiveBayesModel.TD(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,LaplacianCorrection=LaplacianCorrection,Note=Note) <- FLNaiveBayesModel(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,LaplacianCorrection=LaplacianCorrection,Note=Note)
+FLNaiveBayesModel.TDAster(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,LaplacianCorrection=LaplacianCorrection,Note=Note) <- FLNaiveBayesModel(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,LAPLACIAN_CORRECTION=LaplacianCorrection,NOTE=Note)
+FLNaiveBayesModel.Hadoop(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,LaplacianCorrection=LaplacianCorrection,Note=Note) <- FLNaiveBayesModel(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,LaplacianCorrection=LaplacianCorrection,Note=Note)
+
+FLNaiveBayesPredict.TD(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,AnalysisID=AnalysisID,PredictTable=PredictTable,Note=Note) <- FLNaiveBayesPredict(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,AnalysisID=AnalysisID,PredictTable=PredictTable,Note=Note)
+FLNaiveBayesPredict.TDAster(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,AnalysisID=AnalysisID,PredictTable=PredictTable,Note=Note) <- FLNaiveBayesPredict(INPUT_TABLE=TableName,OBSID_COL=ObsIDCol,VARID_COL=VarIDCol,VALUE_COL=ValueCol,ANALYSISID=AnalysisID,OUTPUT_TABLE=PredictTable,NOTE=Note)
+FLNaiveBayesPredict.Hadoop(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,AnalysisID=AnalysisID,PredictTable=PredictTable) <- FLNaiveBayesPredict(TableName=TableName,ObsIDCol=ObsIDCol,VarIDCol=VarIDCol,ValueCol=ValueCol,AnalysisID=AnalysisID,PredictTable=PredictTable)
+
+FLPCA.TD(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,TableOutput=TableOutput) <- FLPCA(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,TableOutput=TableOutput)
+FLPCA.TDAster(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,TableOutput=TableOutput) <- FLPCA(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,VARID_COL=VarIDColName,VALUE_COL=ValueColName,WHERE_CLAUSE=WhereClause,GROUP_BY=GroupBy,MATRIX_TYPE=MatrixType)
+FLPCA.Hadoop(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,TableOutput=TableOutput,ResultTable=ResultTable) <- FLPCA(TableName=TableName,ObsIDColName=ObsIDColName,VarIDColName=VarIDColName,ValueColName=ValueColName,WhereClause=WhereClause,GroupBy=GroupBy,MatrixType=MatrixType,ResultTable=ResultTable)
+
+FLMatchIt.TD(TableName=TableName,ObsIDColName=ObsIDColName,TreatmentColName=TreatmentColName,PropScoreCol=PropScoreCol,MatchOrderCol=MatchOrderCol,TableOutput=TableOutput) <- FLMatchIt(TableName=TableName,ObsIDColName=ObsIDColName,TreatmentColName=TreatmentColName,PropScoreCol=PropScoreCol,MatchOrderCol=MatchOrderCol,TableOutput=TableOutput)
+FLMatchIt.TDAster(TableName=TableName,ObsIDColName=ObsIDColName,TreatmentColName=TreatmentColName,PropScoreCol=PropScoreCol,MatchOrderCol=MatchOrderCol,TableOutput=TableOutput,OutTable=OutTable) <- FLMatchIt(INPUT_TABLE=TableName,OBSID_COL=ObsIDColName,TREATMENT_COL=TreatmentColName,PROPSCORE_COL=PropScoreCol,MATCHORDER_COL=MatchOrderCol,OUTPUT_TABLE=OutTable)
+

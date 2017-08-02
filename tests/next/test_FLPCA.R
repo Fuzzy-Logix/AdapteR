@@ -1,8 +1,10 @@
-                                        # DB-Lytix Example.
+# DB-Lytix Example.
 Renv <- new.env(parent = globalenv())
+FLenv <- as.FL(Renv)
 Renv$tbl <- iris
 Renv$tbl$Species <- as.numeric(Renv$tbl$Species)
-FLenv <- as.FL(Renv)
+FLenv$tbl <- as.FLTable(Renv$tbl,tableName = getOption("TestTempTableName"),
+						temporary=F, drop = TRUE)
 #' 
 #' fliris <- as.FL(rtbl)
 #' flirispca <- prcomp(Species~., data = fliris)

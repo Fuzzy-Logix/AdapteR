@@ -22,3 +22,22 @@ test_that("Friedman Test on FLTable: R example: checking Result Equality without
     },Renv,FLenv,
     expectation=c("fit"))
 })
+
+## Fails on TD and Aster
+
+test_that("Friedman Test on FLVectors: R example: checking Result Equality without data.name:",{
+    result = eval_expect_equal({
+            fit <- friedman.test(wb$x,wb$w,wb$t)
+    },Renv,FLenv,
+    expectation=c("fit"))
+})
+
+##@phani: wrong results on Aster
+test_that("Friedman Test on FLTable: R example: checking Result Equality without data.name:",{
+    result = eval_expect_equal({
+            fit <- friedman.test(x~w|t, data = wb)
+            fit$data.name <- NULL
+            class(fit) <- "list"
+    },Renv,FLenv,
+    expectation=c("fit"))
+})

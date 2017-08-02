@@ -22,14 +22,15 @@ naiveBayes.default <- function (formula,data=list(),...) {
     else return(e1071::naiveBayes(formula,data,...))
 }
 
-#'fltbl <- FLTable("tblNBData", "ObsID", "VarID", "NUM_VAL")
-#'flmod <-naiveBayes(object = fltbl, formula = ~.)
+#' fltbl <- FLTable("tblNBData", "ObsID", "VarID", "NUM_VAL")
+#' flmod <-naiveBayes(object = fltbl, formula = ~.)
 #' rtbl <- iris
 #' rtbl$Species <- sample(x = 2, size = length(rtbl$Species), replace = TRUE)-1
 #' rtbl$Species <- as.numeric(rtbl$Species)
-#' fliris <- as.FL(rtbl)
-#' flmod <-naiveBayes.FLTable(data = fliris, formula = Species~., laplace = 1)
-#' rmod <-naiveBayes(data = rtbl, formula = Species~.)
+#' colnames(rtbl) <- tolower(colnames(rtbl))
+#' fliris <- as.FLTable(rtbl,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+#' flmod <-naiveBayes.FLTable(data = fliris, formula = species~., laplace = 1)
+#' rmod <-naiveBayes(data = rtbl, formula = species~.)
 #' rtbl <- as.data.frame(Titanic)
 #' rtbl <- rtbl[,-5]
 #' rtbl <- as.data.frame(lapply(rtbl, function(i)as.numeric(i)-1))
@@ -58,20 +59,25 @@ naiveBayes.FLTable <- function(formula,data,laplace=0,...){
         vTableName =  FLdeep$deepx@select@table_name[[1]]
         vObsIDColName = FLdeep$deepx@select@variables$obs_id_colname
         vVarIDColName = FLdeep$deepx@select@variables$var_id_colname
-        vValueColName= FLdeep$deepx@select@variables$cell_val_colname }
+        vValueColName= FLdeep$deepx@select@variables$cell_val_colname
+        vmapping <- FLdeep$vmapping
+    }
     else
-    { 
+    {
         vTableName =  vdeeptbl@select@table_name[[1]]
         vObsIDColName = gsub("flt.", "",data@select@variables$obs_id_colname)
         vVarIDColName = gsub("flt.", "",data@select@variables$var_id_colname)
-        vValueColName= gsub("flt.", "",data@select@variables$cell_val_colname) }
+        vValueColName= gsub("flt.", "",data@select@variables$cell_val_colname)
+        vmapping <- colnames(vdeeptbl)
+        names(vmapping) <- paste0("Var",vmapping)
+    }
 
-    vinputcols<-list(INPUT_TABLE=vTableName,
-                     OBSID=vObsIDColName,
-                     VARID=vVarIDColName,
-                     VALUE=vValueColName,
-                     laplace=laplace,
-                     NOTE="Naive Bayes model")
+    vinputcols<-list(TableName=vTableName,
+                     ObsIDCol=vObsIDColName,
+                     VarIDCol=vVarIDColName,
+                     ValueCol=vValueColName,
+                     LaplacianCorrection=as.integer(laplace),
+                     Note="Naive Bayes model")
     vfuncName<-"FLNaiveBayesModel"
     AnalysisID <- sqlStoredProc(getFLConnection(),
                                 vfuncName,
@@ -80,6 +86,7 @@ naiveBayes.FLTable <- function(formula,data,laplace=0,...){
     
     frame <- sqlQuery(getFLConnection(),paste0("Select * from fzzlNaiveBayesModel
 									 where AnalysisID = ",fquote(AnalysisID[[1]])," order by 2,3,4"))
+    colnames(frame) <- c("AnalysisID","VarID","VarValue","ClassValue","ClassVarCount")
     vars <- unique(frame$VarID)
     levels <- unique(frame$ClassValue)
     tables<-list()
@@ -90,12 +97,15 @@ naiveBayes.FLTable <- function(formula,data,laplace=0,...){
             obj[j,2]<-subframe[2*j,"ClassVarCount"]/(subframe[2*j,"ClassVarCount"]+subframe[2*j - 1,"ClassVarCount"])
             obj[j,1]<-subframe[2*j -1,"ClassVarCount"]/(subframe[2*j,"ClassVarCount"]+subframe[2*j - 1,"ClassVarCount"])
         }
-        vname<-paste0("V",i)
+        obj <- t(obj)
+        vname <- names(vmapping[match(i,vmapping)])
         names(dimnames(obj))<-c("Y",vname)
-        eval(parse(text=paste0("tables$V",i,"<-obj")))
+        eval(parse(text=paste0("tables$",vname,"<-obj")))
     }
     apriori<-sqlQuery(connection,paste0("select ",vValueColName,", count(*) from ",
 					vdeeptbl@select@table_name," where ",vVarIDColName," = -1 group by ",vValueColName))
+    apriori <- as.data.frame(t(apriori[order(apriori[[1]]),]))
+    rownames(apriori) <- NULL
     colnames(apriori) <- NULL
 
     vclass<-"FLnaiveBayes"
@@ -146,9 +156,9 @@ predict.FLnaiveBayes<-function(object,newdata = object@deeptbl ,scoreTable="",..
                     ObsIDCol=vObsIDColName,
                     VarIDCol=vVarIDColName,
                     ValueCol=vValueColName,
-                    InAnalysisID=object@AnalysisID,
-                    ScoreTable=scoreTable,
-                    NOTE="NaiveBayes predict")
+                    AnalysisID=object@AnalysisID,
+                    PredictTable=scoreTable,
+                    Note="NaiveBayes predict")
     vfuncName<-"FLNaiveBayesPredict"
     AnalysisID <- sqlStoredProc(getFLConnection(),
                                 vfuncName,
@@ -158,9 +168,31 @@ predict.FLnaiveBayes<-function(object,newdata = object@deeptbl ,scoreTable="",..
                                         # 				"ObsID"," AS vectorIndexColumn,",
                                         # 					vval," AS vectorValueColumn",
                                         #  				" FROM ",scoreTable)
-    sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable,
-                                           " add matrix_id int default 1 not null"))
-    return(FLMatrix(scoreTable,1,"matrix_id","ObsID","ClassValue","Prob"))
+    # sqlSendUpdate(getFLConnection(),paste0("alter table ",scoreTable,
+    #                                        " add matrix_id int default 1 not null"))
+    sqlstr <- paste0("SELECT '%insertIDhere%' AS Matrix_ID, \n ",
+                            "ObsID AS rowIdColumn, \n ",
+                            "DENSE_RANK() OVER(ORDER BY ClassValue) AS colIdColumn, \n ",
+                            "Prob AS valueColumn \n ",
+                    " FROM ",scoreTable)
+    tblfunqueryobj <- new("FLTableFunctionQuery",
+                              connectionName = attr(connection,"name"),
+                              variables=list(
+                                  Matrix_ID="Matrix_ID",
+                                  rowIdColumn="rowIdColumn",
+                                  colIdColumn="colIdColumn",
+                                  valueColumn="valueColumn"),
+                              whereconditions="",
+                              order = "",
+                              SQLquery=sqlstr)
+    flm <- newFLMatrix(
+                   select= tblfunqueryobj,
+                   dims=c(nrow(newdata),length(object$levels)),
+                   Dimnames=list(rownames(newdata),sort(object$levels)),
+                   dimColumns=c("Matrix_ID","rowIdColumn","colIdColumn","valueColumn"),
+                   type="double")
+    # return(FLMatrix(scoreTable,1,"matrix_id","ObsID","ClassValue","Prob"))
+    return(flm)
 }
 
 
@@ -169,9 +201,11 @@ predict.FLnaiveBayes<-function(object,newdata = object@deeptbl ,scoreTable="",..
 #' @export
 print.FLnaiveBayes <- function(object){
     print(object@call)
-    cat("A-priori probablities")
-    print(object@results$apriori)
-    cat("Conditional probablities")
+    cat("A-priori probablities \n ")
+    if(!is.null(object@results$tables$INTERCEPT))
+      print(t(object@results$tables$INTERCEPT))
+    else print(object@results$apriori)
+    cat(" \n Conditional probablities \n ")
     print(object@results$table)
     return()
 }
