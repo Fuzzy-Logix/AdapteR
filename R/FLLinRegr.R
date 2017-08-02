@@ -950,7 +950,10 @@ prepareData.FLRegr <- function(formula, data, outDeepTableName="",
     dataCopy <- data
     vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=formula@RegrDataPrepSpecs,
                                                        values=list(...))
-    deepx <- FLRegrDataPrep(data,depCol=formula@RegrDataPrepSpecs$depCol,
+    vdepCol <- formula@RegrDataPrepSpecs$depCol
+    if(is.null(vdepCol))
+    	vdepCol <- "NULL"
+    deepx <- FLRegrDataPrep(data,depCol=vdepCol,
                             OutDeepTable=outDeepTableName,
                             OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
                             OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
@@ -1056,6 +1059,8 @@ prepareData.formula <- function(formula,data,
         }
 		vallVars <- base::all.vars(formula)
 		vdependent <- vallVars[1]
+		if(is.null(vdependent))
+			vdependent <- "NULL"
 		vindependent <- vallVars[2:length(vallVars)]
 		checkValidFormula(formula,data)
 	}

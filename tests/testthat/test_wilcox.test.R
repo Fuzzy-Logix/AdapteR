@@ -10,10 +10,12 @@ FLenv = as.FL(Renv)
 test_that("wilcox.test: unpaired Mann-Whitney Wilcoxon Test: correct p.value and statistic",{
   result = eval_expect_equal({
       t <- wilcox.test(a, b, paired = FALSE, correct = FALSE)
+      t$data.name <- NULL
   },Renv,FLenv,
   #check.attributes=F,
   tolerance = .000001,
-  verbose = FALSE
+  verbose = FALSE,
+  expectation="t"
   )
   }) 
 

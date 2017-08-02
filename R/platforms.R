@@ -630,7 +630,7 @@ cleanDatabase <- function(pRetainPermanent=TRUE,pUser=getOption("FLUsername")){
                                 " order by 1 "))
     colnames(vdf) <- tolower(colnames(vdf))
     vquery <- apply(vdf,1,function(x){
-                        if(is.na(x["permanentflag"]) | !pRetainPermanent | !as.integer(x["permanentflag"])){
+                        if(is.na(x["permanentflag"]) | !(pRetainPermanent && as.integer(x["permanentflag"]))){
                             if(tolower(x["objtype"])=="view")
                                 paste0("DROP VIEW ",x["databasename"],".",x["tablename"])
                             else if(! tolower(x["tablename"]) %in% c("fzzladaptertablesinfo",

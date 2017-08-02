@@ -11,6 +11,9 @@ test_that("F- Test: R example",{
   result = eval_expect_equal({
       t <- var.test(x, y)
       t$conf.int <- NULL
+      t$alternative <- NULL
+      t$data.name <- NULL
+      t$method <- NULL
   },Renv,FLenv,
     expectation = c("t"),
   check.attributes=F,
@@ -19,17 +22,6 @@ test_that("F- Test: R example",{
   )
 }) 
 
-# gk @sanchit: please move this test to limitations
-test_that("F- Test: R example, DB Lytix is returning confidence intervall",{
-  result = eval_expect_equal({
-      t <- var.test(x, y)
-  },Renv,FLenv,
-    expectation = c("t"),
-  check.attributes=F,
-  tolerance = .000001,
-  verbose = F
-  )
-}) 
 
 # Test Case 2
 Renv <- new.env(parent = globalenv())
@@ -45,6 +37,9 @@ test_that("F- Test: DB Lytix Example",{
   result = eval_expect_equal({
       t <- var.test(d, f)
       t$conf.int <- NULL
+      t$alternative <- NULL
+      t$data.name <- NULL
+      t$method <- NULL
   },Renv,FLenv,
     expectation = c("t"),
   check.attributes=F,
