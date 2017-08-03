@@ -12,7 +12,8 @@ test_that("eigen values",{
         r1 <- e1$values
         r2 <- e1$vectors
     }, Renv, FLenv,
-    expectation=c("r1","r2"))
+    expectation=c("r1","r2"),
+    noexpectation=c("e1"))
 })
 
 ## Wrong result in Hadoop

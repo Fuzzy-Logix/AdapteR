@@ -95,7 +95,7 @@ setClass(
 #' residuals(flmod)
 #' flmod$fitted.values
 #' summary(flmod)
-#' @Section COnstraints:
+#' @section Constraints:
 #' plot method not supported
 #' Example for widetable:
 #' widetbl <- FLTable(getTestTableName("tblautompg"), "ObsID")
