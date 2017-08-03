@@ -9,6 +9,17 @@ rlm(formula, data = list(), psi, ...)
 \description{
 performs robust regression
 }
+\section{Constraints}{
+
+plot method not supported
+Example for widetable:
+widetbl <- FLTable(getTestTableName("tblautompg"), "ObsID")
+flmod <- rlm(Weight~ Acceleration , data = widetbl)
+summary(flmod)
+coefficients(flmod)
+residuals(flmod)
+}
+
 \examples{
 Example for deeptbl:
 library(MASS)

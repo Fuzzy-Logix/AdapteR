@@ -59,7 +59,7 @@ test_that("Selection of columns works with $ and with [,name]",{
     ## table, row id, column id and value columns
     DfilmF <- FLTable(table        = "FL_DEMO.actressldist",
                       obs_id_colname    = "obsid")
-    colnames(DfilmF) <- tolower(colnames(DfilmF))
+    DfilmF@Dimnames[[2]] <- tolower(DfilmF@Dimnames[[2]])
     expect_equal(as.vector(head(DfilmF$actor)),
                  as.vector(head(DfilmF[,"actor"])))
 })
@@ -107,7 +107,7 @@ test_that("check FLRegrDataPrep output deeptable dimensions",{
 test_that("check ExcludeCols parameter of FLRegrDataPrep",{
     widetable  <- FLTable(getTestTableName("tblAutoMPG"),
                          "ObsID", whereconditions= "ObsID <101")
-    colnames(widetable) <- tolower(colnames(widetable))
+    widetable@Dimnames[[2]] <- tolower(widetable@Dimnames[[2]])
     deeptable <- FLRegrDataPrep(widetable,"mpg", ExcludeCols= "carname")
     #dimension of widetable and deeptable will be same
     #Because categorical variable "CarName" is excluded from conversion.
@@ -118,7 +118,7 @@ test_that("check ExcludeCols parameter of FLRegrDataPrep",{
 test_that("check examples from DBLytix manual: FLRegrDataPrep runs",{
     widetable  <- FLTable(getTestTableName("tblAutoMPG"),
                          "ObsID", whereconditions= "ObsID <101")
-    colnames(widetable) <- tolower(colnames(widetable))
+    widetable@Dimnames[[2]] <- tolower(widetable@Dimnames[[2]])
     deeptable <- FLRegrDataPrep(widetable,"mpg")
     analysisID <- deeptable@wideToDeepAnalysisID 
     deeptableR <- as.R(deeptable)
