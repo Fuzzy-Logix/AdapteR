@@ -9,8 +9,10 @@ FLenv <- as.FL(Renv)
 test_that("eigen values",{
     result = eval_expect_equal({
         e1 <- eigen(mat1)
+        r1 <- e1$values
+        r2 <- e1$vectors
     }, Renv, FLenv,
-    expectation="e1")
+    expectation=c("r1","r2"))
 })
 
 ## Wrong result in Hadoop

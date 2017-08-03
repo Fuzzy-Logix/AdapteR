@@ -13,7 +13,7 @@ chisq.test(x, ...)
 by default it's 0 and perform chi- square test.}
 }
 \value{
-A list with class "htest" outputting the corresponding expected and P Values.
+A list with class "htest" outputting the corresponding expected and chi- square values.
 }
 \description{
 Produces the expected and the chi-square value for each cell in the contingency
@@ -28,5 +28,5 @@ chisq.test(FLmat)
       ## by default pear=0 
       ## performs chi-square test
 chisq.test(FLmat,pear=1) 
-       ## Pearson chi- square test
+       ## performs Pearson chi- square test
 }

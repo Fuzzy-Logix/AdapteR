@@ -36,5 +36,9 @@ corresponds to the suggested upper bound on the rate at which the number of lags
 \examples{
 x<-rnorm(1000)
 flv<-as.FLVector(x)
-flobj<-adf.test(object = flv, k=9)
+flobj<-adf.test(object = flv, k=2)
+     y <- diffinv(x)   # contains a unit-root
+fly <- as.FL(y)
+flobjy <- adf.test(object = fly, k=2)
+robj<-adf.test(object = y, k=2)
 }

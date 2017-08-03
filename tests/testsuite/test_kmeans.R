@@ -40,7 +40,7 @@ test_that("kmeans: Cluster, centers, withinss, totss, tot.withinss, betweenss, s
   ##verbose=T,
   tolerance=1e-5,
   noexpectation=c("a", "property","temp2"),
-  platforms("TD", "Hadoop"))
+  platforms=c("TD", "Hadoop"))
 })
 
 

@@ -38,7 +38,6 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                                                 Num_Val = "b.vectorValueColumn"))
                            )
     view <- createView(vviewName, t)
-
     ret <- sqlStoredProc(connection,
                          "FLKuiperTest",
                          TableName = vviewName,
@@ -50,7 +49,7 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                          outputParameter = c(OutTable = 'a')
                         )
     colnames(ret) <- tolower(colnames(ret))
-    if(!is.null(ret$resulttable)){
+    if(!is.null(ret$resulttable) || !is.null(ret$outtable)){
         sqlstr <- paste0("SELECT q.TEST_STAT AS TEST_STAT,
                                        q.P_VALUE AS P_Value
                                FROM ",ret[1,1]," AS q")

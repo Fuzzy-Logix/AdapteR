@@ -46,11 +46,13 @@ that variable were uncorrelated with the other predictor variables in the model.
 \examples{
 fltbl <- FLTable(table = "tbllinregr", obs_id_colname="OBSID", var_id_colnames="VARID", "NUM_VAL")
 flmod <- vif.FLTable(data = fltbl)
+flmod$vif
 flmod <- vif.FLTable(data = fltbl, method = "fb")
 flmod <- vif.FLTable(data = fltbl, method = "bw")
 For Multi-Dataset:
 fltbl <- FLTableMD(table = "tblLogRegrMulti",group_id_colname="DATASETID",obs_id_colname="ObsID",var_id_colname="VarID",cell_val_colname="Num_Val")
 flmod <- vif(data= fltbl, method = "bw", threshold = 5)
+flmod$vif
 }
 \seealso{
 \code{\link[vif]{vif}} for R reference implementation.

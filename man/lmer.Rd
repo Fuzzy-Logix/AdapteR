@@ -12,7 +12,7 @@
 \item{data}{An object of class FLTable.}
 }
 \value{
-\code{lmer} returns an object of class \code{FLMix}
+\code{lmer} returns an object of class \code{FLMix} or \code{FLMixUDT}
 }
 \description{
 \code{lmer} performs mixed model  on FLTable objects.
@@ -32,10 +32,27 @@ via the expectations.
 \item{\code{table}}{Input data object}
 }}
 
+\section{Constraints}{
+
+DBLytix currently supports one Fixed and upto 2 Random Effect variables with intercept.
+For non-categorical Fixed Effect, only one Random Effect is supported.
+Specify if Fixed Effect is categorical using categoricalFixedEffect logical input to the function.
+The intercept coefficient returned is the mean value for different Random Effects.
+}
+
 \examples{
 ## One Random Effect.
 fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
-flmod <- lmer(yVal ~ FixVal + (1 | RanVal), data = fltbl)
+colnames(fltbl) <- tolower(colnames(fltbl))
+flmod <- lmer(yval ~ fixval + (1 | ranval), data = fltbl)
+flpred <- predict(flmod)
+## One Categorical Fixed Effect and Two Random Effects.
+fltbl  <- FLTable(getTestTableName("tblMixedModelInt"), "ObsID")
+colnames(fltbl) <- tolower(colnames(fltbl))
+flmod <- lmer(yval ~ fixval + (1 | ranval1) + (1 | ranval2 ), fltbl, categoricalFixedEffect=TRUE)
+flpred <- predict(flmod)
+## One Categorical Fixed Effect and One Random Effect.
+flmod <- lmer(yval ~ fixval + (1 | ranval1), data = fltbl, categoricalFixedEffect=TRUE)
 flpred <- predict(flmod)
 }
 \seealso{

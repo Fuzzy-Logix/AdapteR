@@ -33,19 +33,7 @@ plot(mod)
 auc(mod)
 mod$levels
 
-Example 2:
-data(aSAH)
-fltbl <- data.frame(res = aSAH$outcome, pred = aSAH$s100b)
-fltbl$res <- as.numeric(fltbl$res)
-fltbl$res <- fltbl$res - 1
-fltbl <- fltbl[-55, ]
-head(fltbl)
-fltbl <- as.FLTable(fltbl)
-flmod <- roc(fltbl$res, fltbl$pred)
-plot(flmod)
-summary(flmod)
-
-roctbl <- FLTable("tblROCcurve", obs_id_colname = "ObsID")
+roctbl <- FLTable(getTestTableName("tblROCcurve"), obs_id_colname = "ObsID")
 rocmod <- roc.FLTable(ActualVal~ProbVal, data = roctbl)
 }
 \seealso{

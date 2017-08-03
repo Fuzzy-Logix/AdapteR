@@ -4,8 +4,8 @@
 \alias{binom.test}
 \title{Binomial Test}
 \usage{
-binom.test(x, n, p = 0.5, alternative = c("two.sided", "less", "greater"),
-  conf.level = 0.95)
+binom.test(x, n, p = 0.5, alternative = c("two.sided", "less", "greater",
+  "LT", "GT", "EXACT"), conf.level = 0.95)
 }
 \arguments{
 \item{x}{FLVector}

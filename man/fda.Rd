@@ -27,9 +27,9 @@ library(mda)
 The DB Lytix function called is FLFlexDiscriminant. Performs Flexible Discriminant Analysis and stores the results in predefined tables.
 }
 \examples{
-#'deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
+deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
 flmod <- fda(a~., data = deeptbl)
-predict(flmod); cof <-coefficients(flmod);confusion(flmod)
+vpred <- predict(flmod);coefficients(flmod);confusion(flmod)
 Performs flexible discriminant analysis and stores the results in predefined tables. It
 involves the use of multivariate adaptive regression splines for obtaining a basis
 transformation of the independent variables and performing the multivariate

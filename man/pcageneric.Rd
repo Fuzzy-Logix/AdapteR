@@ -4,7 +4,7 @@
 \alias{pcageneric}
 \title{TO-DO:- support without formula.}
 \usage{
-pcageneric(formula, data, matrixtype = "COVAR", where = "", ...)
+pcageneric(formula, data, matrixtype = "COVAR", where = "NULL", ...)
 }
 \description{
 TO-DO:- support without formula.

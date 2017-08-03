@@ -4,8 +4,8 @@
 \alias{t.test}
 \title{Student's t-Test}
 \usage{
-t.test(x, y = NULL, mu = 0, tails = 2, conf.level = 0.95,
-  var.equal = FALSE, alternative = "two.sided", ...)
+t.test(x, y = NULL, alternative = c("two.sided"), mu = 0,
+  paired = FALSE, var.equal = FALSE, conf.level = 0.95, tails = 2, ...)
 }
 \arguments{
 \item{x}{FLVector}

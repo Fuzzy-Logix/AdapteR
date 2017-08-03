@@ -7,9 +7,10 @@ flmod <-naiveBayes(object = fltbl, formula = ~.)
 rtbl <- iris
 rtbl$Species <- sample(x = 2, size = length(rtbl$Species), replace = TRUE)-1
 rtbl$Species <- as.numeric(rtbl$Species)
-fliris <- as.FL(rtbl)
-flmod <-naiveBayes.FLTable(data = fliris, formula = Species~., laplace = 1)
-rmod <-naiveBayes(data = rtbl, formula = Species~.)
+colnames(rtbl) <- tolower(colnames(rtbl))
+fliris <- as.FLTable(rtbl,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+flmod <-naiveBayes.FLTable(data = fliris, formula = species~., laplace = 1)
+rmod <-naiveBayes(data = rtbl, formula = species~.)
 rtbl <- as.data.frame(Titanic)
 rtbl <- rtbl[,-5]
 rtbl <- as.data.frame(lapply(rtbl, function(i)as.numeric(i)-1))
@@ -26,9 +27,10 @@ flmod <-naiveBayes(object = fltbl, formula = ~.)
 rtbl <- iris
 rtbl$Species <- sample(x = 2, size = length(rtbl$Species), replace = TRUE)-1
 rtbl$Species <- as.numeric(rtbl$Species)
-fliris <- as.FL(rtbl)
-flmod <-naiveBayes.FLTable(data = fliris, formula = Species~., laplace = 1)
-rmod <-naiveBayes(data = rtbl, formula = Species~.)
+colnames(rtbl) <- tolower(colnames(rtbl))
+fliris <- as.FLTable(rtbl,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+flmod <-naiveBayes.FLTable(data = fliris, formula = species~., laplace = 1)
+rmod <-naiveBayes(data = rtbl, formula = species~.)
 rtbl <- as.data.frame(Titanic)
 rtbl <- rtbl[,-5]
 rtbl <- as.data.frame(lapply(rtbl, function(i)as.numeric(i)-1))

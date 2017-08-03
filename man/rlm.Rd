@@ -19,12 +19,4 @@ predict(flmod)
 residuals(flmod)
 flmod$fitted.values
 summary(flmod)
-still to work on plot(q)
-Example for widetable:
-widetbl <- FLTable(getTestTableName("tblautompg"), "ObsID")
-flmod <- rlm(Weight~ Acceleration , data = widetbl)
-summary(flmod)
-coefficients(flmod)
-residuals(flmod)
-TO-DO: warning message for deeptable in model.
 }

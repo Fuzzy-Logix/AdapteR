@@ -242,7 +242,9 @@ friedman.test.FLTable <- function(formula, data,
     if(!is.null(ret$resulttable)){
         ret <- as.character(ret$resulttable)
     }
-
+    else if(!is.null(ret$outtable)){
+        ret <- as.character(ret$outtable)
+    }
     VarID <- c(statistic="TEST_STAT",
                p.value="Prob")
     vdf <- sqlQuery(connection,

@@ -4,7 +4,8 @@
 \alias{FLClose}
 \title{Close Session and Drop temp Tables}
 \usage{
-FLClose(connection = getFLConnection())
+FLClose(connection = getFLConnection(), retainPermanentTables = TRUE,
+  username = getOption("FLUsername"))
 }
 \arguments{
 \item{connection}{ODBC/JDBC connection object}

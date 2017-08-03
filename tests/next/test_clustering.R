@@ -76,7 +76,7 @@ test_that("fanny: Fuzzy kmeans results ",{
         fanny.coeff <- cl$coeff
         fanny.silinfo <- cl$silinfo
         fanny.convergence <- cl$convergence
-        fanny.clustering <- cl$clusteri
+        fanny.clustering <- cl$clustering
     },Renv,FLenv,
     tolerance = 0.1,
     noexpectation=c("cl","property"))

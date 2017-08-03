@@ -2,7 +2,7 @@
 % Please edit documentation in R/wald_wolfowitz.R
 \name{WaldWolftest1s}
 \alias{WaldWolftest1s}
-\title{Performs the Wald-Wolfowitz runs test of randomness for continuous data.}
+\title{Performs the Wald-Wolfowitz one sample test of randomness for continuous data.}
 \usage{
 WaldWolftest1s(vFLvector, threshold = median(vFLvector))
 }
@@ -12,21 +12,24 @@ WaldWolftest1s(vFLvector, threshold = median(vFLvector))
 \item{x}{a FLVector containing the observations.}
 }
 \value{
-A list with class "htest".
+A list with class "htest" outputting the corresponding WW statistic and P Values.
 }
 \description{
-Performs the Wald-Wolfowitz runs test of randomness for continuous data.
+Performs the Wald-Wolfowitz one sample test of randomness for continuous data.
 }
 \section{Constraints}{
  alternative, plot, pvalue isnt't currently supported for FL objects.
 }
 
 \examples{
-WaldWolfowitz test 1s:
+## WaldWolfowitz test 1s:
 data(sweetpotato)
 yield <- as.FLVector(sweetpotato$yield)
 WaldWolftest1s(yield)
-
-Data is transformed into a dichotomous vector according as each values is above or below a given threshold. Values equal to the level are removed from the sample.
-The default threshold value used in applications is the sample median which give us the special case of this test with n1 = n2, the runs test above and below the median.
+     ## Data is transformed into a dichotomous vector according as each values 
+     ## is above or below a given threshold. Values equal to the level are 
+     ## removed from the sample.
+     ## The default threshold value used in applications is the sample median 
+     ## which give us the special case of this test with n1 = n2, the runs test 
+     ## above and below the median.
 }

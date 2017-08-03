@@ -37,11 +37,11 @@ The DB Lytix function which is called id FLPCA.
 }}
 
 \examples{
-fltbl <- FLTable("tblLogRegrMulti","OBSID", "VARID", "NUM_VAL")
-flmod <- prcomp.FLTable(data = fltbl, matrixtype = "COVAR",where = "")
+fltbl <- FLTable(getTestTableName("tblLogRegrMulti"),"OBSID", "VARID", "NUM_VAL")
+flmod <- prcomp(data = fltbl, matrixtype = "COVAR",where = "")
 rtbl <- iris
 rtbl$Species <- as.numeric(rtbl$Species)
-fliris <- as.FL(rtbl)
+fliris <- as.FLTable(rtbl,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 flirispca <- prcomp(Species~., data = fliris)
 }
 \seealso{
