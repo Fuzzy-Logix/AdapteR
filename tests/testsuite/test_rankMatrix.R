@@ -1,7 +1,6 @@
 Renv<-new.env(parent = globalenv())
 
 Renv$mat1 <- cbind(1, 0, 1:3)
-Renv$mat2 =  Hilbert(12)
 #sparse matrix (15*15 dsc matrix)
 Renv$mat3 = kronecker(diag(x=c(100,1,10)), Hilbert(5))
 #Large sparse matrix
@@ -28,15 +27,7 @@ test_that("rankMatrix on sparseMatrix",{
     platforms="TD")
 })
 
-## Fails in both TD and Hadoop
-test_that("rankMatrix tol argument",{
-    result = eval_expect_equal({
-        test2 = rankMatrix(mat2,tol =1e-20)
-    },Renv,FLenv,
-    expectation="test2",
-    check.attributes=FALSE,
-    platforms="TDAster")
-})
+
 
 
 ## does not apply, rankMatrix does not require tol Argument

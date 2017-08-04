@@ -76,3 +76,12 @@ test_that("rankMatrix: rank 148 example",{
 })
 
 
+## Fails in both TD, Hadoop and Aster
+test_that("rankMatrix tol argument",{
+    result = eval_expect_equal({
+        test2 = rankMatrix(mat2,tol =1e-20)
+    },Renv,FLenv,
+    expectation="test2",
+    check.attributes=FALSE,
+    platforms="TDAster")
+})

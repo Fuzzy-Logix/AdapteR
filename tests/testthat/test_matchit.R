@@ -6,7 +6,7 @@ flt<- as.FLTable(dataf,tableName = getOption("TestTempTableName"),temporary=F, d
 
 test_that("matchit:: execution works ",{
 	vres <- matchit(var3~.,flt)
-	vres$discared
+	vres$discarded
 	vres$propensities
 	vres$treat
 })

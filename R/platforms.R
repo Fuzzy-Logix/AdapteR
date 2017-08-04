@@ -595,7 +595,7 @@ checkHypoSystemTableExists <- function(){
                     })
     if(!checkRemoteTableExistence(tableName="fzzlARHypTestStatsMap"))
         t <- as.FLTable(vdf,tableName="fzzlARHypTestStatsMap",
-                        temporary=FALSE,drop=TRUE,pPermanent=1)
+                        temporary=FALSE,drop=TRUE)
         
 }
 

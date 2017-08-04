@@ -2056,7 +2056,7 @@ predict.FLRobustRegr <- function(object,
 predict.lmGeneric <- function(object,
                               newdata=object@table,
                               scoreTable="",
-                              type="response",...){ 
+                              type="response",...){
     if(!is.FLTable(newdata) && class(newdata) != "FLpreparedData") stop("scoring allowed on FLTable only")
     vfcalls <- object@vfcalls
     if(class(newdata) == "FLpreparedData"){

@@ -21,7 +21,9 @@ test_that("FLTable dims and names",{
 })
 
 ##options(debugSQL=TRUE)
-test_that("FLTable in-database transformations, type double -- ALTER TABLE, adding new columns",{
+## Doesnt work on Aster:-
+if(!is.TDAster()){
+    test_that("FLTable in-database transformations, type double -- ALTER TABLE, adding new columns",{
     result = eval_expect_equal({ 
         irisdata$SepalArea <- irisdata$SepalLength * irisdata$SepalWidth
         test1 <- irisdata$SepalArea
@@ -33,14 +35,15 @@ test_that("FLTable in-database transformations, type double -- ALTER TABLE, addi
     Renv,FLenv,check.attributes=FALSE)
 })
 
-## typeof for FLTable is different by design
-test_that("typeof: FLTable and columns",{
-    result = eval_expect_equal({
-        #ts <- typeof(irisdata)
-        tsc <- typeof(irisdata[,"SepalLength"])
-    },
-    Renv,FLenv,check.attributes=FALSE)
-})
+    ## typeof for FLTable is different by design
+    test_that("typeof: FLTable and columns",{
+        result = eval_expect_equal({
+            #ts <- typeof(irisdata)
+            tsc <- typeof(irisdata[,"SepalLength"])
+        },
+        Renv,FLenv,check.attributes=FALSE)
+    })
+}
 
 if(is.TD())
 test_that("as.dta.frame: download (part) of a remote table",{

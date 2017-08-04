@@ -104,7 +104,7 @@ WaldWolftest2s <- function(vFLvector, vFLvector2)
                            )
     view <- createView(vviewName, t)
     ret <- sqlStoredProc(connection,
-                         "FLWWtest2s",
+                         "FLWWTest2S",
                          TableName = vviewName,
                          ValueColName = "Num_Val",
                          SampleIDColName = "GroupID",

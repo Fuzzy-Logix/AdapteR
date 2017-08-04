@@ -39,6 +39,9 @@ test_that("test for FLzTest2P",{
         whereconditions= "groupid=2")
   flx <- flt1$NUM_VAL
   fly <- flt2$NUM_VAL
+  if(is.TDAster())
+    flx <- flt1$num_val
+    fly <- flt2$num_val
   flz <- z.test(flx, fly, prob= 1)
   FLexpect_equal(as.numeric(flz[["p.value"]]),0.06176, tolerance= 1e-3)
   FLexpect_equal(as.numeric(flz[["statistic"]]),1.8680, tolerance= 1e-3)
