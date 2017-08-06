@@ -2,9 +2,7 @@
 % Please edit documentation in R/FLSchurDecomp.R
 \name{Schur}
 \alias{Schur}
-\title{schur 
-Schur Decomposition of a matrix,FLMatrix
-\code{Schur} Calculates the Schur decomposition of a square matrix (n x n) with real eigenvalues.}
+\title{schur}
 \usage{
 Schur(object, ...)
 }
@@ -17,8 +15,8 @@ Schur(object, ...)
       \item{T}{an Upper Triangle FLMatrix.}
 }
 \description{
-schur 
 Schur Decomposition of a matrix,FLMatrix
+
 \code{Schur} Calculates the Schur decomposition of a square matrix (n x n) with real eigenvalues.
 }
 \section{Slots}{

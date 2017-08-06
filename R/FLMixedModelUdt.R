@@ -209,7 +209,7 @@ mixUDT.FLTable <- function(formula, data, fetchID = TRUE,...)
 }
 
 
-
+#' @export
 setMethod("names", signature("FLMixUDT"), function(x) {c("AIC","logLik",
                                                           "CovErr","CovRandom",
                                                           "u",

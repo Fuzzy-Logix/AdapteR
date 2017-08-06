@@ -819,7 +819,7 @@ insertIntotbl <- function(pTableName,
     else if(!is.null(pSelect)){
         vsqlstr <- paste0(vsqlstr,"  ",pSelect)
     }
-    ##print(vsqlstr)
+    # print(vsqlstr)
     sqlSendUpdate(getFLConnection(),vsqlstr)
 }
 

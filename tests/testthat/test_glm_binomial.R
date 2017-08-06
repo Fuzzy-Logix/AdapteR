@@ -23,6 +23,7 @@ test_that("glm: execution for binomial ",{
   )
 }) 
 
+## Not a good data-- fails on Aster and hadoop
 FLenv$data2 <- as.FLTable(Renv$data2,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 
 test_that("glm: execution for categorical variables",{

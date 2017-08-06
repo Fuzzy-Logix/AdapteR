@@ -81,14 +81,7 @@ fda.FLTableDeep <- fda.FLpreparedData
 #' @export
 fda.FLTableMD <- fda.FLpreparedData
 
-#' Linear discriminant analysis.
-#' 
-#' \code{lda} performs Linear discriminant analysis on FLTable objects.
-#' The DB Lytix function called is FLLDA. Performs Linear discriminant analysis and 
-#' stores the results in predefined tables.
-#'
-#' @seealso \code{\link[stats]{lda}} for R reference implementation.
-#' @param formula A formula of the form groups ~ x1 + x2 + ... That is, the response is the grouping factor and the right hand side specifies the (non-factor) discriminators.
+
 NULL
 ##https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
 ##http://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca

@@ -32,7 +32,10 @@ test_that("check HKMeans output dimensions ",{
 ####################
 ## DBLytix Example
 test_that("Testing if basic DBLytix FLHKMeansUdt-hkmeans Example runs from AdapteR",{
+    if(is.Hadoop())
+        vvarid <- "dimid"
+    else vvarid <- "VarID"
     flt <- FLTable(getTestTableName("tblUSArrests"), 
-                    "ObsID", "VarID", "Num_Val")
+                    "ObsID", vvarid, "Num_Val")
     hkmeansobj <- hkmeans(flt, 2, 2, 20, 2)
 })

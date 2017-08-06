@@ -592,12 +592,11 @@ residuals.FLGAM <- function(object)
 		# vYVector <- object@table[,"-1"]
 		# residualsvector <- vYVector - object@results[["fitted.values"]]
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-							object@scoreTable,".",vobsid," AS vectorIndexColumn,",
-							vtablename,".",all.vars(object@formula)[1]," - ",
-							object@scoreTable,".",y," AS vectorValueColumn",
-						" FROM ",object@scoreTable,",",vtablename,
-						" WHERE ",vtablename,".",obs_id_colname," = ",
-									object@scoreTable,".",vobsid)
+							"a.",vobsid," AS vectorIndexColumn,",
+							"b.",all.vars(object@formula)[1]," - ",
+							"a.",y," AS vectorValueColumn",
+						" FROM ",object@scoreTable," a,",vtablename," b ",
+						" WHERE b.",obs_id_colname," = a.",vobsid)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = getFLConnectionName(),

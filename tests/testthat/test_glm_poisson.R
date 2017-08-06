@@ -17,7 +17,7 @@ test_that("glm: execution for poisson ",{
   tolerance = .000001)
 }) 
 
-
+## No Score for poisson Hadoop
 test_that("glm: predict ",{
   result = eval_expect_equal({
     predict_glmobj <- predict(glmobj, type = "response")

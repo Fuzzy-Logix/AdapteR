@@ -1,4 +1,4 @@
-#' 
+
 #' @export
 setClass("FLSchur",
          slots = list(data = "FLMatrix",
@@ -6,8 +6,10 @@ setClass("FLSchur",
                       results = "list"
                       ))
 ## TO-DO : Add dims so as to remove extra data fetching.
-#' schur 
-#' Schur Decomposition of a matrix,FLMatrix
+#' @title schur
+#'
+#' @description Schur Decomposition of a matrix,FLMatrix
+#'
 #' \code{Schur} Calculates the Schur decomposition of a square matrix (n x n) with real eigenvalues.
 #' @seealso \code{\link[Matrix]{Schur}} for R reference implementation.
 #' @param Objectis of class FLMatrix.

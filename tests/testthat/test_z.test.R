@@ -39,7 +39,7 @@ test_that("test for FLzTest2P",{
         whereconditions= "groupid=2")
   flx <- flt1$NUM_VAL
   fly <- flt2$NUM_VAL
-  if(is.TDAster())
+  if(is.TDAster() || is.Hadoop())
     flx <- flt1$num_val
     fly <- flt2$num_val
   flz <- z.test(flx, fly, prob= 1)

@@ -106,8 +106,8 @@ if(grepl("^jdbc",opt$host)){
             drop=vdrop,
             verbose=TRUE,
             temporary=vtemp,
-            pkg="dbc",
-            TestDatabase=opt$database)
+            pkg="dbc")
+            # TestDatabase=opt$database)
 } else {
     options(debugSQL=TRUE)
     connection <- flConnect(odbcSource=opt$host,
@@ -115,8 +115,8 @@ if(grepl("^jdbc",opt$host)){
                           platform=opt$platform,
                           drop=vdrop,
                           temporary=vtemp,
-                          pkg="dbc",
-                          TestDatabase=opt$database
+                          pkg="dbc"
+                          # TestDatabase=opt$database
                           )
 }
 

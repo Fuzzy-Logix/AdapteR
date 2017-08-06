@@ -16,6 +16,6 @@ test_that("chol of positive definite matrix ",{
 ## needs a hermitian positive definite matrix as input
 test_that("check FLCholskeyDecomp",
 {
-    m4 <- FLMatrix(table="tblmatrixMulti",5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+    m4 <- FLMatrix(table=getTestTableName("tblmatrixMulti"),5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
     expect_equal(as.matrix(chol(m4)), Matrix::chol(as.matrix(m4)))
 })
