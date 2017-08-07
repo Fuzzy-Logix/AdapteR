@@ -1,12 +1,17 @@
+## https://app.asana.com/0/136555696724838/163682320948854
+## https://fuzzyl.atlassian.net/browse/TDFL-832
+
 Renv = new.env(parent = globalenv())
 #fit <- coxph(Surv(time, status) ~ age + sex, lung1) 
-
+FLenv = as.FL(Renv)
 
 Renv$lung1 <- survival::lung
 names(Renv$lung1) <- c("inst", "thetime", "status", "age", "sex", "ph.ecog", "ph.karno", 
 "pat.karno", "meal.cal", "wt.loss")
 Renv$lung1$status <- Renv$lung1$status - 1
-FLenv = as.FL(Renv)
+#FLenv <- new.env(parent = globalenv())
+FLenv$lung1 <- as.FLTable(Renv$lung1, tableName= getOption("TestTempTableName"),
+                         temporary= FALSE, drop= TRUE)
 
 # options(debugSQL = FALSE)
 
@@ -41,14 +46,9 @@ test_that("cox: equality of  nevent, n, waldscore, means attributes https://app.
 
 
 test_that("cox: equality of loglik https://app.asana.com/0/136555696724838/163682320948854 ",{
-    result = eval_expect_equal({
-        loglik <- coxobj$loglik
-    },Renv,FLenv,
-    expectation=c("loglik"),
-    noexpectation = "coxobj",
-    tolerance = .000001,
-    verbose = T
-    )
+    FLloglik <- c(FLenv$coxobj$loglik[1,1], FLenv$coxobj$loglik[1,2])
+    Rloglik <- Renv$coxobj$loglik
+    result= expect_equal(FLloglik, Rloglik, tolerance= 0.0001)
 })
 
 
@@ -66,3 +66,21 @@ test_that("cox linear.predictors  https://app.asana.com/0/136555696724838/163682
 })
 
 #summary, plot??
+## https://app.asana.com/0/136555696724838/163682320948854
+## https://fuzzyl.atlassian.net/browse/TDFL-832
+
+## DBLytix manual example
+fldata <- FLTable(getTestTableName("tblcoxph_wide"),"ObsID")
+rdata <- as.R(fldata)
+fldata@Dimnames[[2]] <- tolower(fldata@Dimnames[[2]])
+colnames(rdata) <- tolower(colnames(rdata))
+vformula <- Surv(time_val,status) ~ sex + ivdrug + tx
+rcoxobj <- coxph(vformula, rdata)
+flcoxobj <- coxph(vformula,fldata)
+test_that("FLCoxPH: equality of coefficients https://app.asana.com/0/136555696724838/163682320948854 ",{
+    expect_equal(coef(rcoxobj),coef(flcoxobj))
+})
+
+
+
+

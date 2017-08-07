@@ -45,10 +45,12 @@ setClass(
 #' Plotting is not available. The result Set may not include all
 #' results and methods as in mgcv::gam.
 #' @return \code{gam} returns \code{FLGAM} object
+#' @seealso \code{\link[mgcv]{gam}} for corresponding R function reference
 #' @examples
-#' widetable <- FLTable("tblGAMSimData","ObsID")
-#' myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)+s(x2Val,x1Val)
-#' gamobject <- gam(myformula,data=widetable,offset="x2Val")
+#' widetable <- FLTable(getTestTableName("tblGAMSimData"),"ObsID")
+#' colnames(widetable) <- tolower(colnames(widetable))
+#' myformula <- yval~x0val+s(x1val,m=3,k=10)+te(x1val,x2val,m=3,k=5)+s(x2val,x1val)
+#' gamobject <- gam(myformula,data=widetable,offset="x2val")
 #' predictedValues <- predict(gamobject,widetable)
 #' gamobject$coefficients
 #' gamobject$fitted.values
@@ -120,7 +122,6 @@ gam.FLTable <- function(formula,family=stats::poisson,
 						data,offset=NULL,
 						maxiter=500,...)
 {
-	#browser()
 	require("mgcv")
 	data <- setAlias(data,"")
 	if(is.character(family) && base::toupper(family)!="POISSON")
@@ -497,6 +498,16 @@ gam.FLTable <- function(formula,family=stats::poisson,
 }
 
 #' @export
+setMethod("names", signature("FLGAM"), function(x) c("knots","FLCoeffStdErr",
+                                                     "coefficients","fitted.levels",
+                                                     "linear.predictors", "resdiduals",
+                                                     "FLCoeffPValue", "FLCoeffChiSq",
+                                                     "pred.formula", "prior.weights",
+                                                     "var.summary", "y", "offset",
+                                                     "converged", "deviance", "sig2","assign","df.residual", "pterms", "nsdf", "edf", "scale.estimated", "family","df.null", "model", "min.edf" ))
+
+
+#' @export
 coefficients.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["coefficients"]]))
@@ -551,6 +562,10 @@ fitted.values.FLGAM <- function(object)
 }
 
 #' @export
+fitted.FLGAM <- fitted.values.FLGAM
+
+
+#' @export
 residuals.FLGAM <- function(object)
 {
 	if(!is.null(object@results[["residuals"]]))
@@ -577,12 +592,11 @@ residuals.FLGAM <- function(object)
 		# vYVector <- object@table[,"-1"]
 		# residualsvector <- vYVector - object@results[["fitted.values"]]
 		sqlstr <- paste0("SELECT '%insertIDhere%' AS vectorIdColumn,",
-							object@scoreTable,".",vobsid," AS vectorIndexColumn,",
-							vtablename,".",all.vars(object@formula)[1]," - ",
-							object@scoreTable,".",y," AS vectorValueColumn",
-						" FROM ",object@scoreTable,",",vtablename,
-						" WHERE ",vtablename,".",obs_id_colname," = ",
-									object@scoreTable,".",vobsid)
+							"a.",vobsid," AS vectorIndexColumn,",
+							"b.",all.vars(object@formula)[1]," - ",
+							"a.",y," AS vectorValueColumn",
+						" FROM ",object@scoreTable," a,",vtablename," b ",
+						" WHERE b.",obs_id_colname," = a.",vobsid)
 
 		tblfunqueryobj <- new("FLTableFunctionQuery",
                         connectionName = getFLConnectionName(),
@@ -1049,7 +1063,8 @@ checkByVarName <- function(vByVarName,vcolnames)
 	vByVarName <- "NULL"
 	else
 	{
-		vByVarName <- base::strsplit(vByVarName,"\"")[[1]][2]
+		# vByVarName <- base::strsplit(vByVarName,"\"")[[1]][2]
+		vByVarName <- base::strsplit(vByVarName,"\"")[[1]]
 		if(!(vByVarName %in% vcolnames))
 		{
 			cat("byVarName given by 'by' must be in colnames of input wide table.Setting to NULL")

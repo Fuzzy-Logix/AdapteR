@@ -31,6 +31,3 @@ flmod<- opls(a~., data =deeptbl, ncomp = 5,northo = 5 )
 cof <- coefficients(flmod)
 pred <- predict(flmod);res <- residuals(flmod) 
 }
-\seealso{
-\code{\link[stats]{opls}} for R reference implementation.
-}

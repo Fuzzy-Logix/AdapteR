@@ -1,13 +1,14 @@
 Renv=new.env(globalenv())
 FLenv=as.FL(Renv)
 
-FLenv$table<-FLTable("tblDecisionTreeMulti","ObsID","VarID","Num_Val")
+FLenv$table<-FLTable(getTestTableName("tblDecisionTreeMulti"),"ObsID","VarID","Num_Val")
 Renv$table<-as.data.frame(FLenv$table)
 Renv$table$`-1`<-as.factor(Renv$table$`-1`)
 FLenv$newdata<-FLenv$table[1:150,]
 colnames(Renv$table)<-paste0("Col",1:ncol(Renv$table))
 
 print(methods("rpart"))
+
 
 test_that("test for decision tree on deep tables",{
   flobj<-rpart(FLenv$table, formula = -1~.)
@@ -17,7 +18,18 @@ test_that("test for decision tree on deep tables",{
   result5= expect_equal(any(flobj$frame$var=="<leaf>"),TRUE)
 })
 
-test_that("test for prediction in rpart",{
+test_that("test for printing decision tree object",{
+  flobj<-rpart(FLenv$table, formula = -1~.)
+  result1= expect_output(print(flobj))
+  result2= expect_output(print(flobj),paste0("n= ",flobj$frame[1,"n"]))
+  for(i in 1:nrow(flobj$frame)){
+    expect_output(print(flobj),paste0(i,")"))
+  }
+})
+
+## Error in Aster --
+## https://fuzzyl.atlassian.net/browse/FAI-155
+test_that("test for prediction in rpart https://fuzzyl.atlassian.net/browse/FAI-155",{
   flobj<-rpart(FLenv$table, formula = -1~.)
   flobj1<-predict(flobj, FLenv$newdata)
   flobj2<-predict(flobj, FLenv$newdata, type = "prob")
@@ -26,13 +38,4 @@ test_that("test for prediction in rpart",{
   result2 = expect_equal(nrow(flobj2), nrow(FLenv$newdata))
   result3 = expect_equal(ncol(flobj2),length(unique(as.vector(flobj1))))
   result4 = expect_equal(length(flobj3), nrow(FLenv$newdata))
-})
-
-test_that("test for printing decision tree object",{
-  flobj<-rpart(FLenv$table, formula = -1~.)
-  result1= expect_output(print(flobj))
-  result2= expect_output(print(flobj),paste0("n= ",flobj$frame[1,"n"]))
-  for(i in 1:nrow(flobj$frame)){
-    expect_output(print(flobj),paste0(i,")"))
-  }
 })

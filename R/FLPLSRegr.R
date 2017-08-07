@@ -13,7 +13,7 @@ NULL
 #' @param ncomp Number of components for performing pls & opls
 #' @return \code{mvr} returns an object of class \code{FLPLSRegr}
 #' @examples
-#' deeptbl  <- FLTable("tblPLSDeep2y", "ObsID", "VarID", "Num_Val")
+#' deeptbl  <- FLTable(getTestTableName("tblPLSDeep2y"), "ObsID", "VarID", "Num_Val")
 #' flmod<- mvr(a~., data =deeptbl, ncomp = 5 )
 #' predict(flmod); residuals(flmod);plot(flmod)
 #' cof <-coefficients(flmod)
@@ -31,7 +31,7 @@ mvr <- function (formula,data=list(),...) {
 #' @export
 mvr.default <- function (formula,data=list(),...) {
     if (!requireNamespace("pls", quietly = TRUE)){
-        stop("mvr package needed for mvr. Please install it.",
+        stop("pls package needed for mvr. Please install it.",
              call. = FALSE)
     }
     else return(pls::mvr(formula=formula,data=data,...))
@@ -59,6 +59,8 @@ mvr.FLTable <- mvr.FLpreparedData
 #' @export
 mvr.FLTableMD <- mvr.FLpreparedData
 
+#' @export
+mvr.FLTableDeep <- mvr.FLpreparedData
 
 #'OPLS Regression.
 #'
@@ -66,8 +68,6 @@ mvr.FLTableMD <- mvr.FLpreparedData
 #'
 #' The DB Lytix function called is FLOPLSRegr. Performs OPLS Regression and 
 #' stores the results in predefined tables.
-#'
-#' @seealso \code{\link[stats]{opls}} for R reference implementation.
 #' @param formula A symbolic description of model to be fitted
 #' @param data An object of class FLTable or FLTableMD.
 #' @param ncomp Number of components for performing pls & opls.
@@ -107,6 +107,8 @@ opls.FLTable <- opls.FLpreparedData
 #' @export
 opls.FLTableMD <- opls.FLpreparedData
 
+#' @export
+opls.FLTableDeep <- opls.FLpreparedData
 
 #' @export
 setClass(
@@ -248,9 +250,17 @@ setClass(
 
 
 #' @export
-coefficients<-function(table){
-	UseMethod("coefficients",table)
-}
+setMethod("names", signature("FLPLSRegr"), function(x) c("y","rsquare","Yloadings",
+                                                     "WeightYN","loading.weights",
+                                                     "loadings","scores","Yscores",
+                                                     "coefficients","fitted.values",
+                                                     "methods","Ymeans","Xmeans"))
+
+
+# #' @export
+# coefficients<-function(table){
+# 	UseMethod("coefficients",table)
+# }
 
 #' @export
 coefficients.FLPLSRegr<-function(object){
@@ -260,8 +270,10 @@ coefficients.FLPLSRegr<-function(object){
                 " WHERE AnalysisID = '",object@AnalysisID,"'ORDER BY 3, 2;")
     dtf <- sqlQuery(connection, str)
     colnames(dtf) <- tolower(colnames(dtf))
-    cof <- dtf$beta[2:length(dtf$beta)]
+    cof <- dtf$beta[1:length(dtf$beta)]
     var <- all.vars(object@formula)[2:length(all.vars(object@formula))]
+    if(length(cof)>length(var))
+        var <- c("Intercept",var)
     names(cof) <- var
     cof <- as.array(cof)
     assign(parentObject,object,envir=parent.frame())

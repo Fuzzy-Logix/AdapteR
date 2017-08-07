@@ -241,6 +241,13 @@ flConnect <- function(host=NULL,database=NULL,user=NULL,passwd=NULL,
     connection <- FLConnection(connection, platform, name=ifelse(is.null(host),odbcSource,host))
     options("FLConnection" = connection)
     assign("connection", connection, envir = .GlobalEnv)
+
+    ## Common Test TableName for permanent tables created in TestSuite
+    if(is.null(user))
+        vtemptbl <- paste0("ARBaseTestTempTable",sample(1:100,1))
+    else vtemptbl <- paste0("ARBaseTestTempTable",user)
+
+    options("TestTempTableName" = vtemptbl)
     FLStartSession(connection=connection,database=database,temporary = temporary,tablePrefix=tablePrefix,...)
     return(connection)
 }
@@ -292,16 +299,17 @@ FLStartSession <- function(connection,
                     pColNames=c("TimeInfo","DateInfo",
                                 "UserName","DatabaseName",
                                 "TableName","ElementID",
-                                "ObjType",
+                                "ObjType","PermanentFlag",
                                 "UserComments"),
                     pColTypes=c("VARCHAR(255)","VARCHAR(255)",
                                 "VARCHAR(255)","VARCHAR(255)",
                                 "VARCHAR(255)","INT","VARCHAR(255)",
-                                "VARCHAR(255)"),
+                                "INT","VARCHAR(255)"),
                     pTableOptions=tableoptions,
                     pPrimaryKey="UserName",
                     pTemporary=FALSE,
-                    pDrop=TRUE)
+                    pDrop=TRUE,
+                    pPermanent=1)
     ## Create names mapping table
     if(drop | !checkRemoteTableExistence(tableName="tblNameMapping"))
         createTable(pTableName="tblNameMapping",
@@ -369,6 +377,9 @@ FLStartSession <- function(connection,
     ## Create platform Mappings
     tryCatch(FLcreatePlatformsMapping(),
             error=function(e)warning("Platform Mappings could not be generated \n "))
+
+    ## Load Iris table if not exists
+    vtemp <- loadIris()
 
     cat("Session Started..\n")
 }
@@ -528,12 +539,22 @@ genCreateResulttbl <- function(tablename,
 #' Strongly recommended to run before quitting current R session
 #' @param connection ODBC/JDBC connection object
 #' @export
-flClose <- function(connection=getFLConnection())
+flClose <- function(connection=getFLConnection(),
+                    retainPermanentTables=TRUE,
+                    username=getOption("FLUsername"))
 {
-   # if(length(getOption("FLTempTables"))>0)
-   #      sapply(getOption("FLTempTables"),dropTable)
-   #  if(length(getOption("FLTempViews"))>0)
-   #      sapply(getOption("FLTempViews"),dropView)
+    options(flag1=0)
+    options(flag1=0)
+    options(flag1=0)
+    #options("FLTempTables"=c())
+    #options("FLTempViews"=c())
+    options("FLSessionID"=c())
+    cleanDatabase(pRetainPermanent=retainPermanentTables,
+                pUser=username)
+    # if(length(getOption("FLTempTables"))>0)
+    #      sapply(getOption("FLTempTables"),dropTable)
+    #  if(length(getOption("FLTempViews"))>0)
+    #      sapply(getOption("FLTempViews"),dropView)
     if(inherits(connection,"FLConnection")){
         connection <- connection$connection
     }
@@ -541,12 +562,6 @@ flClose <- function(connection=getFLConnection())
         RODBC::odbcClose(connection)
     else
         RJDBC::dbDisconnect(connection)
-    options(flag1=0)
-    options(flag1=0)
-    options(flag1=0)
-    #options("FLTempTables"=c())
-    #options("FLTempViews"=c())
-    options("FLSessionID"=c())
 }
 
 #' Close Session and Drop temp Tables
@@ -554,9 +569,12 @@ flClose <- function(connection=getFLConnection())
 #' Strongly recommended to run before quitting current R session
 #' @param connection ODBC/JDBC connection object
 #' @export
-FLClose <- function(connection=getFLConnection()){
+FLClose <- function(connection=getFLConnection(),
+                    retainPermanentTables=TRUE,
+                    username=getOption("FLUsername")){
     warning("Deprecated, calling flClose(connection).")
-    flClose(connection)
+    flClose(connection,retainPermanentTables=retainPermanentTables,
+            username=username)
 }
 
 ## check if hypothesis tables exists
@@ -592,4 +610,47 @@ ModifyHypoResultColnames <- function(pFunc,pObj){
     colnames(pObj) <- getPlatformResultNames(pFunc,
                                             colnames(pObj))
     return(pObj)
+}
+
+loadIris <- function(){
+  viris <- iris
+  colnames(viris) <- tolower(colnames(viris))
+  if(!checkRemoteTableExistence(tableName="iris"))
+  flt <- as.FLTable(viris,tableName="iris",temporary=FALSE)
+  return(NULL)
+}
+
+
+cleanDatabase <- function(pRetainPermanent=TRUE,pUser=getOption("FLUsername")){
+    if(is.null(pUser) || tolower(pUser) =="all")
+    vdf <- sqlQuery(connection,"select * from fzzlAdapteRTablesInfo order by 1 ")
+    else vdf <- sqlQuery(connection,
+                        paste0("select * from fzzlAdapteRTablesInfo ",
+                                " where username = ",fquote(pUser),
+                                " order by 1 "))
+    colnames(vdf) <- tolower(colnames(vdf))
+    vquery <- apply(vdf,1,function(x){
+                        if(is.na(x["permanentflag"]) | !(pRetainPermanent && as.integer(x["permanentflag"]))){
+                            if(tolower(x["objtype"])=="view")
+                                paste0("DROP VIEW ",x["databasename"],".",x["tablename"])
+                            else if(! tolower(x["tablename"]) %in% c("fzzladaptertablesinfo",
+                                                               "fzzlarhypteststatsmap",
+                                                               "ARTestIntMatrixTable",
+                                                               "ARTestCharMatrixTable",
+                                                               "ARTestMatrixTable","ARTestIntVectorTable",
+                                                               "ARTestCharVectorTable","ARTestVectorTable",
+                                                               "iris"))
+                                paste0("DROP TABLE ",x["databasename"],".",x["tablename"])
+                        }
+                })
+    vquery <- unique(vquery)
+    cat("preparing to drop ",length(vquery)," tables/views...")
+    cat(" \n ... \n ")
+    sapply(vquery,function(x) sqlSendUpdate(connection,x))
+
+    if(pRetainPermanent)
+        vdf <- sqlQuery(getFLConnection(),"DELETE FROM fzzlAdapteRTablesInfo where permanentflag=0")
+    else vdf <- sqlQuery(getFLConnection(),"DELETE FROM fzzlAdapteRTablesInfo")
+    cat("DB cleaned... \n ")
+    return(TRUE)
 }

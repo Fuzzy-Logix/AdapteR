@@ -9,19 +9,19 @@ wideToDeep(object, ...)
 \arguments{
 \item{object}{FLTable object}
 
-\item{excludeCols}{character vector specifying columns to be excluded from conversion}
+\item{ExcludeCols}{character vector specifying columns to be excluded from conversion}
 
-\item{classSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
+\item{ClassSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
 
-\item{whereconditions}{character vector giving where conditions if any to reference the wide table}
+\item{WhereClause}{character vector giving where conditions if any to reference the wide table}
 
-\item{outDeepTableName}{name to be given to the output deep table, possibly with database}
+\item{OutDeepTable}{name to be given to the output deep table, possibly with database}
 
-\item{outObsIDCol}{name to give to the primary key column name of the output deep table}
+\item{OutObsIDCol}{name to give to the primary key column name of the output deep table}
 
-\item{outVarIDCol}{name to give to the varibales name column of the output deep table}
+\item{OutVarIDCol}{name to give to the varibales name column of the output deep table}
 
-\item{outValueCol}{name to give to the value column of the output deep table}
+\item{OutValueCol}{name to give to the value column of the output deep table}
 }
 \value{
 \code{wideToDeep} returns a list containing components 
@@ -32,7 +32,12 @@ The DB Lytix function called is FLWideToDeep.  FLWideToDeep is similar to FLRegr
 FLWideToDeep does not require dependent variable or intercept, thus it creates deep tables without them.
 }
 \examples{
-widetable  <- FLTable("tblAbaloneWide", "ObsID")
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 deeptable <- wideToDeep(widetable)
+analysisID <- deeptable@wideToDeepAnalysisID
+
+## columns may be excluded from deeptable using ExcludeCols
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID", , whereconditions= "obsID< 101")
+deeptable <- wideToDeep(widetable, ExcludeCols= "Sex")
 analysisID <- deeptable@wideToDeepAnalysisID
 }

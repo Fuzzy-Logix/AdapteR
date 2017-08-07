@@ -85,23 +85,24 @@ setClass(
 #' Robust Regression.
 #' 
 #' performs robust regression
+#' @examples
 #' Example for deeptbl:
 #' library(MASS)
 #' options(debugSQL =TRUE)
-#' table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
+#' table  <- FLTable(getTestTableName("tblRobustRegr"), "ObsID","VarID", "Num_Val")
 #' flmod <- rlm(a~., data = table)
 #' predict(flmod)
 #' residuals(flmod)
 #' flmod$fitted.values
 #' summary(flmod)
-#' still to work on plot(q)
+#' @section Constraints:
+#' plot method not supported
 #' Example for widetable:
-#' widetbl <- FLTable("tblautompg", "ObsID")
+#' widetbl <- FLTable(getTestTableName("tblautompg"), "ObsID")
 #' flmod <- rlm(Weight~ Acceleration , data = widetbl)
 #' summary(flmod)
 #' coefficients(flmod)
 #' residuals(flmod)
-#' TO-DO: warning message for deeptable in model.
 #' @export
 rlm <- function (formula,data=list(),psi, ...) {
 	UseMethod("rlm", data)
@@ -131,6 +132,9 @@ rlm.FLTable <- rlm.FLpreparedData
 ## move to file rlm.R
 #' @export
 rlm.FLTableMD <- rlm.FLpreparedData
+
+#' @export
+rlm.FLTableDeep <- rlm.FLpreparedData
 
 
 
@@ -184,16 +188,16 @@ rlm.FLTableMD <- rlm.FLpreparedData
 #' have to fetch data
 #' @return \code{lm} returns an object of class \code{FLLinRegr}
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
 #' lmfit <- lm(Rings~Height+Diameter,widetable)
 #' lmfit$coefficients
 #' lmfit$fitted.values
 #' plot(lmfit)
 #' mu <- predict(lmfit,newdata=widetable)
-#' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable(getTestTableName("myLinRegrSmall"),"ObsID","VarID","Num_Val")
 #' lmfit <- lm(NULL,deeptable)
 #' summary(lmfit)
-#' flMDObject <- FLTableMD(table="tblAutoMPGMD",
+#' flMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),
 #'                       group_id_colname="GroupID",
 #'                       obs_id_colname="ObsID",group_id = c(2,4))
 #' vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
@@ -305,18 +309,22 @@ lm.FLTableMD <- lm.FLTable
 #' 
 #' @return \code{step} performs linear regression and replicates equivalent R output.
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
-#' s <- step(widetable,scope=list(lower=Rings~Height+Diameter),direction = "UFbackward")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID")
+#' s <- step(widetable,
+#' 			 scope=list(lower=Rings~Height+Diameter),
+#'		     direction = "UFbackward")
 #' plot(s)
 #' s$coefficients
 #' s <- step(widetable,
 #' 			scope=list(lower=Rings~Height+Diameter,
-#'  					upper=Rings~Height+Diameter+Sex+Num_Length),
+#'  				   upper=Rings~Height+Diameter+Sex+Num_Length),
 #' 			direction = "UFbackward")
 #' plot(s)
 #' s$coefficients
-#' s <- step(widetable,scope=list(lower=Rings~Num_Length),
-#' 			direction = "UFbackward",performNorm=1,performVarReduc=1,maxCorrel=0.6)
+#' s <- step(widetable,
+#'			scope=list(lower=Rings~Num_Length),
+#' 			direction = "UFbackward",
+#'			performNorm=1,performVarReduc=1,maxCorrel=0.6)
 #' plot(s)
 #' s$coefficients
 #' s <- step(widetable,
@@ -339,7 +347,7 @@ lm.FLTableMD <- lm.FLTable
 #'  		direction = "forward")
 #' plot(s)
 #' s$coefficients
-#' deeptable <- FLTable("myLinRegrSmall","ObsID","VarID","Num_Val")
+#' deeptable <- FLTable(getTestTableName("myLinRegrSmall"),"ObsID","VarID","Num_Val")
 #' s <- step(deeptable,
 #' 			scope=list(upper=c("-1","0","1")),
 #'  		direction = "backward")
@@ -352,7 +360,7 @@ lm.FLTableMD <- lm.FLTable
 #' s <- step(deeptable,
 #' 			scope=list(),
 #'  		direction = "forward")
-#' deeptable1 <- FLTable("tblLogRegr",
+#' deeptable1 <- FLTable(getTestTableName("tblLogRegr"),
 #' 					"ObsID","VarID","Num_Val",
 #'                   whereconditions=c("ObsID < 7001","VarID<5"))
 #' s <- step(deeptable1,
@@ -369,7 +377,7 @@ lm.FLTableMD <- lm.FLTable
 #' s <- step(deeptable1,
 #' 			scope=list(upper=c("1","2","3"),lower=c("2")),
 #'  		direction = "Fbackward",familytype="multinomial",pRefLevel=1)
-#' deeptable2 <- FLTable("tblLogRegrMN10000",
+#' deeptable2 <- FLTable(getTestTableName("tblLogRegrMN10000"),
 #' 					"ObsID","VarID","Num_Val",
 #'                   whereconditions=c("ObsID < 7001","VarID<5"))
 #' s <- step(deeptable2,
@@ -707,7 +715,7 @@ lmGeneric <- function(formula,data,
         
         weightfn = "huber"
         if(list(...)$psi == "psi.bisquare" )
-        {weightfn <- "bisquare";print("check 2")}
+        {weightfn <- "bisquare"}
         else if(list(...)$psi == "psi.hampel")
             print("dont compute rlm for hampel function currently computing it for huber")
         else if(list(...)$psi %in% c("cauchy", "fair","logistic", "talwar", "andrews", "welsch")
@@ -942,7 +950,10 @@ prepareData.FLRegr <- function(formula, data, outDeepTableName="",
     dataCopy <- data
     vRegrDataPrepSpecs <- setDefaultsRegrDataPrepSpecs(x=formula@RegrDataPrepSpecs,
                                                        values=list(...))
-    deepx <- FLRegrDataPrep(data,depCol=formula@RegrDataPrepSpecs$depCol,
+    vdepCol <- formula@RegrDataPrepSpecs$depCol
+    if(is.null(vdepCol))
+    	vdepCol <- "NULL"
+    deepx <- FLRegrDataPrep(data,depCol=vdepCol,
                             OutDeepTable=outDeepTableName,
                             OutObsIDCol=vRegrDataPrepSpecs$outObsIDCol,
                             OutVarIDCol=vRegrDataPrepSpecs$outVarIDCol,
@@ -1028,7 +1039,8 @@ prepareData.formula <- function(formula,data,
 		## Meaning same varIDs
 		if(is.FLTableMD(data)){
 			if(!length(unique(vallVars))==1)
-				stop("Datasets should have same columns \n ")
+				# stop("Datasets should have same columns \n ")
+				vallVars <- colnames(data)[[1]]
 			else vallVars <- vallVars[[1]][1]:vallVars[[1]][2]
 		}
 		formula <- genDeepFormula(vallVars)
@@ -1047,6 +1059,8 @@ prepareData.formula <- function(formula,data,
         }
 		vallVars <- base::all.vars(formula)
 		vdependent <- vallVars[1]
+		if(is.null(vdependent))
+			vdependent <- "NULL"
 		vindependent <- vallVars[2:length(vallVars)]
 		checkValidFormula(formula,data)
 	}
@@ -1170,13 +1184,20 @@ prepareData.formula <- function(formula,data,
 			}
 		}
 		if(length(vfactorCols)>0){
-			vrefVars <- sqlQuery(getFLConnection(),
-							paste0("SELECT ",
-								paste0("MIN(",names(vfactorCols),
-									") AS ",names(vfactorCols),
-									collapse=","),
-								" FROM (",constructSelect(data),") a "),
+			if(is.ODBC())
+                vrefVars <- sqlQuery(getFLConnection(),
+                            paste0("SELECT ",
+                                paste0("MIN(",names(vfactorCols),
+                                    ") AS ",names(vfactorCols),
+                                    collapse=","),
+                                " FROM (",constructSelect(data),") a "),
                             as.is=TRUE)
+            else vrefVars <- sqlQuery(getFLConnection(),
+                            paste0("SELECT ",
+                                paste0("MIN(",names(vfactorCols),
+                                    ") AS ",names(vfactorCols),
+                                    collapse=","),
+                                " FROM (",constructSelect(data),") a "))
 			vtempList <- list()
             vrefVarNames <- names(vrefVars)
 			for(i in colnames(vrefVars)){
@@ -1673,6 +1694,24 @@ prepareData.character <- prepareData.formula
     else stop("That's not a valid property \n ")
 }
 
+setMethod("names", signature("FLRobustRegr"), function(x) c("coefficients",
+                                                            "residuals",
+                                                            "fitted.values",
+                                                            "x",
+                                                            "y",
+                                                            "call" ))
+
+#' @export
+setMethod("names", signature("FLLinRegr"), function(x) c("anova", "formula", "assign",
+                                                          "xlevels","y","x","model",
+                                                          "df.residual","FLLinRegrStats",
+                                                          "call","s","FLCoeffCorrelWithRes"
+                                                         ,"FLCoeffNonZeroDensity",
+                                                          "FLCoeffPValue","FLCoeffTStat",
+                                                          "FLCoeffStdErr","fitted.values",
+                                                          "residuals","coefficients" ))
+
+
 #' @export
 coefficients<-function(table){
 	UseMethod("coefficients",table)
@@ -1713,7 +1752,7 @@ coefficients.lmGeneric <-function(object,
         ## by FLLinRegr, fetch them.
                                         #browser()
                                         # vmapping <- NULL
-        vID <- object@results$mod["nID"]
+        vID <- object@results$mod[["nID"]]
         vfcalls <- object@vfcalls
         vcoeffnames <- NULL
         vmodelnames <- NULL
@@ -1778,7 +1817,7 @@ coefficients.lmGeneric <-function(object,
         }
 
         colnames(coeffVector) <- toupper(colnames(coeffVector))
-        coeffVector1 <- coeffVector[[object@results$mod["nCoeffEstim"]]]
+        coeffVector1 <- coeffVector[[object@results$mod[["nCoeffEstim"]]]]
                                         # vmapping <- as.FLVector(unique(c(-2,-1,coeffVector[["COEFFID"]])))
         if(!is.null(vcoeffnames)){
             if(!pIntercept)
@@ -1887,6 +1926,7 @@ model.FLLinRegr <- function(object,...)
 	}
 }
 
+#' @export
 summary.FLRobustRegr <- function(object, ...){
     str <- paste0("SELECT a.StdDev, a.T_Val FROM ",object@vfcalls["coefftablename"]," a
                            WHERE a.AnalysisID = ",fquote(object@AnalysisID),"
@@ -2016,7 +2056,7 @@ predict.FLRobustRegr <- function(object,
 predict.lmGeneric <- function(object,
                               newdata=object@table,
                               scoreTable="",
-                              type="response",...){ 
+                              type="response",...){
     if(!is.FLTable(newdata) && class(newdata) != "FLpreparedData") stop("scoring allowed on FLTable only")
     vfcalls <- object@vfcalls
     if(class(newdata) == "FLpreparedData"){
@@ -2240,7 +2280,7 @@ coefficients.FLLinRegrMD <- function(object){
 			coeffVector <- sqlQuery(getFLConnection(),
 								paste0("SELECT * FROM ",object@vfcalls["coefftablename"],
 										" where AnalysisID=",fquote(object@AnalysisID),
-										" AND ModelID IN(",paste0(object@deeptable@Dimnames[[3]],collapse=","),
+										" AND ModelID IN(",paste0(unlist(object@deeptable@Dimnames[[1]]),collapse=","),
 										") ORDER BY ModelID,CoeffID"))
             colnames(coeffVector) <- toupper(colnames(coeffVector))
 			vcoeffnames <- as.vector(apply(coeffVector,1,
@@ -2260,7 +2300,7 @@ coefficients.FLLinRegrMD <- function(object){
 											"\n AND b.AnalysisID = ",fquote(object@AnalysisID),
 											"\n AND a.groupID = b.modelID ",
 											"\n AND b.ModelID IN(",
-												paste0(object@deeptable@Dimnames[[3]],
+												paste0(unlist(object@deeptable@Dimnames[[1]]),
 													collapse=","),
 											")\n ORDER BY ModelID,CoeffID"))
 			colnames(vcoeffframe) <- toupper(colnames(vcoeffframe))
@@ -2296,7 +2336,7 @@ coefficients.FLLinRegrMD <- function(object){
 								names(vcoeff) <- x[["COEFFNAMES"]]
 								return(vcoeff)
 								})
-		names(vcoeffList) <- paste0("Model",object@deeptable@Dimnames[[3]])
+		names(vcoeffList) <- paste0("Model",unlist(object@deeptable@Dimnames[[1]]))
 		parentObject <- unlist(strsplit(unlist(strsplit(as.character
 							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 		object@results[["coefficients"]] <- vcoeffList
@@ -2317,7 +2357,7 @@ summary.FLLinRegrMD <- function(object){
 								" ORDER BY MODELID "))
 	else statsframe <- object@results[["statsframe"]]
 	colnames(statsframe) <- toupper(colnames(statsframe))
-	vresList <- lapply(object@deeptable@Dimnames[[3]],
+	vresList <- lapply(unlist(object@deeptable@Dimnames[[1]]),
 					function(x){
 						vtemp <- coeffframe[coeffframe[,"MODELID"]==x,]
 						vrownames <- vtemp[["COEFFNAMES"]]
@@ -2333,7 +2373,7 @@ summary.FLLinRegrMD <- function(object){
 						class(vsummaryList) <- "summary.FLLinRegrMD"
 						return(vsummaryList)
 						})
-	names(vresList) <- paste0("Model",object@deeptable@Dimnames[[3]])
+	names(vresList) <- paste0("Model",unlist(object@deeptable@Dimnames[[1]]))
 	parentObject <- unlist(strsplit(unlist(strsplit(as.character
 							(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
 	object@results[["statsframe"]] <- statsframe
@@ -2500,7 +2540,7 @@ coefficients.FLLinRegrSF<-function(object){
 getReferenceCategories <- function(data,pExcludeCols="",
                                     classSpec=list(),
                                     ...){
-    ##browser()
+    ## browser()
     vcolnames <- colnames(data)
     unused_cols <- c(pExcludeCols,
                     getObsIdSQLExpression(data),
@@ -2527,6 +2567,7 @@ getReferenceCategories <- function(data,pExcludeCols="",
         }
     }
     if(length(vfactorCols)>0){
+        if(is.ODBC())
         vrefVars <- sqlQuery(getFLConnection(),
                         paste0("SELECT ",
                             paste0("MIN(",names(vfactorCols),
@@ -2534,6 +2575,12 @@ getReferenceCategories <- function(data,pExcludeCols="",
                                 collapse=","),
                             " FROM (",constructSelect(data),") a "),
                             as.is=TRUE)
+        else vrefVars <- sqlQuery(getFLConnection(),
+                        paste0("SELECT ",
+                            paste0("MIN(",names(vfactorCols),
+                                ") AS ",names(vfactorCols),
+                                collapse=","),
+                            " FROM (",constructSelect(data),") a "))
         vtempList <- list()
         vrefVarNames <- names(vrefVars)
         for(i in colnames(vrefVars)){

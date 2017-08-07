@@ -8,21 +8,26 @@ rlm(formula, data = list(), psi, ...)
 }
 \description{
 performs robust regression
+}
+\section{Constraints}{
+
+plot method not supported
+Example for widetable:
+widetbl <- FLTable(getTestTableName("tblautompg"), "ObsID")
+flmod <- rlm(Weight~ Acceleration , data = widetbl)
+summary(flmod)
+coefficients(flmod)
+residuals(flmod)
+}
+
+\examples{
 Example for deeptbl:
 library(MASS)
 options(debugSQL =TRUE)
-table  <- FLTable("tblRobustRegr", "ObsID","VarID", "Num_Val")
+table  <- FLTable(getTestTableName("tblRobustRegr"), "ObsID","VarID", "Num_Val")
 flmod <- rlm(a~., data = table)
 predict(flmod)
 residuals(flmod)
 flmod$fitted.values
 summary(flmod)
-still to work on plot(q)
-Example for widetable:
-widetbl <- FLTable("tblautompg", "ObsID")
-flmod <- rlm(Weight~ Acceleration , data = widetbl)
-summary(flmod)
-coefficients(flmod)
-residuals(flmod)
-TO-DO: warning message for deeptable in model.
 }

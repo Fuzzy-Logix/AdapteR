@@ -7,9 +7,16 @@ groupb = rep(0:1,each = 10)
 weight <- c(ctl, trt)
 dataframe = data.frame(weight = weight,groupf =groupf,groupb =groupb)
 rownames(dataframe) <- 1:nrow(dataframe)
+
+x <- rnorm(15)
+y <- x + rnorm(15)
+data <- as.data.frame(cbind(x, y))
+
 FLenv = as.FL(Renv)
 Renv$dataframe <- dataframe
-FLenv$dataframe <- as.FLTable(dataframe,temporary=F)
+FLenv$dataframe <- as.FLTable(dataframe,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+Renv$data <- data
+
 
 test_that("lm: execution",{
     result = eval_expect_equal({
@@ -35,10 +42,11 @@ test_that("lm: equality of coefficients, residuals, fitted.values, rank and term
         myfitted.values <- as.vector(lmobj$fitted.values)
         names(myres) <- names(myfitted.values) <- NULL ## todo: support names in AdapteR
         mydf.res <- lmobj$df.residual
-        myrank <- lmobj$rank
+        # myrank <- lmobj$rank
         myterms <- lmobj$terms
         modelDim <- dim(lmobj$model)
-    },Renv,FLenv)
+    },Renv,FLenv,
+    expectation=c("mycoefffs","myres","myfitted.values","mydf.res","myterms","modelDim"))
 })
 
 
@@ -67,6 +75,16 @@ test_that("lm: summary.lm https://app.asana.com/0/143316600934101/15694819281845
   noexpectation = "lmSum")
 })
 
+FLenv$data <- as.FLTable(data,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
+test_that("lm: prediction",{
+  result = eval_expect_equal({
+    lmobj <- lm(y ~ x,data=data)
+    result <- predict(lmobj)
+  },Renv,FLenv,
+  noexpectation = c("lmobj","result"),
+  check.attributes=F)
+})
+
 ## Check for plot function of Linear Regression.
 ## 
 ## check to run manually for equal results
@@ -79,6 +97,7 @@ if(FALSE){
 ## MD Testing
 ## Tables not available in Hadoop
 ## FLRegrDataPrepMD is not available in Hadoop and Aster
+if(is.TD()){
 test_that("lm: multi dataset ",{
     flMDObject <- FLTableMD(table=getTestTableName("tblAutoMPGMD"),
                             group_id_colname="GroupID",
@@ -98,7 +117,7 @@ test_that("lm: multi dataset ",{
     summaryList <- summary(lmfit)
     test_that("Check for dimensions of coefficients and summary for wideTable ",{
         expect_equal(names(coeffList),
-                     paste0("Model",flMDObject@Dimnames[[3]]))
+                     paste0("Model",flMDObject@Dimnames[[1]][[1]]))
         expect_equal(names(coeffList),
                      names(summaryList))
         vcoeffnames <- all.vars(vformula)
@@ -115,35 +134,38 @@ test_that("lm: multi dataset ",{
     summaryList <- summary(lmfit)
     test_that("Check for dimensions of coefficients and summary for DeepTable ",{
         expect_equal(names(coeffList),
-                     paste0("Model",flMDObjectDeep@Dimnames[[3]]))
+                     paste0("Model",flMDObjectDeep@Dimnames[[1]][[1]]))
         expect_equal(names(coeffList),
                      names(summaryList))
-        vlenCoeffs <- colnames(flMDObjectDeep)[[1]]
-        vlenCoeffs <- length(setdiff(vlenCoeffs[1]:vlenCoeffs[2],-1))
+        vlenCoeffs <- length(setdiff(colnames(flMDObjectDeep)[[1]],-1))
         lapply(coeffList,function(x){
             expect_equal(length(x),vlenCoeffs)
         })
     })
 })
+}
 
 ## Testing lm for non-continuous ObsIDs
 widetable  <- FLTable(getTestTableName("tblAbaloneWide"),
-                    "obsid",whereconditions=c("ObsID>10","ObsID<1001"))
-if(is.TDAster()) vformula <- rings~height+diameter else vformula <- Rings~Height+Diameter
+                    "ObsID",whereconditions=c("ObsID>10","ObsID<1001"))
+colnames(widetable) <- tolower(colnames(widetable))
+# if(is.TDAster()) vformula <- rings~height+diameter else vformula <- Rings~Height+Diameter
+vformula <- rings~height+diameter 
 object <- lm(vformula,widetable)
 
 test_that("Check for dimensions of x Matrix ",{
         expect_equal(nrow(object$x),nrow(widetable))
-        expect_equal(colnames(object$x),
-                    c("(Intercept)","Height","Diameter"))
+        expect_equal(tolower(colnames(object$x)),
+                    c("(intercept)","height","diameter"))
         expect_equal(rownames(object$model),
                      as.character(rownames(widetable))
                     )
-        expect_equal(colnames(object$model),
-                     c("Rings","Height","Diameter")
+        expect_equal(tolower(colnames(object$model)),
+                     c("rings","height","diameter")
                     )
 })
 
+if(is.TD())
 test_that("Check for dimensions of x Matrix ",{
     deeptable <- FLTable(getTestTableName("myLinRegrSmall"),
                          "ObsID","VarID","Num_Val",

@@ -27,7 +27,13 @@ NULL
 #' @examples
 #' x<-rnorm(1000)
 #' flv<-as.FLVector(x)
-#' flobj<-adf.test(object = flv, k=9)
+#' flobj<-adf.test(object = flv, k=2)
+#'      y <- diffinv(x)   # contains a unit-root
+#' fly <- as.FL(y)
+#' flobjy <- adf.test(object = fly, k=2)
+#' robj<-adf.test(object = y, k=2)
+
+
 
 #' @export
 adf.test<-function(object,...){
@@ -46,7 +52,8 @@ adf.test.default<-function (object,...) {
 #' @export
 adf.test.FLVector<-function(object,
 						 	k=6,
-						 	trend=1,...){
+                            trend=1,...){
+##    browser()
 	if(!is.FLVector(object)) stop("The class of the object should be FLVector.")
     vtblname <- gen_wide_table_name("adf")
     vtbl <- createView(vtblname,
@@ -68,7 +75,7 @@ adf.test.FLVector<-function(object,
 						  pInputParameters=vinputcols)
 	ret<-sqlQuery(getFLConnection(),
                 paste0("select * from fzzlADFStats where AnalysisID = ", 
-                        fquote(AnalysisID)))
+                        fquote(AnalysisID[[1]])))
 	statistic<-ret[1,4]
 	parameter<-k	
 	names(statistic)<-"Dickey-Fuller"

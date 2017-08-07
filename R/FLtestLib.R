@@ -8,6 +8,9 @@ setGeneric("FLexpect_equal",
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="ANY"),
           function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
             if(is.RSparseMatrix(expected))
             expected <- matrix(expected,dim(expected))
             if(class(expected)=="dist")
@@ -19,12 +22,22 @@ setMethod("FLexpect_equal",
           })
 setMethod("FLexpect_equal",
           signature(object="FLMatrix",expected="FLMatrix"),
-          function(object,expected,...)
-              testthat::expect_equal(as.matrix(object),
-                                     as.matrix(expected),...))
+          function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.matrix(object),
+                                     as.matrix(expected),...)
+          })
+
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="FLMatrix"),
           function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
             if(is.RSparseMatrix(object))
             object <- matrix(object,dim(object))
             if(class(object)=="dist")
@@ -34,26 +47,51 @@ setMethod("FLexpect_equal",
             testthat::expect_equal(object,
                                      as.matrix(expected),...)
           })
+
 setMethod("FLexpect_equal",
           signature(object="FLSimpleVector",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     expected,...))
+          function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                     expected,...)
+          })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     expected,...))
+          function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                    expected,...)
+            })
+
 setMethod("FLexpect_equal",
           signature(object="FLSkalarAggregate",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     expected,...))
+          function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                     expected,...)
+        })
 setMethod("FLexpect_equal",
           signature(object="FLVector",expected="FLVector"),
-          function(object,expected,...)
-              testthat::expect_equal(as.vector(object),
-                                     as.vector(expected),...))
+          function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.vector(object),
+                                    as.vector(expected),...)
+        })
 setMethod("FLexpect_equal",signature(object="list",expected="list"),
           function(object,expected,...)
               llply(names(object),
@@ -95,6 +133,11 @@ setMethod("FLexpect_equal",
 setMethod("FLexpect_equal",
           signature(object="ANY",expected="ANY"),
           function(object,expected,...){
+
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
             if(is.FL(object))
             object <- as.R(object)
             if(is.FL(expected))
@@ -104,9 +147,14 @@ setMethod("FLexpect_equal",
           })
 
 setMethod("FLexpect_equal",signature(object="FLTable",expected="ANY"),
-          function(object,expected,...)
-              testthat::expect_equal(as.data.frame(object),
-                                     as.data.frame(expected),...))
+          function(object,expected,...){
+            if(!(tolower(getFLPlatform()) %in% list(...)[["platforms"]]) &&
+                !is.null(list(...)[["platforms"]]))
+                return()
+
+            testthat::expect_equal(as.data.frame(object),
+                                     as.data.frame(expected),...)
+        })
 
 
 ##' Evaluates the expression e in an R and an FL environment, tests assignment for equality.
@@ -135,6 +183,7 @@ eval_expect_equal <- function(e, Renv, FLenv,
                               expectation=c(),
                               noexpectation=c(),
                               verbose=FALSE,
+                              platforms=c("TD","TDAster","Hadoop"),
                               ...){
     if(runs>=1)
         e <- substitute(e)
@@ -145,6 +194,12 @@ eval_expect_equal <- function(e, Renv, FLenv,
                                                    description=description,
                                                    runs=-1,...)))
     if(is.null(description)) description <- paste(deparse(e),collapse="\n")
+
+    ## check platform specific info if any in the description 
+    ## and run on those platforms only.
+    if(!(tolower(getFLPlatform()) %in% tolower(platforms)))
+        return()
+
     oldNames <- ls(envir = Renv)
     rStartT <- Sys.time()
     re <- tryCatch({
@@ -199,6 +254,9 @@ eval_expect_equal <- function(e, Renv, FLenv,
 #' @export
 expect_eval_equal <- function(initF,FLcomputationF,RcomputationF,...)
 {
+  if(!is.null(list(...)[["platforms"]]))
+    if(!(tolower(getFLPlatform()) %in% tolower(list(...)[["platforms"]])))
+      return()
   I <- initF(...)
    FLexpect_equal(FLcomputationF(I$FL),
                  RcomputationF(I$R),
@@ -233,9 +291,10 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                     table_name = getRemoteTableName(databaseName=getOption("TestDatabase"),
                                                     tableName="fzzlserial"),
                     variables = list(obs_id_colname="SERIALVAL"),
-                    whereconditions=paste0(getRemoteTableName(databaseName=getOption("TestDatabase"),
-                                                              tableName = "fzzlserial",
-                                                              temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    # whereconditions=paste0(getRemoteTableName(databaseName=getOption("TestDatabase"),
+                    #                                           tableName = "fzzlserial",
+                    #                                           temporaryTable=FALSE),".SERIALVAL < ",n+1),
+                    whereconditions=paste0("SERIALVAL < ",n+1),
                     order = "")
       flv <- newFLVector(
                 select=select,
@@ -255,7 +314,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                                 " CAST(FLSimUniform(a.serialval,-100,100) AS INT) AS vectorValueColumn \n ",
                                 " FROM fzzlserial a "),
                             pTemporary=FALSE,
-                            pPrimaryKey="vectorIndexColumn")
+                            pPrimaryKey="vectorIndexColumn",
+                            pPermanent=1)
       }
       else{
         vtemp <- createTable(pTableName="ARTestCharVectorTable",
@@ -267,7 +327,8 @@ initF.FLVector <- function(n,isRowVec=FALSE,type = "float",...)
                                             " FROM tblstring ) AS b \n ",
                                         " WHERE FLMOD(a.serialval,5) + 1 = b.obsid "),
                           pTemporary=FALSE,
-                            pPrimaryKey="vectorIndexColumn")
+                          pPrimaryKey="vectorIndexColumn",
+                          pPermanent=1)
         vtableName <- "ARTestCharVectorTable"
       }
       # options(FLTestVectorTable=TRUE)
@@ -354,7 +415,8 @@ initF.FLMatrix <- function(n,isSquare=FALSE,type="float",...)
                                           " AND b.serialval < 1001 "),
                            pTemporary=FALSE,
                            pDrop=TRUE,
-                           pPrimaryKey=c("rowIdColumn")
+                           pPrimaryKey=c("rowIdColumn"),
+                           pPermanent=1
                            )
   else
       vtemp <- vtableName
@@ -670,3 +732,4 @@ initF.matrix <- initF.FLMatrix
 dropFLTestTable <- function(){
     dropTable(pTableName="ARBaseTestTempTable")
 }
+

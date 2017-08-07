@@ -45,15 +45,13 @@ test_that("check FLCorrel result",
 {
     if(getFLPlatform()=="Hadoop")
         fltDeep <- FLTable(getTestTableName("tblUSArrests"),
-                       "ObsID","DimID","Value", whereconditions = "ObsID<21")
-    else 
+                       "ObsID","DimID","Value", whereconditions = "ObsID<21") else 
         fltDeep <- FLTable(getTestTableName("tblUSArrests"),
                            "ObsID","VarID","Num_Val", whereconditions = "ObsID<21")
     RtDeep <- as.data.frame(fltDeep)
     if(getFLPlatform()=="Hadoop")
         fltWide <- FLTable(getTestTableName("tblUSArrests"),
-                           "ObsID",whereconditions = c("DimID=2","ObsID<21"))
-    else
+                           "ObsID",whereconditions = c("DimID=2","ObsID<21")) else
         fltWide <- FLTable(getTestTableName("tblUSArrests"),
                        "ObsID",whereconditions = c("VarID=2","ObsID<21"))
     RtWide <- as.data.frame(fltWide)

@@ -187,6 +187,8 @@ sqlStoredProc.JDBCTDAster <- function(connection,
                    gsub(" +","    ", sqlstr),"\n"))
     }
 
+    if("returnQuery" %in% names(list(...)) && list(...)[["returnQuery"]])
+        return(sqlstr)
     class(connection) <- "JDBCConnection"
     retobj <- DBI::dbGetQuery(connection,sqlstr)
     return(retobj)
@@ -206,6 +208,8 @@ sqlStoredProc.RODBC <- function(connection, query,
                                   pFuncName=query,
                                   pOutputParameter=outputParameter),
                              args))
+    if("returnQuery" %in% names(list(...)) && list(...)[["returnQuery"]])
+        return(sqlstr)
     retobj <- sqlQuery(connection,sqlstr)
     return(retobj)
 }
@@ -275,6 +279,7 @@ sqlStoredProc.JDBCConnection <- function(connection, query,
         .jcall(cStmt,"V","registerOutParameter",ai,a) ## Error Hadoop:- method registerOutParameter with signature (II)V not found 
         ai <- ai+1L
     }
+
     ## Making a procedure call
     exR <- .jcall(cStmt,"I","executeUpdate")
     argOffset <- length(args)
@@ -448,8 +453,10 @@ trim <- function( x ) {
 }
 
 gen_score_table_name <- function(TableName){
-    return(FLGenTableName(pTableName=TableName,
-                        pCode="S"))
+    vtbl <- FLGenTableName(pTableName=TableName,
+                        pCode="S")
+    updateMetaTable(pTableName=vtbl, pType="widetable")
+    return(vtbl)
 }
 
 gen_wide_table_name <- function(TableName){
@@ -696,4 +703,12 @@ separateDBName <- function(vtableName){
 
 removeAlias <- function(pName){
     return(changeAlias(pName,"",""))
+}
+
+hasWhereClause <- function(pObject){
+    return(length(setdiff(constructWhere(pObject),""))>0)
+}
+
+hasSQLSelect <- function(pObject){
+    return(inherits(pObject@select,"FLTableFunctionQuery"))
 }

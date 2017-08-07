@@ -1,4 +1,4 @@
-library("optparse")
+library(optparse)
 
 option_list = list(
     make_option(c("-d", "--directory"),
@@ -107,6 +107,7 @@ if(grepl("^jdbc",opt$host)){
             verbose=TRUE,
             temporary=vtemp,
             pkg="dbc")
+            # TestDatabase=opt$database)
 } else {
     options(debugSQL=TRUE)
     connection <- flConnect(odbcSource=opt$host,
@@ -115,6 +116,7 @@ if(grepl("^jdbc",opt$host)){
                           drop=vdrop,
                           temporary=vtemp,
                           pkg="dbc"
+                          # TestDatabase=opt$database
                           )
 }
 

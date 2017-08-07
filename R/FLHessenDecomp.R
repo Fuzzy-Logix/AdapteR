@@ -10,15 +10,17 @@ NULL
 #' @param object is of class FLMatrix
 #' @param ... any additional arguments
 #' @section Constraints:
-#' Input can only be square matrix with maximum dimension limitations of (700 x 700).
+#' Input can only be square matrix with maximum dimension limitations of (700 x 700). If the matrix is
+#' non-symmetric FLJordan() will run slower.
 #' @return \code{FLHessen} returns a list of two components:
 #'       \item{P}{FLMatrix representing P matrix obtained from Hessenberg decomposition}
 #'       \item{H}{FLMatrix representing H matrix obtained from Hessenberg decomposition}
 #' @examples
-#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 #' resultList <- FLHessen(flmatrix)
 #' resultList$P
 #' resultList$H
+#' @seealso Refer to \code{\link{FLMatrix}} to know more about FLMatrix.
 #' @export
 FLHessen<-function(object, ...){
 	UseMethod("FLHessen",object)

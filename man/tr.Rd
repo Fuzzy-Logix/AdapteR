@@ -23,11 +23,15 @@ in-database and returns R vector object
 }
 \section{Constraints}{
 
-Input can only be with maximum dimension limitations
+Input matrix can only be square matrix with maximum dimension limitations
 of (1000 x 1000).
 }
 
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID",
+                      "COL_ID","CELL_VAL",dims= c(5,5))
 resultFLVector <- tr(flmatrix)
+}
+\seealso{
+\code{\link[psych]{tr}} for corresponding R function reference
 }

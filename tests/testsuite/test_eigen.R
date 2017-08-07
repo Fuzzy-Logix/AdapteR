@@ -9,8 +9,11 @@ FLenv <- as.FL(Renv)
 test_that("eigen values",{
     result = eval_expect_equal({
         e1 <- eigen(mat1)
+        r1 <- e1$values
+        r2 <- e1$vectors
     }, Renv, FLenv,
-    expectation="e1")
+    expectation=c("r1","r2"),
+    noexpectation=c("e1"))
 })
 
 ## Wrong result in Hadoop
@@ -26,6 +29,7 @@ test_that("eigen, option only.values",{
 ## Checking other properties
 ## different signs in FL and R output
 ## does not run on Aster
+if(is.TD())
 test_that("eigen values are correct:- det(A-vI)=0 ",{
     e4 <- eigen(FLenv$mat4)
     for(i in 1:length(e4$values))

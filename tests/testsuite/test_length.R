@@ -47,6 +47,9 @@ test_that("length of vector",{
 
 ############################################################
 ## initF based tests
+## initF.FLTable broken on Hadoop
+## initF depcrecated
+if(!is.Hadoop())
 test_that("check length",
 {
     T1 <- initF.FLTable(rows=5,cols=5)

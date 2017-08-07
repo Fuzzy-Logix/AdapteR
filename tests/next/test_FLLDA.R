@@ -15,6 +15,7 @@ noexpectation = "fit")
 
 
 ## Means, coefficients & scores:
+## https://fuzzyl.atlassian.net/browse/TDFL-836
 test_that("Means and scale, counts:", {eval_expect_equal({
     scal <- fit$scaling
     mn <- fit$means

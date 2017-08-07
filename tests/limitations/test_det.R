@@ -15,3 +15,35 @@ test_that("diag on large matrix with large values: https://app.asana.com/0/14331
         tolerance=1e-7, scale=det(Renv$mat1),
         check.attributes = FALSE)
 })
+
+
+###########################3333
+Renv = new.env(parent = globalenv())
+Renv$mat1 = cbind(1, 1:3, c(2,0,1))
+Renv$mat2 =  matrix(1:4, ncol = 2)
+
+FLenv <- as.FL(Renv)
+
+##phani: Det of mat1 fails in Aster because
+## of no sparse matrix support in DBLytixAster
+test_that("Check for determinant function ",{
+    result = eval_expect_equal({
+        e2 <- det(mat1)
+        e3 <- det(mat2)
+    }, Renv,FLenv,platforms=c("TDAster"))
+})
+
+
+################################
+Renv = new.env(parent = globalenv())
+Renv$mat1 <- matrix(rnorm(16),4,4)
+FLenv <- as.FL(Renv)
+
+##mohak: test case fails because determinant in
+## AdapteR giving opposite sign to that in R.
+test_that("Check for determinant function",{
+    result = eval_expect_equal({
+        e <- det(mat1)
+        }, Renv,FLenv,
+            expectation= c("e"))
+    })

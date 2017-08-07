@@ -3,6 +3,50 @@
 ## http://www.bodowinter.com/tutorial/bw_LME_tutorial1.pdf
 ##http://www.bodowinter.com/tutorial/bw_LME_tutorial2.pdf 
 
+#' Fit Linear Mixed-Effects Models
+#'
+#' \code{lmer} performs mixed model  on FLTable objects.
+#'
+#' The DB Lytix function called is FLLinMixedModel. The mixed model extends the linear
+#' model by allowing correlation and heterogeneous variances in the
+#' covariance matrix of the residuals. Fit a linear mixed-effects model (LMM) to data,
+#' FLLinMixedModel estimates the coefficients and covariance matrix of the mixed model
+#' via the expectations.
+#'
+#' @seealso \code{\link[lme4]{lmer}} for R reference implementation.
+#' @param formula A symbolic description of model to be fitted
+#' @param data An object of class FLTable.
+#' @slot results cache list of results computed
+#' @slot table Input data object
+#' @method residuals FLMix 
+#' @method plot FLMix
+#' @method summary FLMix
+#' @method predict FLMix
+#' @method print FLMix
+#' @method coefficients FLMix
+#' @method AIC FLMix
+#' @method logLik FLMix
+#' @return \code{lmer} returns an object of class \code{FLMix} or \code{FLMixUDT}
+#' @section Constraints:
+#' DBLytix currently supports one Fixed and upto 2 Random Effect variables with intercept.
+#' For non-categorical Fixed Effect, only one Random Effect is supported.
+#' Specify if Fixed Effect is categorical using categoricalFixedEffect logical input to the function.
+#' The intercept coefficient returned is the mean value for different Random Effects.
+#' @examples
+#' ## One Random Effect.
+#' fltbl  <- FLTable(getTestTableName("tblMixedModel"), "ObsID")
+#' colnames(fltbl) <- tolower(colnames(fltbl))
+#' flmod <- lmer(yval ~ fixval + (1 | ranval), data = fltbl)
+#' flpred <- predict(flmod)
+#' ## One Categorical Fixed Effect and Two Random Effects.
+#' fltbl  <- FLTable(getTestTableName("tblMixedModelInt"), "ObsID")
+#' colnames(fltbl) <- tolower(colnames(fltbl))
+#' flmod <- lmer(yval ~ fixval + (1 | ranval1) + (1 | ranval2 ), fltbl, categoricalFixedEffect=TRUE)
+#' flpred <- predict(flmod)
+#' ## One Categorical Fixed Effect and One Random Effect.
+#' flmod <- lmer(yval ~ fixval + (1 | ranval1), data = fltbl, categoricalFixedEffect=TRUE)
+#' flpred <- predict(flmod)
+#' @export
 lmer <- function (formula,data=list(),...) {
     UseMethod("lmer", data)
 }
@@ -27,36 +71,20 @@ setClass(
                  ) )
 
 
-#' \code{lmer} performs mixed model  on FLTable objects.
-#' The DB Lytix function called is FLLinMixedModel. The mixed model extends the linear
-#' model by allowing correlation and heterogeneous variances in the
-#' covariance matrix of the residuals. Fit a linear mixed-effects model (LMM) to data,
-#' FLLinMixedModel estimates the coefficients and covariance matrix of the mixed model
-#' via the expectations.
-#' @seealso \code{\link[lme4]{lmer}} for R reference implementation.
-#' @param formula A symbolic description of model to be fitted
-#' @param data An object of class FLTable.
-#' @slot results cache list of results computed
-#' @slot table Input data object
-#' @method residuals FLMix 
-#' @method plot FLMix
-#' @method summary FLMix
-#' @method predict FLMix
-#' @method print FLMix
-#' @method coefficients FLMix
-#' @method AIC FLMix
-#' @method logLik FLMix
-#' @return \code{lmer} returns an object of class \code{FLMix}
-#' @examples
-#' ## One Random Effect.
-#' fltbl  <- FLTable("tblMixedModel", "ObsID")
-#' flmod <- lmer.FLTable(yVal ~ FixVal + (1 | RanVal), data = fltbl)
-#' flpred <- predict(flmod)
+
 #' @export
-lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
+lmer.FLTable <- function(formula, data, fetchID = TRUE,
+                        maxiter = 10,categoricalFixedEffect=FALSE,...)
 {
+    ## Call mixUDT if the fixed effect variable is a factor
+    if(categoricalFixedEffect){
+      return(mixUDT(formula=formula,data=data,
+                    fetchID=fetchID,...))
+    }
     vcallObject <- match.call()
-    vform <- as.character(vcallObject)[2]
+    vform <- as.character(formula)
+    vform <- paste0(vform[2],vform[1],vform[3])
+    # vform <- as.character(vcallObject)[2]
     vreg <- gsub(pattern = "[\\|\\)]", replacement = "", x = regmatches(vform, gregexpr("\\|.*?\\)", vform))[[1]])
     Rvar <- gsub("[[:space:]]", "", vreg)
     Dvar <- gsub(pattern = " ", replacement = "", x = gsub(x = vform, pattern = "~.*", replacement = ""))
@@ -113,10 +141,10 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
     vin <-paste0("SELECT VarType,CoeffVal AS coeff, StdErr,TStat FROM fzzlLinMixedModelCoeffs WHERE AnalysisID = '",vAnalysisID,"' AND VarType LIKE ANY('%INTERCEPT%', '%FIXED%') ORDER BY VarType ;")
 
     vin <- sqlQuery(connection, vin)
-
+    colnames(vin) <- tolower(colnames(vin))
     str <- paste0("SELECT ParamName, ParamVal FROM fzzlLinMixedModelStats WHERE AnalysisID = '",vAnalysisID,"' ORDER BY ParamName")
     vdf <- sqlQuery(connection, str)
-
+    colnames(vdf) <- tolower(colnames(vdf))
     
     return(new("FLMix",
                formula=formula,
@@ -128,7 +156,8 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
                             vspec = outtblname,
                             vin = vin,
                             vdf = vdf,
-                            scoreTable=""
+                            scoreTable="",
+                            vformula=vform
                             )))   
 }
 
@@ -142,35 +171,40 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,maxiter = 10,...)
 
     if(property == "AIC"){
         df <- object@results$vdf
-        return(df[df$ParamName == "AIC",]$ParamVal) }
+        return(df[df$paramname == "AIC",]$paramval) }
 
 
     if(property == "logLik"){
         df <- object@results$vdf
-        return(df[df$ParamName == "LogLikeliHood",]$ParamVal) }
+        return(df[df$paramname == "LogLikeliHood",]$paramval) }
 
     if(property == "CovarErr"){
         df <- object@results$vdf
-        return(df[df$ParamName == "CovarErr",]$ParamVal) }
+        return(df[df$paramname == "CovarErr",]$paramval) }
 
     if(property == "CovarRandom"){
         df <- object@results$vdf
-        return(df[df$ParamName == "CovarRan",]$ParamVal)
+        return(df[df$paramname == "CovarRan",]$paramval)
         }
 
     if(property == "u"){
-        str <- paste0("SELECT CoeffVal, ClassVal FROM fzzlLinMixedModelCoeffs WHERE AnalysisID = '",object@results$AnalysisID,"' AND VarType LIKE '%RANDOM%' ORDER BY ClassVal")
+        str <- paste0("SELECT CoeffVal as coeffval, ClassVal as classval FROM fzzlLinMixedModelCoeffs WHERE AnalysisID = '",
+                      object@results$AnalysisID,"' AND VarType LIKE '%RANDOM%' ORDER BY ClassVal")
         df <- sqlQuery(connection, str)
-        return(df$CoeffVal)}
+        vres <- df$coeffval
+        names(vres) <- paste0("Random ",vres$classval)
+        return(vres)}
 
     if(property == "fixedcoef"){
-        str <- paste0("SELECT CoeffVal, ClassVal FROM fzzlLinMixedModelCoeffs WHERE AnalysisID = '",object@results$AnalysisID,"' AND VarType LIKE '%FIXED%' ORDER BY ClassVal")
+        str <- paste0("SELECT CoeffVal as coeffval, ClassVal as classval FROM fzzlLinMixedModelCoeffs WHERE AnalysisID = '",
+                      object@results$AnalysisID,"' AND VarType LIKE '%FIXED%' ORDER BY ClassVal")
         df <- sqlQuery(connection, str)
-        return(df$CoeffVal)
+        return(df$coeffval)
     }   
 }
 
-setMethod("names", signature("FLMix"), function(x) {c("AIC","logLik",
+#' @export
+setMethod("names", signature("FLMix"), function(object) {c("AIC","logLik",
                                                           "CovarErr","CovarRandom",
                                                           "u",
                                                           "fixedcoef" )})
@@ -186,7 +220,7 @@ predict.FLMix <- function(object,
         as.character(sys.call()),"(",fixed=T))[2],")",fixed=T))[1]
     if(!any(names(object@results) == "pred"))
 {
-    scoretbl <- gen_unique_table_name("mixedscore")
+    scoretbl <- gen_score_table_name("mixed")
     vinputcols <- list(InTable = newdata@select@table_name,
                        ObsIDCol = newdata@select@variables$obs_id_colname,
                        VarIDCol = newdata@select@variables$var_id_colname,
@@ -210,10 +244,10 @@ predict.FLMix <- function(object,
                             table_name = scoretbl,
                             connectionName = getFLConnectionName(),
                             variables = list(ObsID = object@table@select@variables$obs_id_colname,
-                                             pred = "PredVal"),
+                                             pred = "predval"),
                             whereconditions = "",
                             order = ""),
-               dimColumns = c("ObsID", "pred"),
+               dimColumns = c("obsid", "pred"),
                Dimnames = list(row = newdata@Dimnames[[1]]),
                dims = as.integer(nrow(newdata)),
                type = "integer"
@@ -245,19 +279,21 @@ residuals.FLMix <- function(object,newdata = object@results$deeptbl, ...){
         flpred <- predict(object)
     tbl <- newdata@select@table_name
     vob <- newdata@select@variables$obs_id_colname
-    str <- paste0("SELECT (a.pred -b.",object@results$pArgs$Dvar,") AS res , a.",vob," AS ObsID FROM (",constructSelect(flpred),") AS a , ",object@table@select@table_name," AS b WHERE a.",vob," = b.",vob," ")
+    str <- paste0("SELECT (a.pred -b.",object@results$pArgs$Dvar,") AS res , a.",
+                vob," AS obsid FROM (",constructSelect(flpred),") AS a , ",
+                object@table@select@table_name," AS b WHERE a.",vob," = b.",vob," ")
 
     tblfunqueryobj <- new("FLTableFunctionQuery",
                           connectionName = getFLConnectionName(),
                           variables = list(
-                              obs_id_colname = "ObsID",
+                              obs_id_colname = "obsid",
                               cell_val_colname = "res"),
                           whereconditions="",
                           order = "",
                           SQLquery=str)
     val <- new("FLSimpleVector",
                select = tblfunqueryobj,
-               dimColumns = c("ObsID", "res"),
+               dimColumns = c("obsid", "res"),
                Dimnames = list(row = newdata@Dimnames[[1]]),
                dims = as.integer(nrow(newdata)),
                type = "integer"
@@ -275,8 +311,9 @@ plot.FLMix <- function(object,limit = 1000, ...){
     vpred <- predict(object)
     p <- min(limit,vpred@dims)/(vpred@dims)
     
- str1 <- paste0("SELECT  b.pred AS pred, a.res AS res FROM (",constructSelect(vpred),") AS b, (",constructSelect(vres),") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
-   df <- sqlQuery(connection, str1)
+    str1 <- paste0("SELECT  b.pred AS pred, a.res AS res FROM (",constructSelect(vpred),") AS b, (",
+                constructSelect(vres),") AS a WHERE a.ObSID = b.ObsID AND FLSimUniform(RANDOM(1,10000), 0.0, 1.0) < ",p," ")
+    df <- sqlQuery(connection, str1)
     return(plot(df$pred, df$res))}
 
 
@@ -285,7 +322,7 @@ print.FLMix <- function(object, ...)
 {
     cat("Linear mixed model fit by Expectation Maximization method \n\n")
     cat("Formula: ")
-    print(object@results$call[[2]])
+    print(object@results$vformula)
     cat("Data: \n")
     val <- c("AIC" = object$AIC, "logLik" = object$logLik, "CovErr" = object$CovarErr, "df.residual" = (object@results$vdf$vobs -1))
     print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
@@ -298,7 +335,8 @@ print.FLMix <- function(object, ...)
     
     cat("Fixed Effects: \n")
     cat("(Intercept) ",object@results$pArgs$Fvar,"\n", sep = "  ")
-    cat(object@results$vin[object@results$vin$VarType == "Intercept", ]$coeff, object@results$vin[object@results$vin$VarType == "FIXED", ]$coeff,"\n" , sep = "  ")
+    cat(object@results$vin[object@results$vin$vartype == "Intercept", ]$coeff, 
+      object@results$vin[object@results$vin$vartype == "FIXED", ]$coeff,"\n" , sep = "  ")
     ##print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
     ##val <- c("FIXED" =)
     ##print.default(val, digits = 3, print.gap = 2L, quote = FALSE)
@@ -309,6 +347,6 @@ setMethod("show","FLMix",function(object){print.FLMix(object)})
 
 
 #' @export
-summary <- function(object, ...){
+summary.FLMix <- function(object, ...){
     return(print(object))
 }

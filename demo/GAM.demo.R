@@ -18,7 +18,7 @@ options(warn=-1)
 
 
 ## Set-up the ODBC connection to demo database.
-demo("connecting",package="AdapteR")
+# demo("connecting",package="AdapteR")
 
 ## Create a FLTable object (Equivalent to R's data.frame)
 ## to hold the metadata of the remote table
@@ -32,6 +32,8 @@ head(FLTableObject)
 readline("Above: use head to examine the data ")
 
 myformula <- yVal~s(x0Val,by="groupID",m=3,k=10)+te(x1Val,x2Val,m=3,k=5)
+if(is.TDAster())
+	myformula <- yval~s(x0val,by="groupid",m=3,k=10)+te(x1val,x2val,m=3,k=5)
 
 gamobject <- gam(myformula,data=FLTableObject)
 

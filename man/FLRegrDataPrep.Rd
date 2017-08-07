@@ -7,48 +7,48 @@
 FLRegrDataPrep(object, depCol = "NULL", ...)
 }
 \arguments{
-\item{object}{FLTable object}
+\item{object}{FLTable object or FLTableMD (if input table has multiple datasets or groups).}
 
 \item{DepCol}{Name of the column in the wide table which represents the dependent variable}
 
-\item{catToDummy}{Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.}
+\item{CatToDummy}{Transform categorical variables to numerical values either using dummy variables or by using Empirical Logit.}
 
-\item{performNorm}{Perform standardization of data. Standardization is done if the value of this parameter is 1.}
+\item{PerformNorm}{Perform standardization of data. Standardization is done if the value of this parameter is 1.}
 
-\item{performVarReduc}{Perform variable reduction.Elimination means that the corresponding column is not transformed from the
+\item{PerformVarReduc}{Perform variable reduction.Elimination means that the corresponding column is not transformed from the
 wide format to the deep format. Variables with standard deviation below the specified threshold are eliminated.
 Similarly, if a pair of columns has correlation above the specified threshold, one of the columns is not transformed.}
 
-\item{makeDataSparse}{Make data sparse i.e., only store non-zero values in the deep table for the independent variables. The
+\item{MakeDataSparse}{Make data sparse i.e., only store non-zero values in the deep table for the independent variables. The
 column values for those observations that are zero are not stored in the deep table. However, for the
 dependent variable and the intercept, zero values are stored in the deep table.}
 
-\item{minStdDev}{Minimum acceptable standard deviation for elimination of variables. Any variable that has a
+\item{MinStdDev}{Minimum acceptable standard deviation for elimination of variables. Any variable that has a
 standard deviation below this threshold is eliminated. This parameter is only consequential if the parameter PerformVarReduc = 1.}
 
-\item{maxCorrel}{Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
+\item{MaxCorrel}{Maximum acceptable absolute correlation between a pair of columns for eliminating variables. If the
 absolute value of the correlation exceeds this threshold, one of the columns is not transformed. Again, this parameter is 
 only consequential if the parameter PerformVarReduc = 1.}
 
 \item{TrainOrTest}{if  0 => Create training data set; if 1 => Create test data set using the transformation
 that has already been done for a prior training data set.}
 
-\item{inAnalysisID}{provided in case we want to re-run the transformation of a training data set or run the
+\item{InAnalysisID}{provided in case we want to re-run the transformation of a training data set or run the
 transformation of a testing data set else this value is NULL.}
 
-\item{excludeCols}{character vector specifying columns to be excluded from conversion}
+\item{ExcludeCols}{character vector specifying columns to be excluded from conversion}
 
-\item{classSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
+\item{ClassSpec}{list representing Class specification which identifies then value of the categorical variable to be used a reference}
 
-\item{whereconditions}{character vector giving where conditions if any to reference the wide table}
+\item{WhereClause}{character vector giving where conditions if any to reference the wide table}
 
-\item{outDeepTableName}{name to be given to the output deep table, possibly including database}
+\item{OutDeepTable}{name to be given to the output deep table, possibly including database}
 
-\item{outObsIDCol}{name to give to the primary key column name of the output deep table}
+\item{OutObsIDCol}{name to give to the primary key column name of the output deep table}
 
-\item{outVarIDCol}{name to give to the varibales name column of the output deep table}
+\item{OutVarIDCol}{name to give to the varibales name column of the output deep table}
 
-\item{outValueCol}{name to give to the value column of the output deep table}
+\item{OutValueCol}{name to give to the value column of the output deep table}
 }
 \value{
 \code{FLRegrDataPrep} returns a FLTableDeep referencing the deep table, the original table and \code{AnalysisID} giving the AnalysisID of conversion
@@ -61,7 +61,17 @@ stored procedure FLRegrDataPrep facilitates the conversion of contents stored in
 deep tables and also prepares the data for regression analysis.
 }
 \examples{
-widetable  <- FLTable("tblAbaloneWide", "ObsID")
+# Case: when widetable is of class FLTable.
+widetable  <- FLTable(getTestTableName("tblAbaloneWide"), 
+                     "ObsID", whereconditions= "ObsID <101")
 deeptable <- FLRegrDataPrep(widetable,"Diameter")
-analysisID <- deeptable@wideToDeepAnalysisID
+analysisID <- deeptable@wideToDeepAnalysisID 
+
+# Case: when widetable is of class FLTableMD.
+widetableMD <- FLTableMD(getTestTableName("tblAutoMPGMD"),
+                     group_id_colname="GroupID",
+                     obs_id_colname="ObsID",
+                    group_id = c(2,4))
+deeptableMD <- FLRegrDataPrep(widetableMD,"Acceleration")
+analysisID <- deeptableMD@wideToDeepAnalysisID
 }

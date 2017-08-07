@@ -20,7 +20,7 @@ require(plyr)
 library(plyr)
 
 ## Set-up the ODBC connection to demo database.
-demo("connecting",package="AdapteR")
+# demo("connecting",package="AdapteR")
 
 ## Create a FLTable object (Equivalent to R's data.frame)
 ## to hold the metadata of the remote table
@@ -47,6 +47,8 @@ deepTableName <- "tblAutoMPGMDDeepARDemo"
 dropTable(deepTableName)
 
 vformula <- MPG~HorsePower+Displacement+Weight+Acceleration
+if(is.TDAster())
+  vformula <- mpg~horsepower+displacement+weight+acceleration
 
 if(!existsRemoteTable(tableName=deepTableName)){
     FLdeepTableMD <- prepareData(formula         = vformula,

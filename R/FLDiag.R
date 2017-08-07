@@ -13,11 +13,13 @@ NULL
 #' @return If x is a FLMatrix then diag(x) returns the diagonal of x as FLVector object.
 #'   If x is FLVector, the value is a diagonal square FLMatrix with diagonal elements as given in FLVector.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+#'                      "ROW_ID","COL_ID","CELL_VAL", dims= c(5,5))
 #' resultFLVector <- diag(flmatrix)
-#' DeepTable <- FLTable("tblUSArrests","ObsID")
-#' flvectorDeep <- DeepTable[1:5,1]
+#' WideTable <- FLTable(getTestTableName("tblUSArrests"),"ObsID","VarId","Num_Val")
+#' flvectorDeep <- WideTable[1:5,1]
 #' resultFLMatrix <- diag(flvectorDeep)
+#' @seealso \code{\link[base]{diag}} for corresponding R function reference.
 #' @export
 diag<-function(x, ...)
 {
@@ -32,7 +34,6 @@ diag.FLMatrix<-function(object,...)
 {
     connection<-getFLConnection(object)
     ## flag3Check(connection)
-
     table <- FLTable(table=getTableNameSlot(object),
                      obs_id_colname = getVariables(object)[[object@dimColumns[[2]]]],
                      whereconditions=c(object@select@whereconditions,
@@ -41,7 +42,7 @@ diag.FLMatrix<-function(object,...)
 
     valueColumn <- changeAlias(getVariables(object)$valueColumn,"","mtrx")
 
-    flv <- table[,"valueColumn"]
+    flv <- table[,valueColumn]
     vlength <- min(dim(object))
     if(all(rownames(object)[1:vlength]==colnames(object)[1:vlength]))
     names(flv) <- rownames(object)[1:vlength]

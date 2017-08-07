@@ -8,6 +8,7 @@ NULL
 #' randomized block design experiments with a binary 
 #' response variable and paired data.
 #'
+#' @seealso \code{\link[stats]{var.test}} for R reference implementation.
 #' @param formula a formula of the form a ~ b | c, where a, b and c 
 #' give the data values and corresponding groups and blocks, respectively.
 #' @param data Wide FLTable or FLTableMD objects
@@ -108,39 +109,39 @@ setMethod("cochran.qtest",
                                             paste0("SELECT ",
                                                         ifelse(length(setdiff(vgrp,"NULL"))>0,
                                                             paste0("DENSE_RANK()OVER(ORDER BY ",
-                                                                    vgrp,")"),1)," AS groupID, \n ",
+                                                                    vgrp,")"),1)," AS Groupid, \n ",
                                                     paste0(VarID,collapse=",")," \n ",
                                                    " FROM ",ret," \n ",
-                                                    " ORDER BY groupID"
+                                                    " ORDER BY Groupid"
                                                 )
                                         )
                     }
                     else{
                         vres <- arrange(ret,tolower(vgroupCols))
-                        vres <- cbind(groupid=1:nrow(vres),vres$t_stat,vres$p_value)
+                        vres <- cbind(Groupid=1:nrow(vres),vres$t_stat,vres$p_value)
                     }
-                    colnames(vres) <- c("groupid",VarID)
+                    colnames(vres) <- c("Groupid",VarID)
 
                     ## To calculate estimate component in result
                     vestimate <- sqlQuery(connection,
                                         paste0("SELECT ",
                                                     ifelse(length(setdiff(vgrp,c("NULL","")))>0,
                                                         paste0("DENSE_RANK()OVER(ORDER BY ",
-                                                                vgrp,")"),1)," AS groupid, \n ",
+                                                                vgrp,")"),1)," AS Groupid, \n ",
                                                     vGroupColname," AS statusVal, \n ",
                                                     "FLMean(",vValueColname,") AS estimate \n ",
                                                " FROM ",getTableNameSlot(data)," \n ",
-                                               " GROUP BY groupID,",vGroupColname," \n ",
-                                                " ORDER BY groupID,",vGroupColname
+                                               " GROUP BY Groupid,",vGroupColname," \n ",
+                                                " ORDER BY Groupid,",vGroupColname
                                             )
                                         )
 
-                    vresList <- dlply(vestimate,"groupID",
+                    vresList <- dlply(vestimate,"Groupid",
                                     function(x){
                                         vest <- x[["estimate"]]
                                         names(vest) <- paste0("proba in group ",x[["statusVal"]])
                                         vest <- as.array(vest)
-                                        vstats <- vres[vres[,"groupID"]==unique(x[["groupid"]]),]
+                                        vstats <- vres[vres[,"Groupid"]==unique(x[["Groupid"]]),]
                                         vtemp <- list(method.test="Cochran's Q test",
                                                       data.name=vdata.name,
                                                       statistic=c(Q=vstats[["t_stat"]]),

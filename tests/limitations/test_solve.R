@@ -19,24 +19,8 @@ test_that("solve(hilbert(n)), precision for matrices with large numbers: https:/
     expectation=c("sA","sh8","h8I"))
 })
 
-test_that("solve(m): m %*% solve(m) == I", {
-    eval_expect_equal({
-        aI <- A %*% solve(A)
-    }, Renv, FLenv,
-    expectation=c("aI"))
-})
-
-test_that("Solve Function on complex matrix", {
+test_that("Solve Function on complex matrices", {
     FLenv$Ac <- as.FL(Renv$Ac <- as.complex(Renv$A))
     eval_expect_equal({
         sAc <- solve(Ac)
     }, Renv, FLenv)
-############################################################
-## initF based tests
-test_that("solve(m), matrices with small numbers", {
-    expect_eval_equal(initF.FLMatrix,
-                      AdapteR::solve,
-                      base::solve,
-                      n=5,
-                      isSquare=TRUE)
-})

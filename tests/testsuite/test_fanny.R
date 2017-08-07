@@ -12,11 +12,11 @@ test_that("FLFKMeans dimension check for components ",{
         clust <- length(fannyx$clustering)
         k_crisp <- length(fannyx$k.crisp)
         coeff <- length(fannyx$coeff)
-        silinfo_width <- dim(fannyx$silinfo$widths)
         silinfo_clus.avg.width <- sort(fannyx$silinfo$clus.avg.widths)
         ## silinfo_avg.width <- fannyx$silinfo$avg.width ## gk: put into limitation
     },Renv,FLenv,
-    noexpectation = c("fannyx"))
+    noexpectation = c("fannyx"),
+    tolerance=0.01)
     FLexpect_equal(dim(FLenv$fannyx$diss),
                    c(nrow(FLenv$x),nrow(FLenv$x)))
 })

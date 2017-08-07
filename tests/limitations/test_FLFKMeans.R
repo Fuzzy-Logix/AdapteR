@@ -41,7 +41,8 @@ test_that("FLFKmeans compare R and FL",{
 
 # for iris dataset
 
-FLenv$widetable  <- FLTable("iris", "rownames")
+FLenv$widetable  <- FLTable(getTestTableName("iris"),
+                             "obsid")
 Renv$widetable <- as.R(FLenv$widetable)
 FLenv$obj2 <- fanny(FLenv$widetable, 3)
 Renv$obj2 <- fanny(Renv$widetable, 3)

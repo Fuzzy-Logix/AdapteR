@@ -4,8 +4,8 @@
 \alias{binom.test}
 \title{Binomial Test}
 \usage{
-binom.test(x, n, p = 0.5, alternative = c("two.sided", "less", "greater"),
-  conf.level = 0.95)
+binom.test(x, n, p = 0.5, alternative = c("two.sided", "less", "greater",
+  "LT", "GT", "EXACT"), conf.level = 0.95)
 }
 \arguments{
 \item{x}{FLVector}
@@ -39,5 +39,7 @@ flv <- as.FLVector(sample(1:50,10,replace=T))
 ResulthtestObject <- binom.test(flv,100,p=0.65)
 ResulthtestObject <- binom.test(flv,100,p=0.65,"greater")
 ResulthtestObject <- binom.test(flv,100,p=0.65,"LT")
-expect_equal(ResulthtestObject[10],binom.test(as.R(flv[10]),100,p=0.65,"LT"))
+}
+\seealso{
+\code{\link[stats]{binom.test}} for R reference implementation.
 }

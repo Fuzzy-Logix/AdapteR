@@ -33,9 +33,9 @@ setClass(
 #' @param MinRsq Terminating condition for multivariate regression step based on change in Rsq upon addition of new basis functions.
 #' @return \code{fda} returns an object of class \code{FLLDA}
 #' @examples
-#' #'deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
+#' deeptbl <- FLTable("tblIrisDeep", "ObsID", "VarID", "Num_Val")
 #' flmod <- fda(a~., data = deeptbl)
-#' predict(flmod); cof <-coefficients(flmod);confusion(flmod)
+#' vpred <- predict(flmod);coefficients(flmod);confusion(flmod)
 #' Performs flexible discriminant analysis and stores the results in predefined tables. It
 #' involves the use of multivariate adaptive regression splines for obtaining a basis
 #' transformation of the independent variables and performing the multivariate
@@ -51,7 +51,7 @@ fda <- function (formula,data=list(),...) {
 #' @export
 fda.default <- function (formula,data=list(),...) {
     if (!requireNamespace("mda", quietly = TRUE)){
-        stop("nortest package needed for mda. Please install it.",
+        stop("mda package needed for mda. Please install it.",
              call. = FALSE)
     }
     else return(mda::fda(formula=formula,data=data,...))
@@ -74,8 +74,34 @@ fda.FLpreparedData <- function(formula, data,MaxMARS = 11, MinRsq = .001 ,...)
 #' @export
 fda.FLTable <- fda.FLpreparedData
 
+
+#' @export
+fda.FLTableDeep <- fda.FLpreparedData
+
 #' @export
 fda.FLTableMD <- fda.FLpreparedData
+
+
+NULL
+##https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
+##http://stats.stackexchange.com/questions/134282/relationship-between-svd-and-pca-how-to-use-svd-to-perform-pca
+##https://www.analyticsvidhya.com/blog/2015/09/naive-bayes-explained/
+
+#' An S4 class to represent output from Discriminant Analysis on in-database Objects
+#'
+#' @slot offset column name used as offset
+#' @method coefficients FLLDA.
+#' @method residuals FLLDA. 
+#' @method influence FLLDA. 
+#' @method lm.influence FLLDA. 
+#' @method plot FLLDA. 
+#' @method predict FLLDA. 
+#' @export
+setClass(
+    "FLLDA",
+    contains="FLRegr",
+    slots=list(offset="character",
+               vfcalls="character"))
 
 #' Linear discriminant analysis.
 #' 
@@ -140,9 +166,8 @@ lda.FLTableMD <- lda.FLpreparedData
 #' @return \code{mda} returns an object of class \code{FLLDA}
 #' @examples
 #' deeptbl <- FLTable("tblMDA","ObsID", "VarID", "Num_Val")
-#' flmod <- mda(a~., data = deeptbl)
-#' predict(flmod); flmod$N
-#' cof <-coefficients(flmod)
+#' flmod <- mda(formula = a~.,data = deeptbl)
+#' vpred <- predict(flmod); flmod$N
 #' FLMDA performs mixed discriminant analysis. For the training data, MDA divides each
 #' class into a number of artificial subclasses. It calibrates the mixture of Gaussians
 #' and the mixing probability by maximizing the log-likelihood with expectation maximization.
@@ -198,7 +223,6 @@ ldaGeneric <- function(formula,data,
                        ...)
     
 {
-    
     prepData <- prepareData.lmGeneric(formula,data,
                                       callObject=callObject,
                                       familytype=familytype,
@@ -264,20 +288,28 @@ ldaGeneric <- function(formula,data,
 
 #' @export
 `$.FLLDA`<-function(object,property){
+
                                         #parentObject <- deparse(substitute(object))
     parentObject <- unlist(strsplit(unlist(strsplit(as.character(sys.call()),"(",fixed=T))[2],",",fixed=T))[1]
     var <- getVariables(object@deeptable)
 
     if(property=="scaling"){
+        if(object@results$familytype == "lda"){
+            
         str <- paste0("SELECT VarID, CanID, Num_Val FROM fzzlLDACanCoeff WHERE AnalysisID = ",fquote(object@AnalysisID)," AND CanType = 'Within-Class Can Struct' ORDER BY VarID, CanID ")
         df <- sqlQuery(connection ,str)
-        nvar <- length(unique(df$CANID))
+        colnames(df) <- tolower(colnames(df))
+        nvar <- length(unique(df$canid))
         dtf <- as.data.frame(lapply(1:nvar, function(x){
-            df$NUM_VAL[df$CANID == x]
+            df$num_val[df$canid == x]
         }), ncol = nvar)
         dtf <- as.matrix.data.frame(dtf)
         colnames(dtf) <- paste0("LD",1:nvar)
-        return(dtf)
+        return(dtf)}
+        else
+        {
+            vstr <- paste0("scaling is only supported by LDA as of now")
+            return(vstr)}
     }
     else if (property=="coefficients"){
         cof <- coefficients(object)
@@ -299,7 +331,7 @@ ldaGeneric <- function(formula,data,
     {
         if(object@results$familytype %in% c("lda", "Mixed"))
         {
-            str <- paste0("SELECT FLMean(d.",var[[3]],") as means, d.",var[[2]]," AS VarID, c.val  FROM ",getTableNameSlot(object@deeptable)," d, (SELECT ",var[[1]]," AS ObsID, ",var[[3]]," AS val FROM tbllda b WHERE b.",var[[2]]," = -1) AS
+            str <- paste0("SELECT FLMean(d.",var[[3]],") as means, d.",var[[2]]," AS varid, c.val as val  FROM ",getTableNameSlot(object@deeptable)," d, (SELECT ",var[[1]]," AS ObsID, ",var[[3]]," AS val FROM tbllda b WHERE b.",var[[2]]," = -1) AS
 c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",var[[2]]," ORDER BY d.",var[[2]],", c.val ")
             df <- sqlQuery(connection, str)
             var <- unique(df$val)
@@ -312,9 +344,10 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
             
             str <- paste0("SELECT * FROM fzzlFDAThetaMeans WHERE AnalysisID = '",object@AnalysisID,"' ORDER BY Col_ID, Row_ID")
             dtf <- sqlQuery(connection, str)
-            var <- unique(dtf$Col_ID)
+            colnames(dtf) <- tolower(colnames(dtf))
+            var <- unique(dtf$col_id)
             df <- sapply(var, function(x){
-                dtf$Num_Val[dtf$Col_ID == x]})
+                dtf$num_val[dtf$col_id == x]})
             rownames(df) <- object$lev
             return(df)    
         }
@@ -337,19 +370,20 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
         {
             str <- paste0("SELECT * FROM fzzlFDAConfusionMtx WHERE AnalysisID = '",object@AnalysisID,"'ORDER BY PredictedClass, ActualClass ")
             dtf <- sqlQuery(connection, str)
-            var <- as.integer(max(object$lev))
+            colnames(dtf) <- tolower(colnames(dtf))
+            var <- max(as.integer(object$lev))
             df <- as.data.frame(lapply(1:var, function(x){
-                dtf$Num_Val[dtf$ActualClass == x]
+                dtf$num_val[dtf$actualclass == x]
             }), ncol = var)
             rownames(df) <- 1:var
             colnames(df) <- 1:var
             return(df)
         }
-        else return(NULL)
+        else return(warning("confusion method supported for fda only "))
     }
     else if(property == "weights")
     {
-        
+
         if(object@results$familytype == "Mixed"){
             dl <- list()
             str <- paste0("SELECT ClassID, COUNT(DISTINCT(ObsID)) FROM fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' GROUP BY ClassID")
@@ -367,6 +401,13 @@ c WHERE d.",var[[1]]," = c.ObsID AND d.",var[[2]]," <> -1 GROUP BY c.val, d.",va
 
 }
 
+#' @export
+setMethod("names", signature("FLLDA"), function(x) c("scaling", "coefficients", "N",
+                                                     "call", "counts", "means",
+                                                     "lev","xlevels","prior",
+                                                     "confusion","weights" ))
+
+
 
 
 coefficients.FLLDA <- function(object)
@@ -374,27 +415,34 @@ coefficients.FLLDA <- function(object)
     if( object@results$familytype %in% "lda"){
         str <- paste0("SELECT VarID, CanID, Num_Val FROM fzzlLDACanCoeff WHERE AnalysisID = ",fquote(object@AnalysisID)," AND CanType = 'Raw Canonical Coefficients' ORDER BY VarID, CanID ")
         df <- sqlQuery(connection ,str)
-        nvar <- length(unique(df$CANID))
+        colnames(df) <- tolower(colnames(df))
+
+        nvar <- length(unique(df$canid))
         dtf <- data.frame(lapply(1:nvar, function(x){
-            df$NUM_VAL[df$CANID == x]
+            df$num_val[df$canid == x]
         }))
         dtf <- as.matrix.data.frame(dtf)
         colnames(dtf) <- paste0("LD",1:nvar)  
         return(dtf)}
     else
-    {
-        vID <- object@AnalysisID
-        str <- paste0("SELECT * FROM fzzlFDARegrCoeffs WHERE AnalysisID = '",vID,"' ORDER BY 2,3 ")
-        df <- sqlQuery(connection, str)
-        nvar <- 2
-        dtf <- data.frame(lapply(1:nvar, function(x){
-            df$CoeffEst[df$DepVarID == x]
-        }))
-        dtf <- as.matrix.data.frame(dtf)
-        colnames(dtf) <- 1:nvar
-        rownames(dtf) <- 1:length(dtf[,1])
-        return(dtf)   
-    }
+        if (object@results$familytype %in% "Flex")
+        {
+            vID <- object@AnalysisID
+            str <- paste0("SELECT * FROM fzzlFDARegrCoeffs WHERE AnalysisID = '",vID,"' ORDER BY 2,3 ")
+            df <- sqlQuery(connection, str)
+            colnames(df) <- tolower(colnames(df))
+            nvar <- 2
+            dtf <- data.frame(lapply(1:nvar, function(x){
+                df$coeffest[df$depvarid == x]
+            }))
+            dtf <- as.matrix.data.frame(dtf)
+            colnames(dtf) <- 1:nvar
+            rownames(dtf) <- 1:length(dtf[,1])
+            return(dtf)   
+        }
+    else
+    {vstr <- paste0("only computes for LDA or mixed as of now")
+        return(vstr)}
     
 }
 ##posterior probablity:https://www.quora.com/Mathematical-Modeling-How-are-posterior-probabilities-calculated-in-linear-discriminant-analysis
@@ -405,7 +453,7 @@ predict.FLLDA <- function(object){
     if(object@results$familytype %in% "Flex")
     {
         vinputcols <- list()
-        tblname <- gen_unique_table_name("flexscore")
+        tblname <- gen_score_table_name("flexscore")
         
         ret <- sqlStoredProc(connection,"FLFlexDiscriminantScore",
                              TableName = getTableNameSlot(object@deeptable),
@@ -433,9 +481,9 @@ predict.FLLDA <- function(object){
         list(x = x, class = cl, posterior = post)    }
 
     else if (object@results$familytype %in% "Mixed"){
-        str <- paste0("SELECT ClassID FROM fzzlMDAClassify WHERE AnalysisID = '",object@AnalysisID,"' AND HypothesisID = 1 ORDER BY ClassID")
+        str <- paste0("SELECT ClassID as classid FROM fzzlMDAClassify WHERE AnalysisID = '",object@AnalysisID,"' AND HypothesisID = 1 ORDER BY ClassID")
         dtf <- sqlQuery(connection , str)
-        dtf <- as.integer(dtf$ClassID)
+        dtf <- as.integer(dtf$classid)
         names(dtf) <- object@deeptable@Dimnames[[1]]
         return(dtf)      
     }
@@ -449,13 +497,15 @@ confusion.FLLDA <- function(object){
     if(object@results$familytype %in% "Flex")
         return(object$confusion)
     else
-        return(NULL)
+        warning("confusion method only supported for fda")
 }
+
 
 #' @export
 plot.FLLDA <- function(object){
     if(object@results$familytype %in% "lda")
         val <- predict(object)$x
+    else warning("plot for lda method is only supported for now ")
     val <- val[, 2:3]
     plot(val)
 }
@@ -472,7 +522,7 @@ wtfun <- function(object, nrow, ncol, nclass){
                                          valueColumn="valueColumn"),
                           whereconditions="",
                           order = "",
-                          SQLquery=paste0("SELECT hypothesisid as matrix_id,row_number()over(partition by Subclassid order by obsid ) as rowIdColumn,Subclassid as colIdColumn,weight as valueColumn from fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' AND ClassID = ",nclass," AND HypothesisID = 1"))
+                          SQLquery=paste0("SELECT hypothesisid as matrix_id,row_number()over(partition by Subclassid order by obsid ) as rowIdColumn,Subclassid as colIdColumn,weight as valueColumn from fzzlMDAWeight WHERE AnalysisID = '",object@AnalysisID,"' AND ClassID = ",nclass," AND HypothesisID = 5"))
 
     flm <- newFLMatrix(
         select= tblfunqueryobj,

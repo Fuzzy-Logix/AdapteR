@@ -42,6 +42,9 @@ FLSVDUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal
 FLSVDUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutSVal=OutSVal,OutVVal=OutVVal)
 FLSVDUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutSVal,OutVVal) <- FLSVDUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_val=OutUVal,s_val=OutSVal,v_val=OutVVal)
 
+FLSchurDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutQVal) <- FLSchurDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutUVal=OutUVal,OutQVal=OutQVal)
+FLSchurDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutUVal,OutQVal) <- FLSchurDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,u_val=OutUVal,q_val=OutQVal)
+
 FLLUDecompUdt.TDAster(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_val=OutputValL,u_val=OutputValU,permut=OutputPermut)
 FLLUDecompUdt.TD(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLLUDecompUdt(OutputMatrixID=OutputMatrixID,OutputRowNum=OutputRowNum,OutputColNum=OutputColNum,OutputValL=OutputValL,OutputValU=OutputValU,OutputPermut=OutputPermut)
 FLLUDecompUdt.Hadoop(OutputMatrixID,OutputRowNum,OutputColNum,OutputValL,OutputValU,OutputPermut) <- FLPTFMatrixLUDecomp(partition1=OutputMatrixID,row_id=OutputRowNum,col_id=OutputColNum,l_matrix=OutputValL,u_matrix=OutputValU,permut_matrix=OutputPermut)
@@ -85,7 +88,7 @@ FLPercUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPerc(vectorIdColumn=GroupID,vectorVa
 FLPercUdt.TDAster(oGroupID,oPercVal) <- FLPercUdt(vectorIdColumn=partition1,vectorValueColumn=opercval)
 
 FLPercentUdt.TD(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=oObsID,vectorValueColumn=oPercentVal)
-FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=GroupID,vectorValueColumn=PercValue)
+FLPercentUdt.Hadoop(oGroupID,oPercVal) <- FLPTFPercent(vectorIndexColumn=groupid,vectorValueColumn=percentvalue)
 FLPercentUdt.TDAster(oGroupID,oObsID,oPercentVal) <- FLPercentUdt(vectorIndexColumn=ObsID,vectorValueColumn=opercentValue)
 
 FLMeanAbsDevUdt.TD(oGroupID,oMeanAbsDev) <- FLMeanAbsDevUdt(vectorIdColumn=oGroupID,vectorValueColumn=oMeanAbsDev)
@@ -122,3 +125,15 @@ FLGarch.TDAster(oGroupID,oParamName,oParamValue) <- FLGarch(oGroupID=partition1,
 
 FLDifferenceUdt.TD(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=oGroupID,vectorIndexColumn=oPeriodID,vectorValueColumn=oDifference)
 FLDifferenceUdt.TDAster(oGroupID,oPeriodID,oDifference) <- FLDifferenceUdt(vectorIdColumn=partition1,vectorIndexColumn=periodid,vectorValueColumn=difference)
+
+FLMixedModelUdt.TD() <- FLMixedModelUdt()
+FLMixedModelUdt.TDAster() <- FLMixedModelUdt()
+FLMixedModelUdt.Hadoop() <- FLPTFMixedModel()
+
+FLMixedModelIntUdt.TD() <- FLMixedModelIntUdt()
+FLMixedModelIntUdt.TDAster() <- FLMixedModelIntUdt()
+FLMixedModelIntUdt.Hadoop() <- FLPTFMixedModelInt()
+
+FLNNetUdt.TD() <- FLNNetUdt()
+FLNNetUdt.TDAster() <- FLNeuralNetworkUdt()
+

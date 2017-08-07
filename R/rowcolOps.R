@@ -57,8 +57,10 @@ rowcolOps<-function(object,margin,operation,...){
 #' @param object is of class FLMatrix.
 #' @return \code{colSums} returns a FLVector object representing the col-wise sums.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+#'                                        "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 #' resultFLVector <- colSums(flmatrix)
+#' @seealso \code{\link[Matrix]{colSums}} for corresponding R function reference
 #' @export
 colSums <- function (object, ...){
   UseMethod("colSums", object)
@@ -80,8 +82,10 @@ colSums.FLMatrix <- function(object,...) rowcolOps(object,2,"Sum")
 #' @param ... any additional arguments.
 #' @return \code{colMeans} returns a FLVector object representing the column-wise Means.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+#'                                        "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 #' resultFLVector <- colMeans(flmatrix)
+#' @seealso \code{\link[Matrix]{colMeans}} for corresponding R function reference
 #' @export
 colMeans <- function (object, ...){
   UseMethod("colMeans", object)
@@ -102,8 +106,10 @@ colMeans.FLMatrix<-function(object,...) rowcolOps(object,2,"Mean")
 #' @param ... any additional arguments
 #' @return \code{rowSums} returns a FLVector object representing the row-wise sums.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+#'                                        "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 #' resultFLVector <- rowSums(flmatrix)
+#' @seealso \code{\link[Matrix]{rowSums}} for corresponding R function reference
 #' @export
 rowSums <- function (object, ...){
   UseMethod("rowSums", object)
@@ -123,8 +129,10 @@ rowSums.FLMatrix<-function(object,...) rowcolOps(object,1,"Sum")
 #' @param ... any additional arguments
 #' @return \code{rowMeans} returns a FLVector object representing the row-wise Means.
 #' @examples
-#' flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+#' flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+#'                                        "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 #' resultFLVector <- rowMeans(flmatrix)
+#' @seealso \code{\link[Matrix]{rowMeans}} for corresponding R function reference
 #' @export
 rowMeans <- function (object, ...){
   UseMethod("rowMeans", object)

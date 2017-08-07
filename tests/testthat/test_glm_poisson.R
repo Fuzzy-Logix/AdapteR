@@ -4,7 +4,7 @@ Renv$dataf<- data.frame(var1 = rnorm(200),
                         var2 = rnorm(200), 
                         var3 = sample( c(0, 10), 200, replace = TRUE),
                         offsetColumn=1)
-FLenv$dataf <- as.FLTable(Renv$dataf,temporary=F)
+FLenv$dataf <- as.FLTable(Renv$dataf,tableName = getOption("TestTempTableName"),temporary=F, drop = TRUE)
 
 test_that("glm: execution for poisson ",{
   result = eval_expect_equal({
@@ -17,6 +17,17 @@ test_that("glm: execution for poisson ",{
   tolerance = .000001)
 }) 
 
+## No Score for poisson Hadoop
+test_that("glm: predict ",{
+  result = eval_expect_equal({
+    predict_glmobj <- predict(glmobj, type = "response")
+  },Renv,FLenv,
+  expectation = "predict_glmobj",
+  noexpectation = "glmobj",
+  check.attributes=F,
+  tolerance = .000001
+  )
+}) 
 
 ## Below cases fail in Hadoop:-
 ## No FLPoissonRegrScore function in Hadoop!

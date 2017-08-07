@@ -24,6 +24,10 @@ Input can be a matrix of dimensions (m x n) where m > n, m < n or m = n.
 }
 
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID","ROW_ID",
+						"COL_ID","CELL_VAL",dims= c(5,5))
 resultFLMatrix <- t(flmatrix)
+}
+\seealso{
+\code{\link[base]{t}} for corresponding R function reference
 }

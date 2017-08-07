@@ -6,7 +6,25 @@ NULL
 #' 
 #' @param vFLvector1 a FLVector of data values
 #' @param vFLvector2 a FLVector of data values
-#' @return A list with class "htest".
+#' @return A list with class "htest" outputting the corresponding test Stat and P Values.
+#' @examples
+#' ## running on random FLvector
+#' flx<-as.FLVector(rnorm(100))
+#' fly<-as.FLVector(rnorm(100))
+#' kuip.test(flx, fly)
+#'
+#' ## running on in-Database FLVector
+#' fltbl1 <- FLTable(getTestTableName("tblKuiperTest"),
+#'                    "obsid", 
+#'                   whereconditions = "groupid=1
+#'                    and datasetid=1")
+#' fltbl2 <- FLTable(getTestTableName("tblKuiperTest"),
+#'                    "obsid", 
+#'                   whereconditions = "groupid=2
+#'                    and datasetid=1")
+#' flx <- fltbl1$num_val
+#' fly <- fltbl2$num_val
+#' kuip.test(flx, fly)
 #' @export
 kuip.test <- function(vFLvector1, vFLvector2)          {
     dname <- as.list(sys.call())
@@ -20,7 +38,6 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                                                 Num_Val = "b.vectorValueColumn"))
                            )
     view <- createView(vviewName, t)
-
     ret <- sqlStoredProc(connection,
                          "FLKuiperTest",
                          TableName = vviewName,
@@ -32,7 +49,7 @@ kuip.test <- function(vFLvector1, vFLvector2)          {
                          outputParameter = c(OutTable = 'a')
                         )
     colnames(ret) <- tolower(colnames(ret))
-    if(!is.null(ret$resulttable)){
+    if(!is.null(ret$resulttable) || !is.null(ret$outtable)){
         sqlstr <- paste0("SELECT q.TEST_STAT AS TEST_STAT,
                                        q.P_VALUE AS P_Value
                                FROM ",ret[1,1]," AS q")

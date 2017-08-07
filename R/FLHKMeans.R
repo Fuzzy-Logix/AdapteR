@@ -11,7 +11,7 @@ NULL
 #' during widetable to deeptable conversion.
 #' @slot table FLTable object given as input on which analysis is performed
 #' @slot results A list of all fetched components
-#' @slot deeptable A character vector containing a deeptable(either conversion from a 
+#' @slot deeptable A character vector containing a deeptable(either conversion from a
 #' widetable or input deeptable)
 #' @slot nstart the initial number of random sets (nstart > 0)
 #' @slot mapTable A character string name for the mapping table in-database if input is wide-table.
@@ -50,8 +50,8 @@ setClass(
 #'
 #' \code{hkmeans} performs Hierarchial k-means clustering on FLTable objects.
 #'
-#' The DB Lytix function called is FLHKMeans.Hierarchical K-Means clusters the training data.  
-#' The relationship of observations to clusters has hard edges. It re-clusters the training data in 
+#' The DB Lytix function called is FLHKMeans.Hierarchical K-Means clusters the training data.
+#' The relationship of observations to clusters has hard edges. It re-clusters the training data in
 #' each cluster until the desired hierarchical level is reached.
 #' @param x an object of class FLTable, wide or deep
 #' @param centers the number of clusters
@@ -60,7 +60,7 @@ setClass(
 #' @param nstart the initial number of random sets
 #' @param excludeCols the comma separated character string of columns to be excluded
 #' @param classSpec list describing the categorical dummy variables
-#' @param whereconditions takes the where_clause as a string 
+#' @param whereconditions takes the where_clause as a string
 #' @return \code{hkmeans} returns a list which replicates equivalent R output
 #' from \code{hkmeans} in stats package.The mapping table can be viewed
 #' using \code{object$mapping} if input is wide table.
@@ -68,14 +68,20 @@ setClass(
 #' If classSpec is not specified, the categorical variables are excluded
 #' from analysis by default.
 #' @examples
-#' widetable  <- FLTable("tblAbaloneWide", "ObsID")
+#' widetable  <- FLTable(getTestTableName("tblAbaloneWide"), "ObsID",
+#'						 whereconditions = "ObsID< 101")
 #' hkmeansobject <- hkmeans(widetable,3,2,20,1,"Rings,SEX")
+#' hkmeansobject$cluster
+#' hkmeansobject$size
+#' hkmeansobject$withinss
+#' hkmeansobject$totss
+#' hkmeansobject$betweenss
 #' print(hkmeansobject)
 #' plot(hkmeansobject)
-#' One can specify ClassSpec and transform categorical variables 
-#' before clustering. This increases the number of variables in the plot
-#' because categorical variable is split into binary numerical variables.
-#' The clusters may not be well-defined as is observed in the case below:-
+#' #One can specify ClassSpec and transform categorical variables
+#' #before clustering. This increases the number of variables in the plot
+#' #because categorical variable is split into binary numerical variables.
+#' #The clusters may not be well-defined as is observed in the case below:-
 #' hkmeansobjectnew <- hkmeans(widetable,3,2,20,1,"Rings,SEX",list("DummyCat(D)","SEX(M)"))
 #' plot(hkmeansobjectnew)
 #' @export
@@ -96,7 +102,6 @@ hkmeans.FLTable<-function(x,
 						maxit = 500
 						)
 {
-
 	#Type validation
 	if(any(!(c(centers,iter.max,nstart,levels) >= 1)))
     stop("centers,iter.max,nstart should be atleast 1")
@@ -125,7 +130,7 @@ hkmeans.FLTable<-function(x,
     connection <- getFLConnection(x)
     wideToDeepAnalysisID <- ""
     mapTable <- ""
-	
+
 	if(!isDeep(x)){
 		deepx <- wideToDeep(x,excludeCols=excludeCols,
 							classSpec=classSpec,
@@ -137,12 +142,13 @@ hkmeans.FLTable<-function(x,
         deepx <- setAlias(deepx,"")
 		sqlstr <- paste0(" SELECT a.Final_VarID AS VarID, \n ",
 			    	     	" a.COLUMN_NAME AS ColumnName, \n ",
-			    	     	"  a.FROM_TABLE AS MapName \n ",
+			    	     	ifelse(is.Hadoop(),"  a.fromtable AS MapName \n ",
+			    	     			"  a.FROM_TABLE AS MapName \n "),
 			    	    " FROM ",getSystemTableMapping("fzzlRegrDataPrepMap"),
                                            "  a \n ",
 			    	    " WHERE a.AnalysisID = '",wideToDeepAnalysisID,"' \n ",
 			    	    " AND a.Final_VarID IS NOT NULL ")
-		
+
 		mapTable <- createTable(pTableName=gen_wide_table_name("map"),
                                 pSelect=sqlstr,
                                 pPrimaryKey="VarID")
@@ -209,7 +215,7 @@ hkmeans.FLTable<-function(x,
 
 	AnalysisID <- as.character(retobj[1,1])
     ## ######################################
- #    ## gk @ phani: optimize by delete this part, this should be done by 
+ #    ## gk @ phani: optimize by delete this part, this should be done by
 	# sqlstr<-paste0("SELECT DISTINCT ObsID AS vectorIndexColumn \n ",
 	# 				"	FROM fzzlKMeansClusterID \n ",
 	# 				"	WHERE AnalysisID = '",AnalysisID,"' AND \n ",
@@ -228,7 +234,7 @@ hkmeans.FLTable<-function(x,
 
 	# deepx@Dimnames <- list(rows,cols)
     ## ######################################
-    
+
 	if(levels>1)
 	{
 		# sqlstr <- paste0(" SELECT COUNT(DISTINCT ClusterID) FROM fzzlKMeansClusterID \n ",
@@ -238,7 +244,7 @@ hkmeans.FLTable<-function(x,
 
 		centers <- sqlQuery(connection,sqlstr)[1,1]
 	}
-	
+
 
 	new("FLHKMeans",
 		centers=centers,
@@ -312,6 +318,15 @@ hkmeans.FLTable<-function(x,
 	else stop(property," is not a valid property")
 }
 
+
+
+#' @export
+setMethod("names", signature("FLFKMeans"), 
+    function(x) c("mapping", "size", "withinss",
+                 "totss", "betweenss",
+                 "tot.withinss", "centers",
+                 "cluster", "size" ))
+
 ## move to file FLHKMeans.R
 cluster.FLHKMeans<-function(object)
 {
@@ -350,6 +365,8 @@ cluster.FLHKMeans<-function(object)
 }
 
 ## move to file FLHKMeans.R
+
+
 centers.FLHKMeans<-function(object)
 {
 	if(!is.null(object@results[["centers"]]))
@@ -422,9 +439,9 @@ tot.withinss.FLHKMeans<-function(object){
 		# 				cell_val_colname," - fzzlKMeansDendrogram.Centroid ),2)) AS NUMBER) \n ",
 		# 				" FROM fzzlKMeansClusterID, \n ",deeptablename,", \n fzzlKMeansDendrogram \n ",
 		# 				" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
-		# 				" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
+		# 				" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ",
 		# 				" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ",
-		# 				" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
+		# 				" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ",
 		# 				" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",
 		# 				" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
 		# 				" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
@@ -477,7 +494,7 @@ withinss.FLHKMeans<-function(object){
 		assign(parentObject,object,envir=parent.frame())
 		return(withinssvector)
 	}
-	
+
 }
 
 ## move to file FLHKMeans.R
@@ -501,10 +518,10 @@ betweenss.FLHKMeans<-function(object){
 		# 					 "fzzlKMeansClusterID, \n ",
 		# 					 "fzzlKMeansDendrogram \n ",
 		# 				" WHERE fzzlKMeansDendrogram.AnalysisID = '",object@AnalysisID,"' \n ",
-		# 				" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ", 
-		# 				" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ", 
-		# 				" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ", 
-		# 				" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",  
+		# 				" AND fzzlKMeansClusterID.AnalysisID = '",object@AnalysisID,"' \n ",
+		# 				" AND ",deeptablename,".",var_id_colname,"=fzzlKMeansDendrogram.VarID \n ",
+		# 				" AND fzzlKMeansClusterID.ClusterID = fzzlKMeansDendrogram.ClusterID \n ",
+		# 				" AND fzzlKMeansClusterID.ObsID = ",deeptablename,".",obs_id_colname," \n ",
 		# 				" AND a.",var_id_colname," = ",deeptablename,".",var_id_colname," \n ",
 		# 				" AND fzzlKMeansClusterID.HypothesisID = ",object@nstart," \n ",
 		# 				" AND fzzlKMeansDendrogram.HypothesisID = ",object@nstart," \n ",
@@ -533,7 +550,7 @@ totss.FLHKMeans<-function(object){
 
 		sqlstr <- constructSelectResult(object,
                                             result="totss")
-		
+
 		totssvector <- sqlQuery(connection,sqlstr)[1,1]
 
 		totssvector <- as.vector(totssvector)
@@ -558,7 +575,7 @@ size.FLHKMeans<-function(object)
 		# 				    "     DENSE_RANK()OVER(ORDER BY ClusterID) AS vectorIndexColumn, \n ",
 		# 					"	 COUNT(ObsID) AS vectorValueColumn \n ",
 		# 				"  FROM  fzzlKMeansClusterID \n ",
-		# 				" WHERE AnalysisID = '",object@AnalysisID,"' \n ",   
+		# 				" WHERE AnalysisID = '",object@AnalysisID,"' \n ",
 	 #                      " AND HypothesisID = ",object@nstart," \n ",
 	 #                      " GROUP BY ClusterID")
 
@@ -604,7 +621,7 @@ print.FLHKMeans<-function(object)
 	temp2 <- as.character(paste0(temp1,collapse=","))
 	temp3 <- as.character(object@centers)
 
-	cat(paste0("K-Means clustering with ",temp3," clusters of sizes ",temp2," 
+	cat(paste0("K-Means clustering with ",temp3," clusters of sizes ",temp2,"
 				\n\nCluster Means:\n"))
 	print(centermatrix)
 	cat("\nClustering vector:\n")
@@ -658,7 +675,6 @@ plot.FLHKMeans <- function(object,...)
 #' @export
 fitted.FLHKMeans <- function(object,method="centers",...){
 	AnalysisID <- object@AnalysisID
-	
 	if(!method %in% c("centers","classes"))
 	stop(" method in fitted for kmeans should be c(centers,classes) \n ")
 	if(method == "classes")
@@ -690,8 +706,8 @@ fitted.FLHKMeans <- function(object,method="centers",...){
 
   	centersmatrix <- newFLMatrix(
 			            select= tblfunqueryobj,
-			            dims=as.integer(c(nrow(object@deeptable)),
-			            	ncol(object@deeptable)),
+			            dims=as.integer(c(nrow(object@deeptable),
+			            	            ncol(object@deeptable))),
 			            Dimnames=list(object$cluster,
 			            			object@deeptable@Dimnames[[2]]))
   	return(centersmatrix)

@@ -18,6 +18,10 @@ rowMeans(object, ...)
 \code{rowMeans} computes the row-wise average of FLMatrix objects.
 }
 \examples{
-flmatrix <- FLMatrix("tblMatrixMulti", 5,"MATRIX_ID","ROW_ID","COL_ID","CELL_VAL")
+flmatrix <- FLMatrix(getTestTableName("tblMatrixMulti"), 5,"MATRIX_ID",
+                                       "ROW_ID","COL_ID","CELL_VAL",dims= c(5,5))
 resultFLVector <- rowMeans(flmatrix)
+}
+\seealso{
+\code{\link[Matrix]{rowMeans}} for corresponding R function reference
 }

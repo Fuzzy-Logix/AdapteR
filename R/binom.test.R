@@ -13,6 +13,7 @@ NULL
 #' Additionally "LT","GT","EXACT" are supported for FL objects.
 #' @param conf.level confidence level for the returned confidence interval.
 #' Not Applicable for FL objects.
+#' @seealso \code{\link[stats]{binom.test}} for R reference implementation.
 #' @section Constraints:
 #' conf.level is not supported currently for FL objects.
 #' print is not working for result htest object
@@ -22,10 +23,9 @@ NULL
 #' ResulthtestObject <- binom.test(flv,100,p=0.65)
 #' ResulthtestObject <- binom.test(flv,100,p=0.65,"greater")
 #' ResulthtestObject <- binom.test(flv,100,p=0.65,"LT")
-#' expect_equal(ResulthtestObject[10],binom.test(as.R(flv[10]),100,p=0.65,"LT"))
 #' @export
 setGeneric("binom.test",function(x, n, p = 0.5,
-                                alternative = c("two.sided", "less","greater"),
+                                alternative = c("two.sided", "less","greater","LT","GT","EXACT"),
                                 conf.level = 0.95)
                         standardGeneric("binom.test"))
 
@@ -39,11 +39,12 @@ setMethod("binom.test",signature(x="FLAbstractColumn"),
                     p,fquote(alternative)),collapse=","),
             ")"))
 })
+
 setMethod("binom.test",signature(x="FLVector"),
     function(x,
             n,
             p = 0.5,
-            alternative = c("two.sided", "less","greater"),
+            alternative = c("two.sided", "less","greater","LT","GT","EXACT"),
             conf.level = 0.95){
         DNAME <- deparse(substitute(x))
         DNAME <- paste(DNAME, "and", deparse(substitute(n)))

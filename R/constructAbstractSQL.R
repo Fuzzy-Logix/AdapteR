@@ -206,6 +206,7 @@ constructStoredProcSQL.FLConnection <- function(pConnection,
     constructStoredProcSQL(getRConnection(pConnection),
                            pFuncName,pOutputParameter,...)
 }
+
 constructStoredProcSQL.JDBCConnection <- function(pConnection,
                                                 pFuncName,
                                                 pOutputParameter,
@@ -224,6 +225,7 @@ constructStoredProcSQL.JDBCConnection <- function(pConnection,
                           pars))
     gsub("'\\?'","?",result)
 }
+
 constructStoredProcSQL.default <- function(pConnection,
                                              pFuncName,
                                              pOutputParameter,
@@ -365,11 +367,10 @@ constructAggregateSQL <- function(pFuncName,
                                   pWhereConditions="",
                                   pGroupBy="",
                                   pOrderBy="",
-                                  ...){
+                                  includeFuncCall=FALSE){
 
     vfunCall <- c(OutVal=paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
-    if("includeFuncCall" %in% names(list(...))){
-        if(!list(...)$includeFuncCall)
+    if(!includeFuncCall){
             vfunCall <- c()
     }
     vSelects <- c(vfunCall,pAddSelect)
@@ -631,9 +632,19 @@ createTable <- function(pTableName,
     vres <- sqlSendUpdate(getFLConnection(),vsqlstr)
     if(!all(vres))
         stop("table could not be created \n ")
-    updateMetaTable(pTableName=pTableName,
-                    pType="wideTable",
-                    ...)
+
+    if(!pTemporary | !getOption("temporaryFL")){
+        if("pNote" %in% names(list(...)))
+            pNote <- list(...)[["pNote"]]
+        else pNote <- "NotSpecified"
+        if("pPermanent" %in% names(list(...)))
+            pPermanent <- list(...)[["pPermanent"]]
+        else pPermanent <- 1
+        updateMetaTable(pTableName=pTableName,
+                        pType="wideTable",
+                        pNote=pNote,
+                        pPermanent=pPermanent)
+    }
     return(pTableName)
 }
 
@@ -678,10 +689,14 @@ createView <- function(pViewName,
         }
         else stop("View could not be created \n ")
     }
-    if(pStore)
-    updateMetaTable(pTableName=pViewName,
-                    pType="view",
-                    ...)
+    if(pStore){
+        if("pNote" %in% names(list(...)))
+            pNote <- list(...)[["pNote"]]
+        else pNote <- "NotSpecified"
+        updateMetaTable(pTableName=pViewName,
+                        pType="view",
+                        pNote=pNote)
+    }
 
     return(pViewName) ## previously res was returned
 }
@@ -753,7 +768,33 @@ insertIntotbl <- function(pTableName,
             # vsqlstr <- paste0(apply(pValues,1,
             #                 function(x)
             #                     paste0(vsqlstr,"(",paste0(fquote(x),collapse=","),")")),collapse = ";")
-        else if(!is.TD()){
+        else if(is.TDAster()){
+            vappend <- paste0(apply(pValues,1,
+                                function(x){
+                                  paste0("(",
+                                      paste0(sapply(x,
+                                            function(y){
+                                                if(is.logical(y)||
+                                                  is.factor(y)) 
+                                                    y <- as.character(y)
+                                                suppressWarnings(if(!is.na(as.numeric(y)))
+                                                                 y <- as.numeric(y))
+                                                if((is.character(y) && !grepl("'",y))
+                                                    || is.null(y)){
+                                                    if(y=="NULL" || is.null(y)){
+                                                        return("NULL")
+                                                    }
+                                                    else return(fquote(y))
+                                                }
+                                                else return(y)}),
+                                        collapse = ","),")")}),
+                            collapse = ",")
+            # vappend <- paste0(apply(pValues,1,
+            #                 function(x)
+            #                     paste0("(",paste0(fquote(x),collapse=","),")")),collapse = ",")
+            vsqlstr <- paste0(vsqlstr,vappend)
+        }
+        else if(is.Hadoop()){
             vappend <- paste0(apply(pValues,1,
                                 function(x){
                                   paste0("(",
@@ -778,21 +819,18 @@ insertIntotbl <- function(pTableName,
     else if(!is.null(pSelect)){
         vsqlstr <- paste0(vsqlstr,"  ",pSelect)
     }
-    ##print(vsqlstr)
+    # print(vsqlstr)
     sqlSendUpdate(getFLConnection(),vsqlstr)
 }
 
 updateMetaTable <- function(pTableName,
                             pElementID=NULL,
                             pType="NA",
-                            ...){
+                            pNote="NotSpecified",
+                            pPermanent=as.integer(!getOption("temporaryFL"))){
     vtemp <- separateDBName(pTableName)
     vdatabase <- vtemp["vdatabase"]
     pTableName <- vtemp["vtableName"]
-
-    if("pNote" %in% names(list(...)))
-        pNote <- list(...)$pNote
-    else pNote <- "NotSpecified"
 
     if(is.null(pElementID))
         pElementID <- -1
@@ -801,7 +839,8 @@ updateMetaTable <- function(pTableName,
                   pColNames=c("TimeInfo","DateInfo",
                             "UserName","DatabaseName",
                             "TableName","ElementID",
-                            "ObjType","UserComments"),
+                            "ObjType","PermanentFLag",
+                            "UserComments"),
                   pValues=list(as.character(as.POSIXlt(Sys.time(),tz="GMT")),
                             as.character(Sys.Date()),
                             ifelse(is.null(getOption("FLUsername")),
@@ -810,8 +849,9 @@ updateMetaTable <- function(pTableName,
                             pTableName,
                             as.integer(pElementID),
                             as.character(pType),
+                            as.integer(pPermanent),
                             pNote
-                        ))
+                ))
 }
 
 #' @export
@@ -841,12 +881,11 @@ constructHypoTestsScalarQuery <- function(pFuncName,pFuncArgs,
     pFuncArgs[1] <- fquote(i)
     pAddSelect <- c(pAddSelect,paste0(pFuncName,"(",paste0(pFuncArgs,collapse=","),")"))
   }
-  names(pAddSelect) <- vstats
-  sqlstr <- constructAggregateSQL(pFuncName = pFuncName,
-                                  pAddSelect = pAddSelect,
-                                  pFrom = pFrom,
-                                  includeFuncCall=FALSE,
-                                  ...)
+  names(pAddSelect) <- setdiff(c(names(pAddSelect),vstats),"")
+  vinputsList <- list(...)
+  for(i in c("pFuncName","pAddSelect","pFrom"))
+    vinputsList[[i]] <- eval(parse(text=i))
+  sqlstr <- do.call("constructAggregateSQL",vinputsList)
   return(sqlstr)
 }
 

@@ -8,7 +8,7 @@ colnames(Renv$animalsdat)[colnames(Renv$animalsdat)=="end"] <- "endCol"
 rownames(Renv$animalsdat) <- 1:nrow(Renv$animalsdat)
 FLenv <- as.FL(Renv)
 
-# This dataset fails from jdbc
+# This dataset fails 
 test_that("agnes on votes.repub dataset ",{
 eval_expect_equal({
   aa.ga <- agnes(votesdat)

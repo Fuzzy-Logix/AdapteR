@@ -27,7 +27,10 @@ and a separate application of SES to the times between non-zero elements of the 
 The smoothing parameters are denoted by alpha.
 }
 \examples{
+set.seed(100)
 x<-rnorm(1000)
+x <- x[x>0]
 flv<-as.FLVector(x)
-flobj<-croston(object = flv, h=9)
+flobj<-croston(object = flv, h=9, alpha = .1)
+robj<-croston(object = x, h=9,alpha = .1)
 }

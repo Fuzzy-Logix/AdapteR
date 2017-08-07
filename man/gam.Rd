@@ -39,13 +39,17 @@ results and methods as in mgcv::gam.
 }
 
 \examples{
-widetable <- FLTable("tblGAMSimData","ObsID")
-myformula <- yVal~x0Val+s(x1Val,m=3,k=10)+te(x1Val,x2Val,m=3,k=5)+s(x2Val,x1Val)
-gamobject <- gam(myformula,data=widetable,offset="x2Val")
+widetable <- FLTable(getTestTableName("tblGAMSimData"),"ObsID")
+colnames(widetable) <- tolower(colnames(widetable))
+myformula <- yval~x0val+s(x1val,m=3,k=10)+te(x1val,x2val,m=3,k=5)+s(x2val,x1val)
+gamobject <- gam(myformula,data=widetable,offset="x2val")
 predictedValues <- predict(gamobject,widetable)
 gamobject$coefficients
 gamobject$fitted.values
 gamobject$residuals
 gamobject$df.null
 print(gamobject)
+}
+\seealso{
+\code{\link[mgcv]{gam}} for corresponding R function reference
 }

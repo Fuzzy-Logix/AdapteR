@@ -3,13 +3,18 @@
 \docType{class}
 \name{FLLDA-class}
 \alias{FLLDA-class}
+\alias{FLLDA-class}
 \title{An S4 class to represent output from Discriminant Analysis on in-database Objects}
 \description{
+An S4 class to represent output from Discriminant Analysis on in-database Objects
+
 An S4 class to represent output from Discriminant Analysis on in-database Objects
 }
 \section{Slots}{
 
 \describe{
+\item{\code{offset}}{column name used as offset}
+
 \item{\code{offset}}{column name used as offset}
 }}
 

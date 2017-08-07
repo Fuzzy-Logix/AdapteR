@@ -14,6 +14,8 @@ FLenv$fit <- mda(a~. , data = FLenv$DAT)
 Renv$fit <- mda(a~., data = Renv$DAT)
 
 ## Weights, count, prior.
+## https://fuzzyl.atlassian.net/browse/TDFL-837
+
 test_that("weights,prior, counts:", {eval_expect_equal({
     pri <- fit$prior
     count <- fit$count

@@ -71,15 +71,20 @@ from analysis by default.
 }
 
 \examples{
-widetable  <- FLTable("iris", "rownames")
-fkmeansobject <- fanny(widetable,2,memb.exp=2)
-print(fkmeansobject)
-plot(fkmeansobject)
-One can specify ClassSpec and transform categorical variables 
-before clustering. This increases the number of variables in the plot
-because categorical variable is split into binary numerical variables.
-The clusters may not be well-defined as is observed in the case below:-
-widetable  <- FLTable("iris", "rownames")
+widetable  <- FLTable(getTestTableName("iris"), 
+					"obsid")
+fannyobject <- fanny(widetable,2,memb.exp=2)
+fannyobject$clustering
+fannyobject$coeff
+print(fannyobject)
+plot(fannyobject)
+
+##One can specify ClassSpec and transform categorical variables 
+##before clustering. This increases the number of variables in the plot
+##because categorical variable is split into binary numerical variables.
+
+##The clusters may not be well-defined as is observed in the case below:-
+widetable  <- FLTable(getTestTableName("iris"), "obsid")
 fannyobjectnew <- fanny(widetable,3,classSpec=list("Species(setosa)"))
 plot(fannyobjectnew)
 }

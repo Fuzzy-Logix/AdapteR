@@ -32,6 +32,7 @@ test_that("2 sample Kaplan-Meier Multi Datasets: Without var",{
                       x$p.value <- NULL
                       x$chisqApprox <- NULL
                       x$call <- NULL
+                      class(x) <- "list"
                       x
                 })
             res2 <- lapply(list(fit2),function(x){
@@ -39,6 +40,7 @@ test_that("2 sample Kaplan-Meier Multi Datasets: Without var",{
                       x$p.value <- NULL
                       x$chisqApprox <- NULL
                       x$call <- NULL
+                      class(x) <- "list"
                       x
                 })[[1]]
     },Renv,FLenv,

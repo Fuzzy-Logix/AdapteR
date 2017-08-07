@@ -69,24 +69,17 @@ setClass(
 #' coefficients,plot,print,summary methods are available for fitted object.
 #' @return \code{coxph} returns a \code{FLCoxPH} object
 #' @examples
-#' widetable  <- FLTable("siemenswideARDemoCoxPH", "ObsID")
-#' fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age,widetable)
-#' predData <- FLTable("preddatatoday","ObsID")
-#' resultList <- predict(fitT,newdata=predData)
+#' dropTable("tblcoxph_wide")
+#' createTable("tblcoxph_wide",pSelect=paste0("SELECT ID AS obsid,time_AIDS_d AS time_val,censor AS status,sex,ivdrug,tx FROM ",getTestTableName("tblCoxPH")),pTemporary=FALSE)
+#' widetable <- FLTable(getTestTableName("tblcoxph_wide"),
+#'						 "obsid")
+#' fitT <- coxph(Surv(time_val,status) ~ sex + ivdrug + tx,widetable)
+#' resultList <- predict(fitT,newdata=widetable)
 #' resultList[[1]]
 #' resultList[[2]]
 #' summary(fitT)
 #' plot(fitT)
-#' deeptable <- FLTable("siemensdeepARDemoCoxPH","obs_id_colname",
-#'                      "var_id_colname","cell_val_colname")
-#' fitT <- coxph("",deeptable)
-#' fitT$coefficients
-#' summary(fitT)
-#' plot(fitT)
-## Failed due to numeric overflow in FLCoxPH
-#fitT <- coxph(Surv(startDate,endDate,event)~meanTemp+age+lage,widetable)
-# fitT <- coxph(Surv(startDate,endDate,event)~meanTemp,widetable)
-# fitT <- coxph(Surv(age,event)~meanTemp,widetable)
+#' @seealso \code{\link[survival]{coxph}} for corresponding R function reference
 #' @export
 coxph <- function (formula,data=list(),...) {
 	UseMethod("coxph", data)
@@ -150,7 +143,9 @@ coxph.FLTable <- function(formula,data, ...)
 				AnalysisID=AnalysisID,
 				wideToDeepAnalysisID=wideToDeepAnalysisID,
 				table=deep$vdata,
-				results=list(call=vcallObject),
+				results=list(call=vcallObject,
+                            mod=list(nID="CoeffID",
+                            nCoeffEstim ="COEFFVALUE")),
 				deeptable=deepx,
 				mapTable=deep$mapTable,
 				scoreTable="",
@@ -500,9 +495,9 @@ predict.FLCoxPH <-function(object,
 
 	vScore <- flv
 	sqlstr <- paste0(limitRowsSQL(paste0("SELECT * from ",
-								survivalCurveTable),100),
-								" ORDER BY 1")
+								survivalCurveTable),100))
 	vSurvival <- sqlQuery(getFLConnection(),sqlstr)
+	vSurvival <- vSurvival[order(vSurvival[[1]]),]
 	return(list(score=vScore,
 				survival=vSurvival))
 }
@@ -802,11 +797,7 @@ summary.FLCoxPH <- function(object){
   
   colnames(conf.int) <- c("exp(coef)","exp(-coef)","lower.95","upper.95")
   rownames(conf.int) <- names(object$coefficients)
-  
-  
-  
-  
-  
+
   reqList <- list(call = as.call(object$call),
                   n = object$n,
                   nevent = as.numeric(object$nevent),
@@ -822,8 +813,7 @@ summary.FLCoxPH <- function(object){
   )
   
   class(reqList) <- "summary.coxph"
-  reqList
-  
+  return(reqList)
 }
 
 #' @export

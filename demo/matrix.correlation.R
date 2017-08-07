@@ -53,7 +53,8 @@ vtemp <- readline("Above: The SQL-through R way to compute a correlation matrix 
 eqnRtn <- FLMatrix(table_name        = getTestTableName("finEquityReturns"),
                    row_id_colname    = "TxnDate",
                    col_id_colname    = "TickerSymbol",
-                   cell_val_colname  = "EquityReturn")
+                   cell_val_colname  = "EquityReturn",
+                   sparse = FALSE)
 
 ## the equity return matrix is about 3k rows and cols
 dim(eqnRtn)
