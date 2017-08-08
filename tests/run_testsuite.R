@@ -42,6 +42,10 @@ option_list = list(
     make_option(c("-P", "--platform"),
                 default="TD",
                 help="TDAster,TD and Hadoop supported",
+                type="character"),
+    make_option(c("-T", "--TestDatabase"),
+                default="", 
+                help="database [default= %default]",
                 type="character")
 )
 
@@ -60,6 +64,8 @@ print(opt$directory)
 # basedir <- gsub("/[^/]*$","",opt$directory)
 # print(packagedir)
 # print(basedir)
+
+if(opt$TestDatabase=="") vTestDB <- opt$database else vTestDB <- opt$TestDatabase
 
 # cat(paste0("You requested to run tests in ",opt$directory,"\nTrying to go to directory\ncd ",basedir,"\nand build and test package\n",packagedir,"\n"))
 if(opt$AdapteR=="require"){
@@ -106,8 +112,8 @@ if(grepl("^jdbc",opt$host)){
             drop=vdrop,
             verbose=TRUE,
             temporary=vtemp,
-            pkg="dbc")
-            # TestDatabase=opt$database)
+            pkg="dbc",
+            TestDatabase=vTestDB)
 } else {
     options(debugSQL=TRUE)
     connection <- flConnect(odbcSource=opt$host,
@@ -115,8 +121,8 @@ if(grepl("^jdbc",opt$host)){
                           platform=opt$platform,
                           drop=vdrop,
                           temporary=vtemp,
-                          pkg="dbc"
-                          # TestDatabase=opt$database
+                          pkg="dbc",
+                          TestDatabase=vTestDB
                           )
 }
 

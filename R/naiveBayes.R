@@ -15,7 +15,7 @@ naiveBayes <- function (formula,data=list(),...) {
 
 #' @export
 naiveBayes.default <- function (formula,data=list(),...) {
-    if (!requireNamespace("rpart", quietly = TRUE)){
+    if (!requireNamespace("e1071", quietly = TRUE)){
         stop("e1071 package needed for naiveBayes. Please install it.",
              call. = FALSE)
     }
