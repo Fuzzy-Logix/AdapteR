@@ -64,7 +64,13 @@ svm <- function (formula,data=list(),...) {
 }
 
 #' @export
-svm.default <- e1071::svm
+svm.default <- function (formula,data=list(),...) {
+    if (!requireNamespace("e1071", quietly = TRUE)){
+        stop("e1071 package needed for SVM. Please install it.",
+             call. = FALSE)
+    }
+    else return(e1071::svm(formula,data,...))
+}
 
 #' @export
 svm.FLpreparedData <- function(formula, data,kernel = "linear",cost = 1, degree = 3, sigma = .1, fetchID = TRUE,...)
