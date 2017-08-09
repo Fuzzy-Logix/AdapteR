@@ -1,11 +1,32 @@
-## Country Clustering Demo AdapteR
+## Fuzzy Logix DB Lytix(TM)
+## is a high-speed in-database analytics library
+## written in C++, exposing ~700 functions through SQL.
+## SQL as low-level language makes analyses
+## consumable from all SQL-enabled clients.
 
-if(!exists("connection")) {
-  stop("no connection variable found. Run demo(connecting) \n ")
-}
+## This demo shows how the
+## AdapteR package of Fuzzy Logix is
+## easing interaction with the DB Lytix(TM) in-database
+## library.
+##
+## The demo gives an overview of kmeans
+## functionality of AdapteR. Economic data
+## is used to identify clusters of countries.
+
+### Pre-setup
 oldWarn <- getOption("warn")
 options(warn=-1)
-options(debugSQL=FALSE)
+
+if(!exists("connection")) {
+    demo("connecting", package="AdapteR")
+}
+
+#############################################################
+
+##################### KMeans Clustering ########################
+################################################################
+#### Data Preparation
+vtemp <- readline("Data Preparation: \n ")
 
 vtableName <- getTestTableName("medEconomicData")
 
@@ -32,13 +53,16 @@ vtemp <- readline("Above: FLReshape used to process,subset input deepTable \n ")
 
 ## Examine deep table
 head(deepTable)
+## Examine Mappings
+head(Mappings)
 
+## Run kmeans on deepTable
 vtemp <- readline("Press ENTER to start kmeans in-database: \n ")
 kmeansobject <- kmeans(deepTable,4)
 
 vtemp <- readline("kmeans Run Completed\n Press ENTER to display components of output object: \n ")
-
-
+## Examine Result object
+## Fetch the resulting clusters
 clusters <- as.vector(kmeansobject$cluster)
 clusters
 
@@ -81,6 +105,7 @@ colnames(medEconomicData) <- vIndicatorMap[colnames(medEconomicData)]
 head(medEconomicData)
 dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
+require(plotly)
 
 ## Plot clusters on a world map
 medEconomicData$CountryName <- rownames(medEconomicData)
