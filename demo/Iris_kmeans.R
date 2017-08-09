@@ -20,7 +20,7 @@ data(iris)
 ## Drop table ARBaseIris if already exists
 vtemp <- sqlSendUpdate(connection,"DROP TABLE ARBaseIris")
 
-irisFL <- as.FLTable(iris,tableName="ARBaseIris")
+irisFL <- FLTable(table = "iris", obs_id_colname = "obsid")
 vtemp <- readline("Above:Used casting to push iris into database:")
 
 class(irisFL)
