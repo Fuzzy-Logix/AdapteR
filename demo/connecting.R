@@ -15,7 +15,7 @@
 
 ## The Documentation for flConnect can be found using ?flConnect
 ## ?flConnect
-vtemp <- readline("This demo shows how to connect to the FL_TRAIN database.\nIf the demo fails, please set the variables mentioned in the error message which are required for connecting with this demo.\n\nPress <ENTER> to connect to your database.")
+vtemp <- readline("This demo shows how to connect to the database.\nIf the demo fails, please set the variables mentioned in the error message which are required for connecting with this demo.\n\nPress <ENTER> to connect to your database.")
 
 if(!exists("yourPlatform"))
     yourPlatform <- "TD"
@@ -23,10 +23,10 @@ if(!exists("yourPlatform"))
 if(!exists("yourODBCSource") & !exists("yourUser"))
     stop("Please set the variable \nyourODBCSource <- \"...\" for odbc login!\nor set for jdbc login:\nyourUser <- \"...\"\nyourPassword <- \"...\"")
 
-## If the fuzzylogix installed database is different from FL_TRAIN(TD),fuzzylogix(TDAster),dblytix(Hadoop)
+## If the fuzzylogix installed database is different from FL_DEMO(TD),fuzzylogix(TDAster),dblytix(Hadoop)
 ## Set it using "yourFLDBName" variable before starting this demo.
 if(!exists("yourFLDBName")){
-    vmap <- c(TD="FL_TRAIN",TDAster="fuzzylogix",Hadoop="dblytix")
+    vmap <- c(TD="FL_DEMO",TDAster="fuzzylogix",Hadoop="dblytix")
     yourFLDBName <- vmap[yourPlatform]
 }
 
@@ -79,7 +79,7 @@ if(!exists("connection")){
 
 
 ## .......................#################..................
-## ....Trying to Fetch a matrix from FL_TRAIN.tblmatrixmulti using sqlQuery......
+## ....Trying to Fetch a matrix from tblmatrixmulti using sqlQuery......
 ## .......................#################..................
 
 sqlQuery(connection,paste0("SELECT * \n FROM ",

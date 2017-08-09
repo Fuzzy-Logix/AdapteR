@@ -60,7 +60,7 @@ print(vresFL)
 #### Printing the confusion matrix and basic forest details.
 vtemp<-readline("Above: Examining the forest confusion matrix")
 
-plot(vresFL)
+# plot(vresFL)
 #### Examining the plot for random forest
 vtemp<-readline("Above: Plots for randomForest")
 

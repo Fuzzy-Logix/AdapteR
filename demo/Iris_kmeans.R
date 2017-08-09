@@ -17,9 +17,8 @@ if(!exists("connection")) {
 #############################################################
 data(iris)
 
-## Drop table ARBaseIris if already exists
-vtemp <- sqlSendUpdate(connection,"DROP TABLE ARBaseIris")
 
+## Create FLTable object
 irisFL <- FLTable(table = "iris", obs_id_colname = "obsid")
 vtemp <- readline("Above:Used casting to push iris into database:")
 
@@ -31,7 +30,7 @@ vtemp <- readline("Displayed above is the head of irisFL")
 
 ## Data Preparation
 #### Select all columns except Species Column
-irisFL <- irisFL[,setdiff(colnames(irisFL),"Species")]
+irisFL <- irisFL[,setdiff(colnames(irisFL),"species")]
 
 vtemp <- readline("Above: Subset FLTable just like data.frame subsetting.")
 #### Examining data after subsetting
