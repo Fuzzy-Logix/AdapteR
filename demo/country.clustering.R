@@ -81,7 +81,6 @@ colnames(medEconomicData) <- vIndicatorMap[colnames(medEconomicData)]
 head(medEconomicData)
 dim(medEconomicData)
 vtemp <- readline("Above: Examine the data before plotting \n ")
-require(plotly)
 
 ## Plot clusters on a world map
 medEconomicData$CountryName <- rownames(medEconomicData)
