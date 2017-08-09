@@ -92,13 +92,6 @@ vtemp <- readline("You can use FL results in other R packages, e.g. plotting -- 
 
 run.FLCorrelationShiny <- function (){
 ###########################################################
-    ## Shiny Correlation Plot Demo
-    ##
-    ## metadata can be easily combined on the client
-    ## download metadata from
-
-    ## metadata contains sectors and industries
-    ## that will be selectable in the shiny web ui
     table(metaInfo$industry)
     table(metaInfo$Sector)
     stockCorrelPlot <- function(input){
@@ -169,7 +162,6 @@ assign("metaInfo",metaInfo,envir=environment(run.FLCorrelationShiny))
 
 ## To explore correlations interactively, we defined a function above.
 ## Simply execute now
-## > run.FLCorrelationShiny()
-## (When you want to end the interactive demo, shut the shiny web server by pressing <ctrl-c> twice here in the R terminal.)
-## End of the scripted demo.
+## run.FLCorrelationShiny()
+
 ### Thank You ####
