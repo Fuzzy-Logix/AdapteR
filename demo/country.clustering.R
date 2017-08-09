@@ -58,7 +58,7 @@ head(Mappings)
 
 ## Run kmeans on deepTable
 vtemp <- readline("Press ENTER to start kmeans in-database: \n ")
-kmeansobject <- kmeans(deepTable,6)
+kmeansobject <- kmeans(deepTable,4)
 
 vtemp <- readline("kmeans Run Completed\n Press ENTER to display components of output object: \n ")
 ## Examine Result object
@@ -130,7 +130,7 @@ p1
 
 vtemp <- readline("Above: ScatterPlot of clusters vs features \n ")
 
-attach(medEconomicData)
+
 p2 <- plot_ly() %>% 
       add_trace(
             z = colr[clusters],
@@ -155,6 +155,7 @@ medEconomicDataOrdered <- cbind(medEconomicData,
 medEconomicDataOrdered <- medEconomicDataOrdered[order(medEconomicDataOrdered$GDP),]
 
 attach(medEconomicDataOrdered)
+CountryName <- factor(CountryName, levels = unique(CountryName))
 p3 <- plot_ly(x=CountryName,y=GDP,type="bar",
               marker=list(color=colr[medEconomicDataOrdered$cluster])) %>%
       layout(title="Effect of GDP on clusters formed",
@@ -168,6 +169,7 @@ vtemp <- readline("Above: Effect of GDP on clusters formed \n ")
 ## Effect of Inflation on clusters formed
 medEconomicDataOrdered <- medEconomicDataOrdered[order(medEconomicDataOrdered$Inflation),]
 attach(medEconomicDataOrdered)
+CountryName <- factor(CountryName, levels = unique(CountryName))
 p4 <- plot_ly(x=CountryName,y=Inflation,type="bar",
               marker=list(color=colr[medEconomicDataOrdered$cluster])) %>%
   layout(title="Effect of Inflation on clusters formed",
