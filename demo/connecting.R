@@ -7,8 +7,7 @@ if(!exists("connection") & exists("yourODBCSource")){
                             platform=yourPlatform,
                             TestDatabase=yourDataDBName,
                             drop=FALSE)
-}
-else{
+}else{
     connection <- flConnect(
                     host     = yourHost,
                     database = yourFLDBName,
