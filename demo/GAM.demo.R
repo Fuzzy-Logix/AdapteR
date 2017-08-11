@@ -1,27 +1,7 @@
-## Fuzzy Logix DB Lytix(TM)
-## is a high-speed in-database analytics library
-## written in C++, exposing ~700 functions through SQL.
-## SQL as low-level language makes analyses
-## consumable from all SQL-enabled clients.
-
-## The following script demos the fitting of 
-## generalized Additive Models using DB-Lytix and
-## AdapteR.
-
-## Main Value Points:
-##      Ease of modelling due to syntactical similarity with R
-##      Scalable in-database computation
-
-## Intial set-up
+## GAM Demo AdapteR ##
 oldWarn = getOption("warn")
 options(warn=-1)
-
-
-## Set-up the ODBC connection to demo database.
-# demo("connecting",package="AdapteR")
-
-## Create a FLTable object (Equivalent to R's data.frame)
-## to hold the metadata of the remote table
+options(debugSQL=FALSE)
 
 FLTableObject <- FLTable(getTestTableName("tblGAMSimData"),"ObsID")
 
@@ -39,12 +19,15 @@ gamobject <- gam(myformula,data=FLTableObject)
 
 readline("Above: Fit a GAM model based on formula object: smooth and Tensor interactions supported: ")
 
-## Access key output statistics with 
-## $ operator -- simple R like syntax
+
 gamobject$coefficients
+
 gamobject$df.null
+
 gamobject$edf
+
 gamobject$knots
+
 gamobject$df.residual
 
 readline("Above: Examine key output statistics with $ operator -- simple R like syntax")

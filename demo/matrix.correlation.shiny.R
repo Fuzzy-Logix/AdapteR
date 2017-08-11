@@ -3,7 +3,7 @@
 if(!exists("connection")) {
   stop("no connection variable found. Run demo(connecting) \n ")
 }
-
+options(debugSQL=FALSE)
 #############################################################
 sqlQuery(connection,
            limitRowsSQL(pSelect=paste0("select * from ",getTestTableName("finEquityReturns")),
