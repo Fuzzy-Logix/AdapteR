@@ -9,15 +9,12 @@ options(debugSQL=FALSE)
 
 vtableName <- getTestTableName("medEconomicData")
 
-## Display subset of Table in database
 sqlQuery(getFLConnection(),
         limitRowsSQL(paste0("SELECT * FROM ",vtableName),5))
 
 vtemp <- readline("Above: Examine the data in the database \n ")
 
-####
-## Process,subset input deepTable -- Data Prep
-## required by DB-Lytix functions
+## Data-Preparation
 resultList <- FLReshape(data=vtableName,
                         formula=CountryName ~ IndicatorCode,
                         value.var="TimeSeriesVal",
@@ -63,10 +60,8 @@ Sys.sleep(3)
 kmeansobject$totss
 
 
-## Visualization using pltoly
 vtemp <- readline("Data Visualization: \n ")
 
-## Fetch the processed data
 medEconomicData <- as.data.frame(deepTable)
 
 vtemp <- readline("Above: Fetch Economic Data for plotting \n ")

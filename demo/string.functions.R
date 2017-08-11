@@ -1,43 +1,23 @@
-## Fuzzy Logix DB Lytix(TM)
-## is a high-speed in-database analytics library
-## written in C++, exposing ~700 functions through SQL.
-## SQL as low-level language makes analyses
-## consumable from all SQL-enabled clients.
-
-## This demo shows how the
-## AdapteR package of Fuzzy Logix is
-## easing interaction with the DB Lytix(TM) in-database
-## library.
-##
-## The demo covers string functions
-#############################################################
+## Demo in-DB string functions AdapteR ##
+options(debugSQL=FALSE)
 if(!exists("connection")) {
-    demo("connecting", package="AdapteR")
+  stop("Please run demo(connecting) to create connection object \n")
 }
 #############################################################
-
-## ActressLDist table has information about hollywood movies
-## Examining table schema
-sqlQuery(connection,limitRowsSQL(paste0(
-"SELECT * ",
-" FROM ",getTestTableName("ActressLDist")),10))
-
-vtemp <- readline("Table is wide and has obsid as unique index:")
 
 FLTblObj <- FLTable(table=getTestTableName("ActressLDist"),
                     obs_id_colname="obsid")
 
-vtemp <- readline("Above: FLTable object created for the table")
+vtemp <- readline("Above: FLTable object created for the table \n ")
 
-## Examining the data using head on FLTable object
 head(FLTblObj)
 
-vtemp <- readline("Above: Using head to preview data")
+vtemp <- readline("Above: Using head to preview data \n ")
 
 ##******* Finding the top 5 Actress' names similar to 'Aleandro Formal' *******
 FLVecObj <- FLTblObj[,"actress"]
 
-vtemp <- readline("Above: Create a FLVector of Actress names by subsetting FLTable")
+vtemp <- readline("Above: Create a FLVector of Actress names by subsetting FLTable \n ")
 
 ## Using Levenshtein distance measure to find top similarities
 distFLVec <- stringdist("Aleandro Formal",
@@ -45,8 +25,6 @@ distFLVec <- stringdist("Aleandro Formal",
                         method="lv",
                         caseFlag=1)
 
-
-## in-database sorting
 O <- order(distFLVec)
 
 selection <- head(O,5)
@@ -54,17 +32,18 @@ selection <- head(O,5)
 data.frame(Actress  = as.R(FLVecObj[selection]),
            distance = as.R(distFLVec[selection]))
 
-vtemp <- readline("Above: Top 5 matches are found.  Data fetched only for printed 5 matches")
+vtemp <- readline("Above: Top 5 matches are found.  Data fetched only for printed 5 matches \n ")
 
 distFL <- stringdistmatrix(FLVecObj,c("Aleandro Formal","John Wayn"),method="dl")
-
 head(distFL)
+vtemp <- readline("Above: Find distances to Aleandro Formal,John Wayn \n ")
 
 ##******* Finding the information about any 'Sherlock Holmes' movies **********
 FLVecObj <- FLTblObj[,"filmtitle"]
 matching_index <- grep(pattern="Sherlock Holmes",
                        x=FLVecObj,
                        ignore.case=TRUE)
+
 ### Display matching Film names
 FLVecObj[matching_index]
 
