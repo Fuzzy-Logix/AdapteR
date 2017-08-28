@@ -204,7 +204,7 @@ lmer.FLTable <- function(formula, data, fetchID = TRUE,
 }
 
 #' @export
-setMethod("names", signature("FLMix"), function(object) {c("AIC","logLik",
+setMethod("names", signature("FLMix"), function(x) {c("AIC","logLik",
                                                           "CovarErr","CovarRandom",
                                                           "u",
                                                           "fixedcoef" )})
