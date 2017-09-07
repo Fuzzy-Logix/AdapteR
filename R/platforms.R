@@ -381,6 +381,9 @@ FLStartSession <- function(connection,
     ## Load Iris table if not exists
     vtemp <- loadIris()
 
+    ## Load actressLDist table if not exists
+    # vtemp <- loadFilmData()
+
     cat("Session Started..\n")
 }
 
@@ -618,6 +621,14 @@ loadIris <- function(){
   if(!checkRemoteTableExistence(tableName="iris"))
   flt <- as.FLTable(viris,tableName="iris",temporary=FALSE)
   return(NULL)
+}
+
+loadFilmData <- function(){
+    vdata <- data(FLFilmDemoData)
+    vdata <- FLFilmDemoData
+    if(!checkRemoteTableExistence(tableName="actressLDist"))
+      flt <- as.FLTable(vdata,tableName="actressLDist",temporary=FALSE)
+    return(NULL)
 }
 
 
